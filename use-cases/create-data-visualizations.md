@@ -1,3 +1,12 @@
+---
+title: "Create Data Visualizations with AI"
+slug: create-data-visualizations
+description: "Generate publication-quality charts and graphs from your data using AI-selected chart types and styling."
+skill: data-visualizer
+category: data-ai
+tags: [visualization, charts, matplotlib, data]
+---
+
 # Create Data Visualizations with AI
 
 ## The Problem

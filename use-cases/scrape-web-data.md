@@ -1,3 +1,12 @@
+---
+title: "Scrape Web Data with AI"
+slug: scrape-web-data
+description: "Extract structured data from websites without APIs using AI-generated scrapers."
+skill: web-scraper
+category: data-ai
+tags: [scraping, web-data, beautifulsoup, csv]
+---
+
 # Scrape Web Data with AI
 
 ## The Problem

@@ -1,3 +1,12 @@
+---
+title: "Test API Endpoints with AI"
+slug: test-api-endpoints
+description: "Send requests to REST APIs, validate responses, and diagnose failures automatically."
+skill: api-tester
+category: development
+tags: [api, testing, rest, debugging]
+---
+
 # Test API Endpoints with AI
 
 ## The Problem

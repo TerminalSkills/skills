@@ -1,3 +1,12 @@
+---
+title: "Analyze PDF Documents with AI"
+slug: analyze-pdf-documents
+description: "Extract text, tables, and insights from PDF files using AI-powered analysis."
+skill: pdf-analyzer
+category: documents
+tags: [pdf, extraction, analysis]
+---
+
 # Analyze PDF Documents with AI
 
 ## The Problem

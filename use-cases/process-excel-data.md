@@ -1,3 +1,12 @@
+---
+title: "Process Excel Data with AI"
+slug: process-excel-data
+description: "Clean, transform, and analyze messy spreadsheet data using AI-driven pandas automation."
+skill: excel-processor
+category: data-ai
+tags: [excel, spreadsheet, data-cleaning, pandas]
+---
+
 # Process Excel Data with AI
 
 ## The Problem
