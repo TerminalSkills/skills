@@ -1,0 +1,758 @@
+{
+  "skills": [
+    {
+      "name": "ai-slides",
+      "slug": "ai-slides",
+      "description": "Generate complete presentations with AI — from outline to polished slides. Use when a user asks to create a presentation, build slides, make a pitch deck, generate a slide deck, create a keynote, prepare a talk, build a demo presentation, or produce any slide-based content.",
+      "category": "design",
+      "tags": [
+        "presentations",
+        "slides",
+        "pitch-deck",
+        "keynote",
+        "storytelling"
+      ]
+    },
+    {
+      "name": "api-tester",
+      "slug": "api-tester",
+      "description": "Test REST and GraphQL API endpoints with structured assertions and reporting. Use when a user asks to test an API, hit an endpoint, check if an API works, validate a response, debug an API call, test authentication flows, or verify API contracts. Supports GET, POST, PUT, PATCH, DELETE with headers, body, auth, and response validation.",
+      "category": "development",
+      "tags": [
+        "api",
+        "testing",
+        "rest",
+        "graphql",
+        "http"
+      ]
+    },
+    {
+      "name": "applicant-screening",
+      "slug": "applicant-screening",
+      "description": "Screen job applications against requirements and score candidates objectively. Use when a user asks to review applications, evaluate candidates, screen resumes, rank applicants, assess qualifications against a job description, shortlist candidates, or build a hiring scorecard.",
+      "category": "business",
+      "tags": [
+        "hiring",
+        "screening",
+        "recruitment",
+        "hr",
+        "candidates"
+      ]
+    },
+    {
+      "name": "batch-processor",
+      "slug": "batch-processor",
+      "description": "Process multiple documents in bulk with parallel execution. Use when a user asks to batch process files, convert many documents at once, run parallel file operations, bulk rename, bulk transform, or process a directory of files concurrently. Covers parallel execution, error handling, and progress tracking.",
+      "category": "automation",
+      "tags": [
+        "batch",
+        "parallel",
+        "bulk",
+        "processing",
+        "automation"
+      ]
+    },
+    {
+      "name": "brand-guidelines",
+      "slug": "brand-guidelines",
+      "description": "Create and maintain brand style guides for consistent visual identity. Use when a user asks to create brand guidelines, build a style guide, define a brand identity, create a design system document, establish brand colors and typography, or produce any brand standards documentation.",
+      "category": "design",
+      "tags": [
+        "branding",
+        "style-guide",
+        "visual-identity",
+        "design-system",
+        "typography"
+      ]
+    },
+    {
+      "name": "changelog-generator",
+      "slug": "changelog-generator",
+      "description": "Generate release notes and changelogs from git commits, feature lists, or project updates. Use when a user asks to generate a changelog, create release notes, summarize recent changes, draft a CHANGELOG entry, or prepare release documentation from git history.",
+      "category": "development",
+      "tags": [
+        "changelog",
+        "release-notes",
+        "git",
+        "documentation",
+        "versioning"
+      ]
+    },
+    {
+      "name": "chat-with-pdf",
+      "slug": "chat-with-pdf",
+      "description": "Answer questions about PDF content, summarize documents, and extract key information from any PDF file. Use when a user asks to chat with a PDF, ask questions about a document, find specific information in a PDF, get a summary of a PDF, or understand what a PDF document says. Works with reports, papers, manuals, and any text-based PDF.",
+      "category": "documents",
+      "tags": [
+        "pdf",
+        "qa",
+        "summarization",
+        "document",
+        "search"
+      ]
+    },
+    {
+      "name": "code-reviewer",
+      "slug": "code-reviewer",
+      "description": "Perform thorough code reviews with actionable, prioritized feedback. Use when a user asks to review code, check code quality, find bugs, review a pull request, audit code for issues, or get feedback on implementation. Covers correctness, security, performance, readability, and best practices across languages.",
+      "category": "development",
+      "tags": [
+        "code-review",
+        "quality",
+        "bugs",
+        "security",
+        "best-practices"
+      ]
+    },
+    {
+      "name": "coding-agent",
+      "slug": "coding-agent",
+      "description": "Run Codex CLI, Claude Code, or other coding agents as background processes for programmatic control. Use when a user asks to run a coding agent, delegate a task to another AI, spawn a sub-agent, run Claude Code in the background, or orchestrate multiple coding agents on separate tasks.",
+      "category": "development",
+      "tags": [
+        "coding-agent",
+        "automation",
+        "sub-agent",
+        "background-process",
+        "orchestration"
+      ]
+    },
+    {
+      "name": "content-writer",
+      "slug": "content-writer",
+      "description": "Research topics and write content like blog posts, articles, and marketing copy. Use when a user asks to write a blog post, create an article, draft marketing copy, write website content, create a newsletter, produce thought leadership content, or write any long-form or short-form copy.",
+      "category": "productivity",
+      "tags": [
+        "writing",
+        "blog",
+        "marketing",
+        "content",
+        "copywriting"
+      ]
+    },
+    {
+      "name": "contract-review",
+      "slug": "contract-review",
+      "description": "Analyze contracts for risks, check completeness, and provide actionable recommendations. Use when a user asks to review a contract, check an agreement for red flags, analyze contract terms, find risky clauses, review an NDA, evaluate a service agreement, or audit employment contract terms. Supports employment contracts, NDAs, service agreements, and vendor contracts.",
+      "category": "documents",
+      "tags": [
+        "contract",
+        "legal",
+        "review",
+        "risk-analysis",
+        "compliance"
+      ]
+    },
+    {
+      "name": "cover-letter",
+      "slug": "cover-letter",
+      "description": "Create compelling, personalized cover letters that help you stand out in job applications. Use when a user asks to write a cover letter, draft a job application letter, create a letter of interest, compose a motivation letter, or personalize an application for a specific company and role.",
+      "category": "business",
+      "tags": [
+        "cover-letter",
+        "job-application",
+        "career",
+        "writing",
+        "hiring"
+      ]
+    },
+    {
+      "name": "cv-builder",
+      "slug": "cv-builder",
+      "description": "Generate professional CVs and resumes from structured YAML data using rendercv. Use when a user asks to create a CV, build a resume, generate a PDF resume, format a curriculum vitae, make a professional CV from their experience, or convert career data into a polished resume document. Supports multiple templates and PDF output.",
+      "category": "business",
+      "tags": [
+        "cv",
+        "resume",
+        "pdf",
+        "career",
+        "rendercv"
+      ]
+    },
+    {
+      "name": "data-analysis",
+      "slug": "data-analysis",
+      "description": "Analyze spreadsheet data, generate insights, and create visualizations. Use when a user asks to analyze data, explore a dataset, find trends, generate statistics, create charts from CSV or Excel data, summarize data, or answer questions about tabular data.",
+      "category": "data-ai",
+      "tags": [
+        "data-analysis",
+        "pandas",
+        "visualization",
+        "statistics",
+        "csv"
+      ]
+    },
+    {
+      "name": "data-extractor",
+      "slug": "data-extractor",
+      "description": "Extract structured data from any document format using unified document processing. Use when a user asks to extract data from a document, parse a PDF, pull structured data from files, convert documents to JSON or CSV, extract fields from invoices or forms, or scrape data from documents.",
+      "category": "data-ai",
+      "tags": [
+        "data-extraction",
+        "document-parsing",
+        "pdf",
+        "structured-data",
+        "etl"
+      ]
+    },
+    {
+      "name": "data-visualizer",
+      "slug": "data-visualizer",
+      "description": "Generate charts and data visualizations from datasets. Use when a user asks to create a chart, plot data, visualize trends, make a bar chart, line graph, scatter plot, histogram, heatmap, or any other data visualization. Produces publication-quality charts from CSV, JSON, Excel, or inline data.",
+      "category": "data-ai",
+      "tags": [
+        "visualization",
+        "charts",
+        "matplotlib",
+        "plotting",
+        "data"
+      ]
+    },
+    {
+      "name": "dev-slides",
+      "slug": "dev-slides",
+      "description": "Create developer-friendly presentations using Slidev. Build Vue-powered slides with live code execution, syntax highlighting, and diagrams. Use when a user asks to create a presentation, build slides, make a tech talk, create a slide deck, or prepare a developer presentation.",
+      "category": "development",
+      "tags": [
+        "slides",
+        "presentations",
+        "slidev",
+        "vue",
+        "developer-tools"
+      ]
+    },
+    {
+      "name": "doc-parser",
+      "slug": "doc-parser",
+      "description": "Parse complex documents with IBM docling. Use when a user asks to parse a document with tables, extract figures from a document, handle multi-column layouts, convert a complex PDF to structured data, extract content from academic papers, or process documents with mixed layouts. Handles tables, figures, headers, footers, and multi-column text.",
+      "category": "documents",
+      "tags": [
+        "parsing",
+        "docling",
+        "tables",
+        "figures",
+        "layout"
+      ]
+    },
+    {
+      "name": "docker-helper",
+      "slug": "docker-helper",
+      "description": "Build, debug, and optimize Docker configurations. Use when a user asks to create a Dockerfile, fix Docker build errors, optimize image size, write docker-compose files, debug container issues, set up multi-stage builds, or troubleshoot networking between containers. Covers Dockerfile best practices and compose orchestration.",
+      "category": "devops",
+      "tags": [
+        "docker",
+        "containers",
+        "dockerfile",
+        "compose",
+        "devops"
+      ]
+    },
+    {
+      "name": "email-drafter",
+      "slug": "email-drafter",
+      "description": "Draft professional emails for various business scenarios with appropriate tone and structure. Use when a user asks to write an email, compose a message, draft a reply, write a follow-up, create an outreach email, respond to a client, write a cold email, or craft any professional correspondence.",
+      "category": "productivity",
+      "tags": [
+        "email",
+        "writing",
+        "communication",
+        "business",
+        "outreach"
+      ]
+    },
+    {
+      "name": "excel-processor",
+      "slug": "excel-processor",
+      "description": "Read, transform, analyze, and generate Excel and CSV files. Use when a user asks to open a spreadsheet, process Excel data, merge CSVs, create pivot tables, clean up data, convert between Excel and CSV, add formulas, filter rows, or generate reports from tabular data. Handles .xlsx, .xls, and .csv.",
+      "category": "data-ai",
+      "tags": [
+        "excel",
+        "csv",
+        "spreadsheet",
+        "data",
+        "pandas"
+      ]
+    },
+    {
+      "name": "expense-report",
+      "slug": "expense-report",
+      "description": "Organize, categorize, and summarize business expenses for reimbursement and tax preparation. Use when a user asks to create an expense report, organize receipts, categorize expenses, summarize spending, prepare expenses for reimbursement, or compile business expenses for tax filing. Handles receipts, CSV data, and manual entries.",
+      "category": "business",
+      "tags": [
+        "expense",
+        "report",
+        "finance",
+        "receipts",
+        "tax"
+      ]
+    },
+    {
+      "name": "file-organizer",
+      "slug": "file-organizer",
+      "description": "Organize and rename files based on content analysis. Use when a user asks to sort files into folders, rename files by pattern, organize a messy directory, categorize documents by type or content, deduplicate files, or clean up a downloads folder. Handles smart renaming, content-based sorting, and duplicate detection.",
+      "category": "automation",
+      "tags": [
+        "files",
+        "organize",
+        "rename",
+        "cleanup",
+        "automation"
+      ]
+    },
+    {
+      "name": "frontend-design",
+      "slug": "frontend-design",
+      "description": "Expert frontend design guidelines for creating beautiful, modern UIs. Use when a user asks to design a landing page, create a dashboard layout, build a modern UI, style a web application, design a hero section, create a responsive layout, or implement frontend design patterns.",
+      "category": "design",
+      "tags": [
+        "frontend",
+        "ui-design",
+        "landing-pages",
+        "dashboards",
+        "css"
+      ]
+    },
+    {
+      "name": "git-commit-pro",
+      "slug": "git-commit-pro",
+      "description": "Write well-structured git commit messages following the Conventional Commits standard. Use when a user asks to commit changes, write a commit message, stage and commit, improve a commit message, or follow commit conventions. Analyzes diffs to produce accurate, meaningful commit messages.",
+      "category": "development",
+      "tags": [
+        "git",
+        "commits",
+        "conventional-commits",
+        "version-control"
+      ]
+    },
+    {
+      "name": "github",
+      "slug": "github",
+      "description": "Interact with GitHub using the gh CLI. Create issues, open pull requests, check CI status, review PRs, manage releases, and run advanced queries. Use when a user asks to create a GitHub issue, open a PR, check CI runs, list pull requests, review a PR, search GitHub issues, or manage releases.",
+      "category": "development",
+      "tags": [
+        "github",
+        "pull-requests",
+        "issues",
+        "ci-cd",
+        "git"
+      ]
+    },
+    {
+      "name": "invoice-generator",
+      "slug": "invoice-generator",
+      "description": "Create professional invoices with proper formatting. Use when a user asks to generate an invoice, create a bill, make an invoice PDF, build an invoice for a client, or produce a billing document. Supports multiple currencies, tax calculations, discounts, and customizable templates.",
+      "category": "business",
+      "tags": [
+        "invoice",
+        "billing",
+        "pdf",
+        "business",
+        "finance"
+      ]
+    },
+    {
+      "name": "job-description",
+      "slug": "job-description",
+      "description": "Create compelling job postings with requirements, responsibilities, and qualifications. Use when a user asks to write a job description, create a job posting, draft a job listing, build a role specification, define job requirements, or compose a hiring ad for a position.",
+      "category": "business",
+      "tags": [
+        "hiring",
+        "job-posting",
+        "recruitment",
+        "hr",
+        "writing"
+      ]
+    },
+    {
+      "name": "lead-qualification",
+      "slug": "lead-qualification",
+      "description": "Score and qualify sales leads based on criteria and fit. Use when a user asks to qualify leads, score prospects, prioritize sales leads, evaluate lead quality, rank leads by fit, assess sales pipeline, or determine which leads to pursue first. Supports BANT, MEDDIC, and custom scoring frameworks.",
+      "category": "business",
+      "tags": [
+        "sales",
+        "leads",
+        "qualification",
+        "scoring",
+        "pipeline"
+      ]
+    },
+    {
+      "name": "lm-studio-subagents",
+      "slug": "lm-studio-subagents",
+      "description": "Offload tasks to local LLMs via LM Studio. Use when a user asks to run local models with LM Studio, save API costs by using local LLMs, create subagents with local models, offload summarization or classification to a local model, or use LM Studio's API for batch processing. Covers local model inference, task delegation, and cost optimization.",
+      "category": "ml",
+      "tags": [
+        "lm-studio",
+        "local-llm",
+        "subagent",
+        "inference",
+        "cost-saving"
+      ]
+    },
+    {
+      "name": "markdown-writer",
+      "slug": "markdown-writer",
+      "description": "Generate well-structured technical documentation in Markdown. Use when a user asks to write docs, create a README, document an API, write a how-to guide, generate technical documentation, create a changelog, write a project wiki, or produce any structured Markdown content. Follows documentation best practices for clarity and completeness.",
+      "category": "content",
+      "tags": [
+        "markdown",
+        "documentation",
+        "writing",
+        "readme",
+        "technical-writing"
+      ]
+    },
+    {
+      "name": "meeting-notes",
+      "slug": "meeting-notes",
+      "description": "Transform raw meeting notes or transcripts into structured, actionable summaries. Use when a user asks to summarize meeting notes, organize a transcript, extract action items from a meeting, create meeting minutes, format discussion notes, or turn a call recording transcript into a summary.",
+      "category": "productivity",
+      "tags": [
+        "meetings",
+        "notes",
+        "summaries",
+        "action-items",
+        "transcripts"
+      ]
+    },
+    {
+      "name": "model-router",
+      "slug": "model-router",
+      "description": "Smart routing between multiple LLMs based on task complexity, cost, and capabilities. Use when a user asks to route between models, optimize LLM costs, select the best model for a task, build a model gateway, create a multi-model pipeline, or balance cost vs quality across LLM providers. Covers routing strategies, fallback chains, and cost optimization.",
+      "category": "ml",
+      "tags": [
+        "routing",
+        "llm",
+        "multi-model",
+        "cost-optimization",
+        "gateway"
+      ]
+    },
+    {
+      "name": "n8n-workflow",
+      "slug": "n8n-workflow",
+      "description": "Automate document workflows with n8n. Use when a user asks to create an n8n workflow, automate a process, connect services, build an integration pipeline, set up webhook triggers, or access n8n workflow templates. Covers workflow design, node configuration, and accessing 7800+ community templates.",
+      "category": "automation",
+      "tags": [
+        "n8n",
+        "workflow",
+        "automation",
+        "integration",
+        "no-code"
+      ]
+    },
+    {
+      "name": "nda-generator",
+      "slug": "nda-generator",
+      "description": "Generate professional Non-Disclosure Agreements for meetings, partnerships, and employment. Use when a user asks to create an NDA, draft a confidentiality agreement, generate a non-disclosure document, make an NDA for a meeting, or prepare a mutual NDA for a partnership. Supports unilateral and mutual NDAs.",
+      "category": "business",
+      "tags": [
+        "nda",
+        "legal",
+        "confidentiality",
+        "agreement",
+        "business"
+      ]
+    },
+    {
+      "name": "offer-letter",
+      "slug": "offer-letter",
+      "description": "Create formal employment offer letters with compensation details and terms. Use when a user asks to write an offer letter, draft an employment offer, create a job offer, compose a compensation letter, generate a formal hiring letter, or prepare an employment agreement for a candidate.",
+      "category": "business",
+      "tags": [
+        "hiring",
+        "offer-letter",
+        "hr",
+        "employment",
+        "compensation"
+      ]
+    },
+    {
+      "name": "ollama-local",
+      "slug": "ollama-local",
+      "description": "Run open-source LLMs locally with Ollama. Use when a user asks to run a local language model, install Ollama, use Llama locally, run Mistral or DeepSeek on their machine, set up local AI inference, create a custom Modelfile, or serve models via a local API. Covers installation, model management, API usage, and custom model creation.",
+      "category": "ml",
+      "tags": [
+        "ollama",
+        "local-llm",
+        "llama",
+        "inference",
+        "self-hosted"
+      ]
+    },
+    {
+      "name": "pdf-analyzer",
+      "slug": "pdf-analyzer",
+      "description": "Extract text, tables, metadata, and structured data from PDF files. Use when a user asks to read a PDF, parse a PDF, extract data from a PDF, summarize a PDF document, pull tables from a PDF, or convert PDF content to structured formats like JSON or CSV. Handles single and multi-page documents, scanned PDFs, and PDFs with complex table layouts.",
+      "category": "documents",
+      "tags": [
+        "pdf",
+        "document",
+        "extraction",
+        "tables",
+        "parsing"
+      ]
+    },
+    {
+      "name": "pdf-merge-split",
+      "slug": "pdf-merge-split",
+      "description": "Combine multiple PDFs into one or split a PDF into separate files. Use when a user asks to merge PDFs, combine PDF files, join documents together, split a PDF into pages, extract pages from a PDF, or separate a PDF into parts. Supports page range selection and custom ordering.",
+      "category": "documents",
+      "tags": [
+        "pdf",
+        "merge",
+        "split",
+        "combine",
+        "pages"
+      ]
+    },
+    {
+      "name": "pdf-ocr",
+      "slug": "pdf-ocr",
+      "description": "Extract text from scanned PDFs using optical character recognition. Use when a user asks to OCR a PDF, read a scanned document, extract text from an image PDF, digitize a scanned file, convert a scanned PDF to text, or read text from a photograph of a document. Supports multiple languages and handles low-quality scans.",
+      "category": "documents",
+      "tags": [
+        "ocr",
+        "pdf",
+        "scanned",
+        "text-extraction",
+        "tesseract"
+      ]
+    },
+    {
+      "name": "peft-fine-tuning",
+      "slug": "peft-fine-tuning",
+      "description": "Parameter-efficient fine-tuning for LLMs using LoRA, QLoRA, and 25+ methods. Use when a user asks to fine-tune a language model, train a custom LLM, adapt a model to their data, use LoRA or QLoRA, fine-tune Llama or Mistral, or train a model on consumer GPUs. Covers PEFT methods for 7B-70B parameter models.",
+      "category": "ml",
+      "tags": [
+        "fine-tuning",
+        "lora",
+        "qlora",
+        "peft",
+        "llm"
+      ]
+    },
+    {
+      "name": "proposal-writer",
+      "slug": "proposal-writer",
+      "description": "Create compelling business proposals that win deals and partnerships. Use when a user asks to write a proposal, draft a business proposal, create a project proposal, prepare a bid, write a pitch document, or generate a partnership proposal. Produces structured, persuasive documents ready for client delivery.",
+      "category": "business",
+      "tags": [
+        "proposal",
+        "business",
+        "writing",
+        "sales",
+        "pitch"
+      ]
+    },
+    {
+      "name": "reddit-insights",
+      "slug": "reddit-insights",
+      "description": "Semantic search across Reddit to find pain points, validate ideas, discover niches, and analyze sentiment. Use when a user asks to research Reddit, find Reddit discussions about a topic, analyze Reddit sentiment, discover what people complain about on Reddit, validate a business idea on Reddit, find pain points in a subreddit, or mine Reddit for product insights.",
+      "category": "research",
+      "tags": [
+        "reddit",
+        "research",
+        "sentiment",
+        "market-research",
+        "validation"
+      ]
+    },
+    {
+      "name": "reddit-readonly",
+      "slug": "reddit-readonly",
+      "description": "Browse and search Reddit via the public JSON API with no authentication required. Use when a user asks to read Reddit, browse a subreddit, fetch Reddit posts, get Reddit comments, search Reddit for posts, check trending topics on Reddit, read a Reddit thread, or pull content from a subreddit.",
+      "category": "research",
+      "tags": [
+        "reddit",
+        "api",
+        "browsing",
+        "search",
+        "social-media"
+      ]
+    },
+    {
+      "name": "remotion-video-toolkit",
+      "slug": "remotion-video-toolkit",
+      "description": "Programmatic video creation with React using Remotion. Use when a user asks to create videos with code, generate personalized videos, build animated data visualizations, add TikTok-style captions, render video programmatically, or automate video production. Supports CLI rendering, AWS Lambda, and Google Cloud Run deployment.",
+      "category": "automation",
+      "tags": [
+        "remotion",
+        "video",
+        "react",
+        "animation",
+        "rendering"
+      ]
+    },
+    {
+      "name": "report-generator",
+      "slug": "report-generator",
+      "description": "Generate professional data reports with charts, tables, and visualizations. Use when a user asks to create a report, generate a data report, build a dashboard report, produce a PDF report with charts, create an executive summary, or generate a weekly/monthly report from data.",
+      "category": "data-ai",
+      "tags": [
+        "reports",
+        "visualization",
+        "pdf",
+        "charts",
+        "business-intelligence"
+      ]
+    },
+    {
+      "name": "resume-tailor",
+      "slug": "resume-tailor",
+      "description": "Optimize your resume for specific job applications by matching keywords and highlighting relevant experience. Use when a user asks to tailor a resume, optimize a CV for a job, match a resume to a job description, improve ATS compatibility, customize a resume for a specific role, or align experience with job requirements.",
+      "category": "business",
+      "tags": [
+        "resume",
+        "ats",
+        "job-search",
+        "optimization",
+        "keywords"
+      ]
+    },
+    {
+      "name": "senior-computer-vision",
+      "slug": "senior-computer-vision",
+      "description": "Object detection, image segmentation, and visual AI. Use when a user asks to detect objects in images, segment images, run YOLO inference, build a computer vision pipeline, use Faster R-CNN or SAM, deploy a vision model with TensorRT, or perform image classification. Covers YOLO, SAM, Mask R-CNN, and TensorRT optimization.",
+      "category": "ml",
+      "tags": [
+        "computer-vision",
+        "yolo",
+        "segmentation",
+        "detection",
+        "tensorrt"
+      ]
+    },
+    {
+      "name": "sql-optimizer",
+      "slug": "sql-optimizer",
+      "description": "Analyze and optimize SQL queries for performance. Use when a user asks to optimize a query, speed up a slow query, analyze a query plan, add indexes, fix N+1 queries, reduce query time, tune database performance, or rewrite SQL for efficiency. Supports PostgreSQL, MySQL, and SQLite.",
+      "category": "data-ai",
+      "tags": [
+        "sql",
+        "optimization",
+        "database",
+        "performance",
+        "queries"
+      ]
+    },
+    {
+      "name": "table-extractor",
+      "slug": "table-extractor",
+      "description": "Extract tables from PDFs with high accuracy using camelot. Handles complex table structures including merged cells, multi-line rows, and spanning headers. Use when a user asks to extract a table from a PDF, pull tabular data from a document, convert PDF tables to CSV or Excel, or parse structured tables from reports.",
+      "category": "data-ai",
+      "tags": [
+        "table-extraction",
+        "pdf",
+        "camelot",
+        "csv",
+        "spreadsheet"
+      ]
+    },
+    {
+      "name": "template-engine",
+      "slug": "template-engine",
+      "description": "Auto-fill document templates with data. Use when a user asks to create a mail merge, fill templates with data, generate documents from a template, populate placeholders, bulk generate letters or invoices, or auto-fill forms from a spreadsheet. Supports any document format including DOCX, PDF, HTML, and plain text.",
+      "category": "automation",
+      "tags": [
+        "template",
+        "mail-merge",
+        "documents",
+        "automation",
+        "generation"
+      ]
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "slug": "ui-ux-pro-max",
+      "description": "Complete UI/UX design intelligence and implementation guidance for polished interfaces. Use when a user asks to improve UX, redesign an interface, create a design system, review UI patterns, improve user flows, design forms, build navigation, or make an interface more intuitive and polished.",
+      "category": "design",
+      "tags": [
+        "ui",
+        "ux",
+        "design-system",
+        "user-experience",
+        "interaction-design"
+      ]
+    },
+    {
+      "name": "video-frames",
+      "slug": "video-frames",
+      "description": "Extract frames or clips from videos using ffmpeg. Use when a user asks to extract thumbnails from a video, capture specific frames, create video previews, split a video into clips, generate a contact sheet, or extract frames for analysis. Covers ffmpeg frame extraction, clip cutting, and thumbnail generation.",
+      "category": "automation",
+      "tags": [
+        "video",
+        "ffmpeg",
+        "frames",
+        "thumbnails",
+        "extraction"
+      ]
+    },
+    {
+      "name": "video-subtitles",
+      "slug": "video-subtitles",
+      "description": "Generate and burn subtitles into videos. Use when a user asks to add subtitles to a video, generate captions, transcribe audio to SRT or VTT, auto-transcribe with Whisper, burn in subtitles, create closed captions, or translate subtitles. Supports SRT, VTT, and ASS subtitle formats.",
+      "category": "automation",
+      "tags": [
+        "subtitles",
+        "captions",
+        "whisper",
+        "video",
+        "transcription"
+      ]
+    },
+    {
+      "name": "web-research",
+      "slug": "web-research",
+      "description": "Deep web research with Brave Search API. Find sources, extract content, and compile comprehensive reports. Use when a user asks to research a topic on the web, find information online, compile a research report, search the internet for sources, do a deep dive on a subject, gather web sources for a report, or investigate a topic thoroughly using multiple online sources.",
+      "category": "research",
+      "tags": [
+        "research",
+        "web-search",
+        "brave",
+        "report",
+        "sources"
+      ]
+    },
+    {
+      "name": "web-scraper",
+      "slug": "web-scraper",
+      "description": "Extract structured data from web pages reliably. Use when a user asks to scrape a website, extract data from a webpage, pull prices from a site, collect links, gather product listings, download page content, or parse HTML for specific information. Handles static HTML and JavaScript-rendered pages.",
+      "category": "automation",
+      "tags": [
+        "scraping",
+        "web",
+        "html",
+        "data-extraction",
+        "beautifulsoup"
+      ]
+    },
+    {
+      "name": "weekly-report",
+      "slug": "weekly-report",
+      "description": "Generate consistent, professional weekly status reports for teams and stakeholders. Use when a user asks to write a weekly report, create a status update, generate a weekly summary, write a progress report, compile a week-in-review, or produce a team status report.",
+      "category": "productivity",
+      "tags": [
+        "reports",
+        "weekly-updates",
+        "status",
+        "team-management",
+        "productivity"
+      ]
+    }
+  ],
+  "categories": [
+    "automation",
+    "business",
+    "content",
+    "data-ai",
+    "design",
+    "development",
+    "devops",
+    "documents",
+    "ml",
+    "productivity",
+    "research"
+  ],
+  "updatedAt": "2026-02-02T21:25:48.616Z"
+}
