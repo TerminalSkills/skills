@@ -6,6 +6,7 @@ description: >-
   define a brand identity, create a design system document, establish
   brand colors and typography, or produce any brand standards documentation.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

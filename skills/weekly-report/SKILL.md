@@ -6,6 +6,7 @@ description: >-
   status update, generate a weekly summary, write a progress report,
   compile a week-in-review, or produce a team status report.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

@@ -7,10 +7,11 @@ description: >-
   Modelfile, or serve models via a local API. Covers installation, model
   management, API usage, and custom model creation.
 license: Apache-2.0
+compatibility: "Requires Ollama installed locally"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ml
+  category: data-ai
   tags: ["ollama", "local-llm", "llama", "inference", "self-hosted"]
   use-cases:
     - "Run Llama, Mistral, Qwen, or DeepSeek models locally"

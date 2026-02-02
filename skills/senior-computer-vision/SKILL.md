@@ -10,7 +10,7 @@ license: Apache-2.0
 metadata:
   author: orchestra-research
   version: "1.0.0"
-  category: ml
+  category: data-ai
   tags: ["computer-vision", "yolo", "segmentation", "detection", "tensorrt"]
   use-cases:
     - "Detect and count objects in images or video streams"

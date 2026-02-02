@@ -7,6 +7,7 @@ description: >-
   frames for analysis. Covers ffmpeg frame extraction, clip cutting, and
   thumbnail generation.
 license: Apache-2.0
+compatibility: "Requires ffmpeg and ffprobe installed on the system"
 metadata:
   author: terminal-skills
   version: "1.0.0"

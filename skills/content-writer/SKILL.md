@@ -6,6 +6,7 @@ description: >-
   marketing copy, write website content, create a newsletter, produce
   thought leadership content, or write any long-form or short-form copy.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

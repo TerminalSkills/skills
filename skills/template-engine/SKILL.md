@@ -7,6 +7,7 @@ description: >-
   forms from a spreadsheet. Supports any document format including DOCX,
   PDF, HTML, and plain text.
 license: Apache-2.0
+compatibility: "Requires Python 3.8+ with docxtpl and Jinja2 for template filling"
 metadata:
   author: terminal-skills
   version: "1.0.0"

@@ -6,6 +6,7 @@ description: >-
   transcript, extract action items from a meeting, create meeting minutes,
   format discussion notes, or turn a call recording transcript into a summary.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

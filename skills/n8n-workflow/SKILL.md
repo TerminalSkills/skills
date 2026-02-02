@@ -6,6 +6,7 @@ description: >-
   set up webhook triggers, or access n8n workflow templates. Covers workflow
   design, node configuration, and accessing 7800+ community templates.
 license: Apache-2.0
+compatibility: "Requires Node.js 18+ or Docker for n8n installation"
 metadata:
   author: terminal-skills
   version: "1.0.0"

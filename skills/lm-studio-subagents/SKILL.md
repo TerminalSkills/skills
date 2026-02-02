@@ -7,10 +7,11 @@ description: >-
   a local model, or use LM Studio's API for batch processing. Covers
   local model inference, task delegation, and cost optimization.
 license: Apache-2.0
+compatibility: "Requires LM Studio installed and running locally"
 metadata:
   author: terminal-skills
   version: "1.0.1"
-  category: ml
+  category: data-ai
   tags: ["lm-studio", "local-llm", "subagent", "inference", "cost-saving"]
   use-cases:
     - "Offload repetitive LLM tasks to free local models"

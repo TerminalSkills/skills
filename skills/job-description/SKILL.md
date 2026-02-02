@@ -6,7 +6,7 @@ description: >-
   job posting, draft a job listing, build a role specification, define job
   requirements, or compose a hiring ad for a position.
 license: Apache-2.0
-compatibility: "No external dependencies required."
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

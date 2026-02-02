@@ -6,6 +6,7 @@ description: >-
   build a modern UI, style a web application, design a hero section,
   create a responsive layout, or implement frontend design patterns.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

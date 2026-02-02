@@ -7,6 +7,7 @@ description: >-
   files concurrently. Covers parallel execution, error handling, and progress
   tracking.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

@@ -7,6 +7,7 @@ description: >-
   programmatically, or automate video production. Supports CLI rendering,
   AWS Lambda, and Google Cloud Run deployment.
 license: Apache-2.0
+compatibility: "Requires Node.js 18+ with Remotion and React"
 metadata:
   author: terminal-skills
   version: "1.0.0"

@@ -7,6 +7,7 @@ description: >-
   a downloads folder. Handles smart renaming, content-based sorting, and
   duplicate detection.
 license: Apache-2.0
+compatibility: "Requires Python 3.8+ for smart rename and duplicate detection scripts"
 metadata:
   author: terminal-skills
   version: "1.0.0"

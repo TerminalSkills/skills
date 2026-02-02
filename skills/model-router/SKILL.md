@@ -7,10 +7,11 @@ description: >-
   multi-model pipeline, or balance cost vs quality across LLM providers.
   Covers routing strategies, fallback chains, and cost optimization.
 license: Apache-2.0
+compatibility: "Requires at least one LLM provider (OpenAI, Anthropic, or local via Ollama/LM Studio)"
 metadata:
   author: terminal-skills
   version: "1.1.0"
-  category: ml
+  category: data-ai
   tags: ["routing", "llm", "multi-model", "cost-optimization", "gateway"]
   use-cases:
     - "Route tasks to the cheapest model that meets quality requirements"

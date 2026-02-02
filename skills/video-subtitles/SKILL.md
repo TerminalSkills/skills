@@ -6,6 +6,7 @@ description: >-
   auto-transcribe with Whisper, burn in subtitles, create closed captions,
   or translate subtitles. Supports SRT, VTT, and ASS subtitle formats.
 license: Apache-2.0
+compatibility: "Requires ffmpeg and Python 3.8+ with openai-whisper for transcription"
 metadata:
   author: terminal-skills
   version: "1.0.0"

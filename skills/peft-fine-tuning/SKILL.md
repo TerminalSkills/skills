@@ -10,7 +10,7 @@ license: Apache-2.0
 metadata:
   author: orchestra-research
   version: "1.0.0"
-  category: ml
+  category: data-ai
   tags: ["fine-tuning", "lora", "qlora", "peft", "llm"]
   use-cases:
     - "Fine-tune 7B-70B models on consumer GPUs with LoRA/QLoRA"

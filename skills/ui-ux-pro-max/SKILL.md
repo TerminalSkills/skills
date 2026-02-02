@@ -6,6 +6,7 @@ description: >-
   create a design system, review UI patterns, improve user flows, design
   forms, build navigation, or make an interface more intuitive and polished.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"

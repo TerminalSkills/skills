@@ -6,7 +6,7 @@ description: >-
   offer, create a job offer, compose a compensation letter, generate a
   formal hiring letter, or prepare an employment agreement for a candidate.
 license: Apache-2.0
-compatibility: "No external dependencies required."
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"
