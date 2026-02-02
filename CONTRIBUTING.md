@@ -134,4 +134,4 @@ Use one of these category values in the metadata:
 
 ## Questions
 
-Open an issue on GitHub or visit [terminal-skills.vercel.app](https://terminal-skills.vercel.app) for more information.
+Open an issue on GitHub or visit [terminalskills.io](https://terminalskills.io) for more information.

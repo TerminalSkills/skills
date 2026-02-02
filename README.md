@@ -2,7 +2,7 @@
 
 An open-source library of AI agent skills following the [Agent Skills](https://agentskills.io) open standard. Skills work across Claude Code, OpenAI Codex, Gemini CLI, Cursor, and other AI-powered development tools.
 
-Browse the full catalog at [terminal-skills.vercel.app](https://terminal-skills.vercel.app).
+Browse the full catalog at [terminalskills.io](https://terminalskills.io).
 
 ## Install a Skill
 
