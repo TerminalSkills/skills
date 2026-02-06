@@ -2,7 +2,7 @@
 title: "Test API Endpoints with AI"
 slug: test-api-endpoints
 description: "Send requests to REST APIs, validate responses, and diagnose failures automatically."
-skill: api-tester
+skills: [api-tester]
 category: development
 tags: [api, testing, rest, debugging]
 ---

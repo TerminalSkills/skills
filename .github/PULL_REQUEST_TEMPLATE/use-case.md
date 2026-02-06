@@ -8,13 +8,13 @@ Before submitting, ensure your use case meets these requirements:
 - [ ] `title` — Action-oriented, starts with a verb (e.g., "Analyze PDF Documents with AI"), max 100 chars
 - [ ] `slug` — Lowercase kebab-case matching the filename (e.g., `analyze-pdf-documents`), max 64 chars
 - [ ] `description` — One sentence explaining the use case, max 200 chars
-- [ ] `skill` — References an existing skill by name, or omitted if no skill exists yet
+- [ ] `skills` — Array of skill names used in this workflow (e.g., `[pdf-analyzer, data-visualizer]`), or omitted if none exist yet
 - [ ] `category` — One of: `documents`, `development`, `data-ai`, `devops`, `business`, `design`, `automation`, `research`, `productivity`, `content`
 - [ ] `tags` — Array of 3–5 relevant tags
 
 #### Body Sections
 - [ ] **The Problem** — Describes a real pain point (not generic or hypothetical)
-- [ ] **The Solution** — Explains the approach; names the skill if one exists
+- [ ] **The Solution** — Explains the approach; names the skills involved
 - [ ] **Step-by-Step Walkthrough** — Numbered steps with code examples showing the full workflow
 - [ ] **Real-World Example** — A concrete scenario from start to finish (specific role, specific data)
 - [ ] **Related Skills** — Links to 2–3 complementary skills (if applicable)
@@ -40,9 +40,9 @@ Before submitting, ensure your use case meets these requirements:
 
 <!-- Who would benefit from this use case? (e.g., backend developers, data analysts, DevOps engineers) -->
 
-### Does a matching skill exist?
+### Which skills are involved?
 
-<!-- Name the skill if one exists, or describe what skill would need to be built. -->
+<!-- List the skills this use case composes, or describe what skills would need to be built. -->
 
 ### Additional context
 

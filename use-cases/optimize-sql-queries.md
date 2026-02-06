@@ -2,7 +2,7 @@
 title: "Optimize SQL Queries with AI"
 slug: optimize-sql-queries
 description: "Analyze slow database queries, recommend indexes, and rewrite SQL for better performance."
-skill: sql-optimizer
+skills: [sql-optimizer]
 category: data-ai
 tags: [sql, performance, indexing, database]
 ---

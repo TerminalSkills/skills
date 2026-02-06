@@ -2,7 +2,7 @@
 title: "Write Better Commits with AI"
 slug: write-better-commits
 description: "Generate precise, conventional commit messages by analyzing staged git changes."
-skill: git-commit-pro
+skills: [git-commit-pro]
 category: development
 tags: [git, commits, workflow, conventional-commits]
 ---

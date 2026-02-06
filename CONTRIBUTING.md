@@ -37,7 +37,7 @@ Create `use-cases/your-use-case-slug.md` following this format:
 title: "Action-Oriented Title with AI"
 slug: your-use-case-slug
 description: "One sentence explaining the use case."
-skill: skill-name  # optional — omit if no matching skill exists yet
+skills: [skill-name, another-skill]  # optional — omit if no matching skills exist yet
 category: documents
 tags: [tag1, tag2, tag3]
 ---
@@ -51,8 +51,8 @@ time wasted, or error rates. The reader should think "yes, that's exactly my pro
 
 ## The Solution
 
-Explain the approach in 2-3 sentences. If a matching skill exists, name it and
-include the install command. If not, describe the workflow the agent should follow.
+Explain the approach in 2-3 sentences. Name the skills involved and include
+install commands. If no matching skills exist yet, describe the workflow.
 
 \`\`\`bash
 npx terminal-skills install skill-name
@@ -103,7 +103,7 @@ Tell a story: a specific persona (e.g., "an operations manager"), a specific sit
 | `title` | Yes | Action-oriented, starts with a verb, max 100 chars |
 | `slug` | Yes | Lowercase kebab-case, matches filename, max 64 chars |
 | `description` | Yes | One sentence, max 200 chars |
-| `skill` | No | Skill name if one exists; omit if the use case is proposing a new workflow |
+| `skills` | No | Array of skill names used in this workflow; omit if none exist yet |
 | `category` | Yes | One of the 10 categories (see table below) |
 | `tags` | Yes | Array of 3-5 relevant tags |
 

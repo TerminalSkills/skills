@@ -2,7 +2,7 @@
 title: "Manage Docker Containers with AI"
 slug: manage-docker-containers
 description: "Create Dockerfiles, write docker-compose configs, debug container issues, and optimize image sizes."
-skill: docker-helper
+skills: [docker-helper]
 category: devops
 tags: [docker, containers, docker-compose, devops]
 ---

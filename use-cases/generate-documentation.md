@@ -2,7 +2,7 @@
 title: "Generate Documentation with AI"
 slug: generate-documentation
 description: "Automatically generate READMEs, API references, and guides by reading your codebase."
-skill: markdown-writer
+skills: [markdown-writer]
 category: content
 tags: [documentation, markdown, readme, api-docs]
 ---

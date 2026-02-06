@@ -2,7 +2,7 @@
 title: "Automate Code Reviews with AI"
 slug: automate-code-reviews
 description: "Perform structured first-pass code reviews that catch bugs, security issues, and style problems."
-skill: code-reviewer
+skills: [code-reviewer]
 category: development
 tags: [code-review, security, pull-requests]
 ---
