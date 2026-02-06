@@ -32,9 +32,9 @@ Before submitting, ensure your skill meets these requirements:
 
 ---
 
-### What problem does this skill solve?
+### Which use case does this skill serve?
 
-<!-- Describe the recurring problem this skill addresses -->
+<!-- Link to an existing use case, or describe the real-world problem this skill addresses -->
 
 ### Example usage
 
