@@ -11,10 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Sync skills and use cases to production DB
+        env:
+          PLATFORM_URL: ${{ secrets.PLATFORM_URL }}
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
         run: |
           response=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ secrets.PLATFORM_URL }}/api/sync" \
-            -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}" \
+            "${PLATFORM_URL}/api/sync" \
+            -H "Authorization: Bearer ${SYNC_SECRET}" \
             -H "Content-Type: application/json")
 
           http_code=$(echo "$response" | tail -1)
