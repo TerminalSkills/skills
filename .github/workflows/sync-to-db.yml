@@ -10,29 +10,20 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout skills repo
-        uses: actions/checkout@v4
-        with:
-          path: skills
+      - name: Sync skills and use cases to production DB
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.PLATFORM_URL }}/api/sync" \
+            -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}" \
+            -H "Content-Type: application/json")
 
-      - name: Checkout platform repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ secrets.PLATFORM_REPO }}
-          token: ${{ secrets.PLATFORM_REPO_TOKEN }}
-          path: platform
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | head -n -1)
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+          echo "Response ($http_code):"
+          echo "$body" | jq . 2>/dev/null || echo "$body"
 
-      - name: Install platform dependencies
-        run: npm ci
-        working-directory: platform
-
-      - name: Run sync
-        run: npm run sync -- $GITHUB_WORKSPACE/skills
-        working-directory: platform
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::Sync failed with HTTP $http_code"
+            exit 1
+          fi
