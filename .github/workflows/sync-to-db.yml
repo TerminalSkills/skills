@@ -1,0 +1,38 @@
+name: Sync skills to production DB
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  sync:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout skills repo
+        uses: actions/checkout@v4
+        with:
+          path: skills
+
+      - name: Checkout platform repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.PLATFORM_REPO }}
+          token: ${{ secrets.PLATFORM_REPO_TOKEN }}
+          path: platform
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install platform dependencies
+        run: npm ci
+        working-directory: platform
+
+      - name: Run sync
+        run: npm run sync -- $GITHUB_WORKSPACE/skills
+        working-directory: platform
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
