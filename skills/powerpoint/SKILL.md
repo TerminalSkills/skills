@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Requires Python 3.7+ and python-pptx (`pip install python-pptx`)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: documents
   tags: ["powerpoint", "pptx", "presentations", "slides", "python-pptx"]
   use-cases:
@@ -32,6 +32,8 @@ Create, read, and edit PowerPoint (.pptx) files programmatically using the pytho
 ```bash
 pip install python-pptx
 ```
+
+**Alternative — AI-generated PPTX:** For fully automated slide generation from text prompts, Presenton (`github.com/presenton/presenton`) is an open-source tool that produces PPTX using OpenAI, Gemini, Claude, or Ollama. Runs locally via Docker. Use python-pptx (below) when you need precise control over content, formatting, and programmatic data-driven generation.
 
 ### Object model
 
@@ -134,15 +136,19 @@ run.font.name = "Calibri"
 paragraph.alignment = PP_ALIGN.CENTER
 ```
 
-### Extracting text
+### Design principles for generated slides
 
-```python
-prs = Presentation("input.pptx")
-for i, slide in enumerate(prs.slides):
-    for shape in slide.shapes:
-        if shape.has_text_frame:
-            print(f"Slide {i+1}: {shape.text_frame.text}")
-```
+Apply these rules when building presentations programmatically:
+
+**Typography:** Use Inter, Poppins, or Montserrat instead of default Calibri. One font family per presentation. Titles minimum 36pt, body minimum 24pt. Set line spacing to 1.2–1.3 for body text, 0.8–0.9 for large display text.
+
+**Layout:** Left-align body text (center only for short titles). Use generous margins — `Inches(1)` minimum on all sides. Use multi-column layouts for readability. Vary slide designs while keeping a consistent style.
+
+**Content density:** One idea per slide. Maximum 6 lines of text, 6 words per line. Split dense content across multiple slides (~30 seconds each). Replace bullet lists with visual hierarchy using font size, weight, and spacing.
+
+**Whitespace:** Treat empty space as a design element, not wasted space. Apply padding inside boxes and shapes — at least `Inches(0.3)` internal margin.
+
+**Visuals:** One hero image or chart per slide. Use high-contrast text on backgrounds. SVG icons from Noun Project (thenounproject.com) enhance slides without clutter. For professional templates as starting points, download PPTX files from Slidesgo (slidesgo.com) and load them with `Presentation("template.pptx")`.
 
 ## Examples
 
@@ -273,6 +279,8 @@ with open("extracted.md", "w") as f:
 - When editing existing files, iterate `paragraph.runs` to preserve formatting. Setting `text_frame.text` directly destroys all existing font styles.
 - Check available layouts with `enumerate(prs.slide_layouts)` before using hardcoded indices — they vary by template.
 - For template-based generation, use placeholder shapes (`slide.placeholders[idx]`) rather than adding new shapes. This preserves the template's design.
+- Start from professional templates (e.g., Slidesgo PPTX downloads) rather than blank presentations — the design quality will be significantly higher.
 - python-pptx does not support animations, transitions, or embedded video. Create the base PPTX and instruct the user to add those in PowerPoint.
 - When building tables, set column widths explicitly — auto-sizing is not supported and defaults produce uneven columns.
+- Set `font.name` explicitly on every run when generating from scratch — default Calibri looks generic. Inter, Poppins, and Montserrat are free alternatives available via Google Fonts.
 - Save to a new filename when editing to avoid corrupting the source file during development.
