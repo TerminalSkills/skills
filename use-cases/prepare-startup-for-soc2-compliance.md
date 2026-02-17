@@ -126,11 +126,11 @@ Generated: SOC2-READINESS-REPORT.md
 
 ## Real-World Example
 
-Nadia, CTO of 12-person B2B SaaS ComplianceHQ, was losing enterprise deals to competitors with SOC 2 certification. Three prospects in Q4 — $420K potential ARR — required it. A consultant quoted $55,000 and 9 months. With 14 months of runway, she couldn't wait.
+The CTO of a 12-person B2B SaaS startup was losing enterprise deals to competitors with SOC 2 certification. Three prospects in Q4 — $420K potential ARR — required it. A consultant quoted $55,000 and 9 months. With 14 months of runway, she couldn't wait.
 
 She ran the three-skill analysis Monday. The gap analysis found 14/18 controls failing. By Wednesday: audit logging, RBAC, and encryption in place (8 controls fixed). Thursday: CI/CD hardened with approval gates and deploy audit trails (3 more). Friday: documented remaining manual items and created a 30-day evidence plan.
 
-ComplianceHQ engaged an auditor three weeks later with the auto-generated readiness report. The auditor noted controls were "surprisingly mature for this size." The observation period started immediately. Five months later: SOC 2 Type II report in hand at $12,000 (auditor fees) instead of $55,000+. First enterprise deal closed within two weeks of certification.
+The startup engaged an auditor three weeks later with the auto-generated readiness report. The auditor noted controls were "surprisingly mature for this size." The observation period started immediately. Five months later: SOC 2 Type II report in hand at $12,000 (auditor fees) instead of $55,000+. First enterprise deal closed within two weeks of certification.
 
 ## Related Skills
 
