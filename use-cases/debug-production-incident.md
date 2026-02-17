@@ -94,7 +94,7 @@ The agent produces a distribution showing the sharp spike at 14:02 and whether e
 
 ## Real-World Example
 
-Marta, a platform engineer at a fintech startup called PayStream, gets paged at 2 AM because checkout success rates dropped from 99.2% to 34%. She opens her terminal and pastes the last 30 minutes of logs from three services.
+Marta, a platform engineer at a 20-person fintech startup, gets paged at 2 AM because checkout success rates dropped from 99.2% to 34%. She opens her terminal and pastes the last 30 minutes of logs from three services.
 
 1. She asks the agent: "Analyze these logs and find why checkouts are failing"
 2. The agent traces the cascade: Redis OOM → cart lookup failures → payment timeouts
