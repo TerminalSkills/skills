@@ -9,7 +9,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Works with any text-based log format (JSON, plaintext, syslog, structured)"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["logs", "debugging", "incident-response", "observability"]
