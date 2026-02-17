@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Node.js monorepos (npm/pnpm/yarn workspaces, Turborepo, Nx)"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["monorepo", "dependencies", "workspaces", "turborepo"]
