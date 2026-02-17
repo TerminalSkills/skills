@@ -8,7 +8,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Works with any GraphQL implementation (Apollo, Yoga, Mercurius, Strawberry, etc.)"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["graphql", "api-design", "schema", "dataloader", "performance"]
