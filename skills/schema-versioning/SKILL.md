@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "PostgreSQL 14+, MySQL 8+, or SQLite 3.35+. Node.js 18+ or Python 3.10+."
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["database", "migrations", "schema", "rollback"]
