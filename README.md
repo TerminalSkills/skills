@@ -55,6 +55,8 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [markdown-writer](skills/markdown-writer/) | Content | Generate well-structured technical documentation |
 | [sql-optimizer](skills/sql-optimizer/) | Data & AI | Analyze and optimize SQL queries for performance |
 | [code-migration](skills/code-migration/) | Development | Migrate codebases between frameworks, languages, and API versions |
+| [cicd-pipeline](skills/cicd-pipeline/) | DevOps | Generate and optimize CI/CD pipelines for testing, building, and deployment |
+| [mcp-server-builder](skills/mcp-server-builder/) | Data & AI | Build MCP servers to connect AI agents to external services |
 
 ## Use Cases
 
