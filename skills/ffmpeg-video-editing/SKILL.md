@@ -10,7 +10,7 @@ compatibility: >-
   Requires ffmpeg installed. macOS: brew install ffmpeg. Ubuntu/Debian:
   sudo apt install ffmpeg. Windows: download from ffmpeg.org.
 metadata:
-  author: Terminal Skills
+  author: terminal-skills
   version: "1.0.0"
   category: content
   tags: [video, audio, ffmpeg, multimedia, conversion]
