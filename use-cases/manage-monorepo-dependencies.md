@@ -100,7 +100,7 @@ The agent suggests:
 
 ## Real-World Example
 
-Priya leads a frontend platform team at a startup called CloudCanvas. Their monorepo grew from 3 packages to 22 over two years. Different teams added dependencies independently, and nobody owned the dependency graph.
+Priya leads a frontend platform team at a 30-person B2B startup. Their monorepo grew from 3 packages to 22 over two years. Different teams added dependencies independently, and nobody owned the dependency graph.
 
 1. Priya asks the agent: "Audit our monorepo dependencies and find all version conflicts"
 2. The agent finds 14 version mismatches, including three major version splits
