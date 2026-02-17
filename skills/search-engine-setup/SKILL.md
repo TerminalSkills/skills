@@ -9,7 +9,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Elasticsearch 8.x or Algolia. Node.js/Python examples provided."
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["search", "elasticsearch", "algolia", "full-text-search"]
