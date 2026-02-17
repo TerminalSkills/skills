@@ -131,7 +131,7 @@ Re-evaluate when:
 
 ## Real-World Example
 
-Amir is an ML engineer at a legal tech startup called DocuParse. They built an AI feature that extracts key clauses from contracts — termination terms, liability caps, payment schedules. The initial prompt worked on their 5 sample contracts but failed badly on real customer documents with unusual formatting.
+Amir is an ML engineer at a legal tech startup. They built an AI feature that extracts key clauses from contracts — termination terms, liability caps, payment schedules. The initial prompt worked on their 5 sample contracts but failed badly on real customer documents with unusual formatting.
 
 1. Amir asks the agent: "Help me build an eval suite for our contract clause extractor"
 2. The agent creates 15 test cases from different contract types (SaaS agreements, NDAs, consulting contracts, international contracts)
