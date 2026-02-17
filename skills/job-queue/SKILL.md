@@ -11,7 +11,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Redis 7+ for BullMQ/Sidekiq. RabbitMQ for Celery. Node.js 18+ or Python 3.10+."
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["job-queue", "background-workers", "async", "BullMQ"]
