@@ -9,7 +9,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Requires Stripe CLI installed (brew install stripe/stripe-cli/stripe) and a Stripe test API key"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["stripe", "payments", "webhooks", "testing", "debugging"]
