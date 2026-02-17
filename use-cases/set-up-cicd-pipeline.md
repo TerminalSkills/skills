@@ -1,135 +1,134 @@
 ---
-title: "Set Up a Production-Grade CI/CD Pipeline with AI"
+title: "Set Up a Production-Ready CI/CD Pipeline with AI"
 slug: set-up-cicd-pipeline
-description: "Generate complete GitHub Actions workflows with tests, security gates, preview deploys, and auto-rollback."
-skills: [cicd-pipeline]
+description: "Build a complete CI/CD pipeline with automated testing, Docker optimization, and security scanning gates for production deployments."
+skills: [cicd-pipeline, docker-helper, test-generator, security-audit]
 category: devops
-tags: [cicd, github-actions, deployment, automation, devops]
+tags: [cicd, docker, testing, security, deployment]
 ---
 
-# Set Up a Production-Grade CI/CD Pipeline with AI
+# Set Up a Production-Ready CI/CD Pipeline with AI
 
 ## The Problem
 
-Your team deploys by SSH-ing into a server and running `git pull && pm2 restart`. Last Friday, a developer pulled a commit that needed a database migration nobody ran. The app crashed, 800 users saw 500 errors, and it took 45 minutes to figure out what happened and roll back.
+Your team deploys by SSH-ing into production, running `git pull`, and restarting PM2. No automated tests, no staging, no rollback. The Docker image is 1.4GB and takes 8 minutes to build. Last Friday, a broken migration took the API down for 45 minutes before anyone noticed.
 
-Setting up proper CI/CD feels like assembling furniture from 15 IKEA boxes with no shared manual. GitHub Actions has 400+ config options. Add Docker builds, service containers, secret management, preview deploys, staging environments, approval gates, and Slack notifications — that's 8-12 hours of YAML and Stack Overflow.
-
-Most teams get basic "run tests on push" and never finish the hard parts: parallel execution, layer caching, preview URLs, staged rollouts, and auto-rollback on health check failure. Every manual deployment is a risk. The average SaaS downtime costs $5,600 per minute.
+Setting up CI/CD properly means coordinating tests, container optimization, security scanning, and deployment — each takes a day to configure, and they all need to work together.
 
 ## The Solution
 
-The **cicd-pipeline** skill analyzes your project structure, tech stack, and hosting setup, then generates a complete CI/CD pipeline — not a starter template. Parallel testing, Docker optimization, security gates, preview environments, staged deployments, and rollback automation, all tailored to your actual setup.
+Four skills build a production-ready pipeline. **test-generator** creates tests so the pipeline gates on something meaningful. **docker-helper** optimizes images for fast builds. **cicd-pipeline** creates the GitHub Actions workflow with staging and production stages. **security-audit** adds vulnerability scanning as a required gate.
 
 ```bash
-npx terminal-skills install cicd-pipeline
+npx terminal-skills install cicd-pipeline docker-helper test-generator security-audit
 ```
 
 ## Step-by-Step Walkthrough
 
-### 1. Analyze the project and generate the pipeline
+### 1. Generate tests for the pipeline to run
 
 ```
-Set up a complete CI/CD pipeline with GitHub Actions. We use Node.js 20, PostgreSQL, Redis, Docker, and deploy to AWS ECS.
-```
-
-```
-Project analysis:
-  Runtime: Node.js 20 | Package manager: pnpm | Tests: Vitest (148 files)
-  Database: PostgreSQL 15 | Cache: Redis 7 | Deploy: AWS ECS
-
-Generated: .github/workflows/ci.yml, .github/workflows/deploy.yml
-
-CI (every push/PR):
-  1. Lint + typecheck (parallel) ........... ~45s
-  2. Unit tests (3 shards, parallel) ....... ~2min
-  3. Integration tests (Postgres + Redis) .. ~3min
-  4. Security audit ........................ ~1min
-  Total: ~4 minutes (down from ~14 minutes serial)
-
-Deploy (merge to main):
-  Build → Push ECR → Staging → Smoke tests → Approval gate → Production → Health check
-```
-
-### 2. Optimize Docker builds
-
-```
-Optimize the Docker build for CI. Current build takes 8 minutes.
+Generate integration tests for the core API: user management, billing, and webhook processing.
 ```
 
 ```
-Optimizations applied:
-  1. Multi-stage restructured: deps → build → runtime (Alpine)
-  2. Layer cache via actions/cache (buildx)
-  3. pnpm store + Turbo build cache across runs
+  tests/integration/users.test.js    — 16 tests (CRUD, validation, pagination)
+  tests/integration/billing.test.js  — 14 tests (subscriptions, invoices, retries)
+  tests/integration/webhooks.test.js — 11 tests (signatures, idempotency, dead letters)
 
-  First build: 3m 20s | Cached (deps unchanged): 1m 10s
-  Image size: 847MB → 142MB
+Total: 41 tests, all passing. Coverage: 64%. Run time: 12 seconds.
 ```
 
-### 3. Add preview deployments for PRs
+### 2. Optimize the Docker build
 
 ```
-Set up preview deployments so every PR gets its own URL.
-```
-
-```
-Generated: .github/workflows/preview.yml
-
-  PR open → Build image → Deploy ECS temp service → Comment PR with URL
-  🔗 Preview: https://preview-pr-142.staging.yourapp.com
-  PR close → Auto-teardown service + target group
-
-  Cost: ~$0.15/hr per active preview (Fargate spot)
-```
-
-### 4. Configure production safety gates
-
-```
-Add approval gates, smoke tests after deploy, and auto-rollback on health check failure.
+Optimize our Dockerfile. Currently 1.4GB, 8 minutes to build. Needs smaller images, faster builds, security hardening.
 ```
 
 ```
-  1. Manual approval: production env requires @team-leads, 72h timeout
-  2. Smoke tests: /health, /api/status, test login — 3 runs, 10s intervals
-  3. Auto-rollback: 5-minute health monitor, rolls back + Slack alert on failure
-  4. Notifications: ✅ success → #deployments, 🚨 failure → #incidents
+  Image size:  1.4GB → 156MB (89% reduction)
+  Build time:  8:12 → 1:43 (79% faster)
 
-Created: .github/workflows/rollback.yml, scripts/smoke-test.sh
+  ✓ Multi-stage build (compile → runtime only)
+  ✓ node:20 → node:20-alpine
+  ✓ .dockerignore (excludes tests, docs, .git)
+  ✓ Dependency layer caching (package*.json first, then npm ci --production)
+  ✓ Non-root user with minimal permissions
+  ✓ HEALTHCHECK every 30s
+  ✓ Base image pinned to SHA digest
 ```
 
-### 5. Test the complete pipeline
+### 3. Build the CI/CD pipeline
 
 ```
-Walk me through what the developer experience looks like end-to-end.
+Create a GitHub Actions pipeline: lint, test, build Docker image, deploy to staging on merge, production on release tag. Cache node_modules and Docker layers.
 ```
 
 ```
-  1. Push branch → CI (3m 54s)
-     ✓ Lint, typecheck, 148 tests (3 shards), security — all green
+Created: .github/workflows/ci.yml
 
-  2. Create PR → Preview deploys
-     🔗 https://preview-pr-142.staging.yourapp.com
+  1. LINT (30s) — ESLint + Prettier
+  2. TEST (45s) — 41 tests with PostgreSQL service, coverage report as PR comment
+     Gate: fails below 60% coverage
+  3. BUILD (1:43) — Multi-stage Docker, layer cache, push to GitHub Container Registry
+  4. STAGING — On merge to main, deploy + smoke tests
+  5. PRODUCTION — On v*.*.* tags, blue-green deploy with health checks
+     Auto-rollback if health check fails within 5 minutes
 
-  3. Merge → Deploy pipeline
-     ✓ Docker build (1m 12s) → ECR → Staging → Smoke tests
-     ⏳ Awaiting approval... ✓ Approved by @sarah
-     ✓ Production deploy → Health check passed
-     ✅ #deployments notified
+Total: ~4 minutes commit-to-staging
+```
 
-Developer time on CI/CD config: 0 minutes
+### 4. Add security scanning gates
+
+```
+Add security scanning to the pipeline. SAST, dependency audit, Docker image scan, secret detection. Block on critical findings.
+```
+
+```
+Security gates added between TEST and BUILD:
+
+  ✓ SAST — Semgrep with Node.js + Express rulesets
+  ✓ Dependency scan — npm audit + Snyk for transitive CVEs
+  ✓ Secret detection — Gitleaks on PR diff
+  Post-build: Trivy scans Docker image, fails on CRITICAL
+
+  Gate: PRs require all security checks green
+  Findings posted as inline PR review comments
+
+Initial scan found 2 issues:
+  ✗ axios 0.21.1 SSRF vulnerability → updated to 1.6.2 ✓
+  ✗ Missing X-Content-Type-Options header → added helmet ✓
+```
+
+### 5. Validate the complete pipeline
+
+```
+Run the full pipeline end-to-end. Deploy to staging and verify everything works together.
+```
+
+```
+Full Pipeline — SUCCESS ✓
+
+  ✓ Lint:           32s (0 issues)
+  ✓ Tests:          41/41 passing, 64% coverage
+  ✓ Dependency scan: 0 vulnerabilities
+  ✓ SAST:           0 findings
+  ✓ Secret scan:    0 leaks
+  ✓ Docker build:   1:43 (156MB, cached)
+  ✓ Container scan: 0 critical
+  ✓ Staging deploy: health check passing
+  ✓ Smoke tests:    5/5 passing
+
+Total: 4:18 commit → staging. Pipeline ready.
 ```
 
 ## Real-World Example
 
-A full-stack developer at a 4-person early-stage startup was the only person who knew how to deploy. Every release meant SSH, git pull, migrations, restart. Fridays meant deploying and then fixing whatever broke. After a 90-minute outage from a missing environment variable, he decided to automate.
+A DevOps engineer at a 35-person e-commerce startup was tasked with fixing their deployment process after the third outage in two months. Eight developers deployed by SSH, no tests, 1.6GB Docker image. He started Monday: test-generator produced 52 integration tests in 20 minutes. docker-helper cut the image to 142MB and build time to 2 minutes. cicd-pipeline created the full workflow with staging and production. security-audit added gates that immediately caught 3 dependency CVEs and a hardcoded API key.
 
-He spent 6 hours on a Saturday writing GitHub Actions workflows. Got basic tests running but gave up on Docker caching, preview deploys, and rollback — too complex. The cicd-pipeline skill generated the complete setup in one session. By Tuesday: parallel CI (3m 47s, down from 11min), preview URLs on every PR, staged deploys with approval gates, and auto-rollback.
-
-The first production deploy through the pipeline caught a database migration that would have failed — staging smoke tests flagged it before production. Over two months, the team went from weekly Friday deploys to 3-4 times daily. Deployment incidents: 2/month → zero. He was no longer the bottleneck — any team member could merge and the pipeline handled the rest.
+First week live: security gates blocked 2 PRs with vulnerabilities, test gates caught 1 regression — all before production. Deployment: 25 minutes manual → 4 minutes automated. Zero outages in the following 3 months.
 
 ## Related Skills
 
-- [docker-helper](../skills/docker-helper/) — Optimize Dockerfiles for smaller images and faster builds
-- [test-generator](../skills/test-generator/) — Generate test suites for your CI pipeline to run
-- [security-audit](../skills/security-audit/) — Add security scanning as a deployment gate
+- [code-reviewer](../skills/code-reviewer/) — Add automated code review as a pipeline stage
+- [code-migration](../skills/code-migration/) — Modernize legacy code for modern CI tooling
