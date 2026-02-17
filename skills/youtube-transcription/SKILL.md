@@ -10,7 +10,7 @@ compatibility: >-
   Requires Python 3.8+, ffmpeg, and CUDA GPU recommended for large models.
   Install: pip install openai-whisper yt-dlp. CPU works but is slower.
 metadata:
-  author: Terminal Skills
+  author: terminal-skills
   version: "1.0.0"
   category: content
   tags: [youtube, transcription, whisper, subtitles, speech-to-text]
