@@ -11,7 +11,7 @@ compatibility: >-
   openai-whisper (GPU recommended). For API: pip install openai (requires
   OPENAI_API_KEY). Recording requires sox or arecord.
 metadata:
-  author: Terminal Skills
+  author: terminal-skills
   version: "1.0.0"
   category: productivity
   tags: [voice, transcription, whisper, speech-to-text, audio]
