@@ -2,7 +2,7 @@
 title: "Design and Optimize a GraphQL Schema with AI"
 slug: design-optimize-graphql-schema
 description: "Build a clean GraphQL schema from your data model, detect N+1 queries, and optimize resolver performance before problems hit production."
-skills: [graphql-schema-designer, sql-optimizer]
+skills: [graphql, sql-optimizer]
 category: development
 tags: [graphql, api-design, schema, performance, n-plus-one]
 ---
