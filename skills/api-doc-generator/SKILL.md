@@ -8,7 +8,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Works with any REST or GraphQL API codebase. Supports Express, FastAPI, Django, Rails, Spring Boot, and NestJS route detection."
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["api", "documentation", "openapi", "swagger"]
