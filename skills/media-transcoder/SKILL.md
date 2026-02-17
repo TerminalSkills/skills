@@ -11,7 +11,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Node.js 18+ with Sharp, FFmpeg 5+ for video"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["image-processing", "video-transcoding", "ffmpeg", "sharp", "media"]
