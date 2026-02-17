@@ -2,7 +2,7 @@
 title: "Set Up a Real-Time Analytics Dashboard from Scratch"
 slug: set-up-realtime-analytics-dashboard
 description: "Build a live analytics dashboard that ingests event streams, aggregates metrics, and renders updating charts — without relying on expensive third-party platforms."
-skills: [realtime-analytics, data-visualizer, docker-helper]
+skills: [realtime-analytics, data-analysis, docker-helper]
 category: data-ai
 tags: [analytics, real-time, dashboard, event-streaming, clickhouse]
 ---
@@ -19,7 +19,7 @@ Wire together an event ingestion API, a columnar database optimized for analytic
 
 ```bash
 npx terminal-skills install realtime-analytics
-npx terminal-skills install data-visualizer
+npx terminal-skills install data-analysis
 npx terminal-skills install docker-helper
 ```
 
@@ -92,5 +92,5 @@ A product manager at a fast-growing fintech startup needs to see real-time signu
 ## Related Skills
 
 - [realtime-analytics](../skills/realtime-analytics/) -- Event ingestion, ClickHouse schema design, aggregation queries
-- [data-visualizer](../skills/data-visualizer/) -- Chart generation and dashboard layouts
+- [data-analysis](../skills/data-analysis/) -- Chart generation and dashboard layouts
 - [docker-helper](../skills/docker-helper/) -- Container orchestration and service composition

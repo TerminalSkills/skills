@@ -69,11 +69,11 @@ A market researcher needs to compare pricing across 5 competitor websites. Each 
 1. For each competitor site, they ask the agent to extract product names, prices, and categories
 2. The agent handles each site's different HTML structure, adjusting selectors per site
 3. All data is saved to separate CSV files, then merged into a single comparison spreadsheet
-4. The researcher asks the data-visualizer skill to create a price comparison chart
+4. The researcher asks the data-analysis skill to create a price comparison chart
 5. What would have taken days of manual work is done in minutes
 
 ## Related Skills
 
 - [excel-processor](../skills/excel-processor/) -- Clean and transform the scraped data
-- [data-visualizer](../skills/data-visualizer/) -- Visualize trends in the extracted data
+- [data-analysis](../skills/data-analysis/) -- Visualize trends in the extracted data
 - [pdf-analyzer](../skills/pdf-analyzer/) -- Extract data from PDF documents instead of web pages

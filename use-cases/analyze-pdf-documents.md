@@ -66,5 +66,5 @@ An operations manager receives monthly vendor invoices as PDFs. Each invoice has
 ## Related Skills
 
 - [excel-processor](../skills/excel-processor/) -- Work with the extracted CSV/Excel data
-- [data-visualizer](../skills/data-visualizer/) -- Create charts from the extracted data
+- [data-analysis](../skills/data-analysis/) -- Create charts from the extracted data
 - [sql-optimizer](../skills/sql-optimizer/) -- Query the data if loaded into a database

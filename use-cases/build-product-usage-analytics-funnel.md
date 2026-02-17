@@ -2,7 +2,7 @@
 title: "Build a Product Usage Analytics Funnel with AI"
 slug: build-product-usage-analytics-funnel
 description: "Set up a product usage funnel to identify where users drop off and what features drive retention."
-skills: [analytics-tracking, data-analysis, data-visualizer]
+skills: [analytics-tracking, data-analysis, data-analysis]
 category: data-ai
 tags: [analytics, funnel, product, retention, user-behavior]
 ---
@@ -15,10 +15,10 @@ A 15-person B2B SaaS startup has 2,000 registered users but only 300 active week
 
 ## The Solution
 
-Use the **analytics-tracking** skill to instrument key user events, the **data-analysis** skill to query and segment funnel data, and the **data-visualizer** skill to produce funnel charts and retention curves the team can act on.
+Use the **analytics-tracking** skill to instrument key user events, the **data-analysis** skill to query and segment funnel data, and the **data-analysis** skill to produce funnel charts and retention curves the team can act on.
 
 ```bash
-npx terminal-skills install analytics-tracking data-analysis data-visualizer
+npx terminal-skills install analytics-tracking data-analysis data-analysis
 ```
 
 ## Step-by-Step Walkthrough

@@ -133,5 +133,5 @@ Kenji, a tech lead at a 25-person SaaS startup, needs to justify two sprints of 
 
 ## Related Skills
 
-- [data-visualizer](../skills/data-visualizer/) -- Create complexity heatmaps and trend charts
+- [data-analysis](../skills/data-analysis/) -- Create complexity heatmaps and trend charts
 - [test-generator](../skills/test-generator/) -- Generate tests before refactoring to ensure nothing breaks

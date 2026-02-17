@@ -120,5 +120,5 @@ Kenji, a data engineer at a mid-size e-commerce analytics company, loads data fr
 ## Related Skills
 
 - [excel-processor](../skills/excel-processor/) — Validate and clean spreadsheet data before pipeline ingestion
-- [data-visualizer](../skills/data-visualizer/) — Visualize data quality metrics over time
+- [data-analysis](../skills/data-analysis/) — Visualize data quality metrics over time
 - [report-generator](../skills/report-generator/) — Generate automated data quality reports for stakeholders

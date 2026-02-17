@@ -368,19 +368,6 @@
       ]
     },
     {
-      "name": "data-visualizer",
-      "slug": "data-visualizer",
-      "description": "Generate charts and data visualizations from datasets. Use when a user asks to create a chart, plot data, visualize trends, make a bar chart, line graph, scatter plot, histogram, heatmap, or any other data visualization. Produces publication-quality charts from CSV, JSON, Excel, or inline data.",
-      "category": "data-ai",
-      "tags": [
-        "visualization",
-        "charts",
-        "matplotlib",
-        "plotting",
-        "data"
-      ]
-    },
-    {
       "name": "dev-slides",
       "slug": "dev-slides",
       "description": "Create developer-friendly presentations using Slidev. Build Vue-powered slides with live code execution, syntax highlighting, and diagrams. Use when a user asks to create a presentation, build slides, make a tech talk, create a slide deck, or prepare a developer presentation.",

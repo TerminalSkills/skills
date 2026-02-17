@@ -80,6 +80,6 @@ An e-commerce platform's admin dashboard loads slowly. The "Top Customers" repor
 
 ## Related Skills
 
-- [data-visualizer](../skills/data-visualizer/) -- Visualize the query results
+- [data-analysis](../skills/data-analysis/) -- Visualize the query results
 - [excel-processor](../skills/excel-processor/) -- Export query results to Excel
 - [code-reviewer](../skills/code-reviewer/) -- Review the application code that generates queries

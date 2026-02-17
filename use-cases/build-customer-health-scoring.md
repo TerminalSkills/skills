@@ -2,7 +2,7 @@
 title: "Build a Customer Health Scoring System"
 slug: build-customer-health-scoring
 description: "Combine product usage, support tickets, and billing data to score customer health and predict churn before it happens."
-skills: [data-analysis, excel-processor, data-visualizer]
+skills: [data-analysis, excel-processor, data-analysis]
 category: data-ai
 tags: [customer-success, churn-prediction, analytics, scoring, retention]
 ---
@@ -17,10 +17,10 @@ You have the data to predict churn: product analytics show who's logging in, Int
 
 ## The Solution
 
-Use **data-analysis** to build the scoring model from historical patterns, **excel-processor** to merge data from multiple exports, and **data-visualizer** to create dashboards the CS team can act on daily.
+Use **data-analysis** to build the scoring model from historical patterns, **excel-processor** to merge data from multiple exports, and **data-analysis** to create dashboards the CS team can act on daily.
 
 ```bash
-npx terminal-skills install data-analysis excel-processor data-visualizer
+npx terminal-skills install data-analysis excel-processor data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -147,4 +147,4 @@ The health scoring model immediately flagged 35 critical accounts representing $
 
 - [data-analysis](../skills/data-analysis/) — Builds scoring models and identifies churn patterns from historical data
 - [excel-processor](../skills/excel-processor/) — Merges and cleans data exports from multiple business systems
-- [data-visualizer](../skills/data-visualizer/) — Creates interactive dashboards for customer health monitoring
+- [data-analysis](../skills/data-analysis/) — Creates interactive dashboards for customer health monitoring

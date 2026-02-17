@@ -74,5 +74,5 @@ A sales team exports their CRM data monthly as Excel files. Each export has slig
 ## Related Skills
 
 - [pdf-analyzer](../skills/pdf-analyzer/) -- Extract tables from PDF reports into spreadsheets
-- [data-visualizer](../skills/data-visualizer/) -- Create charts from spreadsheet data
+- [data-analysis](../skills/data-analysis/) -- Create charts from spreadsheet data
 - [sql-optimizer](../skills/sql-optimizer/) -- Query large datasets more efficiently than Excel

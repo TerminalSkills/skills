@@ -108,5 +108,5 @@ The next morning, she asks the agent to generate a formal incident report from t
 ## Related Skills
 
 - [docker-helper](../skills/docker-helper/) — Check container resource limits and restart crashed services
-- [data-visualizer](../skills/data-visualizer/) — Chart error rates and latency during incidents
+- [data-analysis](../skills/data-analysis/) — Chart error rates and latency during incidents
 - [cicd-pipeline](../skills/cicd-pipeline/) — Roll back a bad deployment that caused the incident

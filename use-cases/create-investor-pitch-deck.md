@@ -2,7 +2,7 @@
 title: "Create an Investor Pitch Deck from Product Data"
 slug: create-investor-pitch-deck
 description: "Turn your metrics, product data, and market research into a compelling investor pitch deck ready for fundraising."
-skills: [ai-slides, data-visualizer, content-writer]
+skills: [ai-slides, data-analysis, content-writer]
 category: business
 tags: [pitch-deck, fundraising, investors, startup, presentations]
 ---
@@ -17,10 +17,10 @@ Most founder-made decks fail for the same reasons: too much text, no visual hier
 
 ## The Solution
 
-Use **data-visualizer** to turn raw metrics into clean charts, **content-writer** to craft the narrative and key messaging, and **ai-slides** to assemble everything into a professional deck.
+Use **data-analysis** to turn raw metrics into clean charts, **content-writer** to craft the narrative and key messaging, and **ai-slides** to assemble everything into a professional deck.
 
 ```bash
-npx terminal-skills install data-visualizer content-writer ai-slides
+npx terminal-skills install data-analysis content-writer ai-slides
 ```
 
 ## Step-by-Step Walkthrough
@@ -134,12 +134,12 @@ Total package: teaser for intros, full deck for partner meetings, appendix for d
 
 Marta, co-founder of a developer tools startup, had 3 weeks before her first investor meetings. Her metrics were strong — $47K MRR with 12.8% month-over-month growth — but her existing deck was 22 slides of bullet points on white backgrounds. Two angel investors had already passed after seeing it.
 
-She exported Stripe data, pulled analytics CSVs, and gathered her market research notes. The data-visualizer turned her MRR spreadsheet into a clean growth chart that immediately showed the trajectory. The content-writer restructured her narrative — moving the traction slide from slide 9 to slide 5, leading with momentum. The ai-slides tool assembled everything into a cohesive 13-slide deck.
+She exported Stripe data, pulled analytics CSVs, and gathered her market research notes. The data-analysis turned her MRR spreadsheet into a clean growth chart that immediately showed the trajectory. The content-writer restructured her narrative — moving the traction slide from slide 9 to slide 5, leading with momentum. The ai-slides tool assembled everything into a cohesive 13-slide deck.
 
 She sent the 5-slide teaser to 12 investors. Seven took meetings — up from 2 out of 10 with her old deck. In the meetings, the data visualizations did the heavy lifting: investors could see the retention curve flattening at 61%, proving stickiness without Marta needing to explain it. She closed $2.5M in 6 weeks.
 
 ## Related Skills
 
 - [ai-slides](../skills/ai-slides/) — Assembles professional slide decks from content and data
-- [data-visualizer](../skills/data-visualizer/) — Creates clean charts and visualizations from raw data
+- [data-analysis](../skills/data-analysis/) — Creates clean charts and visualizations from raw data
 - [content-writer](../skills/content-writer/) — Crafts compelling narratives and key messaging

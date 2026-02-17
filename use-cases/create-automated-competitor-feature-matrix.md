@@ -2,7 +2,7 @@
 title: "Create an Automated Competitor Feature Matrix with AI"
 slug: create-automated-competitor-feature-matrix
 description: "Use AI to research competitor products, extract feature lists, and build a comparison matrix that stays current."
-skills: [web-research, competitor-alternatives, data-visualizer]
+skills: [web-research, competitor-alternatives, data-analysis]
 category: research
 tags: [competitor-analysis, product-strategy, research, comparison, market-intelligence]
 ---
@@ -15,12 +15,12 @@ A product manager at a growing startup tracks five competitors manually. Every q
 
 ## The Solution
 
-Use the **web-research** skill to systematically gather feature information from competitor websites, pricing pages, changelogs, and documentation. Feed the findings into the **competitor-alternatives** skill to structure them into a standardized feature matrix. Use the **data-visualizer** skill to produce visual comparison charts for stakeholder presentations.
+Use the **web-research** skill to systematically gather feature information from competitor websites, pricing pages, changelogs, and documentation. Feed the findings into the **competitor-alternatives** skill to structure them into a standardized feature matrix. Use the **data-analysis** skill to produce visual comparison charts for stakeholder presentations.
 
 ```bash
 npx terminal-skills install web-research
 npx terminal-skills install competitor-alternatives
-npx terminal-skills install data-visualizer
+npx terminal-skills install data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -81,7 +81,7 @@ Recent competitor launches (last 90 days):
 Create a comparison chart showing feature coverage percentage for each competitor. Also make a radar chart comparing our product vs the top 2 competitors across all categories. Export as PNG for the next product review.
 ```
 
-The **data-visualizer** skill produces publication-ready charts showing feature parity at a glance.
+The **data-analysis** skill produces publication-ready charts showing feature parity at a glance.
 
 ### 5. Set up ongoing monitoring
 
@@ -107,7 +107,7 @@ Next run will diff against today's baseline:
 Create a slide deck with the feature comparison table, a radar chart of our product vs top 2 competitors, and the gap/opportunity summary. Use our brand colors and export as PDF.
 ```
 
-The **data-visualizer** produces a clean five-slide deck: market overview, feature matrix, radar comparison, gap analysis, and recommended roadmap priorities — ready for the next product review meeting.
+The **data-analysis** produces a clean five-slide deck: market overview, feature matrix, radar comparison, gap analysis, and recommended roadmap priorities — ready for the next product review meeting.
 
 ## Real-World Example
 
@@ -117,5 +117,5 @@ Suki is a product manager at a 25-person B2B startup. Before this workflow, comp
 
 - [web-research](../skills/web-research/) — Gathers information from websites, docs, and changelogs
 - [competitor-alternatives](../skills/competitor-alternatives/) — Structures competitive data into comparison formats
-- [data-visualizer](../skills/data-visualizer/) — Creates charts and visual comparisons from structured data
+- [data-analysis](../skills/data-analysis/) — Creates charts and visual comparisons from structured data
 - [content-strategy](../skills/content-strategy/) — Uses competitive insights to inform content positioning

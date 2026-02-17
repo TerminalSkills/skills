@@ -118,4 +118,4 @@ Soren, the operations lead at a 40-person e-commerce company, is tasked with cut
 ## Related Skills
 
 - [excel-processor](../skills/excel-processor/) -- Work with exported contract data in spreadsheet format
-- [data-visualizer](../skills/data-visualizer/) -- Create spend trend charts from contract cost data
+- [data-analysis](../skills/data-analysis/) -- Create spend trend charts from contract cost data

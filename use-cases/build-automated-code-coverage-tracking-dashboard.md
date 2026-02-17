@@ -2,7 +2,7 @@
 title: "Build Automated Code Coverage Tracking Dashboard with AI"
 slug: build-automated-code-coverage-tracking-dashboard
 description: "Set up a code coverage tracking system that monitors test coverage trends and surfaces gaps across your codebase."
-skills: [test-generator, coding-agent, data-visualizer]
+skills: [test-generator, coding-agent, data-analysis]
 category: development
 tags: [code-coverage, testing, dashboard, quality]
 ---
@@ -15,10 +15,10 @@ A 15-person engineering team knows their test coverage is uneven but has no visi
 
 ## The Solution
 
-Use the **test-generator** skill to identify and fill coverage gaps, the **coding-agent** to build the tracking infrastructure, and the **data-visualizer** to create trend dashboards. The agent sets up automated coverage tracking that surfaces regressions before they become problems.
+Use the **test-generator** skill to identify and fill coverage gaps, the **coding-agent** to build the tracking infrastructure, and the **data-analysis** to create trend dashboards. The agent sets up automated coverage tracking that surfaces regressions before they become problems.
 
 ```bash
-npx terminal-skills install test-generator coding-agent data-visualizer
+npx terminal-skills install test-generator coding-agent data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -120,4 +120,4 @@ The agent configures a scheduled report that keeps the team aware of coverage he
 
 - [test-generator](../skills/test-generator/) -- Generates targeted tests for uncovered code paths
 - [coding-agent](../skills/coding-agent/) -- Builds the dashboard and CI integration infrastructure
-- [data-visualizer](../skills/data-visualizer/) -- Creates trend charts and visual coverage reports
+- [data-analysis](../skills/data-analysis/) -- Creates trend charts and visual coverage reports

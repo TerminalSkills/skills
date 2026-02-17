@@ -2,7 +2,7 @@
 title: "Build an Automated API Performance Benchmarking Suite with AI"
 slug: build-api-performance-benchmarking-suite
 description: "Create and run comprehensive API performance benchmarks with automated analysis and regression detection."
-skills: [api-tester, coding-agent, data-visualizer]
+skills: [api-tester, coding-agent, data-analysis]
 category: development
 tags: [api, performance, benchmarking, testing, regression]
 ---
@@ -15,12 +15,12 @@ Your API handles 10,000 requests per minute, but you have no systematic way to c
 
 ## The Solution
 
-Use **api-tester** to define and execute API benchmarks, **coding-agent** to generate test scripts and CI integration, and **data-visualizer** to chart performance trends over time.
+Use **api-tester** to define and execute API benchmarks, **coding-agent** to generate test scripts and CI integration, and **data-analysis** to chart performance trends over time.
 
 ```bash
 npx terminal-skills install api-tester
 npx terminal-skills install coding-agent
-npx terminal-skills install data-visualizer
+npx terminal-skills install data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -104,7 +104,7 @@ Kai is a backend engineer at a 25-person SaaS startup whose largest customer jus
 
 - [api-tester](../skills/api-tester/) -- Define and execute API performance test scenarios
 - [coding-agent](../skills/coding-agent/) -- Generate benchmark scripts and CI integration
-- [data-visualizer](../skills/data-visualizer/) -- Chart performance trends and regression detection
+- [data-analysis](../skills/data-analysis/) -- Chart performance trends and regression detection
 
 ### Benchmark Best Practices
 
