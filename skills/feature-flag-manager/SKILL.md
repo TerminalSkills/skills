@@ -11,7 +11,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Any backend language"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["feature-flags", "rollout", "experimentation", "deployment"]
