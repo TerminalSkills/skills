@@ -54,6 +54,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [data-visualizer](skills/data-visualizer/) | Data & AI | Generate charts and visualizations from datasets |
 | [markdown-writer](skills/markdown-writer/) | Content | Generate well-structured technical documentation |
 | [sql-optimizer](skills/sql-optimizer/) | Data & AI | Analyze and optimize SQL queries for performance |
+| [mcp-server-builder](skills/mcp-server-builder/) | Data & AI | Build MCP servers to connect AI agents to external services |
 
 ## Use Cases
 
