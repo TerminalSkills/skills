@@ -129,7 +129,7 @@ The test ran 16 days. Show me the results.
 
 ## Real-World Example
 
-Jake, founder of project management tool TaskPilot, was acquiring leads at $38 each on $3,800/month ad spend — nearly double his $20 target. His freelancer-designed landing page said "Project Management Reimagined" (meaningless), had 6 form fields including a required phone number, and took 5.1 seconds to load on mobile where 61% of traffic arrived.
+The solo founder of a bootstrapped project management SaaS was acquiring leads at $38 each on $3,800/month ad spend — nearly double his $20 target. His freelancer-designed landing page said "Project Management Reimagined" (meaningless), had 6 form fields including a required phone number, and took 5.1 seconds to load on mobile where 61% of traffic arrived.
 
 He ran the CRO audit Monday morning. Findings were immediately actionable. The redesigned hero was generated that afternoon. He launched the A/B test Tuesday and let it run 18 days. Result: 2.8% conversion vs 0.7%. Cost-per-lead dropped from $38 to $9.50 — same budget, 4x more leads.
 
