@@ -123,11 +123,11 @@ Ready for deployment on internal infrastructure.
 
 ## Real-World Example
 
-Anya, a data analyst at DTC e-commerce company BrightCart, spent 30% of her day answering ad-hoc data questions from marketing and product. "What's our repeat purchase rate?" "Which products have the highest return rate?" Each question: write SQL, run it, format results, paste into Slack. Eight to twelve requests per day.
+A data analyst at a growing DTC e-commerce company spent 30% of her day answering ad-hoc data questions from marketing and product. "What's our repeat purchase rate?" "Which products have the highest return rate?" Each question: write SQL, run it, format results, paste into Slack. Eight to twelve requests per day.
 
-Her engineering lead Raj used the mcp-server-builder skill Thursday afternoon to create an MCP server with 12 tools covering customer metrics, product performance, and marketing attribution. By Friday morning, it ran as a Docker container on their internal network.
+The engineering lead used the mcp-server-builder skill Thursday afternoon to create an MCP server with 12 tools covering customer metrics, product performance, and marketing attribution. By Friday morning, it ran as a Docker container on their internal network.
 
-The marketing team connected it to Claude. Instead of asking Anya "what were our top products last month?", they asked Claude — answer in 3 seconds with a formatted table and period-over-period comparison. Within two weeks, ad-hoc requests to Anya dropped from 10/day to 2-3 (the complex ones needing custom analysis). She estimated saving 8-10 hours per week — time redirected to the cohort analysis dashboard the team had been requesting for months.
+The marketing team connected it to Claude. Instead of asking the analyst "what were our top products last month?", they asked Claude — answer in 3 seconds with a formatted table and period-over-period comparison. Within two weeks, ad-hoc requests dropped from 10/day to 2-3 (the complex ones needing custom analysis). She estimated saving 8-10 hours per week — time redirected to the cohort analysis dashboard the team had been requesting for months.
 
 ## Related Skills
 
