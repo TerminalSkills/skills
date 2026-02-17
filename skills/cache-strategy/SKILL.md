@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Redis 7+ or Memcached 1.6+. Node.js 18+ or Python 3.10+."
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["caching", "redis", "performance", "api-optimization"]
