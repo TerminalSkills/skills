@@ -2,7 +2,7 @@
 title: "Migrate from REST to GraphQL Without Breaking Existing Clients"
 slug: migrate-rest-to-graphql
 description: "Incrementally adopt GraphQL alongside your REST API so existing clients keep working while new ones get the benefits of a unified graph."
-skills: [graphql-migration, api-tester, code-migration]
+skills: [graphql, api-tester, code-migration]
 category: development
 tags: [graphql, rest-api, migration, backward-compatibility, api-gateway]
 ---
