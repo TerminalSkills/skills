@@ -9,7 +9,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Requires AWS CLI, gcloud, or az CLI configured with read access"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["cloud", "cost-optimization", "aws", "infrastructure-audit"]

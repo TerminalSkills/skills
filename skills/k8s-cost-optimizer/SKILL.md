@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Requires kubectl access to target cluster and metrics-server installed"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["kubernetes", "cost-optimization", "resource-management", "finops"]
