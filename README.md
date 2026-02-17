@@ -54,6 +54,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [data-visualizer](skills/data-visualizer/) | Data & AI | Generate charts and visualizations from datasets |
 | [markdown-writer](skills/markdown-writer/) | Content | Generate well-structured technical documentation |
 | [sql-optimizer](skills/sql-optimizer/) | Data & AI | Analyze and optimize SQL queries for performance |
+| [cicd-pipeline](skills/cicd-pipeline/) | DevOps | Generate and optimize CI/CD pipelines for testing, building, and deployment |
 
 ## Use Cases
 
