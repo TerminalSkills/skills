@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Linux/macOS; target database CLI tools must be installed"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["database", "backup", "disaster-recovery", "postgresql", "mysql"]
