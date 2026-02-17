@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.9+; PDF generation library required"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: business
   tags: ["billing", "invoicing", "payments", "automation"]
