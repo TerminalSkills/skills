@@ -59,6 +59,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [code-migration](skills/code-migration/) | Development | Migrate codebases between frameworks, languages, and API versions |
 | [cicd-pipeline](skills/cicd-pipeline/) | DevOps | Generate and optimize CI/CD pipelines for testing, building, and deployment |
 | [mcp-server-builder](skills/mcp-server-builder/) | Data & AI | Build MCP servers to connect AI agents to external services |
+| [prompt-tester](skills/prompt-tester/) | Data & AI | Test and evaluate AI prompts systematically with rubrics and test suites |
 
 ## Use Cases
 
@@ -74,6 +75,7 @@ Step-by-step guides for common workflows:
 - [Create Data Visualizations](use-cases/create-data-visualizations.md)
 - [Generate Documentation](use-cases/generate-documentation.md)
 - [Optimize SQL Queries](use-cases/optimize-sql-queries.md)
+- [Test AI Prompts Systematically](use-cases/test-ai-prompts-systematically.md)
 
 ## Contributing
 
