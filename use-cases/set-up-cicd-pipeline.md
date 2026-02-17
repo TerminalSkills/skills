@@ -122,11 +122,11 @@ Developer time on CI/CD config: 0 minutes
 
 ## Real-World Example
 
-Tomás, a full-stack developer at 4-person startup BookingPulse, was the only person who knew how to deploy. Every release meant SSH, git pull, migrations, restart. Fridays meant deploying and then fixing whatever broke. After a 90-minute outage from a missing environment variable, he decided to automate.
+A full-stack developer at a 4-person early-stage startup was the only person who knew how to deploy. Every release meant SSH, git pull, migrations, restart. Fridays meant deploying and then fixing whatever broke. After a 90-minute outage from a missing environment variable, he decided to automate.
 
 He spent 6 hours on a Saturday writing GitHub Actions workflows. Got basic tests running but gave up on Docker caching, preview deploys, and rollback — too complex. The cicd-pipeline skill generated the complete setup in one session. By Tuesday: parallel CI (3m 47s, down from 11min), preview URLs on every PR, staged deploys with approval gates, and auto-rollback.
 
-The first production deploy through the pipeline caught a database migration that would have failed — staging smoke tests flagged it before production. Over two months, the team went from weekly Friday deploys to 3-4 times daily. Deployment incidents: 2/month → zero. Tomás was no longer the bottleneck — any team member could merge and the pipeline handled the rest.
+The first production deploy through the pipeline caught a database migration that would have failed — staging smoke tests flagged it before production. Over two months, the team went from weekly Friday deploys to 3-4 times daily. Deployment incidents: 2/month → zero. He was no longer the bottleneck — any team member could merge and the pipeline handled the rest.
 
 ## Related Skills
 
