@@ -137,11 +137,11 @@ Monthly review: First Monday — what ranked, what declined, what to update
 
 ## Real-World Example
 
-Sophie, co-founder of SaaS tool FunnelTrack, had tried content marketing twice and quit both times. First attempt: 5 posts targeting high-difficulty keywords — none ranked. Second: 8 generic freelance articles from someone who'd never used analytics software. Twelve months and $4,200 later, organic traffic was still 180/month.
+The co-founder of a bootstrapped analytics SaaS had tried content marketing twice and quit both times. First attempt: 5 posts targeting high-difficulty keywords — none ranked. Second: 8 generic freelance articles from someone who'd never used analytics software. Twelve months and $4,200 later, organic traffic was still 180/month.
 
 She ran the three-skill workflow on a Friday. The competitive analysis revealed something surprising: both main competitors had zero implementation-focused content. All their articles were thought leadership. Keywords like "how to set up event tracking for SaaS" (380/mo, KD 14) were wide open.
 
-Sophie built a 90-day calendar targeting 24 implementation guides — the practical content competitors hadn't written. Over 6 weeks, she published 12 articles, spending ~2 hours each on review and adding product screenshots. By week 8, the cohort analysis tutorial ranked #4. By week 12: 2,840 organic visitors/month, up from 180. Three visitors converted to paying customers in month 3 — $2,700 new MRR from content that cost essentially nothing to produce.
+She built a 90-day calendar targeting 24 implementation guides — the practical content competitors hadn't written. Over 6 weeks, she published 12 articles, spending ~2 hours each on review and adding product screenshots. By week 8, the cohort analysis tutorial ranked #4. By week 12: 2,840 organic visitors/month, up from 180. Three visitors converted to paying customers in month 3 — $2,700 new MRR from content that cost essentially nothing to produce.
 
 ## Related Skills
 

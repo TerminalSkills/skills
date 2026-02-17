@@ -125,11 +125,11 @@ Created: docs/CI-PLAYBOOK.md
 
 ## Real-World Example
 
-Wei, engineering manager at Series A startup DataForge, inherited a pipeline that was the team's biggest frustration. Eleven engineers, 8-10 PRs daily, 38-minute builds, 31% flake rate. Engineers had stopped trusting CI — some merged after one green run even after three flaky failures.
+An engineering manager at a Series A data infrastructure startup inherited a pipeline that was the team's biggest frustration. Eleven engineers, 8-10 PRs daily, 38-minute builds, 31% flake rate. Engineers had stopped trusting CI — some merged after one green run even after three flaky failures.
 
 Tuesday: pipeline profiling revealed 72% wasted time (no caching, serial tests, Docker rebuilding from scratch). Flake analysis found 11 tests with identical root causes — race conditions and timing assumptions. By Thursday: all flaky tests fixed, 3-shard parallel CI with caching, Docker layer caching.
 
-Results: 38 minutes → 9 minutes. The team went a full week without a flaky failure — unprecedented. Over the following month: PR velocity up 23%, CI costs $920 → $280/month, "CI issues" disappeared from retros. Engineers started pushing smaller, more frequent PRs because the feedback loop was fast enough. Wei estimated the optimization recovered 2.5 engineering weeks per month.
+Results: 38 minutes → 9 minutes. The team went a full week without a flaky failure — unprecedented. Over the following month: PR velocity up 23%, CI costs $920 → $280/month, "CI issues" disappeared from retros. Engineers started pushing smaller, more frequent PRs because the feedback loop was fast enough. The optimization recovered an estimated 2.5 engineering weeks per month.
 
 ## Related Skills
 
