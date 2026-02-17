@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Requires dig or nslookup (available on most systems)"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["dns", "domain", "email-authentication", "infrastructure"]

@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Requires dig/nslookup for DNS checks; works with any email provider"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["email", "deliverability", "spam", "authentication", "dns"]
