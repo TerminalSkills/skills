@@ -108,7 +108,7 @@ The agent produces a data contract document specifying expected schema, null thr
 
 ## Real-World Example
 
-Kenji, a data engineer at an e-commerce analytics company called ShopLens, loads data from 12 merchant APIs nightly. One merchant changed their API response format — order amounts switched from cents (integer) to dollars (float), silently inflating revenue by 100x.
+Kenji, a data engineer at a mid-size e-commerce analytics company, loads data from 12 merchant APIs nightly. One merchant changed their API response format — order amounts switched from cents (integer) to dollars (float), silently inflating revenue by 100x.
 
 1. Kenji asks the agent: "Profile today's merchant feeds and compare value distributions to last week"
 2. The agent flags merchant #7: average amount jumped from 4,500 to 450,000 — a 100x increase
