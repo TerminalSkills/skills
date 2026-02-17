@@ -128,11 +128,11 @@ Generated: SECURITY-AUDIT-REPORT.md
 
 ## Real-World Example
 
-Priya, CTO of health tech startup MedTrack, received a security questionnaire from a hospital network — their potential largest client at $180K ARR. A professional audit firm quoted $28,000 and 5 weeks. She ran the security-audit skill on a Tuesday afternoon.
+The CTO of a 15-person health tech startup received a security questionnaire from a hospital network — their potential largest client at $180K ARR. A professional audit firm quoted $28,000 and 5 weeks. She ran the security-audit skill on a Tuesday afternoon.
 
-Within 20 minutes, the agent identified 31 findings: 3 critical (including a patient ID enumeration vulnerability and an exposed Twilio auth token in git history), 7 high, and 21 medium/low. By that evening, 18 findings were auto-fixed with patches for 8 more. Wednesday, Priya spent 3 hours on 5 architectural decisions — switching from localStorage to httpOnly cookies for sessions. Thursday, she had a clean audit report.
+Within 20 minutes, the agent identified 31 findings: 3 critical (including a patient ID enumeration vulnerability and an exposed third-party API token in git history), 7 high, and 21 medium/low. By that evening, 18 findings were auto-fixed with patches for 8 more. Wednesday, she spent 3 hours on 5 architectural decisions — switching from localStorage to httpOnly cookies for sessions. Thursday, she had a clean audit report.
 
-The hospital's security team approved MedTrack for their vendor program the following week. Total time: 2 days versus 5 weeks. Total cost: engineering time versus $28,000. The contract closed 6 weeks ahead of what the audit timeline would have allowed.
+The hospital's security team approved the startup for their vendor program the following week. Total time: 2 days versus 5 weeks. Total cost: engineering time versus $28,000. The contract closed 6 weeks ahead of what the audit timeline would have allowed.
 
 ## Related Skills
 
