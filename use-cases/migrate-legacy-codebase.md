@@ -1,140 +1,137 @@
 ---
-title: "Migrate a Legacy Codebase to Modern Standards"
+title: "Migrate Legacy Codebase with AI"
 slug: migrate-legacy-codebase
-description: "Incrementally convert legacy JavaScript to TypeScript with ES modules, async/await, and type safety."
-skills: [code-migration]
+description: "Migrate legacy codebases to modern frameworks with AI-generated tests to prevent regressions and security audits to harden the new code."
+skills: [code-migration, test-generator, security-audit]
 category: development
-tags: [migration, typescript, refactoring, legacy-code, modernization]
+tags: [migration, legacy-code, testing, security, modernization]
 ---
 
-# Migrate a Legacy Codebase to Modern Standards
+# Migrate Legacy Codebase with AI
 
 ## The Problem
 
-Your application was built in 2018 with CommonJS `require()`, callback-heavy async, and no type annotations. It works — mostly. Every week, a developer spends two days tracing a `TypeError: Cannot read property of undefined` through six files of untyped callbacks. Refactoring anything feels like defusing a bomb because there's no compiler to catch mistakes.
-
-The codebase is 35,000 lines across 180 files. A full TypeScript migration was estimated at 3-4 months. Management approved "when there's bandwidth" — which means never. Meanwhile, developers move 30-40% slower because they can't trust function signatures. New hires take 3 weeks longer to become productive. Two engineers cited "developer experience" in their exit interviews.
-
-You need an incremental migration that doesn't halt feature development — converting modules in dependency order, with confidence that nothing breaks.
+Your team maintains a 65,000-line Express.js 4 API from 2018 — callback-based, CommonJS, an unmaintained ORM, Node 14 with no security support. Three key dependencies have no maintainers and CVEs pile up quarterly. Rewriting takes 6 months; incremental migration without tests means you won't know what breaks until customers report it. And migrating without a security review just moves old vulnerabilities into new code.
 
 ## The Solution
 
-The **code-migration** skill analyzes your dependency graph, determines optimal migration order (leaf modules first), and converts files incrementally. It infers types from usage patterns, converts callbacks to async/await, and validates each batch with your existing test suite. Migration is done in 5-10 file batches with tests after each.
+The **code-migration** skill converts legacy patterns — callbacks to async/await, CommonJS to ESM, outdated ORMs to Prisma. The **test-generator** skill creates baseline tests before migration to catch regressions. The **security-audit** skill reviews migrated code for vulnerabilities introduced during conversion.
 
 ```bash
-npx terminal-skills install code-migration
+npx terminal-skills install code-migration test-generator security-audit
 ```
 
 ## Step-by-Step Walkthrough
 
-### 1. Analyze the dependency graph
+### 1. Generate baseline tests before migration
 
 ```
-Analyze this codebase for TypeScript migration. Map dependencies and show migration order.
-```
-
-```
-Dependency Analysis — 180 files, 35,247 lines
-
-  Leaf modules (0 internal deps):  23 files — migrate FIRST
-  Low-dependency (1-2 deps):       41 files — batch 2
-  Medium-dependency (3-5 deps):    67 files — batch 3-4
-  High-dependency (6+ deps):       38 files — batch 5-6
-  Entry points:                    11 files — migrate LAST
-
-Patterns: 100% CommonJS, 26% callbacks, 35% promise chains, 87% no types
-Plan: 6 batches over 3-4 sessions (~2 hours total)
-```
-
-### 2. Set up TypeScript and migrate leaf modules
-
-```
-Initialize TypeScript for incremental migration, then convert all 23 leaf modules.
+Generate snapshot tests for the payment, auth, and order modules. Capture current input/output behavior for regression detection during migration.
 ```
 
 ```
-Created: tsconfig.json (strict mode, allowJs: true)
-Added: typescript, ts-node, @types/node, @types/express
+Baseline Tests Created:
 
-Migrating 23 leaf modules...
-  ✓ src/utils/format-date.js → .ts (4 type annotations, Date | string inferred)
-  ✓ src/utils/currency.js → .ts (added CurrencyCode enum, Amount interface)
-  ✓ src/utils/validators.js → .ts (ValidationResult interface, 6 annotations)
-  ... (20 more)
+  tests/baseline/payment.test.js — 28 tests
+    Charge creation, refunds, webhooks, expired cards, duplicate charges
+  tests/baseline/auth.test.js — 22 tests
+    Login, registration, token refresh, brute force lockout
+  tests/baseline/orders.test.js — 19 tests
+    Order creation, status transitions, inventory reservation
 
-  require → import: 23 files | module.exports → export: 23 files
-  Callbacks → async/await: 8 | Types added: 67 annotations, 12 interfaces
-
-Tests: 94 passing ✓ | TypeScript: 0 errors
+Total: 69 baseline tests, all passing against current code ✓
+Tests verify behavior, not implementation — they'll validate the migration.
 ```
 
-### 3. Migrate the service layer with type inference
+### 2. Migrate the first module
 
 ```
-Convert the 41 service files. Infer types from database queries and API responses.
-```
-
-```
-Type inference:
-  156 database queries → 28 row type interfaces
-  23 external API calls → 14 response interfaces
-  89 function calls → 134 parameter types inferred
-
-  src/services/payment.js → .ts
-    Before: function processPayment(data, callback)
-    After:  async function processPayment(data: PaymentRequest): Promise<PaymentResult>
-
-  41/41 files converted | Callbacks → async: 31 | Promise chains → async: 24
-Tests: 94 passing ✓ | TypeScript: 0 errors
-```
-
-### 4. Handle complex modules with circular deps
-
-```
-Convert batches 3-5 (105 files). Flag circular dependencies needing decisions.
+Migrate src/services/payment.js from callbacks to async/await. Convert require() to ESM. Replace Waterline queries with Prisma. Keep the same API contracts.
 ```
 
 ```
-⚠️  Circular dependency: order.ts ↔ inventory.ts
-  Resolution: Extracted shared types to src/types/order-inventory.ts — cycle broken
+Migration: src/services/payment.js
 
-⚠️  2 manual decisions needed (auto-resolved):
-  1. Error handler catches `any` → applied custom AppError hierarchy
-  2. Dynamic property access on untyped webhook → added StripeWebhookEvent type
+  ✓ 34 callback chains → async/await (8 nesting levels → 3)
+  ✓ 12 require() → ESM imports
+  ✓ 18 Waterline queries → Prisma client calls
+  ✓ Callback err patterns → try/catch with typed errors
 
-105/105 converted | All callbacks eliminated | Tests: 94 passing ✓
-Progress: 169/180 files (94%)
+Before: 342 lines, complexity 34 | After: 241 lines, complexity 18
+Running baseline tests... 28/28 passing ✓
 ```
 
-### 5. Complete migration and enable strict mode
+### 3. Migrate remaining modules
 
 ```
-Convert remaining entry points and enable strict TypeScript checks.
+Migrate auth.js and orders.js using the same patterns. Run baseline tests after each module.
 ```
 
 ```
-11 entry points converted (app.ts, server.ts, workers)
+  src/services/auth.js
+    ✓ 21 callbacks → async/await, JWT modernized (jose library)
+    ✓ Waterline → Prisma (User, Session, Token models)
+    Baseline: 22/22 passing ✓
 
-Strict mode check: 12 implicit-any errors → auto-fixed with explicit annotations
+  src/services/orders.js
+    ✓ 26 callbacks → async/await, inventory locking → Prisma transactions
+    Baseline: 19/19 passing ✓
 
-FINAL STATS:
-  180/180 files converted (100%)
-  847 type annotations, 126 interfaces/types created
-  47 callbacks → 0, all CommonJS → ES modules
-  Strict mode: 0 errors, 0 warnings
-  All 94 tests passing ✓
+All 69 baseline tests passing. Zero regressions.
+```
+
+### 4. Audit migrated code for security issues
+
+```
+Run a security audit on the migrated modules. Focus on issues introduced during migration — new ORM queries, async error handling, updated JWT library.
+```
+
+```
+Security Audit — Migrated Code — 7 findings
+
+CRITICAL (1):
+  ✗ auth.js:67 — JWT audience claim not validated after jose migration
+    Waterline version checked aud manually; migration dropped the check. Fixed ✓
+
+HIGH (3):
+  ⚠ orders.js:112 — Prisma transaction missing isolation level, enables double-reserve
+    Added Serializable isolation. Fixed ✓
+  ⚠ payment.js:89 — Webhook signature uses timing-unsafe comparison after migration
+    Restored crypto.timingSafeEqual. Fixed ✓
+  ⚠ auth.js:145 — Password reset token stored plaintext in new schema (old code hashed)
+    Added bcrypt hash. Fixed ✓
+
+MEDIUM (3): 2 error handlers expose stack traces, 1 query returns full user with hash
+
+All fixes applied. Baseline tests: 69/69 passing ✓
+```
+
+### 5. Generate tests for new patterns
+
+```
+Generate tests covering the new async patterns, Prisma transactions, and jose JWT handling.
+```
+
+```
+Migration-Specific Tests:
+
+  async-errors.test.js — 11 tests (rejection propagation, pool exhaustion, timeouts)
+  prisma-transactions.test.js — 8 tests (isolation, rollback, pool recovery)
+  jose-jwt.test.js — 6 tests (audience validation, algorithm confusion, key rotation)
+
+Total: 94 tests (69 baseline + 25 new), all passing
+Coverage on migrated modules: 81% statements ✓
 ```
 
 ## Real-World Example
 
-An engineering lead at a mid-size logistics SaaS company faced a 45,000-line untyped Express API built by rotating contractors. New features taking weeks instead of days. He assigned a mid-level engineer to manual migration — after two weeks, she'd converted 22 files and introduced 3 regressions.
+A lead engineer at a 20-person logistics startup needed to migrate a 50,000-line Express 4 API off Node 14 before AWS Lambda dropped runtime support in 8 weeks. The API processed 400,000 shipment events daily — downtime meant lost package visibility for enterprise clients.
 
-They tried the code-migration skill. Tuesday morning: 65 leaf and low-dependency modules converted — more than two weeks of manual work. Wednesday afternoon: all 200 files in TypeScript with strict mode. The engineer spent Thursday reviewing generated types, correcting 8 that had technically correct but misleadingly named interfaces.
+Monday, test-generator captured 82 baseline tests across 6 modules. That afternoon, code-migration converted the shipment tracking module from callbacks to async/await. By Wednesday, 4 modules were migrated with zero regressions. Thursday, security-audit caught a critical issue — migration accidentally removed rate limiting on webhook ingestion, enabling event flooding. Two-minute fix.
 
-Results over the next month: team velocity increased ~35%. IDE autocomplete worked everywhere. A junior developer caught a data shape mismatch during development that would have shipped as a production bug. The TypeScript compiler blocked 4 PRs with type errors — bugs invisible in the old codebase.
+The migrated API deployed Friday with 112 tests providing confidence. Post-deployment: 23% reduction in p99 latency from async/await. Migration completed 5 weeks early. The test suite caught 4 regressions in subsequent PRs that would have reached production.
 
 ## Related Skills
 
-- [test-generator](../skills/test-generator/) — Generate tests before migration as a safety net for refactoring
-- [code-reviewer](../skills/code-reviewer/) — Review migrated code for TypeScript best practices
-- [cicd-pipeline](../skills/cicd-pipeline/) — Add TypeScript compilation checks to your CI pipeline
+- [cicd-pipeline](../skills/cicd-pipeline/) — Run baseline tests on every commit during migration
+- [docker-helper](../skills/docker-helper/) — Update containers for the new Node.js runtime
