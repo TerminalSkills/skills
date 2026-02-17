@@ -1,141 +1,139 @@
 ---
-title: "Audit Code Security with AI-Powered Analysis"
+title: "Audit Code Security with AI"
 slug: audit-code-security
-description: "Find vulnerabilities, leaked secrets, and insecure patterns in your codebase before attackers do."
-skills: [security-audit]
-category: development
-tags: [security, vulnerabilities, audit, secrets, OWASP]
+description: "Run a comprehensive security audit across application code, Docker configurations, and CI/CD pipelines to eliminate vulnerabilities end-to-end."
+skills: [security-audit, docker-helper, cicd-pipeline]
+category: devops
+tags: [security, audit, docker, cicd, vulnerabilities]
 ---
 
-# Audit Code Security with AI-Powered Analysis
+# Audit Code Security with AI
 
 ## The Problem
 
-Your startup just landed a pilot with an enterprise client. Their security questionnaire asks about vulnerability scanning, secret management, and OWASP compliance. You glance at your codebase: API keys hardcoded in config files, dependencies not updated in 8 months, and SQL queries built with string concatenation in three endpoints.
-
-Professional security audits cost $15,000-50,000 and take 4-6 weeks. Automated scanners like Snyk flag hundreds of CVEs — mostly irrelevant noise in transitive dependencies — without telling you which ones actually matter for your application. The average data breach for companies under 500 employees costs $3.31 million (IBM 2024), yet 43% of small companies have no cybersecurity plan.
-
-You need a focused audit that understands your code, prioritizes real risks, and gives you fix-ready patches — not a 200-page PDF that sits in a drawer.
+Your Express.js API handles financial data for 12,000 users. A pen tester found 23 issues — SQL injection, hardcoded secrets, Docker containers running as root. Your team patched the critical items, but nobody audited the other 180 endpoints, 6 Dockerfiles, or the CI pipeline that deploys without any security checks. AppSec engineers cost $200/hour and audits take 2-3 weeks.
 
 ## The Solution
 
-The **security-audit** skill performs a deep, context-aware security analysis. It scans dependencies for exploitable CVEs (filtering out unreachable ones), detects secrets in code and git history, analyzes patterns against the OWASP Top 10, and generates prioritized findings with ready-to-apply fixes. Unlike generic scanners, it understands how your code actually uses dependencies and whether a vulnerable function is reachable.
+The **security-audit** skill scans application code for injection flaws, auth bypasses, and secret leaks. The **docker-helper** skill audits container configs for privilege escalation, exposed ports, and bloated images. The **cicd-pipeline** skill adds automated security gates so vulnerabilities get caught before production.
 
 ```bash
-npx terminal-skills install security-audit
+npx terminal-skills install security-audit docker-helper cicd-pipeline
 ```
 
 ## Step-by-Step Walkthrough
 
-### 1. Run a full security scan
+### 1. Scan application code for vulnerabilities
 
 ```
-Run a comprehensive security audit. Check dependencies, secrets, code patterns, and infrastructure config.
+Run a security audit on this Express.js API. Focus on injection vulnerabilities, authentication flaws, and secret management.
 ```
 
 ```
-Security Audit — 347 files, 42,891 lines
+Security Audit — 31 findings
+
+CRITICAL (4):
+  ✗ src/routes/reports.js:45 — Raw SQL interpolation: WHERE id = ${req.params.id}
+  ✗ src/services/export.js:78 — Path traversal in file download endpoint
+  ✗ .env.production — Committed to git with live database credentials
+  ✗ src/config/jwt.js:12 — JWT secret is "supersecret123"
+
+HIGH (8): 3 endpoints missing rate limiting, no CSRF protection,
+  unrestricted file uploads, 2 dependencies with known CVEs
+
+Applying auto-fixes for critical issues...
+Fixed: SQL injection (2), path traversal (1), hardcoded secret removed (1)
+Manual action needed: Rotate database credentials and JWT secret
+```
+
+### 2. Audit Docker configurations
+
+```
+Audit all Dockerfiles and docker-compose.yml for security issues. Check privilege escalation, exposed secrets, and image bloat.
+```
+
+```
+Docker Security Audit — 9 findings
 
 CRITICAL (2):
-  🔴 Hardcoded Stripe key in src/config/payments.js:14
-     sk_live_EXAMPLE_KEY_REDACTED — active production key
-     FIX: Move to environment variable, rotate immediately
+  ✗ Dockerfile.api — Running as root (no USER directive)
+    Fix: Added non-root user with minimal permissions
+  ✗ docker-compose.yml — Database password in plain text
+    Fix: Moved to Docker secrets
 
-  🔴 SQL injection in src/routes/search.js:47
-     `SELECT * FROM products WHERE name LIKE '%${query}%'`
-     FIX: Use parameterized query (patch generated)
+HIGH (4):
+  ⚠ Using node:20 full image (1.1GB) → switched to node:20-alpine (180MB)
+  ⚠ Worker container has --privileged flag → removed, added only NET_BIND_SERVICE
+  ⚠ PostgreSQL port exposed to host → moved to internal network
+  ⚠ No HEALTHCHECK → added curl health endpoint
 
-HIGH (5):
-  🟠 CVE-2024-38816 — jsonwebtoken 8.5.1 (signature bypass) — directly exploitable
-  🟠 No rate limiting on /api/auth/login — brute-force vulnerable
-  🟠 Session tokens in localStorage (XSS-exfiltrable)
-  🟠 Missing CSRF protection on POST routes
-  🟠 AWS access key in git history (commit a3f8c21)
-
-Total: 2 critical, 5 high, 8 medium, 12 low
+Image size: 1.1GB → 180MB. Attack surface significantly reduced.
 ```
 
-### 2. Apply automated fixes for critical findings
+### 3. Fix dependency vulnerabilities
 
 ```
-Fix the SQL injection and patch the hardcoded secrets.
+Update the vulnerable dependencies. Check for breaking changes and run tests after each update.
 ```
 
 ```
-Patched src/routes/search.js:
-  BEFORE: `SELECT * FROM products WHERE name LIKE '%${query}%'`
-  AFTER:  'SELECT * FROM products WHERE name LIKE $1', [`%${query}%`]
+  ✓ lodash 4.17.15 → 4.17.21 (prototype pollution fix)
+  ✓ jsonwebtoken 8.5.1 → 9.0.2 (algorithm confusion fix)
+  ✓ express-fileupload 1.2.0 → 1.5.1 (arbitrary file write fix)
+  ✓ Removed 3 unused dependencies
 
-Patched src/config/payments.js:
-  BEFORE: stripe_secret: 'sk_live_EXAMPLE_KEY_REDACTED'
-  AFTER:  stripe_secret: process.env.STRIPE_SECRET_KEY
-
-Created: .env.example, updated .gitignore
-⚠️  Rotate the exposed Stripe key immediately — it's in git history.
+npm audit: 0 vulnerabilities (was 11). All 47 tests passing ✓
 ```
 
-### 3. Upgrade vulnerable dependencies
+### 4. Set up security gates in CI/CD
 
 ```
-Upgrade jsonwebtoken and other exploitable dependencies. Run tests after each upgrade.
+Add security scanning to our GitHub Actions pipeline. SAST on code, Docker image scanning, dependency audit, and secret detection. Block deployment on critical findings.
 ```
 
 ```
-  jsonwebtoken 8.5.1 → 9.0.2 — auto-patched auth.js for required algorithms option
-  express 4.17.1 → 4.21.1 — no breaking changes
-  axios 0.21.1 → 1.7.9 — auto-patched 3 call sites for response format change
+Created: .github/workflows/security.yml
 
-Remaining CVEs (not exploitable in your code):
-  nth-check@1.0.2 — build-time CSS only, not runtime
-  semver@5.7.1 — transitive dev dep, no runtime exposure
+  1. SAST scan — Semgrep with Express.js rules
+  2. Dependency audit — npm audit --audit-level=high
+  3. Docker image scan — Trivy (fail on CRITICAL/HIGH)
+  4. Secret detection — Gitleaks on full diff
+  Gate: PR blocked on any CRITICAL finding
+  Report: security summary posted as PR comment
+  Scan time: ~2 minutes per PR
 
-All 19 tests passing after upgrades ✓
+Updated deploy workflow: production requires green security check
 ```
 
-### 4. Add security hardening middleware
+### 5. Validate the full security posture
 
 ```
-Add rate limiting, security headers, CSRF protection, and input sanitization.
-```
-
-```
-Added to src/app.js:
-  + helmet() — security headers (HSTS, CSP, X-Content-Type-Options)
-  + express-rate-limit — 100 req/15min per IP on auth routes
-  + csurf — CSRF token validation on state-changing routes
-  + express-mongo-sanitize — NoSQL injection prevention
-
-Created: src/middleware/security.js (43 lines)
-Tests: 19 passing + 6 new security tests ✓
-```
-
-### 5. Clean secrets from git history and generate report
-
-```
-Remove leaked keys from git history and generate a security report for the enterprise client.
+Run the complete security pipeline to establish a clean baseline.
 ```
 
 ```
-Purged sk_live_* and AKIA* from git history via git-filter-repo
-⚠️  Force push required. Team must re-clone.
+Full Pipeline — PASSED ✓
 
-Generated: SECURITY-AUDIT-REPORT.md
-  27 findings identified, 15 auto-fixed, 7 require manual review
-  OWASP Top 10: 8/10 categories assessed
-  Dependencies: 3 critical CVEs fixed, 2 non-exploitable documented
-  Secrets: 2 removed from history, rotation required
+  ✓ SAST: 0 critical, 0 high (31 resolved)
+  ✓ Dependencies: 0 vulnerabilities
+  ✓ Docker scan: 0 critical CVEs
+  ✓ Secrets: 0 leaked credentials
+
+Manual items remaining:
+  1. Rotate production DB credentials (exposed in git history)
+  2. Rotate JWT key and invalidate existing tokens
+  3. Enable WAF on public endpoints
+
+Security score: 23/100 → 91/100
 ```
 
 ## Real-World Example
 
-The CTO of a 15-person health tech startup received a security questionnaire from a hospital network — their potential largest client at $180K ARR. A professional audit firm quoted $28,000 and 5 weeks. She ran the security-audit skill on a Tuesday afternoon.
+A CTO at a 40-person healthtech startup received a pen test report with 19 critical findings two weeks before a hospital partnership deadline. She ran security-audit on the 70,000-line Django API Monday — it found 27 additional issues including an IDOR vulnerability in patient records. Tuesday, docker-helper hardened 4 Dockerfiles, cutting images by 80% and eliminating root containers. Wednesday, cicd-pipeline deployed automated SAST, dependency scanning, and image checks as CI gates.
 
-Within 20 minutes, the agent identified 31 findings: 3 critical (including a patient ID enumeration vulnerability and an exposed third-party API token in git history), 7 high, and 21 medium/low. By that evening, 18 findings were auto-fixed with patches for 8 more. Wednesday, she spent 3 hours on 5 architectural decisions — switching from localStorage to httpOnly cookies for sessions. Thursday, she had a clean audit report.
-
-The hospital's security team approved the startup for their vendor program the following week. Total time: 2 days versus 5 weeks. Total cost: engineering time versus $28,000. The contract closed 6 weeks ahead of what the audit timeline would have allowed.
+By Friday, all critical findings were resolved. The pipeline caught two new vulnerabilities in PRs that week — both blocked before merge. The hospital partner approved the integration and the startup signed the $2.4M annual contract on schedule.
 
 ## Related Skills
 
-- [test-generator](../skills/test-generator/) — Generate security-focused test cases for vulnerabilities found during audit
-- [cicd-pipeline](../skills/cicd-pipeline/) — Add automated security scanning as a CI gate
-- [code-reviewer](../skills/code-reviewer/) — Ongoing reviews with security-aware analysis on every PR
+- [test-generator](../skills/test-generator/) — Generate tests for security-critical code paths
+- [code-reviewer](../skills/code-reviewer/) — Review security fixes for correctness
