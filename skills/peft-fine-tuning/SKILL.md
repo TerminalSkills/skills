@@ -8,7 +8,7 @@ description: >-
   models.
 license: Apache-2.0
 metadata:
-  author: orchestra-research
+  author: terminal-skills
   version: "1.0.0"
   category: data-ai
   tags: ["fine-tuning", "lora", "qlora", "peft", "llm"]
