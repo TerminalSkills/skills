@@ -8,7 +8,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Requires access to EXPLAIN output. Works with PostgreSQL, MySQL 8+, and SQLite."
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: development
   tags: ["database", "performance", "explain", "query-plan", "indexing"]
