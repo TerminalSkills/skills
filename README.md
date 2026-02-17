@@ -59,6 +59,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [code-migration](skills/code-migration/) | Development | Migrate codebases between frameworks, languages, and API versions |
 | [cicd-pipeline](skills/cicd-pipeline/) | DevOps | Generate and optimize CI/CD pipelines for testing, building, and deployment |
 | [mcp-server-builder](skills/mcp-server-builder/) | Data & AI | Build MCP servers to connect AI agents to external services |
+| [prompt-tester](skills/prompt-tester/) | Data & AI | Test and evaluate AI prompts systematically with rubrics and test suites |
 | [monorepo-manager](skills/monorepo-manager/) | Development | Manage dependencies and workspaces in monorepos |
 | [data-validator](skills/data-validator/) | Data & AI | Validate data quality in CSV, JSON, and database exports |
 | [log-analyzer](skills/log-analyzer/) | DevOps | Analyze application logs to identify root causes and incident timelines |
@@ -77,6 +78,7 @@ Step-by-step guides for common workflows:
 - [Create Data Visualizations](use-cases/create-data-visualizations.md)
 - [Generate Documentation](use-cases/generate-documentation.md)
 - [Optimize SQL Queries](use-cases/optimize-sql-queries.md)
+- [Test AI Prompts Systematically](use-cases/test-ai-prompts-systematically.md)
 - [Manage Monorepo Dependencies](use-cases/manage-monorepo-dependencies.md)
 - [Validate ETL Data Quality](use-cases/validate-etl-data-quality.md)
 - [Automate Release Notes](use-cases/automate-release-notes.md)
