@@ -9,7 +9,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Works with Figma URLs (requires Figma API token), screenshots, or exported design specs"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: design
   tags: ["figma", "frontend", "design-to-code", "react", "css"]
