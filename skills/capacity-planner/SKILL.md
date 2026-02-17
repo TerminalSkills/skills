@@ -9,7 +9,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Works with any load test output; cost estimates default to AWS pricing"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["capacity-planning", "scaling", "infrastructure", "cost-estimation"]

@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 compatibility: "Requires k6, wrk, or autocannon installed; Node.js for autocannon"
 metadata:
-  author: carlos
+  author: terminal-skills
   version: "1.0.0"
   category: devops
   tags: ["load-testing", "performance", "api", "k6", "benchmarking"]
