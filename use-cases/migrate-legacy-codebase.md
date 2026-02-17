@@ -127,9 +127,9 @@ FINAL STATS:
 
 ## Real-World Example
 
-Daniel, engineering lead at logistics SaaS RouteStack, faced a 45,000-line untyped Express API built by rotating contractors. New features taking weeks instead of days. He assigned Sofia to manual migration — after two weeks, she'd converted 22 files and introduced 3 regressions.
+An engineering lead at a mid-size logistics SaaS company faced a 45,000-line untyped Express API built by rotating contractors. New features taking weeks instead of days. He assigned a mid-level engineer to manual migration — after two weeks, she'd converted 22 files and introduced 3 regressions.
 
-They tried the code-migration skill. Tuesday morning: 65 leaf and low-dependency modules converted — more than two weeks of manual work. Wednesday afternoon: all 200 files in TypeScript with strict mode. Sofia spent Thursday reviewing generated types, correcting 8 that had technically correct but misleadingly named interfaces.
+They tried the code-migration skill. Tuesday morning: 65 leaf and low-dependency modules converted — more than two weeks of manual work. Wednesday afternoon: all 200 files in TypeScript with strict mode. The engineer spent Thursday reviewing generated types, correcting 8 that had technically correct but misleadingly named interfaces.
 
 Results over the next month: team velocity increased ~35%. IDE autocomplete worked everywhere. A junior developer caught a data shape mismatch during development that would have shipped as a production bug. The TypeScript compiler blocked 4 PRs with type errors — bugs invisible in the old codebase.
 
