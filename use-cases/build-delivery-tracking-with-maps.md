@@ -1,7 +1,9 @@
 ---
 title: Build a Delivery Tracking System with Maps
 slug: build-delivery-tracking-with-maps
+description: "Build a real-time delivery tracking system with live driver positions, optimized multi-stop routing, geofence alerts, and ETA calculations using Google Maps, Mapbox, and WebSockets."
 category: geolocation
+skills: [maps-geolocation]
 tags: [maps, geolocation, websocket, realtime, routing, delivery]
 ---
 
