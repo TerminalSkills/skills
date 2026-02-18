@@ -2,59 +2,36 @@
 title: Build an Engineering Workflow with Linear
 slug: build-engineering-workflow-with-linear
 description: "Set up Linear for a growing engineering team with automated triage, GitHub PR integration, sprint cycles, SLA tracking, and weekly velocity reports via the GraphQL API."
-category: project-management
+category: productivity
 skills: [linear]
 tags: [linear, automation, github, webhooks, agile]
 ---
 
 # Build an Engineering Workflow with Linear
 
+## The Problem
+
 Dani is a tech lead at a 30-person SaaS startup. The engineering team has grown from 5 to 14 developers in six months. Their GitHub Issues setup is falling apart — no sprint planning, no priority visibility, inconsistent labeling. The CTO wants structured cycles, automated triage, and metrics they can actually track.
 
 Dani needs to set up Linear as the team's project management backbone: workspace structure, automated workflows via webhooks, GitHub integration, and a reporting dashboard.
 
-## Prompt
+## The Solution
 
-```text
-I need to set up Linear for our engineering team (14 developers, 3 teams: Platform, Product, Mobile). Here's what I need:
+Using the **linear** skill, the agent sets up a complete engineering workflow: three team workspaces with custom states, shared labels and issue templates, a webhook automation server for triage and notifications, GitHub PR integration, two-week sprint cycles with carryover, and reporting queries for velocity and priority tracking.
 
-1. **Workspace structure**: 3 teams with custom workflow states. Platform team needs a "Deploying" state. Product team needs "Design Review". Mobile team needs "QA Testing". All teams need standard states too (Backlog, Todo, In Progress, In Review, Done, Cancelled).
+## Step-by-Step Walkthrough
 
-2. **Labels**: Create a consistent label set across all teams — bug, feature, tech-debt, security, performance, documentation, ux. Plus priority labels aren't needed since Linear has built-in priority.
+### Step 1: Create Teams with Custom Workflow States
 
-3. **Issue templates**: Bug report template (steps to reproduce, expected/actual behavior, environment, severity), Feature request template (user story, acceptance criteria, design link, effort estimate), Tech debt template (current state, proposed improvement, risk if ignored, estimated effort).
+First, get your API key from Linear → Settings → API → Personal API keys. Then set up the three engineering teams, each with standard workflow states plus one custom state specific to their process.
 
-4. **Automation via webhooks**: 
-   - When an issue is marked "urgent" priority → auto-add to current cycle
-   - When an issue moves to "In Review" → post to our #dev-reviews Slack channel
-   - When all sub-issues of a parent are "Done" → auto-complete the parent
-   - When an issue has been "In Progress" for more than 5 days → add "stale" label
-
-5. **GitHub integration**: Set up branch naming conventions so PRs auto-link. When a PR is merged to main, move the linked issue to "Done".
-
-6. **Sprint/cycle setup**: 2-week cycles starting on Mondays. Auto-create next cycle. Move unfinished issues to next cycle at end of sprint.
-
-7. **Reporting**: Build queries for — team velocity (last 6 sprints), bug vs feature ratio, cycle burndown data, issues by priority distribution.
-
-Start with the workspace setup and work through each item. Give me the actual API calls and webhook handler code.
-```
-
-## Agent Response
-
-```text
-Let me build this end-to-end. Starting with workspace setup, then automation, GitHub sync, and reporting.
-
-## 1. Workspace Setup — Teams & Custom States
-
-First, get your API key from Linear → Settings → API → Personal API keys.
-
-### Initialize the client
-
+```javascript
 import { LinearClient } from "@linear/sdk";
+
+// Initialize with your personal API key from Linear settings
 const linear = new LinearClient({ apiKey: process.env.LINEAR_API_KEY });
 
-### Create teams
-
+// Define team structure — each team gets a unique key for issue prefixes
 const teamConfigs = [
   { name: "Platform", key: "PLT", description: "Infrastructure, CI/CD, developer tooling" },
   { name: "Product", key: "PRD", description: "User-facing features, growth, analytics" },
@@ -67,20 +44,15 @@ for (const config of teamConfigs) {
     name: config.name,
     key: config.key,
     description: config.description,
-    cycleDuration: 2,           // 2-week cycles
-    cycleStartDay: 1,           // Monday
+    cycleDuration: 2,       // 2-week sprints
+    cycleStartDay: 1,       // Start on Monday
     cycleEnabled: true,
-    upcomingCycleCount: 1,      // Auto-create 1 upcoming cycle
-    autoClosePeriod: 6,         // Auto-close completed issues after 6 months
-    autoCloseStateId: null,     // Will set after creating states
+    upcomingCycleCount: 1,  // Auto-create next cycle
   });
   teams[config.key] = result.team;
 }
 
-### Create custom workflow states per team
-
-The standard states apply to all teams. Custom states are team-specific:
-
+// Standard states shared by all teams
 const standardStates = [
   { name: "Backlog", type: "backlog", color: "#95a2b3", position: 0 },
   { name: "Todo", type: "unstarted", color: "#e2e2e2", position: 1 },
@@ -90,6 +62,7 @@ const standardStates = [
   { name: "Cancelled", type: "cancelled", color: "#95a2b3", position: 6 },
 ];
 
+// Team-specific states — each team gets one custom state at position 4
 const customStates = {
   PLT: { name: "Deploying", type: "started", color: "#6fcf97", position: 4 },
   PRD: { name: "Design Review", type: "started", color: "#bb6bd9", position: 4 },
@@ -100,16 +73,17 @@ for (const [key, team] of Object.entries(teams)) {
   for (const state of standardStates) {
     await linear.workflowStateCreate({ teamId: team.id, ...state });
   }
-  const custom = customStates[key];
-  if (custom) {
-    await linear.workflowStateCreate({ teamId: team.id, ...custom });
-  }
+  // Add the custom state for this team
+  await linear.workflowStateCreate({ teamId: team.id, ...customStates[key] });
 }
+```
 
-## 2. Labels — Consistent Across Teams
+### Step 2: Create Shared Labels
 
-Create workspace-level labels (shared across all teams):
+Workspace-level labels are shared across all teams. No need for priority labels since Linear has built-in priority fields (P0–P4).
 
+```javascript
+// Workspace-level labels — omit teamId so they apply everywhere
 const labels = [
   { name: "bug", color: "#ef4444" },
   { name: "feature", color: "#3b82f6" },
@@ -118,18 +92,20 @@ const labels = [
   { name: "performance", color: "#8b5cf6" },
   { name: "documentation", color: "#6b7280" },
   { name: "ux", color: "#ec4899" },
-  { name: "stale", color: "#9ca3af" },
+  { name: "stale", color: "#9ca3af" },  // Used by automation later
 ];
 
 for (const label of labels) {
   await linear.issueLabelCreate(label);
-  // Workspace-level: no teamId = shared across all teams
 }
+```
 
-## 3. Issue Templates
+### Step 3: Set Up Issue Templates
 
-### Bug report template
+Create templates for bug reports, feature requests, and tech debt. Applied to all teams via a loop. The templates use Linear's description format with markdown checklists.
 
+```javascript
+// Create bug report template for each team
 for (const [key, team] of Object.entries(teams)) {
   await linear.client.rawRequest(`
     mutation {
@@ -141,35 +117,21 @@ for (const [key, team] of Object.entries(teams)) {
           title: "[Bug] "
           priority: 2
           labelIds: ["${bugLabelId}"]
-          description: "## Steps to Reproduce\\n1. \\n2. \\n3. \\n\\n## Expected Behavior\\n\\n## Actual Behavior\\n\\n## Environment\\n- OS: \\n- Browser: \\n- Version: \\n\\n## Severity\\n- [ ] Blocker (system down)\\n- [ ] Critical (major feature broken)\\n- [ ] Major (feature degraded)\\n- [ ] Minor (cosmetic/edge case)\\n\\n## Screenshots/Logs\\n"
+          description: "## Steps to Reproduce\\n1. \\n2. \\n3. \\n\\n## Expected Behavior\\n\\n## Actual Behavior\\n\\n## Environment\\n- OS: \\n- Browser: \\n- Version: \\n\\n## Severity\\n- [ ] Blocker\\n- [ ] Critical\\n- [ ] Major\\n- [ ] Minor"
         }
       }) { template { id } }
     }
   `);
 }
+```
 
-### Feature request template (similar pattern)
+Feature request and tech debt templates follow the same pattern with different fields — user story + acceptance criteria + effort estimate for features, and current state + proposed improvement + risk assessment for tech debt.
 
-templateData: {
-  title: "[Feature] "
-  priority: 3
-  labelIds: ["${featureLabelId}"]
-  description: "## User Story\\nAs a [user type], I want [action] so that [benefit].\\n\\n## Acceptance Criteria\\n- [ ] \\n- [ ] \\n\\n## Design\\n[Link to Figma/design]\\n\\n## Effort Estimate\\n- T-shirt size: S / M / L / XL\\n- Story points: \\n\\n## Notes\\n"
-}
+### Step 4: Build Webhook Automation Server
 
-### Tech debt template
+This Express server handles four automation rules: auto-triage urgent issues into the current sprint, post Slack notifications on review, auto-complete parents when all children finish, and flag stale issues.
 
-templateData: {
-  title: "[Tech Debt] "
-  priority: 3
-  labelIds: ["${techDebtLabelId}"]
-  description: "## Current State\\nDescribe what exists today and why it's problematic.\\n\\n## Proposed Improvement\\n\\n## Risk If Ignored\\n\\n## Estimated Effort\\n- Story points: \\n- Dependencies: \\n\\n## Definition of Done\\n- [ ] \\n"
-}
-
-## 4. Webhook Automation Server
-
-Create an Express server that handles all four automation rules:
-
+```javascript
 import express from "express";
 import crypto from "crypto";
 import { LinearClient } from "@linear/sdk";
@@ -177,9 +139,12 @@ import { LinearClient } from "@linear/sdk";
 const app = express();
 const linear = new LinearClient({ apiKey: process.env.LINEAR_API_KEY });
 
-app.use(express.json({ verify: (req, _, buf) => { req.rawBody = buf.toString(); } }));
+// Capture raw body for webhook signature verification
+app.use(express.json({
+  verify: (req, _, buf) => { req.rawBody = buf.toString(); }
+}));
 
-// Verify webhook signature
+// Verify Linear webhook signature using HMAC-SHA256
 function verifySignature(req) {
   const signature = req.headers["linear-signature"];
   const hmac = crypto.createHmac("sha256", process.env.LINEAR_WEBHOOK_SECRET);
@@ -189,31 +154,29 @@ function verifySignature(req) {
 
 app.post("/webhooks/linear", async (req, res) => {
   if (!verifySignature(req)) return res.sendStatus(401);
-
   const { action, type, data, updatedFrom } = req.body;
   res.sendStatus(200); // Respond immediately, process async
 
   try {
     if (type === "Issue") {
-      // Rule 1: Urgent priority → add to current cycle
-      if (data.priority === 1 && updatedFrom?.priority && updatedFrom.priority !== 1) {
+      // Rule 1: Urgent priority → auto-add to current cycle
+      if (data.priority === 1 && updatedFrom?.priority !== 1) {
         const activeCycle = (await linear.cycles({
           filter: { team: { id: { eq: data.teamId } }, isActive: { eq: true } },
         })).nodes[0];
         if (activeCycle) {
           await linear.issueUpdate(data.id, { cycleId: activeCycle.id });
-          console.log(`Auto-added ${data.identifier} to cycle ${activeCycle.name}`);
         }
       }
 
-      // Rule 2: Moved to "In Review" → Slack notification
+      // Rule 2: Moved to "In Review" → post to Slack
       if (updatedFrom?.stateId && data.state?.name === "In Review") {
         await fetch(process.env.SLACK_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             channel: "#dev-reviews",
-            text: `🔍 *${data.identifier}* is ready for review\n*${data.title}*\nAssignee: ${data.assignee?.name || "Unassigned"}\nPriority: P${data.priority}\n<https://linear.app/team/issue/${data.identifier}|View in Linear>`,
+            text: `*${data.identifier}* ready for review: ${data.title}\nAssignee: ${data.assignee?.name || "Unassigned"}`,
           }),
         });
       }
@@ -229,22 +192,19 @@ app.post("/webhooks/linear", async (req, res) => {
             filter: { team: { id: { eq: data.teamId } }, type: { eq: "completed" } },
           })).nodes[0];
           await linear.issueUpdate(data.parentId, { stateId: doneState.id });
-          console.log(`Auto-completed parent of ${data.identifier}`);
         }
       }
 
-      // Rule 4: Stale detection (runs on any update — check "In Progress" age)
+      // Rule 4: Flag issues in progress for more than 5 days
       if (data.state?.name === "In Progress") {
-        const createdAt = new Date(data.startedAt || data.updatedAt);
-        const daysSinceStart = (Date.now() - createdAt.getTime()) / 86400000;
+        const startDate = new Date(data.startedAt || data.updatedAt);
+        const daysSinceStart = (Date.now() - startDate.getTime()) / 86400000;
         if (daysSinceStart > 5) {
-          const staleLabelId = "YOUR_STALE_LABEL_ID";
           const currentLabels = data.labelIds || [];
-          if (!currentLabels.includes(staleLabelId)) {
+          if (!currentLabels.includes(STALE_LABEL_ID)) {
             await linear.issueUpdate(data.id, {
-              labelIds: [...currentLabels, staleLabelId],
+              labelIds: [...currentLabels, STALE_LABEL_ID],
             });
-            console.log(`Marked ${data.identifier} as stale (${Math.floor(daysSinceStart)} days)`);
           }
         }
       }
@@ -253,17 +213,18 @@ app.post("/webhooks/linear", async (req, res) => {
     console.error("Webhook processing error:", err);
   }
 });
+```
 
-For the stale check to catch issues that haven't been updated, add a daily cron job:
+For catching stale issues that haven't been updated recently, add a daily cron job as a safety net:
 
-// Run daily at 9 AM
+```javascript
 import cron from "node-cron";
 
+// Run every morning at 9 AM — catches issues webhook events missed
 cron.schedule("0 9 * * *", async () => {
   const inProgress = await linear.issues({
     filter: { state: { name: { eq: "In Progress" } } },
   });
-
   for (const issue of inProgress.nodes) {
     const startDate = new Date(issue.startedAt || issue.createdAt);
     const days = (Date.now() - startDate.getTime()) / 86400000;
@@ -275,17 +236,18 @@ cron.schedule("0 9 * * *", async () => {
     }
   }
 });
+```
 
-## 5. GitHub Integration
+### Step 5: Configure GitHub Integration
 
-Enable in Linear → Settings → Integrations → GitHub → Connect your org.
+Enable the native integration in Linear → Settings → Integrations → GitHub. Linear auto-detects branches matching the pattern `TEAM_KEY-NUMBER` (e.g., `PLT-123`), links PRs to issues, and transitions issues to Done when PRs merge.
 
-Configure branch naming in team settings (auto-applied):
-- Format: `username/PLT-123-short-description`
-- Linear auto-detects branches matching `TEAM_KEY-NUMBER`
+Branch naming convention: `username/PLT-123-short-description`
 
-GitHub Actions workflow to close issues on merge:
+As a fallback, add a GitHub Actions workflow that catches any missed transitions:
 
+```yaml
+# .github/workflows/linear-sync.yml
 name: Linear Issue Sync
 on:
   pull_request:
@@ -293,32 +255,31 @@ on:
 
 jobs:
   sync:
+    # Only run when a PR is actually merged, not just closed
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Extract Linear issue
+      - name: Extract Linear issue ID from branch name
         id: extract
         run: |
           BRANCH="${{ github.event.pull_request.head.ref }}"
           ISSUE_ID=$(echo "$BRANCH" | grep -oP '[A-Z]+-\d+' || echo "")
           echo "issue=$ISSUE_ID" >> $GITHUB_OUTPUT
 
-      - name: Move to Done
+      - name: Log transition
         if: steps.extract.outputs.issue != ''
         run: |
-          # Linear's built-in GitHub integration handles this automatically
-          # This step is a fallback if the integration misses it
-          echo "Issue ${{ steps.extract.outputs.issue }} should auto-transition via Linear's GitHub integration"
+          echo "Issue ${{ steps.extract.outputs.issue }} auto-transitions via Linear's GitHub integration"
+```
 
-Note: Linear's native GitHub integration already handles PR → issue linking and auto-closing. The GitHub Action above is a safety net. The native integration is the recommended approach.
+### Step 6: Sprint Carryover Automation
 
-## 6. Sprint/Cycle Configuration
+Two-week cycles are already configured in the team creation step. Add carryover logic to the webhook handler so unfinished issues automatically move to the next sprint when a cycle ends:
 
-Already configured in team creation (cycleDuration: 2, cycleStartDay: 1). For the carryover automation:
-
-// At end of each cycle, move unfinished issues
-// This runs as a webhook handler on cycle updates
+```javascript
+// Add this to the webhook handler — fires when a cycle completes
 if (type === "Cycle" && action === "update" && data.completedAt) {
+  // Find all unfinished issues in the completed cycle
   const unfinished = await linear.issues({
     filter: {
       cycle: { id: { eq: data.id } },
@@ -326,7 +287,7 @@ if (type === "Cycle" && action === "update" && data.completedAt) {
     },
   });
 
-  // Find the next upcoming cycle
+  // Get the next upcoming cycle
   const nextCycle = (await linear.cycles({
     filter: {
       team: { id: { eq: data.teamId } },
@@ -343,11 +304,14 @@ if (type === "Cycle" && action === "update" && data.completedAt) {
     console.log(`Carried over ${unfinished.nodes.length} issues to ${nextCycle.name}`);
   }
 }
+```
 
-## 7. Reporting Queries
+### Step 7: Build Reporting Queries
 
-### Team velocity (last 6 sprints)
+Query Linear's API for team metrics: velocity trends, bug-to-feature ratio, and priority distribution across open issues.
 
+```javascript
+// Team velocity — last 6 completed sprints for the Platform team
 const recentCycles = await linear.cycles({
   filter: { team: { key: { eq: "PLT" } }, isCompleted: { eq: true } },
   last: 6,
@@ -360,18 +324,16 @@ for (const cycle of recentCycles.nodes) {
   console.log(`${cycle.name} | ${cycle.completedScopeCount} | ${cycle.scopeCount} | ${pct}%`);
 }
 
-### Bug vs feature ratio
-
+// Bug vs feature ratio — year to date
 const bugCount = await linear.issueCount({
   filter: { label: { name: { eq: "bug" } }, createdAt: { gte: "2026-01-01" } },
 });
 const featureCount = await linear.issueCount({
   filter: { label: { name: { eq: "feature" } }, createdAt: { gte: "2026-01-01" } },
 });
-console.log(`Bug:Feature ratio = ${bugCount}:${featureCount} (${(bugCount/featureCount).toFixed(1)}:1)`);
+console.log(`Bug:Feature = ${bugCount}:${featureCount} (${(bugCount / featureCount).toFixed(1)}:1)`);
 
-### Priority distribution
-
+// Priority distribution across all open issues
 for (let p = 0; p <= 4; p++) {
   const count = await linear.issueCount({
     filter: { priority: { eq: p }, state: { type: { in: ["unstarted", "started"] } } },
@@ -379,9 +341,16 @@ for (let p = 0; p <= 4; p++) {
   const labels = ["None", "Urgent", "High", "Medium", "Low"];
   console.log(`P${p} (${labels[p]}): ${count} open issues`);
 }
-
----
-
-That gives you the full setup: 3 teams with custom states, shared labels, templates, webhook automation for triage and Slack notifications, GitHub PR linking, 2-week cycles with carryover, and reporting queries. Deploy the webhook server, register it in Linear settings, and the automation runs itself.
 ```
 
+## Real-World Example
+
+Dani deploys the webhook server to a small Railway instance, registers the webhook URL in Linear settings, and connects GitHub. Within the first sprint:
+
+- **14 developers** are organized into 3 teams with clear workflow states
+- **Urgent bugs** auto-land in the current sprint — no manual triage needed
+- **PR merges** automatically close Linear issues via the GitHub integration
+- **Stale issues** get flagged daily, keeping the board clean
+- **Sprint reviews** use the velocity queries to track improvement over time
+
+The setup takes about 2 hours and replaces what was previously a manual process of checking GitHub Issues, Slack threads, and spreadsheets.
