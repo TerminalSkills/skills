@@ -1,7 +1,9 @@
 ---
 title: Build a Personal Knowledge Base with Obsidian
 slug: build-personal-knowledge-base-with-obsidian
+description: "Design an Obsidian vault with linked notes, Dataview dashboards, Templater automation, spaced repetition, and a publishing pipeline for a developer knowledge base."
 category: productivity
+skills: [obsidian]
 tags: [obsidian, knowledge-management, pkm, dataview, templater, automation]
 ---
 

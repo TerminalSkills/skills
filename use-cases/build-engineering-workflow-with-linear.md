@@ -2,6 +2,7 @@
 title: Build an Engineering Workflow with Linear
 slug: build-engineering-workflow-with-linear
 category: project-management
+skills: [linear]
 tags: [linear, automation, github, webhooks, agile]
 ---
 
