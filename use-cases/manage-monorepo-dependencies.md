@@ -18,8 +18,7 @@ Your monorepo has 20 packages and 4 apps. React is on three different versions. 
 Use the **monorepo-manager** skill to audit, sync, and maintain dependencies across all workspaces. Combine with **security-audit** to catch vulnerable transitive dependencies and **code-reviewer** to review dependency changes before merging.
 
 ```bash
-npx terminal-skills install monorepo-manager
-npx terminal-skills install security-audit
+npx terminal-skills install monorepo-manager security-audit
 ```
 
 ## Step-by-Step Walkthrough
@@ -111,9 +110,3 @@ Priya leads a frontend platform team at a 30-person B2B startup. Their monorepo 
 7. Build times also improve because Turborepo can now cache more effectively with consistent configs
 
 Total time: 20 minutes. Previous manual attempt took a full sprint day and broke staging.
-
-## Related Skills
-
-- [cicd-pipeline](../skills/cicd-pipeline/) — Add CI checks that enforce dependency consistency
-- [code-migration](../skills/code-migration/) — Handle major version upgrades across the monorepo
-- [docker-helper](../skills/docker-helper/) — Optimize Docker builds for monorepo workspaces

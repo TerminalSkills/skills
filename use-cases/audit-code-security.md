@@ -132,8 +132,3 @@ Security score: 23/100 → 91/100
 A CTO at a 40-person healthtech startup received a pen test report with 19 critical findings two weeks before a hospital partnership deadline. She ran security-audit on the 70,000-line Django API Monday — it found 27 additional issues including an IDOR vulnerability in patient records. Tuesday, docker-helper hardened 4 Dockerfiles, cutting images by 80% and eliminating root containers. Wednesday, cicd-pipeline deployed automated SAST, dependency scanning, and image checks as CI gates.
 
 By Friday, all critical findings were resolved. The pipeline caught two new vulnerabilities in PRs that week — both blocked before merge. The hospital partner approved the integration and the startup signed the $2.4M annual contract on schedule.
-
-## Related Skills
-
-- [test-generator](../skills/test-generator/) — Generate tests for security-critical code paths
-- [code-reviewer](../skills/code-reviewer/) — Review security fixes for correctness

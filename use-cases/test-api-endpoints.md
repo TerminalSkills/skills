@@ -85,9 +85,3 @@ A frontend developer is integrating a new third-party payment API. The documenta
 3. The agent adds the currency field and tries again: 200 OK
 4. The agent tests edge cases: invalid currency code (400), negative amount (400), amount over the limit (422)
 5. The developer now has a complete understanding of the API's validation rules and expected request format
-
-## Related Skills
-
-- [code-reviewer](../skills/code-reviewer/) -- Review the API implementation code
-- [docker-helper](../skills/docker-helper/) -- Set up the API server in a container for testing
-- [markdown-writer](../skills/markdown-writer/) -- Document the API endpoints

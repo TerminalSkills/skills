@@ -98,9 +98,3 @@ Rafa is a senior SRE at a 30-person fintech team. They average four incidents pe
 3. The agent correlates 200+ Slack messages with 15,000 log lines, producing a clean 2-page document in under 3 minutes
 4. Rafa reviews the draft, adds one nuance about a config change he remembers, and publishes it
 5. The postmortem that used to take half a day is done in 20 minutes, and the quality is more consistent because nothing gets forgotten
-
-## Related Skills
-
-- [meeting-notes](../skills/meeting-notes/) -- Extracts structured information from conversation transcripts
-- [markdown-writer](../skills/markdown-writer/) -- Formats the postmortem into clean, publishable markdown
-- [coding-agent](../skills/coding-agent/) -- Parses logs and correlates events programmatically

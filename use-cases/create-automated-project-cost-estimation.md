@@ -18,9 +18,7 @@ A software consultancy spends 10-15 hours per week writing project estimates for
 Use the **data-analysis** skill to analyze past project data and build estimation benchmarks by feature type. Feed new requirements into the **proposal-writer** skill to break them into tasks, estimate effort, and apply risk-adjusted multipliers. Use the **excel-processor** skill to generate formatted cost breakdowns and comparison scenarios that the sales team can present.
 
 ```bash
-npx terminal-skills install data-analysis
-npx terminal-skills install proposal-writer
-npx terminal-skills install excel-processor
+npx terminal-skills install data-analysis proposal-writer excel-processor
 ```
 
 ## Step-by-Step Walkthrough
@@ -112,10 +110,3 @@ Recommendation: present the "expected" scenario as the primary quote.
 ## Real-World Example
 
 Alex runs sales at a 12-person software consultancy. Estimation used to take a senior developer half a day per proposal, with accuracy varying by 50% between estimators. After building benchmarks from 24 completed projects, Alex discovered the team consistently underestimated integrations by 60% — explaining why those projects always overran. The agent now produces bias-corrected estimates in 15 minutes. The sales team presents three scenarios to clients instead of a single number. Win rates improved by 20% because quotes are realistic, and project overruns dropped from 40% to under 15% in two quarters.
-
-## Related Skills
-
-- [proposal-writer](../skills/proposal-writer/) — Decomposes requirements and generates structured proposals
-- [data-analysis](../skills/data-analysis/) — Builds benchmarks from historical project data
-- [excel-processor](../skills/excel-processor/) — Produces formatted spreadsheets with cost breakdowns
-- [report-generator](../skills/report-generator/) — Creates client-facing PDF proposals from templates

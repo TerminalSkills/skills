@@ -272,8 +272,3 @@ Using the cache-strategy skill, they implemented a comprehensive caching solutio
 - The platform could handle sudden traffic spikes (viral course launches) without crashing
 
 Total monthly savings: $1,456 in infrastructure costs + estimated $3,200 in retained revenue from improved user experience. The caching system paid for itself in 8 days and continues saving $17,472 annually.
-
-## Related Skills
-
-- [cache-strategy](../skills/cache-strategy/) — Multi-layer caching architecture, intelligent TTL management, and cache invalidation strategies
-- [docker-helper](../skills/docker-helper/) — Redis cluster setup, development environment, and production deployment configurations

@@ -107,9 +107,3 @@ Sofia is the frontend lead at a 25-person health tech startup. After spending tw
 3. It integrates the tests into GitHub Actions so every PR is checked for new violations
 4. Two weeks later, a developer's PR is flagged — a new modal component lacks focus trapping. The CI comment explains the issue and suggests the fix
 5. Over three months, the automated tests catch 9 regressions at the PR stage. Zero new accessibility issues reach production
-
-## Related Skills
-
-- [test-generator](../skills/test-generator/) -- Creates accessibility-specific test cases for user flows
-- [cicd-pipeline](../skills/cicd-pipeline/) -- Integrates a11y testing as a required CI check with baseline comparison
-- [coding-agent](../skills/coding-agent/) -- Writes custom accessibility utilities beyond standard axe-core rules

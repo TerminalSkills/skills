@@ -102,9 +102,3 @@ A lead engineer at a 25-person SaaS company notices developers waste 2-3 hours o
 3. Destructive operations now have safety prompts — no more accidental staging resets
 4. The team adds 4 more commands over the next month (lint-fix, create-migration, rotate-keys, open-pr)
 5. New developer survey scores for "tooling satisfaction" increase from 3.1 to 4.6 out of 5
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) — Scaffolds and implements the CLI codebase
-- [test-generator](../skills/test-generator/) — Creates integration tests for CLI commands
-- [git-commit-pro](../skills/git-commit-pro/) — Keeps commit history clean as the tool evolves

@@ -329,9 +329,3 @@ The crisis point: their biggest competitor launched a faster website and jumped 
 - **Customer trust**: Significantly improved brand perception due to professional site performance
 
 The migration not only recovered the lost SEO ground but established them as the performance leader in their space. Six months later, they acquired two smaller competitors who cited the superior web experience as a factor in choosing their platform for acquisition.
-
-## Related Skills
-
-- [ssr-migration](../skills/ssr-migration/) — Complete React-to-Next.js conversion with SSG/SSR optimization and SEO improvements
-- [frontend-design](../skills/frontend-design/) — Core Web Vitals optimization, performance monitoring, and user experience enhancement
-- [docker-helper](../skills/docker-helper/) — Production deployment, CDN integration, and scalable infrastructure setup

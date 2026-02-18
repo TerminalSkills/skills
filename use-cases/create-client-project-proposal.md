@@ -103,8 +103,3 @@ Nina, a project manager at a 12-person digital agency, has a discovery call at 2
 - **Include a "what's not included" section** — prevents scope creep and sets clear expectations
 - **Offer two or three pricing tiers** — gives the client a sense of control and increases close rates
 - **Send within 24 hours of the discovery call** — speed signals professionalism and keeps momentum
-
-## Related Skills
-
-- [ai-slides](../skills/ai-slides/) -- Turn the proposal into a presentation deck for stakeholder meetings
-- [contract-review](../skills/contract-review/) -- Review the resulting contract terms before signing

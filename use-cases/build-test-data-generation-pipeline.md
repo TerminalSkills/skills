@@ -116,8 +116,3 @@ Lena, a QA lead at a 20-person SaaS startup, is tired of finding bugs in product
 3. Running the existing test suite against the new data immediately catches 3 bugs: a name truncation issue with Japanese characters, a timezone calculation error for UTC+13, and a billing edge case with mid-cycle plan changes
 4. Lena asks for a billing-specific dataset — the agent generates 20 organizations covering every subscription state, which reveals a race condition in the payment retry logic
 5. The team adds the data generation pipeline to CI — every test run gets fresh, realistic data. Production copies are deleted, eliminating the PII compliance risk. Bug escape rate drops by 60% over the next quarter
-
-## Related Skills
-
-- [sql-optimizer](../skills/sql-optimizer/) -- Optimize queries against large generated datasets
-- [coding-agent](../skills/coding-agent/) -- Fix bugs discovered through improved test data coverage

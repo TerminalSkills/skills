@@ -18,9 +18,7 @@ Every Friday afternoon, engineering leads scramble to write status reports for s
 Use **weekly-report** to structure the status update, **github** to pull merged PRs and release data, and **report-generator** to format a stakeholder-friendly document.
 
 ```bash
-npx terminal-skills install weekly-report
-npx terminal-skills install github
-npx terminal-skills install report-generator
+npx terminal-skills install weekly-report github report-generator
 ```
 
 ## Step-by-Step Walkthrough
@@ -102,29 +100,3 @@ Priya is the VP of Engineering at a 40-person startup with three engineering squ
 3. Priya asks the agent to combine all three reports into an executive summary with a risks section
 4. The agent produces a one-page executive brief highlighting shipped features, at-risk timelines, and resource needs
 5. What used to take 3 hours across the team now takes 15 minutes total, and the reports are more consistent and data-backed
-
-## Related Skills
-
-- [weekly-report](../skills/weekly-report/) -- Structure and generate weekly status updates
-- [github](../skills/github/) -- Pull PR data, release info, and repository activity
-- [report-generator](../skills/report-generator/) -- Format professional stakeholder documents
-
-### Report Customization Tips
-
-Different stakeholders need different views:
-
-- **CEO/Board** — business impact only: features shipped, revenue-affecting items, strategic risks
-- **Product Manager** — feature progress, user-facing changes, upcoming milestones
-- **Engineering Peers** — technical details, architecture decisions, tech debt progress
-- **External Stakeholders** — sanitized version without internal metrics or sensitive details
-
-The agent can maintain templates for each audience and generate all versions from the same source data in one pass.
-
-### Data Sources the Agent Can Pull From
-
-Beyond GitHub, the agent can integrate data from:
-
-- **Jira/Linear** — completed tickets, sprint progress, velocity trends
-- **Slack** — key decisions from channels (summarized, not raw messages)
-- **Datadog/Grafana** — uptime, error rates, performance metrics for the week
-- **Google Calendar** — upcoming milestones and deadlines

@@ -132,9 +132,3 @@ Ravi, a platform engineer at a 40-person fintech startup, noticed their AWS bill
 5. Total identified savings: $1,071/month. Ravi applied the kustomize patches in staging first, monitored for a week, then rolled to production
 
 Within one sprint, the monthly bill dropped to $11,200 — a 23% reduction with zero performance impact.
-
-## Related Skills
-
-- [k8s-cost-optimizer](../skills/k8s-cost-optimizer/) — Analyzes Kubernetes resource allocation vs actual usage
-- [cloud-resource-analyzer](../skills/cloud-resource-analyzer/) — Finds orphaned and underutilized cloud resources
-- [docker-helper](../skills/docker-helper/) — Container management and optimization

@@ -142,9 +142,3 @@ The co-founder of a bootstrapped analytics SaaS had tried content marketing twic
 She ran the three-skill workflow on a Friday. The competitive analysis revealed something surprising: both main competitors had zero implementation-focused content. All their articles were thought leadership. Keywords like "how to set up event tracking for SaaS" (380/mo, KD 14) were wide open.
 
 She built a 90-day calendar targeting 24 implementation guides — the practical content competitors hadn't written. Over 6 weeks, she published 12 articles, spending ~2 hours each on review and adding product screenshots. By week 8, the cohort analysis tutorial ranked #4. By week 12: 2,840 organic visitors/month, up from 180. Three visitors converted to paying customers in month 3 — $2,700 new MRR from content that cost essentially nothing to produce.
-
-## Related Skills
-
-- [seo-audit](../skills/seo-audit/) — Technical SEO analysis and competitive keyword gap identification
-- [content-strategy](../skills/content-strategy/) — Keyword research, topic clustering, and editorial planning
-- [web-research](../skills/web-research/) — Deep research for authoritative, comprehensive content

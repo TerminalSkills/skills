@@ -133,9 +133,3 @@ Oscar, a platform engineer at a 20-person SaaS startup, spent the first 10 minut
 He built the internal status page in an afternoon using the three-skill workflow. The coding-agent created the health check system with probes for all 14 components. The frontend-design skill produced a clean dashboard with a dependency graph that showed cascading failures at a glance. The api-tester configured realistic health checks that distinguished between "down" and "degraded."
 
 The next Monday, the PostgreSQL replica fell behind. The status page caught it in 30 seconds, auto-created an incident, and sent a Slack alert with context: "postgresql-replica degraded — replication lag 12s, affects: read-heavy queries in orders-service." The on-call engineer opened the dashboard, saw exactly which services were impacted, and started the right runbook immediately. "Is X down?" messages in Slack dropped to near zero. Average time-to-diagnosis went from 10 minutes to under 2.
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) — Builds the health check system and incident tracking backend
-- [frontend-design](../skills/frontend-design/) — Creates a clean, fast-loading dashboard interface
-- [api-tester](../skills/api-tester/) — Configures health check probes with realistic thresholds

@@ -126,9 +126,3 @@ An AI platform team at a 40-person company has 4 agents built by different teams
 3. Direct agent-to-agent delegation enables the writer to pull charts from the data agent without human intervention
 4. A quarterly report that previously took 3 hours of manual coordination now completes in 8 minutes end-to-end
 5. OpenTelemetry tracing reveals that 70% of total time is spent in the data agent — the team optimizes its queries and cuts report generation to 3 minutes
-
-## Related Skills
-
-- [a2a-protocol](../skills/a2a-protocol/) — Implements A2A servers and clients for agent interoperability
-- [coding-agent](../skills/coding-agent/) — Builds the orchestrator logic and agent wrappers
-- [mcp-server-builder](../skills/mcp-server-builder/) — Gives individual agents tool access via MCP (complementary to A2A)

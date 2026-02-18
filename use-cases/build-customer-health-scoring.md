@@ -142,9 +142,3 @@ Lena ran customer success at a 25-person B2B SaaS with 340 accounts and a painfu
 She exported data from three systems and ran the analysis workflow on a Monday. The churn pattern analysis revealed that 34% of churners were "ghost accounts" — they never complained, just slowly stopped logging in. These accounts had been invisible to the CS team.
 
 The health scoring model immediately flagged 35 critical accounts representing $118K in ARR. Lena's team reached out to the top 10 that week. Three had specific product issues that were fixable. Two needed training on features they didn't know existed. Over 3 months, the churn rate dropped from 6% to 3.8% — saving roughly $47K in monthly recurring revenue. The dashboard became the CS team's daily starting point.
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) — Builds scoring models and identifies churn patterns from historical data
-- [excel-processor](../skills/excel-processor/) — Merges and cleans data exports from multiple business systems
-- [data-analysis](../skills/data-analysis/) — Creates interactive dashboards for customer health monitoring

@@ -119,9 +119,3 @@ Tomás, the API lead at a 20-person developer tools startup, was losing deals be
 He ran the three-skill workflow on a Wednesday. The coding-agent produced a TypeScript SDK with auto-pagination, typed errors, and retry logic — code his team would have been proud to write by hand. The Python SDK used Pydantic models and supported both sync and async patterns. The test-generator created 80 tests across both SDKs with recorded HTTP fixtures.
 
 He published both SDKs on Thursday. Within a week, 3 customers who'd been using raw HTTP switched to the SDKs. Support tickets about API integration dropped 40%. The automated sync pipeline caught his next API change on Friday — it regenerated both SDKs and opened a PR before he'd even started updating them manually.
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) — Generates idiomatic SDK code from OpenAPI specifications
-- [test-generator](../skills/test-generator/) — Creates comprehensive test suites with HTTP fixtures
-- [markdown-writer](../skills/markdown-writer/) — Produces SDK documentation with installation and usage examples

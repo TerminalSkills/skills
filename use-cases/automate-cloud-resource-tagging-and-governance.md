@@ -114,9 +114,3 @@ Dani is the platform engineer at a 40-person e-commerce company. Finance is aski
 3. The agent auto-infers tags for 61 resources using VPC placement and IAM creator data, and normalizes inconsistent values
 4. It sets up Terraform validation to block untagged resource creation and a nightly compliance scan
 5. The orphan detection finds $605 per month in wasted resources. After cleanup and tagging enforcement, Dani delivers the cost allocation report finance wanted — broken down by team and project for the first time
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Builds tagging automation scripts and infrastructure governance policies
-- [report-generator](../skills/report-generator/) -- Creates compliance dashboards and cost allocation reports
-- [hetzner-cloud](../skills/hetzner-cloud/) -- Provides cloud infrastructure management patterns applicable across providers

@@ -108,8 +108,3 @@ Sana is a frontend developer at a 20-person SaaS startup. The design team just f
 3. Over two days, Sana reviews and integrates the generated components — tweaking responsive breakpoints and wiring up data fetching. The agent generated 85% of the CSS and JSX correctly on the first pass
 4. For the remaining 15%, Sana screenshots the discrepancy ("the card shadow is too heavy on this component") and the agent adjusts the specific values
 5. The dashboard redesign ships in 9 days. The design team reviews and finds only 3 minor spacing adjustments needed — down from the usual 20+ rounds of feedback
-
-## Related Skills
-
-- [frontend-design](../skills/frontend-design/) — Responsive layouts, CSS patterns, and UI polish
-- [ui-ux-pro-max](../skills/ui-ux-pro-max/) — Advanced UI/UX patterns and interaction design

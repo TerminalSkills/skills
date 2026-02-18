@@ -145,9 +145,3 @@ Marta, lead engineer at a 15-person startup building a client portal for account
 5. The critical win: RLS policies caught two existing queries that were missing tenant filters during testing — preventing potential data leakage bugs before they reached production
 
 The hybrid architecture launched within 3 weeks, supporting 120 standard tenants and 2 enterprise clients, with infrastructure costs under $1,500/month.
-
-## Related Skills
-
-- [saas-architecture-advisor](../skills/saas-architecture-advisor/) — Evaluates multi-tenancy strategies and SaaS architecture patterns
-- [database-schema-designer](../skills/database-schema-designer/) — Designs schemas with tenant isolation, RLS, and migration strategies
-- [security-audit](../skills/security-audit/) — Audits tenant isolation for data leakage vulnerabilities

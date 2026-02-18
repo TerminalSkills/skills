@@ -94,10 +94,3 @@ A CTO at a 40-person e-commerce company inherits a 380K-line Rails monolith. Dep
 3. Search is extracted first (lowest risk, clearest boundaries) using the strangler fig pattern
 4. Shadow traffic comparison shows 99.7% result parity before cutting over
 5. After 4 months, 3 services run independently — deploy frequency increases to 12 per week, and Black Friday scaling costs drop 60%
-
-## Related Skills
-
-- [code-reviewer](../skills/code-reviewer/) — Analyzes coupling patterns and module dependencies
-- [data-analysis](../skills/data-analysis/) — Maps data flow and builds dependency graphs
-- [coding-agent](../skills/coding-agent/) — Scaffolds extracted services
-- [docker-helper](../skills/docker-helper/) — Containerizes each new service

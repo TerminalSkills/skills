@@ -141,9 +141,3 @@ Amir, a senior engineer at a 15-person e-commerce SaaS, was tired of being the h
 He set up the three-skill workflow on a Friday. The api-tester created benchmarks for the 10 highest-traffic endpoints. The cicd-pipeline added a 3-minute performance check to every PR. In the first week, it caught 2 regressions before merge — one was an N+1 query in the orders endpoint (+48% latency), the other was an unnecessary JSON serialization in the auth flow.
 
 The weekly trend report revealed something the team hadn't noticed: the dashboard stats endpoint had been slowly degrading over 4 weeks across 8 small PRs, each adding 3-5% latency. No single PR triggered the threshold, but the cumulative drift was 36%. The team consolidated 3 queries into 1 and brought it back to baseline. Monthly performance incidents dropped from 2-3 to zero over the next quarter.
-
-## Related Skills
-
-- [api-tester](../skills/api-tester/) — Runs performance benchmarks against API endpoints with realistic payloads
-- [cicd-pipeline](../skills/cicd-pipeline/) — Integrates performance checks into the PR workflow
-- [report-generator](../skills/report-generator/) — Formats benchmark comparisons as clear, actionable PR comments

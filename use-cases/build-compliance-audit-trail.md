@@ -138,9 +138,3 @@ Nadia is the engineering lead at a 15-person fintech team preparing for their fi
 3. It creates an integrity verification system using chained SHA-256 checksums
 4. The agent generates auditor-friendly query endpoints and PDF reports for PII access, authentication events, and admin actions
 5. When the auditor returns, Nadia demonstrates real-time audit queries and hands over a clean integrity report — the finding is resolved, and they pass the audit
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Instruments endpoints and generates audit infrastructure code
-- [security-audit](../skills/security-audit/) -- Validates audit trail completeness against compliance frameworks
-- [data-analysis](../skills/data-analysis/) -- Builds queries and generates compliance reports from audit data

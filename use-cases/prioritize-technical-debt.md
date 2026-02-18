@@ -131,9 +131,3 @@ Lena, an engineering manager at a 35-person B2B SaaS company, faced a recurring 
 5. She presented the data-backed prioritization to the team: 3 specific refactoring tickets for the current sprint totaling 13 story points
 
 The team completed all three in one sprint. Bug-fix PRs for billing dropped from 2-3 per week to zero over the following month.
-
-## Related Skills
-
-- [tech-debt-analyzer](../skills/tech-debt-analyzer/) — Scans codebases for debt signals and correlates with change history
-- [code-complexity-scanner](../skills/code-complexity-scanner/) — Measures cyclomatic complexity and identifies hotspot files
-- [code-reviewer](../skills/code-reviewer/) — Automated code review for ongoing quality enforcement

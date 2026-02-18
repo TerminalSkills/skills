@@ -84,8 +84,3 @@ A product engineer at an early-stage project management SaaS receives complaints
 5. Delivery tracking reveals their push notification provider has a 12% failure rate on Android — they switch to a different provider using the pluggable adapter pattern
 
 User complaints about missed notifications drop by 80% in the first week. Email unsubscribe rates drop from 8% to under 1% because users can now fine-tune their preferences instead of unsubscribing entirely.
-
-## Related Skills
-
-- [template-engine](../skills/template-engine/) — Powers consistent notification content across channels
-- [email-drafter](../skills/email-drafter/) — Helps craft effective transactional email copy

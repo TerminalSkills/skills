@@ -18,9 +18,7 @@ A product manager at a growing startup tracks five competitors manually. Every q
 Use the **web-research** skill to systematically gather feature information from competitor websites, pricing pages, changelogs, and documentation. Feed the findings into the **competitor-alternatives** skill to structure them into a standardized feature matrix. Use the **data-analysis** skill to produce visual comparison charts for stakeholder presentations.
 
 ```bash
-npx terminal-skills install web-research
-npx terminal-skills install competitor-alternatives
-npx terminal-skills install data-analysis
+npx terminal-skills install web-research competitor-alternatives data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -98,10 +96,3 @@ The **data-analysis** produces a clean five-slide deck: market overview, feature
 ## Real-World Example
 
 Suki is a product manager at a 25-person B2B startup. Before this workflow, competitive intelligence lived in a stale spreadsheet last updated two months ago. Suki asks the agent to build a feature matrix across five competitors. In 15 minutes she has a sourced comparison table, a gap analysis, and charts ready for the quarterly product review. The CEO asks about SSO — Suki has the answer instantly with source links. The team decides to prioritize Gantt charts after seeing three competitors already offer them. Monthly re-runs take five minutes and flag new competitor features within days of launch.
-
-## Related Skills
-
-- [web-research](../skills/web-research/) — Gathers information from websites, docs, and changelogs
-- [competitor-alternatives](../skills/competitor-alternatives/) — Structures competitive data into comparison formats
-- [data-analysis](../skills/data-analysis/) — Creates charts and visual comparisons from structured data
-- [content-strategy](../skills/content-strategy/) — Uses competitive insights to inform content positioning

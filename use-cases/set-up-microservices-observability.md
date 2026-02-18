@@ -18,9 +18,7 @@ Your system has 8 microservices. When a user reports a slow checkout, you SSH in
 Instrument all services with OpenTelemetry for unified traces, metrics, and structured logs. Ship telemetry to Grafana's LGTM stack (Loki for logs, Grafana for dashboards, Tempo for traces, Mimir for metrics) running in Docker. Build dashboards that answer the three critical questions: What failed? Where? Why?
 
 ```bash
-npx terminal-skills install observability-setup
-npx terminal-skills install docker-helper
-npx terminal-skills install cicd-pipeline
+npx terminal-skills install observability-setup docker-helper cicd-pipeline
 ```
 
 ## Step-by-Step Walkthrough
@@ -96,9 +94,3 @@ A platform engineer joins a team running 8 microservices on Kubernetes. Last wee
 4. Signal correlation is configured: metric spike → relevant logs → full distributed trace in two clicks
 5. A runbook documents exactly how to diagnose the three most common incident types
 6. The next latency incident is identified in 4 minutes: a trace shows the payment service waiting 8 seconds for a third-party API, and the team adds a circuit breaker before users notice
-
-## Related Skills
-
-- [observability-setup](../skills/observability-setup/) -- OpenTelemetry instrumentation, collector config, dashboard provisioning
-- [docker-helper](../skills/docker-helper/) -- Running the LGTM stack locally with Docker Compose
-- [cicd-pipeline](../skills/cicd-pipeline/) -- Integrating observability checks into deployment pipelines

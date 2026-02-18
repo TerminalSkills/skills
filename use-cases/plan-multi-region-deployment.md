@@ -126,9 +126,3 @@ Priya is the CTO of a 15-person SaaS startup that just signed an enterprise deal
 3. The agent creates a data residency middleware that routes EU user data to Frankfurt
 4. Priya's team deploys the EU region first, migrates the German client's data, and passes their compliance audit
 5. Global p95 latency drops from 280ms to 45ms for EU users, and the architecture survives a simulated region failure during their next game day exercise
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Designs architecture and generates infrastructure-as-code
-- [docker-helper](../skills/docker-helper/) -- Containerizes services for consistent multi-region deployment
-- [hetzner-cloud](../skills/hetzner-cloud/) -- Provisions and manages servers across Hetzner regions

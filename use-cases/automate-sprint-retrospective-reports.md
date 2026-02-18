@@ -137,9 +137,3 @@ Jess, engineering manager at a 12-person product team, ran the same retro format
 She ran the analysis workflow before the next retro. The data showed review time had increased 44% over 4 sprints — a trend invisible in weekly experience but obvious in the numbers. More striking: one engineer was doing 26% of all reviews while two others averaged 2-3 per sprint.
 
 She projected the report in the retro meeting. For the first time, the discussion was specific: not "reviews are slow" but "reviews average 26 hours and Noa is carrying 26% of the load." The team agreed on 3 targeted actions. She tracked follow-through in the next sprint's report — 2 of 3 completed, and review time dropped to 18 hours. The retro went from a ritual to a tool.
-
-## Related Skills
-
-- [github](../skills/github/) — Pulls PR activity, review metrics, and commit data from repositories
-- [data-analysis](../skills/data-analysis/) — Identifies trends and bottlenecks in sprint metrics
-- [report-generator](../skills/report-generator/) — Produces structured retrospective documents with data and action items

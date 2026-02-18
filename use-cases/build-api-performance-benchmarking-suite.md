@@ -18,9 +18,7 @@ Your API handles 10,000 requests per minute, but you have no systematic way to c
 Use **api-tester** to define and execute API benchmarks, **coding-agent** to generate test scripts and CI integration, and **data-analysis** to chart performance trends over time.
 
 ```bash
-npx terminal-skills install api-tester
-npx terminal-skills install coding-agent
-npx terminal-skills install data-analysis
+npx terminal-skills install api-tester coding-agent data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -99,30 +97,3 @@ Kai is a backend engineer at a 25-person SaaS startup whose largest customer jus
 3. Running against staging reveals that the /search endpoint regressed from 120ms p95 to 890ms p95 after last week's deployment
 4. The agent traces the regression to a missing database index on a new column added in the search query
 5. Kai adds the benchmark suite to the CI pipeline — now every PR gets a performance gate, and regressions are caught before merge
-
-## Related Skills
-
-- [api-tester](../skills/api-tester/) -- Define and execute API performance test scenarios
-- [coding-agent](../skills/coding-agent/) -- Generate benchmark scripts and CI integration
-- [data-analysis](../skills/data-analysis/) -- Chart performance trends and regression detection
-
-### Benchmark Best Practices
-
-The agent follows these principles when creating your suite:
-
-- **Warm up before measuring** — the first 10 seconds of results are unreliable due to JIT compilation and connection pooling
-- **Use realistic data volumes** — benchmarking against an empty database gives misleading results
-- **Test read and write paths separately** — write-heavy endpoints have different bottleneck patterns
-- **Include error scenarios** — measure how the API performs when downstream services are slow or unavailable
-- **Run from a consistent environment** — network variability between runs makes results incomparable
-- **Store historical results** — trends matter more than absolute numbers
-
-### CI Integration
-
-The agent generates a GitHub Actions workflow that:
-
-- Runs the benchmark suite on every PR targeting main
-- Compares results against the baseline from the main branch
-- Comments on the PR with a performance diff table
-- Fails the check if any endpoint exceeds p99 thresholds
-- Stores results as artifacts for historical tracking

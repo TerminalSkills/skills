@@ -109,9 +109,3 @@ A backend engineer at a 40-person B2B SaaS company inherits an API serving 12 cl
 5. The breaking change review identifies 2 changes requiring client notification, which the engineer sends before the next release
 
 The result: an accurate spec, two bugs caught, and client trust restored — in under 20 minutes instead of a full day.
-
-## Related Skills
-
-- [api-tester](../skills/api-tester/) — Validates that live endpoints match the generated spec
-- [code-reviewer](../skills/code-reviewer/) — Reviews the spec diff for breaking changes and quality
-- [api-doc-generator](../skills/api-doc-generator/) — Core engine for scanning code and producing OpenAPI specs

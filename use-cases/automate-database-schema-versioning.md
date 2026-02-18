@@ -18,9 +18,7 @@ Your team makes database changes by hand. Someone writes an ALTER TABLE statemen
 Use the **schema-versioning** skill to set up timestamped migration files with reversible up/down functions, **cicd-pipeline** to validate every migration in CI before it reaches production, and **docker-helper** to run a shadow database for safe testing. Every schema change becomes a code-reviewed pull request with an automated test that proves it can apply and roll back cleanly.
 
 ```bash
-npx terminal-skills install schema-versioning
-npx terminal-skills install cicd-pipeline
-npx terminal-skills install docker-helper
+npx terminal-skills install schema-versioning cicd-pipeline docker-helper
 ```
 
 ## Step-by-Step Walkthrough
@@ -82,9 +80,3 @@ Elena, lead developer on a six-person team building a logistics platform, inheri
 6. The next deploy: Elena runs `npx knex migrate:latest` — it takes 2 seconds, the new column appears, and if anything goes wrong, `npx knex migrate:rollback` is one command away
 
 The team goes from "Friday dread" to deploying schema changes three times a week with confidence.
-
-## Related Skills
-
-- [schema-versioning](../skills/schema-versioning/) — Core migration patterns, rollback strategies, and CI integration
-- [cicd-pipeline](../skills/cicd-pipeline/) — Integrate migration validation into your deployment pipeline
-- [docker-helper](../skills/docker-helper/) — Run shadow databases for safe migration testing

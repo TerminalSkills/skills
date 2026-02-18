@@ -18,8 +18,7 @@ Production incidents hit at the worst times. Engineers scramble through thousand
 Use the **log-analyzer** skill to have your AI agent parse logs, build a timeline, and pinpoint the root cause. Combine with **data-analysis** to correlate metrics and error rates. The agent reads your logs, identifies the first failure, traces the cascade, and produces a structured incident report.
 
 ```bash
-npx terminal-skills install log-analyzer
-npx terminal-skills install data-analysis
+npx terminal-skills install log-analyzer data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -104,9 +103,3 @@ Marta, a platform engineer at a 20-person fintech startup, gets paged at 2 AM be
 6. Error rate drops back to baseline — incident resolved in 12 minutes instead of the usual 45
 
 The next morning, she asks the agent to generate a formal incident report from the timeline for the post-mortem.
-
-## Related Skills
-
-- [docker-helper](../skills/docker-helper/) — Check container resource limits and restart crashed services
-- [data-analysis](../skills/data-analysis/) — Chart error rates and latency during incidents
-- [cicd-pipeline](../skills/cicd-pipeline/) — Roll back a bad deployment that caused the incident

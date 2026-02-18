@@ -121,9 +121,3 @@ An ops engineer at a 20-person company manages 12 servers manually. New server s
 3. Rolling deployment with health checks eliminates failed deploys — the rescue block catches a bad release before it reaches more than 2 servers
 4. Weekly drift detection catches a teammate's manual nginx config change within 7 days
 5. After 2 months: server setup time drops from 8 hours to 8 minutes, zero configuration drift, and the wiki is replaced by self-documenting Ansible code
-
-## Related Skills
-
-- [ansible-automation](../skills/ansible-automation/) — Writes playbooks, roles, and manages server configuration
-- [security-audit](../skills/security-audit/) — Defines hardening standards and compliance checks as code
-- [coding-agent](../skills/coding-agent/) — Builds custom deployment logic and integration scripts

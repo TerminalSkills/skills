@@ -107,9 +107,3 @@ Tomas is a backend lead at a 15-person B2B startup building a project management
 3. N+1 detection finds 8 resolver patterns causing 200+ queries — DataLoaders reduce it to 11 queries
 4. The dashboard query drops from 4.2 seconds to 290ms
 5. Complexity limiting prevents the abuse query that previously crashed their staging server
-
-## Related Skills
-
-- [graphql](../skills/graphql-schema-designer/) -- Design, audit, and restructure GraphQL schemas
-- [sql-optimizer](../skills/sql-optimizer/) -- Optimize the SQL queries behind your GraphQL resolvers
-- [api-tester](../skills/api-tester/) -- Test your GraphQL endpoints after schema changes

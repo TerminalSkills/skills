@@ -122,8 +122,3 @@ CI pipeline green — all PRs now gated at 65% minimum
 A backend lead at a 25-person fintech startup faced a SOC 2 audit in 8 weeks with zero tests across a 55,000-line API. Monday, the test-generator skill produced 120 tests for 8 critical modules. That afternoon, code-reviewer flagged 11 quality issues — including three tests that would silently pass on broken payment logic. After fixes, cicd-pipeline deployed GitHub Actions with 65% coverage gates. By Thursday: 230 tests, 73% coverage, every PR automatically checked.
 
 The SOC 2 auditors reviewed the setup two weeks later. Comprehensive tests, documented quality review, and automated CI gates satisfied all change management controls. The startup passed without testing-related findings — avoiding an estimated $40,000 in remediation and a 3-month enterprise pipeline delay.
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) — Find security-sensitive paths needing extra test coverage
-- [docker-helper](../skills/docker-helper/) — Containerize test environments for consistent CI runs

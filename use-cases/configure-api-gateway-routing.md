@@ -150,9 +150,3 @@ Jonas is a backend architect at a 20-person SaaS startup. Their frontend makes d
 3. It produces a 47-case test suite that catches two security issues before deployment
 4. The team deploys using the canary migration plan, routing 10% of traffic first
 5. After full migration, the frontend codebase shrinks by 200 lines of service-discovery code, CORS is handled in one place, and onboarding new developers takes half the time
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Designs routing rules and generates gateway configuration
-- [docker-helper](../skills/docker-helper/) -- Deploys and manages the API gateway container
-- [api-tester](../skills/api-tester/) -- Validates routing, auth, and rate limiting work correctly

@@ -18,9 +18,7 @@ Your team builds and deploys 15 Docker images across microservices. Each image p
 Use **docker-helper** to inspect and manage container images, **security-audit** to analyze vulnerabilities and assess real-world risk, and **coding-agent** to generate Dockerfile fixes and dependency updates.
 
 ```bash
-npx terminal-skills install docker-helper
-npx terminal-skills install security-audit
-npx terminal-skills install coding-agent
+npx terminal-skills install docker-helper security-audit coding-agent
 ```
 
 ## Step-by-Step Walkthrough
@@ -105,19 +103,3 @@ Soren is a DevOps engineer at a healthcare startup that must pass security audit
 - **Scan in CI, not just locally** — developers forget to scan; automated gates don't
 - **Don't ignore unfixable CVEs forever** — track them and re-check monthly; upstream fixes arrive over time
 - **Separate build-time from runtime dependencies** — multi-stage builds ensure dev tools don't ship to production
-
-## Related Skills
-
-- [docker-helper](../skills/docker-helper/) -- Inspect, build, and optimize Docker images
-- [security-audit](../skills/security-audit/) -- Analyze vulnerabilities and assess exploitability
-- [coding-agent](../skills/coding-agent/) -- Generate Dockerfile fixes and dependency updates
-
-### Scanning Integration Points
-
-The agent can set up scanning at multiple stages:
-
-- **Local development** — scan before pushing with a pre-commit hook
-- **CI pipeline** — fail the build if critical vulnerabilities are found
-- **Container registry** — scan on push to detect issues in stored images
-- **Runtime** — periodic scans of running containers catch newly disclosed CVEs
-- **Admission control** — Kubernetes admission webhooks can block unscanned images from deploying

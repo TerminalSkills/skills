@@ -119,10 +119,3 @@ Priya leads a 6-person engineering team at a 30-person B2B SaaS startup. Their P
 3. The junior developer fixes the issues before any human reviewer sees the PR. When Priya reviews it, the security and performance concerns are already addressed
 4. Over the first month, average time-to-merge drops from 2 days to 6 hours. Security issues caught before human review increase from ~30% to 95%
 5. The senior engineers now spend review time on architecture and design decisions instead of catching SQL injections and missing null checks
-
-## Related Skills
-
-- [code-reviewer](../skills/code-reviewer/) — Style, readability, and code quality analysis
-- [security-audit](../skills/security-audit/) — Vulnerability detection and security best practices
-- [performance-reviewer](../skills/performance-reviewer/) — N+1 queries, re-renders, algorithm complexity
-- [test-generator](../skills/test-generator/) — Generate missing tests for uncovered code paths

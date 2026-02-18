@@ -120,9 +120,3 @@ An e-commerce store owner processes 5,000 orders monthly with 3 support agents d
 3. FAQ matching catches another 25% of common questions (business hours, sizing, payments)
 4. Agents now only handle complex issues — their queue drops from 200 to 30 messages per day
 5. After 2 months: average response time drops from 4 hours to 30 seconds for automated queries and 15 minutes for agent-handled ones. Customer satisfaction scores improve from 3.2 to 4.6. The team considers reducing to 2 agents.
-
-## Related Skills
-
-- [whatsapp-bot-builder](../skills/whatsapp-bot-builder/) — Creates the WhatsApp Cloud API bot with webhooks, interactive components, and media handling
-- [coding-agent](../skills/coding-agent/) — Implements order tracking, returns engine, and agent handoff system
-- [template-engine](../skills/template-engine/) — Manages WhatsApp template messages for proactive notifications

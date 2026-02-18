@@ -130,8 +130,3 @@ Kenji, a tech lead at a 25-person SaaS startup, needs to justify two sprints of 
 3. The agent generates a refactoring plan: split invoice-engine.js into 5 focused modules, estimated at 13 story points, with projected 40% reduction in bug rate for that area
 4. Kenji presents the report showing the data — complexity scores, bug correlation, and estimated ROI — and the product team approves two refactoring sprints
 5. After refactoring, the next quarter shows a 52% drop in billing-related bugs and new developer onboarding time drops from 3 weeks to 10 days
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) -- Create complexity heatmaps and trend charts
-- [test-generator](../skills/test-generator/) -- Generate tests before refactoring to ensure nothing breaks

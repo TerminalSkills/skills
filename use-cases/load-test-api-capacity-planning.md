@@ -164,9 +164,3 @@ Tomás, a backend lead at a 25-person e-commerce startup, had a product launch i
 5. After applying changes, a verification test showed p95 at 310ms with 600 VUs and 0.3% error rate — well within targets
 
 The launch handled peak traffic of 720 concurrent users with zero downtime. Total infrastructure cost increase was $809/month — far less than the revenue at risk.
-
-## Related Skills
-
-- [api-load-tester](../skills/api-load-tester/) — Generates and executes k6 load test scripts from API definitions
-- [capacity-planner](../skills/capacity-planner/) — Translates performance data into infrastructure scaling plans
-- [api-tester](../skills/api-tester/) — Functional API testing for correctness

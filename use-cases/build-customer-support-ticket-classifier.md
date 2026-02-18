@@ -18,9 +18,7 @@ Your support team receives 200+ tickets per day. Each one needs to be read, cate
 Use **data-analysis** to analyze historical ticket patterns and build classification rules, **coding-agent** to implement the classification pipeline, and **batch-processor** to handle bulk ticket processing.
 
 ```bash
-npx terminal-skills install data-analysis
-npx terminal-skills install coding-agent
-npx terminal-skills install batch-processor
+npx terminal-skills install data-analysis coding-agent batch-processor
 ```
 
 ## Step-by-Step Walkthrough
@@ -104,19 +102,3 @@ Lena manages support at a 20-person SaaS startup. The team handles 150 tickets d
 - **Retrain monthly** — new features create new ticket patterns that the original model won't recognize
 - **Preserve the human escalation path** — customers should always be able to reach a human quickly
 - **Measure time-to-first-response** — that's the metric that matters, not classification accuracy in isolation
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) -- Analyze ticket patterns and classification accuracy
-- [coding-agent](../skills/coding-agent/) -- Build the classification pipeline code
-- [batch-processor](../skills/batch-processor/) -- Process large volumes of tickets efficiently
-
-### Classifier Metrics to Track
-
-Set up a dashboard monitoring these metrics weekly:
-
-- **Accuracy** — percentage of tickets correctly classified (target: >90%)
-- **Confidence distribution** — how many tickets fall below the auto-routing threshold
-- **Category drift** — are new ticket types emerging that don't fit existing categories?
-- **Routing time saved** — compare average triage time before and after automation
-- **Customer satisfaction** — ensure auto-routing doesn't negatively impact CSAT scores

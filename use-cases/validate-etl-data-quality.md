@@ -18,9 +18,7 @@ Your morning dashboard shows revenue dropped 80% overnight. Panic. Three hours l
 Use the **data-validator** skill to run automated quality checks on your data at every stage of the pipeline. Combine with **sql-optimizer** to write efficient validation queries and **data-analysis** to profile datasets and detect anomalies. Catch problems at ingestion, not at the dashboard.
 
 ```bash
-npx terminal-skills install data-validator
-npx terminal-skills install sql-optimizer
-npx terminal-skills install data-analysis
+npx terminal-skills install data-validator sql-optimizer data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -116,9 +114,3 @@ Kenji, a data engineer at a mid-size e-commerce analytics company, loads data fr
 4. The agent confirms: `amount` field changed from integer to float with decimal values
 5. Kenji adds a type-check rule to the pipeline that blocks loads when types drift
 6. Total time from detection to fix: 15 minutes instead of 3 days of wrong dashboards
-
-## Related Skills
-
-- [excel-processor](../skills/excel-processor/) — Validate and clean spreadsheet data before pipeline ingestion
-- [data-analysis](../skills/data-analysis/) — Visualize data quality metrics over time
-- [report-generator](../skills/report-generator/) — Generate automated data quality reports for stakeholders

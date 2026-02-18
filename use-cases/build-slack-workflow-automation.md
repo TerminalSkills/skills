@@ -102,9 +102,3 @@ An engineering manager at a 30-person SaaS company spends 8 hours per week on te
 3. Deployment approvals have a complete audit trail — no more "did anyone approve this?" conversations
 4. PTO tracking moves from a spreadsheet to Slack — the team sees availability at a glance
 5. Total time saved: 8+ hours per week across the team, with better documentation of every decision
-
-## Related Skills
-
-- [slack-bot-builder](../skills/slack-bot-builder/) — Creates the Slack bot with Bolt framework, slash commands, and interactive components
-- [coding-agent](../skills/coding-agent/) — Implements business logic, database layer, and API integrations
-- [n8n-workflow](../skills/n8n-workflow/) — Connects external services (PagerDuty, GitHub, Google Calendar) to Slack

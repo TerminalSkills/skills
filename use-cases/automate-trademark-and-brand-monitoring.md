@@ -18,9 +18,7 @@ A growing startup has a recognizable brand name and logo but no budget for a bra
 Use the **web-research** skill to systematically search for brand mentions, similar domain registrations, and marketplace listings. Deploy the **web-scraper** skill to capture evidence — screenshots, page content, and metadata — for each potential infringement. Use the **report-generator** skill to compile findings into a structured report ready for legal review or DMCA takedowns.
 
 ```bash
-npx terminal-skills install web-research
-npx terminal-skills install web-scraper
-npx terminal-skills install report-generator
+npx terminal-skills install web-research web-scraper report-generator
 ```
 
 ## Step-by-Step Walkthrough
@@ -119,10 +117,3 @@ Create a monitoring schedule that runs this scan weekly. Compare each week's res
 ## Real-World Example
 
 Marta is the co-founder of a 15-person startup. She discovered by accident that someone was selling fake "Lightbeam Pro" licenses on Amazon and an Instagram account was impersonating their brand. She asked the agent to run a full brand scan. In 20 minutes she had seven findings with archived evidence and pre-drafted takedown notices. She submitted the Amazon complaint the same day and the listing was removed within 72 hours. The weekly scan now catches new infringements within days instead of months, and Marta has a clean evidence trail for every case.
-
-## Related Skills
-
-- [web-research](../skills/web-research/) — Searches across domains, marketplaces, and social platforms
-- [web-scraper](../skills/web-scraper/) — Captures screenshots and page archives as evidence
-- [report-generator](../skills/report-generator/) — Compiles findings into structured legal-ready reports
-- [brand-guidelines](../skills/brand-guidelines/) — Ensures your own brand usage stays consistent

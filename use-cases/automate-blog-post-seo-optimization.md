@@ -19,9 +19,7 @@ A 15-person content marketing team publishes three blog posts per week. After si
 Use the **seo-audit** skill to crawl each post and score it against on-page SEO best practices. Feed the results into the **content-writer** skill to generate improved titles, meta descriptions, and heading outlines. Then use the **web-scraper** skill to map all existing posts by topic and build an internal linking graph that the agent can turn into concrete insert-link-here suggestions.
 
 ```bash
-npx terminal-skills install seo-audit
-npx terminal-skills install content-writer
-npx terminal-skills install web-scraper
+npx terminal-skills install seo-audit content-writer web-scraper
 ```
 
 ## Step-by-Step Walkthrough
@@ -99,10 +97,3 @@ The agent produces ready-to-apply diffs that the team can review and merge in on
 ## Real-World Example
 
 Dani is the content lead at a 20-person SaaS startup. Their blog has 72 published posts but only 12 rank on Google's first page. Dani asks the agent to audit all posts, and within minutes has a ranked list of issues. The agent rewrites metadata for the 23 worst posts and suggests 48 internal links that were completely missing. Dani reviews the changes in a single PR, merges them, and within six weeks sees a 35% increase in organic impressions from Google Search Console. The monthly re-audit now takes the agent two minutes instead of Dani's full day.
-
-## Related Skills
-
-- [seo-audit](../skills/seo-audit/) — Scores pages against on-page SEO best practices
-- [content-writer](../skills/content-writer/) — Generates optimized titles, descriptions, and copy
-- [web-scraper](../skills/web-scraper/) — Crawls sitemaps and extracts page elements at scale
-- [schema-markup](../skills/schema-markup/) — Adds structured data to improve search appearance

@@ -190,9 +190,3 @@ Tuesday: Implemented automated data cleaning pipeline. Fuzzy matching connected 
 Wednesday: data-analysis discovered that 67% of expedited shipments happened because of inventory miscounts — not actual stock-outs. Late deliveries correlated strongly with specific driver routes, not driver performance. Fuel costs varied 34% between depots for identical routes due to contract differences.
 
 Results: Month-end reporting dropped from 3 days to 4 hours. More importantly, the insights were actionable. Route optimization based on data analysis saved $67,000 in fuel costs. Inventory accuracy improvements eliminated 89% of expedited shipping fees. ROI: $340,000 annually from what started as "just cleaning up spreadsheets."
-
-## Related Skills
-
-- [excel-processor](../skills/excel-processor/) — Clean, transform, and merge complex spreadsheet data with advanced deduplication
-- [data-analysis](../skills/data-analysis/) — Statistical analysis, trend detection, and predictive modeling for business insights  
-- [report-generator](../skills/report-generator/) — Create automated dashboards and executive reports with real-time data refresh

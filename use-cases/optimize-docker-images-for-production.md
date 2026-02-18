@@ -107,8 +107,3 @@ A platform engineer at a growing e-commerce company notices Kubernetes autoscali
 5. Pod startup drops from 90 seconds to 18 seconds, and the monthly registry storage bill goes from $45 to $6
 
 The next flash sale, autoscaling handles a 4x traffic spike with zero dropped requests.
-
-## Related Skills
-
-- [docker-helper](../skills/docker-helper/) — General Docker configuration and troubleshooting
-- [cicd-pipeline](../skills/cicd-pipeline/) — Integrates optimized builds into CI/CD workflows

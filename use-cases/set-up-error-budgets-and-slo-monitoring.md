@@ -102,9 +102,3 @@ An SRE lead at a 50-person B2B SaaS company is tired of the "ship vs. fix" debat
 3. Grafana dashboards give every team real-time visibility into their error budget
 4. In the first month, 2 deployments are automatically blocked when budget drops below 20% — both times the team finds and fixes a regression before it reaches more customers
 5. The weekly reliability report becomes a standard part of sprint planning — feature vs. reliability decisions are now data-driven, and the "should we freeze releases" debate disappears
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) — Analyzes historical metrics to establish SLI baselines
-- [report-generator](../skills/report-generator/) — Builds dashboards and automated weekly reports
-- [cicd-pipeline](../skills/cicd-pipeline/) — Gates deployments based on error budget status

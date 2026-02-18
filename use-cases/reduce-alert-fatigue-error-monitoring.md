@@ -112,9 +112,3 @@ Marcus is a backend engineer at a 20-person SaaS startup. His team of four devel
 3. New alert rules are generated: Redis timeouts become P3, payment errors become P1
 4. The on-call engineer's alert volume drops from 460/week to 35/week, all actionable
 5. Mean time to acknowledge real incidents drops from 23 minutes to 4 minutes
-
-## Related Skills
-
-- [error-monitoring](../skills/error-monitoring/) -- Analyze and categorize application errors from monitoring platforms
-- [alert-optimizer](../skills/alert-optimizer/) -- Restructure alert rules to reduce noise and improve incident response
-- [cicd-pipeline](../skills/cicd-pipeline/) -- Integrate alert configuration changes into your deployment pipeline

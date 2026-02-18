@@ -105,9 +105,3 @@ Marco is the VP of Engineering at a 40-person SaaS startup heading into Series B
 3. It reveals the Data Team's costs spiked 31% from a misconfigured EMR cluster running 24/7
 4. The optimization report identifies $6,600/month in easy savings, which Marco's team implements in one sprint
 5. Marco presents the cost allocation report to investors, showing clear per-team spend, a downward cost trend, and a plan for sustainable scaling
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) -- Parses billing exports and identifies cost patterns and anomalies
-- [excel-processor](../skills/excel-processor/) -- Merges billing data with team ownership spreadsheets
-- [report-generator](../skills/report-generator/) -- Produces formatted reports with charts for stakeholders

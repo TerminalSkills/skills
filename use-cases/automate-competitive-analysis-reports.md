@@ -106,9 +106,3 @@ The leadership team starts making pricing and feature decisions based on the com
 - Include customer review sentiment trends, not just star ratings — a competitor dropping from 4.5 to 4.2 tells a different story than one steady at 4.0
 - Set up alerts for major changes like pricing page updates or new product launches between scheduled reports
 - Archive each report so you can track competitor evolution over quarters, not just the latest snapshot
-
-## Related Skills
-
-- [web-scraper](../skills/web-scraper/) -- Extracts structured data from competitor websites
-- [competitor-alternatives](../skills/competitor-alternatives/) -- Structures competitive positioning and comparison frameworks
-- [report-generator](../skills/report-generator/) -- Formats analysis into polished, shareable reports

@@ -18,9 +18,7 @@ A backend team of eight has coding standards documented across a Notion page, a 
 Use the **doc-parser** skill to extract coding standards from all sources — Notion exports, markdown files, and wiki pages. Have the **code-reviewer** skill synthesize them into a unified, deduplicated checklist. Use the **github** skill to automate checklist enforcement by posting review comments on every PR that flag violations.
 
 ```bash
-npx terminal-skills install doc-parser
-npx terminal-skills install code-reviewer
-npx terminal-skills install github
+npx terminal-skills install doc-parser code-reviewer github
 ```
 
 ## Step-by-Step Walkthrough
@@ -135,10 +133,3 @@ Write a brief team announcement explaining the new automated review checklist. I
 ## Real-World Example
 
 Hiro is a tech lead at a 25-person B2B startup with eight backend engineers. Reviews were inconsistent — some PRs sailed through, others got nitpicked based on which senior dev reviewed them. Hiro asked the agent to consolidate standards from three outdated docs. The agent found 48 rules, resolved two contradictions, and produced a clean checklist. A retroactive scan of the last 10 PRs found 14 real violations including logging user emails. The team rolled out the automated review bot in advisory mode, and within a month code review time dropped by 30% because reviewers no longer needed to manually check formatting and security basics — the bot handled it.
-
-## Related Skills
-
-- [code-reviewer](../skills/code-reviewer/) — Analyzes code against standards and suggests improvements
-- [doc-parser](../skills/doc-parser/) — Extracts structured information from documentation
-- [github](../skills/github/) — Manages GitHub Actions workflows and PR automation
-- [coding-agent](../skills/coding-agent/) — Implements fixes for detected violations automatically

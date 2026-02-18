@@ -105,8 +105,3 @@ Marcus, a backend developer at a 12-person SaaS startup, gets a Slack alert on M
 3. Marcus replays the webhooks locally and the agent identifies a missing null check introduced in Friday's refactor of the webhook handler
 4. After applying the one-line fix, the agent re-tests all webhook flows and confirms everything passes
 5. Marcus deploys the fix and asks the agent to manually trigger subscription provisioning for the three affected customers, restoring their access within 30 minutes of the first report
-
-## Related Skills
-
-- [api-tester](../skills/api-tester/) — Test your webhook endpoints return correct HTTP status codes
-- [security-audit](../skills/security-audit/) — Verify your Stripe webhook signature validation is implemented correctly

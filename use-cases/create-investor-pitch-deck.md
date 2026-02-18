@@ -137,9 +137,3 @@ Marta, co-founder of a developer tools startup, had 3 weeks before her first inv
 She exported Stripe data, pulled analytics CSVs, and gathered her market research notes. The data-analysis turned her MRR spreadsheet into a clean growth chart that immediately showed the trajectory. The content-writer restructured her narrative — moving the traction slide from slide 9 to slide 5, leading with momentum. The ai-slides tool assembled everything into a cohesive 13-slide deck.
 
 She sent the 5-slide teaser to 12 investors. Seven took meetings — up from 2 out of 10 with her old deck. In the meetings, the data visualizations did the heavy lifting: investors could see the retention curve flattening at 61%, proving stickiness without Marta needing to explain it. She closed $2.5M in 6 weeks.
-
-## Related Skills
-
-- [ai-slides](../skills/ai-slides/) — Assembles professional slide decks from content and data
-- [data-analysis](../skills/data-analysis/) — Creates clean charts and visualizations from raw data
-- [content-writer](../skills/content-writer/) — Crafts compelling narratives and key messaging

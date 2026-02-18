@@ -121,9 +121,3 @@ A backend lead at a growing e-commerce company gets a panicked message from supp
 5. Three months later, when a similar migration issue occurs, they restore the affected table from a point-in-time backup in 18 minutes with zero data loss
 
 The total setup took one day. It prevented what could have been a business-ending data loss.
-
-## Related Skills
-
-- [docker-helper](../skills/docker-helper/) — Containerize backup tooling for portability
-- [cicd-pipeline](../skills/cicd-pipeline/) — Integrate backup verification into CI workflows
-- [security-audit](../skills/security-audit/) — Verify backup encryption and access controls

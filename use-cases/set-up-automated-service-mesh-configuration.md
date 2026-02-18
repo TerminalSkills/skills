@@ -18,9 +18,7 @@ A platform team at a mid-size startup runs 22 microservices on Kubernetes. Servi
 Use the **coding-agent** skill to analyze the existing service topology, generate Istio configuration files for each service, and wire up traffic policies. Use the **docker-helper** skill to verify sidecar injection and container configurations. Apply the **security-audit** skill to validate mTLS coverage and authorization policies across the mesh.
 
 ```bash
-npx terminal-skills install coding-agent
-npx terminal-skills install docker-helper
-npx terminal-skills install security-audit
+npx terminal-skills install coding-agent docker-helper security-audit
 ```
 
 ## Step-by-Step Walkthrough
@@ -141,10 +139,3 @@ The agent produces a four-phase plan spanning one week: workers first, then inte
 ## Real-World Example
 
 Kai is a platform engineer at a 40-person startup with 22 microservices. After a cascading failure caused by a slow payment service taking down the order pipeline, the team decided to adopt Istio. Manual configuration was taking a week per service. Kai asked the agent to map the topology and generate all configs. In under an hour, the agent produced 66 YAML files covering routing, circuit breakers, mTLS, and authorization policies. The validation step caught a misconfigured webhook endpoint that would have blocked Stripe callbacks. The phased rollout completed in one week instead of the projected three months. Cascading failures stopped because circuit breakers now eject slow services after five errors.
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) — Generates and maintains infrastructure configuration files
-- [docker-helper](../skills/docker-helper/) — Validates container and sidecar configurations
-- [security-audit](../skills/security-audit/) — Verifies mTLS coverage and authorization policies
-- [hetzner-cloud](../skills/hetzner-cloud/) — Manages underlying infrastructure for the mesh

@@ -135,9 +135,3 @@ Sven, the CTO of a 20-person SaaS startup, was 2 weeks from closing a $400K ente
 He ran the scanning workflow on a Tuesday morning. The security-audit found an AGPL-licensed package buried 3 levels deep in the dependency tree — a data processing library that had switched from MIT to AGPL six months ago in a minor version bump. If the enterprise customer had discovered this, the deal would have died.
 
 The coding-agent identified a MIT-licensed drop-in replacement. Sven swapped the dependency in 20 minutes. The report-generator produced a 34-page compliance report that his legal team formatted and sent to the customer by Thursday. The CI gate now catches license issues on every PR — it's already blocked 2 problematic packages that engineers tried to add in the weeks since.
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) — Scans dependencies for license and security risks
-- [coding-agent](../skills/coding-agent/) — Builds automated CI checks and implements code changes
-- [report-generator](../skills/report-generator/) — Produces formatted compliance reports for legal review

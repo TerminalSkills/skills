@@ -304,8 +304,3 @@ The breaking point came when their largest enterprise customer threatened to lea
 - **Cost predictability**: API usage costs became predictable with abuse eliminated
 
 The security system now prevents an estimated $28,000/month in abuse-related costs while maintaining sub-200ms response times for legitimate users. Most importantly, the engineering team went from spending 2-3 days/week on abuse incidents to receiving automated daily reports showing the system successfully blocked attacks without intervention.
-
-## Related Skills
-
-- [rate-limiter](../skills/rate-limiter/) — Sophisticated rate limiting with user tiers, endpoint-specific limits, and Redis-backed distributed enforcement
-- [security-audit](../skills/security-audit/) — Behavioral analysis, threat detection, automated response, and comprehensive security monitoring

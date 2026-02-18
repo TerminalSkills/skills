@@ -130,9 +130,3 @@ An engineering manager at a Series A data infrastructure startup inherited a pip
 Tuesday: pipeline profiling revealed 72% wasted time (no caching, serial tests, Docker rebuilding from scratch). Flake analysis found 11 tests with identical root causes — race conditions and timing assumptions. By Thursday: all flaky tests fixed, 3-shard parallel CI with caching, Docker layer caching.
 
 Results: 38 minutes → 9 minutes. The team went a full week without a flaky failure — unprecedented. Over the following month: PR velocity up 23%, CI costs $920 → $280/month, "CI issues" disappeared from retros. Engineers started pushing smaller, more frequent PRs because the feedback loop was fast enough. The optimization recovered an estimated 2.5 engineering weeks per month.
-
-## Related Skills
-
-- [cicd-pipeline](../skills/cicd-pipeline/) — Pipeline configuration with caching, parallelization, and deploy gates
-- [test-generator](../skills/test-generator/) — Replace flaky tests with deterministic alternatives
-- [docker-helper](../skills/docker-helper/) — Multi-stage Docker builds with layer caching for CI

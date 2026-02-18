@@ -114,9 +114,3 @@ A team lead at a 30-person company manages 15 snowflake Jenkins jobs configured 
 3. Quality gates block a release with a critical CVE that would have reached production
 4. Automatic rollback catches a bad deploy in staging — the previous version is restored in 30 seconds
 5. After 3 months: build queue eliminated, zero bad deploys to production, pipeline changes are peer-reviewed, and Jenkins can be fully restored from scratch in 20 minutes
-
-## Related Skills
-
-- [jenkins-pipelines](../skills/jenkins-pipelines/) — Writes Jenkinsfiles, shared libraries, and configures Jenkins as Code
-- [docker-helper](../skills/docker-helper/) — Creates containerized build environments for reproducible builds
-- [kubernetes-helm](../skills/kubernetes-helm/) — Manages Kubernetes deployments triggered from Jenkins pipelines

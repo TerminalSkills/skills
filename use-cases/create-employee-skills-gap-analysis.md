@@ -18,9 +18,7 @@ Your engineering team is about to take on a major project requiring Kubernetes, 
 Use **data-analysis** to process skills data and identify gaps, **report-generator** to produce individual development plans and team-level summaries, and **web-research** to recommend specific training resources.
 
 ```bash
-npx terminal-skills install data-analysis
-npx terminal-skills install report-generator
-npx terminal-skills install web-research
+npx terminal-skills install data-analysis report-generator web-research
 ```
 
 ## Step-by-Step Walkthrough
@@ -100,18 +98,3 @@ Femi is the engineering manager at a 20-person SaaS startup that just landed a c
 3. Development plans are generated — two engineers with strong data backgrounds are fast-tracked for streaming training
 4. The agent recommends hiring one senior engineer with Kafka experience rather than training everyone, saving 8 weeks of ramp-up time
 5. Femi uses the report to justify the hire to the CEO and allocate the $4,800 training budget to the three highest-impact development plans
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) -- Analyze skills survey data and identify capability gaps
-- [report-generator](../skills/report-generator/) -- Generate individual plans and executive summaries
-- [web-research](../skills/web-research/) -- Find relevant training courses and learning resources
-
-### Making Skills Data Actionable
-
-The agent helps translate analysis into outcomes:
-
-- **Pair programming assignments** — match experts with learners on real project tasks
-- **Conference and training budget allocation** — direct spending to the highest-impact gaps
-- **Hiring criteria** — define must-have skills for open roles based on gap data, not wishful thinking
-- **Project staffing** — assign team members to projects that stretch their skills in needed areas

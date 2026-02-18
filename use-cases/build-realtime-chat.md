@@ -156,8 +156,3 @@ A backend developer is building an internal tool for a small logistics company. 
 3. He adds the group channels feature for team-wide broadcasts
 4. Presence tracking lets dispatchers see which drivers are currently online
 5. The full chat feature ships in three days — dispatchers stop using a separate messaging app
-
-## Related Skills
-
-- [websocket-builder](../skills/websocket-builder/) — WebSocket server setup and event routing
-- [realtime-database](../skills/realtime-database/) — Message persistence and efficient real-time data sync

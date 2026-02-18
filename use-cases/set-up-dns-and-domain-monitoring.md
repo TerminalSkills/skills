@@ -18,9 +18,7 @@ Your company manages 30+ domains across production services, marketing sites, an
 Use **coding-agent** to build DNS monitoring scripts, **n8n-workflow** to set up automated checks and alerting, and **report-generator** to produce weekly domain health reports.
 
 ```bash
-npx terminal-skills install coding-agent
-npx terminal-skills install n8n-workflow
-npx terminal-skills install report-generator
+npx terminal-skills install coding-agent n8n-workflow report-generator
 ```
 
 ## Step-by-Step Walkthrough
@@ -96,30 +94,3 @@ Jun is a platform engineer at a 35-person SaaS startup that acquired a smaller c
 3. The agent sets up monitoring that catches a DNS change the next week when a developer accidentally updates the production CNAME while configuring a test environment
 4. The automated Slack alert fires within 30 minutes, and the change is reverted before any customer impact
 5. Weekly reports give Jun confidence that the 40-domain portfolio is under control, and the CEO stops getting surprised by domain expiration notices
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Build DNS monitoring and validation scripts
-- [n8n-workflow](../skills/n8n-workflow/) -- Set up automated checks and alerting workflows
-- [report-generator](../skills/report-generator/) -- Generate weekly domain health reports
-
-### What the Monitor Checks
-
-Every 6 hours, the monitoring system validates:
-
-- **A/AAAA records** — IP addresses match expected values
-- **CNAME records** — aliases resolve to the correct targets
-- **MX records** — mail routing is intact and priority order is correct
-- **TXT records** — SPF, DKIM, and DMARC records haven't been accidentally deleted
-- **NS records** — nameserver delegation hasn't changed unexpectedly
-- **SSL certificates** — valid, not expiring soon, and chain is complete
-- **WHOIS data** — domain registration expiry and registrant contact information
-- **Propagation** — after any change, verify all major DNS resolvers return the new value
-
-### Alert Severity Levels
-
-The monitoring system uses tiered alerts:
-
-- **Critical** — production domain DNS mismatch or SSL expired; pages on-call immediately
-- **Warning** — SSL expiring within 30 days or staging DNS drift; Slack notification
-- **Info** — domain expiring within 90 days or DNS TTL changes; included in weekly report only

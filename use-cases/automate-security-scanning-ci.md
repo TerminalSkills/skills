@@ -121,9 +121,3 @@ Tomás leads backend engineering at a 25-person SaaS startup. They passed a cust
 3. It configures triage rules so developers only see actionable findings — the first PR scan surfaces 8 real issues instead of 300 noisy alerts
 4. The agent generates fix patches for 5 of the 8 issues, which developers apply in the same sprint
 5. Within a month, every PR gets scanned automatically, the team trusts the results, and the next pen test comes back clean
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) -- Configures scanning tools and analyzes vulnerability findings
-- [cicd-pipeline](../skills/cicd-pipeline/) -- Integrates security checks into CI/CD workflows
-- [coding-agent](../skills/coding-agent/) -- Generates automated fix patches for detected vulnerabilities

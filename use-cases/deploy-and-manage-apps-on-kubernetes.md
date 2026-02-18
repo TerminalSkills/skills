@@ -114,10 +114,3 @@ A lead engineer at a 20-person SaaS startup runs 6 services on EC2 with docker-c
 4. ArgoCD automates deployments — git push triggers a staged rollout through dev → staging → production
 5. HPA handles the next product launch smoothly — the API scales from 3 to 15 pods in 2 minutes, zero 503s
 6. After 2 months: deploy frequency increases from 2/week to 5/day, MTTR drops from 2 hours to 10 minutes, and the team has not SSH'd into a server once
-
-## Related Skills
-
-- [kubernetes-helm](../skills/kubernetes-helm/) — Writes manifests, Helm charts, and manages Kubernetes deployments
-- [docker-helper](../skills/docker-helper/) — Optimizes container images for production
-- [cicd-pipeline](../skills/cicd-pipeline/) — Automates build and deploy pipelines with GitOps
-- [security-audit](../skills/security-audit/) — Hardens cluster configuration and scans for misconfigurations

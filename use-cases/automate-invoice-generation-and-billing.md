@@ -120,9 +120,3 @@ The finance manager at a growing API platform company spends 5 days each month o
 5. A dashboard shows real-time MRR, outstanding receivables by aging, and flags 3 customers at churn risk based on declining usage
 
 Monthly billing goes from 5 days of manual work to a single button press, with zero calculation errors and 15% faster payment collection thanks to automated reminders.
-
-## Related Skills
-
-- [invoice-generator](../skills/invoice-generator/) — PDF invoice rendering with customizable templates
-- [template-engine](../skills/template-engine/) — Email templates for invoice delivery and payment reminders
-- [excel-processor](../skills/excel-processor/) — Export billing data for finance team reconciliation

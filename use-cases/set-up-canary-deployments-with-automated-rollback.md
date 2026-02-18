@@ -115,9 +115,3 @@ The agent queries deployment logs and produces a summary so the team can identif
 - Test your rollback mechanism separately — a rollback that doesn't work is worse than no canary at all
 - Include database migration compatibility in your canary checks for stateful services
 - Log which requests went to canary vs stable for post-incident debugging
-
-## Related Skills
-
-- [cicd-pipeline](../skills/cicd-pipeline/) -- Builds the deployment pipeline with staged rollout phases
-- [coding-agent](../skills/coding-agent/) -- Generates Kubernetes manifests and traffic splitting configuration
-- [analytics-tracking](../skills/analytics-tracking/) -- Sets up the health metrics and threshold monitoring for rollback decisions

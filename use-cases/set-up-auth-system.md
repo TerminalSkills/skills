@@ -126,8 +126,3 @@ A solo developer is building a SaaS project management tool. She has the Express
 4. The agent adds integration tests covering login, token refresh, role boundaries, and edge cases
 5. A security audit catches two minor issues that get patched immediately
 6. She ships auth in one afternoon instead of the two weeks she had budgeted
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) — Validates the auth implementation against OWASP guidelines
-- [cicd-pipeline](../skills/cicd-pipeline/) — Adds auth-related test steps to the deployment pipeline

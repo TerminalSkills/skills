@@ -116,9 +116,3 @@ Suki is a backend developer at a 10-person SaaS startup. Last week, customers re
 3. It standardizes both services to emit JSON logs with a shared requestId field
 4. The next time an error occurs, Suki searches by requestId in Grafana and sees the full chain — Express request, worker timeout, retry, second timeout — in a single view
 5. Debugging time drops from hours to minutes, and the alerting catches new error patterns before customers report them
-
-## Related Skills
-
-- [docker-helper](../skills/docker-helper/) -- Deploys and configures the logging stack containers
-- [coding-agent](../skills/coding-agent/) -- Generates logging configurations and log shipping setup
-- [data-analysis](../skills/data-analysis/) -- Builds queries to detect error patterns and anomalies

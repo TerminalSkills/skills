@@ -112,9 +112,3 @@ The owner of a 8-person service agency spends 2 hours daily on phone calls for o
 3. Daily digest keeps the team aligned without scrolling through hundreds of messages
 4. Payment collection through Telegram reduces invoice follow-up time from days to minutes
 5. After 3 months: phone call volume drops 70%, booking no-shows decrease 40% (thanks to reminders), and the team saves 15+ hours per week on coordination
-
-## Related Skills
-
-- [telegram-bot-builder](../skills/telegram-bot-builder/) — Creates the bot with grammY, inline keyboards, conversations, and payments
-- [coding-agent](../skills/coding-agent/) — Implements booking engine, order tracking, and database layer
-- [data-analysis](../skills/data-analysis/) — Generates weekly business analytics reports

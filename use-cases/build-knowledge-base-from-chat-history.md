@@ -140,9 +140,3 @@ Also: monthly report of most-searched-but-missing topics
 Priya, a staff engineer at a 30-person healthtech startup, noticed her team was spending more time searching Slack than writing code. She exported 3 years of chat history and ran the extraction workflow. The data-extractor identified 342 problem-solution threads — including the staging database question that had been answered 11 separate times.
 
 The markdown-writer produced 412 articles organized into 5 categories. She deployed them as a Docusaurus site on the internal network. Within the first week, the #help channel volume dropped 35%. New hires started finding answers themselves instead of waiting for someone to respond. After 2 months, the knowledge base had grown to 480 articles as engineers used the :brain: emoji workflow to capture new knowledge in real time.
-
-## Related Skills
-
-- [data-extractor](../skills/data-extractor/) — Parses and filters structured data from exports and archives
-- [web-scraper](../skills/web-scraper/) — Pulls in linked resources and external references
-- [markdown-writer](../skills/markdown-writer/) — Structures extracted knowledge into clean documentation

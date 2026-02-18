@@ -218,9 +218,3 @@ Tuesday: Implemented conventional commit standards with automated validation. Se
 Wednesday: code-reviewer began analyzing changes before commits, catching potential issues and providing context for reviewers. Integrated with GitHub to auto-label PRs and assign appropriate reviewers based on changed components.
 
 Results after 2 months: Code review velocity improved 73% — reviewers could understand changes immediately from well-structured commit messages. Production debugging time dropped 80% because git blame and git log actually told meaningful stories. The team eliminated the need for external change management tools, saving $18,000 annually. Most importantly: developer experience improved dramatically as git became a collaboration tool instead of a source of frustration.
-
-## Related Skills
-
-- [git-commit-pro](../skills/git-commit-pro/) — Analyze code changes and generate precise conventional commit messages
-- [code-reviewer](../skills/code-reviewer/) — Validate code quality and provide pre-commit feedback to prevent issues
-- [cicd-pipeline](../skills/cicd-pipeline/) — Integrate commit standards with deployment workflows and automated quality gates

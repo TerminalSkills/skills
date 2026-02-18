@@ -18,9 +18,7 @@ Your backend has dozens of REST endpoints accumulated over years. Mobile clients
 Use an incremental strangler-fig approach: stand up a GraphQL gateway that wraps existing REST endpoints, migrate consumers one screen at a time, and deprecate old routes only after traffic drops to zero. Three skills work together to make this safe.
 
 ```bash
-npx terminal-skills install graphql-migration
-npx terminal-skills install api-tester
-npx terminal-skills install code-migration
+npx terminal-skills install graphql-migration api-tester code-migration
 ```
 
 ## Step-by-Step Walkthrough
@@ -89,9 +87,3 @@ A lead backend engineer at a mid-size e-commerce company manages an API consumed
 4. The compatibility proxy routes old clients to REST and new clients to GraphQL
 5. Parallel tests catch one field-naming inconsistency before anything ships
 6. After deploying, mobile payload drops 82 % on the orders screen, and no existing client breaks
-
-## Related Skills
-
-- [graphql-migration](../skills/graphql-migration/) -- Schema generation, resolver scaffolding, strangler-fig setup
-- [api-tester](../skills/api-tester/) -- Parallel testing of REST vs GraphQL responses
-- [code-migration](../skills/code-migration/) -- General-purpose codebase migration patterns

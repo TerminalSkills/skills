@@ -131,8 +131,3 @@ Marta, an SRE at a 30-person fintech team, needs to prove the system can survive
 3. The agent creates a local docker-compose environment with toxiproxy so the team can validate experiments safely
 4. Running locally, they discover the payment service has no connection retry logic — it crashes on the first timeout
 5. After fixing the retry logic, Marta has the agent add chaos tests to the CI pipeline — now every staging deploy runs a 2-minute resilience check automatically
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) -- Identify security-related failure modes to include in chaos experiments
-- [coding-agent](../skills/coding-agent/) -- Generate fix implementations for failures discovered during experiments

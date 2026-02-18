@@ -134,9 +134,3 @@ Kofi, a backend engineer at a 20-person e-commerce SaaS, was firefighting perfor
 He ran the three-skill workflow during a Friday maintenance window. The sql-optimizer found 12 unused indexes consuming 1.8 GB and 4 duplicate pairs. More importantly, it identified that the top 3 slow queries — responsible for 73% of all timeouts — had no proper covering indexes. The migration dropped dead weight, added 3 targeted indexes, and reindexed 2 bloated ones. Total execution: 4 minutes with zero downtime.
 
 The orders listing endpoint dropped from 2,340ms to 180ms. Weekly slow query volume fell from 1,247 to 94. Write performance on the orders table improved 12% from removing 5 unnecessary indexes. The Monday reports now catch new slow queries before they become customer-facing issues.
-
-## Related Skills
-
-- [sql-optimizer](../skills/sql-optimizer/) — Analyzes query plans and recommends index and query improvements
-- [data-analysis](../skills/data-analysis/) — Identifies patterns in slow query logs and usage statistics
-- [report-generator](../skills/report-generator/) — Produces formatted monitoring reports with actionable recommendations

@@ -107,8 +107,3 @@ Alex, a DevOps engineer at a 25-person SaaS team, discovers that nobody has run 
 - **Use policy-as-code tools** (like OPA or Sentinel) alongside drift detection to prevent unauthorized changes
 - **Tag manual changes** in the cloud console with an incident ID so the drift detector can auto-correlate
 - **Review drift reports weekly** — do not let reconciliation become its own backlog of technical debt
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) -- Audit drifted security configurations for compliance risks
-- [report-generator](../skills/report-generator/) -- Generate weekly drift summary reports for leadership

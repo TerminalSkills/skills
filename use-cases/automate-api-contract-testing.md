@@ -88,9 +88,3 @@ A platform engineer at a 30-person fintech runs 14 internal APIs. Every two week
 3. CI pipelines block 3 breaking changes in the first sprint — all caught before merge
 4. Integration failures drop from 4 per sprint to zero over 6 weeks
 5. The team reclaims 6+ hours per sprint previously spent on integration debugging
-
-## Related Skills
-
-- [api-tester](../skills/api-tester/) — Maps API surface and validates endpoint behavior
-- [test-generator](../skills/test-generator/) — Generates contract test suites for each consumer-provider pair
-- [cicd-pipeline](../skills/cicd-pipeline/) — Integrates contract verification into PR and deployment workflows

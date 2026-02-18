@@ -113,9 +113,3 @@ Aisha manages engineering at a 25-person fintech startup hiring three backend en
 - Create multiple variants of each question to prevent candidates from sharing answers
 - Pair take-home questions with a live discussion to assess the candidate's reasoning, not just their solution
 - Strip all proprietary business logic — use the patterns but anonymize the domain
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Analyzes codebase patterns and generates representative code problems
-- [applicant-screening](../skills/applicant-screening/) -- Structures assessment criteria and evaluation frameworks
-- [markdown-writer](../skills/markdown-writer/) -- Produces polished question documents and scoring rubrics

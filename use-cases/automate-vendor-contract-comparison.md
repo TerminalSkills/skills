@@ -114,8 +114,3 @@ Soren, the operations lead at a 40-person e-commerce company, is tasked with cut
 3. Soren asks for a comparison of the three overlapping analytics tools the company somehow ended up paying for — the agent shows they could consolidate to one and save $22,000 annually
 4. The agent generates a renewal calendar CSV that Soren imports into Linear, creating tickets with deadlines for each cancellation window
 5. Over the next quarter, the team cancels 4 redundant tools and renegotiates 2 contracts, saving $41,000 annually — well above the 15% target
-
-## Related Skills
-
-- [excel-processor](../skills/excel-processor/) -- Work with exported contract data in spreadsheet format
-- [data-analysis](../skills/data-analysis/) -- Create spend trend charts from contract cost data

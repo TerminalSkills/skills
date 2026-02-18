@@ -188,9 +188,3 @@ terminal-skills install data-analysis
 ## Browse All Skills
 
 These 10 skills are just the beginning. Browse 85+ skills at [terminalskills.io](https://terminalskills.io).
-
-## Related Skills
-
-- [voice-to-text](../skills/voice-to-text/) — Transcribe audio to text
-- [api-tester](../skills/api-tester/) — Test REST and GraphQL endpoints
-- [docker-helper](../skills/docker-helper/) — Build and debug Docker configurations

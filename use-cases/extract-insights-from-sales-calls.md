@@ -185,10 +185,3 @@ The voice-to-text skill processed 412 call recordings (184 hours of audio) in un
 The generated report showed that while the team had been building a mobile app (requested by 3% of prospects), they'd ignored SSO (requested by 38%). Within two weeks of the analysis, SSO moved to the top of the sprint backlog. When the company launched SSO three months later, they re-engaged 23 of the previously lost prospects and closed $847K in deals that had been stalled on the missing feature.
 
 The systematic analysis revealed a pattern: high-value enterprise prospects consistently mentioned security and compliance features, while smaller prospects requested workflow optimizations. This insight led to a two-track product strategy that increased win rates from 18% to 31% within six months.
-
-## Related Skills
-
-- [voice-to-text](../skills/voice-to-text/) — High-accuracy transcription with speaker identification and business vocabulary
-- [data-analysis](../skills/data-analysis/) — Pattern extraction, frequency analysis, and statistical insights from text datasets
-- [report-generator](../skills/report-generator/) — Structured reports with data visualizations and executive summaries
-- [content-writer](../skills/content-writer/) — Polished stakeholder communication with compelling narrative structure

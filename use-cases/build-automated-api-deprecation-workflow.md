@@ -127,9 +127,3 @@ Kenji is a platform engineer at a 30-person API-first company. The team wastes h
 3. It generates deprecation headers, migration guides, and consumer notifications for each endpoint
 4. GitHub issues track the migration progress with automated checklists and sunset dates
 5. After the first 90-day cycle, 3 endpoints are safely removed. The team applies the same process quarterly, reducing their API surface by 15% and reclaiming 20% of maintenance time
-
-## Related Skills
-
-- [api-tester](../skills/api-tester/) -- Analyzes endpoint usage patterns and identifies low-traffic deprecation candidates
-- [coding-agent](../skills/coding-agent/) -- Builds deprecation middleware, headers, and migration infrastructure
-- [github](../skills/github/) -- Manages deprecation lifecycle through tracked issues and PRs

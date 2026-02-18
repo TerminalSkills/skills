@@ -159,9 +159,3 @@ Tuesday: data-analysis identified patterns she'd never spotted manually. Mainten
 Wednesday: excel-processor built an automated dashboard. Property performance scores, maintenance cost trends, occupancy forecasts. Monthly data refresh now takes 15 minutes instead of 22 hours.
 
 Result: 264 hours saved annually ($19,800 in labor costs). More importantly: she caught maintenance issues 2 months earlier, preventing $34,000 in emergency repairs. Data-driven lease pricing increased portfolio revenue by 8.4%.
-
-## Related Skills
-
-- [pdf-analyzer](../skills/pdf-analyzer/) — Extract text, tables, and metadata from any PDF document
-- [data-analysis](../skills/data-analysis/) — Find patterns, trends, and insights in extracted datasets  
-- [excel-processor](../skills/excel-processor/) — Transform PDF data into analysis-ready Excel workbooks

@@ -131,8 +131,3 @@ A platform engineer at a 50-person logistics company needed to give AI assistant
 Monday, mcp-server-builder scaffolded 5 tools covering inventory, orders, shipments, returns, and customers. Tuesday, api-tester found 4 edge-case bugs — including pagination returning duplicates and a null check crash on cancelled orders. Wednesday, test-generator produced 72 tests at 84% coverage. Thursday, the server went live in Claude Desktop for 8 agents.
 
 Ticket resolution: 6 minutes → 2.5 minutes. Dashboard switching eliminated. The test suite caught 3 regressions in the first month. Estimated savings: $8,200/month in support efficiency.
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) — Audit MCP endpoints for injection and auth flaws
-- [cicd-pipeline](../skills/cicd-pipeline/) — Run MCP test suite on every commit

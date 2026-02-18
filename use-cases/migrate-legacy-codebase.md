@@ -130,8 +130,3 @@ A lead engineer at a 20-person logistics startup needed to migrate a 50,000-line
 Monday, test-generator captured 82 baseline tests across 6 modules. That afternoon, code-migration converted the shipment tracking module from callbacks to async/await. By Wednesday, 4 modules were migrated with zero regressions. Thursday, security-audit caught a critical issue — migration accidentally removed rate limiting on webhook ingestion, enabling event flooding. Two-minute fix.
 
 The migrated API deployed Friday with 112 tests providing confidence. Post-deployment: 23% reduction in p99 latency from async/await. Migration completed 5 weeks early. The test suite caught 4 regressions in subsequent PRs that would have reached production.
-
-## Related Skills
-
-- [cicd-pipeline](../skills/cicd-pipeline/) — Run baseline tests on every commit during migration
-- [docker-helper](../skills/docker-helper/) — Update containers for the new Node.js runtime

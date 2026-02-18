@@ -116,9 +116,3 @@ Aisha is a frontend lead at a 20-person SaaS startup. Their product is a data da
 3. During baseline capture, the agent immediately finds two rendering issues — a subgrid gap in Firefox and a missing blur effect in Safari — and generates CSS fixes
 4. Tests run on every PR in CI, adding just 4 minutes to the pipeline
 5. Over the next quarter, the cross-browser tests catch 6 regressions before they reach production, and Safari-related support tickets drop to zero
-
-## Related Skills
-
-- [test-generator](../skills/test-generator/) -- Creates comprehensive test suites from application flows
-- [coding-agent](../skills/coding-agent/) -- Configures Playwright and generates browser-specific fixes
-- [web-scraper](../skills/web-scraper/) -- Captures page screenshots for visual regression baselines

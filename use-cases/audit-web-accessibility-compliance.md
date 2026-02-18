@@ -157,9 +157,3 @@ A frontend engineer at a 30-person HR tech company receives notice that their la
 6. Manual testing with VoiceOver and NVDA confirms no remaining issues
 
 What was estimated as a 3-month project is completed in 2 weeks, and the contract is renewed.
-
-## Related Skills
-
-- [accessibility-auditor](../skills/accessibility-auditor/) — Core WCAG 2.2 audit engine with exact code fixes
-- [code-reviewer](../skills/code-reviewer/) — Validates ARIA patterns and accessibility fix correctness
-- [frontend-design](../skills/frontend-design/) — Ensures accessible design patterns are visually consistent

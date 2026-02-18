@@ -18,8 +18,7 @@ Your team ships an AI feature — a support ticket classifier, a document summar
 Use the **prompt-tester** skill to bring engineering rigor to prompt development. Define what good output looks like, build test cases covering normal and edge scenarios, run multiple prompt variants, and compare results with metrics. Combine with **data-analysis** to analyze patterns in failures and measure improvement over iterations.
 
 ```bash
-npx terminal-skills install prompt-tester
-npx terminal-skills install data-analysis
+npx terminal-skills install prompt-tester data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -142,9 +141,3 @@ Amir is an ML engineer at a legal tech startup. They built an AI feature that ex
 7. Amir adds the test suite to CI — every prompt change now runs against the eval before deployment
 
 Time invested: 2 hours. Result: prompt accuracy went from 53% to 88%, and every future change is tested before shipping.
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) — Analyze failure patterns and accuracy trends across prompt versions
-- [test-generator](../skills/test-generator/) — Generate edge case test inputs from existing examples
-- [coding-agent](../skills/coding-agent/) — Build automated eval harnesses that run prompt tests in CI

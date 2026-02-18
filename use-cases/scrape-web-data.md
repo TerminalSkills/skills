@@ -202,9 +202,3 @@ Tuesday: Implemented batch processing to collect 1,200 products × 15 sites = 18
 Wednesday: data-analysis revealed market patterns invisible to manual research. Competitors systematically underprice during restocking periods, then increase prices once inventory normalizes. Seasonal trends showed optimal pricing windows for maximum margin.
 
 Results after 6 weeks: Recovered 4.7% market share through strategic repricing. Revenue increased $340,000 quarterly from optimized pricing decisions. The two pricing analysts were reassigned to strategic work (market expansion, product planning). ROI: The entire automation system paid for itself in 23 days of improved pricing decisions.
-
-## Related Skills
-
-- [web-scraper](../skills/web-scraper/) — Build intelligent scrapers that adapt to site changes and handle anti-bot measures
-- [data-analysis](../skills/data-analysis/) — Extract competitive insights and pricing intelligence from scraped datasets
-- [batch-processor](../skills/batch-processor/) — Scale data collection and processing to handle thousands of products across multiple sites

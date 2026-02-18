@@ -141,9 +141,3 @@ A developer is building a learning platform where instructors upload course vide
 4. Video transcoding normalizes instructor uploads to 720p H.264 for consistent playback
 5. The BullMQ queue handles 50 concurrent instructor uploads during course prep week
 6. What took two weeks of stack overflow answers is running in production in two days
-
-## Related Skills
-
-- [file-upload-processor](../skills/file-upload-processor/) — Upload endpoint with validation and cloud storage
-- [media-transcoder](../skills/media-transcoder/) — Image and video processing pipelines
-- [batch-processor](../skills/batch-processor/) — Job queue orchestration for async tasks

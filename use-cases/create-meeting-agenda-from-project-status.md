@@ -108,8 +108,3 @@ Ravi, an engineering manager at a 20-person product team, used to spend 45 minut
 - **Track agenda-to-outcome ratio** — if topics keep rolling over week to week, the meetings are not effective
 - **Rotate the "open floor" section** — some weeks, replace it with a quick demo or knowledge share
 - **Archive agendas alongside meeting notes** in a shared folder so decisions are traceable
-
-## Related Skills
-
-- [weekly-report](../skills/weekly-report/) -- Generate end-of-week summaries alongside meeting agendas
-- [markdown-writer](../skills/markdown-writer/) -- Format agendas for different platforms and audiences

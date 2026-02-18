@@ -18,9 +18,7 @@ A fintech team copies production data into staging every week so developers can 
 Use the **coding-agent** skill to scan every table and column for PII patterns — names, emails, phone numbers, IDs, and financial data. Feed the findings into the **data-analysis** skill to classify each column by sensitivity level and generate anonymization rules. Use the **sql-optimizer** skill to produce efficient SQL scripts that apply masking, hashing, and synthetic data replacement without breaking foreign key relationships.
 
 ```bash
-npx terminal-skills install coding-agent
-npx terminal-skills install data-analysis
-npx terminal-skills install sql-optimizer
+npx terminal-skills install coding-agent data-analysis sql-optimizer
 ```
 
 ## Step-by-Step Walkthrough
@@ -122,10 +120,3 @@ Add email_logs.recipient to the anonymization rules. Then create a pre-copy hook
 ## Real-World Example
 
 Leo is a backend engineer at a fintech team of 18. After a near-miss where customer emails appeared in staging error logs, he asks the agent to scan their 45-table database. The agent finds PII in 22 columns including three that the old manual scripts missed entirely. It generates optimized SQL scripts that anonymize 2 million user records in 4 minutes with batched updates. The validation step catches one table the scan missed — email_logs — which the agent immediately adds. Leo sets up the pipeline as a post-copy hook, and the compliance team gets a clean audit report showing zero PII leakage in staging. The whole setup took an afternoon instead of the two weeks originally estimated.
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) — Scans codebases and databases to detect patterns
-- [data-analysis](../skills/data-analysis/) — Classifies data by sensitivity and generates rules
-- [sql-optimizer](../skills/sql-optimizer/) — Produces efficient batched SQL for large-scale updates
-- [security-audit](../skills/security-audit/) — Audits systems for compliance and security gaps

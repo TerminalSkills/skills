@@ -115,9 +115,3 @@ A CTO at a 30-person SaaS company has 40+ AWS resources created over 2 years thr
 4. CI/CD pipeline catches a teammate's PR that would have opened port 22 to the internet — blocked before merge
 5. Weekly drift detection catches a manual security group change made during an incident — the team adds it properly through Terraform
 6. After 3 months: zero configuration drift, new environments in minutes, and infrastructure knowledge is shared across the entire team
-
-## Related Skills
-
-- [terraform-iac](../skills/terraform-iac/) — Writes and manages Terraform configurations, modules, and state
-- [security-audit](../skills/security-audit/) — Scans IaC configurations for security misconfigurations
-- [cicd-pipeline](../skills/cicd-pipeline/) — Automates plan/apply workflows with review gates and drift detection

@@ -127,8 +127,3 @@ Total: 4:18 commit → staging. Pipeline ready.
 A DevOps engineer at a 35-person e-commerce startup was tasked with fixing their deployment process after the third outage in two months. Eight developers deployed by SSH, no tests, 1.6GB Docker image. He started Monday: test-generator produced 52 integration tests in 20 minutes. docker-helper cut the image to 142MB and build time to 2 minutes. cicd-pipeline created the full workflow with staging and production. security-audit added gates that immediately caught 3 dependency CVEs and a hardcoded API key.
 
 First week live: security gates blocked 2 PRs with vulnerabilities, test gates caught 1 regression — all before production. Deployment: 25 minutes manual → 4 minutes automated. Zero outages in the following 3 months.
-
-## Related Skills
-
-- [code-reviewer](../skills/code-reviewer/) — Add automated code review as a pipeline stage
-- [code-migration](../skills/code-migration/) — Modernize legacy code for modern CI tooling

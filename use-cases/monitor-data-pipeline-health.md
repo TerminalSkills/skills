@@ -100,9 +100,3 @@ Lena is a data engineer at a 20-person SaaS startup. Last month, a partner API s
 3. It builds an n8n workflow that runs these checks daily and alerts on Slack
 4. Two weeks later, the same API hiccup recurs — but this time the volume check catches it within an hour, and Lena fixes it before anyone notices
 5. Pipeline trust improves so much that the analytics team stops manually spot-checking dashboards every morning
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) -- Establishes baselines and detects statistical anomalies in pipeline metrics
-- [coding-agent](../skills/coding-agent/) -- Generates health-check scripts and validation queries
-- [n8n-workflow](../skills/n8n-workflow/) -- Orchestrates automated monitoring workflows with alerting

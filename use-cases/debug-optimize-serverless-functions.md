@@ -110,9 +110,3 @@ Diana is a DevOps engineer at a 30-person e-commerce startup. Their serverless c
 3. The agent generates an esbuild config that tree-shakes the bundle from 18.4MB to 1.2MB
 4. It recommends provisioned concurrency of 2 for the payment function and memory increase from 512MB to 1024MB
 5. After deploying: cold starts drop from 4,847ms to 340ms, checkout failure rate drops from 2.3% to 0.1%
-
-## Related Skills
-
-- [serverless-debugger](../skills/serverless-debugger/) -- Trace and debug serverless function invocations across services
-- [data-analysis](../skills/data-analysis/) -- Analyze invocation metrics and identify performance patterns
-- [cicd-pipeline](../skills/cicd-pipeline/) -- Deploy optimized serverless configurations safely

@@ -18,9 +18,7 @@ Your engineering team wants to contribute to the open source projects you depend
 Use the **github** skill to search for issues and manage PRs, **code-reviewer** to understand repository conventions, and **coding-agent** to implement fixes. The agent handles the tedious parts — finding issues, reading CONTRIBUTING.md files, checking CLA requirements — so your team can focus on writing code.
 
 ```bash
-npx terminal-skills install github
-npx terminal-skills install code-reviewer
-npx terminal-skills install coding-agent
+npx terminal-skills install github code-reviewer coding-agent
 ```
 
 ## Step-by-Step Walkthrough
@@ -104,22 +102,3 @@ Dani is a backend developer at a 15-person startup that relies heavily on Prisma
 - **Keep PRs small** — a focused 50-line fix gets reviewed in hours; a 500-line refactor sits for weeks
 - **Run the full test suite locally** — CI failures on your first PR make a bad impression
 - **Be patient with reviews** — maintainers are volunteers; a polite follow-up after a week is fine, daily pings are not
-
-## Related Skills
-
-- [github](../skills/github/) -- Search issues, manage PRs, and interact with GitHub's API
-- [code-reviewer](../skills/code-reviewer/) -- Understand code conventions and review changes before submitting
-- [coding-agent](../skills/coding-agent/) -- Implement fixes following repository patterns
-
-### Contribution Workflow Checklist
-
-The agent verifies each of these before you submit:
-
-- [ ] Fork is up to date with upstream main/canary branch
-- [ ] Branch name follows the project's convention
-- [ ] Commit messages match the required format (conventional commits, etc.)
-- [ ] All tests pass locally
-- [ ] Linter and formatter have been run
-- [ ] CLA or DCO is signed if required
-- [ ] PR description fills in all required template sections
-- [ ] Related issue is referenced with closing keyword

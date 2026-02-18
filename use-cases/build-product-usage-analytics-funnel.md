@@ -123,8 +123,3 @@ Tomas, a product manager at a 15-person B2B SaaS startup, needs to answer the fo
 3. After two weeks of data collection, Tomas asks for a funnel analysis — the agent reveals that 46% of users never create their first project, stalling at the blank project screen
 4. The agent creates funnel visualizations and a retention curve showing that users who invite a teammate within 48 hours have 3x higher 30-day retention
 5. Armed with data, the team ships a project template picker and an onboarding prompt to invite teammates — first-project creation jumps from 54% to 71% in the next month
-
-## Related Skills
-
-- [ab-test-setup](../skills/ab-test-setup/) -- A/B test onboarding changes identified from funnel analysis
-- [report-generator](../skills/report-generator/) -- Create weekly funnel reports for stakeholders

@@ -260,9 +260,3 @@ Tuesday: Implemented multi-stage builds for all 8 services. Frontend image: 3.2G
 Wednesday: Enhanced docker-compose with proper health checks, service dependencies, and development optimizations. Added parallel build matrix to CI/CD. Build times: 52 minutes → 11 minutes for full pipeline.
 
 Results after one month: Developer productivity increased measurably. Feature deployment frequency up 40% (faster feedback loops). AWS costs down $1,100/month (faster deployments, less bandwidth). Most importantly: zero developer hours lost to Docker issues. The team that almost abandoned containers now champions them as a competitive advantage.
-
-## Related Skills
-
-- [docker-helper](../skills/docker-helper/) — Create and manage Docker containers, compose files, and development workflows
-- [docker-optimizer](../skills/docker-optimizer/) — Analyze and optimize Docker images for size and build performance  
-- [cicd-pipeline](../skills/cicd-pipeline/) — Implement container-optimized CI/CD workflows with caching and parallelization

@@ -18,9 +18,7 @@ A frontend team of three depends on a backend API that is half-built. Endpoints 
 Use the **api-tester** skill to validate the current OpenAPI spec against the live backend and identify discrepancies. Have the **coding-agent** skill generate a mock server from the spec with realistic seed data. Use the **test-generator** skill to create contract tests that alert when the backend spec changes so mocks stay in sync.
 
 ```bash
-npx terminal-skills install api-tester
-npx terminal-skills install coding-agent
-npx terminal-skills install test-generator
+npx terminal-skills install api-tester coding-agent test-generator
 ```
 
 ## Step-by-Step Walkthrough
@@ -104,10 +102,3 @@ CI integration: added to .github/workflows/test.yml
 ## Real-World Example
 
 Priya leads the frontend team at a 20-person SaaS startup. Her three developers used to waste two hours daily fighting API issues — endpoints returning unexpected shapes, backend changes breaking components, and hardcoded fake data masking real integration bugs. After setting up the mock server, the frontend team works independently against a stable, spec-compliant API. When the backend adds a field, the contract test catches it in CI and the mock auto-updates. Sprint integration bugs dropped from an average of 14 to 2. The team ships features three days faster per sprint because they stopped waiting for backend endpoints to stabilize.
-
-## Related Skills
-
-- [api-tester](../skills/api-tester/) — Validates live APIs against OpenAPI specifications
-- [coding-agent](../skills/coding-agent/) — Generates mock server handlers and seed data
-- [test-generator](../skills/test-generator/) — Creates contract tests from API specifications
-- [github](../skills/github/) — Manages CI workflows for automated spec monitoring

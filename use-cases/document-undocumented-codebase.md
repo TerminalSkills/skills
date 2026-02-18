@@ -168,9 +168,3 @@ A senior engineer at a 20-person fintech startup is tasked with onboarding 4 new
 6. The 3 discovered bugs are fixed before they reach production
 
 Total documentation effort: one full day instead of the estimated 3 weeks of manual documentation.
-
-## Related Skills
-
-- [code-documenter](../skills/code-documenter/) — Generates docstrings, architecture docs, and onboarding guides
-- [coding-agent](../skills/coding-agent/) — Assists with implementing documentation-driven improvements
-- [changelog-generator](../skills/changelog-generator/) — Maintains ongoing documentation as code changes

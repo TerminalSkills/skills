@@ -18,8 +18,7 @@ Release day arrives and nobody wrote the changelog. The PM asks "what shipped th
 Use the **changelog-generator** skill to extract and categorize changes from git history, and **git-commit-pro** to ensure future commits are structured for easy parsing. The agent reads your commits, groups them by type (features, fixes, breaking changes), and outputs polished release notes ready for users.
 
 ```bash
-npx terminal-skills install changelog-generator
-npx terminal-skills install git-commit-pro
+npx terminal-skills install changelog-generator git-commit-pro
 ```
 
 ## Step-by-Step Walkthrough
@@ -107,9 +106,3 @@ Dani, the engineering lead at a 12-person SaaS startup, releases every two weeks
 5. Both are ready in under 2 minutes — the blog post goes out with the release
 
 The team also adopted Conventional Commits with the git-commit-pro skill, making each subsequent changelog even more accurate.
-
-## Related Skills
-
-- [markdown-writer](../skills/markdown-writer/) — Format release notes for documentation sites
-- [content-writer](../skills/content-writer/) — Turn technical changelogs into engaging blog posts
-- [github](../skills/github/) — Create GitHub releases with the generated notes

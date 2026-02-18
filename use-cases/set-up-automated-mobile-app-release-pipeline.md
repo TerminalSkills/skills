@@ -18,9 +18,7 @@ A mobile team of four ships a React Native app to both iOS and Android. Every re
 Use the **cicd-pipeline** skill to scaffold a GitHub Actions workflow that builds, signs, and uploads both platforms on every tagged commit. Add the **changelog-generator** skill to auto-generate release notes from merged PRs. Use the **coding-agent** skill to write and maintain the Fastlane configuration that handles code signing, screenshots, and store metadata.
 
 ```bash
-npx terminal-skills install cicd-pipeline
-npx terminal-skills install changelog-generator
-npx terminal-skills install coding-agent
+npx terminal-skills install cicd-pipeline changelog-generator coding-agent
 ```
 
 ## Step-by-Step Walkthrough
@@ -113,10 +111,3 @@ The agent generates the script and the team can now release with two commands: `
 ## Real-World Example
 
 Nadia leads the mobile team at a 20-person SaaS startup. Before automation, releases took two developer-days every two weeks. After setting up this pipeline, any developer tags a commit and the entire build-sign-upload process runs in 18 minutes. Release notes are generated automatically from PR titles. The team moved to weekly releases and caught a signing certificate expiration proactively because the CI job flagged it three weeks early. Time spent on releases dropped from 16 hours per month to under one hour.
-
-## Related Skills
-
-- [cicd-pipeline](../skills/cicd-pipeline/) — Scaffolds CI/CD workflows for any platform
-- [changelog-generator](../skills/changelog-generator/) — Generates release notes from git history and PRs
-- [coding-agent](../skills/coding-agent/) — Writes and maintains build configuration files
-- [github](../skills/github/) — Manages GitHub releases, tags, and repository settings

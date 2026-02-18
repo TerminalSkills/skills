@@ -160,9 +160,3 @@ Dani, a full-stack developer at a 20-person SaaS startup, got an escalation: thr
 5. Additionally, the agent found their sending IP was listed on Barracuda's blacklist from a marketing blast the previous month, affecting delivery to companies using Barracuda email security
 
 After applying the fixes (DKIM alignment, Barracuda delisting request, DMARC upgraded to `p=quarantine`), invoice email delivery rate went from 84% to 99.2% within one week.
-
-## Related Skills
-
-- [email-deliverability-debugger](../skills/email-deliverability-debugger/) — Diagnoses transactional email delivery failures
-- [dns-record-analyzer](../skills/dns-record-analyzer/) — Audits DNS records including SPF, DKIM, DMARC
-- [email-drafter](../skills/email-drafter/) — Composes email content with deliverability best practices

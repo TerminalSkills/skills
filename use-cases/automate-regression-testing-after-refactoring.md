@@ -114,9 +114,3 @@ Tomás, a senior developer at a 25-person e-commerce startup, needs to refactor 
 3. The agent runs all 38 tests against the old code — all pass. Against the new code — 35 pass, 3 fail. One regression involves subscription trial-to-paid conversion skipping the proration step, which would have overcharged ~200 trial users on their first bill
 4. Tomás fixes the three regressions in 20 minutes. The agent re-verifies: all 38 tests pass on both implementations
 5. The refactored code ships with 94% test coverage (up from 31%). Three months later, when a new developer modifies the pricing logic, the regression tests catch two issues before they leave the PR
-
-## Related Skills
-
-- [test-generator](../skills/test-generator/) — Generate unit and integration tests for uncovered code
-- [code-reviewer](../skills/code-reviewer/) — Review refactored code for structural quality issues
-- [code-migration](../skills/code-migration/) — Larger-scale code restructuring and migration

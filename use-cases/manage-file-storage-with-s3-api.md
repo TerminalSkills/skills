@@ -125,9 +125,3 @@ A CTO at a 15-person SaaS company watches the `/uploads` directory grow past 280
 3. The image processing pipeline generates thumbnails once and serves them through CloudFront — image load times drop from 1.2s to 80ms
 4. Lifecycle policies move old files to Infrequent Access — storage costs drop 35% in the first month
 5. After the migration: the API server runs on a smaller instance (saving $200/month), files are replicated across 3 AZs, and the team sleeps through the night without disk space alerts
-
-## Related Skills
-
-- [s3-storage](../skills/s3-storage/) — Manages S3-compatible object storage (buckets, uploads, presigned URLs, lifecycle policies)
-- [coding-agent](../skills/coding-agent/) — Builds the file management API and image processing pipeline
-- [security-audit](../skills/security-audit/) — Audits bucket policies, encryption, and access patterns

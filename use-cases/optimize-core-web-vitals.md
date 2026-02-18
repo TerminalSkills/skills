@@ -167,9 +167,3 @@ A frontend engineer at a 25-person e-commerce startup receives a Slack alert: Go
 5. Within 28 days, Google reclassifies all 340 pages as "Good" and organic traffic begins recovering
 
 Total effort: one afternoon instead of the two-sprint "performance epic" that was being planned.
-
-## Related Skills
-
-- [web-vitals-analyzer](../skills/web-vitals-analyzer/) — Diagnoses Core Web Vitals bottlenecks with specific fixes
-- [frontend-design](../skills/frontend-design/) — Ensures performance fixes maintain design quality
-- [code-reviewer](../skills/code-reviewer/) — Reviews performance fix PRs for correctness

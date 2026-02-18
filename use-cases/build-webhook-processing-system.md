@@ -242,9 +242,3 @@ Using the webhook-processor skill, they rebuilt their system:
 - **Processing capacity**: Scaled from 200/hour → 3,000+/hour sustained
 
 The system now processes 180,000+ webhooks monthly with zero manual intervention required. The error monitoring catches and auto-recovers from 94% of transient failures, and the admin dashboard makes the remaining 6% easy to resolve. Most importantly, customers now receive instant payment confirmations, improving satisfaction scores from 7.2/10 to 9.1/10.
-
-## Related Skills
-
-- [webhook-processor](../skills/webhook-processor/) — Reliable webhook ingestion, signature verification, and async processing architecture
-- [batch-processor](../skills/batch-processor/) — High-volume event processing with intelligent batching and memory optimization  
-- [error-monitoring](../skills/error-monitoring/) — Comprehensive failure tracking, automated recovery, and intelligent alerting systems

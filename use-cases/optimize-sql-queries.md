@@ -211,9 +211,3 @@ The skill's execution plan analysis found that their main customer query was doi
 Results after optimization: Dashboard load times dropped from 2.5 minutes to 12 seconds. Customer-facing timeouts went from 23% to 0.3%. They scaled back down to a $400/month database instance while handling 3x more traffic. The engineering team went from spending 2 days/week on database performance to checking their monitoring dashboard once daily.
 
 Most importantly, the systematic approach meant future performance issues were caught early through monitoring alerts, preventing the crisis-driven scaling pattern that had been burning through their infrastructure budget.
-
-## Related Skills
-
-- [sql-optimizer](../skills/sql-optimizer/) — Query analysis, rewriting, and index recommendations for PostgreSQL, MySQL, and SQLite
-- [db-explain-analyzer](../skills/db-explain-analyzer/) — Decode EXPLAIN plans and identify specific performance bottlenecks  
-- [data-analysis](../skills/data-analysis/) — Performance trend analysis, regression detection, and monitoring dashboard creation

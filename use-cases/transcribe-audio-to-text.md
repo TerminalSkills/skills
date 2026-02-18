@@ -131,9 +131,3 @@ Then find all mentions of "budget" or "funding"
 2. **Single speaker** — multi-speaker requires post-processing to separate
 3. **Specify language** — faster than auto-detection if you know the language
 4. **Split long files** — files over 2 hours may benefit from chunking
-
-## Related Skills
-
-- [meeting-notes](../skills/meeting-notes/) — Structure transcripts into summaries with action items
-- [content-writer](../skills/content-writer/) — Turn transcripts into blog posts or articles
-- [data-analysis](../skills/data-analysis/) — Analyze word frequency, sentiment, or topics

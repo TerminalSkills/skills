@@ -112,9 +112,3 @@ Dev, a platform engineer at a 40-person fintech startup, joins during a period o
 3. Using the audit report, Dev updates `.env.example` with descriptions for every variable, removes the stale ones, and adds a Zod validation schema that fails fast on missing vars
 4. The agent generates a secure onboarding script that creates a local `.env` from `.env.example`, auto-populates non-secret defaults, and prompts for each secret with instructions on where to find it
 5. New developer onboarding time drops from 2 days to 45 minutes. The next production incident caused by a missing env var: never — the validation catches it before the app starts
-
-## Related Skills
-
-- [doppler](../skills/doppler/) — Centralized secrets management with Doppler
-- [security-audit](../skills/security-audit/) — Detect hardcoded secrets and exposed credentials
-- [cicd-pipeline](../skills/cicd-pipeline/) — Ensure CI/CD pipelines have the right secrets configured

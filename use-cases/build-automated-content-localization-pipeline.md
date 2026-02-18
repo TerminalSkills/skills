@@ -117,8 +117,3 @@ Dani, a frontend developer at a 15-person SaaS startup, needs to ship German, Br
 3. Dani reviews the flagged strings, approves 12, and corrects 3 Japanese translations with help from a native-speaking colleague
 4. The agent externalizes the 23 hardcoded strings it found, creating proper i18n keys and updating the components
 5. Total time: 4 hours instead of 3 weeks — and every future feature release can reuse the same pipeline for incremental translations
-
-## Related Skills
-
-- [copy-editing](../skills/copy-editing/) -- Polish translated content for tone and readability
-- [template-engine](../skills/template-engine/) -- Generate locale files in different formats (YAML, XLIFF, PO)

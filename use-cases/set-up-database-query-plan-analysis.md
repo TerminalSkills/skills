@@ -18,9 +18,7 @@ Your application is getting slower and nobody knows which queries are responsibl
 Use **sql-optimizer** to analyze query execution plans and recommend fixes, **data-analysis** to identify patterns across slow query logs, and **report-generator** to produce actionable reports for the team.
 
 ```bash
-npx terminal-skills install sql-optimizer
-npx terminal-skills install data-analysis
-npx terminal-skills install report-generator
+npx terminal-skills install sql-optimizer data-analysis report-generator
 ```
 
 ## Step-by-Step Walkthrough
@@ -36,16 +34,16 @@ Parse the PostgreSQL slow query log at /var/log/postgresql/slow.log. Extract all
 ### 2. The agent identifies the worst offenders
 
 ```text
-Slow Query Analysis — Last 7 days:
+Slow Query Analysis — Last 7 days
+```
 
-| Pattern                                    | Count | Avg Duration | Max Duration | Total Time |
-|--------------------------------------------|-------|-------------|-------------|------------|
-| SELECT * FROM orders JOIN line_items...     | 3,412 | 1,240ms     | 8,430ms     | 4,231s     |
-| SELECT COUNT(*) FROM events WHERE...        | 8,901 | 780ms       | 3,210ms     | 6,942s     |
-| UPDATE users SET last_seen_at...            | 12,340| 520ms       | 1,890ms     | 6,416s     |
+| Pattern | Count | Avg Duration | Max Duration | Total Time |
+|---|---|---|---|---|
+| `SELECT * FROM orders JOIN line_items...` | 3,412 | 1,240ms | 8,430ms | 4,231s |
+| `SELECT COUNT(*) FROM events WHERE...` | 8,901 | 780ms | 3,210ms | 6,942s |
+| `UPDATE users SET last_seen_at...` | 12,340 | 520ms | 1,890ms | 6,416s |
 
 Top 3 patterns account for 73% of total slow query time.
-```
 
 ### 3. Analyze execution plans for the worst queries
 
@@ -55,10 +53,14 @@ Run EXPLAIN ANALYZE on the top 3 slow query patterns and tell me exactly what's 
 
 ### 4. The agent reads the execution plans
 
-```text
-Query 1: SELECT * FROM orders JOIN line_items ON orders.id = line_items.order_id
-         WHERE orders.created_at > '2025-01-01' AND orders.status = 'pending'
+Query 1:
 
+```sql
+SELECT * FROM orders JOIN line_items ON orders.id = line_items.order_id
+WHERE orders.created_at > '2025-01-01' AND orders.status = 'pending'
+```
+
+```text
 Execution Plan Analysis:
 - Nested Loop Join on line_items (cost: 45,230)
 - Sequential Scan on orders (rows estimated: 500, actual: 34,210)
@@ -67,12 +69,18 @@ Execution Plan Analysis:
 Root Cause: Table statistics are outdated. The planner thinks only 500 rows match
 the WHERE clause but 34,210 actually do, making it choose a nested loop instead of
 a hash join.
+```
 
 Fix:
-1. Run ANALYZE orders; to update statistics
-2. Add composite index: CREATE INDEX idx_orders_status_created ON orders(status, created_at);
-3. Expected improvement: ~1,240ms → ~45ms
+
+1. Run `ANALYZE orders;` to update statistics
+2. Add composite index:
+
+```sql
+CREATE INDEX idx_orders_status_created ON orders(status, created_at);
 ```
+
+3. Expected improvement: ~1,240ms → ~45ms
 
 ### 5. Generate a report with all fixes
 
@@ -100,27 +108,3 @@ Ravi is a backend developer at a fintech team running a PostgreSQL database that
 - **Check for implicit type casts** — a WHERE clause comparing varchar to integer silently prevents index usage
 - **Benchmark before and after** — always measure actual query time improvement, not just estimated plan cost reduction
 - **Schedule regular reviews** — as data grows, query plans change; what was optimal last month may not be today
-
-## Related Skills
-
-- [sql-optimizer](../skills/sql-optimizer/) -- Analyze and optimize SQL queries and execution plans
-- [data-analysis](../skills/data-analysis/) -- Find patterns in slow query logs and performance metrics
-- [report-generator](../skills/report-generator/) -- Produce formatted optimization reports
-
-### Common Query Plan Red Flags
-
-The agent specifically looks for these patterns:
-
-- **Sequential scans on large tables** — usually means a missing or unused index
-- **Nested loop joins with high row counts** — hash or merge joins are better for large datasets
-- **Massive row estimate mismatches** — indicates stale statistics or data skew
-- **Sort operations spilling to disk** — increase work_mem or add an index that provides pre-sorted output
-- **CTE materialization** — in PostgreSQL, CTEs before v12 always materialize; refactor to subqueries if needed
-
-### Automation Integration
-
-Set up the analysis to run automatically:
-
-- **Daily slow query digest** — summarize the previous day's slow queries every morning
-- **Post-deployment scan** — after each release, compare query performance to the pre-deployment baseline
-- **Threshold alerts** — notify the team when any query exceeds p99 targets

@@ -18,10 +18,7 @@ Your SaaS pricing page hasn't been updated in months. You suspect you're leaving
 Use **pricing-strategy** to analyze your current tiers and positioning, **page-cro** to audit conversion elements, **competitor-alternatives** to benchmark against similar products, and **web-research** to gather pricing psychology best practices.
 
 ```bash
-npx terminal-skills install pricing-strategy
-npx terminal-skills install page-cro
-npx terminal-skills install competitor-alternatives
-npx terminal-skills install web-research
+npx terminal-skills install pricing-strategy page-cro competitor-alternatives web-research
 ```
 
 ## Step-by-Step Walkthrough
@@ -96,30 +93,3 @@ Marta is the head of product at a 20-person SaaS startup selling a developer too
 - **Anchor with the mid-tier** — most SaaS products make the most revenue from the middle plan; design it as the obvious choice
 - **Review quarterly** — competitor pricing shifts, your product evolves, and customer expectations change; stale pricing costs revenue
 - **Include a calculator** — usage-based components need a cost estimator to reduce purchase anxiety
-
-## Related Skills
-
-- [pricing-strategy](../skills/pricing-strategy/) -- Analyze and design SaaS pricing models
-- [page-cro](../skills/page-cro/) -- Audit landing pages for conversion rate optimization
-- [competitor-alternatives](../skills/competitor-alternatives/) -- Research and compare competitor offerings
-- [web-research](../skills/web-research/) -- Gather market data and best practices
-
-### Common Pricing Page Mistakes
-
-Avoid these patterns the agent checks for:
-
-- **Hidden pricing** — requiring a demo call for any tier loses self-serve buyers
-- **Too many tiers** — more than four options creates decision paralysis
-- **Feature overload** — listing every feature instead of highlighting differentiators
-- **No social proof** — pricing pages without testimonials or customer counts convert 20-30% worse
-- **Unclear upgrade path** — users should know exactly what they get by moving up a tier
-
-### Measuring Success
-
-After implementing changes, track these metrics:
-
-- **Pricing page conversion rate** — visitors who click a CTA divided by total pricing page views
-- **Plan distribution** — percentage of signups per tier; healthy distribution means the mid-tier wins
-- **Revenue per visitor** — total revenue divided by pricing page visits
-- **Trial-to-paid conversion** — if you add a free tier, measure how many convert within 14 days
-- **Churn by plan** — check if cheaper plans churn faster, indicating poor value alignment

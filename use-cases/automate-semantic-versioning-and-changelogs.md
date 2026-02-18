@@ -99,9 +99,3 @@ An engineering manager at a 35-person company runs a monorepo with 8 npm package
 3. Auto-generated changelogs are accurate and complete for the first time. Customer support stops fielding "what changed?" tickets
 4. The release workflow ships 47 correct version bumps over the next quarter with zero manual intervention
 5. Downstream teams start trusting semver again and adopt automated dependency updates, reducing their integration lag from 3 weeks to 2 days
-
-## Related Skills
-
-- [git-commit-pro](../skills/git-commit-pro/) — Enforces conventional commit format
-- [changelog-generator](../skills/changelog-generator/) — Generates accurate changelogs from commit history
-- [cicd-pipeline](../skills/cicd-pipeline/) — Automates version bumping and release publishing

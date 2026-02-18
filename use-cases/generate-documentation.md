@@ -196,9 +196,3 @@ Friday: markdown-writer created consistent README files for all services. Instal
 Monday: New hire Elena started. Using the new documentation, she had the entire development environment running in 47 minutes (previous record: 3 days). By day 3, she'd shipped her first feature. Time to first contribution: 72% reduction.
 
 Results after 2 months: Onboarding time dropped from 4 weeks to 5 days. Senior developer "documentation support" hours dropped 85%. Support ticket volume related to integration confusion decreased 67%. The team estimated they reclaimed 2.3 full-time equivalent hours weekly for actual development work.
-
-## Related Skills
-
-- [markdown-writer](../skills/markdown-writer/) — Generate structured documentation in Markdown format
-- [code-documenter](../skills/code-documenter/) — Analyze codebases and extract API documentation automatically
-- [github](../skills/github/) — Automate documentation updates and integrate with GitHub workflows

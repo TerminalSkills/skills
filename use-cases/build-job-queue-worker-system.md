@@ -213,9 +213,3 @@ Results after 30 days:
 - Infrastructure costs: $340/month → $180/month (scaled back web servers, added background workers)
 
 The largest customer renewed their annual contract and upgraded to the enterprise tier. Two churned customers returned after hearing about the improved experience from mutual connections.
-
-## Related Skills
-
-- [job-queue](../skills/job-queue/) — BullMQ queue setup, worker configuration, scheduling, and monitoring
-- [docker-helper](../skills/docker-helper/) — Redis infrastructure, local development environment, and production deployment
-- [batch-processor](../skills/batch-processor/) — Efficient handling of large datasets within background jobs with memory optimization

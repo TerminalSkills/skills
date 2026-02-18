@@ -145,9 +145,3 @@ Kenji is the API lead at a 20-person SaaS startup with 200 active API consumers.
 3. It generates 47 tests covering backward compatibility, new behavior, and cross-version consistency
 4. The agent writes a migration guide with code examples in three languages and a clear sunset timeline
 5. Kenji's team ships v2 with zero breaking changes for existing consumers, the migration guide gets positive feedback from partners, and v1 consumers gradually migrate over the next four months
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Implements versioning infrastructure and response transformers
-- [api-tester](../skills/api-tester/) -- Validates backward compatibility across API versions
-- [markdown-writer](../skills/markdown-writer/) -- Generates versioned documentation and migration guides

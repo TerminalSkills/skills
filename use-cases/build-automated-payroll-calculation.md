@@ -19,9 +19,7 @@ A 30-person agency tracks hours in spreadsheets. Every two weeks the office mana
 Use the **excel-processor** skill to ingest and normalize timesheet data from multiple spreadsheets. Feed the cleaned data into the **report-generator** skill to compute gross pay, overtime, deductions, and net pay. Finally use the **template-engine** skill to stamp out individual pay stubs and a company-wide payroll summary PDF.
 
 ```bash
-npx terminal-skills install excel-processor
-npx terminal-skills install report-generator
-npx terminal-skills install template-engine
+npx terminal-skills install excel-processor report-generator template-engine
 ```
 
 ## Step-by-Step Walkthrough
@@ -110,10 +108,3 @@ Department Breakdown:
 ## Real-World Example
 
 Rui manages operations at a 30-person digital agency. Payroll day used to consume eight hours of copying numbers between spreadsheets, double-checking overtime math, and generating pay stubs one at a time in Word. After setting up this workflow, Rui drops the timesheet files into a folder, runs one command, and has verified pay stubs and a summary report in under three minutes. Errors dropped to zero in the first quarter because the agent flags anomalies before any calculation runs.
-
-## Related Skills
-
-- [excel-processor](../skills/excel-processor/) — Parses and normalizes spreadsheet data from multiple sources
-- [report-generator](../skills/report-generator/) — Computes aggregations and produces formatted reports
-- [template-engine](../skills/template-engine/) — Fills templates with data to generate PDFs and documents
-- [expense-report](../skills/expense-report/) — Handles expense tracking that feeds into payroll

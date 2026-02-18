@@ -184,9 +184,3 @@ A product manager at a mid-size SaaS company wants to test whether moving the pr
 3. Event tracking captures page views on the pricing page and upgrade completions
 4. After two weeks, the dashboard shows a 15% lift in upgrades with p=0.03
 5. They roll out the winner and run their next experiment the same week — experimenting becomes routine instead of a special project
-
-## Related Skills
-
-- [ab-test-setup](../skills/ab-test-setup/) — Experiment design with hypothesis framing and sample size calculation
-- [analytics-tracking](../skills/analytics-tracking/) — Event collection and metric pipeline setup
-- [feature-flag-manager](../skills/feature-flag-manager/) — Feature flag system with targeting and gradual rollout

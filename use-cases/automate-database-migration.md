@@ -181,8 +181,3 @@ A senior developer is consolidating two legacy MySQL databases into a single Pos
 3. She runs it against a staging copy — catches 340 phone numbers that need manual review
 4. After fixing edge cases, she runs validation: all row counts match, aggregates within 0.01%
 5. Saturday night cutover takes 4 minutes of downtime. The legacy systems are retired Monday
-
-## Related Skills
-
-- [data-migration](../skills/data-migration/) — Migration pipeline with schema mapping and validation
-- [sql-optimizer](../skills/sql-optimizer/) — Optimizes migration queries for large datasets

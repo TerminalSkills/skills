@@ -123,9 +123,3 @@ Nina is the platform engineer at a 15-person SaaS startup. After a 2-hour outage
 3. It configures certbot auto-renewal for 18 Let's Encrypt certificates with automated deployment and service reload
 4. For the 6 vendor-purchased certificates, it creates renewal reminders with step-by-step instructions
 5. Three months later, 12 certificates have auto-renewed without any human intervention. The team hasn't had a single certificate-related incident since
-
-## Related Skills
-
-- [coding-agent](../skills/coding-agent/) -- Builds certificate scanning, monitoring, and renewal automation scripts
-- [cicd-pipeline](../skills/cicd-pipeline/) -- Integrates certificate validation into deployment pipelines
-- [n8n-workflow](../skills/n8n-workflow/) -- Orchestrates monitoring schedules, alert routing, and renewal workflows

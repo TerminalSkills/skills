@@ -115,9 +115,3 @@ The agent configures a scheduled report that keeps the team aware of coverage he
 - Review generated tests for quality — auto-generated tests that just assert current behavior can mask bugs
 - Track the trend, not the number — a team improving from 40% to 60% is healthier than one stuck at 90% with bad tests
 - Integrate coverage into sprint planning — allocate time for coverage improvement alongside feature work
-
-## Related Skills
-
-- [test-generator](../skills/test-generator/) -- Generates targeted tests for uncovered code paths
-- [coding-agent](../skills/coding-agent/) -- Builds the dashboard and CI integration infrastructure
-- [data-analysis](../skills/data-analysis/) -- Creates trend charts and visual coverage reports

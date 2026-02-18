@@ -134,9 +134,3 @@ The solo founder of a bootstrapped project management SaaS was acquiring leads a
 He ran the CRO audit Monday morning. Findings were immediately actionable. The redesigned hero was generated that afternoon. He launched the A/B test Tuesday and let it run 18 days. Result: 2.8% conversion vs 0.7%. Cost-per-lead dropped from $38 to $9.50 — same budget, 4x more leads.
 
 The improved economics gave him confidence to increase ad spend to $6,000/month, which his investor had pushed for but hadn't made sense at the old conversion rate. Three months and two more optimization rounds later: 3.4% conversion, $28K additional monthly pipeline directly traceable to CRO improvements.
-
-## Related Skills
-
-- [page-cro](../skills/page-cro/) — Conversion rate optimization audits with prioritized recommendations
-- [frontend-design](../skills/frontend-design/) — Production-ready code for redesigned components
-- [analytics-tracking](../skills/analytics-tracking/) — Conversion tracking and funnel analysis setup

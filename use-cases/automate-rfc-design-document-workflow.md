@@ -113,9 +113,3 @@ Priya leads backend engineering at a 35-person SaaS company. New engineers const
 3. It opens a PR, assigns reviewers, and sets a deadline — the review completes in 4 days instead of the usual 3 weeks
 4. She asks for a status dashboard of all open RFCs and discovers two stale proposals that need attention
 5. After a month, the team has 12 merged RFCs indexed and searchable. When a new hire asks about the Postgres decision, Priya points them to the decision log
-
-## Related Skills
-
-- [markdown-writer](../skills/markdown-writer/) -- Generates well-structured RFC documents from rough notes and outlines
-- [github](../skills/github/) -- Manages the PR-based review workflow, assignments, and tracking
-- [template-engine](../skills/template-engine/) -- Maintains consistent RFC templates and formatting across the team

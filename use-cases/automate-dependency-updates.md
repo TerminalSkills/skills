@@ -128,9 +128,3 @@ Priya is a senior developer at a 40-person fintech startup. Their main API hasn'
 3. The agent generates a migration script that handles all 14 Prisma files automatically
 4. Priya upgrades in order: CVE patches first (zero code changes), then Prisma (auto-migrated), then Next.js (2 manual fixes)
 5. Total time: 3 hours instead of the estimated 2 weeks. Zero production incidents from the upgrade.
-
-## Related Skills
-
-- [dependency-updater](../skills/dependency-updater/) -- Audit and plan dependency upgrades with breaking change detection
-- [code-migration](../skills/code-migration/) -- Automatically refactor code for API changes between library versions
-- [security-audit](../skills/security-audit/) -- Broader security analysis including dependency vulnerabilities

@@ -125,9 +125,3 @@ Dani, engineering lead at a 15-person fintech team, dreaded hiring season. Every
 She ran the three-skill workflow on a Thursday afternoon. The doc-parser found 14 markdown files, 6 referencing deprecated services. The content-writer synthesized accurate instructions by cross-referencing docker-compose.yml, Makefile, and CI configs. The markdown-writer produced a 4-document onboarding package: setup guide, architecture overview, first-week checklist, and debugging playbook.
 
 The next hire, Rui, had his dev environment running by lunch on day one — previously a 2-3 day ordeal. He opened his first PR on Wednesday and fixed two outdated steps in the guide, establishing the update-as-you-go culture Dani wanted. Over the quarter, the team saved an estimated 60 hours across 4 new hires.
-
-## Related Skills
-
-- [doc-parser](../skills/doc-parser/) — Extracts and analyzes existing documentation from repos and wikis
-- [content-writer](../skills/content-writer/) — Synthesizes information into clear, structured prose
-- [markdown-writer](../skills/markdown-writer/) — Produces clean, well-formatted markdown documentation

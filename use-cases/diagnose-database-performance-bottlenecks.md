@@ -127,9 +127,3 @@ A backend engineer at a 15-person marketplace startup notices checkout completio
 5. After deployment, p50 latency drops from 380ms to 28ms, and checkout completion recovers within 48 hours
 
 Total time: 35 minutes from diagnosis to merged migration PR.
-
-## Related Skills
-
-- [db-explain-analyzer](../skills/db-explain-analyzer/) — Parses EXPLAIN output and identifies root causes
-- [sql-optimizer](../skills/sql-optimizer/) — Rewrites queries for better performance
-- [data-analysis](../skills/data-analysis/) — Analyzes slow query log patterns and trends

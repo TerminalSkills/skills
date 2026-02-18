@@ -3,7 +3,7 @@ title: "Build a Production AI Agent with the LangChain Stack"
 slug: build-production-ai-agent-with-langchain-stack
 description: "Create a multi-step RAG agent with LangGraph, trace and debug with LangSmith, and evaluate quality before shipping to production."
 skills: [langchain, langgraph, langsmith]
-category: ai
+category: data-ai
 tags: [langchain, langgraph, langsmith, rag, agents, production, evaluation]
 ---
 

@@ -119,9 +119,3 @@ Marco is the growth marketer at a 20-person project management SaaS. He sends ca
 - Track conversions end-to-end, not just clicks — an email that gets clicks but no signups isn't working
 - Test one variable at a time when acting on insights — changing send time and subject line simultaneously muddies the data
 - Re-run the analysis monthly to track whether your changes are actually improving results
-
-## Related Skills
-
-- [data-analysis](../skills/data-analysis/) -- Finds patterns and correlations in campaign performance data
-- [excel-processor](../skills/excel-processor/) -- Cleans and merges exported CSV campaign data files
-- [report-generator](../skills/report-generator/) -- Produces formatted analysis reports with actionable recommendations

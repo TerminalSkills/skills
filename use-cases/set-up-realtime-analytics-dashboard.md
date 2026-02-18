@@ -18,9 +18,7 @@ Your product team wants a live dashboard showing active users, conversion funnel
 Wire together an event ingestion API, a columnar database optimized for analytics queries (ClickHouse), and a lightweight frontend that polls or streams aggregated data. Three skills handle each layer.
 
 ```bash
-npx terminal-skills install realtime-analytics
-npx terminal-skills install data-analysis
-npx terminal-skills install docker-helper
+npx terminal-skills install realtime-analytics data-analysis docker-helper
 ```
 
 ## Step-by-Step Walkthrough
@@ -88,9 +86,3 @@ A product manager at a fast-growing fintech startup needs to see real-time signu
 4. The React frontend shows updating charts with 5-second refresh
 5. Docker Compose bundles everything — `docker compose up` and the dashboard is live
 6. During the campaign, the team spots a 40 % funnel drop-off at the email verification step and fixes the flow in real time
-
-## Related Skills
-
-- [realtime-analytics](../skills/realtime-analytics/) -- Event ingestion, ClickHouse schema design, aggregation queries
-- [data-analysis](../skills/data-analysis/) -- Chart generation and dashboard layouts
-- [docker-helper](../skills/docker-helper/) -- Container orchestration and service composition

@@ -18,9 +18,7 @@ Your web app collects user emails, tracks page views, stores IP addresses, and u
 Audit your codebase and infrastructure for personal data flows, generate a compliant consent management system, and build automated handlers for data subject requests (access, deletion, portability). Three skills cover the full compliance stack.
 
 ```bash
-npx terminal-skills install gdpr-compliance
-npx terminal-skills install security-audit
-npx terminal-skills install code-reviewer
+npx terminal-skills install gdpr-compliance security-audit code-reviewer
 ```
 
 ## Step-by-Step Walkthrough
@@ -87,9 +85,3 @@ A solo developer runs a B2B SaaS tool with 12,000 users across the EU. She recei
 4. A daily retention job anonymizes IP addresses older than 30 days and purges stale sessions
 5. A clear privacy policy is generated from the actual data inventory, not a generic template
 6. She responds to the deletion request with a verified process, and the user's data is fully purged in 48 hours
-
-## Related Skills
-
-- [gdpr-compliance](../skills/gdpr-compliance/) -- Data flow auditing, consent management, DSR handling
-- [security-audit](../skills/security-audit/) -- Vulnerability scanning that complements privacy checks
-- [code-reviewer](../skills/code-reviewer/) -- Reviews code changes for privacy regressions

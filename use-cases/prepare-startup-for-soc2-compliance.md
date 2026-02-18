@@ -131,9 +131,3 @@ The CTO of a 12-person B2B SaaS startup was losing enterprise deals to competito
 She ran the three-skill analysis Monday. The gap analysis found 14/18 controls failing. By Wednesday: audit logging, RBAC, and encryption in place (8 controls fixed). Thursday: CI/CD hardened with approval gates and deploy audit trails (3 more). Friday: documented remaining manual items and created a 30-day evidence plan.
 
 The startup engaged an auditor three weeks later with the auto-generated readiness report. The auditor noted controls were "surprisingly mature for this size." The observation period started immediately. Five months later: SOC 2 Type II report in hand at $12,000 (auditor fees) instead of $55,000+. First enterprise deal closed within two weeks of certification.
-
-## Related Skills
-
-- [security-audit](../skills/security-audit/) — Deep vulnerability scanning mapped to SOC 2 criteria
-- [cicd-pipeline](../skills/cicd-pipeline/) — Change management controls with approval gates and audit trails
-- [code-reviewer](../skills/code-reviewer/) — Ongoing reviews flagging missing auth checks and audit logging

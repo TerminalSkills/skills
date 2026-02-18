@@ -18,9 +18,7 @@ Your app's search is a SQL `LIKE '%query%'` on the product name column. It misse
 Design a search index tailored to your data, build a sync pipeline from your primary database, implement a search API with faceting and typo tolerance, and tune relevance with real user queries. Two core skills plus Docker for local development.
 
 ```bash
-npx terminal-skills install search-engine-setup
-npx terminal-skills install docker-helper
-npx terminal-skills install data-analysis
+npx terminal-skills install search-engine-setup docker-helper data-analysis
 ```
 
 ## Step-by-Step Walkthrough
@@ -124,9 +122,3 @@ A senior developer at an online marketplace with 500K product listings gets comp
 4. Autocomplete suggestions appear after 2 characters with sub-50ms response time
 5. Query analysis reveals 17 zero-result queries and 23 low-CTR queries, each with a specific fix
 6. After deploying, search-driven conversion rate increases 34 % and "can't find product" tickets drop 89 %
-
-## Related Skills
-
-- [search-engine-setup](../skills/search-engine-setup/) -- Index design, sync pipeline, search API, relevance tuning
-- [docker-helper](../skills/docker-helper/) -- Running Elasticsearch locally for development
-- [data-analysis](../skills/data-analysis/) -- Analyzing search query logs for relevance improvements
