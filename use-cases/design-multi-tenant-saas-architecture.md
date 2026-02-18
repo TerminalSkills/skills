@@ -36,23 +36,23 @@ Option A: Shared Database, Shared Schema (tenant_id column)
   ✅ Simplest to implement and operate
   ✅ Lowest cost — single database handles all 5,000 tenants
   ✅ Easy cross-tenant analytics and admin queries
-  ⚠  Every query must include tenant_id filter
-  ⚠  One noisy tenant can impact others without rate limiting
+  ⚠ Every query must include tenant_id filter
+  ⚠ One noisy tenant can impact others without rate limiting
   ❌ Enterprise clients may reject shared-table compliance audit
 
 Option B: Shared Database, Separate Schemas (PostgreSQL schemas per tenant)
   ✅ Strong logical isolation — each tenant gets own tables
   ✅ PostgreSQL handles this natively with search_path
   ✅ Enterprise clients get auditable separation
-  ⚠  Schema migrations run per-tenant (500+ migrations on deploy)
-  ⚠  Connection pooling complexity (schema switching per request)
+  ⚠ Schema migrations run per-tenant (500+ migrations on deploy)
+  ⚠ Connection pooling complexity (schema switching per request)
   ❌ At 5,000 tenants, schema count strains pg_catalog
 
 Option C: Hybrid — Shared schema for standard + dedicated DB for enterprise
   ✅ Standard tenants: low cost, shared schema with RLS
   ✅ Enterprise tenants: dedicated database, full isolation
   ✅ SOC2-compliant for enterprise without overengineering standard tier
-  ⚠  Two code paths for data access (manageable with repository pattern)
+  ⚠ Two code paths for data access (manageable with repository pattern)
   Cost: ~$400/mo shared DB + ~$274/mo per enterprise DB (3-5 = $822-$1,370)
 
 ⟹ RECOMMENDATION: Option C (Hybrid)

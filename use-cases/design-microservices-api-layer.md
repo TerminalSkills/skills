@@ -49,7 +49,7 @@ Keep REST for external-facing APIs (mobile, web, third-party integrations) and s
 >
 > **Proto structure:**
 > - proto/user/v1/user.proto — User messages and UserService
-> - proto/payment/v1/payment.proto — Payment messages and PaymentService  
+> - proto/payment/v1/payment.proto — Payment messages and PaymentService
 > - proto/compliance/v1/compliance.proto — KYC messages and ComplianceService
 > - proto/document/v1/document.proto — Document messages and DocumentService
 > - proto/notification/v1/notification.proto — Notification messages and NotificationService

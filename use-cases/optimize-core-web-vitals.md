@@ -30,9 +30,9 @@ The agent parses the report and source:
 ```text
 Core Web Vitals Baseline
 =========================
-LCP:  4.8s  (target: < 2.5s) ❌  Element: <img> hero product photo
-CLS:  0.28  (target: < 0.1)  ❌  Sources: product image, review stars, dynamic pricing badge
-INP:  340ms (target: < 200ms) ❌  Source: "Add to Cart" button triggers full cart re-render
+LCP:  4.8s  (target: < 2.5s) ❌ Element: <img> hero product photo
+CLS:  0.28  (target: < 0.1)  ❌ Sources: product image, review stars, dynamic pricing badge
+INP:  340ms (target: < 200ms) ❌ Source: "Add to Cart" button triggers full cart re-render
 
 Lighthouse Score: 34/100
 

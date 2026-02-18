@@ -36,7 +36,7 @@ SPF Record:
   ✅ SendGrid authorized
   ✅ Mailchimp authorized
   ✅ Google Workspace authorized
-  ⚠  Lookup count: 8 of 10 maximum (adding another provider will break SPF)
+  ⚠ Lookup count: 8 of 10 maximum (adding another provider will break SPF)
   ❌ Using ~all (softfail) instead of -all (hardfail)
      → Change to -all for stronger authentication
 
@@ -50,7 +50,7 @@ DMARC:
   v=DMARC1; p=none; rua=mailto:dmarc@app.example.com
   ❌ Policy is p=none — emails failing authentication are still delivered
      → Move to p=quarantine after fixing DKIM, then p=reject in 30 days
-  ⚠  No ruf (forensic) reporting configured
+  ⚠ No ruf (forensic) reporting configured
      → Add ruf=mailto:dmarc-forensic@app.example.com for failure details
 
 Priority fixes:

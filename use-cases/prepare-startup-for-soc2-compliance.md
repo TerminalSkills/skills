@@ -35,7 +35,7 @@ SOC 2 Gap Analysis
 SECURITY (CC6.x):
   ❌ CC6.1 — No RBAC (all authenticated users access all endpoints)
   ❌ CC6.3 — No audit logging for data access
-  ⚠️  CC6.6 — Encryption at rest not confirmed (default DB settings)
+  ⚠️ CC6.6 — Encryption at rest not confirmed (default DB settings)
   ✅ CC6.7 — TLS 1.2+ enforced
 
 AVAILABILITY (A1.x):

@@ -34,7 +34,7 @@ Analyzed source schema (MySQL 5.7) → target schema (PostgreSQL 16):
 
 Schema Mapping Report:
   Tables: 45 total, 38 direct mappings, 7 need transformation
-  
+
   Type conversions needed:
     TINYINT(1) → BOOLEAN (12 columns across 8 tables)
     ENUM('active','inactive') → VARCHAR with CHECK constraint (5 columns)
@@ -47,7 +47,7 @@ Schema Mapping Report:
     customers.cust_name → customers.name
     orders.ord_date → orders.created_at
     orders.ord_status → orders.status
-    
+
   Created: migration/schema-map.json — Full column-by-column mapping
   Created: migration/create-target-schema.sql — PostgreSQL DDL
 ```
@@ -106,7 +106,7 @@ Phone normalization:
   Step 2: If 10 digits → prepend +1 (US default)
   Step 3: If 11 digits starting with 1 → prepend +
   Step 4: If doesn't match any pattern → keep original, flag for review
-  
+
   Flagged rows written to migration/review/phones-to-check.csv
   Estimated: ~2% of records will need manual review based on sample analysis
 ```

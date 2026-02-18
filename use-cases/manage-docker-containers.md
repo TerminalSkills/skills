@@ -37,18 +37,18 @@ Service Analysis:
     ❌ Single-stage build includes dev dependencies (webpack, dev tools)
     ❌ No layer caching strategy (npm install every build)
     ❌ Base image: node:18 (full OS, unnecessary packages)
-    ⚠️  Build time: 23m (12m npm install, 8m webpack build, 3m image creation)
-  
+    ⚠️ Build time: 23m (12m npm install, 8m webpack build, 3m image creation)
+
   Python Analytics (1.8GB → Target: <300MB):
     ❌ pip install includes compilation tools in final image
     ❌ Requirements changed frequently, cache invalidation
     ❌ Pandas/NumPy built from source instead of wheel
-    ⚠️  Build time: 31m (24m dependency compilation)
-  
+    ⚠️ Build time: 31m (24m dependency compilation)
+
   Go API Gateway (967MB → Target: <50MB):
     ❌ Full Go toolchain in final image (only binary needed)
     ❌ Alpine base but includes build dependencies
-    ⚠️  Build time: 18m (14m go build with cgo dependencies)
+    ⚠️ Build time: 18m (14m go build with cgo dependencies)
 
 TOTAL WASTE IDENTIFIED: 89% of image content unnecessary in production
 ```
@@ -71,7 +71,7 @@ RUN npm ci --only=production && npm cache clean --force
 COPY . .
 RUN npm run build
 
-# Production stage  
+# Production stage
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -85,7 +85,7 @@ FROM python:3.11-slim AS deps
 RUN pip install --user pandas numpy scikit-learn
 
 # Production stage
-FROM python:3.11-slim  
+FROM python:3.11-slim
 COPY --from=deps /root/.local /root/.local
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -128,9 +128,9 @@ services:
     depends_on:
       api: { condition: service_healthy }
     restart: unless-stopped
-    
+
   api:
-    build: ./api  
+    build: ./api
     ports: ["8080:8080"]
     environment:
       DATABASE_URL: postgres://user:pass@db:5432/app
@@ -141,12 +141,12 @@ services:
       retries: 3
     depends_on:
       db: { condition: service_healthy }
-      
+
   db:
     image: postgres:15-alpine
     environment:
       POSTGRES_DB: app
-      POSTGRES_USER: user  
+      POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -158,7 +158,7 @@ services:
 
 Development Enhancements:
   ✓ Health checks prevent race conditions
-  ✓ Named volumes persist data between restarts  
+  ✓ Named volumes persist data between restarts
   ✓ Restart policies handle crashes gracefully
   ✓ Proper service dependencies eliminate startup ordering issues
   ✓ Environment variable management with .env support
@@ -199,7 +199,7 @@ jobs:
 Performance Improvements:
   ✓ Parallel builds across services (47m → 12m total pipeline)
   ✓ GitHub Actions cache reduces repeated dependency downloads
-  ✓ Multi-architecture builds for optimal deployment targets  
+  ✓ Multi-architecture builds for optimal deployment targets
   ✓ Registry layer caching eliminates redundant uploads
   ✓ Only changed services rebuild (monorepo path filtering)
 
@@ -207,7 +207,7 @@ DEPLOYMENT OPTIMIZATION:
   ✓ Rolling updates with health checks prevent downtime
   ✓ Image pulls 89% faster (smaller images)
   ✓ Container startup 73% faster (optimized images)
-  
+
 MONTHLY SAVINGS: Docker Hub costs $340 → $67, AWS bandwidth $234 → $41
 ```
 

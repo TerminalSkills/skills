@@ -48,7 +48,7 @@ Transcription complete!
 - Output: meeting-recording.txt
 
 Preview:
-"Welcome everyone to the Q4 planning meeting. Today we'll cover 
+"Welcome everyone to the Q4 planning meeting. Today we'll cover
 three main topics: budget allocation, hiring targets, and..."
 ```
 

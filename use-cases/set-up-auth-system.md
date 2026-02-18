@@ -105,8 +105,8 @@ Security Audit Results — Auth System
 ✅ PASS: Refresh token rotation with reuse detection
 ✅ PASS: Passwords not stored (OAuth-only flow)
 ✅ PASS: Role checks happen at middleware level, not in business logic
-⚠️  WARN: Add rate limiting to /auth/google/callback (brute-force protection)
-⚠️  WARN: Consider adding session fingerprinting (IP + User-Agent binding)
+⚠️ WARN: Add rate limiting to /auth/google/callback (brute-force protection)
+⚠️ WARN: Consider adding session fingerprinting (IP + User-Agent binding)
 
 Overall: 5 passed, 2 warnings, 0 critical issues
 Recommendations applied to auth.routes.ts

@@ -68,7 +68,7 @@ The agent runs both paths and reports:
 ```text
 Parallel test results (3 endpoint pairs):
 ✅ GET /products/:id vs query { product(id: "p-42") { ... } } — fields match
-⚠️  GET /orders?status=pending — REST returns `created_at`, GraphQL returns `createdAt`
+⚠️ GET /orders?status=pending — REST returns `created_at`, GraphQL returns `createdAt`
     → Fix: add field alias in schema or update resolver mapping
 ✅ GET /users/:id — exact match after alias fix
 ```

@@ -32,7 +32,7 @@ CODEBASE ANALYSIS COMPLETE:
 
 Service Discovery (43 repositories):
   Authentication Service → Node.js/Express, 23 endpoints, OAuth2/JWT
-  Payment Processing → Python/FastAPI, 31 endpoints, Stripe integration  
+  Payment Processing → Python/FastAPI, 31 endpoints, Stripe integration
   User Management → Go/Gin, 18 endpoints, PostgreSQL + Redis
   Notification Engine → Node.js, 12 endpoints, WebSocket + Email
   ... (39 more services catalogued)
@@ -59,18 +59,18 @@ Authentication Service (23 endpoints):
     Request: { email: string, password: string, mfa_code?: string }
     Response: { token: string, refresh: string, expires: number }
     Curl: curl -X POST /auth/login -d '{"email":"user@example.com","password":"pass123"}'
-    
+
   GET /auth/profile
     Headers: Authorization: Bearer {token}
     Response: { id: string, email: string, roles: string[], created: date }
-    
+
   ... (21 more endpoints documented)
 
 Payment Processing Service (31 endpoints):
   POST /payments/charge → Stripe integration, idempotency handling
   GET /payments/history → Paginated, supports filtering by user/date
   POST /payments/refund → Admin-only, requires approval workflow
-  
+
 Validation Results:
   ✓ 100% of endpoints extracted correctly
   ✓ Schema validation: 94% of types inferred accurately
@@ -86,45 +86,36 @@ Validation Results:
 README GENERATION RESULTS:
 
 Authentication Service README.md (Generated):
-```
 
-```markdown
-# Authentication Service
+  # Authentication Service
+  High-performance JWT-based authentication with MFA support.
 
-High-performance JWT-based authentication with MFA support.
+  ## Quick Start
+  npm install
+  cp .env.example .env  # Configure your secrets
+  docker-compose up postgres redis
+  npm run dev  # Starts on port 3001
 
-## Quick Start
-```bash
-npm install
-cp .env.example .env  # Configure your secrets
-docker-compose up postgres redis
-npm run dev  # Starts on port 3001
-```
+  ## Configuration
+  | Variable   | Required | Default | Description          |
+  |------------|----------|---------|----------------------|
+  | JWT_SECRET | ✓        | -       | Token signing secret |
+  | MFA_ISSUER | -        | CompanyAuth | TOTP issuer name |
+  | REDIS_URL  | ✓        | redis://localhost:6379 | Session store |
 
-## Configuration
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| JWT_SECRET | ✓ | - | Token signing secret |
-| MFA_ISSUER | - | CompanyAuth | TOTP issuer name |
-| REDIS_URL | ✓ | redis://localhost:6379 | Session store |
+  ## API Documentation
+  - POST /auth/login - User authentication
+  - GET /auth/profile - Get user details
+  - Full API Reference → ./API.md
 
-## API Documentation
-- `POST /auth/login` - User authentication
-- `GET /auth/profile` - Get user details
-- [Full API Reference](./API.md)
+  ## Testing
+  npm test                  # Unit tests
+  npm run test:integration  # Integration tests with DB
+  npm run test:load         # Load testing (100 req/s)
 
-## Testing
-```bash
-npm test              # Unit tests
-npm run test:integration  # Integration tests with DB
-npm run test:load     # Load testing (100 req/s)
-```
+  ## Deployment
+  Deployed via GitHub Actions on merge to main.
 
-## Deployment
-Deployed via GitHub Actions on merge to main. See [deployment guide](./DEPLOY.md).
-```text
-
-```text
 TEMPLATE APPLIED TO ALL 43 SERVICES: Consistent structure, auto-updated dependencies, working examples
 ```
 
@@ -137,7 +128,7 @@ ARCHITECTURE GUIDE GENERATED:
 
 System Overview Created:
   📊 Service Dependency Graph → Visual map of 43 services + relationships
-  📊 Data Flow Diagrams → Request routing through auth → user → payment pipeline  
+  📊 Data Flow Diagrams → Request routing through auth → user → payment pipeline
   📊 Infrastructure Layout → Docker services, databases, message queues
   📊 API Gateway Configuration → Rate limiting, authentication, routing rules
 
@@ -164,7 +155,7 @@ DOCUMENTATION CI/CD PIPELINE:
 
 GitHub Actions Workflows Created:
   📋 docs-update.yml → Regenerate API docs on code push
-  📋 example-validation.yml → Test all curl examples in docs  
+  📋 example-validation.yml → Test all curl examples in docs
   📋 readme-sync.yml → Update service lists in master architecture
   📋 broken-link-checker.yml → Verify all internal documentation links
 

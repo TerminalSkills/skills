@@ -30,13 +30,13 @@ Set up rate limiting for our Node.js API with different limits for different use
 ```
 
 ```text
-🛡️  MULTI-TIER RATE LIMITING SETUP...
+🛡️ MULTI-TIER RATE LIMITING SETUP...
 
 Rate limiting architecture (src/middleware/rate-limiter.ts):
 
 USER TIER-BASED LIMITS:
 ├── Free tier: 100 requests/hour, 10 requests/minute burst
-├── Paid tier: 1,000 requests/hour, 50 requests/minute burst  
+├── Paid tier: 1,000 requests/hour, 50 requests/minute burst
 ├── Enterprise: 10,000 requests/hour, 200 requests/minute burst
 └── Anonymous: 20 requests/hour, 2 requests/minute burst
 
@@ -49,7 +49,7 @@ High-cost operations:
 
 Standard operations:
 ├── GET /api/users/profile: User tier limit applies
-├── GET /api/dashboard/widgets: User tier limit applies  
+├── GET /api/dashboard/widgets: User tier limit applies
 ├── POST /api/auth/login: 10 attempts/hour per IP (brute force prevention)
 └── POST /api/auth/signup: 5 signups/hour per IP (spam prevention)
 
@@ -62,7 +62,7 @@ IP-BASED BACKSTOP LIMITS:
 REDIS-BACKED IMPLEMENTATION:
 ✅ Sliding window rate limiting (more accurate than fixed windows)
 ✅ Distributed rate limiting across multiple API servers
-✅ Persistent rate limit counters (survive server restarts)  
+✅ Persistent rate limit counters (survive server restarts)
 ✅ Efficient Redis operations (INCR with TTL, minimal memory usage)
 ✅ Rate limit headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
 
@@ -86,7 +86,7 @@ Abuse detection patterns (src/security/abuse-detector.ts):
 
 SUSPICIOUS BEHAVIOR INDICATORS:
 ├── Rapid sequential requests (>5 per second for >30 seconds)
-├── Unusual request patterns (same endpoint, predictable intervals)  
+├── Unusual request patterns (same endpoint, predictable intervals)
 ├── High error rates (>20% 4xx responses suggests probing)
 ├── Large request payloads on rate-limited endpoints (resource exhaustion)
 ├── User-Agent patterns (missing, fake, or automated tool signatures)
@@ -99,7 +99,7 @@ AUTOMATIC THREAT CLASSIFICATION:
 - Response time: normal, add monitoring headers
 - Action: Enhanced logging, no restrictions
 
-🟠 Medium threat (throttling):  
+🟠 Medium threat (throttling):
 - Clear automation detected (regular intervals, high volume)
 - Response time: +500ms delay, reduce rate limits by 50%
 - Action: Temporary throttling, security team notification
@@ -141,7 +141,7 @@ Automatic blocking mechanisms (src/security/auto-blocker.ts):
 
 IMMEDIATE RESPONSE TRIGGERS:
 ├── >1,000 requests/minute from single IP → Instant 5-minute block
-├── >100 failed authentication attempts/hour → IP-based auth block  
+├── >100 failed authentication attempts/hour → IP-based auth block
 ├── Payment validation >50/hour per key → API key temporary suspension
 ├── Search scraping detected (>500 different queries/hour) → Search blocking
 └── DDoS pattern (>10,000 requests from >100 IPs) → Emergency mode
@@ -161,7 +161,7 @@ API key suspension:
 
 Emergency protection modes:
 - Lockdown mode: Only authenticated, known-good users allowed
-- Read-only mode: Disable write operations during attacks  
+- Read-only mode: Disable write operations during attacks
 - Reduced functionality: Disable resource-intensive endpoints
 - Circuit breaker: Automatic activation based on system load
 
@@ -175,12 +175,12 @@ LEGITIMATE USER PROTECTION:
 RESPONSE COORDINATION:
 - Real-time blocking: Response within 100ms of pattern detection
 - Distributed coordination: Share threat intelligence across API servers
-- External integration: Update CloudFlare WAF rules automatically  
+- External integration: Update CloudFlare WAF rules automatically
 - Incident logging: Detailed attack analysis for post-incident review
 
 ATTACK MITIGATION RESULTS:
 ✅ Average attack response time: 23 seconds (from detection to blocking)
-✅ False positive rate: 0.3% (manual review and improvement)  
+✅ False positive rate: 0.3% (manual review and improvement)
 ✅ Attack success prevention: 98.7% of attacks stopped before damage
 ✅ Legitimate user impact: <0.1% of good traffic affected
 ```
@@ -197,7 +197,7 @@ Create comprehensive monitoring for API abuse attempts, successful blocks, syste
 Security monitoring dashboard (src/monitoring/security-dashboard.ts):
 
 REAL-TIME THREAT MONITORING:
-├── Active blocks: 23 IPs, 4 API keys suspended  
+├── Active blocks: 23 IPs, 4 API keys suspended
 ├── Threat level: MEDIUM (elevated traffic from 4 geographic regions)
 ├── Attack attempts/hour: 847 blocked, 12 investigated, 2 escalated
 ├── System impact: API response time +12ms during mitigation
@@ -206,7 +206,7 @@ REAL-TIME THREAT MONITORING:
 ATTACK PATTERN ANALYSIS:
 Current incidents:
 ├── IP 203.0.113.47: Scraping attempt, 2,340 blocked requests (ongoing)
-├── API key sk_live_***x89: Payment validation abuse, suspended 2.3 hours  
+├── API key sk_live_***x89: Payment validation abuse, suspended 2.3 hours
 ├── Botnet cluster: 67 IPs, coordinated search scraping (blocked)
 └── Geographic anomaly: Normal US user from 6 countries in 1 hour (monitoring)
 
@@ -223,9 +223,9 @@ AUTOMATED INCIDENT RESPONSE:
 - System response time >2x baseline during attack
 - Emergency lockdown mode activated
 
-⚠️  WARNING ALERTS (Slack #security):
+⚠️ WARNING ALERTS (Slack #security):
 - New IP in top 10 attackers list
-- API key suspended (potential compromise)  
+- API key suspended (potential compromise)
 - Geographic blocking activated (legitimate users may be affected)
 - False positive rate >1% (tuning needed)
 
@@ -233,7 +233,7 @@ AUTOMATED INCIDENT RESPONSE:
 API Security Summary - Feb 17, 2024
 ├── Total requests: 847,329 (normal: 823,000 baseline)
 ├── Blocked requests: 12,483 (1.5% of traffic)
-├── Unique attack IPs: 234 (87% repeat offenders)  
+├── Unique attack IPs: 234 (87% repeat offenders)
 ├── API abuse prevented cost: $1,247 (external API charges)
 ├── Average response time impact: +8ms (within 15ms target)
 └── System availability: 99.97% (3 minutes degraded performance)
@@ -255,7 +255,7 @@ COST-BENEFIT ANALYSIS:
 Security investment: $180/month (Redis, monitoring tools)
 ├── External API abuse prevented: $4,123/month average
 ├── Infrastructure scaling prevented: $2,340/month
-├── Customer support load reduction: 89% fewer abuse-related tickets  
+├── Customer support load reduction: 89% fewer abuse-related tickets
 └── Engineering time savings: 12 hours/month on incident response
 Net savings: $6,283/month (34x ROI on security investment)
 ```
@@ -280,7 +280,7 @@ The breaking point came when their largest enterprise customer threatened to lea
 - Added API key usage pattern analysis
 - Implemented graduated response system (warning → throttling → blocking)
 
-**Week 3: Automated response systems**  
+**Week 3: Automated response systems**
 - Real-time blocking of attack patterns (response time <30 seconds)
 - Emergency lockdown modes for severe attacks
 - Integration with CloudFlare for edge-level blocking

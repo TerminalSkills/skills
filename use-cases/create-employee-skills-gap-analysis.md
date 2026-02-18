@@ -30,7 +30,7 @@ Tell the agent what skills matter for your team:
 > - TypeScript (advanced types, generics)
 > - PostgreSQL (query optimization, partitioning)
 > - CI/CD (GitHub Actions, automated testing)
-> 
+>
 > Here's the team skills survey results: skills-survey.csv
 
 ### 2. The agent analyzes the data

@@ -36,18 +36,18 @@ TOP 10 QUERIES BY TOTAL IMPACT:
   1. Customer Analytics Dashboard (avg 47.3s × 840 calls/day)
      Total impact: 11.1 hours/day (46.3% of query load)
      Query: SELECT u.email, u.signup_date, COUNT(o.id), SUM(o.total)...
-     
-  2. Sales Report Generation (avg 23.1s × 96 calls/day)  
+
+  2. Sales Report Generation (avg 23.1s × 96 calls/day)
      Total impact: 2.2 hours/day (9.2% of query load)
      Query: SELECT DATE(o.created_at), SUM(o.total), COUNT(*)...
-     
+
   3. Top Products by Revenue (avg 18.7s × 180 calls/day)
      Total impact: 1.4 hours/day (5.8% of query load)
      Query: SELECT p.name, SUM(oi.quantity * oi.price)...
-     
+
   4. User Order History (avg 12.4s × 2,340 calls/day)
      Total impact: 8.1 hours/day (33.8% of query load)
-     
+
 [... 6 more queries analyzed ...]
 
 SUMMARY STATS:
@@ -85,7 +85,7 @@ Nested Loop (cost=1.43..2847392.91 rows=1 width=32) (actual time=47234.123..4723
 
 🔴 CRITICAL ISSUES IDENTIFIED:
   1. Sequential scan on 4.2M orders (28.9s) - Missing index on (customer_id, created_at)
-  2. Sequential scan on 894K users (12.3s) - Missing index on frequently joined columns  
+  2. Sequential scan on 894K users (12.3s) - Missing index on frequently joined columns
   3. Hash join without proper indexes causing massive buffer reads
   4. No query-specific optimizations (GROUP BY could be more efficient)
 
@@ -93,7 +93,7 @@ Nested Loop (cost=1.43..2847392.91 rows=1 width=32) (actual time=47234.123..4723
   1. CREATE INDEX idx_orders_customer_date ON orders(customer_id, created_at);
   2. CREATE INDEX idx_users_email_signup ON users(email, signup_date);
   3. Rewrite query to avoid correlated subqueries
-  
+
 Projected improvement: 47.3s → 1.8s (96% faster)
 ```
 
@@ -111,7 +111,7 @@ QUERY 1: Customer Analytics Dashboard
 ORIGINAL (47.3s):
 SELECT u.email, u.signup_date, COUNT(o.id) AS order_count, SUM(o.total) AS total_spent
 FROM users u
-JOIN orders o ON u.id = o.customer_id  
+JOIN orders o ON u.id = o.customer_id
 WHERE o.created_at > '2024-01-01'
 GROUP BY u.email, u.signup_date
 ORDER BY total_spent DESC
@@ -121,10 +121,10 @@ OPTIMIZED (1.8s):
 SELECT u.email, u.signup_date, agg.order_count, agg.total_spent
 FROM (
   SELECT customer_id, COUNT(*) AS order_count, SUM(total) AS total_spent
-  FROM orders 
+  FROM orders
   WHERE created_at > '2024-01-01'
   GROUP BY customer_id
-  ORDER BY total_spent DESC  
+  ORDER BY total_spent DESC
   LIMIT 100
 ) agg
 JOIN users u ON u.id = agg.customer_id
@@ -133,7 +133,7 @@ ORDER BY agg.total_spent DESC;
 REQUIRED INDEXES:
   CREATE INDEX CONCURRENTLY idx_orders_customer_date ON orders(customer_id, created_at);
   CREATE INDEX CONCURRENTLY idx_orders_total_desc ON orders(total DESC);  -- for ORDER BY optimization
-  
+
 IMPROVEMENT: 47.3s → 1.8s (96% faster, 26x performance gain)
 
 QUERY 2: Sales Report Generation
@@ -142,7 +142,7 @@ ORIGINAL (23.1s): Large GROUP BY with date functions
 OPTIMIZED (0.7s): Pre-computed daily aggregates with date range index
 IMPROVEMENT: 33x faster
 
-QUERY 3: Top Products by Revenue  
+QUERY 3: Top Products by Revenue
 --------------------------------
 ORIGINAL (18.7s): Complex JOIN across orders/order_items/products
 OPTIMIZED (0.9s): Materialized view with covering index
@@ -150,7 +150,7 @@ IMPROVEMENT: 21x faster
 
 TOTAL DATABASE LOAD REDUCTION:
   Before: 21.8 hours/day query time
-  After: 1.2 hours/day query time  
+  After: 1.2 hours/day query time
   Improvement: 94% reduction in database CPU usage
 ```
 
@@ -167,7 +167,7 @@ Created monitoring dashboard with 4 key metrics:
 
 1. QUERY PERFORMANCE TRENDS (7-day rolling average):
    - Customer analytics: 47.3s → 1.8s → stable
-   - Sales reports: 23.1s → 0.7s → stable  
+   - Sales reports: 23.1s → 0.7s → stable
    - Top products: 18.7s → 0.9s → stable
    - Connection pool usage: 18.7/20 → 3.2/20 (83% improvement)
 
@@ -179,19 +179,19 @@ Created monitoring dashboard with 4 key metrics:
 
 3. REGRESSION ALERTS (automated notifications):
    ⚡ Query >5x baseline duration (any query >10s triggers alert)
-   ⚡ Connection pool >15/20 connections for >5 minutes  
+   ⚡ Connection pool >15/20 connections for >5 minutes
    ⚡ Buffer hit ratio <90% for >10 minutes
    ⚡ New slow queries in top 10 (queries not seen before)
 
 4. BUSINESS IMPACT METRICS:
    - Dashboard load time: 47.3s → 1.8s (customers see results faster)
-   - Report generation: 23.1s → 0.7s (97% success rate vs 34% timeouts)  
+   - Report generation: 23.1s → 0.7s (97% success rate vs 34% timeouts)
    - Customer support tickets: "slow dashboard" tickets down 89%
    - Infrastructure cost: $850/mo → $280/mo (scaling down unnecessary resources)
 
 COST SAVINGS:
   Database instance: $850/mo → $280/mo (saved $570/mo)
-  Prevented replica additions: $800/mo saved  
+  Prevented replica additions: $800/mo saved
   Developer time saved: ~8 hours/week on performance issues
   Total annual savings: $16,440 in infrastructure + $20K in developer time
 ```

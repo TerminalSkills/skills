@@ -36,7 +36,7 @@ PROCESSING 238 RECORDINGS (avg 28m each)...
   Speakers: Sarah Chen (rep), Mike Rodriguez (prospect - CTO)
   Duration: 34m 12s, Words: 4,847
 
-✓ demo_alex_retailplus_2024-11-08.mp3 → transcripts/2024-11-08_demo_alex_retailplus.md  
+✓ demo_alex_retailplus_2024-11-08.mp3 → transcripts/2024-11-08_demo_alex_retailplus.md
   Speakers: Alex Kim (rep), Jennifer Walsh (prospect - VP Eng)
   Duration: 22m 36s, Words: 3,201
 
@@ -47,7 +47,7 @@ SUMMARY:
   Average accuracy: 94.7% (business vocabulary)
   Transcripts generated: 238 markdown files
   Processing time: 47 minutes
-  
+
 Next: Analyze transcripts for product insights...
 ```
 
@@ -65,14 +65,14 @@ FEATURE REQUESTS IDENTIFIED (top 10 by mention frequency):
      "We can't move forward without SAML SSO" - TechCorp CTO
      "Our security team requires SAML" - RetailPlus VP Eng
      Average deal size when mentioned: $47K ARR
-     
-  2. API rate limiting controls: 53 mentions (22.3% of calls) 
+
+  2. API rate limiting controls: 53 mentions (22.3% of calls)
      "Your rate limits are too restrictive for our batch jobs" - DataFlow architect
      Lost deals citing this: 12 calls, avg deal size $31K ARR
-     
+
   3. Slack/Teams webhook integration: 49 mentions (20.6% of calls)
      "Notifications need to go to our Slack channels" - multiple prospects
-     
+
   4. Custom field mapping: 44 mentions (18.5% of calls)
   5. Advanced user permissions: 38 mentions (16.0% of calls)
   6. Data export/backup: 35 mentions (14.7% of calls)
@@ -90,7 +90,7 @@ DEAL-KILLING OBJECTIONS (caused explicit "no"):
 
 COMPETITOR INTEL:
   CompetitorX mentioned in 34 calls (14.3%)
-  - 12 times as "we're also evaluating X"  
+  - 12 times as "we're also evaluating X"
   - 7 times as "X already has [missing feature]"
   - Won against us: 4 times, Lost to us: 2 times, Unknown: 28 times
 
@@ -113,19 +113,19 @@ Generated from 238 calls, 111 hours of audio, 67 unique prospects
      - Directly blocked 19 deals worth $346K
      - Average deal size when mentioned: $47K (vs $31K baseline)
      - ROI projection: 8.2x if shipped in Q1
-     
-  2. API Rate Limiting Controls: $1.64M potential ARR  
+
+  2. API Rate Limiting Controls: $1.64M potential ARR
      - 53 mentions, blocked 12 deals ($287K lost)
      - Critical for enterprise customers (avg deal $52K)
      - ROI projection: 5.7x
-     
+
   3. Slack/Teams Integration: $1.21M potential ARR
      - 49 mentions, strong correlation with deal closure
      - Customers with integrated workflows pay 34% more annually
 
 📉 BIGGEST REVENUE KILLERS:
   1. Missing SSO: $346K lost deals, 19 explicit rejections
-  2. API limitations: $287K lost deals, 12 rejections  
+  2. API limitations: $287K lost deals, 12 rejections
   3. Pricing objections: $234K lost deals, 23 calls cited "too expensive"
   4. Complexity concerns: $156K lost deals, 8 calls mentioned setup difficulty
 
@@ -155,7 +155,7 @@ Missing SSO integration cost us $346K in lost deals last quarter and represents 
 
 IMMEDIATE REVENUE RECOVERY OPPORTUNITIES:
 • SSO Implementation (Q1): $346K immediate deal recovery + $2.8M pipeline acceleration
-• API Rate Limiting (Q1): $287K immediate recovery, enables enterprise expansion  
+• API Rate Limiting (Q1): $287K immediate recovery, enables enterprise expansion
 • Pricing Optimization: Address $234K lost to "too expensive" objections (23 deals)
 
 CUSTOMER VOICE:

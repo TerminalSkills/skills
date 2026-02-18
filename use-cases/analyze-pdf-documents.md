@@ -87,9 +87,9 @@ Consistency checks:
   ✓ Percentage calculations: 23 recalculated, 19 matched, 4 source errors found
 
 Anomaly detection:
-  ⚠️  Delta_Corp Q2 revenue: 340% increase (likely typo: $1.2M vs $4.2M)
-  ⚠️  Echo_Systems client count: Negative growth (-15 clients) - verify
-  ✓  All other metrics within expected ranges
+  ⚠️ Delta_Corp Q2 revenue: 340% increase (likely typo: $1.2M vs $4.2M)
+  ⚠️ Echo_Systems client count: Negative growth (-15 clients) - verify
+  ✓ All other metrics within expected ranges
 
 CLEANED DATASET: 2,843 validated data points ready for analysis
 ```
@@ -107,7 +107,7 @@ Key Trends Identified:
   📈 Revenue Growth: 8 of 12 vendors show YoY growth (avg +23.4%)
   📊 Client Acquisition: Combined +2,847 new clients across portfolio
   🎯 Top Performers: Gamma (+34%), Charlie (+28%), Alpha (+21%)
-  ⚠️  Concerns: 3 vendors show declining metrics (require investigation)
+  ⚠️ Concerns: 3 vendors show declining metrics (require investigation)
 
 Performance Metrics:
   • Total Portfolio Revenue: $127.3M (↑18% YoY)

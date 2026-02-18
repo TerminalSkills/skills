@@ -1,6 +1,6 @@
 ---
 title: "Build a Webhook Processing System with Error Monitoring"
-slug: build-webhook-processing-system  
+slug: build-webhook-processing-system
 description: "Create a resilient webhook processing system that handles high-volume incoming webhooks, processes them reliably, and monitors for failures with automatic retry and alerting."
 skills: [webhook-processor, batch-processor, error-monitoring]
 category: development
@@ -42,7 +42,7 @@ POST /webhooks/stripe
 
 Event type routing:
 ├── payment_intent.succeeded → PaymentConfirmationJob (high priority)
-├── payment_intent.failed → PaymentFailureJob (high priority)  
+├── payment_intent.failed → PaymentFailureJob (high priority)
 ├── charge.dispute.created → DisputeHandlingJob (urgent priority)
 ├── invoice.payment_succeeded → InvoiceProcessingJob (normal priority)
 └── customer.subscription.updated → SubscriptionSyncJob (low priority)
@@ -79,7 +79,7 @@ PaymentConfirmationWorker (src/workers/payment-worker.ts):
 - Retry policy: 3 attempts with exponential backoff (2s, 8s, 32s)
 - Error handling: Failed balance updates trigger immediate Slack alerts
 
-DisputeHandlingWorker (src/workers/dispute-worker.ts):  
+DisputeHandlingWorker (src/workers/dispute-worker.ts):
 - Priority: Urgent (processes immediately)
 - Processing: Create dispute record → Notify finance team → Freeze related transactions
 - Timeout: 30 seconds max (disputes are time-sensitive)
@@ -118,7 +118,7 @@ Set up error monitoring for the webhook system. Track processing failures, ident
 Error tracking setup (src/monitoring/webhook-errors.ts):
 
 FAILURE CLASSIFICATION:
-├── Transient errors: Network timeouts, temporary database unavailability  
+├── Transient errors: Network timeouts, temporary database unavailability
 ├── Data errors: Invalid webhook payload, missing required fields
 ├── Business logic errors: User not found, insufficient balance, duplicate processing
 ├── System errors: Memory exhaustion, worker crashes, Redis connection loss
@@ -139,8 +139,8 @@ AUTOMATED ALERTING RULES:
 - Webhook processing stopped completely (all workers down)
 - Queue backlog >5000 jobs (system overloaded)
 
-⚠️  WARNING ALERTS (Slack #engineering):
-- Individual worker failure rate >5% over 30 minutes  
+⚠️ WARNING ALERTS (Slack #engineering):
+- Individual worker failure rate >5% over 30 minutes
 - Processing time >3x normal baseline (performance degradation)
 - Redis memory >80% (queue storage issues)
 - Duplicate webhook rate >1% (upstream system issues)
@@ -149,14 +149,14 @@ AUTOMATED ALERTING RULES:
 Webhook Processing Health - Feb 17, 2024
 ├── Total processed: 23,847 webhooks (avg 994/hour)
 ├── Success rate: 99.7% (99.9% target)
-├── Average processing: 1.1 seconds (1.5s target)  
+├── Average processing: 1.1 seconds (1.5s target)
 ├── Failed events: 71 (auto-retried: 68, manual review: 3)
 ├── Queue backlog: 23 jobs (healthy: <100)
 └── System uptime: 99.95% (1 brief Redis reconnection)
 
 ERROR ANALYSIS DASHBOARD:
 ✅ Failed webhook inspector (view payload, error details, retry history)
-✅ Error trend analysis (identifies systemic issues over time)  
+✅ Error trend analysis (identifies systemic issues over time)
 ✅ Integration health monitoring (external service reliability)
 ✅ Recovery recommendations (suggests fixes for common error patterns)
 ```
@@ -174,7 +174,7 @@ Automatic recovery systems:
 
 SELF-HEALING MECHANISMS:
 ├── Database reconnection: Automatic retry with exponential backoff
-├── Redis failover: Seamless switch to backup Redis instance  
+├── Redis failover: Seamless switch to backup Redis instance
 ├── Worker restart: Auto-restart crashed workers (max 3 attempts/hour)
 ├── Queue rebalancing: Redistribute jobs from overloaded to healthy workers
 └── Circuit breaker: Temporarily disable failing external integrations
@@ -191,7 +191,7 @@ Admin dashboard (/admin/webhooks):
 WEBHOOK MANAGEMENT:
 ✅ Search webhooks by date, type, status, or customer ID
 ✅ Replay individual failed webhooks with payload inspection
-✅ Bulk retry: Reprocess webhooks from a specific time range  
+✅ Bulk retry: Reprocess webhooks from a specific time range
 ✅ Emergency stop: Pause all webhook processing during incidents
 ✅ Queue manipulation: Move jobs between queues, adjust priorities
 
@@ -225,7 +225,7 @@ Using the webhook-processor skill, they rebuilt their system:
 
 **Week 1 implementation:**
 - Webhook ingestion now responds in 15ms (was 8+ seconds)
-- All webhooks queued immediately, processed asynchronously  
+- All webhooks queued immediately, processed asynchronously
 - Automatic retry for failed webhooks with intelligent backoff
 - Comprehensive error monitoring with real-time alerting
 

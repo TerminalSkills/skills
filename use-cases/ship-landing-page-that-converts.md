@@ -83,7 +83,7 @@ Get LCP under 2.5 seconds without losing visual quality.
   Hero image: 2.4MB → 148KB (WebP + responsive srcset)
   JS bundle: 847KB → 124KB critical + 323KB deferred
   CSS: critical inlined (4.2KB), rest async
-  
+
   FCP: 3.8s → 1.1s | LCP: 6.2s → 1.8s
   Page weight: 3.6MB → 486KB | PageSpeed: 34 → 91
 ```
@@ -116,10 +116,10 @@ The test ran 16 days. Show me the results.
 
   Lift: +228% relative | Confidence: 99.7%
   Mobile: 1.02% → 3.58% (biggest gain — speed + above-fold CTA)
-  
+
   Cost per lead: $33.00 → $9.68
   Leads/month: 127 → 437 (+244%)
-  
+
   Deploy Variant B immediately ✓
 ```
 

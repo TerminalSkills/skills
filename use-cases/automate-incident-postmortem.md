@@ -27,7 +27,7 @@ Gather the raw materials and point the agent at them:
 > - incident-slack-thread.txt (exported Slack conversation)
 > - error-logs-2026-02-16.json (application logs from 02:00-04:30 UTC)
 > - datadog-timeline.md (exported alert timeline)
-> 
+>
 > Generate a postmortem following our template: title, summary, impact, timeline, root cause, action items, lessons learned.
 
 ### 2. The agent extracts the timeline

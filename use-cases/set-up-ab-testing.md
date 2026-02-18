@@ -65,7 +65,7 @@ Server-side (API routes and server components):
   // middleware runs on every request
   const flags = evaluateFlags(userId, userAttributes);
   // Available in server components via headers
-  
+
   // In API route:
   const variant = getFlag('checkout-redesign', req);
   if (variant === 'new-checkout') {
@@ -123,18 +123,18 @@ Created app/admin/experiments/page.tsx — Experiment results dashboard
 
 Analysis for each experiment:
   Users per variant: control=4,812 | variant=4,756 (50.3% / 49.7%)
-  
+
   Metric: checkout_completed rate
     Control: 3.2% (154/4,812)
     Variant: 4.1% (195/4,756)
     Relative lift: +28.1%
-    
+
   Statistical significance:
     Test: Two-proportion z-test
     p-value: 0.0142
     95% CI for difference: [+0.2%, +1.6%]
     Status: SIGNIFICANT (p < 0.05)
-    
+
   If NOT significant yet:
     Current sample: 9,568 users
     Estimated required: 14,200 users (at 80% power, α=0.05)

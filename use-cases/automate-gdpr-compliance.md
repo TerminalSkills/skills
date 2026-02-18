@@ -39,7 +39,7 @@ Personal Data Inventory — 23 PII fields found across 7 models:
 | Location       | events      | geo_lat/lng    | Analytics            | Indefinite |
 | Device ID      | sessions    | device_id      | Push notifications   | Indefinite |
 
-⚠️  Issues: No retention policy on any table. IP addresses logged in plaintext
+⚠️ Issues: No retention policy on any table. IP addresses logged in plaintext
     in CloudWatch. Payment processor receives full name without documented DPA.
 ```
 
