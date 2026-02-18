@@ -1,18 +1,24 @@
 ---
 name: outlook-email
 description: >-
-  Send, read, and manage emails via Microsoft Outlook using the Graph API. Use when
-  someone asks to "send email via Outlook", "read Outlook inbox", "automate Outlook emails",
-  "manage Outlook folders", "Outlook API integration", "email automation with Graph API",
-  "search Outlook emails", or "process incoming emails". Covers sending (plain, HTML, attachments),
-  reading, searching, folders, rules, and focused inbox via Microsoft Graph API.
+  Send, read, and manage emails via Microsoft Outlook using the Graph API. Use
+  when someone asks to "send email via Outlook", "read Outlook inbox", "automate
+  Outlook emails", "manage Outlook folders", "Outlook API integration", "email
+  automation with Graph API", "search Outlook emails", or "process incoming
+  emails". Covers sending (plain, HTML, attachments), reading, searching,
+  folders, rules, and focused inbox via Microsoft Graph API.
 license: Apache-2.0
-compatibility: "Microsoft Graph API v1.0. Requires Microsoft 365 tenant with Exchange Online."
+compatibility: Microsoft Graph API v1.0. Requires Microsoft 365 tenant with Exchange Online.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: development
-  tags: ["outlook", "email", "microsoft-graph", "microsoft-365", "automation", "api"]
+  tags:
+    - outlook
+    - email
+    - microsoft-graph
+    - microsoft-365
+    - automation
 ---
 
 # Outlook Email
@@ -119,24 +125,11 @@ await graphClient.api(`/users/${userId}/sendMail`)
     },
   });
 
-// Reply to an email
+// Reply, reply all, or forward
 await graphClient.api(`/users/${userId}/messages/${messageId}/reply`)
-  .post({
-    comment: 'Thanks for the update. I\'ll review by EOD.',
-  });
-
-// Reply all
-await graphClient.api(`/users/${userId}/messages/${messageId}/replyAll`)
-  .post({
-    comment: 'Looks good to me. Let\'s proceed.',
-  });
-
-// Forward
+  .post({ comment: 'Thanks for the update. I\'ll review by EOD.' });
 await graphClient.api(`/users/${userId}/messages/${messageId}/forward`)
-  .post({
-    comment: 'FYI — see the proposal below.',
-    toRecipients: [{ emailAddress: { address: 'partner@external.com' } }],
-  });
+  .post({ comment: 'FYI', toRecipients: [{ emailAddress: { address: 'partner@external.com' } }] });
 ```
 
 ### Read Emails
@@ -214,45 +207,20 @@ const withAttachments = await graphClient.api(`/users/${userId}/messages`)
 ### Folder Management
 
 ```typescript
-// List mail folders
+// List, create folders
 const folders = await graphClient.api(`/users/${userId}/mailFolders`)
-  .select('id,displayName,totalItemCount,unreadItemCount')
-  .get();
-
-// Create folder
+  .select('id,displayName,totalItemCount,unreadItemCount').get();
 const newFolder = await graphClient.api(`/users/${userId}/mailFolders`)
-  .post({
-    displayName: 'Project Alpha',
-  });
+  .post({ displayName: 'Project Alpha' });
 
-// Create subfolder
-const subFolder = await graphClient.api(`/users/${userId}/mailFolders/${parentFolderId}/childFolders`)
-  .post({
-    displayName: 'Invoices',
-  });
-
-// Move message to folder
+// Move message to folder, mark as read
 await graphClient.api(`/users/${userId}/messages/${messageId}/move`)
-  .post({
-    destinationId: folderId,
-  });
-
-// Mark as read/unread
+  .post({ destinationId: folderId });
 await graphClient.api(`/users/${userId}/messages/${messageId}`)
   .patch({ isRead: true });
-
-// Batch mark as read
-const batchBody = {
-  requests: messageIds.map((id, i) => ({
-    id: `${i}`,
-    method: 'PATCH',
-    url: `/users/${userId}/messages/${id}`,
-    body: { isRead: true },
-    headers: { 'Content-Type': 'application/json' },
-  })),
-};
-await graphClient.api('/$batch').post(batchBody);
 ```
+
+For bulk operations, use `POST /$batch` with up to 20 requests (e.g., batch mark-as-read).
 
 ### Mail Rules (Inbox Rules)
 
@@ -272,30 +240,14 @@ await graphClient.api(`/users/${userId}/mailFolders/inbox/messageRules`)
     },
   });
 
-// Auto-reply rule (Out of Office)
-await graphClient.api(`/users/${userId}/mailboxSettings`)
-  .patch({
-    automaticRepliesSetting: {
-      status: 'scheduled',
-      scheduledStartDateTime: {
-        dateTime: '2026-03-15T00:00:00',
-        timeZone: 'America/New_York',
-      },
-      scheduledEndDateTime: {
-        dateTime: '2026-03-22T00:00:00',
-        timeZone: 'America/New_York',
-      },
-      internalReplyMessage: '<p>I\'m out of office March 15-21. For urgent matters, contact mike@company.com.</p>',
-      externalReplyMessage: '<p>Thank you for your email. I\'m currently out of office and will respond after March 22.</p>',
-      externalAudience: 'contactsOnly',
-    },
-  });
 ```
+
+For auto-replies (Out of Office), use `PATCH /users/{userId}/mailboxSettings` with `automaticRepliesSetting` — set `status: 'scheduled'` with start/end dates, and provide separate `internalReplyMessage` and `externalReplyMessage`.
 
 ### Webhooks (New Email Notifications)
 
 ```typescript
-// Subscribe to new messages
+// Subscribe to new messages (expires in 3 days, must renew)
 const subscription = await graphClient.api('/subscriptions')
   .post({
     changeType: 'created',
@@ -304,31 +256,23 @@ const subscription = await graphClient.api('/subscriptions')
     expirationDateTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
     clientState: 'your-secret-token',
   });
-
-// Webhook handler
-app.post('/api/email-webhook', async (req, res) => {
-  if (req.query.validationToken) {
-    return res.status(200).send(req.query.validationToken);
-  }
-
-  for (const notification of req.body.value) {
-    const messageId = notification.resourceData.id;
-    
-    // Fetch the new message
-    const msg = await graphClient.api(`/users/${userId}/messages/${messageId}`)
-      .select('subject,from,bodyPreview,importance')
-      .get();
-    
-    console.log('New email:', msg.subject, 'from', msg.from.emailAddress.address);
-    
-    // Process: forward to Slack, trigger workflow, etc.
-  }
-
-  res.status(202).send();
-});
 ```
 
-## Best Practices
+In the webhook handler, return the `validationToken` on subscription creation, then fetch the new message by ID from `notification.resourceData.id` and process it (forward to Slack, trigger workflows, etc.).
+
+## Examples
+
+### Example 1: Send a weekly project status report with attachment
+**User prompt:** "Send an HTML email to the engineering team at eng-team@northwind.com with the subject 'Sprint 22 Status Report' summarizing our completed features. Attach the burndown chart from /reports/sprint-22-burndown.png."
+
+The agent will compose an HTML email body with a styled table showing completed features, their owners, and status. It will read the burndown chart file, base64-encode it, and attach it as a `fileAttachment` with the correct content type. The email will be sent via `POST /users/{userId}/sendMail` with `importance: 'normal'`, the HTML body, the attachment array, and `saveToSentItems: true`.
+
+### Example 2: Create an inbox rule to auto-organize client emails
+**User prompt:** "Set up an Outlook rule that moves all emails from anyone at @acmecorp.com into a folder called 'Acme Project', and create the folder if it doesn't exist. Also mark those emails as read automatically."
+
+The agent will first create a mail folder named `Acme Project` using `POST /users/{userId}/mailFolders` and capture the returned folder ID. It will then create an inbox message rule via `POST /users/{userId}/mailFolders/inbox/messageRules` with conditions set to `senderContains: ['acmecorp.com']` and actions set to `moveToFolder` (using the new folder ID) and `markAsRead: true`.
+
+## Guidelines
 
 - Use `$select` on every query — mailbox data is heavy, fetch only needed fields
 - Batch operations for bulk updates (mark read, move, delete) — max 20 per batch

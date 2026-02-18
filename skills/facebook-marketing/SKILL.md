@@ -7,12 +7,17 @@ description: >-
   "Facebook analytics", or "Facebook marketing strategy". Covers Pages, Groups,
   Graph API publishing, Ads Manager API, Messenger bots, and growth strategies.
 license: Apache-2.0
-compatibility: "Facebook Graph API v19.0+, Marketing API. Requires Facebook Business account."
+compatibility: 'Facebook Graph API v19.0+, Marketing API. Requires Facebook Business account.'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: marketing
-  tags: ["facebook", "social-media", "ads", "groups", "marketing", "api", "messenger"]
+  tags:
+    - facebook
+    - social-media
+    - ads
+    - groups
+    - marketing
 ---
 
 # Facebook Marketing
@@ -98,15 +103,7 @@ Engagement framework:
 ```
 
 #### Group Moderation
-```
-Admin tools:
-- Membership questions (3 questions to filter spammers)
-- Post approval: on for first 2 weeks of new members, then auto-approve
-- Keyword alerts: flag spam keywords
-- Admin assist: auto-decline posts with certain URLs
-- Scheduled posts: batch content weekly
-- Insights: track active members, popular posts, growth
-```
+Use membership questions (3 max) to filter spammers, enable post approval for new members' first 2 weeks, set keyword alerts for spam, and use Admin Assist to auto-decline posts with certain URLs.
 
 ### Facebook Graph API
 
@@ -155,58 +152,14 @@ const photoRes = await fetch(`https://graph.facebook.com/v19.0/${pageId}/photos`
   }),
 });
 
-// Post with link
-await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    message: 'Check out our latest article 👇',
-    link: 'https://example.com/article',
-    access_token: pageToken,
-  }),
-});
-
-// Schedule a post
+// Schedule a post (Unix timestamp, minimum 10 min from now)
 await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     message: 'Scheduled post content...',
     published: false,
-    scheduled_publish_time: Math.floor(Date.now() / 1000) + 86400, // 24h from now
-    access_token: pageToken,
-  }),
-});
-
-// Upload video (Reels)
-const reelRes = await fetch(`https://graph.facebook.com/v19.0/${pageId}/video_reels`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    upload_phase: 'start',
-    access_token: pageToken,
-  }),
-});
-const { video_id, upload_url } = await reelRes.json();
-
-// Upload video binary to upload_url
-await fetch(upload_url, {
-  method: 'POST',
-  headers: {
-    Authorization: `OAuth ${pageToken}`,
-    file_url: 'https://example.com/reel.mp4',
-  },
-});
-
-// Finish and publish
-await fetch(`https://graph.facebook.com/v19.0/${pageId}/video_reels`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    upload_phase: 'finish',
-    video_id,
-    video_state: 'PUBLISHED',
-    description: 'Reel caption...',
+    scheduled_publish_time: Math.floor(Date.now() / 1000) + 86400,
     access_token: pageToken,
   }),
 });
@@ -251,67 +204,9 @@ const campaignRes = await fetch(`https://graph.facebook.com/v19.0/act_${adAccoun
 });
 const { id: campaignId } = await campaignRes.json();
 
-// Create ad set (targeting + budget)
-const adSetRes = await fetch(`https://graph.facebook.com/v19.0/act_${adAccountId}/adsets`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    name: 'Developers 25-45',
-    campaign_id: campaignId,
-    daily_budget: 2000, // in cents ($20/day)
-    billing_event: 'IMPRESSIONS',
-    optimization_goal: 'LINK_CLICKS',
-    bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
-    targeting: {
-      age_min: 25,
-      age_max: 45,
-      geo_locations: { countries: ['US', 'GB', 'CA', 'DE'] },
-      interests: [
-        { id: '6003139266461', name: 'Software development' },
-        { id: '6003384293502', name: 'Web development' },
-      ],
-      publisher_platforms: ['facebook', 'instagram'],
-      facebook_positions: ['feed', 'video_feeds', 'reels'],
-    },
-    start_time: '2026-03-01T00:00:00-0500',
-    status: 'PAUSED',
-    access_token: adToken,
-  }),
-});
-
-// Create ad creative
-const creativeRes = await fetch(`https://graph.facebook.com/v19.0/act_${adAccountId}/adcreatives`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    name: 'Developer Tool Ad',
-    object_story_spec: {
-      page_id: pageId,
-      link_data: {
-        image_hash: uploadedImageHash,
-        link: 'https://example.com/product?utm_source=facebook&utm_medium=paid',
-        message: 'Ship code faster with our developer platform. Free trial →',
-        name: 'Your Headline Here',
-        description: 'Supporting text below headline',
-        call_to_action: { type: 'LEARN_MORE' },
-      },
-    },
-    access_token: adToken,
-  }),
-});
-
-// Create ad
-await fetch(`https://graph.facebook.com/v19.0/act_${adAccountId}/ads`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    name: 'Ad Variation 1',
-    adset_id: adSetId,
-    creative: { creative_id: creativeId },
-    status: 'PAUSED',
-    access_token: adToken,
-  }),
-});
+// Then create Ad Set (targeting + budget), Ad Creative, and Ad
+// Each references the parent: campaign → ad set → ad creative → ad
+// Use daily_budget in cents (2000 = $20/day), LOWEST_COST_WITHOUT_CAP bid strategy
 ```
 
 ### Growth Strategy
@@ -332,13 +227,19 @@ await fetch(`https://graph.facebook.com/v19.0/act_${adAccountId}/ads`, {
 - Feature community members (they share, expanding reach)
 - Use Units for structured learning content
 
-**Messenger strategy:**
-- Respond to DMs within 1 hour (affects Page response rate badge)
-- Set up automated welcome message
-- Use Messenger for customer support (faster than email)
-- Quick replies for FAQ
+## Examples
 
-## Best Practices
+### Example 1: Create a Facebook Group engagement strategy for a SaaS community
+**User prompt:** "I run a project management tool called TaskPilot. We have a Facebook Group with 3,400 members but engagement is dying. Create a plan to revive it."
+
+The agent will create a weekly engagement framework for the TaskPilot Community group. Monday: "Workflow Wednesday Preview" poll asking members to vote on the next tutorial topic (options: Gantt charts, sprint boards, time tracking, resource allocation). Tuesday: resource sharing thread where members post their favorite productivity tools. Wednesday: step-by-step tutorial post with screenshots showing a specific TaskPilot workflow. Thursday: "Win of the Week" thread prompting members to share completed projects. Friday: casual off-topic discussion. The plan includes setting up 3 membership screening questions, enabling post approval for members under 14 days old, pinning community rules, creating themed Highlights from past valuable posts, and scheduling a monthly Live Q&A with the product team. Each post includes specific copy and engagement-driving CTAs like "Drop a screenshot of your dashboard setup below."
+
+### Example 2: Build a Facebook Page posting automation with the Graph API
+**User prompt:** "Write a TypeScript script that publishes a text post and a photo post to our Facebook Page (Greenleaf Nursery, page ID 108374625190283) and then fetches the page insights for the last 7 days."
+
+The agent will create a TypeScript script that authenticates using a long-lived Page access token from environment variable `FB_PAGE_TOKEN`. It publishes a text post via `POST /v19.0/108374625190283/feed` with the message "Spring planting season is here! Visit us this weekend for 20% off all native perennials." Then it publishes a photo post via `POST /v19.0/108374625190283/photos` with a public image URL and caption. Finally, it fetches 7-day page insights by calling `GET /v19.0/108374625190283/insights` with metrics `page_impressions,page_engaged_users,page_fans,page_views_total`, period `day`, and date range parameters. The script logs each post's returned ID and prints the insights as a formatted table.
+
+## Guidelines
 
 - Native video > links > images for reach (algorithm preference order)
 - Groups are the highest-ROI Facebook channel for organic growth in 2025-2026

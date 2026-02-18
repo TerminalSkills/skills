@@ -4,17 +4,22 @@ description: >-
   Download video and audio from YouTube and other platforms with yt-dlp. Use
   when a user asks to download YouTube videos, extract audio from videos,
   download playlists, get subtitles, download specific formats or qualities,
-  batch download, archive channels, extract metadata, embed thumbnails,
-  download from social media platforms (Twitter, Instagram, TikTok), or
-  build media ingestion pipelines. Covers format selection, audio extraction,
-  playlists, subtitles, metadata, and automation.
+  batch download, archive channels, extract metadata, embed thumbnails, download
+  from social media platforms (Twitter, Instagram, TikTok), or build media
+  ingestion pipelines. Covers format selection, audio extraction, playlists,
+  subtitles, metadata, and automation.
 license: Apache-2.0
-compatibility: "Python 3.8+ or standalone binary (Linux, macOS, Windows)"
+compatibility: 'Python 3.8+ or standalone binary (Linux, macOS, Windows)'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: audio
-  tags: ["yt-dlp", "youtube", "download", "audio", "video", "media", "extraction"]
+  version: 1.0.0
+  category: content
+  tags:
+    - yt-dlp
+    - youtube
+    - download
+    - audio
+    - video
 ---
 
 # yt-dlp
@@ -186,76 +191,33 @@ yt-dlp --dump-json --flat-playlist "PLAYLIST_URL"
 ### Step 7: Output Templates
 
 ```bash
-# Available fields: title, uploader, upload_date, duration, view_count, like_count, ext, id, etc.
-
-# Organized by channel and date
+# Fields: title, uploader, upload_date, duration, view_count, ext, id, playlist_index, etc.
 yt-dlp -o "%(uploader)s/%(upload_date)s - %(title)s.%(ext)s" "URL"
-
-# Podcast-style naming
 yt-dlp -x --audio-format mp3 -o "podcasts/%(playlist)s/%(playlist_index)03d - %(title)s.%(ext)s" "PLAYLIST_URL"
-
-# Sanitize filenames (remove special chars)
 yt-dlp -o "%(title).100B.%(ext)s" "URL"    # Limit title to 100 bytes
-
-# Number files in playlist
-yt-dlp -o "%(playlist_index)03d - %(title)s.%(ext)s" "PLAYLIST_URL"
 ```
 
 ### Step 8: Batch Operations
 
 ```bash
-# Download from a list of URLs
-cat urls.txt
-# https://youtube.com/watch?v=VIDEO1
-# https://youtube.com/watch?v=VIDEO2
-# https://youtube.com/watch?v=VIDEO3
-
+# Download from URL list, with archive tracking and rate limiting
 yt-dlp -a urls.txt -x --audio-format mp3
-
-# With archive (skip already downloaded)
 yt-dlp -a urls.txt --download-archive done.txt -x --audio-format mp3
-
-# Rate limiting (be nice to servers)
-yt-dlp --rate-limit 5M --sleep-interval 5 --max-sleep-interval 30 -a urls.txt
-
-# Retry on failure
-yt-dlp --retries 10 --fragment-retries 10 "URL"
-
-# Parallel downloads (playlist items)
+yt-dlp --rate-limit 5M --sleep-interval 5 -a urls.txt
 yt-dlp -N 4 "PLAYLIST_URL"    # 4 concurrent downloads
 ```
 
 ### Step 9: Other Platforms
 
-yt-dlp supports 1000+ sites beyond YouTube:
+yt-dlp supports 1000+ sites beyond YouTube. Use `yt-dlp --list-extractors` to see all:
 
 ```bash
-# Twitter/X
-yt-dlp "https://twitter.com/user/status/123456789"
-
-# Instagram (post, reel, story)
-yt-dlp "https://www.instagram.com/p/POST_ID/"
-
-# TikTok
-yt-dlp "https://www.tiktok.com/@user/video/123456789"
-
-# Reddit (video posts)
-yt-dlp "https://www.reddit.com/r/subreddit/comments/abc123/"
-
-# Twitch (VODs, clips)
-yt-dlp "https://www.twitch.tv/videos/123456789"
-
-# SoundCloud
-yt-dlp "https://soundcloud.com/artist/track-name"
-
-# Vimeo
-yt-dlp "https://vimeo.com/123456789"
-
-# Podcast RSS feed
-yt-dlp "https://feeds.example.com/podcast.xml"
-
-# List supported sites
-yt-dlp --list-extractors
+yt-dlp "https://twitter.com/user/status/123456789"           # Twitter/X
+yt-dlp "https://www.instagram.com/p/POST_ID/"                # Instagram
+yt-dlp "https://www.tiktok.com/@user/video/123456789"        # TikTok
+yt-dlp "https://www.twitch.tv/videos/123456789"              # Twitch VODs
+yt-dlp "https://soundcloud.com/artist/track-name"            # SoundCloud
+yt-dlp "https://vimeo.com/123456789"                         # Vimeo
 ```
 
 ### Step 10: Pipeline Integration
@@ -269,40 +231,6 @@ whisper temp.wav --model small --output_format srt
 yt-dlp -x --audio-format wav -o "episode.%(ext)s" "URL"
 sox episode.wav normalized.wav norm -1 highpass 80
 audiowaveform -i normalized.wav -o waveform.json --pixels-per-second 20
-
-# Python integration
-import subprocess, json
-
-def get_video_info(url):
-    result = subprocess.run(
-        ["yt-dlp", "--dump-json", url],
-        capture_output=True, text=True
-    )
-    return json.loads(result.stdout)
-
-def download_audio(url, output_dir="./"):
-    subprocess.run([
-        "yt-dlp", "-x", "--audio-format", "mp3",
-        "--audio-quality", "0",
-        "--embed-thumbnail", "--embed-metadata",
-        "-o", f"{output_dir}/%(title)s.%(ext)s",
-        url
-    ], check=True)
-
-# Node.js integration
-import { execSync } from "child_process";
-
-function downloadAudio(url: string, outputDir: string) {
-  execSync(
-    `yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${outputDir}/%(title)s.%(ext)s" "${url}"`,
-    { stdio: "inherit" }
-  );
-}
-
-function getVideoInfo(url: string) {
-  const result = execSync(`yt-dlp --dump-json "${url}"`).toString();
-  return JSON.parse(result);
-}
 ```
 
 ### Step 11: Configuration File
@@ -310,25 +238,41 @@ function getVideoInfo(url: string) {
 Save defaults in `~/.config/yt-dlp/config`:
 
 ```
-# Default format: best 1080p MP4
 -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]
-
-# Output template
 -o %(uploader)s/%(title)s.%(ext)s
-
-# Embed metadata
 --embed-metadata
 --embed-thumbnail
-
-# Archive
 --download-archive ~/.local/share/yt-dlp/archive.txt
-
-# Rate limiting
 --rate-limit 10M
 --sleep-interval 3
-
-# Subtitles
 --write-auto-sub
 --sub-lang en
 --convert-subs srt
 ```
+
+## Examples
+
+### Example 1: Download a YouTube playlist as MP3 with metadata and thumbnails
+**User prompt:** "Download all videos from this YouTube playlist as high-quality MP3 files with embedded album art and metadata. Organize them by playlist index number. Playlist URL: https://youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf"
+
+The agent will:
+1. Verify yt-dlp and ffmpeg are installed.
+2. Run `yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "%(playlist_index)03d - %(title)s.%(ext)s" --download-archive archive.txt "PLAYLIST_URL"`.
+3. The archive file ensures re-running the command skips already-downloaded tracks.
+4. Report how many files were downloaded and their total size.
+
+### Example 2: Extract audio from a conference talk and generate subtitles
+**User prompt:** "Download this conference talk as 720p MP4 with English subtitles embedded, then also extract just the audio as WAV for transcription: https://youtube.com/watch?v=dQw4w9WgXcQ"
+
+The agent will:
+1. Download the video with embedded subtitles: `yt-dlp -f "bestvideo[height<=720]+bestaudio" --merge-output-format mp4 --embed-subs --sub-lang en --write-auto-sub "URL"`.
+2. Extract audio separately: `yt-dlp -x --audio-format wav -o "talk-audio.%(ext)s" "URL"`.
+3. Confirm both files exist and report their sizes and durations.
+
+## Guidelines
+
+- Always install ffmpeg alongside yt-dlp; it is required for merging separate video and audio streams and for audio format conversion.
+- Use `--download-archive archive.txt` when downloading playlists or channels to avoid re-downloading videos on subsequent runs.
+- Apply rate limiting with `--rate-limit 5M --sleep-interval 5` when batch downloading to avoid being throttled or blocked by the source platform.
+- Use `-f "bestvideo[height<=1080]+bestaudio/best[height<=1080]"` as a default format selector to get good quality without unnecessarily large 4K files.
+- Keep yt-dlp updated regularly with `yt-dlp -U`; extractors break frequently as platforms change their APIs and page structures.

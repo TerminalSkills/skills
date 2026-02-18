@@ -13,62 +13,38 @@ metadata:
 
 # Onboarding CRO
 
-You are an expert in user onboarding and activation. Your goal is to help users reach their "aha moment" as quickly as possible and establish habits that lead to long-term retention.
+## Overview
 
-## Initial Assessment
+You are an expert in user onboarding and activation. Your goal is to help users reach their "aha moment" as quickly as possible and establish habits that lead to long-term retention.
 
 **Check for product marketing context first:**
 If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
-Before providing recommendations, understand:
+Before providing recommendations, understand the product context (type, B2B or B2C, core value proposition), activation definition (what's the "aha moment," what action indicates a user "gets it"), and current state (what happens after signup, where users drop off).
 
-1. **Product Context** - What type of product? B2B or B2C? Core value proposition?
-2. **Activation Definition** - What's the "aha moment"? What action indicates a user "gets it"?
-3. **Current State** - What happens after signup? Where do users drop off?
+## Instructions
 
----
+### Core Principles
 
-## Core Principles
+**Time-to-Value Is Everything.** Remove every step between signup and experiencing core value.
 
-### 1. Time-to-Value Is Everything
-Remove every step between signup and experiencing core value.
+**One Goal Per Session.** Focus first session on one successful outcome. Save advanced features for later.
 
-### 2. One Goal Per Session
-Focus first session on one successful outcome. Save advanced features for later.
+**Do, Don't Show.** Interactive beats tutorial. Doing the thing beats learning about the thing.
 
-### 3. Do, Don't Show
-Interactive > Tutorial. Doing the thing > Learning about the thing.
+**Progress Creates Motivation.** Show advancement. Celebrate completions. Make the path visible.
 
-### 4. Progress Creates Motivation
-Show advancement. Celebrate completions. Make the path visible.
+### Defining Activation
 
----
+Find your aha moment: what do retained users do that churned users don't? What's the earliest indicator of future engagement?
 
-## Defining Activation
+Examples by product type: Project management (create first project + add team member), Analytics (install tracking + see first report), Design tool (create first design + export/share), Marketplace (complete first transaction).
 
-### Find Your Aha Moment
+Track activation metrics: percentage of signups reaching activation, time to activation, steps to activation, activation by cohort/source.
 
-The action that correlates most strongly with retention:
-- What do retained users do that churned users don't?
-- What's the earliest indicator of future engagement?
+### Onboarding Flow Design
 
-**Examples by product type:**
-- Project management: Create first project + add team member
-- Analytics: Install tracking + see first report
-- Design tool: Create first design + export/share
-- Marketplace: Complete first transaction
-
-### Activation Metrics
-- % of signups who reach activation
-- Time to activation
-- Steps to activation
-- Activation by cohort/source
-
----
-
-## Onboarding Flow Design
-
-### Immediate Post-Signup (First 30 Seconds)
+**Immediate Post-Signup (First 30 Seconds):**
 
 | Approach | Best For | Risk |
 |----------|----------|------|
@@ -76,80 +52,25 @@ The action that correlates most strongly with retention:
 | Guided setup | Products needing personalization | Adds friction before value |
 | Value-first | Products with demo data | May not feel "real" |
 
-**Whatever you choose:**
-- Clear single next action
-- No dead ends
-- Progress indication if multi-step
+Whatever you choose: clear single next action, no dead ends, progress indication if multi-step.
 
-### Onboarding Checklist Pattern
+**Onboarding Checklist Pattern:** Use when multiple setup steps are required or the product has several features to discover. Best practices: 3-7 items (not overwhelming), order by value (most impactful first), start with quick wins, progress bar/completion percentage, celebration on completion, dismiss option.
 
-**When to use:**
-- Multiple setup steps required
-- Product has several features to discover
-- Self-serve B2B products
+**Empty States:** Empty states are onboarding opportunities, not dead ends. A good empty state explains what this area is for, shows what it looks like with data, provides a clear primary action to add the first item, and optionally pre-populates with example data.
 
-**Best practices:**
-- 3-7 items (not overwhelming)
-- Order by value (most impactful first)
-- Start with quick wins
-- Progress bar/completion %
-- Celebration on completion
-- Dismiss option (don't trap users)
+**Tooltips and Guided Tours:** Use for complex UI or features that aren't self-evident. Max 3-5 steps per tour, dismissable at any time, don't repeat for returning users.
 
-### Empty States
+### Multi-Channel Onboarding
 
-Empty states are onboarding opportunities, not dead ends.
+**Trigger-based emails:** Welcome email (immediate), incomplete onboarding (24h, 72h), activation achieved (celebration + next step), feature discovery (days 3, 7, 14).
 
-**Good empty state:**
-- Explains what this area is for
-- Shows what it looks like with data
-- Clear primary action to add first item
-- Optional: Pre-populate with example data
+Emails should reinforce in-app actions (not duplicate them), drive back to product with specific CTA, and be personalized based on actions taken.
 
-### Tooltips and Guided Tours
+### Handling Stalled Users
 
-**When to use:** Complex UI, features that aren't self-evident, power features users might miss
+Define "stalled" criteria (X days inactive, incomplete setup). Re-engagement tactics: email sequence (reminder of value, address blockers, offer help), in-app recovery (welcome back, pick up where left off), human touch (for high-value accounts, personal outreach).
 
-**Best practices:**
-- Max 3-5 steps per tour
-- Dismissable at any time
-- Don't repeat for returning users
-
----
-
-## Multi-Channel Onboarding
-
-### Email + In-App Coordination
-
-**Trigger-based emails:**
-- Welcome email (immediate)
-- Incomplete onboarding (24h, 72h)
-- Activation achieved (celebration + next step)
-- Feature discovery (days 3, 7, 14)
-
-**Email should:**
-- Reinforce in-app actions, not duplicate them
-- Drive back to product with specific CTA
-- Be personalized based on actions taken
-
----
-
-## Handling Stalled Users
-
-### Detection
-Define "stalled" criteria (X days inactive, incomplete setup)
-
-### Re-engagement Tactics
-
-1. **Email sequence** - Reminder of value, address blockers, offer help
-2. **In-app recovery** - Welcome back, pick up where left off
-3. **Human touch** - For high-value accounts, personal outreach
-
----
-
-## Measurement
-
-### Key Metrics
+### Measurement
 
 | Metric | Description |
 |--------|-------------|
@@ -158,69 +79,45 @@ Define "stalled" criteria (X days inactive, incomplete setup)
 | Onboarding completion | % completing setup |
 | Day 1/7/30 retention | Return rate by timeframe |
 
-### Funnel Analysis
+Track drop-off at each step of the funnel (Signup to Step 1 to Step 2 to Activation to Retention) and identify the biggest drops to focus there.
 
-Track drop-off at each step:
-```
-Signup → Step 1 → Step 2 → Activation → Retention
-100%      80%       60%       40%         25%
-```
-
-Identify biggest drops and focus there.
-
----
-
-## Output Format
-
-### Onboarding Audit
-For each issue: Finding → Impact → Recommendation → Priority
-
-### Onboarding Flow Design
-- Activation goal
-- Step-by-step flow
-- Checklist items (if applicable)
-- Empty state copy
-- Email sequence triggers
-- Metrics plan
-
----
-
-## Common Patterns by Product Type
+### Common Patterns by Product Type
 
 | Product Type | Key Steps |
 |--------------|-----------|
-| B2B SaaS | Setup wizard → First value action → Team invite → Deep setup |
-| Marketplace | Complete profile → Browse → First transaction → Repeat loop |
-| Mobile App | Permissions → Quick win → Push setup → Habit loop |
-| Content Platform | Follow/customize → Consume → Create → Engage |
+| B2B SaaS | Setup wizard, first value action, team invite, deep setup |
+| Marketplace | Complete profile, browse, first transaction, repeat loop |
+| Mobile App | Permissions, quick win, push setup, habit loop |
+| Content Platform | Follow/customize, consume, create, engage |
 
----
+### Output Format
 
-## Experiment Ideas
+**Onboarding Audit:** For each issue provide Finding, Impact, Recommendation, and Priority.
 
-When recommending experiments, consider tests for:
-- Flow simplification (step count, ordering)
-- Progress and motivation mechanics
-- Personalization by role or goal
-- Support and help availability
+**Onboarding Flow Design:** Activation goal, step-by-step flow, checklist items (if applicable), empty state copy, email sequence triggers, and metrics plan.
 
-**For comprehensive experiment ideas**: See [references/experiments.md](references/experiments.md)
+**Experiment Ideas:** Flow simplification (step count, ordering), progress and motivation mechanics, personalization by role or goal, support and help availability. For comprehensive experiment ideas see [references/experiments.md](references/experiments.md).
 
----
+## Examples
 
-## Task-Specific Questions
+### Example 1: B2B Project Management Tool Onboarding Audit
 
-1. What action most correlates with retention?
-2. What happens immediately after signup?
-3. Where do users currently drop off?
-4. What's your activation rate target?
-5. Do you have cohort analysis on successful vs. churned users?
+**User prompt:** "Our project management tool has a 35% activation rate. Users sign up but only a third create their first project. Here's our current onboarding flow -- can you audit it?"
 
----
+The agent will analyze the flow, identify that the 8-step setup wizard (team name, invite members, choose template, set permissions, configure notifications, connect integrations, customize theme, create first project) has too many steps before value delivery. It will recommend reordering to create first project as step 1 (using a pre-built template), defer team invites to after the user has experienced value, remove theme customization and notification config from onboarding entirely, and add a progress bar showing 3 steps instead of 8. It will also recommend trigger-based emails: a 24-hour "finish setup" email for users who created a project but didn't invite teammates, and a 72-hour re-engagement email for users who signed up but never created a project.
 
-## Related Skills
+### Example 2: Mobile Fitness App Activation
 
-- **signup-flow-cro**: For optimizing the signup before onboarding
-- **email-sequence**: For onboarding email series
-- **paywall-upgrade-cro**: For converting to paid during/after onboarding
-- **ab-test-setup**: For testing onboarding changes
+**User prompt:** "Our fitness app has 10,000 weekly signups but only 12% complete their first workout. Most users drop off at the goal-setting screen where we ask about fitness level, goals, available equipment, and schedule preferences."
+
+The agent will identify the goal-setting screen as the primary friction point, recommend replacing the 4-question survey with a single "What's your goal?" selection (lose weight / build muscle / stay active), defer equipment and schedule questions until after the first workout, implement a "Start a 5-Minute Workout Now" button on the home screen that bypasses setup entirely, add an empty state showing a sample workout with a "Try This Now" CTA, and set up a push notification sequence: Day 0 post-signup with a direct link to a beginner workout, Day 1 reminder at their signup time, and Day 3 "Your first week plan is ready" with personalized content based on any goals they did set.
+
+## Guidelines
+
+- Always define the activation metric before designing the onboarding flow. Without a clear "aha moment," optimization is guesswork.
+- Minimize steps between signup and first value. Every additional step loses users. If a step can happen after activation, move it there.
+- Prefer interactive onboarding over passive tutorials. Users learn by doing, not by reading tooltips.
+- Design for the most common user path first. Power users will explore on their own; optimize for the majority.
+- Coordinate in-app and email onboarding. Emails should complement, not duplicate, the in-app experience.
+- Treat empty states as first impressions. A blank dashboard with no guidance is a missed activation opportunity.
+- Measure everything by cohort. Aggregate activation rates hide whether your changes are actually working for new users.

@@ -1,18 +1,26 @@
 ---
 name: instagram-marketing
 description: >-
-  Create, optimize, and automate Instagram content including Reels, Stories, carousels,
-  and feed posts. Use when someone asks to "grow on Instagram", "create Instagram Reels",
-  "Instagram content strategy", "Instagram API integration", "automate Instagram posting",
-  "Instagram analytics", or "Instagram marketing". Covers Reels-first strategy, visual
-  content guidelines, Instagram Graph API, and growth tactics.
+  Create, optimize, and automate Instagram content including Reels, Stories,
+  carousels, and feed posts. Use when someone asks to "grow on Instagram",
+  "create Instagram Reels", "Instagram content strategy", "Instagram API
+  integration", "automate Instagram posting", "Instagram analytics", or
+  "Instagram marketing". Covers Reels-first strategy, visual content guidelines,
+  Instagram Graph API, and growth tactics.
 license: Apache-2.0
-compatibility: "Instagram Graph API, Instagram Basic Display API. Requires Facebook Business account."
+compatibility: >-
+  Instagram Graph API, Instagram Basic Display API. Requires Facebook Business
+  account.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: marketing
-  tags: ["instagram", "social-media", "reels", "visual-content", "marketing", "api"]
+  tags:
+    - instagram
+    - social-media
+    - reels
+    - visual-content
+    - marketing
 ---
 
 # Instagram Marketing
@@ -83,19 +91,11 @@ What kills reach:
 - **Stickers:** Use polls, questions, quizzes, countdowns (drive engagement)
 - **Links:** Available for all accounts (link sticker)
 - **Highlights:** Save best stories to themed highlights on profile
-- **Posting time:** Spread throughout the day (not all at once)
 - **Authenticity:** Stories can be less polished than feed — real > perfect
-
-**Story strategy:**
-- Morning: behind-the-scenes or personal
-- Midday: poll or question sticker (drives replies)
-- Afternoon: value content or carousel teaser
-- Evening: casual, engagement, or recap
 
 #### Feed Posts (Static images)
 - **Aspect ratio:** 1:1 (1080x1080px) or 4:5 (1080x1350px)
 - **Quality:** High-res only, consistent visual style/filter
-- **Grid aesthetic:** Plan posts so profile grid looks cohesive
 - **Alt text:** Add for accessibility and SEO (Instagram indexes it)
 
 ### Caption Writing
@@ -269,14 +269,19 @@ const reelInsightsRes = await fetch(
 - Create a branded hashtag for your community
 - Research hashtags by searching keywords in Instagram's Explore
 
-**Reel growth tactics:**
-- Use trending audio (check Reels tab for arrow icon = trending)
-- First 1-2 seconds = hook (text overlay: "3 things you're doing wrong")
-- Post at peak times: 11 AM-1 PM and 7-9 PM local
-- Engage with comments in first 30 min
-- Cross-promote Reels to Stories with "New Reel" sticker
+## Examples
 
-## Best Practices
+### Example 1: Create an Instagram content strategy for a fitness coach
+**User prompt:** "I'm a personal trainer in Austin, TX with 1,200 followers. Plan a 2-week Instagram content strategy to grow my audience and book more coaching clients."
+
+The agent will create a 14-day content calendar mixing Reels, carousels, and Stories. Week 1: Monday — Reel "3 exercises you're doing wrong at the gym" (trending audio, 30s, text overlays showing correct form), Wednesday — carousel "Meal prep guide: 5 high-protein lunches under $8" (10 slides, 4:5 ratio, swipe cue on slide 1), Friday — Reel "Client transformation: Sarah lost 22 lbs in 12 weeks" (before/after with voiceover). Week 2 follows the same pattern with fresh topics. Each day includes 3-5 Stories (morning workout clip, midday poll "What should I post next?", afternoon carousel teaser). Captions include keyword-rich hooks like "Stop wasting time on crunches for abs" with CTAs like "Save this for your next gym session." Hashtags: 5 niche (#AustinFitness #PersonalTrainerAustin), 5 medium (#FitnessTips #GymMotivation), 3 broad (#Fitness #Workout).
+
+### Example 2: Publish a carousel post via the Instagram Graph API
+**User prompt:** "Write a Node.js script to publish a 5-image carousel to my Instagram business account using the Graph API. The images are hosted on my CDN at cdn.brightbody.co/posts/."
+
+The agent will create a Node.js script that uses the Instagram Graph API with a long-lived Facebook access token. It loops through 5 image URLs (e.g., `https://cdn.brightbody.co/posts/slide-1.jpg` through `slide-5.jpg`), creates individual media containers via `POST /{ig-account-id}/media` with `is_carousel_item: true`, collects the returned container IDs, then creates the carousel container with `media_type: CAROUSEL`, the children array, and a caption including hashtags. Finally it publishes via `POST /{ig-account-id}/media_publish` with the carousel container ID. The script includes error handling for each API call and a 3-second delay between container creation requests to avoid rate limits.
+
+## Guidelines
 
 - Reels-first strategy — it's how Instagram wants you to grow in 2025-2026
 - Never repost TikTok with watermark — Instagram suppresses it. Re-export without watermark

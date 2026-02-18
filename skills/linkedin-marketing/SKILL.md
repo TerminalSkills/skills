@@ -1,18 +1,25 @@
 ---
 name: linkedin-marketing
 description: >-
-  Create, optimize, and automate LinkedIn content for personal branding, lead generation,
-  and B2B marketing. Use when someone asks to "write a LinkedIn post", "grow on LinkedIn",
-  "LinkedIn content strategy", "LinkedIn API integration", "automate LinkedIn posting",
-  "LinkedIn carousel", "LinkedIn analytics", or "LinkedIn outreach". Covers content
-  creation with platform-specific formatting, API integration, analytics, and growth strategies.
+  Create, optimize, and automate LinkedIn content for personal branding, lead
+  generation, and B2B marketing. Use when someone asks to "write a LinkedIn
+  post", "grow on LinkedIn", "LinkedIn content strategy", "LinkedIn API
+  integration", "automate LinkedIn posting", "LinkedIn carousel", "LinkedIn
+  analytics", or "LinkedIn outreach". Covers content creation with
+  platform-specific formatting, API integration, analytics, and growth
+  strategies.
 license: Apache-2.0
-compatibility: "LinkedIn API v2, LinkedIn Marketing API. Node.js/Python examples."
+compatibility: 'LinkedIn API v2, LinkedIn Marketing API. Node.js/Python examples.'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: marketing
-  tags: ["linkedin", "social-media", "b2b", "content-marketing", "personal-branding", "lead-generation"]
+  tags:
+    - linkedin
+    - social-media
+    - b2b
+    - content-marketing
+    - personal-branding
 ---
 
 # LinkedIn Marketing
@@ -243,19 +250,6 @@ const ugcRes = await fetch(
 );
 ```
 
-### API Scopes Reference
-
-| Scope | Access |
-|-------|--------|
-| `openid` | OpenID Connect authentication |
-| `profile` | Basic profile (name, photo) |
-| `email` | Email address |
-| `w_member_social` | Post as yourself |
-| `r_organization_admin` | Read org admin data |
-| `w_organization_social` | Post as company page |
-| `rw_organization_admin` | Full org management |
-| `r_ads` | Read ad analytics |
-
 ### Growth Strategy
 
 **Posting schedule:** 3-5x/week (Tue-Thu peak engagement, 8-10 AM local time)
@@ -273,13 +267,19 @@ const ugcRes = await fetch(
 - Comments on big accounts get you visibility to their audience
 - Ask follow-up questions in comments to extend threads
 
-**Connection strategy:**
-- Send personalized connection requests (mention shared context)
-- Never use default "I'd like to connect" message
-- Connect with people who engage with similar content
-- Accept all incoming requests (larger network = more reach)
+## Examples
 
-## Best Practices
+### Example 1: Write a LinkedIn post announcing a product launch
+**User prompt:** "Write a LinkedIn post for me. I'm the CTO of Meridian Analytics and we just launched a real-time data pipeline product called StreamFlow that processes 2 million events per second. Target audience is engineering leaders at mid-size SaaS companies."
+
+The agent will draft a LinkedIn text post optimized for the algorithm. The first two lines hook with: "We spent 14 months building something we couldn't find anywhere else.\n\nToday we're launching StreamFlow — a real-time data pipeline that handles 2M events/sec with sub-10ms latency." The body tells the story of the problem (batch processing delays costing customers $40K/month in stale dashboards), the solution, and early results from beta customers. It ends with an open-ended question: "What's the biggest bottleneck in your data pipeline today?" followed by 4 hashtags: #DataEngineering #RealTimeAnalytics #SaaS #ProductLaunch. The link to the product page goes in a separate first comment, not in the post body.
+
+### Example 2: Automate posting to a LinkedIn company page via API
+**User prompt:** "Build a TypeScript function that posts a weekly engineering blog summary to our LinkedIn company page (Meridian Analytics, org ID 91847362) every Monday at 9 AM EST."
+
+The agent will create a TypeScript module that authenticates with LinkedIn OAuth 2.0 using `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` from environment variables, obtains an access token with `w_organization_social` scope, then calls `POST /v2/posts` with `author: "urn:li:organization:91847362"`, the formatted blog summary as `commentary`, `visibility: "PUBLIC"`, and `lifecycleState: "PUBLISHED"`. The function is wrapped in a cron scheduler using `node-cron` with the pattern `0 9 * * 1` (Mondays at 9 AM). It includes token refresh logic to handle the 60-day expiry and logs each post's success or failure to a `linkedin-posts.log` file.
+
+## Guidelines
 
 - Put links in the FIRST COMMENT, never in the post body
 - Write for mobile — 60%+ of LinkedIn users are on phones

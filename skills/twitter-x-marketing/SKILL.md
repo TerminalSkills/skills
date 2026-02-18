@@ -1,18 +1,24 @@
 ---
 name: twitter-x-marketing
 description: >-
-  Create, optimize, and automate content for Twitter/X including tweets, threads,
-  Spaces, and API automation. Use when someone asks to "write a tweet", "create a
-  Twitter thread", "grow on X", "Twitter API integration", "automate tweeting",
-  "Twitter analytics", "Twitter bot", or "X content strategy". Covers platform-specific
-  formatting, X API v2 integration, thread creation, analytics, and growth tactics.
+  Create, optimize, and automate content for Twitter/X including tweets,
+  threads, Spaces, and API automation. Use when someone asks to "write a tweet",
+  "create a Twitter thread", "grow on X", "Twitter API integration", "automate
+  tweeting", "Twitter analytics", "Twitter bot", or "X content strategy". Covers
+  platform-specific formatting, X API v2 integration, thread creation,
+  analytics, and growth tactics.
 license: Apache-2.0
-compatibility: "X API v2 (Free, Basic, Pro tiers). Node.js/Python examples."
+compatibility: 'X API v2 (Free, Basic, Pro tiers). Node.js/Python examples.'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: marketing
-  tags: ["twitter", "x", "social-media", "threads", "api", "content-marketing"]
+  tags:
+    - twitter
+    - x
+    - social-media
+    - threads
+    - api
 ---
 
 # Twitter/X Marketing
@@ -234,14 +240,6 @@ const { data: tweets } = await client.tweets.tweetsRecentSearch({
 });
 ```
 
-### API Tiers & Limits
-
-| Tier | Price | Tweets/month | Read | Features |
-|------|-------|-------------|------|----------|
-| Free | $0 | 1,500 write | 10K read | Post, delete, basic lookup |
-| Basic | $100/mo | 3,000 write | 10K read | + search, user lookup |
-| Pro | $5,000/mo | 300K write | 1M read | + full archive, analytics |
-
 ### Growth Strategy
 
 **Posting schedule:** 3-5 tweets/day + 1-2 threads/week
@@ -261,14 +259,19 @@ const { data: tweets } = await client.tweets.tweetsRecentSearch({
 - Your reply is seen by THEIR audience — it's free reach
 - Reply to your own tweets to extend visibility (algorithm treats as conversation)
 
-**What works in 2025-2026:**
-- Contrarian takes with nuance ("Unpopular: React is becoming legacy")
-- Before/after stories with specifics
-- Lists with practical value ("10 tools that replaced my entire stack")
-- Screenshots of results/dashboards (social proof)
-- Quote-tweeting trending topics with your perspective
+## Examples
 
-## Best Practices
+### Example 1: Write a Twitter thread about developer productivity
+**User prompt:** "Write a 7-tweet thread about lessons learned scaling a Next.js app from 1,000 to 50,000 daily active users."
+
+The agent will draft a 7-tweet thread with numbered tweets. Tweet 1/7 opens with a strong hook: "We scaled our Next.js app from 1K to 50K DAU in 8 months. Here are 7 hard lessons we learned (and what we'd do differently):" Tweets 2-6 each cover one lesson with specifics: moving from `getServerSideProps` to ISR cut server costs by 60%, switching to Postgres connection pooling with PgBouncer fixed random 502 errors, adding Redis for session storage eliminated 300ms per request, using Vercel Edge Functions for auth middleware dropped TTFB from 800ms to 120ms, and implementing proper image optimization with `next/image` cut bandwidth by 70%. Tweet 7 wraps with a CTA: "If this was useful, follow @handle for weekly threads on scaling web apps. Bookmark this thread to reference later." Each tweet stays under 280 characters.
+
+### Example 2: Build a tweet scheduling bot using the X API
+**User prompt:** "Create a Python script that reads tweets from a CSV file and posts them at scheduled times using the X API v2."
+
+The agent will create a Python script using the `tweepy` library with OAuth 2.0 authentication. It reads a CSV file with columns `tweet_text`, `scheduled_time`, and optional `image_path`. The script loads `X_CLIENT_ID` and `X_CLIENT_SECRET` from environment variables, authenticates with user context, then enters a loop checking if any tweet's `scheduled_time` matches the current time (within a 60-second window). When a match is found, it calls `client.create_tweet(text=tweet_text)` and logs the posted tweet ID. For tweets with images, it uploads media via the v1.1 media endpoint first, then attaches the `media_id`. The script includes rate limit handling with exponential backoff and writes a `posted.log` file tracking which CSV rows have been published.
+
+## Guidelines
 
 - Links in reply to self, not in main tweet (reach penalty is real)
 - 0-2 hashtags maximum — they're mostly dead on X

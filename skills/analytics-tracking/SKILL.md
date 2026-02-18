@@ -13,12 +13,16 @@ metadata:
 
 # Analytics Tracking
 
-You are an expert in analytics implementation and measurement. Your goal is to help set up tracking that provides actionable insights for marketing and product decisions.
+## Overview
 
-## Initial Assessment
+You are an expert in analytics implementation and measurement. Your goal is to help set up tracking that provides actionable insights for marketing and product decisions. You guide users through tracking plan creation, event naming, GA4/GTM implementation, UTM strategy, and validation.
 
 **Check for product marketing context first:**
 If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+
+## Instructions
+
+### Initial Assessment
 
 Before implementing tracking, understand:
 
@@ -26,42 +30,21 @@ Before implementing tracking, understand:
 2. **Current State** - What tracking exists? What tools are in use?
 3. **Technical Context** - What's the tech stack? Any privacy/compliance requirements?
 
----
+### Core Principles
 
-## Core Principles
+1. **Track for Decisions, Not Data** - Every event should inform a decision. Avoid vanity metrics. Quality > quantity.
+2. **Start with the Questions** - What do you need to know? What actions will you take? Work backwards to what you need to track.
+3. **Name Things Consistently** - Establish naming conventions before implementing. Document everything.
+4. **Maintain Data Quality** - Validate implementation. Monitor for issues. Clean data > more data.
 
-### 1. Track for Decisions, Not Data
-- Every event should inform a decision
-- Avoid vanity metrics
-- Quality > quantity of events
-
-### 2. Start with the Questions
-- What do you need to know?
-- What actions will you take based on this data?
-- Work backwards to what you need to track
-
-### 3. Name Things Consistently
-- Naming conventions matter
-- Establish patterns before implementing
-- Document everything
-
-### 4. Maintain Data Quality
-- Validate implementation
-- Monitor for issues
-- Clean data > more data
-
----
-
-## Tracking Plan Framework
-
-### Structure
+### Tracking Plan Framework
 
 ```
 Event Name | Category | Properties | Trigger | Notes
 ---------- | -------- | ---------- | ------- | -----
 ```
 
-### Event Types
+**Event Types:**
 
 | Type | Examples |
 |------|----------|
@@ -72,11 +55,9 @@ Event Name | Category | Properties | Trigger | Notes
 
 **For comprehensive event lists**: See [references/event-library.md](references/event-library.md)
 
----
+### Event Naming Conventions
 
-## Event Naming Conventions
-
-### Recommended Format: Object-Action
+Use Object-Action format, lowercase with underscores:
 
 ```
 signup_completed
@@ -86,18 +67,11 @@ article_read
 checkout_payment_completed
 ```
 
-### Best Practices
-- Lowercase with underscores
-- Be specific: `cta_hero_clicked` vs. `button_clicked`
-- Include context in properties, not event name
-- Avoid spaces and special characters
-- Document decisions
+Be specific: `cta_hero_clicked` not `button_clicked`. Include context in properties, not event name.
 
----
+### Essential Events
 
-## Essential Events
-
-### Marketing Site
+**Marketing Site:**
 
 | Event | Properties |
 |-------|------------|
@@ -106,7 +80,7 @@ checkout_payment_completed
 | signup_completed | method, source |
 | demo_requested | - |
 
-### Product/App
+**Product/App:**
 
 | Event | Properties |
 |-------|------------|
@@ -117,11 +91,7 @@ checkout_payment_completed
 
 **For full event library by business type**: See [references/event-library.md](references/event-library.md)
 
----
-
-## Event Properties
-
-### Standard Properties
+### Standard Event Properties
 
 | Category | Properties |
 |----------|------------|
@@ -130,25 +100,13 @@ checkout_payment_completed
 | Campaign | source, medium, campaign, content, term |
 | Product | product_id, product_name, category, price |
 
-### Best Practices
-- Use consistent property names
-- Include relevant context
-- Don't duplicate automatic properties
-- Avoid PII in properties
-
----
-
-## GA4 Implementation
-
-### Quick Setup
+### GA4 Implementation
 
 1. Create GA4 property and data stream
 2. Install gtag.js or GTM
 3. Enable enhanced measurement
 4. Configure custom events
 5. Mark conversions in Admin
-
-### Custom Event Example
 
 ```javascript
 gtag('event', 'signup_completed', {
@@ -159,19 +117,13 @@ gtag('event', 'signup_completed', {
 
 **For detailed GA4 implementation**: See [references/ga4-implementation.md](references/ga4-implementation.md)
 
----
-
-## Google Tag Manager
-
-### Container Structure
+### Google Tag Manager
 
 | Component | Purpose |
 |-----------|---------|
 | Tags | Code that executes (GA4, pixels) |
 | Triggers | When tags fire (page view, click) |
 | Variables | Dynamic values (click text, data layer) |
-
-### Data Layer Pattern
 
 ```javascript
 dataLayer.push({
@@ -183,11 +135,7 @@ dataLayer.push({
 
 **For detailed GTM implementation**: See [references/gtm-implementation.md](references/gtm-implementation.md)
 
----
-
-## UTM Parameter Strategy
-
-### Standard Parameters
+### UTM Parameter Strategy
 
 | Parameter | Purpose | Example |
 |-----------|---------|---------|
@@ -197,17 +145,9 @@ dataLayer.push({
 | utm_content | Differentiate versions | hero_cta |
 | utm_term | Paid search keywords | running+shoes |
 
-### Naming Conventions
-- Lowercase everything
-- Use underscores or hyphens consistently
-- Be specific but concise: `blog_footer_cta`, not `cta1`
-- Document all UTMs in a spreadsheet
+Lowercase everything. Use underscores or hyphens consistently. Document all UTMs in a spreadsheet.
 
----
-
-## Debugging and Validation
-
-### Testing Tools
+### Debugging and Validation
 
 | Tool | Use For |
 |------|---------|
@@ -215,8 +155,7 @@ dataLayer.push({
 | GTM Preview Mode | Test triggers before publish |
 | Browser Extensions | Tag Assistant, dataLayer Inspector |
 
-### Validation Checklist
-
+**Validation Checklist:**
 - [ ] Events firing on correct triggers
 - [ ] Property values populating correctly
 - [ ] No duplicate events
@@ -224,91 +163,45 @@ dataLayer.push({
 - [ ] Conversions recorded correctly
 - [ ] No PII leaking
 
-### Common Issues
+### Privacy and Compliance
 
-| Issue | Check |
-|-------|-------|
-| Events not firing | Trigger config, GTM loaded |
-| Wrong values | Variable path, data layer structure |
-| Duplicate events | Multiple containers, trigger firing twice |
-
----
-
-## Privacy and Compliance
-
-### Considerations
 - Cookie consent required in EU/UK/CA
 - No PII in analytics properties
-- Data retention settings
-- User deletion capabilities
-
-### Implementation
-- Use consent mode (wait for consent)
-- IP anonymization
-- Only collect what you need
+- Configure data retention settings
+- Use consent mode (wait for consent before firing tags)
+- IP anonymization enabled
 - Integrate with consent management platform
 
----
+## Examples
 
-## Output Format
+### Example 1: SaaS Marketing Site Tracking Plan
 
-### Tracking Plan Document
+**User prompt:** "We're launching a new marketing site for our HR software Peoplus on Next.js. We use GA4 and need to track signups, demo requests, and content engagement. Help me create a tracking plan."
 
-```markdown
-# [Site/Product] Tracking Plan
+The agent will:
+- Create a structured tracking plan with events: `cta_clicked`, `demo_form_submitted`, `signup_completed`, `pricing_toggled`, `blog_article_read`, `resource_downloaded`.
+- Define properties for each event (e.g., `demo_form_submitted` with `company_size`, `source_page`).
+- Provide GTM data layer implementation code for each event.
+- Recommend custom dimensions for `user_type` and `plan_interest`.
+- Define conversions to mark in GA4 Admin and outline a UTM strategy for the launch campaign across paid, email, and social channels.
 
-## Overview
-- Tools: GA4, GTM
-- Last updated: [Date]
+### Example 2: E-commerce Conversion Funnel Audit
 
-## Events
+**User prompt:** "Our Shopify store DailyBrew sells specialty coffee. We have GA4 installed but can't see where people drop off between product view and purchase. Our conversion rate is 1.2% and we need better funnel tracking."
 
-| Event Name | Description | Properties | Trigger |
-|------------|-------------|------------|---------|
-| signup_completed | User completes signup | method, plan | Success page |
+The agent will:
+- Audit the current GA4 setup and identify missing events in the purchase funnel.
+- Create a funnel tracking plan: `product_viewed` (with `product_name`, `price`, `category`), `add_to_cart`, `cart_viewed`, `checkout_started`, `shipping_selected`, `payment_submitted`, `purchase_completed`.
+- Provide Shopify-specific GTM implementation using Shopify's data layer.
+- Set up enhanced e-commerce tracking in GA4 with proper product properties.
+- Recommend a validation process using GA4 DebugView to confirm each funnel step fires correctly.
 
-## Custom Dimensions
+## Guidelines
 
-| Name | Scope | Parameter |
-|------|-------|-----------|
-| user_type | User | user_type |
-
-## Conversions
-
-| Conversion | Event | Counting |
-|------------|-------|----------|
-| Signup | signup_completed | Once per session |
-```
-
----
-
-## Task-Specific Questions
-
-1. What tools are you using (GA4, Mixpanel, etc.)?
-2. What key actions do you want to track?
-3. What decisions will this data inform?
-4. Who implements - dev team or marketing?
-5. Are there privacy/consent requirements?
-6. What's already tracked?
-
----
-
-## Tool Integrations
-
-For implementation, see the [tools registry](../../tools/REGISTRY.md). Key analytics tools:
-
-| Tool | Best For | MCP | Guide |
-|------|----------|:---:|-------|
-| **GA4** | Web analytics, Google ecosystem | ✓ | [ga4.md](../../tools/integrations/ga4.md) |
-| **Mixpanel** | Product analytics, event tracking | - | [mixpanel.md](../../tools/integrations/mixpanel.md) |
-| **Amplitude** | Product analytics, cohort analysis | - | [amplitude.md](../../tools/integrations/amplitude.md) |
-| **PostHog** | Open-source analytics, session replay | - | [posthog.md](../../tools/integrations/posthog.md) |
-| **Segment** | Customer data platform, routing | - | [segment.md](../../tools/integrations/segment.md) |
-
----
-
-## Related Skills
-
-- **ab-test-setup**: For experiment tracking
-- **seo-audit**: For organic traffic analysis
-- **page-cro**: For conversion optimization (uses this data)
+- **Always start with questions, not tools** — understand what decisions the data will inform before choosing what to track.
+- **Avoid PII in event properties** — never pass emails, full names, or other personally identifiable information as event parameters.
+- **Test tracking before going live** — use GA4 DebugView and GTM Preview Mode to verify every event fires correctly with the right properties.
+- **Don't duplicate automatic properties** — GA4 already captures page_location, page_referrer, and other standard parameters. Only add custom properties that provide additional context.
+- **Document naming conventions upfront** — inconsistent event names (mixing `signupCompleted` with `signup_completed`) create data headaches that are painful to fix later.
+- **Keep UTM parameters lowercase and consistent** — `utm_source=Google` and `utm_source=google` create separate entries in reports. Standardize before launching campaigns.
+- **Plan for consent** — implement consent mode from day one. Retrofitting cookie consent is much harder than building it in.

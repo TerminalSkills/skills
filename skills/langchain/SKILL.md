@@ -5,15 +5,21 @@ description: >-
   AI chains, build RAG pipelines, implement agents with tools, set up document
   loaders, create vector stores, build conversational AI, implement prompt
   templates, chain LLM calls, add memory to chatbots, or orchestrate language
-  model workflows. Covers LangChain v0.3+ with LCEL (LangChain Expression Language),
-  structured output, tool calling, retrieval, and production deployment patterns.
+  model workflows. Covers LangChain v0.3+ with LCEL (LangChain Expression
+  Language), structured output, tool calling, retrieval, and production
+  deployment patterns.
 license: Apache-2.0
-compatibility: "Python 3.9+ or Node.js 18+ (langchain, langchain-core, langchain-community)"
+compatibility: 'Python 3.9+ or Node.js 18+ (langchain, langchain-core, langchain-community)'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: ai
-  tags: ["langchain", "llm", "rag", "agents", "ai-chains", "retrieval"]
+  version: 1.0.0
+  category: data-ai
+  tags:
+    - langchain
+    - llm
+    - rag
+    - agents
+    - ai-chains
 ---
 
 # LangChain
@@ -234,76 +240,50 @@ splitter = RecursiveCharacterTextSplitter(
 ### Step 5: Vector Stores
 
 ```python
-# Chroma (local, good for development)
+# Chroma (local dev), FAISS (fast in-memory), Pinecone (managed production)
 from langchain_chroma import Chroma
 vectorstore = Chroma.from_documents(docs, embeddings, persist_directory="./chroma_db")
 
-# FAISS (fast, in-memory)
-from langchain_community.vectorstores import FAISS
-vectorstore = FAISS.from_documents(docs, embeddings)
-vectorstore.save_local("faiss_index")
-
-# Pinecone (managed, production)
-from langchain_pinecone import PineconeVectorStore
-vectorstore = PineconeVectorStore.from_documents(docs, embeddings, index_name="my-index")
-
-# Retriever with filters
-retriever = vectorstore.as_retriever(
-    search_type="mmr",  # Maximum Marginal Relevance for diversity
-    search_kwargs={"k": 5, "fetch_k": 20}
-)
+# Use MMR retrieval for diversity over pure similarity
+retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 5, "fetch_k": 20})
 ```
 
-### Step 6: Streaming and Async
+### Step 6: Production Patterns
 
 ```python
 # Streaming
 async for chunk in chain.astream({"question": "Explain quantum computing"}):
     print(chunk, end="", flush=True)
 
-# Batch processing
+# Batch processing with concurrency control
 results = chain.batch([
     {"question": "What is Python?"},
     {"question": "What is Rust?"},
-    {"question": "What is Go?"},
 ], config={"max_concurrency": 3})
 
-# Stream events (for complex chains)
-async for event in chain.astream_events(input, version="v2"):
-    if event["event"] == "on_chat_model_stream":
-        print(event["data"]["chunk"].content, end="")
-```
-
-### Step 7: Production Patterns
-
-#### Error Handling with Fallbacks
-```python
-from langchain_openai import ChatOpenAI
+# Fallbacks: use a different provider if primary fails
 from langchain_anthropic import ChatAnthropic
+llm_with_fallback = ChatOpenAI(model="gpt-4o").with_fallback([ChatAnthropic(model="claude-sonnet-4-20250514")])
 
-primary = ChatOpenAI(model="gpt-4o")
-fallback = ChatAnthropic(model="claude-sonnet-4-20250514")
-
-llm_with_fallback = primary.with_fallback([fallback])
-chain = prompt | llm_with_fallback | StrOutputParser()
-```
-
-#### Caching
-```python
+# Caching: avoid duplicate LLM calls
 from langchain_core.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
-
 set_llm_cache(SQLiteCache(database_path=".langchain_cache.db"))
 ```
 
-#### Rate Limiting
-```python
-llm = ChatOpenAI(model="gpt-4o", max_retries=3, request_timeout=30)
-# For batch: use max_concurrency
-results = chain.batch(inputs, config={"max_concurrency": 5})
-```
+## Examples
 
-## Best Practices
+### Example 1: Build a RAG pipeline over internal documentation
+**User prompt:** "I have 40 PDF files of internal engineering docs in ./docs/. Build a RAG pipeline so I can ask questions about our architecture and get accurate answers with source citations."
+
+The agent will create a Python script that loads all PDFs from `./docs/` using `DirectoryLoader` with `PyPDFLoader`, splits them with `RecursiveCharacterTextSplitter` (chunk_size=1000, chunk_overlap=200), creates a Chroma vector store persisted to `./chroma_db/` using `OpenAIEmbeddings`, and builds an LCEL RAG chain. The chain uses `RunnableParallel` to pass the question through while retrieving the top 5 documents via MMR search. The prompt template instructs the LLM to answer based on the provided context and cite which document each fact comes from. The output includes the answer and a "Sources" list with filenames and page numbers. Running `python rag.py "How does our authentication service handle token refresh?"` returns a grounded answer referencing `auth-service-design.pdf` page 12.
+
+### Example 2: Create a tool-calling agent that queries a database and sends Slack messages
+**User prompt:** "Build a LangChain agent that can query our PostgreSQL analytics database and post summaries to Slack channel #weekly-metrics."
+
+The agent will create a Python script using LangGraph's `create_react_agent` with two custom tools. The `query_analytics_db` tool accepts a SQL query string, connects to PostgreSQL using `psycopg2` with connection parameters from `DATABASE_URL`, executes read-only queries (with a 10-second timeout), and returns formatted results. The `send_slack_message` tool takes a channel name and message body, posts via the Slack Web API using `SLACK_BOT_TOKEN`. The agent uses `ChatOpenAI(model="gpt-4o")` and is invoked with prompts like "What was our total revenue last week? Post the summary to #weekly-metrics." The agent first calls `query_analytics_db` with `SELECT SUM(amount) FROM transactions WHERE created_at >= '2026-02-10'`, formats the result as a readable summary, then calls `send_slack_message` to post it. Error handling wraps both tools with try/except to return informative error messages instead of crashing.
+
+## Guidelines
 
 1. **Use LCEL, not legacy chains** — `LLMChain`, `SequentialChain` are deprecated
 2. **Use `langchain-{provider}` packages** — not monolithic `langchain` imports
@@ -316,10 +296,3 @@ results = chain.batch(inputs, config={"max_concurrency": 5})
 9. **Cache LLM calls** — identical prompts hit cache instead of API
 10. **Test chains with `.invoke()` first** — before adding streaming or async
 
-## Common Pitfalls
-
-- **Importing from wrong package**: Use `from langchain_openai import ChatOpenAI`, not `from langchain.chat_models import ChatOpenAI`
-- **Mixing sync/async**: Don't call `.invoke()` inside an async function; use `.ainvoke()`
-- **Ignoring token limits**: Large documents need splitting before embedding
-- **No error handling**: LLM calls fail — always add fallbacks or retries
-- **Embedding model mismatch**: Use the same embedding model for indexing and querying

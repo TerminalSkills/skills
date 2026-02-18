@@ -1,6 +1,13 @@
 {
   "skills": [
     {
+      "name": "3proxy",
+      "slug": "3proxy",
+      "description": "Deploy and configure 3proxy — a lightweight universal proxy server. Use when a user asks to set up HTTP, HTTPS, SOCKS4, SOCKS5, or transparent proxies, build proxy chains, configure authentication, set bandwidth limits, manage access control lists, set up proxy rotation, create multi-port proxy servers, configure logging and traffic accounting, or deploy a lightweight proxy without heavy VPN overhead. Covers all 3proxy features including proxy chaining, ACLs, traffic shaping, and multi-protocol support.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "a2a-protocol",
       "slug": "a2a-protocol",
       "description": "Builds Agent-to-Agent (A2A) servers and clients following Google's open protocol for agent interoperability. Use when the user wants to create an A2A-compliant agent, build an Agent Card, implement task management, connect agents across frameworks, set up agent discovery, handle streaming responses, implement push notifications, or orchestrate multi-agent workflows. Trigger words: a2a, agent to agent, agent2agent, a2a protocol, a2a server, a2a client, agent card, agent interoperability, agent collaboration, multi-agent, agent discovery, a2a sdk, a2a task.",
@@ -31,6 +38,13 @@
         "compliance",
         "screen-reader"
       ]
+    },
+    {
+      "name": "after-effects",
+      "slug": "after-effects",
+      "description": "Automate Adobe After Effects workflows. Use when a user asks to script After Effects with ExtendScript or CEP, batch render compositions, automate motion graphics templates (MOGRTs), build render pipelines with aerender, create expressions for animations, manage project files programmatically, automate text and image replacements in templates, build data-driven motion graphics, integrate After Effects with CI/CD, or control AE via command line. Covers ExtendScript, CEP panels, expressions, aerender CLI, and template automation.",
+      "category": "content",
+      "tags": []
     },
     {
       "name": "ai-slides",
@@ -129,6 +143,13 @@
       ]
     },
     {
+      "name": "audiowaveform",
+      "slug": "audiowaveform",
+      "description": "Generate waveform visualizations from audio files. Use when a user asks to create waveform images, build audio player visualizations, generate waveform data for web players, create podcast episode previews, build audio thumbnails, render waveform PNGs for social media, extract peak data as JSON, or integrate waveform generation into audio processing pipelines. Covers audiowaveform CLI, JSON/binary data output, and web player integration.",
+      "category": "content",
+      "tags": []
+    },
+    {
       "name": "auth-system-setup",
       "slug": "auth-system-setup",
       "description": "When the user wants to set up authentication and authorization for a web application. Use when the user mentions \"auth,\" \"login,\" \"OAuth,\" \"SSO,\" \"single sign-on,\" \"role-based access,\" \"RBAC,\" \"permissions,\" \"user roles,\" \"access control,\" \"authentication,\" or \"authorization.\" Covers OAuth 2.0 provider integration, session management, and role/permission architecture. For JWT-specific tasks, see jwt-handler. For security review, see security-audit.",
@@ -165,6 +186,13 @@
         "payments",
         "automation"
       ]
+    },
+    {
+      "name": "bitbucket",
+      "slug": "bitbucket",
+      "description": "Manage repositories, pipelines, and code review with Bitbucket Cloud. Use when a user asks to set up Bitbucket repositories, configure Bitbucket Pipelines for CI/CD, manage pull requests, set up branch permissions, use Bitbucket REST API 2.0, create webhooks, manage deployment environments, set up code review workflows, integrate with Jira, configure merge checks, or automate repository operations. Covers repository management, CI/CD pipelines, code review, deployments, and Atlassian ecosystem integration.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "blender-3d-modeling",
@@ -322,6 +350,13 @@
       ]
     },
     {
+      "name": "calendar-integration",
+      "slug": "calendar-integration",
+      "description": "Integrate with Google Calendar and Microsoft Outlook Calendar for scheduling, event management, and availability tracking. Use when someone asks to \"create calendar events\", \"check availability\", \"schedule meetings\", \"sync calendars\", \"Google Calendar API\", \"Outlook Calendar API\", \"booking system\", \"find free slots\", or \"manage recurring events\". Covers Google Calendar API v3, Microsoft Graph Calendar API, event CRUD, availability/free-busy queries, recurring events, and building scheduling features.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "capacity-planner",
       "slug": "capacity-planner",
       "description": "Translates performance test results into infrastructure scaling recommendations with cost estimates. Use when someone has load test data and needs to know what infrastructure changes are required to handle target traffic. Trigger words: capacity planning, scaling plan, infrastructure sizing, how many pods, RDS sizing, handle more traffic, scale for launch.",
@@ -371,6 +406,13 @@
         "pipeline",
         "deployment"
       ]
+    },
+    {
+      "name": "clickup",
+      "slug": "clickup",
+      "description": "Automate and integrate with ClickUp. Use when a user asks to manage tasks, lists, and spaces via the ClickUp API, build automations and webhooks, create custom fields, set up time tracking, manage sprints and goals, integrate ClickUp with external tools, build dashboards, automate task assignments, sync with GitHub or Slack, or extend ClickUp with custom workflows. Covers API v2, webhooks, custom fields, automations, and reporting.",
+      "category": "productivity",
+      "tags": []
     },
     {
       "name": "cloud-resource-analyzer",
@@ -453,6 +495,13 @@
       "slug": "competitor-alternatives",
       "description": "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "confluence",
+      "slug": "confluence",
+      "description": "Manage knowledge bases and documentation with Confluence Cloud. Use when a user asks to create or manage Confluence spaces, pages, and blogs, build documentation systems, automate page creation from templates, use Confluence REST API v2, manage page trees and hierarchies, set up permissions, integrate Confluence with Jira or other tools, generate reports from Confluence data, build macros or Forge apps, or migrate content between spaces. Covers content management, API automation, templates, and Atlassian ecosystem integration.",
+      "category": "documents",
       "tags": []
     },
     {
@@ -603,6 +652,13 @@
         "postgresql",
         "data-modeling"
       ]
+    },
+    {
+      "name": "davinci-resolve",
+      "slug": "davinci-resolve",
+      "description": "Automate and script DaVinci Resolve workflows. Use when a user asks to script DaVinci Resolve via Python/Lua API, automate color grading, batch render projects, manage timelines programmatically, automate media import, build render queues, create Fusion compositions via script, automate Fairlight audio processing, manage project databases, build custom tool scripts, or integrate Resolve into production pipelines. Covers the Resolve Scripting API (Python/Lua), Fusion scripting, and workflow automation.",
+      "category": "content",
+      "tags": []
     },
     {
       "name": "db-backup",
@@ -804,6 +860,13 @@
       ]
     },
     {
+      "name": "facebook-marketing",
+      "slug": "facebook-marketing",
+      "description": "Create, optimize, and automate Facebook content for Pages, Groups, and Ads. Use when someone asks to \"grow Facebook page\", \"create Facebook ads\", \"manage Facebook group\", \"Facebook API integration\", \"automate Facebook posting\", \"Facebook analytics\", or \"Facebook marketing strategy\". Covers Pages, Groups, Graph API publishing, Ads Manager API, Messenger bots, and growth strategies.",
+      "category": "marketing",
+      "tags": []
+    },
+    {
       "name": "feature-flag-manager",
       "slug": "feature-flag-manager",
       "description": "When the user needs to implement feature flags, gradual rollouts, or experiment bucketing. Use when the user mentions \"feature flag,\" \"feature toggle,\" \"gradual rollout,\" \"canary release,\" \"percentage rollout,\" \"kill switch,\" \"user bucketing,\" \"experiment assignment,\" or \"dark launch.\" Covers flag evaluation, deterministic user assignment, targeting rules, and flag lifecycle management. For experiment design, see ab-test-setup. For event tracking, see analytics-tracking.",
@@ -948,28 +1011,14 @@
       "slug": "graphql",
       "description": "Build and consume GraphQL APIs. Use when a user asks to create a GraphQL server, write GraphQL schemas, implement resolvers, set up subscriptions, build a GraphQL API, add authentication to GraphQL, optimize queries with DataLoader, implement pagination, handle file uploads, generate types from schema, consume a GraphQL endpoint, or migrate from REST to GraphQL. Covers Apollo Server, Apollo Client, schema design, resolvers, subscriptions, federation, and production patterns.",
       "category": "development",
-      "tags": [
-        "graphql",
-        "api",
-        "apollo",
-        "schema",
-        "resolvers",
-        "federation"
-      ]
+      "tags": []
     },
     {
       "name": "grpc",
       "slug": "grpc",
       "description": "Build high-performance RPC services with gRPC and Protocol Buffers. Use when a user asks to create gRPC services, define protobuf schemas, implement streaming RPCs, build microservice communication, set up service-to-service calls, implement bidirectional streaming, add interceptors/middleware to gRPC, generate client stubs, handle gRPC errors, implement health checks, configure load balancing, or build gRPC-Web for browser clients. Covers unary, server/client/bidirectional streaming, interceptors, deadlines, metadata, reflection, and production patterns.",
       "category": "development",
-      "tags": [
-        "grpc",
-        "rpc",
-        "protobuf",
-        "microservices",
-        "streaming",
-        "protocol-buffers"
-      ]
+      "tags": []
     },
     {
       "name": "hetzner-cloud",
@@ -983,6 +1032,13 @@
         "infrastructure",
         "hosting"
       ]
+    },
+    {
+      "name": "instagram-marketing",
+      "slug": "instagram-marketing",
+      "description": "Create, optimize, and automate Instagram content including Reels, Stories, carousels, and feed posts. Use when someone asks to \"grow on Instagram\", \"create Instagram Reels\", \"Instagram content strategy\", \"Instagram API integration\", \"automate Instagram posting\", \"Instagram analytics\", or \"Instagram marketing\". Covers Reels-first strategy, visual content guidelines, Instagram Graph API, and growth tactics.",
+      "category": "marketing",
+      "tags": []
     },
     {
       "name": "invoice-generator",
@@ -1008,6 +1064,13 @@
         "pipelines",
         "automation"
       ]
+    },
+    {
+      "name": "jira",
+      "slug": "jira",
+      "description": "Manage projects, issues, and workflows with Jira Cloud. Use when a user asks to set up Jira projects, create and manage issues, configure workflows, build Jira integrations, automate issue transitions, set up boards (Scrum/Kanban), manage sprints, use Jira REST API v3, create webhooks, build custom JQL queries, configure permissions and schemes, set up automation rules, or integrate Jira with CI/CD pipelines. Covers project administration, issue tracking, agile boards, API automation, and Atlassian Connect/Forge apps.",
+      "category": "productivity",
+      "tags": []
     },
     {
       "name": "job-description",
@@ -1063,15 +1126,7 @@
       "slug": "kaggle-finetune",
       "description": "End-to-end workflow for fine-tuning LLMs using Kaggle datasets. Use when downloading datasets from Kaggle for model training, preparing conversation/customer service data for chatbot fine-tuning, or building domain-specific AI assistants. Covers dataset discovery, download, preprocessing into chat format, and integration with PEFT/LoRA training.",
       "category": "data-ai",
-      "tags": [
-        "fine-tuning",
-        "kaggle",
-        "llm",
-        "peft",
-        "lora",
-        "chatbot",
-        "machine-learning"
-      ]
+      "tags": []
     },
     {
       "name": "kubernetes-helm",
@@ -1089,42 +1144,22 @@
       "name": "langchain",
       "slug": "langchain",
       "description": "Build LLM-powered applications with LangChain. Use when a user asks to create AI chains, build RAG pipelines, implement agents with tools, set up document loaders, create vector stores, build conversational AI, implement prompt templates, chain LLM calls, add memory to chatbots, or orchestrate language model workflows. Covers LangChain v0.3+ with LCEL (LangChain Expression Language), structured output, tool calling, retrieval, and production deployment patterns.",
-      "category": "ai",
-      "tags": [
-        "langchain",
-        "llm",
-        "rag",
-        "agents",
-        "ai-chains",
-        "retrieval"
-      ]
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "langgraph",
       "slug": "langgraph",
       "description": "Build stateful, multi-step AI agents and workflows with LangGraph. Use when a user asks to create AI agents with complex logic, build multi-agent systems, implement human-in-the-loop workflows, create state machines for LLMs, build agentic RAG, implement tool-calling agents with branching logic, create planning agents, build supervisor/worker patterns, or orchestrate multi-step AI pipelines with cycles, persistence, and streaming.",
-      "category": "ai",
-      "tags": [
-        "langgraph",
-        "agents",
-        "state-machines",
-        "multi-agent",
-        "workflows",
-        "orchestration"
-      ]
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "langsmith",
       "slug": "langsmith",
       "description": "Monitor, trace, debug, and evaluate LLM applications with LangSmith. Use when a user asks to trace LLM calls, debug chain executions, evaluate AI output quality, set up LLM observability, monitor agent performance, run prompt experiments, compare model outputs, create evaluation datasets, track token usage and latency, or build LLM testing pipelines. Covers tracing, datasets, evaluators, annotation queues, prompt hub, and production monitoring.",
-      "category": "ai",
-      "tags": [
-        "langsmith",
-        "llm-observability",
-        "tracing",
-        "evaluation",
-        "monitoring"
-      ]
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "launch-strategy",
@@ -1147,6 +1182,20 @@
       ]
     },
     {
+      "name": "linear",
+      "slug": "linear",
+      "description": "Manage projects and issues with Linear. Use when a user asks to set up Linear workspaces, create issues and projects, automate workflows, build Linear integrations, sync issues with GitHub, manage sprints and cycles, set up triage processes, build custom views, use Linear's GraphQL API, create webhooks, automate issue transitions, or build tools on top of Linear. Covers workspace configuration, team workflows, API automation, and integration patterns.",
+      "category": "productivity",
+      "tags": []
+    },
+    {
+      "name": "linkedin-marketing",
+      "slug": "linkedin-marketing",
+      "description": "Create, optimize, and automate LinkedIn content for personal branding, lead generation, and B2B marketing. Use when someone asks to \"write a LinkedIn post\", \"grow on LinkedIn\", \"LinkedIn content strategy\", \"LinkedIn API integration\", \"automate LinkedIn posting\", \"LinkedIn carousel\", \"LinkedIn analytics\", or \"LinkedIn outreach\". Covers content creation with platform-specific formatting, API integration, analytics, and growth strategies.",
+      "category": "marketing",
+      "tags": []
+    },
+    {
       "name": "lm-studio-subagents",
       "slug": "lm-studio-subagents",
       "description": "Offload tasks to local LLMs via LM Studio. Use when a user asks to run local models with LM Studio, save API costs by using local LLMs, create subagents with local models, offload summarization or classification to a local model, or use LM Studio's API for batch processing. Covers local model inference, task delegation, and cost optimization.",
@@ -1160,6 +1209,13 @@
       ]
     },
     {
+      "name": "load-balancer",
+      "slug": "load-balancer",
+      "description": "Configure and optimize load balancers and reverse proxies using Nginx, HAProxy, and cloud ALBs. Use when someone asks to \"set up load balancing\", \"configure Nginx reverse proxy\", \"set up HAProxy\", \"add SSL termination\", \"configure health checks\", \"proxy WebSocket connections\", \"rate limit traffic\", or \"set up failover\". Covers L4/L7 balancing, SSL, rate limiting, caching, WebSocket proxying, and health checks.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "log-analyzer",
       "slug": "log-analyzer",
       "description": "Analyze application logs, server logs, and error traces to identify root causes, patterns, and anomalies. Use when debugging production incidents, investigating error spikes, parsing crash reports, or correlating events across multiple log sources. Trigger words: logs, errors, stack trace, crash, exception, debug, incident, 500 errors, timeout, latency spike.",
@@ -1170,6 +1226,13 @@
         "incident-response",
         "observability"
       ]
+    },
+    {
+      "name": "maps-geolocation",
+      "slug": "maps-geolocation",
+      "description": "Build location-based features with mapping APIs. Use when a user asks to integrate Google Maps, Mapbox, or Leaflet, implement geocoding and reverse geocoding, calculate routes and distances, build store locators, add interactive maps to web apps, implement geofencing, work with GeoJSON, build delivery tracking systems, optimize routes for fleets, display heatmaps, implement address autocomplete, or build any location-aware application. Covers Google Maps Platform, Mapbox, Leaflet, and OpenStreetMap/Nominatim.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "markdown-writer",
@@ -1238,6 +1301,20 @@
       ]
     },
     {
+      "name": "microsoft-teams",
+      "slug": "microsoft-teams",
+      "description": "Build bots, automate workflows, and manage Microsoft Teams programmatically via Microsoft Graph API. Use when someone asks to \"build a Teams bot\", \"automate Teams messages\", \"create Teams channels\", \"integrate with Teams\", \"Teams webhook\", \"send Teams notifications\", \"manage Teams meetings\", or \"Teams app development\". Covers Graph API for messaging, channels, meetings, bots with Bot Framework, incoming webhooks, and Power Automate integration.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "microsoft-word",
+      "slug": "microsoft-word",
+      "description": "Create, edit, and manipulate Word documents (.docx) programmatically. Use when someone asks to \"generate a Word document\", \"create a report in docx\", \"mail merge\", \"fill Word template\", \"extract text from Word\", \"convert markdown to Word\", \"add tables to Word\", or \"automate document generation\". Covers python-docx for file manipulation, docxtpl for templates, and Microsoft Graph API for cloud documents.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "model-router",
       "slug": "model-router",
       "description": "Smart routing between multiple LLMs based on task complexity, cost, and capabilities. Use when a user asks to route between models, optimize LLM costs, select the best model for a task, build a model gateway, create a multi-model pipeline, or balance cost vs quality across LLM providers. Covers routing strategies, fallback chains, and cost optimization.",
@@ -1261,6 +1338,20 @@
         "workspaces",
         "turborepo"
       ]
+    },
+    {
+      "name": "moviepy",
+      "slug": "moviepy",
+      "description": "Edit and compose video with Python using MoviePy. Use when a user asks to programmatically edit videos, create video montages, add text overlays, build automated video pipelines, composite multiple clips, apply video effects, generate social media videos from templates, concatenate clips, extract audio, create GIFs, build slideshows, add transitions, resize and crop videos, or integrate video editing into Python applications. Covers MoviePy 2.x for compositing, effects, text, and rendering.",
+      "category": "content",
+      "tags": []
+    },
+    {
+      "name": "ms-access",
+      "slug": "ms-access",
+      "description": "Build and manage Microsoft Access databases, queries, forms, reports, and VBA automation. Use when someone asks to \"create Access database\", \"write Access queries\", \"build Access forms\", \"Access VBA macro\", \"migrate from Access\", \"Access report\", \"link Access to SQL Server\", or \"convert Access to web app\". Covers table design, relationships, SQL queries, forms, reports, VBA automation, and migration strategies to modern platforms.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "n8n-self-host",
@@ -1326,6 +1417,13 @@
       ]
     },
     {
+      "name": "obsidian",
+      "slug": "obsidian",
+      "description": "Build plugins, automate workflows, and manage knowledge bases in Obsidian. Use when a user asks to create Obsidian plugins, set up vault structures, automate note-taking workflows, build templates with Templater, write Dataview queries, create custom CSS themes, integrate Obsidian with external tools, build publishing pipelines, manage Zettelkasten or PKM systems, implement daily notes workflows, or extend Obsidian with community plugins. Covers plugin development, vault architecture, automation, and publishing.",
+      "category": "productivity",
+      "tags": []
+    },
+    {
       "name": "offer-letter",
       "slug": "offer-letter",
       "description": "Create formal employment offer letters with compensation details and terms. Use when a user asks to write an offer letter, draft an employment offer, create a job offer, compose a compensation letter, generate a formal hiring letter, or prepare an employment agreement for a candidate.",
@@ -1359,6 +1457,26 @@
       "tags": []
     },
     {
+      "name": "onedrive",
+      "slug": "onedrive",
+      "description": "Manage files and folders in OneDrive and OneDrive for Business via Microsoft Graph API. Use when someone asks to \"upload to OneDrive\", \"sync files with OneDrive\", \"share OneDrive files\", \"manage OneDrive folders\", \"OneDrive API integration\", \"backup to OneDrive\", or \"automate file management in OneDrive\". Covers file CRUD, sharing, sync, search, large file upload, thumbnails, and delta queries for change tracking.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "onenote",
+      "slug": "onenote",
+      "description": "Create, read, and manage OneNote notebooks, sections, and pages via Microsoft Graph API. Use when someone asks to \"create OneNote pages\", \"read OneNote notes\", \"automate OneNote\", \"save to OneNote\", \"extract OneNote content\", \"organize OneNote notebooks\", or \"OneNote API\". Covers notebooks, sections, pages (create with HTML), content extraction, and search.",
+      "category": "development",
+      "tags": [
+        "onenote",
+        "microsoft-365",
+        "notes",
+        "graph-api",
+        "api"
+      ]
+    },
+    {
       "name": "openclaw",
       "slug": "openclaw",
       "description": "Deploy and manage OpenClaw, a self-hosted gateway bridging messaging platforms to AI coding agents. Use when a user asks to set up OpenClaw, connect WhatsApp or Telegram or Discord to an AI agent, configure multi-agent routing, schedule cron jobs in OpenClaw, set up webhooks, manage OpenClaw channels, pair a messaging account, configure heartbeats, spawn sub-agents, or troubleshoot OpenClaw gateway issues. Covers installation, channel setup, agent configuration, cron scheduling, webhooks, and sub-agents.",
@@ -1370,6 +1488,20 @@
         "gateway",
         "self-hosted"
       ]
+    },
+    {
+      "name": "openvpn",
+      "slug": "openvpn",
+      "description": "Deploy and manage OpenVPN servers and clients. Use when a user asks to set up a VPN server, create client certificates, configure site-to-site tunnels, set up split tunneling, manage PKI with EasyRSA, harden OpenVPN security, automate client provisioning, configure routing and NAT, set up MFA for VPN, monitor connected clients, or troubleshoot VPN connectivity. Covers server deployment, PKI management, client configuration, and production hardening.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "outlook-email",
+      "slug": "outlook-email",
+      "description": "Send, read, and manage emails via Microsoft Outlook using the Graph API. Use when someone asks to \"send email via Outlook\", \"read Outlook inbox\", \"automate Outlook emails\", \"manage Outlook folders\", \"Outlook API integration\", \"email automation with Graph API\", \"search Outlook emails\", or \"process incoming emails\". Covers sending (plain, HTML, attachments), reading, searching, folders, rules, and focused inbox via Microsoft Graph API.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "page-cro",
@@ -1468,6 +1600,13 @@
         "telegram-bot",
         "iot"
       ]
+    },
+    {
+      "name": "playwright-testing",
+      "slug": "playwright-testing",
+      "description": "Write and maintain end-to-end tests with Playwright. Use when someone asks to \"add e2e tests\", \"test my web app\", \"set up Playwright\", \"write browser tests\", \"test login flow\", \"visual regression testing\", \"test across browsers\", or \"automate UI testing\". Covers test setup, page objects, authentication, API mocking, visual comparisons, and CI integration.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "popup-cro",
@@ -1659,14 +1798,7 @@
       "slug": "rest-api",
       "description": "Design and build RESTful APIs. Use when a user asks to create a REST API, design API endpoints, implement CRUD operations, add authentication to an API, handle pagination and filtering, set up API versioning, generate OpenAPI/Swagger docs, implement rate limiting, build middleware, handle file uploads, add CORS, implement HATEOAS, or structure an Express/Fastify/Koa/Flask/FastAPI backend. Covers HTTP methods, status codes, resource modeling, error handling, validation, and production deployment patterns.",
       "category": "development",
-      "tags": [
-        "rest",
-        "api",
-        "express",
-        "fastapi",
-        "openapi",
-        "crud"
-      ]
+      "tags": []
     },
     {
       "name": "resume-tailor",
@@ -1704,6 +1836,20 @@
         "architecture",
         "database-design"
       ]
+    },
+    {
+      "name": "salesforce",
+      "slug": "salesforce",
+      "description": "Build integrations and automations with Salesforce. Use when a user asks to work with Salesforce CRM, manage leads, contacts, opportunities, and accounts, build SOQL/SOSL queries, create Apex triggers and classes, configure Flows, integrate via REST/SOAP/Bulk APIs, build Lightning Web Components, set up Salesforce DX projects, manage deployments, work with Platform Events, build Connected Apps, or automate Salesforce workflows. Covers Sales Cloud, Service Cloud, APIs, Apex, LWC, and DevOps.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "sap",
+      "slug": "sap",
+      "description": "Integrate with SAP systems and build extensions. Use when a user asks to connect to SAP S/4HANA, SAP Business One, or SAP ERP via OData, RFC, BAPI, or IDoc interfaces, build SAP BTP (Business Technology Platform) applications, work with SAP CAP (Cloud Application Programming), consume SAP APIs from the API Business Hub, manage master data, automate procurement or sales processes, build Fiori apps, extract SAP data for analytics, or integrate SAP with external systems. Covers S/4HANA APIs, Business One, BTP, CAP, and integration patterns.",
+      "category": "business",
+      "tags": []
     },
     {
       "name": "schema-markup",
@@ -1783,6 +1929,13 @@
       ]
     },
     {
+      "name": "sharepoint",
+      "slug": "sharepoint",
+      "description": "Build integrations with SharePoint Online for document management, site automation, and intranet development. Use when someone asks to \"integrate with SharePoint\", \"upload files to SharePoint\", \"manage SharePoint lists\", \"create SharePoint site\", \"automate SharePoint\", \"search SharePoint documents\", \"SharePoint API\", or \"SharePoint permissions\". Covers Graph API for sites, lists, document libraries, file operations, search, permissions, and SharePoint Framework (SPFx) development.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "signup-flow-cro",
       "slug": "signup-flow-cro",
       "description": "When the user wants to optimize signup, registration, account creation, or trial activation flows. Also use when the user mentions \"signup conversions,\" \"registration friction,\" \"signup form optimization,\" \"free trial signup,\" \"reduce signup dropoff,\" or \"account creation flow.\" For post-signup onboarding, see onboarding-cro. For lead capture forms (not account creation), see form-cro.",
@@ -1806,6 +1959,13 @@
       "slug": "social-content",
       "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "sox",
+      "slug": "sox",
+      "description": "Process audio files with SoX (Sound eXchange). Use when a user asks to apply audio effects, mix and combine audio tracks, convert audio formats, batch process audio files, normalize volume, trim silence, add reverb or echo, change tempo or pitch, split audio files, create spectrograms, generate test tones, resample audio, or build audio processing pipelines. Covers all SoX effects, format conversion, mixing, and batch workflows.",
+      "category": "content",
       "tags": []
     },
     {
@@ -1846,6 +2006,13 @@
         "testing",
         "debugging"
       ]
+    },
+    {
+      "name": "supabase",
+      "slug": "supabase",
+      "description": "Build applications with Supabase as the backend — Postgres database, authentication, real-time subscriptions, storage, and edge functions. Use when someone asks to \"set up Supabase\", \"add authentication\", \"create a real-time app\", \"set up row-level security\", \"configure Supabase storage\", \"write edge functions\", or \"migrate from Firebase to Supabase\". Covers project setup, schema design with RLS, auth flows, real-time subscriptions, file storage, and edge functions.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "table-extractor",
@@ -1921,6 +2088,20 @@
         "jest",
         "pytest"
       ]
+    },
+    {
+      "name": "tiktok-marketing",
+      "slug": "tiktok-marketing",
+      "description": "Create, optimize, and automate TikTok content for brand awareness, audience growth, and conversions. Use when someone asks to \"grow on TikTok\", \"create TikTok content\", \"TikTok marketing strategy\", \"TikTok API integration\", \"automate TikTok posting\", \"TikTok analytics\", or \"TikTok for business\". Covers short-form video strategy, trending sounds, TikTok Content Posting API, analytics, and growth tactics.",
+      "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "twitter-x-marketing",
+      "slug": "twitter-x-marketing",
+      "description": "Create, optimize, and automate content for Twitter/X including tweets, threads, Spaces, and API automation. Use when someone asks to \"write a tweet\", \"create a Twitter thread\", \"grow on X\", \"Twitter API integration\", \"automate tweeting\", \"Twitter analytics\", \"Twitter bot\", or \"X content strategy\". Covers platform-specific formatting, X API v2 integration, thread creation, analytics, and growth tactics.",
+      "category": "marketing",
+      "tags": []
     },
     {
       "name": "ui-ux-pro-max",
@@ -2018,15 +2199,7 @@
       "slug": "web-vitals-analyzer",
       "description": "Analyze and optimize Core Web Vitals (LCP, CLS, INP) and frontend performance. Use when a user asks to improve page speed, fix layout shifts, reduce loading times, analyze Lighthouse reports, optimize bundle size, or improve Google PageSpeed scores. Covers image optimization, code splitting, font loading, render-blocking resources, and JavaScript execution costs.",
       "category": "development",
-      "tags": [
-        "performance",
-        "web-vitals",
-        "lighthouse",
-        "frontend",
-        "lcp",
-        "cls",
-        "inp"
-      ]
+      "tags": []
     },
     {
       "name": "webhook-processor",
@@ -2078,6 +2251,34 @@
       ]
     },
     {
+      "name": "whisper",
+      "slug": "whisper",
+      "description": "Transcribe audio to text with OpenAI Whisper. Use when a user asks to transcribe audio files, generate subtitles (SRT/VTT), transcribe podcasts, convert speech to text, translate audio to English, build transcription pipelines, do speaker diarization, transcribe meetings, process voice memos, create searchable audio archives, or integrate speech-to-text into applications. Covers OpenAI Whisper (local), Whisper API, faster-whisper, whisper.cpp, and production deployment patterns.",
+      "category": "content",
+      "tags": []
+    },
+    {
+      "name": "wireguard",
+      "slug": "wireguard",
+      "description": "Deploy and manage WireGuard VPN tunnels. Use when a user asks to set up a WireGuard server, create peer configurations, build mesh networks, configure split tunneling, set up site-to-site links, automate peer provisioning, integrate with DNS (Pi-hole/AdGuard), manage keys, monitor connections, or build WireGuard-based overlay networks. Covers server setup, peer management, routing, DNS integration, and production deployment patterns.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "xray",
+      "slug": "xray",
+      "description": "Deploy and configure Xray proxy servers. Use when a user asks to set up VLESS, VMess, Trojan, or Shadowsocks proxies, configure Reality or TLS transport, deploy Xray with XTLS, set up fallback routing, manage multi-user access, configure traffic routing rules, set up CDN-based tunneling, build subscription links for client apps, monitor Xray traffic, or bypass network restrictions. Covers all major Xray protocols, transports, and deployment patterns.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "youtube-marketing",
+      "slug": "youtube-marketing",
+      "description": "Create, optimize, and manage YouTube content for channel growth, audience building, and monetization. Use when someone asks to \"grow on YouTube\", \"optimize YouTube videos\", \"YouTube SEO\", \"YouTube Shorts strategy\", \"YouTube API integration\", \"automate YouTube uploads\", \"YouTube analytics\", \"YouTube thumbnail\", or \"YouTube content strategy\". Covers long-form video, Shorts, SEO, thumbnail design, YouTube Data API, analytics, monetization, and growth strategies.",
+      "category": "marketing",
+      "tags": []
+    },
+    {
       "name": "youtube-transcription",
       "slug": "youtube-transcription",
       "description": "Transcribe YouTube videos to text using OpenAI Whisper and yt-dlp. Use when the user wants to get a transcript from a YouTube video, generate subtitles, convert video speech to text, create SRT/VTT captions, or extract spoken content from YouTube URLs.",
@@ -2089,10 +2290,23 @@
         "subtitles",
         "speech-to-text"
       ]
+    },
+    {
+      "name": "yt-dlp",
+      "slug": "yt-dlp",
+      "description": "Download video and audio from YouTube and other platforms with yt-dlp. Use when a user asks to download YouTube videos, extract audio from videos, download playlists, get subtitles, download specific formats or qualities, batch download, archive channels, extract metadata, embed thumbnails, download from social media platforms (Twitter, Instagram, TikTok), or build media ingestion pipelines. Covers format selection, audio extraction, playlists, subtitles, metadata, and automation.",
+      "category": "content",
+      "tags": []
+    },
+    {
+      "name": "zoho",
+      "slug": "zoho",
+      "description": "Integrate and automate Zoho products. Use when a user asks to work with Zoho CRM, Zoho Books, Zoho Desk, Zoho Projects, Zoho Mail, or Zoho Creator, build custom integrations via Zoho APIs, automate workflows with Deluge scripting, sync data between Zoho apps and external systems, manage leads and deals, automate invoicing, build custom Zoho Creator apps, set up webhooks, or manage Zoho organization settings. Covers Zoho CRM, Books, Desk, Projects, Creator, and cross-product integrations.",
+      "category": "business",
+      "tags": []
     }
   ],
   "categories": [
-    "ai",
     "automation",
     "business",
     "content",
@@ -2105,5 +2319,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-02-18T10:18:11.176Z"
+  "updatedAt": "2026-02-18T21:03:53.843Z"
 }

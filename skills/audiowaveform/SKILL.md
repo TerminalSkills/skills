@@ -4,16 +4,21 @@ description: >-
   Generate waveform visualizations from audio files. Use when a user asks to
   create waveform images, build audio player visualizations, generate waveform
   data for web players, create podcast episode previews, build audio thumbnails,
-  render waveform PNGs for social media, extract peak data as JSON, or
-  integrate waveform generation into audio processing pipelines. Covers
-  audiowaveform CLI, JSON/binary data output, and web player integration.
+  render waveform PNGs for social media, extract peak data as JSON, or integrate
+  waveform generation into audio processing pipelines. Covers audiowaveform CLI,
+  JSON/binary data output, and web player integration.
 license: Apache-2.0
-compatibility: "Linux, macOS (audiowaveform 1.7+)"
+compatibility: 'Linux, macOS (audiowaveform 1.7+)'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: audio
-  tags: ["audiowaveform", "waveform", "audio", "visualization", "podcast", "web-player"]
+  version: 1.0.0
+  category: content
+  tags:
+    - audiowaveform
+    - waveform
+    - audio
+    - visualization
+    - podcast
 ---
 
 # Audiowaveform
@@ -222,33 +227,6 @@ for f in "$AUDIO_DIR"/*.{mp3,wav}; do
 done
 ```
 
-**API endpoint for on-demand generation:**
-```typescript
-import { execSync } from "child_process";
-import express from "express";
-
-const app = express();
-
-app.get("/api/waveform/:episodeId", (req, res) => {
-  const { episodeId } = req.params;
-  const format = req.query.format || "json"; // json, png
-  const audioPath = `./episodes/${episodeId}.mp3`;
-  const outPath = `/tmp/waveform-${episodeId}.${format}`;
-
-  try {
-    if (format === "json") {
-      execSync(`audiowaveform -i "${audioPath}" -o "${outPath}" --pixels-per-second 20 --bits 8`);
-      res.json(JSON.parse(require("fs").readFileSync(outPath, "utf-8")));
-    } else {
-      execSync(`audiowaveform -i "${audioPath}" -o "${outPath}" --width 1200 --height 150 --background-color ffffff --waveform-color 3b82f6`);
-      res.sendFile(outPath);
-    }
-  } catch (err) {
-    res.status(500).json({ error: "Waveform generation failed" });
-  }
-});
-```
-
 ### Step 6: Convert Between Formats
 
 ```bash
@@ -265,3 +243,32 @@ audiowaveform -i input.wav -o peaks.dat --bits 8 --pixels-per-second 20
 audiowaveform -i peaks.dat -o overview.png --width 2000 --height 100
 audiowaveform -i peaks.dat -o detail.png --start 60 --end 120 --width 800 --height 200
 ```
+
+## Examples
+
+### Example 1: Generate waveform previews for a podcast website
+**User prompt:** "I have 50 podcast episodes as MP3 files in ./episodes/. Generate PNG waveform previews and JSON peak data for each one so I can use them with wavesurfer.js on my Next.js site."
+
+The agent will:
+1. Verify audiowaveform is installed, install it via `apt` or `brew` if missing.
+2. Create output directories `./waveforms/png/` and `./waveforms/json/`.
+3. Write a bash loop that iterates over all `.mp3` files in `./episodes/`, generating a 1200x150 PNG with brand colors and a JSON peaks file at 20 pixels-per-second with 8-bit depth for each episode.
+4. Run the batch script and report how many waveforms were generated.
+5. Show a wavesurfer.js code snippet that loads the pre-generated JSON peaks for instant waveform rendering without client-side audio decoding.
+
+### Example 2: Create social media audio preview images
+**User prompt:** "I need OG-image-sized waveform graphics for sharing podcast episodes on Twitter. Dark background, cyan waveform, no axis labels. Do episodes 10 through 15."
+
+The agent will:
+1. Identify the audio files for episodes 10-15 in the episodes directory.
+2. Run audiowaveform for each file with `--width 1200 --height 630` (OG image dimensions), `--background-color 0f172a`, `--waveform-color 06b6d4`, and `--no-axis-labels`.
+3. Save output files as `episode-10-social.png` through `episode-15-social.png`.
+4. Confirm the files were generated and note their file sizes.
+
+## Guidelines
+
+- Always check that audiowaveform is installed before running commands; it is not available in most default package managers and may require building from source on older systems.
+- Use `--pixels-per-second 20` with `--bits 8` for JSON peaks data intended for web players; higher values produce unnecessarily large files for overview waveforms.
+- Pre-generate waveform JSON server-side rather than decoding audio client-side; this eliminates multi-second load times for listeners on the web.
+- For social media images, use `--no-axis-labels` to produce cleaner graphics without time markers that clutter the visual at small sizes.
+- When processing large batches, generate the binary `.dat` format first, then render PNGs and JSONs from the `.dat` file to avoid re-reading the audio multiple times.

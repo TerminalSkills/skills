@@ -2,17 +2,25 @@
 name: microsoft-word
 description: >-
   Create, edit, and manipulate Word documents (.docx) programmatically. Use when
-  someone asks to "generate a Word document", "create a report in docx", "mail merge",
-  "fill Word template", "extract text from Word", "convert markdown to Word",
-  "add tables to Word", or "automate document generation". Covers python-docx for
-  file manipulation, docxtpl for templates, and Microsoft Graph API for cloud documents.
+  someone asks to "generate a Word document", "create a report in docx", "mail
+  merge", "fill Word template", "extract text from Word", "convert markdown to
+  Word", "add tables to Word", or "automate document generation". Covers
+  python-docx for file manipulation, docxtpl for templates, and Microsoft Graph
+  API for cloud documents.
 license: Apache-2.0
-compatibility: "python-docx (Python 3.8+), docxtpl for templates, Graph API for SharePoint/OneDrive docs."
+compatibility: >-
+  python-docx (Python 3.8+), docxtpl for templates, Graph API for
+  SharePoint/OneDrive docs.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: development
-  tags: ["microsoft-word", "docx", "document-generation", "templates", "mail-merge", "api"]
+  tags:
+    - microsoft-word
+    - docx
+    - document-generation
+    - templates
+    - mail-merge
 ---
 
 # Microsoft Word
@@ -237,56 +245,7 @@ for rel in doc.part.rels.values():
             f.write(image_data)
 ```
 
-### Step 4: Convert Markdown to Word
-
-```python
-import markdown
-from docx import Document
-from docx.shared import Pt
-from html.parser import HTMLParser
-
-def markdown_to_docx(md_text, output_path):
-    """Convert markdown text to a formatted Word document."""
-    doc = Document()
-    
-    lines = md_text.strip().split('\n')
-    for line in lines:
-        stripped = line.strip()
-        if not stripped:
-            continue
-        
-        # Headings
-        if stripped.startswith('# '):
-            doc.add_heading(stripped[2:], level=1)
-        elif stripped.startswith('## '):
-            doc.add_heading(stripped[3:], level=2)
-        elif stripped.startswith('### '):
-            doc.add_heading(stripped[4:], level=3)
-        # Bullet lists
-        elif stripped.startswith('- ') or stripped.startswith('* '):
-            doc.add_paragraph(stripped[2:], style='List Bullet')
-        # Numbered lists
-        elif stripped[0].isdigit() and '. ' in stripped[:4]:
-            text = stripped.split('. ', 1)[1]
-            doc.add_paragraph(text, style='List Number')
-        # Regular paragraph
-        else:
-            p = doc.add_paragraph()
-            # Handle **bold** and *italic*
-            import re
-            parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', stripped)
-            for part in parts:
-                if part.startswith('**') and part.endswith('**'):
-                    p.add_run(part[2:-2]).bold = True
-                elif part.startswith('*') and part.endswith('*'):
-                    p.add_run(part[1:-1]).italic = True
-                else:
-                    p.add_run(part)
-    
-    doc.save(output_path)
-```
-
-### Step 5: Graph API (Cloud Documents)
+### Step 4: Graph API (Cloud Documents)
 
 ```typescript
 // Create Word document in OneDrive/SharePoint
@@ -306,7 +265,19 @@ const editLink = await graphClient
 // Opens in Word Online for collaborative editing
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: Generate a quarterly business report as a Word document
+**User prompt:** "Create a Q4 2025 quarterly report for Athena SaaS. Revenue was $3.8M (up 18% YoY), 2,400 active customers, churn dropped to 1.9%. Include an executive summary, financial table, and priorities for Q1 2026."
+
+The agent will write a Python script using `python-docx` that creates an A4 document with 2.5cm margins, a centered title "Quarterly Business Report — Q4 2025", a subtitle "Athena SaaS — Confidential" in gray, then a page break. The Executive Summary section uses bold runs for key figures ("Revenue grew 18% year-over-year, reaching $3.8M"). A Financial Summary table with the `Light Grid Accent 1` style has columns for Metric, Q4 2024, Q4 2025, and Change, populated with Revenue ($3.2M / $3.8M / +18%), Customers (1,980 / 2,400 / +21%), and Churn (2.6% / 1.9% / -27%). A Priorities section uses numbered list style with items like "Launch enterprise SSO by February" and "Expand sales team to cover EMEA." Headers and footers are set with "Athena SaaS — Confidential" and page numbers. The file saves as `athena-q4-2025-report.docx`.
+
+### Example 2: Generate personalized offer letters from a CSV using mail merge
+**User prompt:** "I have an offer letter template at ./templates/offer-letter.docx and a CSV at ./data/new-hires.csv with columns name, position, salary, start_date, and manager. Generate individual offer letters for each person."
+
+The agent will write a Python script using `docxtpl` that loads the template and reads the CSV with `csv.DictReader`. For each row, it renders the template with the context `{'name': 'Elena Vasquez', 'position': 'Senior Backend Engineer', 'salary': '$165,000', 'start_date': 'March 17, 2026', 'manager': 'David Park'}` (and so on for each hire). Each rendered document saves to `./offers/offer-elena-vasquez.docx` with the filename derived from the name field. The script prints a summary like "Generated 8 offer letters in ./offers/" and handles edge cases like missing fields by logging warnings instead of crashing.
+
+## Guidelines
 
 - Use templates (docxtpl) for repetitive documents — don't generate structure in code every time
 - Set explicit font sizes and styles — don't rely on Normal style defaults

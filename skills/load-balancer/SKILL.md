@@ -1,18 +1,24 @@
 ---
 name: load-balancer
 description: >-
-  Configure and optimize load balancers and reverse proxies using Nginx, HAProxy,
-  and cloud ALBs. Use when someone asks to "set up load balancing", "configure Nginx
-  reverse proxy", "set up HAProxy", "add SSL termination", "configure health checks",
-  "proxy WebSocket connections", "rate limit traffic", or "set up failover". Covers
-  L4/L7 balancing, SSL, rate limiting, caching, WebSocket proxying, and health checks.
+  Configure and optimize load balancers and reverse proxies using Nginx,
+  HAProxy, and cloud ALBs. Use when someone asks to "set up load balancing",
+  "configure Nginx reverse proxy", "set up HAProxy", "add SSL termination",
+  "configure health checks", "proxy WebSocket connections", "rate limit
+  traffic", or "set up failover". Covers L4/L7 balancing, SSL, rate limiting,
+  caching, WebSocket proxying, and health checks.
 license: Apache-2.0
-compatibility: "Nginx 1.25+, HAProxy 2.8+, AWS ALB/NLB, Traefik"
+compatibility: 'Nginx 1.25+, HAProxy 2.8+, AWS ALB/NLB, Traefik'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: devops
-  tags: ["load-balancer", "nginx", "haproxy", "reverse-proxy", "ssl", "devops"]
+  tags:
+    - load-balancer
+    - nginx
+    - haproxy
+    - reverse-proxy
+    - ssl
 ---
 
 # Load Balancer
@@ -257,89 +263,32 @@ backend ws_servers
 
 ### Step 5: Set Up SSL with Let's Encrypt
 
-```bash
-# Install and get certificate
-apt install certbot python3-certbot-nginx
-certbot --nginx -d example.com -d www.example.com
+Install certbot (`apt install certbot python3-certbot-nginx`), run `certbot --nginx -d example.com`, and add a cron for auto-renewal: `0 3 * * * certbot renew --quiet --post-hook 'nginx -s reload'`.
 
-# Auto-renewal cron
-echo "0 3 * * * certbot renew --quiet --post-hook 'nginx -s reload'" | crontab -
-```
+### Step 6: TCP/UDP Load Balancing and Algorithms
 
-### Step 6: TCP/UDP Load Balancing (L4)
+For databases or Redis, use the Nginx `stream` block (outside `http`) with `proxy_pass` to upstream groups. Choose algorithms based on workload:
 
-For databases, Redis, or other non-HTTP services:
+- **round-robin** (default) — Equal distribution for stateless servers
+- **least_conn** — Fewest active connections, best for variable request durations
+- **ip_hash** — Sticky sessions by client IP for in-memory sessions
+- **hash $key consistent** — Minimizes redistribution when servers change (good for caches)
 
-```nginx
-# Add to nginx.conf (outside http block)
-stream {
-    upstream postgres {
-        least_conn;
-        server db1:5432 weight=5;
-        server db2:5432 weight=5;
-        server db3:5432 backup;
-    }
+Health checks: Nginx uses passive checks (`max_fails=3 fail_timeout=30s`), while HAProxy uses active probes (`option httpchk GET /health` with `inter 5s fall 3 rise 2`).
 
-    upstream redis {
-        hash $remote_addr consistent;
-        server redis1:6379;
-        server redis2:6379;
-    }
+## Examples
 
-    server {
-        listen 5432;
-        proxy_pass postgres;
-        proxy_connect_timeout 3s;
-        proxy_timeout 300s;
-    }
-}
-```
+### Example 1: Set up Nginx reverse proxy with SSL for a Node.js app
+**User prompt:** "Configure Nginx as a reverse proxy for my Node.js API running on ports 3000 and 3001 on two servers. Add SSL with Let's Encrypt for api.shopwise.io, rate limit the /api/auth endpoints to 5 requests per minute, and proxy WebSocket connections on /ws/."
 
-### Load Balancing Algorithms
+The agent will create an Nginx config with an `upstream api_backends` block using `least_conn` balancing across both servers. It will set up a server block listening on 443 with SSL certificates from Let's Encrypt, configure `proxy_pass` to the upstream with proper `X-Real-IP` and `X-Forwarded-For` headers, add a `limit_req_zone` for auth endpoints at 5r/m with burst of 3, and configure the `/ws/` location with `proxy_set_header Upgrade` and `Connection "upgrade"` for WebSocket support. It will also add an HTTP-to-HTTPS redirect on port 80 and install a certbot renewal cron job.
 
-Choose the algorithm based on your workload:
+### Example 2: Configure HAProxy with health checks and a stats dashboard
+**User prompt:** "Set up HAProxy to load balance three backend servers for our e-commerce site at store.greenleaf.com. I need active health checks hitting /health every 5 seconds, sticky sessions for the cart, and access to the HAProxy stats page on port 8404."
 
-- **round-robin** (default) — Equal distribution. Good for uniform, stateless servers
-- **least_conn** — Routes to server with fewest active connections. Best for variable request durations
-- **ip_hash** — Sticky sessions by client IP. Use when sessions are stored in-memory
-- **hash $key consistent** — Consistent hashing. Minimizes redistribution when servers change. Good for caches
-- **weighted** — Add `weight=N` to send proportionally more traffic to stronger servers
+The agent will write an HAProxy config with a `frontend https_front` bound to port 443 with SSL, routing to a `backend app_servers` using `leastconn` balancing. It will add `option httpchk GET /health` with `http-check expect status 200` and configure each server with `check inter 5s fall 3 rise 2`. For sticky sessions, it will add `cookie SERVERID insert indirect nocache` and assign cookie values to each server. The stats frontend will bind to port 8404 with `stats enable`, `stats uri /stats`, and `stats refresh 10s`.
 
-### Health Check Patterns
-
-**Nginx (passive)** — Marks servers down after `max_fails` consecutive failures within `fail_timeout`:
-```nginx
-server app1:8080 max_fails=3 fail_timeout=30s;
-```
-
-**HAProxy (active)** — Probes backends on a schedule:
-```haproxy
-option httpchk GET /health
-http-check expect status 200
-default-server inter 5s fall 3 rise 2
-```
-
-### Docker Compose Deployment
-
-```yaml
-version: "3.8"
-services:
-  nginx:
-    image: nginx:1.25-alpine
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./conf.d:/etc/nginx/conf.d:ro
-      - ./certs:/etc/letsencrypt:ro
-    ports:
-      - "80:80"
-      - "443:443"
-    restart: unless-stopped
-    depends_on:
-      - app1
-      - app2
-```
-
-## Best Practices
+## Guidelines
 
 - Terminate SSL at the load balancer — simpler cert management, offloads crypto from backends
 - Always set `X-Real-IP` and `X-Forwarded-For` headers — backends need real client IPs
@@ -349,4 +298,3 @@ services:
 - Rate limit auth endpoints much more aggressively than general API endpoints
 - Log `$upstream_response_time` separately from `$request_time` to isolate backend vs network latency
 - Health check endpoints should test real dependencies (DB, cache), not just return 200
-- Store configs in version control and provision via Docker volumes

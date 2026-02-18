@@ -7,12 +7,19 @@ description: >-
   PageSpeed scores. Covers image optimization, code splitting, font loading,
   render-blocking resources, and JavaScript execution costs.
 license: Apache-2.0
-compatibility: "Works with any web frontend. Best results with React, Next.js, Vue, Svelte, and static sites."
+compatibility: >-
+  Works with any web frontend. Best results with React, Next.js, Vue, Svelte,
+  and static sites.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: development
-  tags: ["performance", "web-vitals", "lighthouse", "frontend", "lcp", "cls", "inp"]
+  tags:
+    - performance
+    - web-vitals
+    - lighthouse
+    - frontend
+    - lcp
 ---
 
 # Web Vitals Analyzer

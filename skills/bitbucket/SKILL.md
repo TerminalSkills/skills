@@ -1,20 +1,25 @@
 ---
 name: bitbucket
 description: >-
-  Manage repositories, pipelines, and code review with Bitbucket Cloud. Use
-  when a user asks to set up Bitbucket repositories, configure Bitbucket
-  Pipelines for CI/CD, manage pull requests, set up branch permissions, use
-  Bitbucket REST API 2.0, create webhooks, manage deployment environments,
-  set up code review workflows, integrate with Jira, configure merge checks,
-  or automate repository operations. Covers repository management, CI/CD
-  pipelines, code review, deployments, and Atlassian ecosystem integration.
+  Manage repositories, pipelines, and code review with Bitbucket Cloud. Use when
+  a user asks to set up Bitbucket repositories, configure Bitbucket Pipelines
+  for CI/CD, manage pull requests, set up branch permissions, use Bitbucket REST
+  API 2.0, create webhooks, manage deployment environments, set up code review
+  workflows, integrate with Jira, configure merge checks, or automate repository
+  operations. Covers repository management, CI/CD pipelines, code review,
+  deployments, and Atlassian ecosystem integration.
 license: Apache-2.0
-compatibility: "Node.js 18+ or any HTTP client (REST API 2.0)"
+compatibility: Node.js 18+ or any HTTP client (REST API 2.0)
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: devops
-  tags: ["bitbucket", "atlassian", "git", "ci-cd", "pipelines", "code-review", "devops"]
+  tags:
+    - bitbucket
+    - atlassian
+    - git
+    - ci-cd
+    - pipelines
 ---
 
 # Bitbucket
@@ -48,207 +53,121 @@ async function bb(method: string, path: string, body?: any) {
   if (!res.ok) throw new Error(`BB ${method} ${path}: ${res.status} ${await res.text()}`);
   return res.status === 204 ? null : res.json();
 }
-
-// OAuth 2.0 Consumer for apps (register at workspace settings)
-async function getOAuthToken() {
-  const res = await fetch("https://bitbucket.org/site/oauth2/access_token", {
-    method: "POST",
-    headers: {
-      Authorization: "Basic " + Buffer.from(
-        `${process.env.BB_OAUTH_KEY}:${process.env.BB_OAUTH_SECRET}`
-      ).toString("base64"),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
-  return res.json(); // { access_token, token_type, expires_in, scopes }
-}
 ```
 
 ### Step 2: Repositories
 
 ```typescript
-// Create a repository in a workspace
+// Create a repository
 const repo = await bb("POST", `/repositories/my-workspace/my-new-repo`, {
   scm: "git",
   is_private: true,
   description: "Backend API service",
-  language: "typescript",
-  has_issues: false,          // Use Jira instead
-  has_wiki: false,            // Use Confluence instead
-  project: { key: "ENG" },   // Bitbucket project (groups repos)
+  project: { key: "ENG" },
   mainbranch: { name: "main" },
-  fork_policy: "no_public_forks", // "allow_forks" | "no_public_forks" | "no_forks"
+  fork_policy: "no_public_forks",
 });
 
-// List repositories in a workspace with filters
-const repos = await bb("GET",
-  `/repositories/my-workspace?q=project.key="ENG"&sort=-updated_on&pagelen=25`
-);
-
-// Get repository details
+// List, get details, list branches
+const repos = await bb("GET", `/repositories/my-workspace?q=project.key="ENG"&sort=-updated_on&pagelen=25`);
 const repoInfo = await bb("GET", `/repositories/my-workspace/my-repo`);
+const branches = await bb("GET", `/repositories/my-workspace/my-repo/refs/branches?sort=-target.date&pagelen=25`);
 
-// List branches
-const branches = await bb("GET",
-  `/repositories/my-workspace/my-repo/refs/branches?sort=-target.date&pagelen=25`
-);
-
-// Get a specific file's content from a branch
+// Get file content / browse tree
 const fileContent = await fetch(
   `${BB_BASE}/repositories/my-workspace/my-repo/src/main/README.md`,
   { headers: { Authorization: `Basic ${AUTH}` } }
 ).then(r => r.text());
-
-// Browse the repository file tree
-const srcTree = await bb("GET",
-  `/repositories/my-workspace/my-repo/src/main/?pagelen=100`
-);
 ```
 
 ### Step 3: Pull Requests
 
 ```typescript
-// Create a pull request
+// Create a pull request (Jira keys like ENG-142 in description auto-link)
 const pr = await bb("POST", `/repositories/my-workspace/my-repo/pullrequests`, {
   title: "feat: add user authentication module",
-  description: "Implements OAuth2 login with Google and GitHub.\n\n## Changes\n- Added auth middleware\n- JWT token generation\n- Session management\n\nCloses ENG-142",  // Jira key auto-links
+  description: "Implements OAuth2 login.\n\nCloses ENG-142",
   source: { branch: { name: "feature/auth" } },
   destination: { branch: { name: "main" } },
-  close_source_branch: true,   // Delete branch after merge
-  reviewers: [
-    { account_id: "5f1234abc..." },  // Required reviewer
-  ],
+  close_source_branch: true,
+  reviewers: [{ account_id: "5f1234abc..." }],
 });
 
-// List open pull requests
-const openPRs = await bb("GET",
-  `/repositories/my-workspace/my-repo/pullrequests?state=OPEN&pagelen=50`
-);
-
-// Approve a pull request
+// List, approve, request changes
+const openPRs = await bb("GET", `/repositories/my-workspace/my-repo/pullrequests?state=OPEN&pagelen=50`);
 await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/approve`);
-
-// Request changes
 await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/request-changes`);
 
-// Add a comment to a PR
+// Comments (general and inline on a specific file/line)
 await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/comments`, {
-  content: { raw: "Looks good overall! One suggestion on the token expiry logic — see inline comment." },
+  content: { raw: "Looks good! One suggestion on the token expiry logic." },
+});
+await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/comments`, {
+  content: { raw: "Use `crypto.timingSafeEqual` here to prevent timing attacks." },
+  inline: { path: "src/auth/jwt.ts", to: 42 },
 });
 
-// Add an inline comment on a specific file and line
-await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/comments`, {
-  content: { raw: "Consider using `crypto.timingSafeEqual` here to prevent timing attacks." },
-  inline: {
-    path: "src/auth/jwt.ts",
-    to: 42,            // Line number in the new file
-  },
-});
-
-// Merge a pull request
+// Merge: "merge_commit" | "squash" | "fast_forward"
 await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/merge`, {
-  type: "pullrequest",
-  merge_strategy: "squash",    // "merge_commit" | "squash" | "fast_forward"
+  merge_strategy: "squash",
   message: "feat: add user authentication module (#142)",
   close_source_branch: true,
 });
-
-// Decline (reject) a pull request
-await bb("POST", `/repositories/my-workspace/my-repo/pullrequests/${pr.id}/decline`);
 ```
 
 ### Step 4: Branch Permissions & Merge Checks
 
 ```typescript
-// Branch permissions restrict who can push/merge to protected branches.
-// Requires Premium plan.
+// Branch permissions require Premium plan. Pattern supports globs: release/*
+// Require 2 approvals to merge to main
+await bb("POST", `/repositories/my-workspace/my-repo/branch-restrictions`, {
+  kind: "require_approvals_to_merge", pattern: "main", value: 2,
+});
 
-// Protect the main branch — require PR with 2 approvals, no direct pushes
-await bb("POST",
-  `/repositories/my-workspace/my-repo/branch-restrictions`, {
-    kind: "require_approvals_to_merge",
-    pattern: "main",            // Branch pattern (supports glob: release/*)
-    value: 2,                   // Minimum number of approvals
-  }
-);
+// Prevent direct pushes (force PRs)
+await bb("POST", `/repositories/my-workspace/my-repo/branch-restrictions`, {
+  kind: "push", pattern: "main", users: [], groups: [],
+});
 
-// Prevent direct pushes to main (force all changes through PRs)
-await bb("POST",
-  `/repositories/my-workspace/my-repo/branch-restrictions`, {
-    kind: "push",
-    pattern: "main",
-    users: [],                  // Empty = nobody can push directly
-    groups: [],
-  }
-);
-
-// Require passing builds before merge
-await bb("POST",
-  `/repositories/my-workspace/my-repo/branch-restrictions`, {
-    kind: "require_passing_builds_to_merge",
-    pattern: "main",
-    value: 1,                   // At least 1 passing build
-  }
-);
-
-// Require all tasks resolved before merge
-await bb("POST",
-  `/repositories/my-workspace/my-repo/branch-restrictions`, {
-    kind: "require_tasks_to_be_completed",
-    pattern: "main",
-  }
-);
-
-// List all branch restrictions
-const restrictions = await bb("GET",
-  `/repositories/my-workspace/my-repo/branch-restrictions`
-);
+// Require passing builds and resolved tasks before merge
+await bb("POST", `/repositories/my-workspace/my-repo/branch-restrictions`, {
+  kind: "require_passing_builds_to_merge", pattern: "main", value: 1,
+});
+await bb("POST", `/repositories/my-workspace/my-repo/branch-restrictions`, {
+  kind: "require_tasks_to_be_completed", pattern: "main",
+});
 ```
 
 ### Step 5: Bitbucket Pipelines (CI/CD)
 
 ```yaml
-# bitbucket-pipelines.yml — CI/CD configuration.
-# Pipelines run in Docker containers with pre-installed build tools.
-
-image: node:20-slim   # Base Docker image for all steps
+# bitbucket-pipelines.yml — runs in Docker containers
+image: node:20-slim
 
 definitions:
-  # Reusable step definitions
   steps:
     - step: &test
         name: Test
         caches: [node]
-        script:
-          - npm ci
-          - npm run lint
-          - npm run test:coverage
-        artifacts:
-          - coverage/**    # Pass coverage reports to later steps
+        script: [npm ci, npm run lint, npm run test:coverage]
+        artifacts: [coverage/**]
     - step: &build
         name: Build
         caches: [node]
-        script:
-          - npm ci
-          - npm run build
-        artifacts:
-          - dist/**
+        script: [npm ci, npm run build]
+        artifacts: [dist/**]
 
 pipelines:
-  # Run on every push to any branch
   default:
     - step: *test
-
-  # Branch-specific pipelines
   branches:
     main:
       - step: *test
       - step: *build
       - step:
           name: Deploy to Production
-          deployment: production    # Links to deployment environment
-          trigger: manual           # Require manual approval for prod
+          deployment: production
+          trigger: manual
           script:
             - pipe: atlassian/aws-ecs-deploy:1.0.0
               variables:
@@ -257,190 +176,114 @@ pipelines:
                 AWS_DEFAULT_REGION: "eu-west-1"
                 CLUSTER_NAME: "prod-cluster"
                 SERVICE_NAME: "api-service"
-                TASK_DEFINITION: "task-def.json"
-
-    develop:
-      - step: *test
-      - step: *build
-      - step:
-          name: Deploy to Staging
-          deployment: staging
-          script:
-            - ./deploy.sh staging
-
-  # Run on pull requests (merge checks)
   pull-requests:
-    '**':              # All PR branches
+    '**':
       - step: *test
-
-  # Custom pipelines (triggered manually or via API)
   custom:
     run-migrations:
       - step:
           name: Run Database Migrations
-          script:
-            - npm ci
-            - npm run db:migrate
-          after-script:
-            - echo "Migration status: $BITBUCKET_EXIT_CODE"
+          script: [npm ci, npm run db:migrate]
 ```
 
 ```typescript
 // Trigger a custom pipeline via API
-const pipeline = await bb("POST",
-  `/repositories/my-workspace/my-repo/pipelines/`, {
-    target: {
-      type: "pipeline_ref_target",
-      ref_type: "branch",
-      ref_name: "main",
-      selector: {
-        type: "custom",
-        pattern: "run-migrations",   // Matches the custom pipeline name
-      },
-    },
-    variables: [
-      { key: "MIGRATION_TARGET", value: "v2.1.0", secured: false },
-    ],
-  }
-);
+const pipeline = await bb("POST", `/repositories/my-workspace/my-repo/pipelines/`, {
+  target: {
+    type: "pipeline_ref_target", ref_type: "branch", ref_name: "main",
+    selector: { type: "custom", pattern: "run-migrations" },
+  },
+  variables: [{ key: "MIGRATION_TARGET", value: "v2.1.0", secured: false }],
+});
 
-// Get pipeline status
-const pipelineStatus = await bb("GET",
-  `/repositories/my-workspace/my-repo/pipelines/${pipeline.uuid}`
-);
-// pipelineStatus.state.name = "PENDING" | "IN_PROGRESS" | "COMPLETED"
-// pipelineStatus.state.result.name = "SUCCESSFUL" | "FAILED" | "STOPPED"
-
-// List recent pipelines
-const pipelines = await bb("GET",
-  `/repositories/my-workspace/my-repo/pipelines/?sort=-created_on&pagelen=10`
-);
-
-// Get pipeline step logs
-const steps = await bb("GET",
-  `/repositories/my-workspace/my-repo/pipelines/${pipeline.uuid}/steps/`
-);
-for (const step of steps.values) {
-  const log = await fetch(
-    `${BB_BASE}/repositories/my-workspace/my-repo/pipelines/${pipeline.uuid}/steps/${step.uuid}/log`,
-    { headers: { Authorization: `Basic ${AUTH}` } }
-  ).then(r => r.text());
-  console.log(`[${step.name}]`, log);
-}
+// Check status: state.name = "PENDING" | "IN_PROGRESS" | "COMPLETED"
+const status = await bb("GET", `/repositories/my-workspace/my-repo/pipelines/${pipeline.uuid}`);
+const pipelines = await bb("GET", `/repositories/my-workspace/my-repo/pipelines/?sort=-created_on&pagelen=10`);
 ```
 
-### Step 6: Deployment Environments
+### Step 6: Deployment Environments & Variables
 
 ```typescript
-// Create deployment environments for tracking where code is running.
-// Environments appear in the Deployments dashboard.
+// Create environment: type name = "Test" | "Staging" | "Production"
+const environment = await bb("POST", `/repositories/my-workspace/my-repo/environments/`, {
+  type: "deployment_environment",
+  name: "Production",
+  environment_type: { type: "deployment_environment_type", name: "Production" },
+});
 
-const environment = await bb("POST",
-  `/repositories/my-workspace/my-repo/environments/`, {
-    type: "deployment_environment",
-    name: "Production",
-    environment_type: {
-      type: "deployment_environment_type",
-      name: "Production",     // "Test" | "Staging" | "Production"
-    },
-  }
-);
+// Pipeline variables (secured=true encrypts, never shown in logs)
+await bb("POST", `/repositories/my-workspace/my-repo/pipelines_config/variables/`, {
+  key: "AWS_ACCESS_KEY_ID", value: "AKIA...", secured: true,
+});
 
-// List deployments
-const deployments = await bb("GET",
-  `/repositories/my-workspace/my-repo/deployments/?pagelen=20`
-);
-
-// Environment variables (secrets for pipelines)
-await bb("POST",
-  `/repositories/my-workspace/my-repo/pipelines_config/variables/`, {
-    key: "AWS_ACCESS_KEY_ID",
-    value: "AKIA...",
-    secured: true,    // Encrypted, never shown in logs
-  }
-);
-
-// Deployment-specific variables (different values per environment)
-await bb("POST",
-  `/repositories/my-workspace/my-repo/deployments_config/environments/${environment.uuid}/variables`, {
-    key: "API_URL",
-    value: "https://api.production.example.com",
-    secured: false,
-  }
-);
+// Per-environment variables
+await bb("POST", `/repositories/my-workspace/my-repo/deployments_config/environments/${environment.uuid}/variables`, {
+  key: "API_URL", value: "https://api.production.example.com", secured: false,
+});
 ```
 
 ### Step 7: Webhooks & Jira Integration
 
 ```typescript
-// Register a webhook for repository events
-const webhook = await bb("POST",
-  `/repositories/my-workspace/my-repo/hooks`, {
-    description: "CI/CD event handler",
-    url: "https://your-app.com/webhook/bitbucket",
-    active: true,
-    events: [
-      "repo:push",                    // Code pushed
-      "pullrequest:created",          // New PR
-      "pullrequest:approved",         // PR approved
-      "pullrequest:fulfilled",        // PR merged
-      "pullrequest:comment_created",  // PR comment
-    ],
-  }
-);
+// Register a webhook
+const webhook = await bb("POST", `/repositories/my-workspace/my-repo/hooks`, {
+  description: "CI/CD event handler",
+  url: "https://your-app.com/webhook/bitbucket",
+  active: true,
+  events: ["repo:push", "pullrequest:created", "pullrequest:fulfilled"],
+});
 
-// Webhook handler
+// Webhook handler — event type is in x-event-key header
 app.post("/webhook/bitbucket", (req, res) => {
   res.sendStatus(200);
   const event = req.headers["x-event-key"];
-  const payload = req.body;
-
-  switch (event) {
-    case "repo:push":
-      // payload.push.changes[0].new.name = branch name
-      // payload.push.changes[0].commits = array of commits
-      console.log(`Push to ${payload.push.changes[0].new.name}`);
-      break;
-    case "pullrequest:fulfilled":
-      // PR merged — payload.pullrequest.title, .source.branch.name, etc.
-      console.log(`PR merged: ${payload.pullrequest.title}`);
-      break;
-  }
+  if (event === "repo:push") console.log(`Push to ${req.body.push.changes[0].new.name}`);
+  if (event === "pullrequest:fulfilled") console.log(`PR merged: ${req.body.pullrequest.title}`);
 });
 
-// Jira integration is automatic when both are on the same Atlassian site.
-// Mentioning a Jira key (e.g., "ENG-142") in commits, branches, or PRs
-// auto-links them in Jira. Smart commits allow transitions:
-
-// git commit -m "ENG-142 #time 2h #comment Fixed the auth bug #done"
-//   → Logs 2h work on ENG-142
-//   → Adds comment "Fixed the auth bug"
-//   → Transitions issue to Done
+// Jira integration: mention keys (ENG-142) in commits/branches/PRs for auto-linking.
+// Smart commits: git commit -m "ENG-142 #time 2h #comment Fixed auth bug #done"
 ```
 
 ### Step 8: Code Search & Reports
 
 ```typescript
-// Search code across repositories in a workspace
+// Search code across workspace repositories
 const searchResults = await bb("GET",
-  `/workspaces/my-workspace/search/code?search_query=${encodeURIComponent(
-    'lang:typescript "jwt.verify"'
-  )}&pagelen=20`
+  `/workspaces/my-workspace/search/code?search_query=${encodeURIComponent('lang:typescript "jwt.verify"')}&pagelen=20`
 );
 
-// Get commit history with file changes
-const commits = await bb("GET",
-  `/repositories/my-workspace/my-repo/commits?pagelen=30`
-);
-
-// Get diff for a specific commit
-const diff = await fetch(
-  `${BB_BASE}/repositories/my-workspace/my-repo/diff/${commitHash}`,
-  { headers: { Authorization: `Basic ${AUTH}` } }
-).then(r => r.text());
-
-// Compare two branches (useful for release notes)
-const compare = await bb("GET",
-  `/repositories/my-workspace/my-repo/commits?include=main&exclude=release/2.0`
-);
+// Commit history, diff, and branch comparison
+const commits = await bb("GET", `/repositories/my-workspace/my-repo/commits?pagelen=30`);
+const diff = await fetch(`${BB_BASE}/repositories/my-workspace/my-repo/diff/${commitHash}`,
+  { headers: { Authorization: `Basic ${AUTH}` } }).then(r => r.text());
+const compare = await bb("GET", `/repositories/my-workspace/my-repo/commits?include=main&exclude=release/2.0`);
 ```
+
+## Examples
+
+### Example 1: Set up a new repository with CI/CD and branch protection
+**User prompt:** "Create a new private Bitbucket repository called 'payment-service' in the FINTECH workspace under the PAYMENTS project. Set up a CI pipeline that runs tests on every push, deploys to staging on develop, and requires manual approval for production deploys from main. Protect main with 2 required approvals."
+
+The agent will:
+1. Create the repository via `POST /repositories/fintech-workspace/payment-service` with `is_private: true` and `project: { key: "PAYMENTS" }`.
+2. Generate a `bitbucket-pipelines.yml` with test, build, staging deploy, and manual production deploy steps using YAML anchors for reusable step definitions.
+3. Add branch restrictions for `main`: require 2 approvals to merge, block direct pushes, and require passing builds.
+4. Set up deployment environments for Staging and Production with appropriate environment variables.
+
+### Example 2: Automate PR workflow with Jira integration
+**User prompt:** "Write a script that creates a pull request from the current feature branch to main, adds two reviewers, and links it to the Jira ticket ENG-287. Then set up a webhook to notify our Slack channel when PRs are merged."
+
+The agent will:
+1. Detect the current branch name from git.
+2. Create a PR via the API with the Jira key ENG-287 in the description for automatic Jira linking, setting `close_source_branch: true` and adding the two reviewer account IDs.
+3. Register a webhook listening for `pullrequest:fulfilled` events pointing to the team's webhook endpoint.
+4. Provide a webhook handler code snippet that parses the merged PR payload and posts a notification to Slack.
+
+## Guidelines
+
+- Use App Passwords for scripts and personal integrations; use OAuth 2.0 for shared applications that act on behalf of multiple users.
+- Always set `close_source_branch: true` on pull requests to automatically clean up feature branches after merging.
+- Branch permissions (requiring approvals, blocking direct pushes) require the Bitbucket Premium plan; check your workspace plan before configuring restrictions.
+- Use `--download-archive` style tracking with pipeline variables marked `secured: true` for any secrets; secured variables are encrypted and never exposed in build logs.
+- Reference Jira issue keys (e.g., ENG-142) in commit messages, branch names, and PR descriptions to get automatic bidirectional linking between Bitbucket and Jira.

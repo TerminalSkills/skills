@@ -8,12 +8,17 @@ description: >-
   usage and latency, or build LLM testing pipelines. Covers tracing, datasets,
   evaluators, annotation queues, prompt hub, and production monitoring.
 license: Apache-2.0
-compatibility: "Python 3.9+ or Node.js 18+ (langsmith SDK)"
+compatibility: Python 3.9+ or Node.js 18+ (langsmith SDK)
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: ai
-  tags: ["langsmith", "llm-observability", "tracing", "evaluation", "monitoring"]
+  version: 1.0.0
+  category: data-ai
+  tags:
+    - langsmith
+    - llm-observability
+    - tracing
+    - evaluation
+    - monitoring
 ---
 
 # LangSmith
@@ -113,36 +118,14 @@ client.create_examples(
     inputs=[
         {"question": "How do I reset my password?"},
         {"question": "What's your refund policy?"},
-        {"question": "How to upgrade my plan?"},
     ],
     outputs=[
         {"answer": "Go to Settings > Security > Reset Password"},
         {"answer": "Full refund within 30 days, no questions asked"},
-        {"answer": "Visit Billing > Plans > select new tier"},
     ],
     dataset_id=dataset.id,
 )
-
-# Create from existing traces (powerful for production data)
-# In the UI: select traces → "Add to Dataset"
-```
-
-#### From CSV
-```python
-import csv
-from langsmith import Client
-
-client = Client()
-dataset = client.create_dataset("faq-pairs")
-
-with open("faq.csv") as f:
-    reader = csv.DictReader(f)
-    for row in reader:
-        client.create_example(
-            inputs={"question": row["question"]},
-            outputs={"answer": row["answer"]},
-            dataset_id=dataset.id,
-        )
+# Also create from existing traces: in the UI, select traces → "Add to Dataset"
 ```
 
 ### Step 4: Evaluation
@@ -184,98 +167,19 @@ results = evaluate(
 # Results visible in LangSmith UI with scores, comparisons, and drill-down
 ```
 
-#### LLM-as-Judge Evaluators
-```python
-from langsmith import evaluate
-from langchain_openai import ChatOpenAI
+For LLM-as-judge evaluators, create a function that calls an LLM to rate quality on a 0-1 scale. Use `temperature=0` for consistency. For pairwise comparisons, use `evaluate_comparative` to compare two experiment runs side by side.
 
-judge_llm = ChatOpenAI(model="gpt-4o", temperature=0)
+### Step 5: Prompt Hub and Annotation Queues
 
-def llm_judge(run, example) -> dict:
-    """Use an LLM to evaluate answer quality."""
-    predicted = run.outputs["answer"]
-    expected = example.outputs["answer"]
-
-    response = judge_llm.invoke(
-        f"Rate this answer from 0.0 to 1.0.\n"
-        f"Expected: {expected}\n"
-        f"Got: {predicted}\n"
-        f"Reply with just the number."
-    )
-    score = float(response.content.strip())
-    return {"key": "llm_quality", "score": score}
-
-results = evaluate(my_app, data="customer-support-qa", evaluators=[llm_judge])
-```
-
-#### Pairwise Comparison
-```python
-from langsmith import evaluate_comparative
-
-def prefer_longer(runs, example) -> dict:
-    """Compare two runs and pick the better one."""
-    a_len = len(runs[0].outputs["answer"])
-    b_len = len(runs[1].outputs["answer"])
-    # Return 0 for first, 1 for second
-    return {"key": "preference", "scores": {runs[0].id: int(a_len >= b_len), runs[1].id: int(b_len > a_len)}}
-
-evaluate_comparative(
-    ["experiment-gpt4o", "experiment-claude"],
-    evaluators=[prefer_longer],
-)
-```
-
-### Step 5: Prompt Hub
-
-Version-control and share prompts:
-
-```python
-from langchain import hub
-
-# Pull a prompt
-prompt = hub.pull("rlm/rag-prompt")
-
-# Push your own
-from langchain_core.prompts import ChatPromptTemplate
-
-my_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a {role}. Answer in {style}."),
-    ("human", "{question}")
-])
-
-hub.push("my-org/support-prompt", my_prompt, new_repo_is_public=False)
-```
-
-### Step 6: Annotation Queues
-
-Set up human review workflows:
-
-```python
-client = Client()
-
-# Create a queue
-queue = client.create_annotation_queue(
-    name="review-flagged-responses",
-    description="Responses that scored below 0.5 on quality"
-)
-
-# Add runs to the queue (typically from evaluation results or filters)
-# In the UI: filter traces → "Send to Annotation Queue"
-```
-
-Use annotation queues to:
-- Review low-confidence outputs before they reach users
-- Build gold-standard datasets from production data
-- Get human labels for training and evaluation
+Use `hub.pull("rlm/rag-prompt")` to fetch shared prompts and `hub.push("my-org/support-prompt", my_prompt)` to version your own. Annotation queues let you set up human review workflows — create a queue with `client.create_annotation_queue()`, then filter traces in the UI and send low-scoring ones for review.
 
 ### Step 7: Production Monitoring
 
-#### Filter and Analyze Traces
 ```python
-# Get recent runs with filters
+# Filter and analyze traces
 runs = client.list_runs(
     project_name="production",
-    filter='and(eq(status, "error"), gt(latency, 5))',  # Errors over 5 seconds
+    filter='and(eq(status, "error"), gt(latency, 5))',
     limit=50,
 )
 
@@ -283,48 +187,32 @@ for run in runs:
     print(f"Run {run.id}: {run.error} | Latency: {run.total_time}s | Tokens: {run.total_tokens}")
 ```
 
-#### Track Metrics Over Time
-```python
-# Aggregate token usage
-runs = client.list_runs(
-    project_name="production",
-    start_time=datetime(2024, 1, 1),
-    limit=1000,
-)
-
-total_tokens = sum(r.total_tokens or 0 for r in runs)
-total_cost = sum(r.prompt_tokens * 0.00001 + r.completion_tokens * 0.00003 for r in runs if r.prompt_tokens)
-avg_latency = sum(r.total_time for r in runs if r.total_time) / len(list(runs))
-```
-
-#### Automation Rules (UI)
-In the LangSmith dashboard, set up rules to:
-- Auto-flag runs with latency > threshold
-- Send low-score responses to annotation queues
-- Alert on error rate spikes
-- Auto-add interesting traces to datasets
+In the LangSmith dashboard, set up automation rules to auto-flag slow runs, send low-score responses to annotation queues, and alert on error rate spikes.
 
 ### Step 8: Testing in CI/CD
 
+Run evaluations in CI and assert minimum quality scores:
+
 ```python
-# tests/test_chain_quality.py
-import pytest
-from langsmith import evaluate
-
-def correctness(run, example):
-    return {"key": "correctness", "score": float(example.outputs["answer"].lower() in run.outputs["answer"].lower())}
-
 def test_qa_quality():
-    results = evaluate(
-        my_app,
-        data="regression-test-set",
-        evaluators=[correctness],
-    )
+    results = evaluate(my_app, data="regression-test-set", evaluators=[correctness])
     avg_score = sum(r["evaluation_results"]["results"][0].score for r in results) / len(results)
     assert avg_score >= 0.85, f"Quality dropped to {avg_score:.2f}"
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: Add tracing and evaluation to an existing RAG chatbot
+**User prompt:** "I have a LangChain RAG chatbot answering questions about our HR policies. Add LangSmith tracing and create an evaluation pipeline that checks if answers are correct and concise."
+
+The agent will set the `LANGCHAIN_TRACING_V2=true` and `LANGCHAIN_API_KEY` environment variables so all chain invocations are automatically traced. It will then create a LangSmith dataset called `hr-policy-qa` with 10-15 real question/answer pairs drawn from common employee queries. Next, it will write two evaluators — a `correctness` evaluator that checks whether the expected answer appears in the predicted output, and a `conciseness` evaluator that penalizes answers over 100 words. Finally, it will wire up `evaluate()` to run the chatbot against the dataset with both evaluators and print a summary of scores.
+
+### Example 2: Monitor production agent and alert on regressions
+**User prompt:** "Our customer support agent is in production. Set up LangSmith monitoring to track error rates and latency, and add a CI test that fails if answer quality drops below 90%."
+
+The agent will configure the production project in LangSmith with metadata tags for `environment: production` and `service: support-agent`. It will write a monitoring script using `client.list_runs()` with filters for error status and high latency (over 5 seconds), outputting a summary of total tokens, average latency, and error count. Then it will create a `regression-test-set` dataset from recent production traces and write a pytest test that runs `evaluate()` against it, asserting the average correctness score stays at or above 0.90.
+
+## Guidelines
 
 1. **Always enable tracing in dev** — set `LANGCHAIN_TRACING_V2=true` from day one
 2. **Use projects to organize** — separate dev, staging, production traces

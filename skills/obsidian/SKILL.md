@@ -1,20 +1,25 @@
 ---
 name: obsidian
 description: >-
-  Build plugins, automate workflows, and manage knowledge bases in Obsidian.
-  Use when a user asks to create Obsidian plugins, set up vault structures,
-  automate note-taking workflows, build templates with Templater, write
-  Dataview queries, create custom CSS themes, integrate Obsidian with external
-  tools, build publishing pipelines, manage Zettelkasten or PKM systems,
-  implement daily notes workflows, or extend Obsidian with community plugins.
-  Covers plugin development, vault architecture, automation, and publishing.
+  Build plugins, automate workflows, and manage knowledge bases in Obsidian. Use
+  when a user asks to create Obsidian plugins, set up vault structures, automate
+  note-taking workflows, build templates with Templater, write Dataview queries,
+  create custom CSS themes, integrate Obsidian with external tools, build
+  publishing pipelines, manage Zettelkasten or PKM systems, implement daily
+  notes workflows, or extend Obsidian with community plugins. Covers plugin
+  development, vault architecture, automation, and publishing.
 license: Apache-2.0
-compatibility: "Node.js 18+ (plugin dev), Obsidian 1.4+"
+compatibility: 'Node.js 18+ (plugin dev), Obsidian 1.4+'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: productivity
-  tags: ["obsidian", "knowledge-management", "pkm", "note-taking", "plugins", "markdown"]
+  tags:
+    - obsidian
+    - knowledge-management
+    - pkm
+    - note-taking
+    - plugins
 ---
 
 # Obsidian
@@ -27,586 +32,205 @@ Extend and automate Obsidian — the local-first knowledge management app built 
 
 ### Step 1: Vault Architecture
 
-Design a vault structure based on the user's needs. Common patterns:
-
 **Zettelkasten (atomic notes):**
 ```
 vault/
 ├── 0-inbox/           # Capture first, organize later
 ├── 1-fleeting/        # Quick thoughts, raw ideas
-├── 2-literature/      # Notes from sources (books, articles, papers)
+├── 2-literature/      # Notes from sources
 ├── 3-permanent/       # Refined, atomic, linked notes
 ├── 4-projects/        # Active project folders
-├── 5-areas/           # Ongoing responsibilities (health, finance, work)
-├── 6-resources/       # Reference material, how-tos
+├── 5-areas/           # Ongoing responsibilities
+├── 6-resources/       # Reference material
 ├── 7-archive/         # Completed/inactive items
 ├── templates/         # Note templates
 └── attachments/       # Images, PDFs, files
 ```
 
-**PARA method:**
-```
-vault/
-├── Projects/       # Active projects with deadlines
-├── Areas/          # Ongoing areas of responsibility
-├── Resources/      # Topics of interest, reference
-├── Archive/        # Completed/inactive
-└── _templates/
-```
+**PARA method:** `Projects/`, `Areas/`, `Resources/`, `Archive/`, `_templates/`.
 
-**Configure `.obsidian/app.json`** for consistency:
-```json
-{
-  "newFileLocation": "folder",
-  "newFileFolderPath": "0-inbox",
-  "attachmentFolderPath": "attachments",
-  "alwaysUpdateLinks": true,
-  "strictLineBreaks": true
-}
-```
-
-**Naming conventions:**
-- Atomic notes: descriptive titles (`Spaced repetition improves long-term retention.md`)
-- Date-based: `YYYY-MM-DD` prefix for daily/meeting notes
-- No special characters in filenames (cross-platform compatibility)
+Configure `.obsidian/app.json`: set `newFileFolderPath` to inbox, `attachmentFolderPath` to attachments, enable `alwaysUpdateLinks`. Use descriptive titles for atomic notes, `YYYY-MM-DD` prefix for date-based notes.
 
 ### Step 2: Templates with Templater
 
-Install the Templater community plugin. Create templates in the `templates/` folder.
+Install the Templater community plugin. Place templates in `templates/`.
 
-**Daily note template** (`templates/daily.md`):
+**Daily note** (`templates/daily.md`):
 ```markdown
 ---
 date: <% tp.date.now("YYYY-MM-DD") %>
 tags: [daily]
 ---
-
 # <% tp.date.now("dddd, MMMM D, YYYY") %>
-
-## 🎯 Top 3 Priorities
-- [ ] 
-- [ ] 
-- [ ] 
-
-## 📝 Notes
-
-
-## 📅 Meetings
-<%* const meetings = tp.obsidian.app.vault.getAbstractFileByPath(`meetings/${tp.date.now("YYYY-MM-DD")}`); %>
-
-## ✅ Completed Today
-- 
-
-## 💭 Reflections
-
+## Top 3 Priorities
+- [ ]
+## Notes
+## Completed Today
 ```
 
-**Meeting note template** (`templates/meeting.md`):
+**Meeting note** (`templates/meeting.md`):
 ```markdown
 ---
 date: <% tp.date.now("YYYY-MM-DD") %>
 type: meeting
-attendees: []
 tags: [meeting]
 ---
-
 # Meeting: <% tp.file.title %>
-
 **Date:** <% tp.date.now("YYYY-MM-DD HH:mm") %>
-**Attendees:** 
-
+**Attendees:**
 ## Agenda
-1. 
-
 ## Notes
-
-
 ## Action Items
-- [ ] 
-
-## Decisions Made
-- 
+- [ ]
 ```
 
-**Project note template** (`templates/project.md`):
-```markdown
----
-date: <% tp.date.now("YYYY-MM-DD") %>
-status: active
-deadline: 
-tags: [project]
----
-
-# <% tp.file.title %>
-
-## Goal
-
-
-## Key Results
-- [ ] 
-- [ ] 
-
-## Tasks
-- [ ] 
-
-## Notes
-
-
-## Links
-- 
-```
-
-**Configure Templater** in settings:
-- Template folder: `templates`
-- Trigger on new file creation: enable
-- Folder templates: map `0-inbox` → `templates/inbox.md`, etc.
+Configure Templater: set template folder, enable trigger on new file creation, map folder templates (e.g., `0-inbox` → `templates/inbox.md`).
 
 ### Step 3: Dataview Queries
 
-Install the Dataview community plugin. Query your vault like a database.
+Install the Dataview community plugin to query your vault like a database.
 
-**List all open tasks across the vault:**
 ```dataview
-TASK
-WHERE !completed
-SORT file.mtime DESC
-LIMIT 50
-```
+-- Open tasks across vault
+TASK WHERE !completed SORT file.mtime DESC LIMIT 50
 
-**Active projects dashboard:**
-```dataview
+-- Active projects dashboard
 TABLE status, deadline, file.mtime AS "Last Modified"
-FROM #project
-WHERE status = "active"
-SORT deadline ASC
-```
+FROM #project WHERE status = "active" SORT deadline ASC
 
-**Recently modified notes:**
-```dataview
-TABLE file.mtime AS "Modified", file.size AS "Size"
-WHERE file.mtime >= date(today) - dur(7 days)
-SORT file.mtime DESC
-LIMIT 20
-```
+-- Recently modified notes (last 7 days)
+TABLE file.mtime AS "Modified" WHERE file.mtime >= date(today) - dur(7 days) SORT file.mtime DESC LIMIT 20
 
-**Meeting notes by month:**
-```dataview
-LIST
-FROM #meeting
-WHERE date >= date("2026-02-01") AND date < date("2026-03-01")
-SORT date DESC
-```
-
-**Orphan notes (no incoming links):**
-```dataview
-LIST
-WHERE length(file.inlinks) = 0
-  AND !contains(file.path, "templates")
-  AND !contains(file.path, "attachments")
-SORT file.ctime ASC
+-- Orphan notes (no incoming links)
+LIST WHERE length(file.inlinks) = 0
+  AND !contains(file.path, "templates") AND !contains(file.path, "attachments")
 ```
 
 **DataviewJS** for complex logic:
 ```dataviewjs
 const pages = dv.pages('#project AND -"templates"');
-const active = pages.where(p => p.status === "active");
-const overdue = active.where(p => p.deadline && dv.date(p.deadline) < dv.date("today"));
-
-dv.header(3, `⚠️ Overdue Projects (${overdue.length})`);
-dv.table(["Project", "Deadline", "Days Overdue"], 
-  overdue.map(p => [
-    p.file.link,
-    p.deadline,
-    Math.floor((Date.now() - new Date(p.deadline)) / 86400000)
-  ])
+const overdue = pages.where(p => p.status === "active" && p.deadline && dv.date(p.deadline) < dv.date("today"));
+dv.header(3, `Overdue Projects (${overdue.length})`);
+dv.table(["Project", "Deadline", "Days Overdue"],
+  overdue.map(p => [p.file.link, p.deadline, Math.floor((Date.now() - new Date(p.deadline)) / 86400000)])
 );
 ```
 
 ### Step 4: Plugin Development
 
-Scaffold a new Obsidian plugin:
-
 ```bash
-# Clone the sample plugin
 git clone https://github.com/obsidianmd/obsidian-sample-plugin my-plugin
-cd my-plugin
-npm install
-```
-
-**Project structure:**
-```
-my-plugin/
-├── main.ts           # Plugin entry point
-├── manifest.json     # Plugin metadata
-├── styles.css        # Plugin styles
-├── package.json
-├── tsconfig.json
-├── esbuild.config.mjs
-└── versions.json
-```
-
-**manifest.json:**
-```json
-{
-  "id": "my-plugin",
-  "name": "My Plugin",
-  "version": "1.0.0",
-  "minAppVersion": "1.4.0",
-  "description": "Does something useful",
-  "author": "Your Name",
-  "isDesktopOnly": false
-}
+cd my-plugin && npm install
 ```
 
 **Basic plugin** (`main.ts`):
 ```typescript
 import { App, Plugin, PluginSettingTab, Setting, Notice, TFile, MarkdownView } from "obsidian";
 
-interface MyPluginSettings {
-  defaultFolder: string;
-  enableFeature: boolean;
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-  defaultFolder: "inbox",
-  enableFeature: true,
-};
+interface MyPluginSettings { defaultFolder: string; enableFeature: boolean; }
+const DEFAULT_SETTINGS: MyPluginSettings = { defaultFolder: "inbox", enableFeature: true };
 
 export default class MyPlugin extends Plugin {
   settings: MyPluginSettings;
 
   async onload() {
     await this.loadSettings();
-
-    // Add a ribbon icon
-    this.addRibbonIcon("dice", "My Plugin", () => {
-      new Notice("Hello from My Plugin!");
-    });
-
-    // Add a command
-    this.addCommand({
-      id: "do-something",
-      name: "Do something useful",
-      callback: () => this.doSomething(),
-    });
-
-    // Register event listeners
-    this.registerEvent(
-      this.app.vault.on("create", (file) => {
-        if (file instanceof TFile && file.extension === "md") {
-          console.log(`New file created: ${file.path}`);
-        }
-      })
-    );
-
-    // Add settings tab
+    this.addRibbonIcon("dice", "My Plugin", () => new Notice("Hello from My Plugin!"));
+    this.addCommand({ id: "do-something", name: "Do something useful", callback: () => this.doSomething() });
+    this.registerEvent(this.app.vault.on("create", (file) => {
+      if (file instanceof TFile && file.extension === "md") console.log(`New: ${file.path}`);
+    }));
     this.addSettingTab(new MyPluginSettingTab(this.app, this));
   }
 
   async doSomething() {
-    const activeFile = this.app.workspace.getActiveFile();
-    if (!activeFile) {
-      new Notice("No active file");
-      return;
-    }
-
-    const content = await this.app.vault.read(activeFile);
-    // Process content...
-    const modified = content + "\n\n---\nProcessed by My Plugin";
-    await this.app.vault.modify(activeFile, modified);
+    const file = this.app.workspace.getActiveFile();
+    if (!file) { new Notice("No active file"); return; }
+    const content = await this.app.vault.read(file);
+    await this.app.vault.modify(file, content + "\n\n---\nProcessed by My Plugin");
     new Notice("Done!");
   }
 
-  async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-  }
-
-  async saveSettings() {
-    await this.saveData(this.settings);
-  }
+  async loadSettings() { this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData()); }
+  async saveSettings() { await this.saveData(this.settings); }
 }
 
 class MyPluginSettingTab extends PluginSettingTab {
   plugin: MyPlugin;
-
-  constructor(app: App, plugin: MyPlugin) {
-    super(app, plugin);
-    this.plugin = plugin;
-  }
-
+  constructor(app: App, plugin: MyPlugin) { super(app, plugin); this.plugin = plugin; }
   display() {
     const { containerEl } = this;
     containerEl.empty();
-
-    new Setting(containerEl)
-      .setName("Default folder")
-      .setDesc("Where new notes are created")
-      .addText((text) =>
-        text.setValue(this.plugin.settings.defaultFolder)
-          .onChange(async (value) => {
-            this.plugin.settings.defaultFolder = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Enable feature")
-      .addToggle((toggle) =>
-        toggle.setValue(this.plugin.settings.enableFeature)
-          .onChange(async (value) => {
-            this.plugin.settings.enableFeature = value;
-            await this.plugin.saveSettings();
-          })
-      );
+    new Setting(containerEl).setName("Default folder").addText((t) =>
+      t.setValue(this.plugin.settings.defaultFolder).onChange(async (v) => {
+        this.plugin.settings.defaultFolder = v; await this.plugin.saveSettings();
+      }));
   }
 }
 ```
 
-**Build and test:**
-```bash
-npm run dev  # Watches for changes, rebuilds automatically
-# Copy main.js, manifest.json, styles.css to vault/.obsidian/plugins/my-plugin/
-# Enable in Obsidian → Settings → Community plugins
-```
+Build: `npm run dev` — copy `main.js`, `manifest.json`, `styles.css` to `vault/.obsidian/plugins/my-plugin/`.
 
-**Working with the Editor** (CodeMirror 6):
-```typescript
-import { EditorView } from "@codemirror/view";
-import { StateField, StateEffect } from "@codemirror/state";
+### Step 5: CSS Snippets & Themes
 
-// Get the editor view
-const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-if (view) {
-  const editor = view.editor;
-  const cursor = editor.getCursor();
-  const selection = editor.getSelection();
+Place in `vault/.obsidian/snippets/my-theme.css`, enable in Settings → Appearance.
 
-  // Insert text at cursor
-  editor.replaceRange("inserted text", cursor);
-
-  // Replace selection
-  editor.replaceSelection("replacement");
-}
-```
-
-**Modal dialog:**
-```typescript
-import { Modal, App } from "obsidian";
-
-class MyModal extends Modal {
-  result: string;
-  onSubmit: (result: string) => void;
-
-  constructor(app: App, onSubmit: (result: string) => void) {
-    super(app);
-    this.onSubmit = onSubmit;
-  }
-
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.createEl("h2", { text: "Enter a value" });
-
-    const input = contentEl.createEl("input", { type: "text" });
-    input.focus();
-
-    const btn = contentEl.createEl("button", { text: "Submit" });
-    btn.addEventListener("click", () => {
-      this.onSubmit(input.value);
-      this.close();
-    });
-  }
-
-  onClose() {
-    this.contentEl.empty();
-  }
-}
-```
-
-### Step 5: Custom CSS & Themes
-
-Create a CSS snippet: vault → `.obsidian/snippets/my-theme.css`.
-
-**Custom heading styles:**
 ```css
-/* Colorful headings */
-.markdown-rendered h1 { color: var(--text-accent); border-bottom: 2px solid var(--interactive-accent); padding-bottom: 0.3em; }
-.markdown-rendered h2 { color: var(--text-accent-hover); }
-
-/* Readable line width */
+.markdown-rendered h1 { color: var(--text-accent); border-bottom: 2px solid var(--interactive-accent); }
 .markdown-source-view.mod-cm6 .cm-contentContainer { max-width: 800px; margin: 0 auto; }
-
-/* Custom callout */
 .callout[data-callout="goal"] { --callout-color: 59, 130, 246; --callout-icon: target; }
-
-/* Tag pills */
-.tag { background: var(--interactive-accent); color: var(--text-on-accent); border-radius: 12px; padding: 2px 8px; font-size: 0.85em; }
-
-/* Focus mode: hide sidebars */
-body.focus-mode .mod-left-split,
-body.focus-mode .mod-right-split { display: none; }
-```
-
-Enable in Settings → Appearance → CSS snippets.
-
-**Full theme development:**
-```css
-/* theme.css - place in vault/.obsidian/themes/MyTheme/theme.css */
-/* manifest.json required alongside */
-.theme-dark {
-  --background-primary: #1a1b26;
-  --background-secondary: #16161e;
-  --text-normal: #a9b1d6;
-  --text-accent: #7aa2f7;
-  --interactive-accent: #7aa2f7;
-}
-
-.theme-light {
-  --background-primary: #f5f5f5;
-  --background-secondary: #e8e8e8;
-  --text-normal: #1a1b26;
-  --text-accent: #2e7de9;
-  --interactive-accent: #2e7de9;
-}
+.tag { background: var(--interactive-accent); color: var(--text-on-accent); border-radius: 12px; padding: 2px 8px; }
 ```
 
 ### Step 6: Automation & Integration
 
-**Obsidian URI scheme** (open notes from external tools):
+**Obsidian URI scheme:**
 ```
 obsidian://open?vault=MyVault&file=path/to/note
 obsidian://new?vault=MyVault&file=inbox/New Note&content=Hello
-obsidian://search?vault=MyVault&query=tag:project
 ```
 
-**Sync vault with Git** (for version control):
-```bash
-# .gitignore for Obsidian vault
+**Git sync** (`.gitignore` for vault):
+```
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/plugins/*/data.json
 .trash/
 ```
 
-Auto-commit script:
+Auto-commit: `*/30 * * * * cd /path/to/vault && git add -A && git diff --cached --quiet || git commit -m "backup $(date +%Y-%m-%d_%H:%M)" && git push`
+
+**Local REST API plugin** (programmatic access on port 27123):
 ```bash
-#!/bin/bash
-cd /path/to/vault
-git add -A
-git diff --cached --quiet || git commit -m "vault backup $(date +%Y-%m-%d_%H:%M)"
-git push
+curl http://localhost:27123/vault/projects/my-project.md -H "Authorization: Bearer KEY"
+curl -X PUT http://localhost:27123/vault/inbox/new-note.md -H "Authorization: Bearer KEY" \
+  -H "Content-Type: text/markdown" -d "# New Note\n\nContent here"
 ```
 
-Run on cron: `*/30 * * * * /path/to/vault-sync.sh`
-
-**Obsidian Local REST API plugin** (programmatic access):
+**Publishing with Quartz:**
 ```bash
-# With the Local REST API plugin enabled (port 27123):
-# List files
-curl http://localhost:27123/vault/ \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Read a note
-curl http://localhost:27123/vault/projects/my-project.md \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Create/update a note
-curl -X PUT http://localhost:27123/vault/inbox/new-note.md \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: text/markdown" \
-  -d "# New Note\n\nContent here"
-
-# Search
-curl "http://localhost:27123/search/simple/?query=project%20status" \
-  -H "Authorization: Bearer YOUR_API_KEY"
+npx quartz create && npx quartz build --serve && npx quartz sync
 ```
 
-**Build a CI/CD publishing pipeline:**
-```bash
-# Convert Obsidian vault to a static site (e.g., with Quartz)
-npx quartz create
-# Configure in quartz.config.ts
-npx quartz build --serve  # Local preview
-npx quartz sync           # Deploy to GitHub Pages
-```
+## Examples
 
-### Step 7: Advanced Patterns
+### Example 1: Full PKM vault setup with daily notes workflow
 
-**Periodic notes system** (daily → weekly → monthly → yearly rollups):
+**User prompt:** "Set up a Zettelkasten vault for my team's knowledge base. I need a daily notes template with priorities and meeting links, a project template with status tracking, Dataview queries for an active projects dashboard and orphan note finder, and Git auto-sync every 30 minutes."
 
-Weekly template referencing dailies:
-```markdown
----
-date: <% tp.date.now("YYYY-[W]ww") %>
-tags: [weekly]
----
+The agent will create the folder structure (0-inbox through 7-archive plus templates and attachments), write a daily note Templater template with date frontmatter, priority checkboxes, and a meetings section, create a project template with status/deadline fields, add Dataview queries to a dashboard note (active projects table sorted by deadline, orphan notes list), set up `.gitignore` to exclude workspace and plugin data files, and create a cron-based auto-commit script that runs every 30 minutes.
 
-# Week <% tp.date.now("ww, YYYY") %>
+### Example 2: Custom plugin for automated link suggestions
 
-## Daily Summaries
-<%*
-for (let i = 0; i < 7; i++) {
-  const d = tp.date.now("YYYY-MM-DD", i - tp.date.now("d") + 1);
-  const file = tp.file.find_tfile(d);
-  if (file) {
-    tR += `- [[${d}]]\n`;
-  }
-}
-%>
+**User prompt:** "Build an Obsidian plugin that adds a command to show related notes based on shared tags. When I run the command, it should find the top 5 notes that share the most tags with the current note and display them in a notice."
 
-## Week Wins
-- 
+The agent will scaffold a plugin from the sample template, implement an `onload` method that registers a command called "Show related notes". The command handler will read the active file's frontmatter tags via `metadataCache`, iterate over all markdown files in the vault, score each by counting overlapping tags, sort by score descending, take the top 5 results, and display their names and shared tag count in an Obsidian Notice popup.
 
-## Week Challenges
-- 
+## Guidelines
 
-## Next Week Focus
-- 
-```
-
-**Kanban board via metadata:**
-```dataview
-TABLE WITHOUT ID
-  file.link AS "Task",
-  status AS "Status",
-  priority AS "Priority"
-FROM #task
-WHERE status != "done"
-SORT choice(priority, "high", 1, "medium", 2, "low", 3) ASC
-GROUP BY status
-```
-
-**Spaced repetition** (with Spaced Repetition plugin):
-```markdown
-## Flashcards
-
-What is the CAP theorem?
-?
-The CAP theorem states that a distributed system can only guarantee two of three properties: Consistency, Availability, and Partition tolerance.
-
----
-
-Explain ACID properties::Atomicity (all-or-nothing), Consistency (valid state), Isolation (concurrent independence), Durability (committed = permanent)
-```
-
-**Metadata-driven link suggestions** (plugin pattern):
-```typescript
-// In your plugin: suggest links based on shared tags
-async suggestLinks(file: TFile): Promise<TFile[]> {
-  const metadata = this.app.metadataCache.getFileCache(file);
-  const tags = metadata?.frontmatter?.tags || [];
-
-  const allFiles = this.app.vault.getMarkdownFiles();
-  const scored = allFiles
-    .filter((f) => f.path !== file.path)
-    .map((f) => {
-      const fMeta = this.app.metadataCache.getFileCache(f);
-      const fTags = fMeta?.frontmatter?.tags || [];
-      const overlap = tags.filter((t: string) => fTags.includes(t)).length;
-      return { file: f, score: overlap };
-    })
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score);
-
-  return scored.slice(0, 10).map((s) => s.file);
-}
-```
+- **Keep atomic notes short and linked** — each permanent note should capture a single idea with links to related notes; this makes the vault scale without becoming a disorganized dump.
+- **Use frontmatter consistently** — always include `date`, `tags`, and `status` fields so Dataview queries work reliably across the entire vault.
+- **Test plugins in a separate vault** — use a dedicated test vault during development to avoid corrupting your real notes; symlink the plugin output folder for fast iteration.
+- **Avoid deeply nested folders** — rely on links, tags, and Dataview over folder hierarchy; deep nesting makes notes harder to find and reduces the value of the graph view.
+- **Pin Obsidian and plugin versions in shared vaults** — when multiple people use the same vault via Git, document the required Obsidian version and plugin versions to prevent compatibility issues.
+- **Back up `.obsidian/plugins` selectively** — commit `manifest.json` and `main.js` for essential plugins but exclude `data.json` files that contain user-specific settings.

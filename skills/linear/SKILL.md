@@ -5,16 +5,21 @@ description: >-
   workspaces, create issues and projects, automate workflows, build Linear
   integrations, sync issues with GitHub, manage sprints and cycles, set up
   triage processes, build custom views, use Linear's GraphQL API, create
-  webhooks, automate issue transitions, or build tools on top of Linear.
-  Covers workspace configuration, team workflows, API automation, and
-  integration patterns.
+  webhooks, automate issue transitions, or build tools on top of Linear. Covers
+  workspace configuration, team workflows, API automation, and integration
+  patterns.
 license: Apache-2.0
-compatibility: "Node.js 18+ or any HTTP client (GraphQL API)"
+compatibility: Node.js 18+ or any HTTP client (GraphQL API)
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: project-management
-  tags: ["linear", "project-management", "issue-tracker", "graphql", "automation", "agile"]
+  version: 1.0.0
+  category: productivity
+  tags:
+    - linear
+    - project-management
+    - issue-tracker
+    - graphql
+    - automation
 ---
 
 # Linear
@@ -27,27 +32,19 @@ Automate and extend Linear — the streamlined issue tracker for modern software
 
 ### Step 1: Authentication & SDK Setup
 
-Set up API access. Linear uses personal API keys or OAuth2 apps:
-
 **Personal API key** (Settings → API → Personal API keys):
 ```bash
 export LINEAR_API_KEY="lin_api_xxxxxxxxxxxxxxxxxxxx"
 ```
 
-**Install the SDK** (optional but recommended):
+**SDK setup** (recommended):
 ```bash
 npm install @linear/sdk
 ```
 
-**Basic SDK client:**
 ```typescript
 import { LinearClient } from "@linear/sdk";
-
-const linear = new LinearClient({
-  apiKey: process.env.LINEAR_API_KEY,
-});
-
-// Test connection
+const linear = new LinearClient({ apiKey: process.env.LINEAR_API_KEY });
 const me = await linear.viewer;
 console.log(`Authenticated as: ${me.name} (${me.email})`);
 ```
@@ -60,262 +57,108 @@ curl -X POST https://api.linear.app/graphql \
   -d '{"query": "{ viewer { id name email } }"}'
 ```
 
-For OAuth2 apps (multi-user integrations), register at linear.app/settings/api/applications. Use Authorization Code flow with PKCE.
+For OAuth2 apps (multi-user), register at linear.app/settings/api/applications and use Authorization Code flow with PKCE.
 
-### Step 2: Workspace & Team Configuration
+### Step 2: Teams, Labels & Templates
 
-Understand Linear's hierarchy: **Workspace → Teams → Projects → Issues**.
+Linear hierarchy: **Workspace → Teams → Projects → Issues**.
 
-**List teams:**
 ```typescript
+// List teams
 const teams = await linear.teams();
-teams.nodes.forEach((team) => {
-  console.log(`${team.key}: ${team.name} (${team.id})`);
-});
+teams.nodes.forEach((t) => console.log(`${t.key}: ${t.name} (${t.id})`));
+
+// Create label
+await linear.issueLabelCreate({ teamId: "TEAM_ID", name: "bug", color: "#ef4444" });
 ```
 
-**Create workflow states** (customize per team):
+**Custom workflow states** (GraphQL):
 ```graphql
-mutation {
-  workflowStateCreate(input: {
-    teamId: "TEAM_ID"
-    name: "In Review"
-    type: "started"
-    color: "#f59e0b"
-    position: 3
-  }) {
-    workflowState { id name }
-  }
-}
+mutation { workflowStateCreate(input: {
+  teamId: "TEAM_ID", name: "In Review", type: "started", color: "#f59e0b", position: 3
+}) { workflowState { id name } } }
 ```
 
-Standard state types: `backlog`, `unstarted`, `started`, `completed`, `cancelled`.
-
-**Create labels** for categorization:
-```typescript
-await linear.issueLabelCreate({
-  teamId: "TEAM_ID",
-  name: "bug",
-  color: "#ef4444",
-});
-```
-
-**Set up templates** for recurring issue types:
-```graphql
-mutation {
-  templateCreate(input: {
-    teamId: "TEAM_ID"
-    type: "issue"
-    name: "Bug Report"
-    templateData: {
-      title: "[Bug] "
-      priority: 2
-      labelIds: ["LABEL_ID"]
-      description: "## Steps to Reproduce\n\n## Expected Behavior\n\n## Actual Behavior\n\n## Environment\n"
-    }
-  }) {
-    template { id name }
-  }
-}
-```
+State types: `backlog`, `unstarted`, `started`, `completed`, `cancelled`.
 
 ### Step 3: Issues — CRUD & Bulk Operations
 
-**Create an issue:**
 ```typescript
+// Create an issue
 const issue = await linear.issueCreate({
-  teamId: "TEAM_ID",
-  title: "Implement user authentication",
+  teamId: "TEAM_ID", title: "Implement user authentication",
   description: "Add OAuth2 login flow with Google and GitHub providers.",
-  priority: 2, // 0=none, 1=urgent, 2=high, 3=medium, 4=low
-  stateId: "STATE_ID",
-  assigneeId: "USER_ID",
-  labelIds: ["LABEL_ID"],
-  estimate: 3, // story points
-  dueDate: "2026-03-15",
+  priority: 2, assigneeId: "USER_ID", labelIds: ["LABEL_ID"],
+  estimate: 3, dueDate: "2026-03-15",
 });
-console.log(`Created: ${issue.issue?.identifier}`);
-```
 
-**Query issues with filters:**
-```typescript
+// Query issues with filters
 const issues = await linear.issues({
   filter: {
     team: { key: { eq: "ENG" } },
     state: { type: { in: ["started", "unstarted"] } },
-    assignee: { email: { eq: "dev@company.com" } },
-    priority: { lte: 2 }, // urgent + high
-  },
-  orderBy: LinearDocument.PaginationOrderBy.UpdatedAt,
-  first: 50,
-});
-```
-
-**Bulk update issues** (e.g., move all to a new state):
-```typescript
-const backlogIssues = await linear.issues({
-  filter: {
-    team: { key: { eq: "ENG" } },
-    state: { type: { eq: "backlog" } },
-    label: { name: { eq: "stale" } },
-  },
+    priority: { lte: 2 },
+  }, first: 50,
 });
 
-for (const issue of backlogIssues.nodes) {
+// Bulk cancel stale backlog issues
+const stale = await linear.issues({
+  filter: { state: { type: { eq: "backlog" } }, label: { name: { eq: "stale" } } },
+});
+for (const issue of stale.nodes) {
   await issue.update({ stateId: "CANCELLED_STATE_ID" });
 }
+
+// Sub-issues and relations
+await linear.issueCreate({ teamId: "TEAM_ID", title: "Write auth tests", parentId: "PARENT_ID" });
+await linear.issueRelationCreate({ issueId: "A", relatedIssueId: "B", type: "blocks" });
 ```
 
-**Sub-issues (child tasks):**
-```typescript
-await linear.issueCreate({
-  teamId: "TEAM_ID",
-  title: "Write unit tests for auth module",
-  parentId: "PARENT_ISSUE_ID",
-});
-```
+### Step 4: Projects & Cycles
 
-**Relations between issues:**
 ```typescript
-await linear.issueRelationCreate({
-  issueId: "ISSUE_A",
-  relatedIssueId: "ISSUE_B",
-  type: "blocks", // blocks, duplicate, related
-});
-```
-
-### Step 4: Projects & Roadmaps
-
-**Create a project:**
-```typescript
+// Create a project
 const project = await linear.projectCreate({
-  teamIds: ["TEAM_ID"],
-  name: "Q1 Auth Overhaul",
+  teamIds: ["TEAM_ID"], name: "Q1 Auth Overhaul",
   description: "Replace legacy auth with OAuth2 + MFA",
-  targetDate: "2026-03-31",
-  startDate: "2026-01-15",
-  state: "started", // planned, started, paused, completed, cancelled
-  icon: "Shield",
-  color: "#3b82f6",
+  targetDate: "2026-03-31", startDate: "2026-01-15", state: "started",
 });
-```
 
-**Add milestones to a project:**
-```graphql
-mutation {
-  projectMilestoneCreate(input: {
-    projectId: "PROJECT_ID"
-    name: "Beta release"
-    targetDate: "2026-02-28"
-    sortOrder: 1
-  }) {
-    projectMilestone { id name }
-  }
-}
-```
-
-**Link issues to a project:**
-```typescript
+// Link issue to project and check progress
 await issue.update({ projectId: "PROJECT_ID" });
-```
+const proj = await linear.project("PROJECT_ID");
+console.log(`Progress: ${proj.progress}% — ${proj.completedScopeCount}/${proj.scopeCount}`);
 
-**Query project progress:**
-```typescript
-const project = await linear.project("PROJECT_ID");
-console.log(`Progress: ${project.progress}%`);
-console.log(`Scope: ${project.scopeCount} issues`);
-console.log(`Completed: ${project.completedScopeCount}`);
-```
-
-### Step 5: Cycles (Sprints)
-
-**Create a cycle:**
-```typescript
-const cycle = await linear.cycleCreate({
-  teamId: "TEAM_ID",
-  name: "Sprint 14",
-  startsAt: "2026-02-17T00:00:00Z",
-  endsAt: "2026-03-02T00:00:00Z",
+// Create a cycle (sprint)
+await linear.cycleCreate({
+  teamId: "TEAM_ID", name: "Sprint 14",
+  startsAt: "2026-02-17T00:00:00Z", endsAt: "2026-03-02T00:00:00Z",
 });
-```
 
-**Add issues to a cycle:**
-```typescript
-await issue.update({ cycleId: "CYCLE_ID" });
-```
-
-**Get cycle metrics:**
-```typescript
-const cycle = await linear.cycle("CYCLE_ID");
-console.log(`Scope: ${cycle.scopeCount}`);
-console.log(`Completed: ${cycle.completedScopeCount}`);
-console.log(`In progress: ${cycle.inProgressScopeCount}`);
-console.log(`Unstarted: ${cycle.uncompletedScopeCount}`);
-```
-
-**Auto-assign unfinished issues to the next cycle:**
-```typescript
-const activeCycle = (await linear.cycles({
+// Roll unfinished issues to next cycle
+const active = (await linear.cycles({
   filter: { team: { key: { eq: "ENG" } }, isActive: { eq: true } },
 })).nodes[0];
-
-const nextCycle = (await linear.cycles({
-  filter: {
-    team: { key: { eq: "ENG" } },
-    startsAt: { gt: activeCycle.endsAt },
-  },
-  first: 1,
+const next = (await linear.cycles({
+  filter: { team: { key: { eq: "ENG" } }, startsAt: { gt: active.endsAt } }, first: 1,
 })).nodes[0];
-
 const unfinished = await linear.issues({
-  filter: {
-    cycle: { id: { eq: activeCycle.id } },
-    state: { type: { in: ["unstarted", "started"] } },
-  },
+  filter: { cycle: { id: { eq: active.id } }, state: { type: { in: ["unstarted", "started"] } } },
 });
-
-for (const issue of unfinished.nodes) {
-  await issue.update({ cycleId: nextCycle.id });
-}
+for (const issue of unfinished.nodes) await issue.update({ cycleId: next.id });
 ```
 
-### Step 6: Webhooks & Real-Time Events
+### Step 5: Webhooks & Automation
 
-**Create a webhook** (Settings → API → Webhooks, or via API):
+**Create a webhook** (Settings → API → Webhooks, or via GraphQL):
 ```graphql
-mutation {
-  webhookCreate(input: {
-    url: "https://your-server.com/linear/webhook"
-    teamId: "TEAM_ID"
-    resourceTypes: ["Issue", "Comment", "Project"]
-    enabled: true
-  }) {
-    webhook { id enabled }
-  }
-}
+mutation { webhookCreate(input: {
+  url: "https://your-server.com/linear/webhook", teamId: "TEAM_ID",
+  resourceTypes: ["Issue", "Comment", "Project"], enabled: true
+}) { webhook { id } } }
 ```
 
-**Webhook payload structure:**
-```json
-{
-  "action": "update",
-  "type": "Issue",
-  "data": {
-    "id": "issue-id",
-    "title": "Fix login bug",
-    "state": { "name": "In Progress" },
-    "assignee": { "name": "Alice" },
-    "priority": 1,
-    "updatedAt": "2026-02-18T10:00:00Z"
-  },
-  "updatedFrom": {
-    "stateId": "previous-state-id",
-    "priority": 3
-  }
-}
-```
-
-**Verify webhook signatures:**
+**Verify and handle webhooks:**
 ```typescript
 import crypto from "crypto";
 
@@ -325,178 +168,49 @@ function verifyLinearWebhook(body: string, signature: string, secret: string): b
   return hmac.digest("hex") === signature;
 }
 
-// In your handler:
-const isValid = verifyLinearWebhook(
-  rawBody,
-  req.headers["linear-signature"] as string,
-  process.env.LINEAR_WEBHOOK_SECRET!
-);
-```
-
-**Webhook handler example** (Express):
-```typescript
 app.post("/linear/webhook", (req, res) => {
   const { action, type, data, updatedFrom } = req.body;
-
-  if (type === "Issue" && action === "update") {
-    // Detect state changes
-    if (updatedFrom?.stateId) {
-      console.log(`Issue ${data.identifier} moved to ${data.state.name}`);
-    }
-    // Detect priority escalation
-    if (updatedFrom?.priority && data.priority < updatedFrom.priority) {
-      notifySlack(`🚨 ${data.identifier} escalated to priority ${data.priority}`);
+  if (type === "Issue" && action === "update" && updatedFrom?.stateId) {
+    console.log(`${data.identifier} moved to ${data.state.name}`);
+  }
+  if (type === "Issue" && action === "create") {
+    // Auto-assign by label
+    const labels = data.labels?.map((l: any) => l.name) || [];
+    const map: Record<string, string> = { frontend: "LEAD_A", backend: "LEAD_B" };
+    for (const [label, id] of Object.entries(map)) {
+      if (labels.includes(label)) { linear.issueUpdate(data.id, { assigneeId: id }); break; }
     }
   }
-
+  // Auto-triage urgent issues into active cycle
+  if (type === "Issue" && data.priority <= 1) {
+    linear.cycles({ filter: { team: { id: { eq: data.teamId } }, isActive: { eq: true } } })
+      .then(c => { if (c.nodes[0]) linear.issueUpdate(data.id, { cycleId: c.nodes[0].id }); });
+  }
   res.sendStatus(200);
 });
 ```
 
-### Step 7: GitHub/GitLab Integration
+### Step 6: GitHub Integration & Reporting
 
-Linear syncs with GitHub/GitLab for branch tracking and auto-closing issues.
-
-**Enable in Linear:** Settings → Integrations → GitHub → Connect.
-
-**Branch naming convention** (auto-linked):
+**GitHub sync** — enable in Settings → Integrations → GitHub. Use branch naming:
 ```
 git checkout -b username/eng-123-fix-login-bug
 ```
-
-When a PR is merged, Linear automatically moves the linked issue to "Done" (configurable).
-
-**Automate via GitHub Actions** (create Linear issue on bug label):
-```yaml
-name: Sync GitHub Issues to Linear
-on:
-  issues:
-    types: [labeled]
-
-jobs:
-  sync:
-    if: contains(github.event.label.name, 'bug')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Linear Issue
-        run: |
-          curl -X POST https://api.linear.app/graphql \
-            -H "Authorization: ${{ secrets.LINEAR_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "query": "mutation($input: IssueCreateInput!) { issueCreate(input: $input) { issue { identifier url } } }",
-              "variables": {
-                "input": {
-                  "teamId": "'"$TEAM_ID"'",
-                  "title": "'"${{ github.event.issue.title }}"'",
-                  "description": "Synced from GitHub: ${{ github.event.issue.html_url }}",
-                  "priority": 2
-                }
-              }
-            }'
-```
-
-### Step 8: Automation Rules & Triage
-
-**Set up auto-assignment by label:**
-```typescript
-// Webhook handler: auto-assign based on label
-if (type === "Issue" && action === "create") {
-  const labels = data.labels?.map((l: any) => l.name) || [];
-
-  const assignmentMap: Record<string, string> = {
-    frontend: "FRONTEND_LEAD_ID",
-    backend: "BACKEND_LEAD_ID",
-    infra: "INFRA_LEAD_ID",
-  };
-
-  for (const [label, assigneeId] of Object.entries(assignmentMap)) {
-    if (labels.includes(label)) {
-      await linear.issueUpdate(data.id, { assigneeId });
-      break;
-    }
-  }
-}
-```
-
-**Auto-triage: move high-priority issues to current cycle:**
-```typescript
-if (type === "Issue" && data.priority <= 1) {
-  const activeCycle = (await linear.cycles({
-    filter: { team: { id: { eq: data.teamId } }, isActive: { eq: true } },
-  })).nodes[0];
-
-  if (activeCycle) {
-    await linear.issueUpdate(data.id, { cycleId: activeCycle.id });
-  }
-}
-```
-
-**SLA tracking** (flag overdue issues):
-```typescript
-const slaDays: Record<number, number> = { 1: 1, 2: 3, 3: 7, 4: 14 }; // priority → max days
-
-const openIssues = await linear.issues({
-  filter: {
-    state: { type: { in: ["unstarted", "started"] } },
-    priority: { lte: 3 },
-  },
-});
-
-const now = Date.now();
-for (const issue of openIssues.nodes) {
-  const maxDays = slaDays[issue.priority] || 14;
-  const ageDays = (now - new Date(issue.createdAt).getTime()) / 86400000;
-
-  if (ageDays > maxDays) {
-    await issue.update({
-      labelIds: [...(await issue.labels()).nodes.map((l) => l.id), "SLA_BREACH_LABEL_ID"],
-    });
-  }
-}
-```
-
-### Step 9: Custom Views & Reporting
+Merged PRs auto-move linked issues to "Done".
 
 **Query team velocity:**
 ```graphql
-query {
-  cycles(filter: { team: { key: { eq: "ENG" } }, isCompleted: { eq: true } }, last: 6) {
-    nodes {
-      name
-      completedScopeCount
-      scopeCount
-      startsAt
-      endsAt
-    }
-  }
-}
-```
-
-**Issue distribution by state:**
-```typescript
-const teams = await linear.teams();
-for (const team of teams.nodes) {
-  const states = await team.states();
-  for (const state of states.nodes) {
-    const count = await linear.issueCount({
-      filter: { team: { id: { eq: team.id } }, state: { id: { eq: state.id } } },
-    });
-    console.log(`${team.key} | ${state.name}: ${count}`);
-  }
-}
+query { cycles(filter: { team: { key: { eq: "ENG" } }, isCompleted: { eq: true } }, last: 6) {
+  nodes { name completedScopeCount scopeCount startsAt endsAt }
+} }
 ```
 
 **Export issues to CSV:**
 ```typescript
-import { createWriteStream } from "fs";
-
 const writer = createWriteStream("issues.csv");
 writer.write("Identifier,Title,State,Priority,Assignee,Created\n");
-
-let hasMore = true;
 let cursor: string | undefined;
-
+let hasMore = true;
 while (hasMore) {
   const page = await linear.issues({ first: 100, after: cursor });
   for (const issue of page.nodes) {
@@ -509,3 +223,26 @@ while (hasMore) {
 }
 writer.end();
 ```
+
+## Examples
+
+### Example 1: Sprint rollover and velocity dashboard
+
+**User prompt:** "Our current sprint ends today. Roll any unfinished issues into Sprint 15 and show me a velocity report for the last 4 completed sprints on the ENG team."
+
+The agent will query the active cycle for the ENG team and find all issues with unstarted or started states. It will then look up the next cycle by start date, update each unfinished issue to the new cycle ID, and report how many issues were moved. For the velocity report, it will query the last 4 completed cycles via GraphQL, extract `completedScopeCount` and `scopeCount` for each, and display a table with sprint name, total scope, completed count, and completion percentage.
+
+### Example 2: Auto-triage pipeline with Slack notifications
+
+**User prompt:** "Set up a webhook so that when any issue is created with the 'bug' label on the Platform team, it gets assigned to the on-call engineer and a Slack message is posted to #platform-bugs with the issue title and link."
+
+The agent will create a Linear webhook subscribed to Issue resource types for the Platform team. It will write an Express handler that verifies the webhook signature, checks for `action: "create"` events where the labels include "bug", updates the issue's assignee to the on-call engineer's user ID, and sends a POST to the Slack webhook URL with a message containing the issue identifier, title, and Linear URL.
+
+## Guidelines
+
+- **Use the SDK for type safety** — the `@linear/sdk` package provides typed methods and pagination helpers; prefer it over raw GraphQL for most operations.
+- **Paginate all list queries** — Linear caps results at 250 per page; always check `pageInfo.hasNextPage` and pass `after: endCursor` to avoid silently truncating results.
+- **Verify webhook signatures** — validate the `linear-signature` header with HMAC-SHA256 before processing any webhook payload to prevent forged events.
+- **Scope webhooks to specific teams** — use the `teamId` parameter when creating webhooks to avoid receiving events from unrelated teams in large workspaces.
+- **Use branch naming conventions for GitHub sync** — format branches as `username/TEAM-123-description` so Linear auto-links PRs and moves issues on merge.
+- **Batch updates carefully** — Linear has rate limits (varies by plan); add small delays in loops that update many issues and handle 429 responses with exponential backoff.

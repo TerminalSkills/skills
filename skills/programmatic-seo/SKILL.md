@@ -13,67 +13,33 @@ metadata:
 
 # Programmatic SEO
 
-You are an expert in programmatic SEO—building SEO-optimized pages at scale using templates and data. Your goal is to create pages that rank, provide value, and avoid thin content penalties.
+## Overview
 
-## Initial Assessment
+You are an expert in programmatic SEO -- building SEO-optimized pages at scale using templates and data. Your goal is to create pages that rank, provide value, and avoid thin content penalties.
 
 **Check for product marketing context first:**
 If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
+## Instructions
+
+### Initial Assessment
+
 Before designing a programmatic SEO strategy, understand:
 
-1. **Business Context**
-   - What's the product/service?
-   - Who is the target audience?
-   - What's the conversion goal for these pages?
+1. **Business Context** - Product/service? Target audience? Conversion goal for these pages?
+2. **Opportunity Assessment** - What search patterns exist? How many potential pages? Search volume distribution?
+3. **Competitive Landscape** - Who ranks for these terms? What do their pages look like? Can you realistically compete?
 
-2. **Opportunity Assessment**
-   - What search patterns exist?
-   - How many potential pages?
-   - What's the search volume distribution?
+### Core Principles
 
-3. **Competitive Landscape**
-   - Who ranks for these terms now?
-   - What do their pages look like?
-   - Can you realistically compete?
+1. **Unique Value Per Page** - Every page must provide value specific to that page. Not just swapped variables in a template. Maximize unique content.
+2. **Proprietary Data Wins** - Hierarchy of defensibility: Proprietary (you created it) > Product-derived (from users) > User-generated (community) > Licensed (exclusive) > Public (weakest).
+3. **Clean URL Structure** - Always use subfolders, not subdomains. Good: `yoursite.com/templates/resume/`. Bad: `templates.yoursite.com/resume/`.
+4. **Genuine Search Intent Match** - Pages must actually answer what people are searching for.
+5. **Quality Over Quantity** - Better to have 100 great pages than 10,000 thin ones.
+6. **Avoid Google Penalties** - No doorway pages, no keyword stuffing, no duplicate content. Genuine utility for users.
 
----
-
-## Core Principles
-
-### 1. Unique Value Per Page
-- Every page must provide value specific to that page
-- Not just swapped variables in a template
-- Maximize unique content—the more differentiated, the better
-
-### 2. Proprietary Data Wins
-Hierarchy of data defensibility:
-1. Proprietary (you created it)
-2. Product-derived (from your users)
-3. User-generated (your community)
-4. Licensed (exclusive access)
-5. Public (anyone can use—weakest)
-
-### 3. Clean URL Structure
-**Always use subfolders, not subdomains**:
-- Good: `yoursite.com/templates/resume/`
-- Bad: `templates.yoursite.com/resume/`
-
-### 4. Genuine Search Intent Match
-Pages must actually answer what people are searching for.
-
-### 5. Quality Over Quantity
-Better to have 100 great pages than 10,000 thin ones.
-
-### 6. Avoid Google Penalties
-- No doorway pages
-- No keyword stuffing
-- No duplicate content
-- Genuine utility for users
-
----
-
-## The 12 Playbooks (Overview)
+### The 12 Playbooks
 
 | Playbook | Pattern | Example |
 |----------|---------|---------|
@@ -92,9 +58,7 @@ Better to have 100 great pages than 10,000 thin ones.
 
 **For detailed playbook implementation**: See [references/playbooks.md](references/playbooks.md)
 
----
-
-## Choosing Your Playbook
+### Choosing Your Playbook
 
 | If you have... | Consider... |
 |----------------|-------------|
@@ -109,135 +73,65 @@ Better to have 100 great pages than 10,000 thin ones.
 
 You can layer multiple playbooks (e.g., "Best coworking spaces in San Diego").
 
----
+### Implementation Framework
 
-## Implementation Framework
+**1. Keyword Pattern Research:**
+- Identify the repeating structure and variables
+- Validate demand: aggregate search volume, head vs. long tail distribution, trend direction
 
-### 1. Keyword Pattern Research
+**2. Data Requirements:**
+- What data populates each page? First-party, scraped, licensed, or public? How is it updated?
 
-**Identify the pattern:**
-- What's the repeating structure?
-- What are the variables?
-- How many unique combinations exist?
+**3. Template Design:**
+- Header with target keyword, unique intro (not just variables swapped), data-driven sections, related pages / internal links, CTAs appropriate to intent
+- Each page needs unique value, conditional content based on data, original insights/analysis
 
-**Validate demand:**
-- Aggregate search volume
-- Volume distribution (head vs. long tail)
-- Trend direction
+**4. Internal Linking Architecture:**
+- Hub and spoke model: Hub (main category) → Spokes (individual pages) → Cross-links between related spokes
+- Every page reachable from main site, XML sitemap for all pages, breadcrumbs with structured data
 
-### 2. Data Requirements
+**5. Indexation Strategy:**
+- Prioritize high-volume patterns, noindex very thin variations, manage crawl budget, separate sitemaps by page type
 
-**Identify data sources:**
-- What data populates each page?
-- Is it first-party, scraped, licensed, public?
-- How is it updated?
+### Quality Checks
 
-### 3. Template Design
+**Pre-Launch:** Each page provides unique value, answers search intent, readable and useful, unique titles and meta descriptions, proper heading structure, schema markup, page speed acceptable, connected to site architecture, in XML sitemap.
 
-**Page structure:**
-- Header with target keyword
-- Unique intro (not just variables swapped)
-- Data-driven sections
-- Related pages / internal links
-- CTAs appropriate to intent
+**Post-Launch:** Track indexation rate, rankings, traffic, engagement, conversion. Watch for thin content warnings, ranking drops, manual actions, crawl errors.
 
-**Ensuring uniqueness:**
-- Each page needs unique value
-- Conditional content based on data
-- Original insights/analysis per page
+## Examples
 
-### 4. Internal Linking Architecture
+### Example 1: Integration Pages for a Workflow Automation Tool
 
-**Hub and spoke model:**
-- Hub: Main category page
-- Spokes: Individual programmatic pages
-- Cross-links between related spokes
+**User prompt:** "We're a Zapier competitor called FlowStack. We want to create landing pages for each of our 300+ integrations so we rank for '[app name] integration' searches."
 
-**Avoid orphan pages:**
-- Every page reachable from main site
-- XML sitemap for all pages
-- Breadcrumbs with structured data
+The agent will assess the opportunity and design a programmatic strategy:
+- URL structure: `flowstack.com/integrations/slack/`, `flowstack.com/integrations/hubspot/`
+- Template with: H1 "[App Name] Integration", unique intro describing specific use cases for that app, 3-5 popular workflow templates using that integration (proprietary data from actual user flows), setup steps specific to that app's API, related integrations sidebar
+- Data sources: product database for app metadata, usage analytics for popular workflows, API documentation for setup specifics
+- Internal linking: hub page at `/integrations/` linking to all apps, cross-links between commonly paired integrations (e.g., Slack page links to Google Sheets, HubSpot)
+- Indexation: submit integration sitemap, prioritize top 50 integrations by search volume for initial crawl budget
 
-### 5. Indexation Strategy
+### Example 2: Location Pages for a Commercial Cleaning Service
 
-- Prioritize high-volume patterns
-- Noindex very thin variations
-- Manage crawl budget thoughtfully
-- Separate sitemaps by page type
+**User prompt:** "We're a commercial cleaning company operating in 12 cities across Texas. We want to rank for 'commercial cleaning in [city]' for each city we serve."
 
----
+The agent will design location-specific pages that avoid thin content:
+- URL structure: `sparklecommercial.com/commercial-cleaning/austin/`, `/houston/`, `/dallas/`
+- Template with: H1 "Commercial Cleaning in [City]", unique intro mentioning local landmarks/business districts served, city-specific pricing ranges (proprietary data), local customer testimonials, service area map, team members based in that city
+- Unique content per page: each city page includes 2-3 local case studies, city-specific compliance requirements, area-specific service availability (some services only available in larger markets)
+- LocalBusiness schema with city-specific address, service area, and reviews
+- Hub page at `/commercial-cleaning/` with links to all 12 city pages plus a general service overview
+- Avoid: identical content with only the city name swapped, which triggers doorway page penalties
 
-## Quality Checks
+## Guidelines
 
-### Pre-Launch Checklist
-
-**Content quality:**
-- [ ] Each page provides unique value
-- [ ] Answers search intent
-- [ ] Readable and useful
-
-**Technical SEO:**
-- [ ] Unique titles and meta descriptions
-- [ ] Proper heading structure
-- [ ] Schema markup implemented
-- [ ] Page speed acceptable
-
-**Internal linking:**
-- [ ] Connected to site architecture
-- [ ] Related pages linked
-- [ ] No orphan pages
-
-**Indexation:**
-- [ ] In XML sitemap
-- [ ] Crawlable
-- [ ] No conflicting noindex
-
-### Post-Launch Monitoring
-
-Track: Indexation rate, Rankings, Traffic, Engagement, Conversion
-
-Watch for: Thin content warnings, Ranking drops, Manual actions, Crawl errors
-
----
-
-## Common Mistakes
-
-- **Thin content**: Just swapping city names in identical content
-- **Keyword cannibalization**: Multiple pages targeting same keyword
-- **Over-generation**: Creating pages with no search demand
-- **Poor data quality**: Outdated or incorrect information
-- **Ignoring UX**: Pages exist for Google, not users
-
----
-
-## Output Format
-
-### Strategy Document
-- Opportunity analysis
-- Implementation plan
-- Content guidelines
-
-### Page Template
-- URL structure
-- Title/meta templates
-- Content outline
-- Schema markup
-
----
-
-## Task-Specific Questions
-
-1. What keyword patterns are you targeting?
-2. What data do you have (or can acquire)?
-3. How many pages are you planning?
-4. What does your site authority look like?
-5. Who currently ranks for these terms?
-6. What's your technical stack?
-
----
-
-## Related Skills
-
-- **seo-audit**: For auditing programmatic pages after launch
-- **schema-markup**: For adding structured data
-- **competitor-alternatives**: For comparison page frameworks
+- Always check `.claude/product-marketing-context.md` before asking discovery questions
+- Prioritize unique value per page above all else since thin content with swapped variables will be penalized by Google
+- Recommend proprietary or product-derived data as the content source whenever possible since public data creates pages anyone can replicate
+- Always use subfolders for URL structure, never subdomains, to consolidate domain authority
+- Start with a smaller batch of high-quality pages (50-100) before scaling to thousands to validate that the template ranks
+- Include a hub-and-spoke internal linking architecture in every recommendation
+- Flag the common mistake of over-generation: creating pages for keywords with zero or negligible search volume wastes crawl budget
+- Always recommend schema markup (BreadcrumbList at minimum) for programmatic pages
+- Monitor indexation rate after launch since Google may choose not to index low-quality programmatic pages

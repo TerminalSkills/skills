@@ -1,19 +1,24 @@
 ---
 name: sox
 description: >-
-  Process audio files with SoX (Sound eXchange). Use when a user asks to
-  apply audio effects, mix and combine audio tracks, convert audio formats,
-  batch process audio files, normalize volume, trim silence, add reverb or
-  echo, change tempo or pitch, split audio files, create spectrograms,
-  generate test tones, resample audio, or build audio processing pipelines.
-  Covers all SoX effects, format conversion, mixing, and batch workflows.
+  Process audio files with SoX (Sound eXchange). Use when a user asks to apply
+  audio effects, mix and combine audio tracks, convert audio formats, batch
+  process audio files, normalize volume, trim silence, add reverb or echo,
+  change tempo or pitch, split audio files, create spectrograms, generate test
+  tones, resample audio, or build audio processing pipelines. Covers all SoX
+  effects, format conversion, mixing, and batch workflows.
 license: Apache-2.0
-compatibility: "Linux, macOS, Windows (sox 14.4+)"
+compatibility: 'Linux, macOS, Windows (sox 14.4+)'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: audio
-  tags: ["sox", "audio", "effects", "mixing", "audio-processing", "batch"]
+  version: 1.0.0
+  category: content
+  tags:
+    - sox
+    - audio
+    - effects
+    - mixing
+    - audio-processing
 ---
 
 # SoX (Sound eXchange)
@@ -58,26 +63,15 @@ soxi -b file.wav    # Bit depth
 ### Step 2: Format Conversion
 
 ```bash
-# WAV → MP3 (requires libsox-fmt-mp3)
-sox input.wav output.mp3
+# Format conversion (SoX infers from extension)
+sox input.wav output.mp3             # WAV → MP3 (requires libsox-fmt-mp3)
+sox input.wav output.flac            # WAV → FLAC (lossless)
+sox input.mp3 output.wav             # MP3 → WAV (for editing)
 
-# WAV → FLAC (lossless compression)
-sox input.wav output.flac
-
-# MP3 → WAV (for editing)
-sox input.mp3 output.wav
-
-# Change sample rate
+# Sample rate, bit depth, channels
 sox input.wav -r 16000 output.wav    # Downsample to 16kHz (for speech)
-sox input.wav -r 48000 output.wav    # Upsample to 48kHz
-
-# Change bit depth
 sox input.wav -b 16 output.wav       # Convert to 16-bit
-sox input.wav -b 24 output.wav       # Convert to 24-bit
-
-# Mono → Stereo / Stereo → Mono
 sox input.wav output.wav channels 1  # Mix down to mono
-sox input.wav output.wav channels 2  # Upsample to stereo
 
 # Raw PCM → WAV
 sox -r 44100 -b 16 -c 2 -e signed-integer input.raw output.wav
@@ -139,63 +133,40 @@ sox input.wav output.wav gain -n -16
 ### Step 5: Audio Effects
 
 ```bash
-# Reverb
+# Reverb: reverb [reverberance% HF-damping% room-scale% stereo-depth% pre-delay-ms wet-gain-dB]
 sox input.wav output.wav reverb 50 50 100 100 0 0
-# reverb [reverberance% HF-damping% room-scale% stereo-depth% pre-delay-ms wet-gain-dB]
 
-# Echo
+# Echo / multiple echoes
 sox input.wav output.wav echo 0.8 0.88 60 0.4
-# echo gain-in gain-out delay-ms decay
-
-# Multiple echoes
 sox input.wav output.wav echos 0.8 0.7 700 0.25 700 0.3
 
 # Equalizer (boost/cut frequencies)
 sox input.wav output.wav equalizer 100 2q +6dB     # Boost bass at 100Hz
 sox input.wav output.wav equalizer 3000 1q -4dB    # Cut mids at 3kHz
-sox input.wav output.wav equalizer 10000 2q +3dB   # Boost highs at 10kHz
 
-# High-pass filter (remove rumble below 80Hz)
-sox input.wav output.wav highpass 80
+# Filters
+sox input.wav output.wav highpass 80               # Remove rumble below 80Hz
+sox input.wav output.wav lowpass 8000              # Remove hiss above 8kHz
+sox input.wav output.wav bandpass 1000 200         # Center 1kHz, width 200Hz
 
-# Low-pass filter (remove hiss above 8kHz)
-sox input.wav output.wav lowpass 8000
-
-# Band-pass filter
-sox input.wav output.wav bandpass 1000 200    # Center 1kHz, width 200Hz
-
-# Noise reduction (two-step)
-# 1. Profile noise from a silent segment (first 0.5s)
+# Noise reduction (two-step: profile then apply)
 sox input.wav -n noiseprof noise.prof trim 0 0.5
-# 2. Apply noise reduction
 sox input.wav output.wav noisered noise.prof 0.21
 
-# Chorus effect
+# Modulation effects
 sox input.wav output.wav chorus 0.7 0.9 55 0.4 0.25 2 -t
-
-# Flanger
 sox input.wav output.wav flanger
-
-# Tremolo
-sox input.wav output.wav tremolo 5 60    # 5Hz, 60% depth
-
-# Phaser
+sox input.wav output.wav tremolo 5 60
 sox input.wav output.wav phaser 0.8 0.74 3 0.4 0.5 -t
 
-# Speed change (changes pitch too)
-sox input.wav output.wav speed 1.25    # 25% faster
-
-# Tempo change (preserves pitch)
-sox input.wav output.wav tempo 1.25    # 25% faster, same pitch
-
-# Pitch shift (preserves tempo)
+# Speed (changes pitch) / Tempo (preserves pitch) / Pitch (preserves tempo)
+sox input.wav output.wav speed 1.25
+sox input.wav output.wav tempo 1.25
 sox input.wav output.wav pitch 300     # Shift up 300 cents (3 semitones)
-sox input.wav output.wav pitch -200    # Shift down 2 semitones
 
-# Fade in/out
-sox input.wav output.wav fade t 3 0 5    # 3s fade-in, 5s fade-out at end
-# fade type in-length [stop-position out-length]
+# Fade in/out: fade type in-length [stop-position out-length]
 # types: t=linear, q=quarter-sine, h=half-sine, l=logarithmic, p=inverted-parabola
+sox input.wav output.wav fade t 3 0 5
 
 # Reverse
 sox input.wav output.wav reverse
@@ -257,48 +228,33 @@ sox input.wav -n stats
 
 ```bash
 # Convert all WAV to MP3
-for f in *.wav; do
-  sox "$f" "${f%.wav}.mp3"
-done
+for f in *.wav; do sox "$f" "${f%.wav}.mp3"; done
 
 # Normalize all files in a directory
-for f in raw/*.wav; do
-  sox "$f" normalized/"$(basename "$f")" norm -1
-done
+for f in raw/*.wav; do sox "$f" normalized/"$(basename "$f")" norm -1; done
 
 # Apply effects chain to all files
 for f in episodes/*.wav; do
   sox "$f" processed/"$(basename "$f")" \
-    highpass 80 \
-    norm -1 \
-    compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 \
-    fade t 0.5 0 1
+    highpass 80 norm -1 compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 fade t 0.5 0 1
 done
 
 # Batch resample to 16kHz mono (for ML/speech)
-for f in *.wav; do
-  sox "$f" -r 16000 -c 1 resampled/"$(basename "$f")"
-done
+for f in *.wav; do sox "$f" -r 16000 -c 1 resampled/"$(basename "$f")"; done
 
-# Generate tone (for testing)
-sox -n test_tone.wav synth 5 sine 440    # 5s 440Hz sine wave
-sox -n pink_noise.wav synth 10 pinknoise  # 10s pink noise
-sox -n sweep.wav synth 10 sine 100-10000  # 10s frequency sweep
+# Generate test tones
+sox -n test_tone.wav synth 5 sine 440       # 5s 440Hz sine wave
+sox -n pink_noise.wav synth 10 pinknoise    # 10s pink noise
 ```
 
 ### Step 9: Effects Chains & Pipelines
 
-Chain multiple effects in one command:
-
 ```bash
-# Podcast processing pipeline
+# Podcast processing pipeline (chain multiple effects in one command)
 sox raw_episode.wav final_episode.wav \
-  highpass 80 \                    # Remove rumble
-  noisered noise.prof 0.2 \       # Remove background noise
-  compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 \  # Compress dynamic range
-  equalizer 3000 1q +2dB \        # Boost voice presence
-  norm -1 \                        # Normalize to -1dB
-  fade t 1 0 2                     # 1s fade-in, 2s fade-out
+  highpass 80 noisered noise.prof 0.2 \
+  compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 \
+  equalizer 3000 1q +2dB norm -1 fade t 1 0 2
 
 # Pipe between sox instances (streaming)
 sox input.wav -t wav - trim 10 60 | sox -t wav - output.wav norm -1
@@ -306,3 +262,31 @@ sox input.wav -t wav - trim 10 60 | sox -t wav - output.wav norm -1
 # Use with ffmpeg
 ffmpeg -i video.mp4 -vn -f wav - | sox -t wav - processed.wav norm -1 highpass 80
 ```
+
+## Examples
+
+### Example 1: Process raw podcast recordings for publication
+**User prompt:** "I have 12 raw podcast episodes in ./raw/ as WAV files. Remove low-frequency rumble, reduce background noise, compress the dynamic range, normalize to -1dB, and add a 1-second fade-in and 2-second fade-out to each."
+
+The agent will:
+1. Verify sox is installed with MP3 format support (`sox --version` and check for `libsox-fmt-all`).
+2. Profile background noise from the first 0.5 seconds of silence in the first episode using `sox input.wav -n noiseprof noise.prof trim 0 0.5`.
+3. Create a `./processed/` output directory.
+4. Run a batch loop applying an effects chain: `highpass 80`, `noisered noise.prof 0.2`, `compand 0.3,1 6:-70,-60,-20 -5 -90 0.2`, `norm -1`, `fade t 1 0 2` to each file.
+5. Report file sizes before and after processing.
+
+### Example 2: Prepare audio files for a speech recognition model
+**User prompt:** "Convert all my interview recordings in ./interviews/ to 16kHz mono WAV files for Whisper transcription. Also trim silence from the start and end of each file."
+
+The agent will:
+1. Create a `./prepared/` output directory.
+2. Loop over all audio files in `./interviews/`, running `sox "$f" -r 16000 -c 1 prepared/"$(basename "$f")" silence 1 0.1 0.1% reverse silence 1 0.1 0.1% reverse` to resample, convert to mono, and trim leading/trailing silence in one command.
+3. Verify the output using `soxi` on a sample file to confirm 16kHz, mono, and reduced duration.
+
+## Guidelines
+
+- Install `libsox-fmt-all` (or `libsox-fmt-mp3`) on Debian/Ubuntu to enable MP3 and other format support; the base sox package only handles WAV and raw formats.
+- Chain effects in a single sox command rather than piping between multiple sox processes; this avoids intermediate file I/O and preserves audio quality.
+- Always use the two-step noise reduction workflow: profile a silent segment with `noiseprof` first, then apply with `noisered` at a sensitivity of 0.2-0.3 to avoid artifacts.
+- When normalizing for podcasts, use `norm -1` (peak at -1dB) to leave headroom; `norm -0` risks clipping on some playback systems.
+- Use `soxi` to inspect audio properties before processing; mismatched sample rates or channel counts between input files will produce unexpected mixing results.

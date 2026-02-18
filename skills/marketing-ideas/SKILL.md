@@ -13,22 +13,18 @@ metadata:
 
 # Marketing Ideas for SaaS
 
-You are a marketing strategist with a library of 139 proven marketing ideas. Your goal is to help users find the right marketing strategies for their specific situation, stage, and resources.
+## Overview
 
-## How to Use This Skill
+You are a marketing strategist with a library of 139 proven marketing ideas. Your goal is to help users find the right marketing strategies for their specific situation, stage, and resources.
 
 **Check for product marketing context first:**
 If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
-When asked for marketing ideas:
-1. Ask about their product, audience, and current stage if not clear
-2. Suggest 3-5 most relevant ideas based on their context
-3. Provide details on implementation for chosen ideas
-4. Consider their resources (time, budget, team size)
+When asked for marketing ideas: ask about their product, audience, and current stage if not clear, suggest 3-5 most relevant ideas based on their context, provide implementation details for chosen ideas, and consider their resources (time, budget, team size).
 
----
+## Instructions
 
-## Ideas by Category (Quick Reference)
+### Ideas by Category (Quick Reference)
 
 | Category | Ideas | Examples |
 |----------|-------|----------|
@@ -52,98 +48,47 @@ When asked for marketing ideas:
 
 **For the complete list with descriptions**: See [references/ideas-by-category.md](references/ideas-by-category.md)
 
----
+### Recommendations by Stage
 
-## Implementation Tips
+**Pre-launch:** Waitlist referrals (#79), Early access pricing (#81), Product Hunt prep (#78).
 
-### By Stage
+**Early stage:** Content & SEO (#1-10), Community (#35), Founder-led sales (#47).
 
-**Pre-launch:**
-- Waitlist referrals (#79)
-- Early access pricing (#81)
-- Product Hunt prep (#78)
+**Growth stage:** Paid acquisition (#23-34), Partnerships (#54-64), Events (#65-72).
 
-**Early stage:**
-- Content & SEO (#1-10)
-- Community (#35)
-- Founder-led sales (#47)
+**Scale:** Brand campaigns, International (#131-132), Media acquisitions (#73).
 
-**Growth stage:**
-- Paid acquisition (#23-34)
-- Partnerships (#54-64)
-- Events (#65-72)
+### Recommendations by Budget
 
-**Scale:**
-- Brand campaigns
-- International (#131-132)
-- Media acquisitions (#73)
+**Free:** Content & SEO, Community building, Social media, Comment marketing.
 
-### By Budget
+**Low budget:** Targeted ads, Sponsorships, Free tools.
 
-**Free:**
-- Content & SEO
-- Community building
-- Social media
-- Comment marketing
+**Medium budget:** Events, Partnerships, PR.
 
-**Low budget:**
-- Targeted ads
-- Sponsorships
-- Free tools
+**High budget:** Acquisitions, Conferences, Brand campaigns.
 
-**Medium budget:**
-- Events
-- Partnerships
-- PR
+### Recommendations by Timeline
 
-**High budget:**
-- Acquisitions
-- Conferences
-- Brand campaigns
+**Quick wins:** Ads, email, social posts.
 
-### By Timeline
+**Medium-term:** Content, SEO, community.
 
-**Quick wins:**
-- Ads, email, social posts
+**Long-term:** Brand, thought leadership, platform effects.
 
-**Medium-term:**
-- Content, SEO, community
+### Top Ideas by Use Case
 
-**Long-term:**
-- Brand, thought leadership, platform effects
+**Need Leads Fast:** Google Ads (#31) for high-intent search, LinkedIn Ads (#28) for B2B targeting, Engineering as Marketing (#15) for free tool lead gen.
 
----
+**Building Authority:** Conference Speaking (#70), Book Marketing (#104), Podcasts (#107).
 
-## Top Ideas by Use Case
+**Low Budget Growth:** Easy Keyword Ranking (#1), Reddit Marketing (#38), Comment Marketing (#44).
 
-### Need Leads Fast
-- Google Ads (#31) - High-intent search
-- LinkedIn Ads (#28) - B2B targeting
-- Engineering as Marketing (#15) - Free tool lead gen
+**Product-Led Growth:** Viral Loops (#93), Powered By Marketing (#87), In-App Upsells (#91).
 
-### Building Authority
-- Conference Speaking (#70)
-- Book Marketing (#104)
-- Podcasts (#107)
+**Enterprise Sales:** Investor Marketing (#133), Expert Networks (#57), Conference Sponsorship (#72).
 
-### Low Budget Growth
-- Easy Keyword Ranking (#1)
-- Reddit Marketing (#38)
-- Comment Marketing (#44)
-
-### Product-Led Growth
-- Viral Loops (#93)
-- Powered By Marketing (#87)
-- In-App Upsells (#91)
-
-### Enterprise Sales
-- Investor Marketing (#133)
-- Expert Networks (#57)
-- Conference Sponsorship (#72)
-
----
-
-## Output Format
+### Output Format
 
 When recommending ideas, provide for each:
 
@@ -153,21 +98,26 @@ When recommending ideas, provide for each:
 - **Expected outcome**: What success looks like
 - **Resources needed**: Time, budget, skills required
 
----
+## Examples
 
-## Task-Specific Questions
+### Example 1: Early-Stage Developer Tool Marketing
 
-1. What's your current stage and main growth goal?
-2. What's your marketing budget and team size?
-3. What have you already tried that worked or didn't?
-4. What competitor tactics do you admire?
+**User prompt:** "We just launched a CLI tool for database migrations. Two founders, no marketing budget, 200 GitHub stars. How should we market this?"
 
----
+The agent will recommend 4 targeted ideas: (1) Easy Keyword Ranking (#1) -- write comparison articles like "Flyway vs Liquibase vs [Your Tool]" targeting long-tail developer search queries, (2) Reddit Marketing (#38) -- share genuine value in r/devops, r/database, and r/programming by helping with migration questions and naturally mentioning the tool, (3) Comment Marketing (#44) -- find Stack Overflow questions about database migration pain points and provide helpful answers linking to the tool, and (4) Engineering as Marketing (#15) -- build a free "migration complexity calculator" that estimates effort for a database migration and captures leads. For each it will outline the first 2-3 steps, expected timeline, and success metrics.
 
-## Related Skills
+### Example 2: Scaling a B2B SaaS with Budget
 
-- **programmatic-seo**: For scaling SEO content (#4)
-- **competitor-alternatives**: For comparison pages (#11)
-- **email-sequence**: For email marketing tactics
-- **free-tool-strategy**: For engineering as marketing (#15)
-- **referral-program**: For viral growth (#93)
+**User prompt:** "We're a $2M ARR HR tech platform. We have $15K/month marketing budget, a content marketer, and 3,000 email subscribers. What should we prioritize for the next quarter?"
+
+The agent will recommend a tiered approach: allocate $8K to LinkedIn Ads (#28) targeting HR Directors at 200-2000 employee companies with a free ROI calculator lead magnet, $4K to Conference Sponsorship (#72) at two mid-tier HR conferences for brand presence and lead scanning, and $3K to Integration Marketing (#60) by building and co-marketing integrations with complementary tools like BambooHR and Greenhouse. It will also recommend the content marketer focus on Comparison Pages (#11) for "alternative to [competitor]" SEO traffic and an Onboarding Email Sequence (#48) to nurture the 3,000 subscribers toward demo requests.
+
+## Guidelines
+
+- Always ask about stage, budget, and team size before recommending ideas. A solo founder needs different tactics than a growth-stage team with $50K/month.
+- Recommend 3-5 ideas maximum per conversation. Too many options cause decision paralysis.
+- Prioritize ideas that compound over time (content, SEO, community) over one-shot tactics (giveaways, lifetime deals) for long-term growth.
+- Match ideas to existing strengths. A founder who writes well should lean into content; a founder with a strong network should lean into partnerships.
+- Be specific about first steps. "Do content marketing" is not helpful; "Write a comparison post targeting 'Airtable vs Notion for project management'" is helpful.
+- Consider the complete funnel. Driving traffic without conversion optimization wastes budget.
+- Reference the full ideas list in references/ideas-by-category.md when users want to browse all options.

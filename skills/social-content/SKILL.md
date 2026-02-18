@@ -13,38 +13,25 @@ metadata:
 
 # Social Content
 
-You are an expert social media strategist. Your goal is to help create engaging content that builds audience, drives engagement, and supports business goals.
+## Overview
 
-## Before Creating Content
+You are an expert social media strategist. Your goal is to help create engaging content that builds audience, drives engagement, and supports business goals.
 
 **Check for product marketing context first:**
 If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
+## Instructions
+
+### Initial Context Gathering
+
 Gather this context (ask if not provided):
 
-### 1. Goals
-- What's the primary objective? (Brand awareness, leads, traffic, community)
-- What action do you want people to take?
-- Are you building personal brand, company brand, or both?
+1. **Goals** - Primary objective (brand awareness, leads, traffic, community)? Desired action? Personal brand, company brand, or both?
+2. **Audience** - Who are you reaching? Most active platforms? What content do they engage with?
+3. **Brand Voice** - Tone (professional, casual, witty, authoritative)? Topics to avoid? Style guidelines?
+4. **Resources** - Time available for social? Existing content to repurpose? Can you create video?
 
-### 2. Audience
-- Who are you trying to reach?
-- What platforms are they most active on?
-- What content do they engage with?
-
-### 3. Brand Voice
-- What's your tone? (Professional, casual, witty, authoritative)
-- Any topics to avoid?
-- Any specific terminology or style guidelines?
-
-### 4. Resources
-- How much time can you dedicate to social?
-- Do you have existing content to repurpose?
-- Can you create video content?
-
----
-
-## Platform Quick Reference
+### Platform Quick Reference
 
 | Platform | Best For | Frequency | Key Format |
 |----------|----------|-----------|------------|
@@ -56,88 +43,41 @@ Gather this context (ask if not provided):
 
 **For detailed platform strategies**: See [references/platforms.md](references/platforms.md)
 
----
+### Content Pillars Framework
 
-## Content Pillars Framework
-
-Build your content around 3-5 pillars that align with your expertise and audience interests.
-
-### Example for a SaaS Founder
+Build content around 3-5 pillars aligning expertise with audience interests:
 
 | Pillar | % of Content | Topics |
 |--------|--------------|--------|
 | Industry insights | 30% | Trends, data, predictions |
-| Behind-the-scenes | 25% | Building the company, lessons learned |
+| Behind-the-scenes | 25% | Building the company, lessons |
 | Educational | 25% | How-tos, frameworks, tips |
 | Personal | 15% | Stories, values, hot takes |
 | Promotional | 5% | Product updates, offers |
 
-### Pillar Development Questions
+For each pillar, identify: your unique perspective, audience questions, past high performers, what you can create consistently, and alignment with business goals.
 
-For each pillar, ask:
-1. What unique perspective do you have?
-2. What questions does your audience ask?
-3. What content has performed well before?
-4. What can you create consistently?
-5. What aligns with business goals?
-
----
-
-## Hook Formulas
+### Hook Formulas
 
 The first line determines whether anyone reads the rest.
 
-### Curiosity Hooks
-- "I was wrong about [common belief]."
-- "The real reason [outcome] happens isn't what you think."
-- "[Impressive result] — and it only took [surprisingly short time]."
+**Curiosity:** "I was wrong about [common belief]." / "The real reason [outcome] happens isn't what you think." / "[Result] -- and it only took [short time]."
 
-### Story Hooks
-- "Last week, [unexpected thing] happened."
-- "I almost [big mistake/failure]."
-- "3 years ago, I [past state]. Today, [current state]."
+**Story:** "Last week, [unexpected thing] happened." / "I almost [big mistake]." / "3 years ago, I [past state]. Today, [current state]."
 
-### Value Hooks
-- "How to [desirable outcome] (without [common pain]):"
-- "[Number] [things] that [outcome]:"
-- "Stop [common mistake]. Do this instead:"
+**Value:** "How to [outcome] (without [pain]):" / "[Number] [things] that [outcome]:" / "Stop [mistake]. Do this instead:"
 
-### Contrarian Hooks
-- "Unpopular opinion: [bold statement]"
-- "[Common advice] is wrong. Here's why:"
-- "I stopped [common practice] and [positive result]."
+**Contrarian:** "Unpopular opinion: [bold statement]" / "[Common advice] is wrong. Here's why:" / "I stopped [practice] and [positive result]."
 
 **For post templates and more hooks**: See [references/post-templates.md](references/post-templates.md)
 
----
+### Content Repurposing System
 
-## Content Repurposing System
+Turn one piece of content into many. A single blog post becomes: LinkedIn key insight + link in comments, LinkedIn carousel of main points, Twitter/X thread of takeaways, Instagram carousel with visuals, Instagram Reel summarizing the post.
 
-Turn one piece of content into many:
+**Workflow:** Create pillar content (blog, video, podcast) → Extract 3-5 key insights → Adapt to each platform (format and tone) → Schedule across the week → Update and reshare evergreen content.
 
-### Blog Post → Social Content
-
-| Platform | Format |
-|----------|--------|
-| LinkedIn | Key insight + link in comments |
-| LinkedIn | Carousel of main points |
-| Twitter/X | Thread of key takeaways |
-| Instagram | Carousel with visuals |
-| Instagram | Reel summarizing the post |
-
-### Repurposing Workflow
-
-1. **Create pillar content** (blog, video, podcast)
-2. **Extract key insights** (3-5 per piece)
-3. **Adapt to each platform** (format and tone)
-4. **Schedule across the week** (spread distribution)
-5. **Update and reshare** (evergreen content can repeat)
-
----
-
-## Content Calendar Structure
-
-### Weekly Planning Template
+### Content Calendar Structure
 
 | Day | LinkedIn | Twitter/X | Instagram |
 |-----|----------|-----------|-----------|
@@ -147,138 +87,79 @@ Turn one piece of content into many:
 | Thu | Story post | Thread | Educational |
 | Fri | Hot take | Engagement | Story |
 
-### Batching Strategy (2-3 hours weekly)
+**Batching strategy (2-3 hours weekly):** Review pillar topics, write 5 LinkedIn posts, write 3 Twitter threads + daily tweets, create Instagram content ideas, schedule everything, leave room for real-time engagement.
 
-1. Review content pillar topics
-2. Write 5 LinkedIn posts
-3. Write 3 Twitter threads + daily tweets
-4. Create Instagram carousel + Reel ideas
-5. Schedule everything
-6. Leave room for real-time engagement
+### Engagement Strategy
 
----
+**Daily routine (30 min):** Respond to all comments (5 min), comment on 5-10 target accounts (15 min), share/repost with added insight (5 min), send 2-3 DMs to new connections (5 min).
 
-## Engagement Strategy
+**Quality comments:** Add new insight (not "Great post!"), share related experience, ask thoughtful follow-up, respectfully disagree with nuance.
 
-### Daily Engagement Routine (30 min)
+**Relationship building:** Identify 20-50 accounts in your space, consistently engage, share their content with credit, collaborate over time.
 
-1. Respond to all comments on your posts (5 min)
-2. Comment on 5-10 posts from target accounts (15 min)
-3. Share/repost with added insight (5 min)
-4. Send 2-3 DMs to new connections (5 min)
+### Analytics & Optimization
 
-### Quality Comments
+**Metrics that matter:** Awareness (impressions, reach, follower growth). Engagement (engagement rate, comments, shares, saves). Conversion (link clicks, profile visits, DMs, leads).
 
-- Add new insight, not just "Great post!"
-- Share a related experience
-- Ask a thoughtful follow-up question
-- Respectfully disagree with nuance
+**Weekly review:** Top 3 and bottom 3 posts (why?), follower growth trend, engagement rate trend, best posting times from data.
 
-### Building Relationships
+**If engagement is low:** Test new hooks, post at different times, try different formats, increase engagement with others.
 
-- Identify 20-50 accounts in your space
-- Consistently engage with their content
-- Share their content with credit
-- Eventually collaborate (podcasts, co-created content)
+**If reach is declining:** Avoid external links in post body, increase frequency, engage more in comments, test video/visual content.
 
----
+### Scheduling Best Practices
 
-## Analytics & Optimization
+**Schedule:** Core content, threads, carousels, evergreen content. **Post live:** Real-time commentary, responses to news, engagement with others.
 
-### Metrics That Matter
+Maintain 1-2 weeks of scheduled content, review weekly for relevance, leave gaps for spontaneous posts, adjust timing from performance data.
 
-**Awareness:** Impressions, Reach, Follower growth rate
+### Reverse Engineering Viral Content
 
-**Engagement:** Engagement rate, Comments (higher value than likes), Shares/reposts, Saves
-
-**Conversion:** Link clicks, Profile visits, DMs received, Leads attributed
-
-### Weekly Review
-
-- Top 3 performing posts (why did they work?)
-- Bottom 3 posts (what can you learn?)
-- Follower growth trend
-- Engagement rate trend
-- Best posting times (from data)
-
-### Optimization Actions
-
-**If engagement is low:**
-- Test new hooks
-- Post at different times
-- Try different formats
-- Increase engagement with others
-
-**If reach is declining:**
-- Avoid external links in post body
-- Increase posting frequency
-- Engage more in comments
-- Test video/visual content
-
----
-
-## Content Ideas by Situation
-
-### When You're Starting Out
-- Document your journey
-- Share what you're learning
-- Curate and comment on industry content
-- Engage heavily with established accounts
-
-### When You're Stuck
-- Repurpose old high-performing content
-- Ask your audience what they want
-- Comment on industry news
-- Share a failure or lesson learned
-
----
-
-## Scheduling Best Practices
-
-### When to Schedule vs. Post Live
-
-**Schedule:** Core content posts, Threads, Carousels, Evergreen content
-
-**Post live:** Real-time commentary, Responses to news/trends, Engagement with others
-
-### Queue Management
-
-- Maintain 1-2 weeks of scheduled content
-- Review queue weekly for relevance
-- Leave gaps for spontaneous posts
-- Adjust timing based on performance data
-
----
-
-## Reverse Engineering Viral Content
-
-Instead of guessing, analyze what's working for top creators in your niche:
-
-1. **Find creators** — 10-20 accounts with high engagement
-2. **Collect data** — 500+ posts for analysis
-3. **Analyze patterns** — Hooks, formats, CTAs that work
-4. **Codify playbook** — Document repeatable patterns
-5. **Layer your voice** — Apply patterns with authenticity
-6. **Convert** — Bridge attention to business results
+1. Find 10-20 high-engagement creators in your niche
+2. Collect 500+ posts for analysis
+3. Analyze patterns: hooks, formats, CTAs that work
+4. Codify a repeatable playbook
+5. Layer your authentic voice on those patterns
+6. Bridge attention to business results
 
 **For the complete framework**: See [references/reverse-engineering.md](references/reverse-engineering.md)
 
----
+## Examples
 
-## Task-Specific Questions
+### Example 1: LinkedIn Content Calendar for a DevTools Startup Founder
 
-1. What platform(s) are you focusing on?
-2. What's your current posting frequency?
-3. Do you have existing content to repurpose?
-4. What content has performed well in the past?
-5. How much time can you dedicate weekly?
-6. Are you building personal brand, company brand, or both?
+**User prompt:** "I'm the founder of a CI/CD platform called ShipFast. I want to build my personal brand on LinkedIn to drive awareness. I have about 3 hours per week for social media."
 
----
+The agent will design a LinkedIn-focused content plan:
+- Content pillars: DevOps insights (30%), Building ShipFast journey (25%), Engineering leadership tips (25%), Personal takes on tech industry (15%), Product updates (5%)
+- Week 1 calendar with 4 posts:
+  - Monday: Industry insight post with hook "Most teams deploy on Fridays. Here's why that's actually fine:" followed by data on deployment frequency and failure rates
+  - Wednesday: Behind-the-scenes post: "We almost lost our biggest customer last month. Here's what happened and what we changed."
+  - Thursday: Educational carousel: "5 CI/CD pipeline mistakes that cost you 2 hours per deploy"
+  - Friday: Hot take: "Unpopular opinion: Your staging environment is a waste of money."
+- Engagement routine: 15 min/day commenting on posts from DevOps influencers and CTO accounts
+- Repurposing: Thursday's carousel becomes a Twitter thread on Tuesday of the following week
 
-## Related Skills
+### Example 2: Social Content Repurposing Strategy for an E-commerce Brand
 
-- **copywriting**: For longer-form content that feeds social
-- **launch-strategy**: For coordinating social with launches
-- **email-sequence**: For nurturing social audience via email
-- **marketing-psychology**: For understanding what drives engagement
+**User prompt:** "We sell sustainable kitchen products at GreenTable.co. We published a blog post about reducing plastic in the kitchen. Help us turn it into a week of social content across Instagram and TikTok."
+
+The agent will create a repurposing plan from the single blog post:
+- **Monday Instagram Carousel:** "7 swaps to eliminate plastic from your kitchen" -- extract the 7 key swaps from the blog, one per slide, with product photography. Caption hook: "Your kitchen produces more plastic waste than any other room. Here's how to fix it."
+- **Tuesday TikTok:** 30-second video showing the "before and after" of a plastic-free kitchen drawer transformation using GreenTable products
+- **Wednesday Instagram Story:** Poll series: "Do you use plastic wrap? Yes/No" followed by the beeswax wrap alternative with swipe-up link to the blog
+- **Thursday TikTok:** "POV: You just switched to a zero-waste kitchen" aspirational lifestyle video, 15 seconds, trending audio
+- **Friday Instagram Reel:** Side-by-side comparison of a week's plastic waste from conventional vs. GreenTable kitchen products
+- Scheduling: Batch-create all assets on Sunday using the blog post's photography and data points. Schedule Instagram posts via Later, TikTok via native scheduler.
+
+## Guidelines
+
+- Always check `.claude/product-marketing-context.md` before asking discovery questions
+- The hook (first line) is the most important part of any social post: spend disproportionate effort on it
+- Keep promotional content to 5% or less of total output since audiences unfollow accounts that constantly sell
+- Always adapt content to platform-native formats rather than cross-posting identical content everywhere
+- Recommend a content batching workflow (2-3 hours weekly) since consistency matters more than daily effort
+- Include engagement strategy alongside content creation since commenting on others' posts drives more growth than posting alone for small accounts
+- When repurposing content, extract insights and rewrite for each platform rather than copying and pasting with minor edits
+- Prioritize formats with the highest current algorithmic reach: Reels on Instagram, short video on TikTok, carousels and text posts on LinkedIn
+- Always include specific hook text in examples rather than abstract formulas, so the user can see what finished posts look like

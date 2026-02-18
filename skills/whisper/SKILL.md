@@ -4,17 +4,22 @@ description: >-
   Transcribe audio to text with OpenAI Whisper. Use when a user asks to
   transcribe audio files, generate subtitles (SRT/VTT), transcribe podcasts,
   convert speech to text, translate audio to English, build transcription
-  pipelines, do speaker diarization, transcribe meetings, process voice
-  memos, create searchable audio archives, or integrate speech-to-text
-  into applications. Covers OpenAI Whisper (local), Whisper API, faster-whisper,
+  pipelines, do speaker diarization, transcribe meetings, process voice memos,
+  create searchable audio archives, or integrate speech-to-text into
+  applications. Covers OpenAI Whisper (local), Whisper API, faster-whisper,
   whisper.cpp, and production deployment patterns.
 license: Apache-2.0
-compatibility: "Python 3.9+ (whisper/faster-whisper), C++ (whisper.cpp), or OpenAI API"
+compatibility: 'Python 3.9+ (whisper/faster-whisper), C++ (whisper.cpp), or OpenAI API'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: audio
-  tags: ["whisper", "transcription", "speech-to-text", "subtitles", "srt", "podcast"]
+  version: 1.0.0
+  category: content
+  tags:
+    - whisper
+    - transcription
+    - speech-to-text
+    - subtitles
+    - srt
 ---
 
 # Whisper
@@ -144,7 +149,6 @@ with open("episode.vtt", "w") as f:
 **Word-level timestamps (for karaoke-style subtitles):**
 ```python
 segments, info = model.transcribe("episode.mp3", word_timestamps=True)
-
 for segment in segments:
     for word in segment.words:
         print(f"  [{word.start:.2f}s → {word.end:.2f}s] {word.word}")
@@ -166,7 +170,7 @@ for seg in segments:
     print(seg.text)  # English translation
 ```
 
-**Supported languages:** 99 languages including en, zh, de, es, ru, ko, fr, ja, pt, tr, pl, ca, nl, ar, sv, it, id, hi, fi, vi, he, uk, el, ms, cs, ro, da, hu, ta, no, th, ur, hr, bg, lt, la, mi, ml, cy, sk, te, fa, lv, bn, sr, az, sl, kn, et, mk, br, eu, is, hy, ne, mn, bs, kk, sq, sw, gl, mr, pa, si, km, sn, yo, so, af, oc, ka, be, tg, sd, gu, am, yi, lo, uz, fo, ht, ps, tk, nn, mt, sa, lb, my, bo, tl, mg, as, tt, haw, ln, ha, ba, jw, su.
+**Supported languages:** 99 languages including en, zh, de, es, ru, ko, fr, ja, pt, tr, pl, nl, ar, sv, it, hi, and many more.
 
 ### Step 5: Speaker Diarization
 
@@ -247,41 +251,6 @@ for audio_file in sorted(episodes_dir.glob("*.mp3")):
     print(f"  → {txt_path}, {srt_path}")
 ```
 
-**REST API for transcription service:**
-```python
-from fastapi import FastAPI, UploadFile
-from faster_whisper import WhisperModel
-import tempfile, os
-
-app = FastAPI()
-model = WhisperModel("small", device="cpu", compute_type="int8")
-
-@app.post("/transcribe")
-async def transcribe(file: UploadFile, language: str = None, task: str = "transcribe"):
-    with tempfile.NamedTemporaryFile(suffix=os.path.splitext(file.filename)[1], delete=False) as tmp:
-        tmp.write(await file.read())
-        tmp_path = tmp.name
-
-    try:
-        segments, info = model.transcribe(
-            tmp_path, beam_size=5, language=language, task=task
-        )
-        result = []
-        full_text = []
-        for seg in segments:
-            result.append({"start": seg.start, "end": seg.end, "text": seg.text.strip()})
-            full_text.append(seg.text.strip())
-        
-        return {
-            "language": info.language,
-            "language_probability": info.language_probability,
-            "text": " ".join(full_text),
-            "segments": result,
-        }
-    finally:
-        os.unlink(tmp_path)
-```
-
 ### Step 7: Model Selection Guide
 
 | Model | Size | VRAM | Speed (CPU) | Accuracy | Best For |
@@ -297,3 +266,34 @@ async def transcribe(file: UploadFile, language: str = None, task: str = "transc
 - CPU-only, accuracy matters: `small` with faster-whisper
 - GPU available: `large-v3` with faster-whisper (`float16`)
 - No local compute: OpenAI API (`whisper-1`)
+
+## Examples
+
+### Example 1: Transcribe a podcast season and generate SRT subtitles
+**User prompt:** "Transcribe all 20 MP3 episodes in ./episodes/ and generate both plain text transcripts and SRT subtitle files. I have a GPU with 10GB VRAM."
+
+The agent will:
+1. Install faster-whisper via `pip install faster-whisper`.
+2. Load the `large-v3` model with `device="cuda"` and `compute_type="float16"` to leverage the GPU.
+3. Create a `./transcripts/` output directory.
+4. Loop over all `.mp3` files in `./episodes/`, transcribing each with `beam_size=5`.
+5. Write both a `.txt` file (plain text) and a `.srt` file (with properly formatted timestamps) for each episode.
+6. Report the detected language and total processing time per episode.
+
+### Example 2: Translate a German interview to English with speaker labels
+**User prompt:** "I have a 45-minute German interview recording at meeting.wav with two speakers. Transcribe it in English and label who said what."
+
+The agent will:
+1. Install faster-whisper and pyannote-audio (`pip install faster-whisper pyannote.audio`).
+2. Transcribe `meeting.wav` with `task="translate"` to get English text from the German audio.
+3. Run pyannote speaker diarization to identify speaker segments (requires a HuggingFace token with pyannote model access).
+4. Merge Whisper segments with diarization results by matching time ranges to assign speaker labels.
+5. Output a formatted transcript with `[Speaker 1]` and `[Speaker 2]` labels before each segment.
+
+## Guidelines
+
+- Use faster-whisper over the original OpenAI Whisper for local transcription; it is 4x faster and uses less memory through INT8 quantization via CTranslate2.
+- Select model size based on your hardware: `tiny`/`base` for CPU speed, `small` for CPU accuracy, `large-v3` for GPU production quality.
+- Always convert audio to WAV or ensure ffmpeg is installed when working with MP3/M4A inputs; Whisper relies on ffmpeg for non-WAV format decoding.
+- For speaker diarization, the pyannote pipeline requires a HuggingFace access token with accepted model terms; set this up before attempting multi-speaker transcription.
+- When generating SRT files, use `beam_size=5` for more accurate segment boundaries; the default greedy decoding can produce poorly timed subtitle breaks.

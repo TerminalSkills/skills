@@ -13,235 +13,97 @@ metadata:
 
 # Product Marketing Context
 
-You help users create and maintain a product marketing context document. This captures foundational positioning and messaging information that other marketing skills reference, so users don't repeat themselves.
+## Overview
 
-The document is stored at `.claude/product-marketing-context.md`.
+You help users create and maintain a product marketing context document. This captures foundational positioning and messaging information that other marketing skills reference, so users don't repeat themselves. The document is stored at `.claude/product-marketing-context.md`.
 
-## Workflow
+## Instructions
 
 ### Step 1: Check for Existing Context
 
 First, check if `.claude/product-marketing-context.md` already exists.
 
-**If it exists:**
-- Read it and summarize what's captured
-- Ask which sections they want to update
-- Only gather info for those sections
+**If it exists:** Read it, summarize what's captured, ask which sections to update, and only gather info for those sections.
 
 **If it doesn't exist, offer two options:**
 
-1. **Auto-draft from codebase** (recommended): You'll study the repo—README, landing pages, marketing copy, package.json, etc.—and draft a V1 of the context document. The user then reviews, corrects, and fills gaps. This is faster than starting from scratch.
-
-2. **Start from scratch**: Walk through each section conversationally, gathering info one section at a time.
+1. **Auto-draft from codebase** (recommended): Study the repo (README, landing pages, marketing copy, package.json, etc.) and draft a V1. The user reviews, corrects, and fills gaps. This is faster than starting from scratch.
+2. **Start from scratch**: Walk through each section conversationally, one at a time.
 
 Most users prefer option 1. After presenting the draft, ask: "What needs correcting? What's missing?"
 
 ### Step 2: Gather Information
 
-**If auto-drafting:**
-1. Read the codebase: README, landing pages, marketing copy, about pages, meta descriptions, package.json, any existing docs
-2. Draft all sections based on what you find
-3. Present the draft and ask what needs correcting or is missing
-4. Iterate until the user is satisfied
+**If auto-drafting:** Read the codebase (README, landing pages, marketing copy, about pages, meta descriptions, package.json, existing docs), draft all sections, present for review, iterate until satisfied.
 
-**If starting from scratch:**
-Walk through each section below conversationally, one at a time. Don't dump all questions at once.
+**If starting from scratch:** Walk through each section below one at a time. Don't dump all questions at once. For each section: briefly explain what you're capturing, ask relevant questions, confirm accuracy, move to next. Push for verbatim customer language since exact phrases are more valuable than polished descriptions.
 
-For each section:
-1. Briefly explain what you're capturing
-2. Ask relevant questions
-3. Confirm accuracy
-4. Move to the next
+### Sections to Capture
 
-**Important:** Push for verbatim customer language. Exact phrases are more valuable than polished descriptions.
+**1. Product Overview** - One-line description, what it does (2-3 sentences), product category, product type (SaaS, marketplace, etc.), business model and pricing.
 
----
+**2. Target Audience** - Target company type (industry, size, stage), target decision-makers (roles, departments), primary use case, jobs to be done (2-3), specific use cases or scenarios.
 
-## Sections to Capture
+**3. Personas (B2B only)** - For each stakeholder (User, Champion, Decision Maker, Financial Buyer, Technical Influencer): what they care about, their challenge, and the value you promise them.
 
-### 1. Product Overview
-- One-line description
-- What it does (2-3 sentences)
-- Product category (what "shelf" you sit on—how customers search for you)
-- Product type (SaaS, marketplace, e-commerce, service, etc.)
-- Business model and pricing
+**4. Problems & Pain Points** - Core challenge before finding you, why current solutions fall short, what it costs them (time, money, opportunities), emotional tension.
 
-### 2. Target Audience
-- Target company type (industry, size, stage)
-- Target decision-makers (roles, departments)
-- Primary use case (the main problem you solve)
-- Jobs to be done (2-3 things customers "hire" you for)
-- Specific use cases or scenarios
+**5. Competitive Landscape** - Direct competitors (same solution, same problem), secondary competitors (different solution, same problem), indirect competitors (conflicting approach). How each falls short.
 
-### 3. Personas (B2B only)
-If multiple stakeholders are involved in buying, capture for each:
-- User, Champion, Decision Maker, Financial Buyer, Technical Influencer
-- What each cares about, their challenge, and the value you promise them
+**6. Differentiation** - Key differentiators (capabilities alternatives lack), how you solve it differently, why that's better, why customers choose you.
 
-### 4. Problems & Pain Points
-- Core challenge customers face before finding you
-- Why current solutions fall short
-- What it costs them (time, money, opportunities)
-- Emotional tension (stress, fear, doubt)
+**7. Objections & Anti-Personas** - Top 3 objections heard in sales with responses. Who is NOT a good fit.
 
-### 5. Competitive Landscape
-- **Direct competitors**: Same solution, same problem (e.g., Calendly vs SavvyCal)
-- **Secondary competitors**: Different solution, same problem (e.g., Calendly vs Superhuman scheduling)
-- **Indirect competitors**: Conflicting approach (e.g., Calendly vs personal assistant)
-- How each falls short for customers
+**8. Switching Dynamics (JTBD Four Forces)** - Push (frustrations with current solution), Pull (what attracts them to you), Habit (what keeps them stuck), Anxiety (worries about switching).
 
-### 6. Differentiation
-- Key differentiators (capabilities alternatives lack)
-- How you solve it differently
-- Why that's better (benefits)
-- Why customers choose you over alternatives
+**9. Customer Language** - How customers describe the problem and your solution (verbatim), words/phrases to use, words to avoid, glossary of product-specific terms.
 
-### 7. Objections & Anti-Personas
-- Top 3 objections heard in sales and how to address them
-- Who is NOT a good fit (anti-persona)
+**10. Brand Voice** - Tone, communication style, brand personality (3-5 adjectives).
 
-### 8. Switching Dynamics
-The JTBD Four Forces:
-- **Push**: What frustrations drive them away from current solution
-- **Pull**: What attracts them to you
-- **Habit**: What keeps them stuck with current approach
-- **Anxiety**: What worries them about switching
+**11. Proof Points** - Key metrics or results, notable customers/logos, testimonial snippets, main value themes with supporting evidence.
 
-### 9. Customer Language
-- How customers describe the problem (verbatim)
-- How they describe your solution (verbatim)
-- Words/phrases to use
-- Words/phrases to avoid
-- Glossary of product-specific terms
+**12. Goals** - Primary business goal, key conversion action, current metrics.
 
-### 10. Brand Voice
-- Tone (professional, casual, playful, etc.)
-- Communication style (direct, conversational, technical)
-- Brand personality (3-5 adjectives)
+### Step 3: Create the Document
 
-### 11. Proof Points
-- Key metrics or results to cite
-- Notable customers/logos
-- Testimonial snippets
-- Main value themes and supporting evidence
+After gathering information, create `.claude/product-marketing-context.md` with clearly labeled sections for each of the 12 areas above. Use structured formatting with bold labels and tables where appropriate (personas table, objections table, glossary table, value themes table).
 
-### 12. Goals
-- Primary business goal
-- Key conversion action (what you want people to do)
-- Current metrics (if known)
+### Step 4: Confirm and Save
 
----
+Show the completed document, ask if anything needs adjustment, save to `.claude/product-marketing-context.md`, and tell them: "Other marketing skills will now use this context automatically. Run `/product-marketing-context` anytime to update it."
 
-## Step 3: Create the Document
+## Examples
 
-After gathering information, create `.claude/product-marketing-context.md` with this structure:
+### Example 1: Auto-Draft from a SaaS Codebase
 
-```markdown
-# Product Marketing Context
+**User prompt:** "Set up my product marketing context."
 
-*Last updated: [date]*
+The agent will check for `.claude/product-marketing-context.md` (doesn't exist), then offer the two options. The user chooses auto-draft. The agent reads README.md, the landing page component, package.json, and any marketing copy in the repo. It drafts a V1 covering all 12 sections based on what it finds, such as:
+- Product Overview extracted from README and meta descriptions
+- Target Audience inferred from landing page copy and feature descriptions
+- Competitive Landscape based on comparison pages or "why us" sections
+- Gaps clearly marked with "[needs input]" where the codebase doesn't provide enough info
+The agent presents the draft and asks: "What needs correcting? What's missing?" Then iterates until the user approves and saves the file.
 
-## Product Overview
-**One-liner:**
-**What it does:**
-**Product category:**
-**Product type:**
-**Business model:**
+### Example 2: Updating an Existing Context Document
 
-## Target Audience
-**Target companies:**
-**Decision-makers:**
-**Primary use case:**
-**Jobs to be done:**
--
-**Use cases:**
--
+**User prompt:** "We just repositioned from targeting freelancers to targeting agencies. Update our product marketing context."
 
-## Personas
-| Persona | Cares about | Challenge | Value we promise |
-|---------|-------------|-----------|------------------|
-| | | | |
+The agent reads the existing `.claude/product-marketing-context.md`, summarizes the current state, and identifies sections that need updating for the repositioning:
+- Target Audience: Update from freelancers to agency owners and account managers
+- Personas: Replace freelancer persona with agency stakeholders (Agency Owner, Account Manager, Creative Director)
+- Problems & Pain Points: Shift from individual productivity to team coordination and client management challenges
+- Customer Language: Update verbatim phrases to reflect agency terminology
+- Competitive Landscape: Reassess competitors in the agency management space
+The agent walks through each affected section, gathers new information, updates the document, and saves.
 
-## Problems & Pain Points
-**Core problem:**
-**Why alternatives fall short:**
--
-**What it costs them:**
-**Emotional tension:**
+## Guidelines
 
-## Competitive Landscape
-**Direct:** [Competitor] — falls short because...
-**Secondary:** [Approach] — falls short because...
-**Indirect:** [Alternative] — falls short because...
-
-## Differentiation
-**Key differentiators:**
--
-**How we do it differently:**
-**Why that's better:**
-**Why customers choose us:**
-
-## Objections
-| Objection | Response |
-|-----------|----------|
-| | |
-
-**Anti-persona:**
-
-## Switching Dynamics
-**Push:**
-**Pull:**
-**Habit:**
-**Anxiety:**
-
-## Customer Language
-**How they describe the problem:**
-- "[verbatim]"
-**How they describe us:**
-- "[verbatim]"
-**Words to use:**
-**Words to avoid:**
-**Glossary:**
-| Term | Meaning |
-|------|---------|
-| | |
-
-## Brand Voice
-**Tone:**
-**Style:**
-**Personality:**
-
-## Proof Points
-**Metrics:**
-**Customers:**
-**Testimonials:**
-> "[quote]" — [who]
-**Value themes:**
-| Theme | Proof |
-|-------|-------|
-| | |
-
-## Goals
-**Business goal:**
-**Conversion action:**
-**Current metrics:**
-```
-
----
-
-## Step 4: Confirm and Save
-
-- Show the completed document
-- Ask if anything needs adjustment
-- Save to `.claude/product-marketing-context.md`
-- Tell them: "Other marketing skills will now use this context automatically. Run `/product-marketing-context` anytime to update it."
-
----
-
-## Tips
-
-- **Be specific**: Ask "What's the #1 frustration that brings them to you?" not "What problem do they solve?"
-- **Capture exact words**: Customer language beats polished descriptions
-- **Ask for examples**: "Can you give me an example?" unlocks better answers
-- **Validate as you go**: Summarize each section and confirm before moving on
-- **Skip what doesn't apply**: Not every product needs all sections (e.g., Personas for B2C)
+- Always check for existing `.claude/product-marketing-context.md` before starting from scratch
+- Recommend auto-drafting from the codebase as the default since it is faster and gives users something to react to rather than answering from a blank slate
+- Walk through sections one at a time when gathering information, never dump all questions at once
+- Push for verbatim customer language since exact phrases customers use are more valuable than polished marketing descriptions
+- Mark sections with "[needs input]" when auto-drafting if the codebase does not provide enough information
+- Skip sections that don't apply (for example, B2B Personas for a B2C product)
+- Validate each section with the user before moving to the next to avoid rework
+- Keep the document concise and scannable: use bold labels, short bullet points, and tables for structured data

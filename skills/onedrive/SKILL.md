@@ -1,18 +1,26 @@
 ---
 name: onedrive
 description: >-
-  Manage files and folders in OneDrive and OneDrive for Business via Microsoft Graph API.
-  Use when someone asks to "upload to OneDrive", "sync files with OneDrive", "share OneDrive
-  files", "manage OneDrive folders", "OneDrive API integration", "backup to OneDrive",
-  or "automate file management in OneDrive". Covers file CRUD, sharing, sync, search,
-  large file upload, thumbnails, and delta queries for change tracking.
+  Manage files and folders in OneDrive and OneDrive for Business via Microsoft
+  Graph API. Use when someone asks to "upload to OneDrive", "sync files with
+  OneDrive", "share OneDrive files", "manage OneDrive folders", "OneDrive API
+  integration", "backup to OneDrive", or "automate file management in OneDrive".
+  Covers file CRUD, sharing, sync, search, large file upload, thumbnails, and
+  delta queries for change tracking.
 license: Apache-2.0
-compatibility: "Microsoft Graph API v1.0. OneDrive Personal or OneDrive for Business (Microsoft 365)."
+compatibility: >-
+  Microsoft Graph API v1.0. OneDrive Personal or OneDrive for Business
+  (Microsoft 365).
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: development
-  tags: ["onedrive", "microsoft-365", "file-storage", "cloud-storage", "graph-api", "api"]
+  tags:
+    - onedrive
+    - microsoft-365
+    - file-storage
+    - cloud-storage
+    - graph-api
 ---
 
 # OneDrive
@@ -125,7 +133,6 @@ fs.closeSync(file);
 const stream = await graphClient
   .api(`/users/${userId}/drive/items/${itemId}/content`)
   .getStream();
-
 const writer = fs.createWriteStream('/path/to/output.pdf');
 stream.pipe(writer);
 
@@ -133,46 +140,21 @@ stream.pipe(writer);
 const content = await graphClient
   .api(`/users/${userId}/drive/root:/Documents/report.pdf:/content`)
   .get();
-
-// Get download URL (temporary, for client-side downloads)
-const item = await graphClient
-  .api(`/users/${userId}/drive/items/${itemId}`)
-  .select('@microsoft.graph.downloadUrl')
-  .get();
-// item['@microsoft.graph.downloadUrl'] → direct download link (valid ~1 hour)
 ```
 
 ### Move, Copy, Rename, Delete
 
 ```typescript
-// Rename
+// Rename or move via PATCH
 await graphClient.api(`/users/${userId}/drive/items/${itemId}`)
-  .patch({ name: 'new-filename.pdf' });
+  .patch({ name: 'new-filename.pdf', parentReference: { id: targetFolderId } });
 
-// Move to different folder
-await graphClient.api(`/users/${userId}/drive/items/${itemId}`)
-  .patch({
-    parentReference: { id: targetFolderId },
-  });
-
-// Move + rename simultaneously
-await graphClient.api(`/users/${userId}/drive/items/${itemId}`)
-  .patch({
-    name: 'renamed-in-new-folder.pdf',
-    parentReference: { id: targetFolderId },
-  });
-
-// Copy (async operation)
-const copyRes = await graphClient.api(`/users/${userId}/drive/items/${itemId}/copy`)
-  .post({
-    parentReference: { driveId, id: targetFolderId },
-    name: 'report-copy.pdf',
-  });
-// Returns Location header with monitor URL for progress
+// Copy (async — returns Location header with monitor URL)
+await graphClient.api(`/users/${userId}/drive/items/${itemId}/copy`)
+  .post({ parentReference: { driveId, id: targetFolderId }, name: 'report-copy.pdf' });
 
 // Delete (sends to recycle bin)
-await graphClient.api(`/users/${userId}/drive/items/${itemId}`)
-  .delete();
+await graphClient.api(`/users/${userId}/drive/items/${itemId}`).delete();
 ```
 
 ### Sharing & Permissions
@@ -223,39 +205,22 @@ const results = await graphClient
   .select('id,name,webUrl,lastModifiedDateTime,size')
   .top(25)
   .get();
-
-// Search with Microsoft Search API (more powerful, searches content inside files)
-const searchResults = await graphClient.api('/search/query')
-  .post({
-    requests: [{
-      entityTypes: ['driveItem'],
-      query: { queryString: 'filetype:xlsx AND "revenue" AND path:"Projects"' },
-      from: 0,
-      size: 20,
-    }],
-  });
 ```
+
+For advanced full-text search inside files, use the Microsoft Search API with `entityTypes: ['driveItem']` and KQL query syntax.
 
 ### Thumbnails & Preview
 
 ```typescript
-// Get thumbnails
+// Get thumbnails (small, medium, large for images, PDFs, Office docs)
 const thumbs = await graphClient
   .api(`/users/${userId}/drive/items/${itemId}/thumbnails`)
   .get();
-// Returns small, medium, large thumbnail URLs for images, PDFs, Office docs
 
-// Custom size thumbnail
-const customThumb = await graphClient
-  .api(`/users/${userId}/drive/items/${itemId}/thumbnails/0/small/content`)
-  .query({ width: 200, height: 200 })
-  .getStream();
-
-// Preview (embeddable viewer URL)
+// Embeddable viewer URL
 const preview = await graphClient
   .api(`/users/${userId}/drive/items/${itemId}/preview`)
   .post({});
-// preview.getUrl → embeddable URL for viewing in iframe
 ```
 
 ### Delta Queries (Efficient Sync)
@@ -298,39 +263,23 @@ for (const item of changes.value) {
 deltaLink = changes['@odata.deltaLink'];
 ```
 
-### Webhooks
+### Webhooks and Conversions
 
-```typescript
-// Subscribe to file changes
-const subscription = await graphClient.api('/subscriptions')
-  .post({
-    changeType: 'updated',
-    notificationUrl: 'https://your-app.com/api/onedrive-webhook',
-    resource: `/users/${userId}/drive/root`,
-    expirationDateTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    clientState: 'your-secret',
-  });
+Subscribe to file changes via `/subscriptions` (webhook notifies something changed, then use delta query to get specifics). Convert files server-side by appending `?format=pdf` to the content endpoint — works for Word, Excel, and PowerPoint.
 
-// On notification, use delta query to get actual changes
-// (webhook tells you SOMETHING changed, delta tells you WHAT)
-```
+## Examples
 
-### Convert File Formats
+### Example 1: Upload project files and share with external partner
+**User prompt:** "Upload the proposal.pdf and budget.xlsx files to the 'Acme Partnership' folder in OneDrive, create the folder if it doesn't exist, and generate a view-only sharing link that expires in 30 days for our partner at sarah@acmecorp.com."
 
-```typescript
-// Convert to PDF
-const pdfStream = await graphClient
-  .api(`/users/${userId}/drive/items/${itemId}/content?format=pdf`)
-  .getStream();
+The agent will first create the folder using `POST /users/{userId}/drive/root/children` with `name: 'Acme Partnership'` and `conflictBehavior: 'rename'`. It will then upload both files using simple PUT to `/users/{userId}/drive/root:/Acme Partnership/proposal.pdf:/content` and the same for budget.xlsx. Finally, it will create a sharing link with `type: 'view'`, `scope: 'users'`, and an expiration date 30 days from now, then send an invite to sarah@acmecorp.com with read-only permissions and a message explaining the shared documents.
 
-// Supported conversions:
-// Word (.docx) → PDF
-// Excel (.xlsx) → PDF
-// PowerPoint (.pptx) → PDF
-// Any supported format → PDF via ?format=pdf
-```
+### Example 2: Sync local directory with OneDrive using delta queries
+**User prompt:** "Set up an efficient sync script that tracks changes in the /Projects/Q1-2026 folder on OneDrive and downloads only files that have been added or modified since the last sync."
 
-## Best Practices
+The agent will implement an initial delta sync using `GET /users/{userId}/drive/root:/Projects/Q1-2026:/delta` with select fields for id, name, deleted, file, and lastModifiedDateTime. It will paginate through all results using `@odata.nextLink`, store the `@odata.deltaLink` to a local config file, and download each file's content. On subsequent runs, it will call the stored deltaLink to get only changes since last sync, downloading new or modified files and removing locally deleted ones.
+
+## Guidelines
 
 - Use delta queries for sync — don't re-list entire folders, track changes incrementally
 - Large files (>4MB) must use upload sessions — simple PUT has size limits

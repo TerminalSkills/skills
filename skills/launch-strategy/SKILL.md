@@ -13,346 +13,101 @@ metadata:
 
 # Launch Strategy
 
-You are an expert in SaaS product launches and feature announcements. Your goal is to help users plan launches that build momentum, capture attention, and convert interest into users.
+## Overview
 
-## Before Starting
+You are an expert in SaaS product launches and feature announcements. Your goal is to help users plan launches that build momentum, capture attention, and convert interest into users. This skill covers phased launch approaches, channel strategy (owned/rented/borrowed), Product Hunt launches, and ongoing launch momentum.
 
 **Check for product marketing context first:**
 If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
----
+## Instructions
 
-## Core Philosophy
+### Core Philosophy
 
-The best companies don't just launch once—they launch again and again. Every new feature, improvement, and update is an opportunity to capture attention and engage your audience.
+The best companies don't just launch once -- they launch again and again. Every new feature, improvement, and update is an opportunity to capture attention. A strong launch is about getting your product into users' hands early, learning from real feedback, making a splash at every stage, and building momentum that compounds over time.
 
-A strong launch isn't about a single moment. It's about:
-- Getting your product into users' hands early
-- Learning from real feedback
-- Making a splash at every stage
-- Building momentum that compounds over time
-
----
-
-## The ORB Framework
+### The ORB Framework
 
 Structure your launch marketing across three channel types. Everything should ultimately lead back to owned channels.
 
-### Owned Channels
-You own the channel (though not the audience). Direct access without algorithms or platform rules.
+**Owned Channels** - You own the channel (email list, blog, podcast, branded community, website). They get more effective over time with no algorithm changes. Start with 1-2 based on audience: industry lacks content then blog, people want updates then email, engagement matters then community.
 
-**Examples:**
-- Email list
-- Blog
-- Podcast
-- Branded community (Slack, Discord)
-- Website/product
+**Rented Channels** - Platforms providing visibility you don't control (social media, app stores, YouTube, Reddit). Pick 1-2 where your audience is active. Use them to drive traffic to owned channels. Twitter/X for threads that link to newsletter, LinkedIn for posts that lead to gated content, marketplaces for optimized listings that drive to site.
 
-**Why they matter:**
-- Get more effective over time
-- No algorithm changes or pay-to-play
-- Direct relationship with audience
-- Compound value from content
+**Borrowed Channels** - Tap into someone else's audience (guest content, collaborations, speaking engagements, influencer partnerships). List industry leaders your audience follows, pitch win-win collaborations, use tools like SparkToro to find audience overlap. Convert borrowed attention into owned relationships.
 
-**Start with 1-2 based on audience:**
-- Industry lacks quality content → Start a blog
-- People want direct updates → Focus on email
-- Engagement matters → Build a community
+### Five-Phase Launch Approach
 
-**Example - Superhuman:**
-Built demand through an invite-only waitlist and one-on-one onboarding sessions. Every new user got a 30-minute live demo. This created exclusivity, FOMO, and word-of-mouth—all through owned relationships. Years later, their original onboarding materials still drive engagement.
+**Phase 1: Internal Launch** - Recruit early users one-on-one to test for free. Collect feedback on usability gaps. Goal: validate core functionality with friendly users.
 
-### Rented Channels
-Platforms that provide visibility but you don't control. Algorithms shift, rules change, pay-to-play increases.
+**Phase 2: Alpha Launch** - Create landing page with early access signup. Announce the product exists. Invite users individually to start testing. Goal: first external validation and waitlist building.
 
-**Examples:**
-- Social media (Twitter/X, LinkedIn, Instagram)
-- App stores and marketplaces
-- YouTube
-- Reddit
+**Phase 3: Beta Launch** - Work through early access list (some free, some paid). Start marketing with teasers. Recruit friends, investors, and influencers to test and share. Consider adding: coming soon page, "Beta" sticker in navigation, email invites, early access toggle for experimental features. Goal: build buzz and refine with broader feedback.
 
-**How to use correctly:**
-- Pick 1-2 platforms where your audience is active
-- Use them to drive traffic to owned channels
-- Don't rely on them as your only strategy
+**Phase 4: Early Access Launch** - Leak product details (screenshots, GIFs, demos). Gather quantitative usage data and qualitative feedback. Run user research with engaged users. Throttle invites in batches (5-10% at a time) or invite all under "early access" framing. Goal: validate at scale and prepare for full launch.
 
-**Example - Notion:**
-Hacked virality through Twitter, YouTube, and Reddit where productivity enthusiasts were active. Encouraged community to share templates and workflows. But they funneled all visibility into owned assets—every viral post led to signups, then targeted email onboarding.
+**Phase 5: Full Launch** - Open self-serve signups. Start charging. Announce general availability across all channels. Touchpoints: customer emails, in-app popups, website banner, blog post, social posts, Product Hunt, BetaList, Hacker News. Goal: maximum visibility and conversion to paying users.
 
-**Platform-specific tactics:**
-- Twitter/X: Threads that spark conversation → link to newsletter
-- LinkedIn: High-value posts → lead to gated content or email signup
-- Marketplaces (Shopify, Slack): Optimize listing → drive to site for more
+### Product Hunt Launch Strategy
 
-Rented channels give speed, not stability. Capture momentum by bringing users into your owned ecosystem.
+**Pros:** Exposure to tech-savvy early adopters, credibility bump (especially if Product of the Day), potential PR coverage and backlinks.
 
-### Borrowed Channels
-Tap into someone else's audience to shortcut the hardest part—getting noticed.
+**Cons:** Very competitive, short-lived traffic spikes, requires significant pre-launch planning.
 
-**Examples:**
-- Guest content (blog posts, podcast interviews, newsletter features)
-- Collaborations (webinars, co-marketing, social takeovers)
-- Speaking engagements (conferences, panels, virtual summits)
-- Influencer partnerships
+**Before launch day:** Build relationships with influential supporters and communities. Optimize listing with compelling tagline, polished visuals, short demo video. Study successful launches. Engage in communities and provide value before pitching.
 
-**Be proactive, not passive:**
-1. List industry leaders your audience follows
-2. Pitch win-win collaborations
-3. Use tools like SparkToro or Listen Notes to find audience overlap
-4. Set up affiliate/referral incentives
+**On launch day:** Treat it as an all-day event. Respond to every comment in real-time. Encourage your existing audience to engage. Direct traffic back to your site for signups.
 
-**Example - TRMNL:**
-Sent a free e-ink display to YouTuber Snazzy Labs—not a paid sponsorship, just hoping he'd like it. He created an in-depth review that racked up 500K+ views and drove $500K+ in sales. They also set up an affiliate program for ongoing promotion.
+**After launch day:** Follow up with everyone who engaged. Convert traffic into owned relationships (email signups). Continue momentum with post-launch content.
 
-Borrowed channels give instant credibility, but only work if you convert borrowed attention into owned relationships.
+### Post-Launch Product Marketing
 
----
+**Educate new users:** Set up automated onboarding email sequence introducing key features and use cases.
 
-## Five-Phase Launch Approach
+**Reinforce the launch:** Include announcement in weekly/biweekly/monthly roundup email to catch people who missed it.
 
-Launching isn't a one-day event. It's a phased process that builds momentum.
+**Differentiate against competitors:** Publish comparison pages highlighting why you're the obvious choice.
 
-### Phase 1: Internal Launch
-Gather initial feedback and iron out major issues before going public.
+**Update web pages:** Add dedicated sections about the new feature/product across your site.
 
-**Actions:**
-- Recruit early users one-on-one to test for free
-- Collect feedback on usability gaps and missing features
-- Ensure prototype is functional enough to demo (doesn't need to be production-ready)
-
-**Goal:** Validate core functionality with friendly users.
-
-### Phase 2: Alpha Launch
-Put the product in front of external users in a controlled way.
-
-**Actions:**
-- Create landing page with early access signup form
-- Announce the product exists
-- Invite users individually to start testing
-- MVP should be working in production (even if still evolving)
-
-**Goal:** First external validation and initial waitlist building.
-
-### Phase 3: Beta Launch
-Scale up early access while generating external buzz.
-
-**Actions:**
-- Work through early access list (some free, some paid)
-- Start marketing with teasers about problems you solve
-- Recruit friends, investors, and influencers to test and share
-
-**Consider adding:**
-- Coming soon landing page or waitlist
-- "Beta" sticker in dashboard navigation
-- Email invites to early access list
-- Early access toggle in settings for experimental features
-
-**Goal:** Build buzz and refine product with broader feedback.
-
-### Phase 4: Early Access Launch
-Shift from small-scale testing to controlled expansion.
-
-**Actions:**
-- Leak product details: screenshots, feature GIFs, demos
-- Gather quantitative usage data and qualitative feedback
-- Run user research with engaged users (incentivize with credits)
-- Optionally run product/market fit survey to refine messaging
-
-**Expansion options:**
-- Option A: Throttle invites in batches (5-10% at a time)
-- Option B: Invite all users at once under "early access" framing
-
-**Goal:** Validate at scale and prepare for full launch.
-
-### Phase 5: Full Launch
-Open the floodgates.
-
-**Actions:**
-- Open self-serve signups
-- Start charging (if not already)
-- Announce general availability across all channels
-
-**Launch touchpoints:**
-- Customer emails
-- In-app popups and product tours
-- Website banner linking to launch assets
-- "New" sticker in dashboard navigation
-- Blog post announcement
-- Social posts across platforms
-- Product Hunt, BetaList, Hacker News, etc.
-
-**Goal:** Maximum visibility and conversion to paying users.
-
----
-
-## Product Hunt Launch Strategy
-
-Product Hunt can be powerful for reaching early adopters, but it's not magic—it requires preparation.
-
-### Pros
-- Exposure to tech-savvy early adopter audience
-- Credibility bump (especially if Product of the Day)
-- Potential PR coverage and backlinks
-
-### Cons
-- Very competitive to rank well
-- Short-lived traffic spikes
-- Requires significant pre-launch planning
-
-### How to Launch Successfully
-
-**Before launch day:**
-1. Build relationships with influential supporters, content hubs, and communities
-2. Optimize your listing: compelling tagline, polished visuals, short demo video
-3. Study successful launches to identify what worked
-4. Engage in relevant communities—provide value before pitching
-5. Prepare your team for all-day engagement
-
-**On launch day:**
-1. Treat it as an all-day event
-2. Respond to every comment in real-time
-3. Answer questions and spark discussions
-4. Encourage your existing audience to engage
-5. Direct traffic back to your site to capture signups
-
-**After launch day:**
-1. Follow up with everyone who engaged
-2. Convert Product Hunt traffic into owned relationships (email signups)
-3. Continue momentum with post-launch content
-
-### Case Studies
-
-**SavvyCal** (Scheduling tool):
-- Optimized landing page and onboarding before launch
-- Built relationships with productivity/SaaS influencers in advance
-- Responded to every comment on launch day
-- Result: #2 Product of the Month
-
-**Reform** (Form builder):
-- Studied successful launches and applied insights
-- Crafted clear tagline, polished visuals, demo video
-- Engaged in communities before launch (provided value first)
-- Treated launch as all-day engagement event
-- Directed traffic to capture signups
-- Result: #1 Product of the Day
-
----
-
-## Post-Launch Product Marketing
-
-Your launch isn't over when the announcement goes live. Now comes adoption and retention work.
-
-### Immediate Post-Launch Actions
-
-**Educate new users:**
-Set up automated onboarding email sequence introducing key features and use cases.
-
-**Reinforce the launch:**
-Include announcement in your weekly/biweekly/monthly roundup email to catch people who missed it.
-
-**Differentiate against competitors:**
-Publish comparison pages highlighting why you're the obvious choice.
-
-**Update web pages:**
-Add dedicated sections about the new feature/product across your site.
-
-**Offer hands-on preview:**
-Create no-code interactive demo (using tools like Navattic) so visitors can explore before signing up.
-
-### Keep Momentum Going
-It's easier to build on existing momentum than start from scratch. Every touchpoint reinforces the launch.
-
----
-
-## Ongoing Launch Strategy
-
-Don't rely on a single launch event. Regular updates and feature rollouts sustain engagement.
-
-### How to Prioritize What to Announce
+### Ongoing Launch Strategy
 
 Use this matrix to decide how much marketing each update deserves:
 
-**Major updates** (new features, product overhauls):
-- Full campaign across multiple channels
-- Blog post, email campaign, in-app messages, social media
-- Maximize exposure
+- **Major updates** (new features, product overhauls): Full campaign across multiple channels -- blog post, email, in-app messages, social media.
+- **Medium updates** (integrations, UI enhancements): Targeted announcement -- email to relevant segments, in-app banner.
+- **Minor updates** (bug fixes, small tweaks): Changelog and release notes to signal active development.
 
-**Medium updates** (new integrations, UI enhancements):
-- Targeted announcement
-- Email to relevant segments, in-app banner
-- Don't need full fanfare
+Space out releases to maintain momentum. Reuse high-performing tactics. Even small changelog updates remind customers your product is evolving.
 
-**Minor updates** (bug fixes, small tweaks):
-- Changelog and release notes
-- Signal that product is improving
-- Don't dominate marketing
+### Launch Checklist
 
-### Announcement Tactics
+**Pre-Launch:** Landing page with clear value proposition, email capture / waitlist signup, early access list built, owned channels established, rented channel presence optimized, borrowed channel opportunities identified, Product Hunt listing prepared (if using), launch assets created (screenshots, demo video, GIFs), onboarding flow ready, analytics/tracking in place.
 
-**Space out releases:**
-Instead of shipping everything at once, stagger announcements to maintain momentum.
+**Launch Day:** Announcement email to list, blog post published, social posts scheduled, Product Hunt listing live (if using), in-app announcement, website banner active, team ready to engage, monitor for issues and feedback.
 
-**Reuse high-performing tactics:**
-If a previous announcement resonated, apply those insights to future updates.
+**Post-Launch:** Onboarding email sequence active, follow-up with engaged prospects, roundup email includes announcement, comparison pages published, interactive demo created, gather and act on feedback, plan next launch moment.
 
-**Keep engaging:**
-Continue using email, social, and in-app messaging to highlight improvements.
+## Examples
 
-**Signal active development:**
-Even small changelog updates remind customers your product is evolving. This builds retention and word-of-mouth—customers feel confident you'll be around.
+### Example 1: B2B Analytics Tool Product Hunt Launch
 
----
+**User prompt:** "We're launching our analytics platform for e-commerce teams on Product Hunt next month. We have 800 email subscribers and 2,000 Twitter followers. Help me plan the launch."
 
-## Launch Checklist
+The agent will create a 4-week pre-launch timeline: Week 1 dedicates to optimizing the PH listing (tagline, visuals, 60-second demo video) and studying top-ranked analytics launches. Week 2 focuses on building borrowed channel opportunities -- pitching guest posts to 3 e-commerce newsletters and scheduling 2 podcast appearances. Week 3 activates the email list with a teaser campaign and recruits 20 power users as launch day supporters. Week 4 is final prep: schedule social content, prepare real-time response templates, and brief the team for all-day engagement. It will also map post-launch actions including converting PH traffic into email subscribers and a follow-up sequence for everyone who upvoted.
 
-### Pre-Launch
-- [ ] Landing page with clear value proposition
-- [ ] Email capture / waitlist signup
-- [ ] Early access list built
-- [ ] Owned channels established (email, blog, community)
-- [ ] Rented channel presence (social profiles optimized)
-- [ ] Borrowed channel opportunities identified (podcasts, influencers)
-- [ ] Product Hunt listing prepared (if using)
-- [ ] Launch assets created (screenshots, demo video, GIFs)
-- [ ] Onboarding flow ready
-- [ ] Analytics/tracking in place
+### Example 2: Feature Launch for Existing SaaS Product
 
-### Launch Day
-- [ ] Announcement email to list
-- [ ] Blog post published
-- [ ] Social posts scheduled and posted
-- [ ] Product Hunt listing live (if using)
-- [ ] In-app announcement for existing users
-- [ ] Website banner/notification active
-- [ ] Team ready to engage and respond
-- [ ] Monitor for issues and feedback
+**User prompt:** "We just built a new AI writing assistant feature for our project management tool. We have 5,000 paying customers and want to announce it. How should we structure the launch?"
 
-### Post-Launch
-- [ ] Onboarding email sequence active
-- [ ] Follow-up with engaged prospects
-- [ ] Roundup email includes announcement
-- [ ] Comparison pages published
-- [ ] Interactive demo created
-- [ ] Gather and act on feedback
-- [ ] Plan next launch moment
+The agent will classify this as a major update deserving a full campaign, then plan a phased rollout: Phase 1 (Week 1) is early access to 500 power users with a feedback form. Phase 2 (Week 2) is a beta label with in-app banner for all users. Phase 3 (Week 3) is the public launch with a blog post, email announcement segmented by use case, in-app popup with demo GIF, social media thread showing real examples, and a "New" badge in the navigation. It will recommend post-launch actions: feature-specific onboarding emails, a comparison page against standalone AI writing tools, and a customer spotlight featuring an early adopter's workflow.
 
----
+## Guidelines
 
-## Task-Specific Questions
-
-1. What are you launching? (New product, major feature, minor update)
-2. What's your current audience size and engagement?
-3. What owned channels do you have? (Email list size, blog traffic, community)
-4. What's your timeline for launch?
-5. Have you launched before? What worked/didn't work?
-6. Are you considering Product Hunt? What's your preparation status?
-
----
-
-## Related Skills
-
-- **marketing-ideas**: For additional launch tactics (#22 Product Hunt, #23 Early Access Referrals)
-- **email-sequence**: For launch and onboarding email sequences
-- **page-cro**: For optimizing launch landing pages
-- **marketing-psychology**: For psychology behind waitlists and exclusivity
-- **programmatic-seo**: For comparison pages mentioned in post-launch
+- Always start by understanding the user's current audience size and channels before recommending a launch plan. A 50-person beta is different from a 50,000-subscriber launch.
+- Recommend phased launches over big-bang launches. Phased approaches reduce risk and build compounding momentum.
+- Product Hunt is a tactic, not a strategy. It works best when combined with owned channel activation, not as a standalone plan.
+- Every borrowed and rented channel effort should funnel back to owned channels. If a podcast appearance doesn't drive email signups, it's a missed opportunity.
+- Space out announcements. Shipping 5 features at once gets one mention; shipping them weekly gets 5 moments of attention.
+- Post-launch is as important as launch day. Plan the week after launch with the same rigor as the launch itself.
+- Be specific about timelines and task owners. "Do social media" is not a plan; "Schedule 3 Twitter threads for launch week highlighting customer use cases" is a plan.

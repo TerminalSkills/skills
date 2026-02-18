@@ -1,18 +1,26 @@
 ---
 name: tiktok-marketing
 description: >-
-  Create, optimize, and automate TikTok content for brand awareness, audience growth,
-  and conversions. Use when someone asks to "grow on TikTok", "create TikTok content",
-  "TikTok marketing strategy", "TikTok API integration", "automate TikTok posting",
-  "TikTok analytics", or "TikTok for business". Covers short-form video strategy,
-  trending sounds, TikTok Content Posting API, analytics, and growth tactics.
+  Create, optimize, and automate TikTok content for brand awareness, audience
+  growth, and conversions. Use when someone asks to "grow on TikTok", "create
+  TikTok content", "TikTok marketing strategy", "TikTok API integration",
+  "automate TikTok posting", "TikTok analytics", or "TikTok for business".
+  Covers short-form video strategy, trending sounds, TikTok Content Posting API,
+  analytics, and growth tactics.
 license: Apache-2.0
-compatibility: "TikTok Content Posting API, TikTok for Business API. Requires TikTok Developer account."
+compatibility: >-
+  TikTok Content Posting API, TikTok for Business API. Requires TikTok Developer
+  account.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: 1.0.0
   category: marketing
-  tags: ["tiktok", "social-media", "short-form-video", "marketing", "viral", "api"]
+  tags:
+    - tiktok
+    - social-media
+    - short-form-video
+    - marketing
+    - viral
 ---
 
 # TikTok Marketing
@@ -249,7 +257,19 @@ const userRes = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=di
 - Answer common search queries in your niche
 - Check TikTok search bar suggestions for content ideas
 
-## Best Practices
+## Examples
+
+### Example 1: Create a TikTok content plan for a coffee roastery
+**User prompt:** "I run a specialty coffee roastery called Northside Beans in Portland. Create a 1-week TikTok content plan to grow my following from 400 to 2,000."
+
+The agent will create a 7-day content calendar with specific video concepts tailored to a coffee roastery. Day 1: "POV: you just discovered single-origin Ethiopian Yirgacheffe" (trending audio + close-up pour, 15s). Day 2: "3 mistakes you're making with your morning coffee" (educational, text overlays, 30s). Day 3: "Watch us roast a batch from green to brown" (time-lapse behind-the-scenes, 20s). Day 4-7 continue with a mix of series content ("Coffee basics Part 1"), storytime ("How I quit my tech job to roast coffee"), and duet/stitch ideas. Each entry includes the hook line, suggested duration, content type, 3-5 hashtags like #SpecialtyCoffee #CoffeeTok #PortlandFood, and optimal posting time (7 AM and 7 PM PST).
+
+### Example 2: Write a TikTok API integration to auto-publish videos
+**User prompt:** "Build a Node.js script that uploads a pre-recorded MP4 to TikTok using their Content Posting API. The video file is at ./videos/latte-art-tutorial.mp4."
+
+The agent will create a Node.js script that authenticates via TikTok OAuth 2.0 using environment variables `TIKTOK_CLIENT_KEY` and `TIKTOK_CLIENT_SECRET`, reads the video file size, initializes the upload via `POST /v2/post/publish/video/init/` with the title "Latte Art Tutorial — 3 Steps to a Perfect Rosetta", sets `privacy_level` to `PUBLIC_TO_EVERYONE`, uploads the binary to the returned `upload_url` with the correct `Content-Range` header, then polls `/v2/post/publish/status/fetch/` every 5 seconds until the status is `PUBLISH_COMPLETE` or `FAILED`, logging the result.
+
+## Guidelines
 
 - First 1 second = make or break. Start with hook, not intro/logo
 - Under 30 seconds has highest completion rate — tight editing, no filler

@@ -147,37 +147,7 @@ await graphClient.api(`/users/${userId}/onenote/sections/${sectionId}/pages`)
 
 #### OneNote HTML Tags Reference
 
-```html
-<!-- Tags for to-do items, important, etc. -->
-<p data-tag="to-do">Task to complete</p>
-<p data-tag="important">Important note</p>
-<p data-tag="question">Open question</p>
-<p data-tag="remember-for-later">Remember this</p>
-<p data-tag="definition">Term definition</p>
-<p data-tag="highlight">Highlighted text</p>
-<p data-tag="contact">Contact info</p>
-<p data-tag="address">Physical address</p>
-<p data-tag="phone-number">Phone number</p>
-<p data-tag="web-site-to-visit">URL to visit</p>
-<p data-tag="idea">Idea</p>
-<p data-tag="critical">Critical item</p>
-<p data-tag="project-a">Project A tag</p>
-<p data-tag="project-b">Project B tag</p>
-
-<!-- Date/time stamp -->
-<meta name="created" content="2026-03-01T09:00:00-05:00" />
-
-<!-- Indentation for outlines -->
-<ul>
-  <li>Level 1
-    <ul>
-      <li>Level 2
-        <ul><li>Level 3</li></ul>
-      </li>
-    </ul>
-  </li>
-</ul>
-```
+Key `data-tag` values: `to-do`, `important`, `question`, `remember-for-later`, `definition`, `highlight`, `contact`, `idea`, `critical`, `project-a`, `project-b`. Use `<meta name="created" content="2026-03-01T09:00:00-05:00" />` for timestamps. Standard `<ul>` nesting creates indented outlines.
 
 ### Read Pages
 
@@ -263,49 +233,19 @@ const searchResults = await graphClient.api('/search/query')
 
 ### Common Patterns
 
-#### Meeting Notes Template
-```typescript
-async function createMeetingNotes(sectionId, meeting) {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>${meeting.subject} — ${meeting.date}</title>
-      <meta name="created" content="${meeting.startTime}" />
-    </head>
-    <body>
-      <h1>${meeting.subject}</h1>
-      <p><b>Date:</b> ${meeting.date} | <b>Time:</b> ${meeting.time}</p>
-      <p><b>Attendees:</b> ${meeting.attendees.join(', ')}</p>
-      
-      <h2>Agenda</h2>
-      <ul>${meeting.agenda.map(item => `<li>${item}</li>`).join('')}</ul>
-      
-      <h2>Discussion Notes</h2>
-      <p><i>(To be filled during meeting)</i></p>
-      
-      <h2>Action Items</h2>
-      <ul>
-        <li data-tag="to-do">Action item 1 — Owner</li>
-        <li data-tag="to-do">Action item 2 — Owner</li>
-      </ul>
-      
-      <h2>Decisions Made</h2>
-      <ul>
-        <li data-tag="important">Decision 1</li>
-      </ul>
-    </body>
-    </html>
-  `;
+## Examples
 
-  return await graphClient
-    .api(`/users/${userId}/onenote/sections/${sectionId}/pages`)
-    .header('Content-Type', 'application/xhtml+xml')
-    .post(html);
-}
-```
+### Example 1: Create structured meeting notes in OneNote
+**User prompt:** "Create a OneNote page in my Engineering notebook's Sprint section for today's sprint retrospective. Attendees are Marcus, Jenna, and Priya. We discussed what went well with the payment migration and what to improve in CI pipeline times."
 
-## Best Practices
+The agent will use the Graph API to first look up the notebook named "Engineering" via `GET /onenote/notebooks?$filter=displayName eq 'Engineering'`, find the "Sprint" section, then create a new page via `POST /onenote/sections/{sectionId}/pages` with XHTML content. The page HTML includes a `<title>Sprint 14 Retrospective — February 18, 2026</title>`, a `<meta name="created">` timestamp, an `<h1>` header, attendee list, an `<h2>What Went Well</h2>` section with bullet points about the payment migration completing 2 days ahead of schedule, an `<h2>What to Improve</h2>` section noting CI pipeline averaging 18 minutes (target: under 10), and an `<h2>Action Items</h2>` with `data-tag="to-do"` items like "Marcus: investigate parallel test execution to cut CI time" and "Priya: document payment migration rollback procedure."
+
+### Example 2: Search OneNote and append updates to an existing page
+**User prompt:** "Find my OneNote page titled 'Q1 OKR Tracker' and append a progress update for the 'reduce churn' objective — we hit 2.1% churn this month, down from 2.8% in January."
+
+The agent will search for the page using `GET /onenote/pages?$filter=contains(title, 'Q1 OKR Tracker')&$select=id,title,parentSection`, retrieve the page ID, then call `PATCH /onenote/pages/{pageId}/content` with a JSON body targeting `body` with action `append` and position `after`. The appended HTML content is `<h2>Update — February 18, 2026</h2><p><b>Reduce Churn Objective:</b> Monthly churn dropped to 2.1%, down from 2.8% in January. On track to hit Q1 target of 1.8%.</p><p data-tag="important">Key driver: improved onboarding flow launched Feb 3 reduced 30-day churn by 25%.</p>`.
+
+## Guidelines
 
 - Pages are created with HTML — use valid XHTML (close all tags, quote attributes)
 - OneNote API supports a subset of HTML — stick to basic tags (h1-h6, p, ul, ol, table, img, b, i)
