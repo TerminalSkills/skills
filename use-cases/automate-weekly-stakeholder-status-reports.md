@@ -104,13 +104,21 @@ The executive version strips out version tags and PR references, replacing them 
 - "Merchants can now batch-process payments, reducing integration effort for large customers" instead of "Shipped batch payment processing endpoint in v2.15.0"
 - "GDPR compliance feature delayed — pending legal review, expected resolution next week" instead of "GDPR data export feature code complete, PR #478 merged, awaiting legal sign-off on data retention fields"
 
-Risk items and timeline changes get promoted to the top — the executive cares about what's at risk, not what shipped cleanly. Technical details disappear. What remains is a one-page brief that answers three questions: what moved forward, what's stuck, and what does the executive need to know.
+Risk items and timeline changes get promoted to the top — the executive cares about what's at risk, not what shipped cleanly. Technical details disappear. What remains is a one-page brief that answers three questions: what moved forward, what's stuck, and what does the executive need to know or decide.
+
+Here's how the same information looks in each version:
+
+**Engineering report:** "GDPR data export feature — code complete, awaiting legal review (BLOCKED). PR #478 merged, data retention fields need legal sign-off per Article 17 compliance."
+
+**Executive report:** "GDPR compliance feature delayed 1 week — pending legal review. No customer impact. Expected resolution by Feb 21."
+
+Same fact, different framing. The engineering report includes the technical detail. The executive report includes the timeline and business impact.
 
 One data collection step, two reports — each tuned to its audience. The same approach works for board-level summaries, investor updates, or cross-functional reports for the product and marketing teams.
 
 ### Step 5: Build the Weekly Rhythm
 
-The real payoff comes from making this repeatable:
+A single good report is useful. A consistent weekly report is transformative. The real payoff comes from making this repeatable:
 
 ```text
 Save this report format as a template. Every Friday at 4pm, pull the latest GitHub data for the same repos, apply the same format, and draft a report for my review. I'll add decisions and blockers before sending.

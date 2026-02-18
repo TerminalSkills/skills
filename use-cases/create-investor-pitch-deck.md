@@ -80,7 +80,9 @@ Write the pitch narrative. Follow the classic structure: problem, insight, solut
 
 The critical decision: traction moves to slide 5 instead of the usual slide 9. By the time an investor reaches slide 5, they've heard the problem and the insight. Then they see proof that it's actually working — $47K MRR with 12.8% month-over-month growth. They spend the rest of the deck thinking "this is already working" instead of "when are they going to show me numbers?"
 
-The ask slide is specific: $2.5M buys 18 months of runway and funds 3 concrete milestones (hit $1M ARR, hire 5 engineers, launch self-serve enterprise tier). Investors want to know exactly what their money buys and what "success" looks like at the next round.
+The ask slide is specific: $2.5M buys 18 months of runway and funds 3 concrete milestones (hit $1M ARR, hire 5 engineers, launch self-serve enterprise tier). Vague asks like "we need $2-4M for growth" signal that the founder hasn't done the math. A specific number with specific milestones signals confidence and planning.
+
+Investors want to know exactly what their money buys and what "success" looks like at the next round. If the milestones are hit, the Series A story writes itself.
 
 ### Step 3: Generate Data Visualizations
 

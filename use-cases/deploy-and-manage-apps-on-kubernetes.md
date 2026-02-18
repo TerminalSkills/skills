@@ -40,7 +40,7 @@ Multi-stage builds make the difference. The Node.js API drops from 1.2GB to 140M
 | Auth (Go) | 350 MB | 12 MB | Scratch base with static binary |
 | Worker (Python) | 900 MB | 180 MB | Slim runtime, no build tools |
 
-Every image gets a health check endpoint and runs as a non-root user. Total image size drops from 4.5GB to 800MB — deploy times shrink proportionally.
+Every image gets a health check endpoint and runs as a non-root user. The Go auth service compiles to a static binary and runs on `scratch` — the smallest possible base image, with literally nothing except the binary. Total image size drops from 4.5GB to 800MB — deploy times shrink proportionally, and container startup times improve because there's less to load from the registry.
 
 ### Step 2: Write the Helm Chart
 
@@ -105,7 +105,7 @@ Three Application resources get created with different sync policies:
 - **Staging:** auto-sync from release branches, requires passing health checks
 - **Production:** manual sync only, requires platform team approval via RBAC
 
-Slack notifications fire on every sync — success and failure. The team always knows when a deployment happened and whether it worked.
+Slack notifications fire on every sync — success and failure. The team always knows when a deployment happened and whether it worked. No more "who deployed to production at 3 PM?" — the notification includes the git commit, the author, and the sync result.
 
 ### Step 5: Add Monitoring, Autoscaling, and Security
 

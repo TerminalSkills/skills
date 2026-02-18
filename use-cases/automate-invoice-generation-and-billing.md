@@ -95,8 +95,8 @@ Implement a payment collection workflow. For customers with a card on file, auto
 The first monthly run tells the whole story:
 
 **Auto-charge customers (142 with card on file):**
-- 136 successful charges — money in the bank before the customer opens the invoice email
-- 6 entered dunning: 3 expired cards (triggered "update payment method" email with a direct link), 2 insufficient funds (retry scheduled for day 3), 1 declined (retry scheduled for day 3)
+- 136 successful charges — money in the bank before the customer even opens the invoice email. This alone is a massive improvement over the manual process, where Kenji would send the invoice and then wait for customers to pay on their own schedule.
+- 6 entered dunning: 3 expired cards (triggered "update payment method" email with a direct link to the Stripe customer portal), 2 insufficient funds (retry scheduled for day 3 to give time for the customer's account to be replenished), 1 declined (retry scheduled for day 3)
 
 **Bank transfer customers (45):**
 - Invoices sent with payment instructions and unique reference numbers

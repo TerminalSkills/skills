@@ -136,3 +136,5 @@ Three months later, a similar incident occurs. A database migration script drops
 Instead, the on-call engineer opens the disaster recovery runbook, runs the point-in-time recovery playbook targeting 10 minutes before the migration, and restores the affected table in 18 minutes. Zero data loss. The stakeholder communication template goes out within 5 minutes of the incident starting, keeping the support team and customers informed.
 
 The total setup took one day. The first incident it handled would have been a business-ending data loss event without it.
+
+The quarterly drill schedule has paid off too. By the time the real incident hit, the on-call engineer had already practiced the point-in-time recovery procedure twice. There was no panic, no guesswork, no "let me Google how pg_restore works." Just open the runbook, follow the steps, and verify the result. Twenty-two minutes from incident to resolution -- exactly what the verification reports predicted.

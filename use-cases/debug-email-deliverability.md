@@ -129,7 +129,11 @@ That third point is the real fix. Send transactional email from `mail.app.exampl
 Create a weekly deliverability monitoring checklist and the DNS records I need to update. Give me the exact DNS changes to make right now.
 ```
 
-The exact DNS records, a weekly monitoring schedule (blacklist checks, DMARC report review, bounce rate tracking), and alert thresholds get documented so deliverability problems surface in hours instead of weeks. The goal is never again having a two-week window where enterprise customers silently don't receive emails and nobody notices.
+The exact DNS records to add or modify, a weekly monitoring schedule (blacklist checks on Monday, DMARC aggregate report review on Wednesday, bounce rate trending on Friday), and alert thresholds get documented so deliverability problems surface in hours instead of weeks.
+
+The monitoring script checks all major blacklists automatically and sends a Slack alert if the sending IP appears on any list. Bounce rate alerts fire if the rate exceeds 2% for any sending domain. DMARC failure alerts fire if authentication failures exceed 5% for any 24-hour period.
+
+The goal is simple: never again have a two-week window where enterprise customers silently don't receive emails and nobody on the team notices. Email deliverability should be monitored like application uptime — because for users waiting on a password reset, email *is* uptime.
 
 ## Real-World Example
 

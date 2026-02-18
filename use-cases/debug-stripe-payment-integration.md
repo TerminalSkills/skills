@@ -78,7 +78,7 @@ Line 47 accesses `session.subscription.id` without checking whether `subscriptio
 
 This isn't a rare edge case. Every customer who made a one-time purchase since this code was deployed hit this crash. The only reason it wasn't caught sooner is that most customers buy monthly subscriptions — but the annual plan (a one-time payment at a discounted rate) has been failing silently for every buyer.
 
-The fix is a type guard that handles both checkout modes:
+The fix is a type guard that handles both checkout modes. Instead of assuming every checkout is a subscription, check the session mode:
 
 ```javascript
 if (session.mode === 'subscription' && session.subscription) {
@@ -88,9 +88,11 @@ if (session.mode === 'subscription' && session.subscription) {
 }
 ```
 
+One line of code — an `if` statement. That's the entire fix. But finding it took replaying the exact webhook payload against a local server. Without replay capability, the debugging process would be: read the Stripe docs, guess which field is null, add logging, deploy, wait for another failure, read the new logs. That cycle takes 2-3 iterations and 2-4 hours.
+
 ### Step 4: Verify the Fix Across All Webhook Flows
 
-One bug fixed, but the same coding pattern — accessing optional fields without null checks — might exist in other handlers. A payment integration has several critical webhook events, and each one needs to work correctly or customers lose money, access, or both:
+One bug fixed, but the same coding pattern — accessing optional fields without null checks — might exist in other webhook handlers. A Stripe integration typically handles 5-10 different event types, and each one needs to work correctly or customers lose money, access, or both. Testing one handler isn't enough.
 
 ```text
 I applied the fix. Can you test all the critical webhook flows?
@@ -112,9 +114,9 @@ But the test run also flags a preventive issue: the `invoice.payment_failed` han
 
 ### Step 5: Recover Affected Customers
 
-The bug was deployed Friday afternoon and found Monday morning. How many customers were affected?
+Fixing the bug prevents future failures, but what about customers who already hit the bug? The deployment went out Friday afternoon and the bug was found Monday morning — that's an entire weekend of potentially failed provisioning.
 
-The Stripe webhook delivery log shows every `checkout.session.completed` event that returned HTTP 500 since Friday. Each one represents a customer who was charged but never provisioned. The list gets cross-referenced with the application database to identify which customers are missing their paid features.
+The Stripe webhook delivery log is the source of truth. Every `checkout.session.completed` event that returned HTTP 500 since Friday represents a customer who paid but was never provisioned. Each one represents a customer who was charged but never provisioned. The list gets cross-referenced with the application database to identify which customers are missing their paid features.
 
 For each affected customer, the subscription or order fulfillment gets triggered manually, and an automated email goes out acknowledging the delay and offering a small credit for the inconvenience. The entire recovery — identifying affected customers, provisioning their access, and sending notification emails — happens within 30 minutes of finding the bug.
 
@@ -130,4 +132,6 @@ Marcus replays the failed webhooks locally and sees the `TypeError` on line 47 i
 
 He deploys the fix and manually triggers subscription provisioning for the three affected customers. Access restored within 30 minutes of the first report. Then he checks the webhook log for the full weekend window and finds two more customers who hit the same bug but hadn't reported it yet. They get provisioned too, along with a proactive apology email. Catching those two unreported cases turns what would have been more angry support tickets into positive customer interactions.
 
-The Friday afternoon deploy is now Monday's cautionary tale. The team adds webhook integration tests to the CI pipeline — one test per webhook event type, each testing both the subscription and one-time payment paths — so null-safety regressions get caught in CI instead of in production with real customer money on the line.
+The Friday afternoon deploy is now Monday's cautionary tale, and it leads to two permanent changes. First, the team adds webhook integration tests to the CI pipeline — one test per webhook event type, each testing both the subscription and one-time payment paths — so null-safety regressions get caught before deployment. Second, they add a Slack alert that triggers whenever a webhook returns a non-200 status code, so failed webhooks surface in minutes instead of when a customer complains days later.
+
+The total fix took 30 minutes from first report to full resolution. The CI tests and monitoring ensure the same class of bug never makes it to production again.

@@ -17,7 +17,9 @@ When someone tried removing an endpoint last year, it broke a partner integratio
 
 ## The Solution
 
-Using the **api-tester**, **coding-agent**, and **github** skills, the workflow analyzes 90 days of access logs to identify who's calling what and how often, builds deprecation infrastructure with proper HTTP sunset headers and migration guides, tracks consumer migration through GitHub issues, and provides a clear dashboard of what's safe to remove and what's still in use. The process that caused a 4-hour outage becomes a systematic, zero-downtime removal cycle.
+Using the **api-tester**, **coding-agent**, and **github** skills, the workflow analyzes 90 days of access logs to identify who's calling what and how often, builds deprecation infrastructure with proper HTTP sunset headers and migration guides, tracks consumer migration through GitHub issues, and provides a clear dashboard of what's safe to remove and what's still in use.
+
+The key shift: deprecation goes from a scary, manual, error-prone process (that caused a 4-hour outage) to a systematic, data-driven removal cycle with zero surprises. Every consumer is identified, contacted, and tracked before anything gets removed.
 
 ## Step-by-Step Walkthrough
 
@@ -50,7 +52,9 @@ The analysis across 140 endpoints produces a clear picture:
 
 The consumer breakdown is what makes safe deprecation possible. `GET /v1/users/{id}` isn't just "3 calls per day" — it's specifically the `acme-integration` partner API key making 2 calls and internal monitoring making 1. With that specificity, the team can contact each consumer directly instead of hoping everyone reads a changelog.
 
-The reports endpoint has zero consumers and zero calls. It can be removed today — no sunset period needed, no migration guide, no email. It's been dead for months and nobody noticed.
+The reports endpoint has zero consumers and zero calls. It's been dead for at least 90 days and nobody noticed. This one can be removed today — no sunset period needed, no migration guide, no email. Just delete the route handler and its tests. Every team has endpoints like this: code that nobody uses but everybody is afraid to touch.
+
+The PDF export endpoint is a different story — it has 3 active consumers and no v2 replacement. This one needs a product decision (build a v2 or grandfather existing consumers) before it can enter the deprecation pipeline.
 
 ### Step 3: Create the Deprecation Plan
 
@@ -97,7 +101,9 @@ Each deprecation gets a tracking issue with an automated checklist:
 Labels: `api-deprecation`, `sunset/2026-05-18`
 Assigned: @platform-team
 
-The checklist makes progress visible to the whole team. Nobody has to ask "where are we on that deprecation?" — the issue tells them. The sunset date in the label makes it searchable, and the checklist items can be automated: when traffic from the last remaining consumer drops to zero, the "all consumers migrated" box checks itself.
+The checklist makes progress visible to the whole team. Nobody has to ask "where are we on that deprecation?" — the issue tells them. The sunset date in the label makes it searchable (`label:sunset/2026-05`), and the checklist items can be automated: when traffic from the last remaining consumer drops to zero, the "all consumers migrated" box checks itself.
+
+A GitHub project board collects all active deprecation issues, giving the team a single view of every endpoint in the sunset pipeline, ordered by deadline. Monthly deprecation reviews take 15 minutes instead of an hour because all the data is pre-assembled in the issues.
 
 ### Step 5: Monitor Consumer Migration
 
@@ -117,7 +123,9 @@ Show me migration progress for all active deprecations. Which consumers haven't 
 
 The reports endpoint can be removed immediately — no consumers, no traffic, no risk. The analytics endpoint is blocked on a mobile app force-update that has its own timeline. The users endpoint needs one more outreach to the Acme partner, and if they don't respond by day 60, the 299 warning header will trigger their monitoring.
 
-This dashboard replaces the fear-based approach ("don't touch it, someone might be using it") with data-driven confidence ("we know exactly who's using it and we've contacted them").
+This dashboard replaces the fear-based approach ("don't touch it, someone might be using it") with data-driven confidence ("we know exactly who's using it, we've contacted them, and we can see whether they've migrated").
+
+The dashboard also reveals patterns. If the same partner consistently lags on migrations, the team can proactively reach out earlier or offer migration support. If mobile app versions are the bottleneck, the team can coordinate deprecation timelines with the mobile release schedule.
 
 ## Real-World Example
 

@@ -11,11 +11,11 @@ tags: [incident-response, postmortem, documentation, devops, reliability]
 
 ## The Problem
 
-Rafa is a senior SRE at a 30-person fintech team. They average four production incidents per month. After every one, somebody has to write a postmortem: piece together the timeline from a 200-message Slack thread, pull the relevant log snippets from a sea of noise, identify the root cause, and assign action items. This takes 2-4 hours per incident, and it always falls on whoever was on call — usually after a rough night of 3 AM pages and adrenaline.
+Rafa is a senior SRE at a 30-person fintech team. They average four production incidents per month — not catastrophic outages, but the kind of degraded service events that trigger pages, require investigation, and need a formal write-up. After every one, somebody has to write a postmortem: piece together the timeline from a 200-message Slack thread (most of which is "looking into it" and "is this related?"), pull the relevant log snippets from a sea of noise, identify the root cause, and assign action items with owners and deadlines. This takes 2-4 hours per incident, and it always falls on whoever was on call — usually after a rough night of 3 AM pages and adrenaline.
 
-The result is predictable. Postmortems get delayed for weeks. When they do get written, they are either so hasty they miss critical details, or so thorough they take half a day that the engineer does not have. A 15-person platform team handling 4 incidents a month loses an entire engineering day just on postmortem paperwork.
+The result is predictable. Postmortems get delayed for weeks. When they do get written, they are either so hasty they miss critical details (the contributing factors section just says "need better monitoring"), or so thorough they take half a day that the engineer does not have. A 15-person platform team handling 4 incidents a month loses an entire engineering day just on postmortem paperwork.
 
-And then the real cost: the next incident has the same root cause because nobody read the last postmortem — or because the last postmortem was never written. The action items from three months ago are still sitting in a Jira backlog tagged "post-incident follow-up," and the connection pool is still hardcoded at 10.
+And then the real cost becomes clear: the next incident has the same root cause because nobody read the last postmortem — or because the last postmortem was never written. The action items from three months ago are still sitting in a Jira backlog tagged "post-incident follow-up," and the connection pool is still hardcoded at 10.
 
 ## The Solution
 
@@ -94,9 +94,11 @@ Action item 1 is the immediate fix — if the pool alert had existed, Dani would
 
 The complete postmortem is written in markdown with consistent formatting, ready to be committed to the team's incident repository or pasted into Notion. The structure follows the team's standard template:
 
+The structure follows the team's standard template, so every postmortem is consistent and searchable:
+
 **Title:** Payment Service Outage — Connection Pool Exhaustion (2026-02-16)
 
-**Summary:** A scheduled batch job migrated to off-peak hours consumed all available database connections, causing 23 minutes of degraded service on the payment API. Approximately 140 API calls failed. No data was lost — all failed transactions were retried successfully after resolution.
+**Summary:** A scheduled batch job migrated to off-peak hours consumed all available database connections, causing 23 minutes of degraded service on the payment API. Approximately 140 API calls failed with 503 errors. No data was lost — all failed transactions were retried successfully by the client applications after resolution. Customer support received 4 tickets during the incident window; all customers were notified of the resolution within 2 hours.
 
 The full document includes:
 
@@ -106,7 +108,9 @@ The full document includes:
 - **4 action items** — with owners, priorities, and due dates
 - **Lessons learned** — what went well (fast detection at 2 minutes to acknowledge, clean resolution in under an hour, no customer data impact), what did not (no pool monitoring, no load testing for batch jobs, hardcoded config that prevented staging from revealing the problem)
 
-The document is saved to `postmortem-2026-02-16-payment-service-outage.md` and is ready for team review. The format is consistent enough that postmortems become searchable — six months from now, if someone sees connection pool issues, they can search the incident repository and find this postmortem immediately.
+The document is saved to `postmortem-2026-02-16-payment-service-outage.md` and is ready for team review. Because every postmortem follows the same structure, they become searchable — six months from now, when someone sees connection pool issues during an incident, they can search the repository for "connection pool" and find this postmortem immediately, complete with the root cause, the fix, and the preventive measures that were taken.
+
+The consistent structure also makes it easy to track patterns across incidents. After 6 months of postmortems, the team can see that 40% of their incidents involve resource contention and 30% involve config that was not environment-variable driven — patterns that are invisible when each postmortem is written in a different format or not written at all.
 
 ## Real-World Example
 

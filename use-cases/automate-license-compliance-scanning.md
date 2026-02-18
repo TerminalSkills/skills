@@ -64,7 +64,7 @@ For each flagged package, assess the actual risk for our commercial SaaS product
 ```
 
 **`@some-org/data-processor` (AGPL-3.0) — REPLACE immediately:**
-Risk is high and unambiguous. AGPL requires source code disclosure for software accessed over a network, which is the definition of SaaS. Drop-in replacement: `data-transform@3.4.0` (MIT, 2.1K GitHub stars, actively maintained, same API surface). The migration is mechanical — swap import paths in 2 files.
+Risk is high and unambiguous. AGPL requires source code disclosure for software accessed over a network, which is the definition of SaaS. There is no gray area here — if this dependency ships, the entire application source code must be made available to anyone who accesses the service. Drop-in replacement: `data-transform@3.4.0` (MIT, 2.1K GitHub stars, actively maintained, same API surface). The migration is mechanical — swap import paths in 2 files, run the test suite to confirm behavioral equivalence.
 
 **`chart-renderer` (GPL-3.0) — REVIEW:**
 Risk is medium. The package is only used in the internal admin dashboard, which is not distributed to end users. Two options: replace with `chart-lib@5.0.0` (Apache-2.0, widely used in commercial projects), or get a legal opinion on whether GPL applies when the code runs on your own servers and is never distributed. The safer and faster path is replacement.

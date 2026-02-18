@@ -125,6 +125,8 @@ The CI integration runs the benchmark suite against a staging deployment of the 
 
 The developer sees this before the PR is even reviewed — and they fix it before it reaches production. The comment includes enough context to start debugging immediately, not just a red X that requires digging through logs.
 
+This changes the team's relationship with performance. Instead of "we'll optimize later" (which means never), performance is part of the merge criteria alongside passing tests and code review approval. Regressions are caught by machines, not by customers.
+
 ## Real-World Example
 
 Kai is a backend engineer at a 25-person SaaS startup. The largest customer — $80K ARR — just complained about slow API responses and is evaluating competitors. Kai has no data to diagnose whether this is new or has been degrading for weeks. "It feels slow" is all anyone on the team can say, and "it feels slow" doesn't help when the customer wants a concrete answer.

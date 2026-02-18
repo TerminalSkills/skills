@@ -13,7 +13,9 @@ tags: [proposals, sales, client-management, automation, business-development]
 
 A 12-person digital agency sends out 8 to 10 project proposals per month. Each proposal takes a senior developer 4 to 6 hours to write — scoping the work, estimating timelines, structuring deliverables, and formatting the document. Half the proposals never convert, which means 20 to 30 hours per month spent on documents that lead nowhere. The proposals also vary wildly in quality depending on who writes them — some are detailed and persuasive, others are bare-bones bullet lists that undersell the team's capabilities.
 
-The worst part is the turnaround time. A hot lead calls on Tuesday, the proposal doesn't go out until Thursday, and by Friday they've signed with a competitor who responded in 24 hours. The agency's win rate on proposals sent within 24 hours is 3x higher than proposals sent after 48 hours, but achieving that turnaround with manual writing is nearly impossible when the senior team is already billing 35+ hours a week on active projects.
+The worst part is the turnaround time. A hot lead calls on Tuesday, the proposal doesn't go out until Thursday, and by Friday they've signed with a competitor who responded in 24 hours. The agency tracked their numbers last quarter: win rate on proposals sent within 24 hours was 3x higher than proposals sent after 48 hours. But achieving that turnaround with manual writing is nearly impossible when the senior team is already billing 35+ hours a week on active projects.
+
+There's also an invisible cost: the senior developer writing proposals isn't billing those hours to clients. At $175/hour, a 5-hour proposal costs the agency $875 in opportunity cost — before accounting for the 50% chance the deal doesn't close. That's $4,375 per month in unbillable senior time just on proposals that go nowhere.
 
 ## The Solution
 
@@ -30,7 +32,7 @@ The workflow takes a proposal from raw call notes to a polished, multi-tier docu
 After a discovery call, dump the raw notes — no formatting needed, just everything that was discussed:
 
 ```text
-Create a project proposal from these requirements: Client is a 50-person logistics company. They need a driver dispatch dashboard — real-time map view, route optimization, driver availability status, and integration with their existing Oracle ERP. They want a web app and a mobile companion app. Budget range mentioned: $80K-$120K. Timeline: launch in 4 months.
+Create a project proposal from these requirements: Client is a 50-person logistics company. They need a driver dispatch dashboard — real-time map view, route optimization, driver availability status, and integration with their existing Oracle ERP. They want a web app and a mobile companion app. Budget range mentioned: $80K-$120K. Timeline: launch in 4 months. Contact: Sarah Chen, VP Operations. Pain point: dispatchers currently use a whiteboard and phone calls to coordinate 40 drivers.
 ```
 
 The messier the notes, the more valuable the structuring step becomes. Most agencies lose information between the call and the proposal because nobody writes down the implicit requirements — the things the client assumes are included but never explicitly said. "Integration with Oracle ERP" sounds like one line item, but it could mean anything from "read-only API calls" to "bidirectional real-time sync with custom middleware." Surfacing that ambiguity now, in the proposal, prevents a $30K surprise at month 3.
@@ -76,11 +78,13 @@ This calibration step is what separates a good proposal from a wishful one. Most
 
 ### Step 4: Generate the Polished Proposal
 
+With the scope structured, risks identified, and pricing calibrated, the proposal itself comes together:
+
 ```text
 Generate the full proposal document with: executive summary, scope breakdown with deliverables per phase, timeline with milestones, pricing table, team composition, assumptions, and terms. Use a professional but approachable tone. Export as both markdown and PDF.
 ```
 
-The finished document runs 6 pages — long enough to be comprehensive, short enough that the decision-maker actually reads it:
+The finished document runs 6 pages — long enough to be comprehensive, short enough that the CEO actually reads it past page 1:
 
 1. **Executive Summary** — business value and approach overview, written for the CEO who won't read past page 1. Leads with the client's problem (driver coordination costs them 12 hours/week of dispatcher time), not the agency's solution.
 2. **Scope of Work** — 14 deliverables across 3 phases, each with specific acceptance criteria so "done" is never ambiguous
@@ -89,9 +93,9 @@ The finished document runs 6 pages — long enough to be comprehensive, short en
 5. **Pricing** — $105,000 total broken down by phase ($42K Phase 1, $35K Phase 2, $28K Phase 3) with payment tied to milestone completion
 6. **Team & Terms** — team composition (lead developer, 2 engineers, UX designer, project manager), payment schedule, change request process, IP ownership
 
-Both `proposals/dispatch-dashboard-proposal.md` and `proposals/dispatch-dashboard-proposal.pdf` are ready to send.
+Both `proposals/dispatch-dashboard-proposal.md` and `proposals/dispatch-dashboard-proposal.pdf` are ready to send. The PDF uses clean formatting with the agency's logo and contact information.
 
-The difference between this and a manually written proposal isn't just speed — it's consistency. Every proposal the agency sends now has the same structure, the same level of detail, and the same quality of risk analysis. The intern who just joined gets the same proposal quality as the principal who's been there for 8 years.
+The biggest difference from a manually written proposal isn't speed — it's consistency and completeness. Every proposal the agency sends now has the same structure, the same level of detail, and the same quality of risk analysis. The intern who just joined gets the same proposal quality as the principal who's been there for 8 years.
 
 ### Step 5: Create Budget Variants
 
@@ -121,7 +125,7 @@ Nina, a project manager at the agency, has a discovery call at 2 PM and the clie
 
 Instead, she feeds her call notes in right after the call. The scope gets structured into 3 phases with 14 specific deliverables, assumptions, and exclusions. Historical data adjusts the timeline from 16 to 18 weeks and recommends pricing at $105K to account for Oracle integration risk. Nina reviews the generated proposal, tweaks two deliverable descriptions to match language the client used on the call, and adds a personal note to the executive summary.
 
-The complete proposal — three pricing tiers, milestone timeline, and acceptance criteria — goes out at 5 PM the same day, 3 hours after the call instead of 3 days. The client signs the following week, citing the detailed scope breakdown as the reason they chose the agency over two competitors who submitted generic proposals. More importantly, the 18-week timeline holds because the estimates were calibrated against reality. The project delivers on week 17, and nobody has to explain why it's running late.
+The complete proposal — three pricing tiers, milestone timeline, acceptance criteria, and the executive summary that opens with Sarah's whiteboard-and-phone-calls pain point — goes out at 5 PM the same day, 3 hours after the call instead of 3 days. The client signs the following week, citing the detailed scope breakdown as the reason they chose the agency over two competitors who submitted generic proposals. More importantly, the 18-week timeline holds because the estimates were calibrated against reality. The project delivers on week 17, and nobody has to explain why it's running late.
 
 ## Tips for Better Proposals
 
@@ -130,3 +134,5 @@ The complete proposal — three pricing tiers, milestone timeline, and acceptanc
 - **Offer two or three pricing tiers** — gives the client a sense of control and increases close rates by shifting the conversation from "should we?" to "which one?"
 - **Send within 24 hours of the discovery call** — speed signals professionalism and keeps momentum while the client still remembers the conversation
 - **Tie payments to milestones** — protects both sides and creates natural checkpoints for scope validation
+- **Use the client's language** — if they called it a "dispatch board" on the call, call it that in the proposal, not "fleet management interface"
+- **Review before sending** — the generated proposal is 90% done, but the 10% you add (personal touches, call-specific details) is what makes it feel crafted rather than templated

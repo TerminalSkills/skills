@@ -134,4 +134,6 @@ Three months after setting everything up, Nina checks the numbers. Twelve certif
 
 The Saturday night scramble is gone. The monitoring caught one close call -- a vendor certificate that was 14 days from expiry with no renewal in progress -- and the Slack alert gave the team two full weeks to handle it during business hours instead of at 2 AM. The CI/CD gate blocked one deployment to a staging server whose certificate had expired without anyone noticing.
 
-The total setup took an afternoon. The first outage it prevented would have cost more in customer trust and engineering time than the entire effort to build it.
+The total setup took an afternoon. The first outage it prevented would have cost more in customer trust and engineering time than the entire effort to build it. And unlike the old calendar-reminder system, it does not depend on any single person being available -- the automation runs whether Nina is on vacation, asleep, or interviewing for her next role.
+
+Certificate management went from the team's most common source of preventable outages to a non-issue. The last time anyone thought about SSL was when the Slack bot confirmed a renewal -- and even that took only a glance.

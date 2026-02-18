@@ -93,7 +93,7 @@ Each alert includes the specific finding, the expected versus actual value, and 
 
 The email authentication checks are particularly valuable for the marketing team. SPF, DKIM, and DMARC records directly affect email deliverability -- if someone accidentally modifies an SPF record during a DNS migration, marketing emails start landing in spam folders. The monitoring catches this within 6 hours instead of waiting for someone to notice declining email open rates weeks later.
 
-### Step 3b: Handle the Acquired Company's Domains
+### Step 4: Handle the Acquired Company's Domains
 
 The 12 domains from the acquisition need special attention. Jun runs a targeted audit:
 
@@ -103,7 +103,7 @@ For the 12 acquired domains, check which ones have active traffic, which have DN
 
 The audit reveals 4 domains with active customer traffic, 3 that are parked with no DNS records, and 5 with records pointing to the old company's AWS account that is being shut down next month. All 12 have WHOIS contacts pointing to email addresses at the acquired company's domain. The registrar contacts get updated immediately to prevent expiration -- everything else goes into the monitoring system with the correct expected state.
 
-### Step 4: Generate Weekly Domain Health Reports
+### Step 5: Generate Weekly Domain Health Reports
 
 Alerts catch emergencies. Weekly reports catch slow-building problems and give Jun a single view of the entire domain portfolio:
 

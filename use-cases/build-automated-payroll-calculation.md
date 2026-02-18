@@ -88,7 +88,7 @@ The W-4 lookups and benefit deductions are the most error-prone step in manual p
 Using the pay stub template in /payroll/templates/pay-stub.html, generate a PDF pay stub for each employee. Save them to /payroll/output/stubs/jan-15/.
 ```
 
-Thirty PDF pay stubs render in seconds. Each one contains:
+Thirty PDF pay stubs render in under 10 seconds. Each one is a clean, professional document containing:
 
 - Pay period dates and payment date
 - Gross pay breakdown: regular hours and rate, overtime hours and rate (at 1.5x), listed separately
@@ -135,4 +135,6 @@ Rui manages operations at the 30-person digital agency. Payroll day used to cons
 
 Now Rui drops the timesheet files into a folder and runs one command. The agent flags three anomalies — an 18-hour day (data entry error), a missing project code, and a new hire without a W-4 on file. Rui corrects the 18-hour entry to 8, assigns the missing project code, and adds Yuki's W-4 data. The agent calculates gross and net pay for all 30 employees, generates 30 PDF pay stubs, and produces the summary report in under three minutes.
 
-Errors dropped to zero in the first quarter because anomalies get caught before any calculation runs — not after someone notices their paycheck is wrong. The eight-hour payroll day became a 30-minute review session.
+Errors dropped to zero in the first quarter because anomalies get caught before any calculation runs — not after someone notices their paycheck is wrong. The eight-hour payroll day became a 30-minute review session, and Rui has reclaimed a full day every two weeks.
+
+The best part: when the agency hires employee 31, 32, and 33, the process doesn't get slower. It's the same single command whether the team is 30 people or 60. The manual approach that broke at 30 would have been impossible at 60 — but the automated pipeline scales linearly with headcount, adding about 10 seconds per new employee.

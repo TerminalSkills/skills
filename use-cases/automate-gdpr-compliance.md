@@ -42,7 +42,11 @@ The scan finds 23 PII fields across 7 database models:
 | Location | events | geo_lat/lng | Analytics | Indefinite |
 | Device ID | sessions | device_id | Push notification service | Indefinite |
 
-Three issues jump out immediately. No retention policy on any table — data lives forever by default. IP addresses are logged in plaintext in CloudWatch with no log expiration policy. And the payment processor receives full names without a documented Data Processing Agreement, which GDPR requires for every third-party processor handling EU personal data.
+Three issues jump out immediately:
+
+1. **No retention policy on any table** — data lives forever by default. A user who signed up three years ago and never logged in again still has their IP address, device ID, and location data sitting in the database.
+2. **IP addresses logged in plaintext in CloudWatch** with no log expiration policy. These logs are accessible to every developer with AWS console access.
+3. **The payment processor receives full names** without a documented Data Processing Agreement, which GDPR requires for every third-party processor handling EU personal data.
 
 Every field marked "Indefinite" is a compliance risk. GDPR requires a legal basis and a defined retention period for each category of personal data. "We keep it forever because we never thought about it" is not a legal basis.
 
@@ -77,9 +81,11 @@ Add a 30-day verification flow for deletion requests. Log every DSR in an audit_
 
 The export endpoint collects data from every table that references the user: profile information, session records, event logs, consent history, and any third-party data that can be retrieved via API. It packages everything into a downloadable JSON file — the user's complete data portrait.
 
-The deletion endpoint is more nuanced. Some data gets anonymized rather than deleted: order records need to exist for tax and accounting purposes, but the personal details get replaced with hashed values. Session data gets purged. Event logs get their PII fields zeroed out. The 30-day verification window gives users time to change their mind and protects against accidental or malicious deletion requests — someone gaining temporary access to an account should not be able to permanently destroy data with one API call.
+The deletion endpoint is more nuanced. GDPR does not require deleting everything — it requires deleting personal data that is no longer necessary for the purpose it was collected. Order records need to exist for tax and accounting purposes (legal obligation), but the personal details within them get replaced with hashed values: the order total stays, but the name and address become `[REDACTED]`. Session data gets purged entirely. Event logs get their PII fields zeroed out while preserving the anonymous event data for analytics.
 
-Every data subject request, regardless of type, gets logged to an `audit_log` table with the request type, timestamp, processing steps, and completion status.
+The 30-day verification window gives users time to change their mind and protects against accidental or malicious deletion requests. Someone gaining temporary access to an account should not be able to permanently destroy years of data with one API call. During the verification period, the user receives an email confirming their request with a link to cancel it.
+
+Every data subject request, regardless of type, gets logged to an `audit_log` table with the request type, timestamp, each processing step, and the final completion status. This audit trail is what proves compliance if a regulator asks "what did you do with this user's deletion request?"
 
 ### Step 4: Add Retention Policies and Auto-Cleanup
 

@@ -25,7 +25,7 @@ Using the **test-generator**, **coding-agent**, and **data-analysis** skills, th
 
 ### Step 1: Map the Coverage Landscape
 
-Start by understanding where coverage is strong and where it's dangerous:
+The overall number — 71% — is misleading. A useful coverage analysis needs two dimensions: what percentage of code is tested, and how often does that code change. Start by understanding both:
 
 ```text
 Analyze our codebase test coverage. Run the coverage tool, parse the output, and give me a breakdown by module showing: line coverage percentage, number of uncovered lines, and which files have zero tests. Sort by risk — lowest coverage in most-changed files first.
@@ -128,4 +128,8 @@ Ravi is the tech lead at a 15-person SaaS startup. After a billing bug causes du
 
 He runs the risk-weighted analysis and confirms billing and webhooks are the critical gaps: high code churn, low coverage, maximum blast radius. The dashboard tracks coverage trends from CI artifacts and displays them per module with trend lines. GitHub Actions posts coverage diffs on every PR and blocks merges that drop below 70%.
 
-In one session, the agent generates 23 tests for the billing module. Coverage jumps to 72%, and two latent bugs surface — including an off-by-one error that would have caused incorrect charges for annual subscribers renewing in March. The team didn't just add test coverage; they found the exact kind of bug that started this whole effort. Three months later, billing coverage is at 84% and climbing, and the weekly Slack digest shows the team maintaining it without being asked.
+In one session, the agent generates 23 tests for the billing module, targeting the uncovered branches and error handling paths — not trivial assertions, but tests that exercise the code paths where bugs hide. Coverage jumps to 72%, and two latent bugs surface — including an off-by-one error that would have caused incorrect charges for annual subscribers renewing in March.
+
+The team didn't just add test coverage; they found the exact kind of bug that started this whole effort. The off-by-one error hadn't caused a customer impact yet — but it would have in March when the first wave of annual renewals hit. The tests caught it with two weeks to spare.
+
+Three months later, billing coverage is at 84% and climbing, and the weekly Slack digest shows the team maintaining it without being asked. The CI gate has blocked 4 PRs that would have dropped coverage, each time prompting the developer to add tests before merging. Coverage isn't an afterthought anymore — it's part of the definition of done.

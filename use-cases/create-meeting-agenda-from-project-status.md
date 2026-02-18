@@ -69,7 +69,7 @@ Create a 30-minute meeting agenda from this status. Put blockers first, then sta
 
 The agenda puts the most urgent items first and assigns clear owners:
 
-## Team Sync — Monday Feb 17 (30 min)
+### Team Sync — Monday Feb 17 (30 min)
 
 **Blockers (10 min)**
 1. Stripe webhook 500 in staging (ISSUE-891) — Dani, what do you need to unblock this?
@@ -130,7 +130,9 @@ Ravi, an engineering manager at the 20-person product team, used to spend 45 min
 
 Now he kicks off the agent on Monday morning. It pulls status from the GitHub org — 3 stale PRs, 2 blockers, 2 CI issues — in under a minute. The time-boxed agenda gets generated with blockers first. The cross-reference catches Ravi's own forgotten action item: user interviews he was supposed to schedule last week.
 
-Ravi reviews the agenda, adds one note about a hiring update, and shares it in Slack 10 minutes before the meeting. The meeting stays focused — every topic is backed by real data, every item has an owner, and the time boxes keep discussions from spiraling. When Dani asks "what exactly is the error on that webhook?" the answer is already in the agenda.
+Ravi reviews the agenda, adds one note about a hiring update, and shares it in Slack 10 minutes before the meeting. The meeting stays focused — every topic is backed by real data, every item has an owner, and the time boxes keep discussions from spiraling. When Dani asks "what exactly is the error on that webhook?" the answer is already in the agenda — no one needs to context-switch to a browser and dig through GitHub issues during the meeting.
+
+Weekly agenda prep drops from 45 minutes to 5 minutes. But the real improvement isn't time savings — it's meeting quality. The team stops dreading Mondays because the meetings end on time and the discussions are about solving problems rather than figuring out what the problems are.
 
 Weekly agenda prep drops from 45 minutes to 5 minutes. But the real win isn't the time savings — it's that the meetings actually work. Action items get tracked across weeks. Blockers surface before they become incidents. The team stops dreading Mondays because the meetings end on time and cover what matters.
 

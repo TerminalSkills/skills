@@ -31,11 +31,13 @@ Start with what you have — raw logs from the service that's screaming the loud
 Analyze these application logs from the last 30 minutes. We're getting reports of failed checkouts. The logs are in /var/log/app/checkout-service.log
 ```
 
+Don't pre-filter. Don't grep for a specific error you think might be the cause. The whole point is to let chronological analysis reveal the pattern rather than confirming your hypothesis.
+
 No formatting, no pre-filtering. The entire log file goes in — megabytes of timestamps, request IDs, debug output, and error traces. Trying to grep for the "right" errors before understanding the incident is premature optimization — you don't know what's relevant yet, and pre-filtering based on assumptions is how engineers spend 30 minutes debugging the wrong service.
 
 ### Step 2: Identify the Error Pattern
 
-The logs get scanned chronologically, errors and warnings filtered out, and grouped by type. Instead of scrolling through thousands of lines looking for patterns, the picture is immediate:
+The logs get scanned chronologically — this is the critical part. Instead of grouping by error type (which is what most engineers do instinctively), the chronological scan reveals which errors came first. Errors get filtered, deduplicated, and grouped by type with timestamps:
 
 | Error Type | Count | First Seen | Last Seen |
 |-----------|-------|------------|-----------|
@@ -49,22 +51,29 @@ Three observations from this table change everything about the debugging approac
 2. **Redis error count is 5x higher** than other errors — it's not a secondary effect, it's the epicenter.
 3. **All errors share the same time window** — they started within 3 minutes of each other and are all still occurring. This is one incident with three symptoms, not three separate problems.
 
+The first error in the timeline is the most important data point in incident response. Everything that follows is a consequence of that first failure.
+
 ### Step 3: Correlate Across Services
 
-One service's symptoms are another service's root cause. Follow the chain backward:
+One service's symptoms are another service's root cause. The checkout service logs show Redis timeouts, but the checkout service didn't cause the problem — Redis did. Follow the chain backward to the upstream system:
 
 ```text
-Now check the Redis server logs at /var/log/redis/redis-server.log for the same time window.
+Now check the Redis server logs at /var/log/redis/redis-server.log for the same time window. Also check /var/log/redis/redis-sentinel.log if it exists.
 ```
 
-The Redis logs reveal what happened 5 seconds before the checkout errors started:
+The Redis server logs reveal what happened 5 seconds before the checkout errors started:
 
 ```
 14:01:58.332 # WARNING: maxmemory reached, eviction policy: noeviction
 14:01:58.333 # Client connection rejected: OOM command not allowed
 ```
 
-Redis hit its 16GB memory limit at 14:01:58 with `noeviction` policy. Unlike `allkeys-lru` which would evict old keys to make room, `noeviction` simply rejects every new operation — reads and writes alike. Five seconds later, the checkout service couldn't read cart data. Cart lookups returned null, which the CartService didn't handle gracefully, throwing NullPointerExceptions. Three minutes later, orders were being submitted with empty carts, and the payment gateway returned 503s because it couldn't process zero-dollar orders.
+Redis hit its 16GB memory limit at 14:01:58 with `noeviction` policy. This is the critical detail: unlike `allkeys-lru` (which evicts old keys to make room for new ones), `noeviction` simply rejects every new operation — reads and writes alike. It's the nuclear option. Every application that depends on Redis suddenly gets connection errors.
+
+The cascade unfolded in three stages:
+1. Five seconds later, the checkout service couldn't read cart data — Redis ConnectionTimeout errors start at 14:02:03
+2. Cart lookups returned null, which the CartService didn't handle gracefully, throwing NullPointerExceptions — cart failures start at 14:02:08
+3. Three minutes later, orders were being submitted with empty cart data, and the payment gateway returned 503s because it couldn't process zero-dollar orders — payment failures start at 14:05:22
 
 The entire cascade traces back to two lines in the Redis log. Every other error — all 2,942 of them across three services — is a symptom of this one event. An engineer grepping for `PaymentGateway 503` would be looking at symptoms and never find the cause. An engineer starting with "what errored first?" finds it in seconds.
 
@@ -128,4 +137,4 @@ She flushes 3GB of expired session keys and bumps Redis maxmemory from 16GB to 2
 
 The key difference isn't AI doing something magical — it's that chronological error correlation across multiple services happens in seconds instead of 20 minutes of manual grep-and-scroll. At 2 AM, that time savings is the difference between resolving in 15 minutes and thrashing for an hour.
 
-The next morning, she generates a formal incident report from the timeline for the 10 AM post-mortem. The report includes the cascade diagram, the 10-minute alert gap, and four follow-up items: Redis memory alerts at 80%, `allkeys-lru` eviction policy, null-safety in CartService, and proper TTL on Redis session keys. The post-mortem takes 20 minutes instead of an hour because the timeline is already written and nobody's arguing about what happened when.
+The next morning, she generates a formal incident report from the timeline for the 10 AM post-mortem. The report includes the cascade diagram, the 10-minute alert gap, and four follow-up items: Redis memory alerts at 80%, `allkeys-lru` eviction policy, null-safety in CartService, and proper TTL on Redis session keys. The post-mortem takes 20 minutes instead of an hour because the timeline is already written, the root cause is identified, and nobody's arguing about what happened when. The follow-up items are actionable and specific — not "improve Redis monitoring" but "add memory utilization alert at 80% and switch eviction policy to allkeys-lru." Those two changes prevent this exact incident from recurring.

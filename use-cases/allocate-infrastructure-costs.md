@@ -61,6 +61,8 @@ These orphaned resources are the kind of waste that only surfaces when someone a
 
 The mapping process also reveals cost concentration risks. The Platform Team's RDS primary instance accounts for $4,800/month — a single resource representing 10% of the total bill. If that instance needs to be upgraded for the next growth phase, the cost jump will be significant and should be budgeted for in advance rather than appearing as a surprise on next quarter's bill.
 
+The shared cost allocation is transparent: Finance gets a worksheet showing exactly how VPC, Route53, CloudWatch, and IAM costs ($4,800 total) get split across the three teams based on headcount. If the teams prefer a different allocation method (CPU hours, request counts), the model can be adjusted — the important thing is that shared costs are allocated *somewhere* instead of sitting in an unaccountable bucket.
+
 ### Step 3: Calculate Per-Team Cost Allocation
 
 Shared costs get distributed proportionally by team headcount (Platform: 8, Product: 12, Data: 5). This is a common FinOps allocation method — not perfect, but far better than ignoring shared costs entirely. An alternative approach uses resource consumption metrics (CPU hours, network egress), but headcount-based allocation gets you 90% of the accuracy with 10% of the effort. With services mapped, the January breakdown tells a clear story:
@@ -118,9 +120,9 @@ The historical data also transforms budget conversations. Instead of guessing ne
 
 ## Real-World Example
 
-Marco is the VP of Engineering at a 40-person SaaS startup heading into Series B. Investor due diligence requires clear unit economics, but the $47,000 monthly cloud bill is a black box. He cannot answer "what does it cost to serve one customer?" because nobody knows which resources belong to which product.
+Marco is the VP of Engineering at a 40-person SaaS startup heading into Series B. The investor pitch deck claims "capital-efficient infrastructure" but the due diligence team is going to ask hard questions about unit economics. The $47,000 monthly cloud bill is a black box. Marco cannot answer "what does it cost to serve one customer?" because nobody knows which resources belong to which product. He cannot answer "how does infrastructure cost scale with revenue?" because there is no per-team breakdown to correlate with business metrics.
 
-He exports three months of AWS Cost and Usage Reports alongside the service-ownership spreadsheet and feeds them to the agent. Within an hour, he has his answer: 94% of costs mapped to specific teams, $3,000 in orphaned resources flagged, and the Data Team's 31% spike traced to a single forgotten EMR cluster. The three-month trend data shows that the cost increase is not organic growth — it is a step function that started on exactly one date in January when the EMR cluster was created.
+He exports three months of AWS Cost and Usage Reports alongside the service-ownership spreadsheet and feeds them to the agent. Within an hour, he has his answer: 94% of costs mapped to specific teams, $3,000 in orphaned resources flagged, and the Data Team's 31% spike traced to a single forgotten EMR cluster. The three-month trend data is particularly revealing: the cost increase is not organic growth — it is a step function that started on exactly one date in January when the EMR cluster was created. This distinction matters for investor conversations. Organic growth tied to customer acquisition is healthy. Forgotten infrastructure is waste.
 
 The optimization report identifies $6,600/month in easy savings. Marco's team implements the changes in one sprint: the EMR cluster gets auto-scaling with spot instances, the orphaned EC2 instances get terminated after confirming zero traffic, and the ECS tasks get right-sized after a load test confirms they can handle 3x current peak traffic at the smaller size. The February bill drops to $41,200 — a $5,800 reduction that drops straight to the bottom line.
 

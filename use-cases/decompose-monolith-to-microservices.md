@@ -13,13 +13,15 @@ tags: [microservices, monolith, architecture, domain-driven-design, migration]
 
 A 4-year-old Rails monolith has grown to 380K lines of code. Deployments take 45 minutes, a bug in the billing module blocks the entire release train, and scaling the search feature means scaling the whole application — all 380K lines, all 142 database tables, all 67 controllers. The team of 18 developers steps on each other's toes in every sprint — merging to main is a daily adventure in conflict resolution, and a CSS change in the checkout flow once broke the admin dashboard because they share a layout partial.
 
-Leadership approved a microservices migration, but nobody knows where to draw the service boundaries without breaking everything. The last attempt, six months ago, stalled because the team couldn't agree on how to split the shared `User` model that's referenced from 47 different files. The architect drew service boundaries on a whiteboard, but the boundaries didn't match the actual code dependencies, and the first extraction attempt created a distributed monolith — all the downsides of microservices with none of the benefits.
+Leadership approved a microservices migration, but nobody knows where to draw the service boundaries without breaking everything. The last attempt, six months ago, stalled at week 3 because the team couldn't agree on how to split the shared `User` model that's referenced from 47 different files. The architect drew service boundaries on a whiteboard based on organizational structure (billing team gets a billing service, etc.), but the boundaries didn't match the actual code dependencies. The first extraction attempt created a distributed monolith — all the downsides of microservices (network calls, deployment complexity, distributed debugging) with none of the benefits (independent scaling, isolated failures, team autonomy).
 
 ## The Solution
 
 Using **code-reviewer** to analyze the codebase for coupling patterns and module boundaries, **data-analysis** to map data flow and dependency graphs, **coding-agent** to generate extraction scaffolding, and **docker-helper** to containerize each new service, the monolith gets decomposed based on actual code dependencies rather than whiteboard diagrams.
 
 ## Step-by-Step Walkthrough
+
+The decomposition follows a disciplined sequence: understand the current state, draw boundaries based on data, plan the extraction order, scaffold the first service, and verify with shadow traffic before cutting over. Every step is reversible — if the team decides a boundary is wrong, they haven't committed to anything irreversible yet.
 
 ### Step 1: Map the Monolith's Module Structure
 
@@ -39,7 +41,7 @@ The scan covers 142 models, 67 controllers, and 93 service objects. Five natural
 | Search/Discovery | 12 | 5 | 8 | Search indexing, filters, recommendations |
 | Notifications | 8 | 3 | 6 | Email, push, in-app, template rendering |
 
-The remaining 50 models, 26 controllers, and 28 service objects don't cluster cleanly — they're shared infrastructure (logging, caching, configuration) or coupling hotspots that straddle multiple domains.
+The remaining 50 models, 26 controllers, and 28 service objects don't cluster cleanly — they're shared infrastructure (logging, caching, configuration) or coupling hotspots that straddle multiple domains. This is normal. A clean decomposition doesn't mean every file maps to exactly one service — it means the ambiguous files are identified and consciously assigned rather than accidentally duplicated.
 
 The dependency graph flags **14 models referenced from 3 or more clusters**. These are the coupling hotspots that make decomposition hard. The `User` model alone is imported in 47 files across every cluster. `Product` appears in 38. `Subscription` is referenced from both Billing (where it belongs) and 6 places in Catalog (where it shouldn't be). These shared models are why the previous extraction attempt failed — you can't cleanly extract a service when half the codebase reaches into its internals.
 
@@ -55,7 +57,9 @@ Six services emerge with clear ownership, but three circular dependencies need t
 - **Catalog <-> Search:** Search indexes are rebuilt inside ActiveRecord callbacks on Catalog models. The search system is deeply embedded in catalog write operations.
 - **Notifications -> everything:** Every other cluster triggers notifications by calling notification models and service objects directly. Notifications has no boundary — it's woven into every workflow.
 
-The recommendation: break all three circular dependencies with event-driven patterns before extracting anything. Billing subscribes to user change events instead of querying the User table directly. Search consumes catalog events through a message queue instead of being triggered by model callbacks. Notifications become event consumers rather than method calls — when an order is placed, the order service publishes an event and the notification service decides what to send.
+The recommendation: break all three circular dependencies with event-driven patterns *before* extracting any service. This is counterintuitive — the team wants to start extracting services immediately — but circular dependencies make extraction impossible. If Billing depends on User and User depends on Billing, you can't extract either one first.
+
+The pattern for breaking each cycle: Billing subscribes to user change events instead of querying the User table directly. Search consumes catalog events through a message queue instead of being triggered by model callbacks. Notifications become event consumers rather than method calls — when an order is placed, the order service publishes an event and the notification service decides what to send.
 
 **Extraction difficulty by service:**
 
@@ -118,6 +122,8 @@ A shadow traffic comparator replays 1% of production search queries against both
 After tuning the event consumer (smaller batch size, more frequent polling), parity reaches 99.95%. The remaining 0.05% is items that changed during the comparison window — a race condition in the test, not the service.
 
 Alerting rules fire when divergence exceeds 1%, catching any regression before it affects real users. The team sets a quality gate: no cutover until 7 consecutive days above 99.5% parity.
+
+This shadow traffic approach is non-negotiable for a production migration. Without it, the only way to know if the new service works correctly is to cut over and find out — which is exactly the kind of risky move that makes microservices migrations fail. Shadow traffic lets you prove correctness before any real user is affected.
 
 ## Real-World Example
 

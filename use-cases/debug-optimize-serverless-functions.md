@@ -15,6 +15,8 @@ Your team runs 35 Lambda functions behind an API Gateway. Three of them randomly
 
 The checkout failure rate is 2.3% and climbing. Every failed checkout is lost revenue — and the failures are worse than they look, because in some cases the payment actually succeeds but the webhook handler cold-starts past the timeout window. The customer gets charged, sees "payment failed," and now you have both a support ticket and a refund to process.
 
+At $95 average order value and 800 daily checkouts, 2.3% failure rate means 18 failed checkouts per day — $1,710 in daily revenue at risk, plus the support cost of handling each complaint. Over a month, that's $51K in jeopardized revenue from an infrastructure configuration issue.
+
 ## The Solution
 
 Using the **serverless-debugger** to trace and diagnose issues across function invocations and the **data-analysis** skill to crunch invocation metrics, CloudWatch logs become a readable timeline and cold start patterns become visible optimization targets.
@@ -51,7 +53,7 @@ The root cause isn't a bug in the code. The code works perfectly — when it run
 
 ### Step 2: Analyze Cold Start Patterns Across All Functions
 
-One trace shows the problem. Now quantify how widespread it is:
+One trace shows the problem for one customer. But is this a rare edge case or a systematic issue? The answer determines whether the fix is "increase the timeout" or "fundamentally restructure how the function loads."
 
 ```text
 Pull the last 7 days of invocation data for all 35 functions. Show me which ones have cold starts, how often, the P50/P95/P99 init durations, and what time of day they're worst. Identify the top 5 functions to optimize.
@@ -131,4 +133,6 @@ She feeds 2 hours of CloudWatch logs to the agent, and the exact failure path tr
 
 Cold start analysis across all 35 functions reveals the root cause: the payment-webhook's 18.4MB bundle loads 47 dependencies on every cold start, and 44 of those dependencies are unused AWS SDK modules. The esbuild config tree-shakes the bundle down to 1.2MB. Memory goes from 512MB to 1024MB. Provisioned concurrency of 2 keeps the function warm around the clock.
 
-After deploying: cold starts drop from 4,847ms to 340ms, the morning spike disappears entirely, and checkout failure rate drops from 2.3% to 0.1%. The $22/month for provisioned concurrency pays for itself with the first recovered checkout — and the CEO stops asking about payment failures.
+After deploying: cold starts drop from 4,847ms to 340ms, the morning spike disappears entirely, and checkout failure rate drops from 2.3% to 0.1%. The $22/month for provisioned concurrency pays for itself with the first recovered checkout — a single $147.50 order covers five months of warm-instance costs.
+
+The CEO stops asking about payment failures. The support queue stops filling with "I was charged but didn't get access" tickets. And the DevOps team moves on to optimizing the report-generator (that 11-second P99 cold start is still a problem, but at least it's not in the checkout path).

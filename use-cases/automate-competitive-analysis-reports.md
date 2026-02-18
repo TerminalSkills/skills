@@ -17,7 +17,7 @@ The worst part is not the time — it is the missed signals. Between quarterly r
 
 ## The Solution
 
-Use the **web-scraper** skill to pull competitor data from public sources, **competitor-alternatives** to structure the comparison, and **report-generator** to produce a polished, shareable report. The agent handles the entire pipeline from data collection through formatted output.
+Use the **web-scraper** skill to pull competitor data from public sources, **competitor-alternatives** to structure the comparison, and **report-generator** to produce a polished, shareable report. The agent handles the entire pipeline from data collection through formatted output — scraping pricing pages, parsing changelogs, extracting review trends, building comparison matrices, and generating both markdown reports and presentation-ready slide structures.
 
 ## Step-by-Step Walkthrough
 
@@ -107,8 +107,8 @@ Monthly runs compare against the previous report and surface only material chang
 - **Pricing changes** — new tiers, price increases or decreases, removed plans, free trial modifications
 - **Major feature launches** — from changelogs and product pages, with assessment of competitive impact
 - **Review score swings** — a 0.3-point drop in G2 rating signals something worth investigating; a sustained climb signals a competitor getting stronger
-- **Positioning shifts** — homepage messaging changes often signal strategic pivots before they show up in product changes
-- **Team growth signals** — if a competitor's careers page goes from 3 engineering openings to 15, that signals investment before the features ship
+- **Positioning shifts** — homepage messaging changes often signal strategic pivots months before they show up in product changes. A competitor that switches from "affordable analytics" to "enterprise-grade analytics" is telegraphing a price increase.
+- **Team growth signals** — if a competitor's careers page goes from 3 engineering openings to 15, that signals investment before the features ship. Hiring patterns are a leading indicator of product roadmap priorities.
 
 The first monthly diff might say: "DataPulse dropped Starter tier from $19 to $15/seat. Acme added AI-powered anomaly detection to their Pro tier. MetricFlow's G2 score dropped from 4.6 to 4.4 — three recent reviews mention reliability issues with the new forecasting feature." That is the actionable signal, delivered without the 12 hours of manual scraping.
 
@@ -136,7 +136,7 @@ Each slide has one key takeaway — not a wall of text, but a single insight tha
 
 Lena is a product lead at a 25-person analytics startup. Every quarter she spends two full days building a competitive landscape deck for the board meeting. The process is the same each time: visit 8 websites, screenshot pricing pages, read changelogs, scan reviews, copy everything into slides, and format it. By the time she presents, some of the data is already two weeks old.
 
-She sets up the agent to track four direct competitors across pricing, features, and reviews. The first report takes under 10 minutes to generate — the same analysis that used to take 12-15 hours. It immediately flags something she missed: one competitor dropped their enterprise tier price by 30% the previous month, which explains two recently lost deals the sales team had been puzzling over. Armed with this data, the sales team adjusts their pitch to emphasize features the cheaper competitor lacks.
+She sets up the agent to track four direct competitors across pricing, features, and reviews. The first report takes under 10 minutes to generate — the same depth of analysis that used to take 12-15 hours of manual research. It immediately flags something she missed: one competitor dropped their enterprise tier price by 30% the previous month, which explains two recently lost deals the sales team had been puzzling over. Armed with this data, the sales team adjusts their pitch to emphasize features the cheaper competitor lacks.
 
 The monthly cadence changes everything. Instead of quarterly snapshots with blind spots between them, Lena sees every pricing change, feature launch, and review trend within weeks of it happening. After three months, the quarterly report includes trend data showing how each competitor's positioning shifted over time — DataPulse is racing to the bottom on price while expanding integrations, MetricFlow is doubling down on premium AI features, and ChartBase appears to be losing steam based on declining review velocity and a stagnant changelog.
 

@@ -19,7 +19,7 @@ PDF complexity compounds the problem. Multi-page tables that split across pages 
 
 ## The Solution
 
-Combine **pdf-analyzer** for document extraction, **data-analysis** for pattern recognition, and **excel-processor** for output formatting. The approach: intelligently parse document structure, extract all tabular data, validate accuracy, and deliver analysis-ready datasets.
+Combine **pdf-analyzer** for document extraction, **data-analysis** for pattern recognition, and **excel-processor** for output formatting. The approach: intelligently parse document structure, extract all tabular data (including multi-page tables, merged cells, and chart-embedded numbers), validate accuracy against the documents' own internal totals, flag anomalies, and deliver analysis-ready datasets with a dashboard that refreshes monthly.
 
 ## Step-by-Step Walkthrough
 
@@ -88,7 +88,7 @@ Final cleaned dataset: **2,843 validated data points** ready for analysis.
 Generate executive summary with key trends, outliers, and actionable insights from the combined dataset.
 ```
 
-With clean data in hand, patterns emerge that are invisible when you are heads-down copying numbers from PDFs:
+This is where the time savings pay off. When Sofia spent 14 hours extracting data, she had maybe 30 minutes of energy left to actually analyze it. The dashboard got numbers, but not insights. With clean, validated data arriving in 4 minutes, the analysis becomes the entire focus — and patterns emerge that are invisible when you are heads-down copying numbers from PDFs:
 
 **Portfolio performance:**
 - Total revenue across all 12 vendors: **$127.3M** (up 18% year-over-year)
@@ -131,7 +131,7 @@ Sofia's new monthly time investment: **20 minutes** instead of 14 hours. And the
 
 The head of operations at a mid-size property management firm was drowning in landlord reports. 47 properties, monthly PDF statements from each, varying formats from different property management companies. She needed occupancy rates, maintenance costs, and rental income trends — but spent 22 hours monthly extracting data manually. Some reports came as scanned PDFs that could not even be selected with a cursor.
 
-Monday, the pdf-analyzer processed all 47 reports in 6 minutes. It found 187 tables across documents, extracted 4,200+ data points, and normalized different date formats (MM/DD/YYYY, DD-MMM-YY, written-out months) and currency representations ($1,234 vs. 1234.00 vs. $1.2K). Accuracy: 96.8%.
+Monday, the pdf-analyzer processed all 47 reports in 6 minutes. Some were clean digital PDFs, others were scanned documents that required OCR. It found 187 tables across documents, extracted 4,200+ data points, and normalized different date formats (MM/DD/YYYY, DD-MMM-YY, written-out months) and currency representations ($1,234 vs. 1234.00 vs. $1.2K). Accuracy: 96.8%, with the scanned documents accounting for most of the 3.2% error rate.
 
 Tuesday, the data-analysis pass identified patterns she had never spotted manually. Maintenance costs spiked 40% in properties managed by one specific company — a pattern invisible when looking at properties one PDF at a time. Occupancy rates showed seasonal patterns that could optimize lease renewal timing: properties renewed in March had 94% retention versus 78% for September renewals. Three properties had concerning rent collection rates below 85%.
 

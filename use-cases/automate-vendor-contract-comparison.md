@@ -43,8 +43,24 @@ The immediate findings are telling:
 - 6 contracts renew in the next 90 days
 - 3 contracts include annual price escalation above 5%
 - 4 contracts have cancellation windows under 30 days
+- 2 contracts have price escalation clauses buried in addendum documents (not the main agreement)
 
 That means two-thirds of the vendor stack will silently renew unless someone actively cancels — and three of them get more expensive every year whether or not the company negotiates. The four contracts with sub-30-day cancellation windows are the most dangerous: by the time someone notices, the window has already closed.
+
+The hidden price escalation clauses are revealing. One vendor's main agreement says "$2,800/month" but an addendum signed six months later includes a 5% annual escalation. Without parsing every attachment and addendum, that escalation is invisible until the invoice arrives.
+
+Here's what the extracted data looks like for each contract — a single row of structured fields that can be compared, sorted, and alerted on:
+
+| Field | Example Value |
+|-------|---------------|
+| Vendor | Acme Cloud Hosting |
+| Annual Value | $33,600 |
+| Auto-Renewal | Yes, 12-month term |
+| Cancel Window | 30 days before renewal |
+| Price Escalation | 5%/year (addendum) |
+| SLA Guarantee | 99.95% uptime |
+| Next Renewal | 2026-04-22 |
+| Cancel By | 2026-03-22 |
 
 ### Step 2: Compare Competing Vendors Side by Side
 

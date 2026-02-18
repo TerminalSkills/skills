@@ -21,11 +21,13 @@ A trade show in six weeks needs all three languages shipped. The old process wou
 
 Using the **content-writer**, **batch-processor**, and **data-extractor** skills, the workflow extracts every translatable string from source code and locale files (including the hardcoded ones that slipped through), generates culturally adapted translations for all three markets in a single run, handles pluralization and gender rules per language, and validates completeness — turning three weeks of translator coordination into four hours of focused work.
 
+The pipeline is reusable: once set up, incremental translations for new features take minutes instead of days. Ship a feature on Monday, have it translated by Tuesday.
+
 ## Step-by-Step Walkthrough
 
 ### Step 1: Extract All Translatable Strings
 
-Start by finding everything that needs translation, not just what's in the locale files:
+The first surprise in any localization project: the number of translatable strings is always higher than expected. Start by finding everything that needs translation, not just what's in the locale files:
 
 ```text
 Scan ./src and ./emails for all translatable strings. Extract every key from en.json and find any hardcoded English strings in React components that should be externalized.
@@ -37,7 +39,9 @@ The scan covers three sources:
 - **Hardcoded strings**: 23 English strings found across 14 React components that were never externalized
 - **Email templates**: 6 files with translatable content blocks
 
-**Total: 912 strings to translate.** The 23 hardcoded strings are the kind of thing that slips through every localization effort — someone writes `<h2>Settings</h2>` instead of `<h2>{t('settings.title')}</h2>`, and it stays in English for every non-English user forever. A German user sees a fully translated app with random English headings scattered throughout. These get externalized into proper i18n keys as part of this step.
+**Total: 912 strings to translate.** That's 65 more than the 847 keys in the locale file — and those 65 are the ones that would have stayed in English forever in a manual process.
+
+The 23 hardcoded strings are the kind of thing that slips through every localization effort — someone writes `<h2>Settings</h2>` instead of `<h2>{t('settings.title')}</h2>`, and it stays in English for every non-English user forever. A German user sees a fully translated app with random English headings scattered throughout. These get externalized into proper i18n keys as part of this step, so the locale files become the single source of truth for all user-facing text.
 
 ### Step 2: Generate Culturally Adapted Translations
 
@@ -88,7 +92,7 @@ The fixes are substantial:
 - **ja-JP**: 12 strings simplified by removing unnecessary plural markers that don't exist in Japanese. "5 projects" becomes "5件のプロジェクト" with a counter word, not a plural suffix.
 - All count-dependent strings converted to ICU MessageFormat patterns like `{count, plural, one {# project} other {# projects}}`
 
-A naive translation would show Brazilian users "1 projetos" instead of "1 projeto." These aren't cosmetic issues — they make the app feel like it wasn't built for that market, which undermines the entire reason for localizing in the first place.
+A naive translation would show Brazilian users "1 projetos" instead of "1 projeto" and "2 tarefa" instead of "2 tarefas." These aren't cosmetic issues — they make the app feel like it was machine-translated by someone who doesn't speak the language, which undermines the entire reason for localizing in the first place. Users notice grammatical errors faster than they notice feature gaps.
 
 ### Step 5: Validate Completeness
 
@@ -121,6 +125,8 @@ Dani, a frontend developer at the 15-person startup, needs to ship German, Brazi
 
 The agent extracts 912 translatable strings in under a minute, including 23 hardcoded English strings that would have stayed in English forever in a manual process. All three locale files generate with culturally appropriate translations, and 15 strings get flagged for human review due to ambiguous context or cultural decisions.
 
-Dani reviews the flagged strings with a native-speaking colleague over a 30-minute call, approves 12, and corrects 3 Japanese translations. The agent externalizes the 23 hardcoded strings, creating proper i18n keys and updating the React components so they use `useTranslation()` instead of hardcoded text.
+Dani reviews the flagged strings with a native-speaking colleague over a 30-minute video call — 10 of the 15 flags are quick "yes, keep the English term" decisions for Japanese tech vocabulary, and 5 need actual translation corrections. The agent externalizes the 23 hardcoded strings, creating proper i18n keys and updating the React components so they use `useTranslation()` instead of hardcoded text. That refactor alone would have taken a developer half a day manually.
 
-Total time: 4 hours instead of 3 weeks. The trade show deadline is met with weeks to spare. And every future feature release reuses the same pipeline for incremental translations — just the new and changed keys, not the full 912 again.
+Total time: 4 hours instead of 3 weeks. The trade show deadline is met with weeks to spare, and the demos in all three languages go smoothly — the German enterprise prospect specifically comments that the formal "Sie" form shows attention to their market.
+
+And every future feature release reuses the same pipeline for incremental translations. When the team ships a new feature with 15 new strings, the pipeline translates just those 15 strings into all three locales, validates completeness, and flags any that need human review. What used to be a three-day delay on every release becomes a 10-minute step in the deployment checklist.
