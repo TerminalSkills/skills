@@ -2,302 +2,208 @@
 title: Deploy a Private VPN for a Remote Team
 slug: deploy-private-vpn-for-remote-team
 description: "Set up OpenVPN for corporate network access and Xray VLESS+Reality as a censorship-resistant proxy on the same server, with automated client provisioning and monitoring."
-category: networking
+category: devops
 skills: [openvpn, xray]
 tags: [openvpn, xray, vpn, security, remote-work]
 ---
 
 # Deploy a Private VPN for a Remote Team
 
-Leo is a DevOps engineer at a 25-person distributed startup. The team needs secure access to internal services (staging servers, databases, admin panels) that shouldn't be exposed to the public internet. Some team members also work from countries with restricted internet access and need a reliable proxy solution. Leo wants to set up OpenVPN for corporate network access and Xray (VLESS+Reality) as a censorship-resistant proxy — both on the same server.
+## The Problem
 
-## Prompt
+A 25-person distributed startup needs secure access to internal services — staging servers, databases, admin panels — that should never be exposed to the public internet. The team currently relies on IP allowlists and SSH tunnels, which break constantly as people move between locations. Five team members also work from countries with heavy internet censorship where standard VPN protocols get detected and blocked within hours. The team needs a corporate VPN with split tunneling on the same server as an undetectable proxy for restricted regions.
+
+## The Solution
+
+Use `openvpn` to set up a corporate VPN with split tunneling, per-user certificates, and TOTP-based MFA. Use `xray` to configure VLESS with Reality protocol for censorship-resistant access that looks like normal HTTPS traffic. Both services coexist on one server — OpenVPN on UDP 1194 and Xray on TCP 443.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Prepare the server
 
 ```text
-I need to set up two VPN/proxy solutions on one Ubuntu 22.04 server (2 CPU, 4GB RAM, public IP):
-
-1. **OpenVPN** for corporate access:
-   - 25 employees need access to internal services (10.0.0.0/8 network)
-   - Split tunneling — only internal traffic goes through VPN, internet stays direct
-   - Each employee gets their own certificate
-   - MFA with TOTP (Google Authenticator)
-   - Auto-provisioning script: give it an email, it generates .ovpn + sets up TOTP + emails the config
-   - Monitor who's connected and bandwidth usage
-   - Revoke access instantly when someone leaves
-
-2. **Xray (VLESS + Reality)** for team members in restricted regions:
-   - 5 users in countries with DPI — needs to be undetectable
-   - Reality protocol (no domain or TLS cert needed)
-   - Per-user traffic tracking
-   - Subscription link that works with v2rayNG and Hiddify
-   - Auto-update Xray weekly
-
-Both should coexist on the same server without conflicts. OpenVPN on UDP 1194, Xray on TCP 443.
-
-Give me the full setup — configs, scripts, monitoring.
+I have an Ubuntu 22.04 server (2 CPU, 4GB RAM, public IP). Install OpenVPN
+with EasyRSA, Google Authenticator for MFA, and Xray for the Reality proxy.
+Configure the firewall and enable IP forwarding.
 ```
 
-## Agent Response
-
-```text
-Here's the complete dual-stack setup. OpenVPN handles corporate access with split tunneling and MFA, Xray handles censorship bypass with Reality.
-
-## Server Prep
-
+```bash
 apt update && apt upgrade -y
 apt install -y openvpn easy-rsa libpam-google-authenticator mailutils ufw
 
-# Install Xray
+# Install Xray via official installer
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 
-# Firewall
-ufw allow 22/tcp
-ufw allow 1194/udp   # OpenVPN
-ufw allow 443/tcp    # Xray
-ufw enable
+# Firewall: SSH + OpenVPN + Xray
+ufw allow 22/tcp && ufw allow 1194/udp && ufw allow 443/tcp && ufw enable
 
-# IP forwarding
-echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-sysctl -p
+# Enable IP forwarding for VPN routing
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf && sysctl -p
+```
 
-## Part 1: OpenVPN Setup
+### Step 2: Build PKI and configure OpenVPN with split tunneling
 
-### PKI
+```text
+Create a CA with elliptic curve crypto, generate server certs, and configure
+OpenVPN with split tunneling — only internal traffic (10.0.0.0/8) goes through
+the VPN, internet stays direct. Enable MFA via PAM with Google Authenticator.
+```
 
+The agent initializes EasyRSA, builds the CA and server credentials, then writes a server config with split tunneling and PAM-based TOTP.
+
+```bash
 make-cadir ~/openvpn-ca && cd ~/openvpn-ca
-
 cat > vars <<'EOF'
-set_var EASYRSA_ALGO           ec
-set_var EASYRSA_CURVE          secp384r1
-set_var EASYRSA_CA_EXPIRE      3650
-set_var EASYRSA_CERT_EXPIRE    365
-set_var EASYRSA_REQ_CN         "CompanyVPN-CA"
+set_var EASYRSA_ALGO ec
+set_var EASYRSA_CURVE secp384r1
+set_var EASYRSA_CA_EXPIRE 3650
+set_var EASYRSA_CERT_EXPIRE 365
 EOF
 
-./easyrsa init-pki
-./easyrsa build-ca nopass
-./easyrsa gen-req server nopass
-./easyrsa sign-req server server
-./easyrsa gen-dh
-openvpn --genkey secret ta.key
-
+./easyrsa init-pki && ./easyrsa build-ca nopass
+./easyrsa gen-req server nopass && ./easyrsa sign-req server server
+./easyrsa gen-dh && openvpn --genkey secret ta.key
 cp pki/ca.crt pki/issued/server.crt pki/private/server.key pki/dh.pem ta.key /etc/openvpn/server/
+```
 
-### Server config (/etc/openvpn/server/server.conf)
+Key lines from `/etc/openvpn/server/server.conf`:
 
+```ini
 port 1194
 proto udp
 dev tun
-
-ca ca.crt
-cert server.crt
-key server.key
-dh dh.pem
-tls-auth ta.key 0
-
 server 10.8.0.0 255.255.255.0
-topology subnet
 
-# Split tunneling — only internal traffic through VPN
+# Split tunneling — only push internal routes, no redirect-gateway
 push "route 10.0.0.0 255.0.0.0"
 push "route 172.16.0.0 255.240.0.0"
 push "route 192.168.0.0 255.255.0.0"
-# No redirect-gateway — internet goes direct
-
-# DNS for internal resolution
 push "dhcp-option DNS 10.0.0.2"
 
-keepalive 10 120
 cipher AES-256-GCM
 auth SHA384
 tls-version-min 1.2
 
-# MFA via PAM
+# MFA via Google Authenticator
 plugin /usr/lib/openvpn/openvpn-plugin-auth-pam.so openvpn
 
-user nobody
-group nogroup
-persist-key
-persist-tun
-
 status /var/log/openvpn/status.log 10
-log-append /var/log/openvpn/openvpn.log
-verb 3
-
 max-clients 50
-ifconfig-pool-persist ipp.txt
 crl-verify crl.pem
+```
 
-### PAM config (/etc/pam.d/openvpn)
-
-auth required pam_google_authenticator.so secret=/etc/openvpn/totp/${USER}
-account required pam_permit.so
-
-### NAT for internal routing
-
+```bash
+# NAT for VPN client traffic
 IFACE=$(ip route get 1.1.1.1 | awk '{print $5; exit}')
 iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o "$IFACE" -j MASQUERADE
-apt install -y iptables-persistent
-netfilter-persistent save
+apt install -y iptables-persistent && netfilter-persistent save
 
-### Auto-provisioning script
+mkdir -p /var/log/openvpn
+systemctl enable --now openvpn-server@server
+```
 
+### Step 3: Automate user provisioning and revocation
+
+```text
+Write a provisioning script: given a username and email, generate a client
+certificate, set up TOTP, create a self-contained .ovpn file, and email it.
+Write a revocation script for instant access termination.
+```
+
+The agent creates `provision-user.sh` and `revoke-user.sh` for the full employee lifecycle.
+
+```bash
 #!/bin/bash
-# provision-user.sh — creates cert + TOTP + .ovpn + sends email
+# provision-user.sh — cert + TOTP + .ovpn + email in one command
 set -e
-USER=$1
-EMAIL=$2
-SERVER_IP="YOUR_SERVER_IP"
-CA_DIR=~/openvpn-ca
+USER=$1; EMAIL=$2; SERVER_IP="YOUR_SERVER_IP"; CA_DIR=~/openvpn-ca
+[ -z "$USER" ] || [ -z "$EMAIL" ] && echo "Usage: ./provision-user.sh user email" && exit 1
 
-if [ -z "$USER" ] || [ -z "$EMAIL" ]; then
-  echo "Usage: ./provision-user.sh username email"
-  exit 1
-fi
-
-echo "=== Generating certificate for $USER ==="
 cd "$CA_DIR"
 ./easyrsa gen-req "$USER" nopass
 ./easyrsa sign-req client "$USER"
 
-echo "=== Setting up TOTP ==="
+# Generate TOTP secret for Google Authenticator
 mkdir -p /etc/openvpn/totp
-google-authenticator -t -d -f -r 3 -R 30 -w 3 \
-  -s "/etc/openvpn/totp/$USER" \
-  --no-confirm
+google-authenticator -t -d -f -r 3 -R 30 -w 3 -s "/etc/openvpn/totp/$USER" --no-confirm
 TOTP_SECRET=$(head -1 /etc/openvpn/totp/$USER)
-TOTP_QR="otpauth://totp/CompanyVPN:${USER}?secret=${TOTP_SECRET}&issuer=CompanyVPN"
 
-echo "=== Generating .ovpn ==="
+# Build .ovpn with embedded certs (self-contained, no extra files needed)
 mkdir -p ~/client-configs
 cat > ~/client-configs/"$USER".ovpn <<OVPN
 client
 dev tun
 proto udp
 remote $SERVER_IP 1194
-resolv-retry infinite
-nobind
-persist-key
-persist-tun
-remote-cert-tls server
 cipher AES-256-GCM
 auth SHA384
-key-direction 1
 auth-user-pass
-verb 3
-
+key-direction 1
 <ca>
 $(cat "$CA_DIR/pki/ca.crt")
 </ca>
-
 <cert>
 $(sed -n '/BEGIN CERTIFICATE/,/END CERTIFICATE/p' "$CA_DIR/pki/issued/$USER.crt")
 </cert>
-
 <key>
 $(cat "$CA_DIR/pki/private/$USER.key")
 </key>
-
 <tls-auth>
 $(cat "$CA_DIR/ta.key")
 </tls-auth>
 OVPN
 
-echo "=== Sending email ==="
-cat <<MAIL | mail -s "VPN Access — $USER" -A ~/client-configs/"$USER".ovpn "$EMAIL"
-Hi $USER,
-
-Your VPN access is ready. Attached is your .ovpn configuration file.
-
-Setup:
-1. Install OpenVPN Connect (or Tunnelblick on macOS)
-2. Import the attached .ovpn file
-3. Set up Google Authenticator with this secret: $TOTP_SECRET
-   Or scan: $TOTP_QR
-4. When connecting: username = $USER, password = your TOTP code
-
-Questions? Contact IT.
+# Email config with setup instructions
+mail -s "VPN Access" -A ~/client-configs/"$USER".ovpn "$EMAIL" <<MAIL
+Your .ovpn file is attached. Install OpenVPN Connect, import it, and set up
+Google Authenticator with secret: $TOTP_SECRET
+When connecting: username=$USER, password=your TOTP code.
 MAIL
+echo "Provisioned $USER ($EMAIL)"
+```
 
-echo "✅ Provisioned $USER ($EMAIL)"
-
-### Revoke access
-
+```bash
 #!/bin/bash
-# revoke-user.sh
-USER=$1
-cd ~/openvpn-ca
-./easyrsa revoke "$USER"
-./easyrsa gen-crl
+# revoke-user.sh — immediately revoke access
+USER=$1; cd ~/openvpn-ca
+./easyrsa revoke "$USER" && ./easyrsa gen-crl
 cp pki/crl.pem /etc/openvpn/server/crl.pem
-rm -f /etc/openvpn/totp/"$USER"
-rm -f ~/client-configs/"$USER".ovpn
+rm -f /etc/openvpn/totp/"$USER" ~/client-configs/"$USER".ovpn
 systemctl restart openvpn-server@server
-echo "✅ Revoked access for $USER"
+echo "Revoked access for $USER"
+```
 
-### Monitoring script
+### Step 4: Configure Xray VLESS with Reality protocol
 
-#!/bin/bash
-# vpn-status.sh — show connected clients and bandwidth
-echo "=== Connected VPN Clients ==="
-awk '/CLIENT LIST/,/ROUTING TABLE/' /var/log/openvpn/status.log | \
-  grep -v "CLIENT LIST\|Common Name\|ROUTING TABLE\|Updated" | \
-  while IFS=',' read -r name addr recv sent since; do
-    [ -z "$name" ] && continue
-    recv_mb=$(echo "scale=1; $recv/1048576" | bc)
-    sent_mb=$(echo "scale=1; $sent/1048576" | bc)
-    echo "  $name | $addr | ↓${recv_mb}MB ↑${sent_mb}MB | Since: $since"
-  done
-echo ""
-echo "Total clients: $(grep -c "," /var/log/openvpn/status.log 2>/dev/null || echo 0)"
+```text
+Set up Xray with VLESS + Reality for 5 users. Reality impersonates a real
+website (microsoft.com) to defeat DPI — no domain or TLS cert needed.
+Enable per-user traffic stats via the Xray stats API.
+```
 
-### Start OpenVPN
+```bash
+# Generate credentials
+xray uuid    # Run 5 times — save as UUID_1 through UUID_5
+xray x25519  # Save the private and public key pair
+```
 
-mkdir -p /var/log/openvpn
-systemctl enable --now openvpn-server@server
+The Xray config at `/usr/local/etc/xray/config.json`:
 
-## Part 2: Xray (VLESS + Reality)
-
-### Generate keys
-
-xray uuid    # → save as UUID_1 through UUID_5 for each user
-xray x25519  # → save private + public keys
-
-### Xray config (/usr/local/etc/xray/config.json)
-
+```json
 {
-  "log": {
-    "loglevel": "warning",
-    "access": "/var/log/xray/access.log",
-    "error": "/var/log/xray/error.log"
-  },
   "stats": {},
   "policy": {
-    "levels": {
-      "0": { "statsUserUplink": true, "statsUserDownlink": true }
-    },
-    "system": {
-      "statsInboundUplink": true,
-      "statsInboundDownlink": true
-    }
+    "levels": { "0": { "statsUserUplink": true, "statsUserDownlink": true } }
   },
-  "api": {
-    "tag": "api",
-    "services": ["StatsService", "HandlerService"]
-  },
+  "api": { "tag": "api", "services": ["StatsService"] },
   "inbounds": [
     {
-      "listen": "127.0.0.1",
-      "port": 10085,
+      "listen": "127.0.0.1", "port": 10085,
       "protocol": "dokodemo-door",
-      "settings": { "address": "127.0.0.1" },
-      "tag": "api"
+      "settings": { "address": "127.0.0.1" }, "tag": "api"
     },
     {
-      "listen": "0.0.0.0",
-      "port": 443,
-      "protocol": "vless",
-      "tag": "proxy",
+      "listen": "0.0.0.0", "port": 443, "protocol": "vless", "tag": "proxy",
       "settings": {
         "clients": [
           { "id": "UUID_1", "flow": "xtls-rprx-vision", "email": "alice@proxy" },
@@ -309,20 +215,13 @@ xray x25519  # → save private + public keys
         "decryption": "none"
       },
       "streamSettings": {
-        "network": "tcp",
-        "security": "reality",
+        "network": "tcp", "security": "reality",
         "realitySettings": {
-          "show": false,
           "dest": "www.microsoft.com:443",
-          "xver": 0,
           "serverNames": ["www.microsoft.com", "microsoft.com"],
           "privateKey": "YOUR_PRIVATE_KEY",
           "shortIds": ["", "abcdef1234567890"]
         }
-      },
-      "sniffing": {
-        "enabled": true,
-        "destOverride": ["http", "tls", "quic"]
       }
     }
   ],
@@ -337,13 +236,19 @@ xray x25519  # → save private + public keys
     ]
   }
 }
+```
 
-### Subscription server
+### Step 5: Add subscription server and monitoring
 
-#!/usr/bin/env node
-// sub-server.js — serves subscription links on port 8080
+```text
+Create a subscription server for v2rayNG/Hiddify compatibility, monitoring
+scripts for both services, and a weekly Xray auto-update cron job.
+```
+
+Subscription server (`sub-server.js`):
+
+```javascript
 const http = require("http");
-
 const SERVER_IP = "YOUR_SERVER_IP";
 const PBK = "YOUR_PUBLIC_KEY";
 const SID = "abcdef1234567890";
@@ -359,64 +264,68 @@ const users = {
 http.createServer((req, res) => {
   const token = req.url.replace("/sub/", "");
   const user = users[token];
-
   if (!user) { res.writeHead(404); return res.end("Not found"); }
 
-  const link = [
-    `vless://${user.uuid}@${SERVER_IP}:443`,
-    `?encryption=none&flow=xtls-rprx-vision`,
-    `&security=reality&sni=www.microsoft.com`,
-    `&fp=chrome&pbk=${PBK}&sid=${SID}&type=tcp`,
-    `#${user.name}`
-  ].join("");
+  const link = `vless://${user.uuid}@${SERVER_IP}:443` +
+    `?encryption=none&flow=xtls-rprx-vision` +
+    `&security=reality&sni=www.microsoft.com` +
+    `&fp=chrome&pbk=${PBK}&sid=${SID}&type=tcp#${user.name}`;
 
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end(Buffer.from(link).toString("base64"));
 }).listen(8080, "127.0.0.1");
-
-// Run behind the OpenVPN or as a systemd service
-// Subscription URL: https://your-server/sub/token-alice
-// (proxy through nginx if needed)
-
-### Traffic stats script
-
-#!/bin/bash
-# xray-stats.sh — show per-user traffic
-USERS=("alice@proxy" "bob@proxy" "carol@proxy" "dave@proxy" "eve@proxy")
-
-echo "=== Xray User Traffic ==="
-for user in "${USERS[@]}"; do
-  up=$(xray api stats -server=127.0.0.1:10085 -name "user>>>$user>>>traffic>>>uplink" 2>/dev/null | grep value | awk '{print $2}')
-  down=$(xray api stats -server=127.0.0.1:10085 -name "user>>>$user>>>traffic>>>downlink" 2>/dev/null | grep value | awk '{print $2}')
-  up=${up:-0}; down=${down:-0}
-  up_mb=$(echo "scale=1; $up/1048576" | bc)
-  down_mb=$(echo "scale=1; $down/1048576" | bc)
-  echo "  $user | ↑${up_mb}MB ↓${down_mb}MB"
-done
-
-### Auto-update cron
-
-# Weekly Xray update — Sundays at 3 AM
-0 3 * * 0 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install && systemctl restart xray
-
-### Start everything
-
-systemctl enable --now xray
-systemctl status xray
-systemctl status openvpn-server@server
-
-## Verification
-
-# Test OpenVPN (from client machine)
-openvpn --config alice.ovpn
-ping 10.0.0.1        # Should reach internal network
-curl ifconfig.me     # Should show YOUR IP (split tunnel working)
-
-# Test Xray (from restricted region)
-# Import subscription in v2rayNG:
-# https://your-server:8080/sub/token-alice
-curl -x socks5://127.0.0.1:1080 https://ifconfig.me  # Should show server IP
-
-No port conflicts — OpenVPN on UDP 1194, Xray on TCP 443. Both run as separate systemd services. The provisioning script handles the full lifecycle: create → distribute → revoke.
 ```
 
+Monitoring scripts:
+
+```bash
+#!/bin/bash
+# vpn-status.sh — connected OpenVPN clients and bandwidth
+awk '/CLIENT LIST/,/ROUTING TABLE/' /var/log/openvpn/status.log | \
+  grep -v "CLIENT LIST\|Common Name\|ROUTING TABLE\|Updated" | \
+  while IFS=',' read -r name addr recv sent since; do
+    [ -z "$name" ] && continue
+    printf "  %s | %s | down:%.1fMB up:%.1fMB | %s\n" \
+      "$name" "$addr" "$(echo "$recv/1048576" | bc -l)" "$(echo "$sent/1048576" | bc -l)" "$since"
+  done
+```
+
+```bash
+#!/bin/bash
+# xray-stats.sh — per-user Xray traffic
+for user in alice bob carol dave eve; do
+  up=$(xray api stats -server=127.0.0.1:10085 -name "user>>>${user}@proxy>>>traffic>>>uplink" 2>/dev/null | awk '/value/{print $2}')
+  down=$(xray api stats -server=127.0.0.1:10085 -name "user>>>${user}@proxy>>>traffic>>>downlink" 2>/dev/null | awk '/value/{print $2}')
+  printf "  %s | up:%.1fMB down:%.1fMB\n" "$user" "$(echo "${up:-0}/1048576" | bc -l)" "$(echo "${down:-0}/1048576" | bc -l)"
+done
+```
+
+```bash
+# Weekly Xray auto-update — add to crontab
+0 3 * * 0 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install && systemctl restart xray
+```
+
+Start and verify:
+
+```bash
+systemctl enable --now xray
+systemctl status xray openvpn-server@server
+```
+
+### Step 6: Test end-to-end
+
+```bash
+# OpenVPN — verify split tunneling
+openvpn --config alice.ovpn
+ping 10.0.0.1        # Reaches internal network through VPN
+curl ifconfig.me     # Shows client's own IP (internet stays direct)
+
+# Xray — import subscription in v2rayNG, then test
+curl -x socks5://127.0.0.1:1080 https://ifconfig.me  # Shows server IP
+```
+
+## Real-World Example
+
+Leo provisions the dual-stack server on a Friday afternoon. By Monday, all 25 employees have `.ovpn` files and Google Authenticator configured via the provisioning script. Split tunneling means developers access internal staging servers through the VPN while video calls and web browsing use their local connection. When an intern's contract ends, one `revoke-user.sh` command kills access in seconds.
+
+The five team members in restricted countries import subscription links into v2rayNG. Reality protocol makes their traffic indistinguishable from normal HTTPS visits to microsoft.com, so DPI systems let it through. Over three months, the proxy stays unblocked while other VPN solutions get detected within days. The weekly auto-update keeps Xray current, and monitoring scripts give Leo visibility into usage across both services.
