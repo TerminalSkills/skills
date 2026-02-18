@@ -1,7 +1,9 @@
 ---
 title: Automate Team Workflows with ClickUp
 slug: automate-team-workflows-with-clickup
+description: "Automate sprint carryover, task status updates, time tracking reports, and Slack alerts using the ClickUp API with webhooks and scheduled cron jobs."
 category: project-management
+skills: [clickup]
 tags: [clickup, automation, webhooks, time-tracking, reporting]
 ---
 
