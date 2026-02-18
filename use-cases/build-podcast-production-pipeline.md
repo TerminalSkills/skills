@@ -61,15 +61,15 @@ pip install faster-whisper
 #!/bin/bash
 set -euo pipefail
 
-RAW_FILE="$1"
-TITLE="${2:-Untitled Episode}"
-EPISODE_NUM="${3:-000}"
-ASSETS_DIR="$(dirname "$0")/assets"
-OUTPUT_DIR="$(dirname "$0")/output/ep${EPISODE_NUM}"
-WORK_DIR=$(mktemp -d)
+# --- Configuration ---
+RAW_FILE="$1"                                        # Input: WAV file or YouTube URL
+TITLE="${2:-Untitled Episode}"                        # Episode title for metadata
+EPISODE_NUM="${3:-000}"                               # Episode number for folder naming
+ASSETS_DIR="$(dirname "$0")/assets"                   # Intro/outro jingles + artwork
+OUTPUT_DIR="$(dirname "$0")/output/ep${EPISODE_NUM}"  # All outputs land here
+WORK_DIR=$(mktemp -d)                                 # Temp workspace, cleaned on exit
 
 trap "rm -rf $WORK_DIR" EXIT
-
 mkdir -p "$OUTPUT_DIR"
 
 echo "🎙️ Podcast Production Pipeline"
@@ -80,6 +80,8 @@ echo ""
 # ============================
 # STEP 1: Download from YouTube (if URL provided instead of file)
 # ============================
+# Supports pasting a YouTube URL directly as the first argument.
+# yt-dlp extracts audio and converts to WAV automatically.
 if [[ "$RAW_FILE" == http* ]]; then
     echo "📥 Downloading audio from URL..."
     yt-dlp -x --audio-format wav -o "$WORK_DIR/downloaded.%(ext)s" "$RAW_FILE"
@@ -91,18 +93,22 @@ fi
 # ============================
 echo "🧹 Step 1: Audio cleanup..."
 
-# Convert to mono WAV 44.1kHz (consistent baseline)
+# Convert to mono WAV at 44.1kHz for a consistent processing baseline
 sox "$RAW_FILE" -r 44100 -c 1 "$WORK_DIR/mono.wav"
 
-# Remove leading/trailing silence
+# Remove leading/trailing silence (threshold: 0.1% of max amplitude, min 0.3s)
 sox "$WORK_DIR/mono.wav" "$WORK_DIR/trimmed.wav" \
     silence 1 0.3 0.1% reverse silence 1 0.3 0.1% reverse
 
-# Noise profile from first 0.5s (assumed to be room tone)
+# Capture a noise profile from the first 0.5s (assumed to be room tone / no speech)
 sox "$WORK_DIR/trimmed.wav" -n noiseprof "$WORK_DIR/noise.prof" trim 0 0.5
 
-# Apply full cleanup chain:
-# - Noise reduction, high-pass filter, compression, EQ boost, normalize
+# Apply the full cleanup chain in one pass:
+#   noisered  — reduce background noise using the captured profile
+#   highpass  — remove low-frequency rumble below 80Hz
+#   compand   — compress dynamic range so quiet and loud parts are more even
+#   equalizer — boost voice presence at 3kHz by 2dB
+#   norm      — normalize peak amplitude to -1dB
 sox "$WORK_DIR/trimmed.wav" "$WORK_DIR/clean.wav" \
     noisered "$WORK_DIR/noise.prof" 0.2 \
     highpass 80 \
@@ -113,38 +119,45 @@ sox "$WORK_DIR/trimmed.wav" "$WORK_DIR/clean.wav" \
 echo "   ✅ Cleaned: $(soxi -d "$WORK_DIR/clean.wav")"
 
 # ============================
-# STEP 3: Loudness normalization to -16 LUFS
+# STEP 3: Loudness normalization to -16 LUFS (podcast standard)
 # ============================
 echo "📊 Step 2: Loudness normalization (-16 LUFS)..."
 
+# Measure current integrated loudness using ffmpeg's loudnorm filter
 CURRENT_LUFS=$(ffmpeg -i "$WORK_DIR/clean.wav" -af loudnorm=print_format=json -f null - 2>&1 | \
     grep -A1 '"input_i"' | tail -1 | tr -d ' ",' | cut -d: -f2)
 
 TARGET_LUFS=-16
 GAIN=$(echo "$TARGET_LUFS - $CURRENT_LUFS" | bc)
 
+# Apply the calculated gain offset to hit -16 LUFS
 sox "$WORK_DIR/clean.wav" "$WORK_DIR/normalized.wav" gain ${GAIN}
 echo "   ✅ Applied ${GAIN}dB gain (${CURRENT_LUFS} → ${TARGET_LUFS} LUFS)"
 
 # ============================
 # STEP 4: Add Intro & Outro with Crossfade
 # ============================
+# Strategy: split intro/outro at the crossfade boundary, duck the music
+# to 20% volume in the overlap zone, then mix with the episode audio.
 echo "🎵 Step 3: Adding intro/outro..."
 
 INTRO="$ASSETS_DIR/intro.wav"
 OUTRO="$ASSETS_DIR/outro.wav"
 EPISODE="$WORK_DIR/normalized.wav"
-CROSSFADE=2
+CROSSFADE=2  # seconds of overlap between music and speech
 
-# Trim and duck intro music to 20% in the crossfade zone
+# --- Intro crossfade ---
+# Split intro into main part + tail (last 2s at 20% volume)
 INTRO_DUR=$(soxi -D "$INTRO")
 INTRO_MAIN_DUR=$(echo "$INTRO_DUR - $CROSSFADE" | bc)
 sox "$INTRO" "$WORK_DIR/intro_main.wav" trim 0 $INTRO_MAIN_DUR
 sox "$INTRO" "$WORK_DIR/intro_tail.wav" trim $INTRO_MAIN_DUR vol 0.2
+# Mix ducked intro tail with the first 2s of the episode
 sox "$EPISODE" "$WORK_DIR/ep_head.wav" trim 0 $CROSSFADE
 sox -m "$WORK_DIR/intro_tail.wav" "$WORK_DIR/ep_head.wav" "$WORK_DIR/crossfade_in.wav"
 
-# Episode body and outro crossfade
+# --- Outro crossfade ---
+# Split episode body, fade out the tail, mix with ducked outro start
 sox "$EPISODE" "$WORK_DIR/ep_body.wav" trim $CROSSFADE
 EP_BODY_DUR=$(soxi -D "$WORK_DIR/ep_body.wav")
 EP_TRIM_DUR=$(echo "$EP_BODY_DUR - $CROSSFADE" | bc)
@@ -154,7 +167,7 @@ sox "$OUTRO" "$WORK_DIR/outro_ducked.wav" vol 0.2 fade t $CROSSFADE 0 0
 sox -m "$WORK_DIR/ep_tail.wav" "$WORK_DIR/outro_ducked.wav" "$WORK_DIR/crossfade_out.wav"
 sox "$OUTRO" "$WORK_DIR/outro_main.wav" trim $CROSSFADE
 
-# Concatenate everything
+# --- Concatenate: intro → crossfade → episode → crossfade → outro ---
 sox "$WORK_DIR/intro_main.wav" \
     "$WORK_DIR/crossfade_in.wav" \
     "$WORK_DIR/ep_main.wav" \
@@ -166,7 +179,7 @@ FINAL_DUR=$(soxi -d "$WORK_DIR/final.wav")
 echo "   ✅ Final duration: $FINAL_DUR"
 
 # ============================
-# STEP 5: Transcription & Chapters
+# STEP 5: Transcription & Chapters (via Python + Whisper)
 # ============================
 echo "📝 Step 4: Transcribing with Whisper..."
 python3 "$(dirname "$0")/transcribe.py" "$WORK_DIR/final.wav" "$OUTPUT_DIR" "$TITLE"
@@ -177,14 +190,17 @@ echo "   ✅ Transcript and chapters generated"
 # ============================
 echo "🌊 Step 5: Generating waveforms..."
 
+# Website player waveform (1200x150, blue on white)
 audiowaveform -i "$WORK_DIR/final.wav" -o "$OUTPUT_DIR/waveform.png" \
     --width 1200 --height 150 \
     --background-color ffffff --waveform-color 3b82f6
 
+# Social media preview image (1200x630, light blue on dark)
 audiowaveform -i "$WORK_DIR/final.wav" -o "$OUTPUT_DIR/social-preview.png" \
     --width 1200 --height 630 \
     --background-color 0f172a --waveform-color 38bdf8 --no-axis-labels
 
+# JSON peaks for interactive web audio player (20 peaks per second, 8-bit)
 audiowaveform -i "$WORK_DIR/final.wav" -o "$OUTPUT_DIR/peaks.json" \
     --pixels-per-second 20 --bits 8
 
@@ -194,6 +210,7 @@ audiowaveform -i "$WORK_DIR/final.wav" -o "$OUTPUT_DIR/peaks.json" \
 echo "📦 Step 6: Exporting final formats..."
 SAFE_TITLE=$(echo "$TITLE" | tr -cd '[:alnum:] ._-' | tr ' ' '_')
 
+# MP3 with ID3 metadata and embedded artwork (shows in podcast apps)
 ffmpeg -y -i "$WORK_DIR/final.wav" -i "$ASSETS_DIR/artwork.jpg" \
     -map 0:a -map 1:v \
     -codec:a libmp3lame -b:a 192k -codec:v copy \
@@ -204,6 +221,7 @@ ffmpeg -y -i "$WORK_DIR/final.wav" -i "$ASSETS_DIR/artwork.jpg" \
     -disposition:v attached_pic \
     "$OUTPUT_DIR/${SAFE_TITLE}.mp3" 2>/dev/null
 
+# FLAC for archival (lossless, no artwork needed)
 ffmpeg -y -i "$WORK_DIR/final.wav" -codec:a flac \
     -metadata title="$TITLE" -metadata artist="My Podcast" \
     "$OUTPUT_DIR/${SAFE_TITLE}.flac" 2>/dev/null
@@ -217,7 +235,16 @@ ls -lh "$OUTPUT_DIR/"
 
 ```python
 #!/usr/bin/env python3
-"""Transcribe audio with faster-whisper and generate chapters."""
+"""Transcribe audio with faster-whisper and generate chapters.
+
+Outputs:
+  - transcript.txt   Full plain-text transcript
+  - subtitles.srt    SRT subtitle file (for video editors)
+  - subtitles.vtt    WebVTT subtitle file (for web players)
+  - chapters.json    Auto-detected chapter markers
+  - chapters.txt     Human-readable chapter list
+  - segments.json    Timestamped segments (for interactive web player)
+"""
 
 import sys
 import json
@@ -228,18 +255,21 @@ audio_path = sys.argv[1]
 output_dir = Path(sys.argv[2])
 title = sys.argv[3] if len(sys.argv) > 3 else "Episode"
 
+# Load the "small" model — good balance of speed and accuracy.
+# Use "large-v3" for production quality, "tiny" for quick drafts.
 model = WhisperModel("small", device="cpu", compute_type="int8")
 segments_iter, info = model.transcribe(audio_path, beam_size=5, word_timestamps=True)
 segments = list(segments_iter)
 
 print(f"   Language: {info.language} ({info.language_probability:.0%})")
 
-# --- Full transcript ---
+# --- Full transcript (plain text, one continuous block) ---
 transcript = " ".join(seg.text.strip() for seg in segments)
 (output_dir / "transcript.txt").write_text(transcript)
 
-# --- SRT subtitles ---
+# --- SRT subtitles (standard format for video editors and media players) ---
 def ts(seconds):
+    """Convert seconds to SRT timestamp format: HH:MM:SS,mmm"""
     h = int(seconds // 3600)
     m = int((seconds % 3600) // 60)
     s = int(seconds % 60)
@@ -250,7 +280,7 @@ with open(output_dir / "subtitles.srt", "w") as f:
     for i, seg in enumerate(segments, 1):
         f.write(f"{i}\n{ts(seg.start)} --> {ts(seg.end)}\n{seg.text.strip()}\n\n")
 
-# --- VTT subtitles ---
+# --- VTT subtitles (web-native format, used by <track> elements) ---
 with open(output_dir / "subtitles.vtt", "w") as f:
     f.write("WEBVTT\n\n")
     for seg in segments:
@@ -259,6 +289,9 @@ with open(output_dir / "subtitles.vtt", "w") as f:
         f.write(f"{start} --> {end}\n{seg.text.strip()}\n\n")
 
 # --- Chapter detection ---
+# Heuristic: look for long pauses (>3s) between segments as topic boundaries.
+# Only create a new chapter if the current one is at least 5 minutes long,
+# to avoid overly granular chapters from brief pauses.
 chapters = []
 chapter_start = 0
 chapter_texts = []
@@ -267,9 +300,10 @@ MIN_CHAPTER_LENGTH = 300  # seconds (5 min minimum chapter)
 for i, seg in enumerate(segments):
     chapter_texts.append(seg.text.strip())
     if i < len(segments) - 1:
-        gap = segments[i + 1].start - seg.end
-        elapsed = seg.end - chapter_start
+        gap = segments[i + 1].start - seg.end  # silence between segments
+        elapsed = seg.end - chapter_start       # current chapter duration
         if gap > 3.0 and elapsed > MIN_CHAPTER_LENGTH:
+            # Use the first ~10 words as a chapter title summary
             chapter_summary = " ".join(" ".join(chapter_texts).split()[:10]) + "..."
             chapters.append({
                 "start": chapter_start,
@@ -279,7 +313,7 @@ for i, seg in enumerate(segments):
             chapter_start = segments[i + 1].start
             chapter_texts = []
 
-# Add final chapter
+# Don't forget the last chapter
 if chapter_texts:
     chapter_summary = " ".join(" ".join(chapter_texts).split()[:10]) + "..."
     chapters.append({
@@ -288,15 +322,16 @@ if chapter_texts:
         "title": chapter_summary,
     })
 
-# Write chapters
+# Write structured chapters JSON (for programmatic use)
 with open(output_dir / "chapters.json", "w") as f:
     json.dump({"title": title, "chapters": chapters}, f, indent=2)
 
+# Write plain-text chapter list (for podcast apps / show notes)
 with open(output_dir / "chapters.txt", "w") as f:
     for ch in chapters:
         f.write(f"{ch['start_formatted']} {ch['title']}\n")
 
-# Segments JSON for web player
+# --- Segments JSON (for interactive web audio player with synced text) ---
 with open(output_dir / "segments.json", "w") as f:
     json.dump({
         "language": info.language,
@@ -339,7 +374,3 @@ output/ep042/
 ```
 
 One command, full production. Drop in a raw WAV (or YouTube URL), get back everything you need to publish.
-
-## Related Skills
-
-- **ffmpeg-video-editing** — Core audio/video processing with FFmpeg

@@ -56,15 +56,19 @@ video-pipeline/
 ### 3. Build the text animation effects
 
 ```python
+# effects.py — Reusable text animation effects for video templates.
+# Each function takes a MoviePy TextClip and returns a modified clip.
+
 from moviepy import TextClip, CompositeVideoClip
 
 
 def fade_in_text(text_clip, duration=0.5):
+    """Simple opacity crossfade from 0% to 100%."""
     return text_clip.crossfadein(duration)
 
 
 def slide_up_text(text_clip, distance=100, duration=0.5):
-    """Slide text up from below its final position."""
+    """Slide text up from below its final position with ease-out cubic easing."""
     final_pos = text_clip.pos
     if callable(final_pos):
         final_y = 0
@@ -73,7 +77,7 @@ def slide_up_text(text_clip, distance=100, duration=0.5):
 
     def position_func(t):
         progress = min(t / duration, 1.0)
-        progress = 1 - (1 - progress) ** 3  # Ease out cubic
+        progress = 1 - (1 - progress) ** 3  # Ease out cubic — fast start, slow finish
         x = final_pos[0] if isinstance(final_pos, tuple) else "center"
         y = final_y + distance * (1 - progress)
         return (x, y)
@@ -82,16 +86,17 @@ def slide_up_text(text_clip, distance=100, duration=0.5):
 
 
 def scale_in_text(text_clip, duration=0.5):
-    """Scale from 0 to full size."""
+    """Scale from near-zero to full size with ease-out easing."""
     def resize_func(t):
         if t < duration:
             progress = t / duration
-            progress = 1 - (1 - progress) ** 3
-            return max(progress, 0.01)
+            progress = 1 - (1 - progress) ** 3  # Ease out cubic
+            return max(progress, 0.01)           # Avoid 0 (invisible)
         return 1.0
     return text_clip.resized(resize_func)
 
 
+# Registry — template JSON references effects by name
 EFFECTS = {
     "fade_in": fade_in_text,
     "slide_up": slide_up_text,
@@ -102,37 +107,45 @@ EFFECTS = {
 ### 4. Build the template system
 
 ```python
+# templates.py — Platform definitions and config loaders.
+# Centralizes platform specs so the renderer stays clean.
+
 import json
 from pathlib import Path
 
+# Target resolutions per platform (width, height)
 PLATFORM_SIZES = {
-    "instagram_reel": (1080, 1920),
-    "tiktok": (1080, 1920),
-    "youtube_short": (1080, 1920),
-    "twitter": (1280, 720),
-    "instagram_post": (1080, 1080),
+    "instagram_reel": (1080, 1920),   # 9:16 vertical
+    "tiktok": (1080, 1920),           # 9:16 vertical
+    "youtube_short": (1080, 1920),    # 9:16 vertical
+    "twitter": (1280, 720),           # 16:9 landscape
+    "instagram_post": (1080, 1080),   # 1:1 square
 }
 
-# Safe zones: (top, bottom, left, right) in pixels where UI overlays exist
+# Safe zones: (top, bottom, left, right) in pixels.
+# These areas are covered by platform UI (username, buttons, etc.)
+# so text placed here won't be readable. The renderer avoids them.
 SAFE_ZONES = {
-    "instagram_reel": (200, 350, 40, 40),
-    "tiktok": (150, 400, 40, 40),
+    "instagram_reel": (200, 350, 40, 40),   # Large bottom zone for UI buttons
+    "tiktok": (150, 400, 40, 40),           # TikTok has the tallest bottom bar
     "youtube_short": (150, 300, 40, 40),
-    "twitter": (0, 0, 0, 0),
-    "instagram_post": (0, 100, 0, 0),
+    "twitter": (0, 0, 0, 0),                # Landscape — no overlays on content
+    "instagram_post": (0, 100, 0, 0),       # Small bottom caption area
 }
 
 
 def load_template(path):
+    """Load a video template JSON (defines layout, text layers, timing)."""
     with open(path) as f:
         return json.load(f)
 
 
 def load_brand(brand_name):
+    """Load a client brand kit (colors, fonts, logo, intro/outro clips)."""
     brand_path = Path(f"brands/{brand_name}/brand.json")
     with open(brand_path) as f:
         brand = json.load(f)
-    brand["_dir"] = str(brand_path.parent)
+    brand["_dir"] = str(brand_path.parent)  # Store path for resolving relative assets
     return brand
 ```
 
@@ -223,6 +236,9 @@ def load_brand(brand_name):
 ### 7. Build the core rendering engine
 
 ```python
+# renderer.py — Core video rendering engine.
+# Takes a template + brand + data + platform and produces a finished video.
+
 from moviepy import *
 from effects import EFFECTS
 from templates import PLATFORM_SIZES, SAFE_ZONES, load_template, load_brand
@@ -232,14 +248,25 @@ import os
 
 def render_video(template, brand, data, platform, output_path,
                  voiceover_path=None, background_video=None):
-    """Render a single video from template + data + brand + platform."""
+    """Render a single video from template + data + brand + platform.
+
+    Args:
+        template: Parsed template JSON (layout, text layers, timing)
+        brand: Parsed brand kit (colors, fonts, logo, intro/outro)
+        data: Dict of field values from CSV row (headline, body, cta, etc.)
+        platform: Target platform key (e.g. "instagram_reel", "tiktok")
+        output_path: Where to write the final .mp4
+        voiceover_path: Optional path to a voiceover audio file
+        background_video: Optional override for background clip
+    """
 
     size = PLATFORM_SIZES[platform]
-    safe = SAFE_ZONES[platform]
+    safe = SAFE_ZONES[platform]   # Pixels reserved for platform UI
     duration = template["duration"]
     brand_dir = brand["_dir"]
 
     # === Background ===
+    # Either a video clip (scaled to fit) or a solid color
     bg_cfg = template["background"]
     if background_video or (bg_cfg["type"] == "video" and bg_cfg.get("path")):
         bg_path = background_video or bg_cfg["path"]
@@ -251,12 +278,16 @@ def render_video(template, brand, data, platform, output_path,
     layers = [bg]
 
     # === Text layers ===
+    # Each text layer is defined in the template with position, timing, and effect.
+    # The "field" key maps to a column in the CSV data.
     for text_cfg in template.get("texts", []):
         field = text_cfg["field"]
         text = data.get(field, text_cfg.get("default", ""))
         if not text:
             continue
 
+        # Convert relative positions (0.0-1.0) to absolute pixels,
+        # respecting safe zones so text doesn't overlap platform UI
         pos = text_cfg["position"]
         if isinstance(pos[1], float) and pos[1] <= 1.0:
             usable_top = safe[0]
@@ -271,7 +302,7 @@ def render_video(template, brand, data, platform, output_path,
             font_size=text_cfg.get("size", 48),
             color=text_cfg.get("color", "white"),
             font=text_cfg.get("font", brand["fonts"]["body"]),
-            method="caption",
+            method="caption",          # Auto-wrap text within the given width
             size=(wrap_width, None),
         )
         txt = (txt
@@ -279,13 +310,14 @@ def render_video(template, brand, data, platform, output_path,
                .with_start(text_cfg.get("start", 0))
                .with_position(pos))
 
+        # Apply animation effect (fade_in, slide_up, scale_in, etc.)
         effect_name = text_cfg.get("effect")
         if effect_name and effect_name in EFFECTS:
             txt = EFFECTS[effect_name](txt)
 
         layers.append(txt)
 
-    # === Watermark ===
+    # === Watermark (brand logo) ===
     wm_cfg = template.get("watermark")
     if wm_cfg and brand.get("logo"):
         logo_path = os.path.join(brand_dir, brand["logo"])
@@ -294,6 +326,7 @@ def render_video(template, brand, data, platform, output_path,
                 .resized(height=wm_cfg.get("height", 40))
                 .with_opacity(wm_cfg.get("opacity", 0.5)))
 
+        # Position the logo with margin, offset by safe zones
         margin = wm_cfg.get("margin", 20)
         pos_map = {
             "top_right": (size[0] - logo.size[0] - margin, margin + safe[0]),
@@ -304,16 +337,17 @@ def render_video(template, brand, data, platform, output_path,
         logo = logo.with_position(pos_map.get(wm_cfg["position"], (margin, margin)))
         layers.append(logo)
 
-    # === Compose video ===
+    # === Compose all visual layers into one clip ===
     video = CompositeVideoClip(layers, size=size)
 
-    # === Audio ===
+    # === Audio: background music + optional voiceover ===
     music_cfg = template.get("music", {})
     audio_layers = []
 
     music_path = (os.path.join(brand_dir, brand.get("music", ""))
                   if brand.get("music") else None)
     if music_path and os.path.exists(music_path):
+        # Duck the music further when there's a voiceover
         music_vol = music_cfg.get("volume", 0.2)
         if voiceover_path:
             music_vol = music_cfg.get("duck_on_voiceover", 0.08)
@@ -329,7 +363,7 @@ def render_video(template, brand, data, platform, output_path,
     if audio_layers:
         video = video.with_audio(CompositeAudioClip(audio_layers))
 
-    # === Intro/Outro ===
+    # === Prepend intro + append outro from brand kit ===
     clips = []
     if brand.get("intro"):
         intro_path = os.path.join(brand_dir, brand["intro"])
@@ -349,15 +383,16 @@ def render_video(template, brand, data, platform, output_path,
 
     final = concatenate_videoclips(clips)
 
-    # === Export ===
+    # === Export to H.264 MP4 with AAC audio ===
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     final.write_videofile(
         output_path, fps=30, codec="libx264",
         audio_codec="aac", bitrate="8000k",
         preset="fast", threads=4,
-        logger=None,
+        logger=None,  # Suppress MoviePy's progress bar
     )
 
+    # Release file handles to avoid leaks in batch mode
     for clip in clips + layers:
         try: clip.close()
         except: pass
@@ -368,9 +403,13 @@ def render_video(template, brand, data, platform, output_path,
 ### 8. Build the quality checker
 
 ```python
+# qc.py — Post-render quality checker.
+# Validates each video against platform-specific constraints before upload.
+
 from moviepy import VideoFileClip
 import os
 
+# Platform upload constraints (as of 2024 — check platform docs for updates)
 PLATFORM_LIMITS = {
     "instagram_reel": {"max_duration": 90, "max_size_mb": 250,
                        "resolution": (1080, 1920)},
@@ -386,6 +425,10 @@ PLATFORM_LIMITS = {
 
 
 def check_video(path, platform):
+    """Validate a rendered video against platform limits.
+
+    Returns a list of issues found, or ["PASS"] if everything checks out.
+    """
     issues = []
     limits = PLATFORM_LIMITS[platform]
 
@@ -394,18 +437,22 @@ def check_video(path, platform):
     except Exception as e:
         return [f"Cannot open file: {e}"]
 
+    # Check duration against platform maximum
     if clip.duration > limits["max_duration"]:
         issues.append(
             f"Duration {clip.duration:.1f}s exceeds {limits['max_duration']}s limit"
         )
 
+    # Verify resolution matches the target platform exactly
     expected = limits["resolution"]
     if clip.size != list(expected):
         issues.append(f"Resolution {clip.size} != expected {expected}")
 
+    # Ensure audio track exists (silent videos get rejected by most platforms)
     if clip.audio is None:
         issues.append("No audio track")
 
+    # Check file size against platform upload limit
     size_mb = os.path.getsize(path) / (1024 * 1024)
     if size_mb > limits["max_size_mb"]:
         issues.append(
@@ -419,6 +466,10 @@ def check_video(path, platform):
 ### 9. Build the batch pipeline
 
 ```python
+# pipeline.py — Main entry point for batch video production.
+# Reads a CSV of content variations and renders each one across all platforms
+# using multiprocessing for parallel rendering.
+
 import csv
 import sys
 from pathlib import Path
@@ -429,6 +480,7 @@ from qc import check_video
 
 
 def render_one(args):
+    """Render a single video and run QC. Used as a multiprocessing target."""
     template, brand, data, platform, output_path, voiceover = args
     try:
         render_video(template, brand, data, platform, output_path, voiceover)
@@ -440,10 +492,16 @@ def render_one(args):
 
 def batch_produce(template_path, brand_name, csv_path, output_dir,
                   platforms=None, workers=4):
+    """Produce all video variations across all platforms.
+
+    For each CSV row x platform combination, renders a video and validates it.
+    Uses ProcessPoolExecutor for parallel rendering (CPU-bound work).
+    """
     template = load_template(template_path)
     brand = load_brand(brand_name)
     platforms = platforms or list(PLATFORM_SIZES.keys())
 
+    # Read all content variations from CSV
     with open(csv_path) as f:
         reader = csv.DictReader(f)
         rows = list(reader)
@@ -451,14 +509,16 @@ def batch_produce(template_path, brand_name, csv_path, output_dir,
     total = len(rows) * len(platforms)
     print(f"Batch: {len(rows)} variations x {len(platforms)} platforms = {total} videos")
 
+    # Build the job list: one job per (variation, platform) combination
     jobs = []
     for i, row in enumerate(rows):
         for platform in platforms:
             safe_name = row.get("name", f"video_{i+1}").replace(" ", "_")
             output_path = f"{output_dir}/{platform}/{safe_name}.mp4"
-            voiceover = row.get("voiceover", None)
+            voiceover = row.get("voiceover", None)  # Optional column in CSV
             jobs.append((template, brand, row, platform, output_path, voiceover))
 
+    # Render all jobs in parallel and collect results
     results = []
     with ProcessPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(render_one, job): job for job in jobs}
@@ -479,7 +539,7 @@ if __name__ == "__main__":
         brand_name="acme",
         csv_path=sys.argv[1] if len(sys.argv) > 1 else "batches/facts.csv",
         output_dir="output",
-        workers=4,
+        workers=4,  # Adjust based on CPU cores available
     )
 ```
 
@@ -500,7 +560,3 @@ python pipeline.py batches/facts.csv
 ```
 
 One template, infinite variations. The renderer handles platform sizing, safe zones, branded elements, text animation, audio mixing, and quality checks — all automated.
-
-## Related Skills
-
-- **ffmpeg-video-editing** — Core video processing with FFmpeg
