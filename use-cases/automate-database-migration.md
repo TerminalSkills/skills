@@ -17,10 +17,6 @@ Migrating data between databases — whether switching from MySQL to PostgreSQL,
 
 Use the **data-migration** skill to build the migration pipeline with schema mapping, transformation logic, and validation, and **sql-optimizer** to ensure the migration queries perform well on large datasets. The agent creates a repeatable, testable migration that you can dry-run before the real cutover.
 
-```bash
-npx terminal-skills install data-migration sql-optimizer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze the source and target schemas

@@ -17,10 +17,6 @@ A team maintains 8 packages in a monorepo. Version numbers are bumped manually â
 
 Use `git-commit-pro` to enforce conventional commits across all repos, `changelog-generator` to produce accurate changelogs from commit history, and `cicd-pipeline` to automate version bumping and publishing on merge to main.
 
-```bash
-npx terminal-skills install git-commit-pro changelog-generator cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit existing commit history and establish conventions

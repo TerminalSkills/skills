@@ -17,10 +17,6 @@ Your Docker images have quietly ballooned to 1.5 GB each. Deployments take 8 min
 
 Use the **docker-optimizer** skill to analyze and rebuild your Dockerfiles with minimal production images, and the **docker-helper** skill for general Docker configuration and troubleshooting. Install both:
 
-```bash
-npx terminal-skills install docker-optimizer docker-helper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit your current images

@@ -17,10 +17,6 @@ Your microservices architecture has grown to 8 services, and every frontend requ
 
 Use the **coding-agent** to design gateway routing rules and generate configuration, **docker-helper** to deploy and manage the gateway, and **api-tester** to validate routes work correctly before going live.
 
-```bash
-npx terminal-skills install coding-agent docker-helper api-tester
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Describe your current service landscape

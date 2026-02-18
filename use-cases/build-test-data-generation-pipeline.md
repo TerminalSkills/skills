@@ -17,10 +17,6 @@ A 20-person SaaS startup runs integration tests against a staging database with 
 
 Use the **coding-agent** skill to generate data factories that understand your schema, the **test-generator** skill to create scenario-specific datasets, and the **data-analysis** skill to analyze production data patterns without exposing PII.
 
-```bash
-npx terminal-skills install coding-agent test-generator data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze your schema and relationships

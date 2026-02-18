@@ -17,10 +17,6 @@ Your team runs 35 Lambda functions behind an API Gateway. Three of them randomly
 
 Use AI to analyze CloudWatch logs across function invocations, trace request flows through chained Lambdas, identify cold start patterns, and generate optimized function configurations. The `serverless-debugger` skill traces and diagnoses issues while the `data-analysis` skill crunches invocation metrics.
 
-```bash
-npx terminal-skills install serverless-debugger data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Trace a failing request across functions

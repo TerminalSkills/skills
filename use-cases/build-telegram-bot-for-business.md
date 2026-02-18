@@ -17,10 +17,6 @@ A small agency with 8 employees manages client communication across email, phone
 
 Use `telegram-bot-builder` to create an interactive bot with inline keyboards and conversation flows, `coding-agent` to implement the booking engine and order tracking logic, and `data-analysis` to generate weekly business reports from bot usage data.
 
-```bash
-npx terminal-skills install telegram-bot-builder coding-agent data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Build the customer-facing order tracker

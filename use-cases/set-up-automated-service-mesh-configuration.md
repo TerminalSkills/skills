@@ -17,10 +17,6 @@ A platform team at a mid-size startup runs 22 microservices on Kubernetes. Servi
 
 Use the **coding-agent** skill to analyze the existing service topology, generate Istio configuration files for each service, and wire up traffic policies. Use the **docker-helper** skill to verify sidecar injection and container configurations. Apply the **security-audit** skill to validate mTLS coverage and authorization policies across the mesh.
 
-```bash
-npx terminal-skills install coding-agent docker-helper security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Map the current service topology

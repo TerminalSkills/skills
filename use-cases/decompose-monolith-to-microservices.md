@@ -17,10 +17,6 @@ A 4-year-old Rails monolith has grown to 380K lines of code. Deployments take 45
 
 Use `code-reviewer` to analyze the codebase for coupling patterns and module boundaries, `data-analysis` to map data flow and dependency graphs between modules, `coding-agent` to generate the extraction scaffolding, and `docker-helper` to containerize each new service.
 
-```bash
-npx terminal-skills install code-reviewer data-analysis coding-agent docker-helper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze the monolith's module structure

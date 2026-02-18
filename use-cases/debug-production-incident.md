@@ -17,10 +17,6 @@ Production incidents hit at the worst times. Engineers scramble through thousand
 
 Use the **log-analyzer** skill to have your AI agent parse logs, build a timeline, and pinpoint the root cause. Combine with **data-analysis** to correlate metrics and error rates. The agent reads your logs, identifies the first failure, traces the cascade, and produces a structured incident report.
 
-```bash
-npx terminal-skills install log-analyzer data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Feed the agent your logs

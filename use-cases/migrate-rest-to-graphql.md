@@ -17,10 +17,6 @@ Your backend has dozens of REST endpoints accumulated over years. Mobile clients
 
 Use an incremental strangler-fig approach: stand up a GraphQL gateway that wraps existing REST endpoints, migrate consumers one screen at a time, and deprecate old routes only after traffic drops to zero. Three skills work together to make this safe.
 
-```bash
-npx terminal-skills install graphql-migration api-tester code-migration
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit existing REST endpoints

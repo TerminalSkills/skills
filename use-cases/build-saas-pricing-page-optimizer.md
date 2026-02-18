@@ -17,10 +17,6 @@ Your SaaS pricing page hasn't been updated in months. You suspect you're leaving
 
 Use **pricing-strategy** to analyze your current tiers and positioning, **page-cro** to audit conversion elements, **competitor-alternatives** to benchmark against similar products, and **web-research** to gather pricing psychology best practices.
 
-```bash
-npx terminal-skills install pricing-strategy page-cro competitor-alternatives web-research
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit your current pricing page

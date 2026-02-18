@@ -17,10 +17,6 @@ A SaaS platform stores user files on the application server's local disk. The `/
 
 Use `s3-storage` to implement a proper object storage backend with presigned URLs for direct client uploads, `coding-agent` to build the file management API and image processing pipeline, and `security-audit` to lock down bucket policies and access patterns.
 
-```bash
-npx terminal-skills install s3-storage coding-agent security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Design the storage architecture and migrate existing files

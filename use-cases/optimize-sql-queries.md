@@ -21,10 +21,6 @@ Worst part: nobody knows which queries to fix first. EXPLAIN output looks like a
 
 Combine **sql-optimizer** for query analysis and rewriting, **db-explain-analyzer** to decode execution plans, and **data-analysis** for performance trend analysis. The approach: profile query performance, identify bottlenecks through execution plan analysis, rewrite inefficient queries, add strategic indexes, and monitor for regression.
 
-```bash
-npx terminal-skills install sql-optimizer db-explain-analyzer data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Identify and profile the slowest queries

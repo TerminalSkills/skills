@@ -19,10 +19,6 @@ Public status page services like Statuspage or Instatus cost $79-299/month and a
 
 Use **coding-agent** to build the status page application with health checks and incident tracking, **frontend-design** to create a clean dashboard interface, and **api-tester** to configure health check probes for each service.
 
-```bash
-npx terminal-skills install coding-agent frontend-design api-tester
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Map services and health check endpoints

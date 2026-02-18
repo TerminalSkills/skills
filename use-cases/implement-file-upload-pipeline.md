@@ -17,10 +17,6 @@ Every SaaS app eventually needs file uploads — profile avatars, document attac
 
 Use **file-upload-processor** to build the upload endpoint with validation and cloud storage, **media-transcoder** to handle image resizing and video transcoding, and **batch-processor** to orchestrate the async job queue. The agent creates a complete pipeline from upload to processed output.
 
-```bash
-npx terminal-skills install file-upload-processor media-transcoder batch-processor
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Build the upload endpoint with validation

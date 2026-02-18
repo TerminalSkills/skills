@@ -17,10 +17,6 @@ Your app's search is a SQL `LIKE '%query%'` on the product name column. It misse
 
 Design a search index tailored to your data, build a sync pipeline from your primary database, implement a search API with faceting and typo tolerance, and tune relevance with real user queries. Two core skills plus Docker for local development.
 
-```bash
-npx terminal-skills install search-engine-setup docker-helper data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Design the search index

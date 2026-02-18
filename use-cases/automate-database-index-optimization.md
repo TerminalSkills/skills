@@ -21,10 +21,6 @@ Index bloat slows down writes. Missing indexes slow down reads. Without systemat
 
 Use **sql-optimizer** to analyze query plans and recommend index changes, **data-analysis** to identify patterns in slow query logs, and **report-generator** to produce actionable optimization reports.
 
-```bash
-npx terminal-skills install sql-optimizer data-analysis report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit current index usage

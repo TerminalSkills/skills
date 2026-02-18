@@ -17,10 +17,6 @@ Your data pipelines run on a schedule — Airflow DAGs, dbt jobs, custom cron sc
 
 Use the **coding-agent** to build health-check scripts that validate row counts, freshness, and schema consistency. Use **data-analysis** to establish baselines and detect anomalies. Use **n8n-workflow** to wire up automated checks that run after each pipeline stage.
 
-```bash
-npx terminal-skills install coding-agent data-analysis n8n-workflow
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Ask the agent to audit your current pipelines

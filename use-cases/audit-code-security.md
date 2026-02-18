@@ -17,10 +17,6 @@ Your Express.js API handles financial data for 12,000 users. A pen tester found 
 
 The **security-audit** skill scans application code for injection flaws, auth bypasses, and secret leaks. The **docker-helper** skill audits container configs for privilege escalation, exposed ports, and bloated images. The **cicd-pipeline** skill adds automated security gates so vulnerabilities get caught before production.
 
-```bash
-npx terminal-skills install security-audit docker-helper cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scan application code for vulnerabilities

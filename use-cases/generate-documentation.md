@@ -21,10 +21,6 @@ Code knowledge lives entirely in developers' heads. When Sarah (auth service own
 
 Combine **markdown-writer** for structured documentation, **code-documenter** for API analysis, and **github** for repository integration. The approach: analyze codebase structure, extract API definitions, interview existing docs, and generate comprehensive, maintainable documentation.
 
-```bash
-npx terminal-skills install markdown-writer code-documenter github
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Codebase analysis and documentation audit

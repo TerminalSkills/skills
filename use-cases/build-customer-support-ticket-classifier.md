@@ -17,10 +17,6 @@ Your support team receives 200+ tickets per day. Each one needs to be read, cate
 
 Use **data-analysis** to analyze historical ticket patterns and build classification rules, **coding-agent** to implement the classification pipeline, and **batch-processor** to handle bulk ticket processing.
 
-```bash
-npx terminal-skills install data-analysis coding-agent batch-processor
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze your existing ticket data

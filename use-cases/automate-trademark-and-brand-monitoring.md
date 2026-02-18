@@ -17,10 +17,6 @@ A growing startup has a recognizable brand name and logo but no budget for a bra
 
 Use the **web-research** skill to systematically search for brand mentions, similar domain registrations, and marketplace listings. Deploy the **web-scraper** skill to capture evidence — screenshots, page content, and metadata — for each potential infringement. Use the **report-generator** skill to compile findings into a structured report ready for legal review or DMCA takedowns.
 
-```bash
-npx terminal-skills install web-research web-scraper report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define the brand assets to monitor

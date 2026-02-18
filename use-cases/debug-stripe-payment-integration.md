@@ -17,10 +17,6 @@ Payment integration bugs are uniquely stressful. A failed charge means lost reve
 
 An AI agent uses the `stripe-testing` skill to pull payment intent details, replay webhook events locally, and trace failures through your server logs — all from one conversation. Combined with `api-tester` for verifying your endpoint responses, you get a full diagnosis in minutes.
 
-```bash
-npx terminal-skills install stripe-testing api-tester
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Diagnose a failed payment

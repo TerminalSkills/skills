@@ -17,10 +17,6 @@ A new engineer joins the team and asks "where are the docs?" The answer is a she
 
 Point the AI agent at your codebase and let it analyze the code structure, extract function contracts, trace data flows, and produce documentation at every level — from inline docstrings to architecture overviews to onboarding guides. It reads the code the way an experienced engineer would, but documents it immediately instead of keeping the knowledge in their head.
 
-```bash
-npx terminal-skills install code-documenter coding-agent changelog-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Map the architecture first

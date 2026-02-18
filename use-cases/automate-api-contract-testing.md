@@ -17,10 +17,6 @@ A backend team pushes a "minor" API change — renaming a field from `userName` 
 
 Use `api-tester` to map every endpoint's current request/response shape, `test-generator` to produce consumer-driven contract tests for each client-provider pair, and `cicd-pipeline` to run contracts on every PR so breaking changes get caught before merge.
 
-```bash
-npx terminal-skills install api-tester test-generator cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Map existing API surface

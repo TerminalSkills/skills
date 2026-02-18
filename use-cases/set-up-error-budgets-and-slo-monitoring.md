@@ -17,10 +17,6 @@ The engineering team ships features every sprint, but nobody knows if the platfo
 
 Use `data-analysis` to define SLIs from existing metrics and calculate baseline reliability, `report-generator` to build SLO dashboards and error budget burn-down reports, and `cicd-pipeline` to gate deployments when error budgets are exhausted.
 
-```bash
-npx terminal-skills install data-analysis report-generator cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define SLIs from existing metrics

@@ -17,10 +17,6 @@ Your Node.js project has 187 dependencies. Dependabot opens 15 PRs a week that n
 
 Use AI to analyze your dependency tree, identify which updates carry breaking changes, generate migration code for API differences, and produce a safe, ordered upgrade plan. The `dependency-updater` skill audits your packages and the `code-migration` skill handles the actual code changes.
 
-```bash
-npx terminal-skills install dependency-updater code-migration
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit your dependency health

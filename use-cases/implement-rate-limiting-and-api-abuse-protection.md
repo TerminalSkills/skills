@@ -21,10 +21,6 @@ The current "solution": manual IP blocking after damage is done. No proactive ra
 
 Implement intelligent API protection using **rate-limiter** for sophisticated traffic controls and **security-audit** for threat detection and response. The approach: implement graduated rate limiting based on user behavior, detect and block abusive patterns automatically, and maintain service quality for legitimate users while stopping attacks.
 
-```bash
-npx terminal-skills install rate-limiter security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Implement multi-tier rate limiting with user-based controls

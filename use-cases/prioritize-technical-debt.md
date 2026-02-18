@@ -17,10 +17,6 @@ Every growing codebase accumulates technical debt — rushed features, outdated 
 
 Use the `tech-debt-analyzer` to scan the codebase for debt signals (complexity hotspots, outdated dependencies, code duplication, TODO/HACK markers), then cross-reference with `code-complexity-scanner` to identify which files change most frequently and cause the most merge conflicts. The result: a prioritized debt backlog scored by business impact, not just code smell severity.
 
-```bash
-npx terminal-skills install tech-debt-analyzer code-complexity-scanner
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scan the codebase for debt signals

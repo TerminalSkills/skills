@@ -17,10 +17,6 @@ Your application serves users across three continents, but everything runs in us
 
 Use the **coding-agent** to design the architecture and generate infrastructure-as-code, **docker-helper** to containerize services for portable deployment, and **hetzner-cloud** to provision and configure servers across regions cost-effectively.
 
-```bash
-npx terminal-skills install coding-agent docker-helper hetzner-cloud
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Describe your requirements and constraints

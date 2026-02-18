@@ -17,10 +17,6 @@ Your web app collects user emails, tracks page views, stores IP addresses, and u
 
 Audit your codebase and infrastructure for personal data flows, generate a compliant consent management system, and build automated handlers for data subject requests (access, deletion, portability). Three skills cover the full compliance stack.
 
-```bash
-npx terminal-skills install gdpr-compliance security-audit code-reviewer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit personal data flows

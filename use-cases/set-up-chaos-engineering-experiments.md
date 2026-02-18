@@ -17,10 +17,6 @@ A 30-person fintech team runs 12 microservices in Kubernetes. They have never te
 
 Use the **coding-agent** skill to generate chaos experiment configurations, the **docker-helper** skill to set up local chaos testing environments, and the **cicd-pipeline** skill to integrate chaos tests into the deployment pipeline.
 
-```bash
-npx terminal-skills install coding-agent docker-helper cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Map your failure modes

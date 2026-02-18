@@ -17,10 +17,6 @@ After every production incident, your team needs a postmortem document. Someone 
 
 Use the **meeting-notes** skill to extract key events from chat transcripts, the **coding-agent** to pull and correlate log data, and the **markdown-writer** to assemble everything into a structured postmortem document with timeline, root cause analysis, and action items.
 
-```bash
-npx terminal-skills install meeting-notes markdown-writer coding-agent
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Feed the agent your incident data

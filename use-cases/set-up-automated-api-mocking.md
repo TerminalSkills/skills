@@ -17,10 +17,6 @@ A frontend team of three depends on a backend API that is half-built. Endpoints 
 
 Use the **api-tester** skill to validate the current OpenAPI spec against the live backend and identify discrepancies. Have the **coding-agent** skill generate a mock server from the spec with realistic seed data. Use the **test-generator** skill to create contract tests that alert when the backend spec changes so mocks stay in sync.
 
-```bash
-npx terminal-skills install api-tester coding-agent test-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Extract and validate the OpenAPI spec

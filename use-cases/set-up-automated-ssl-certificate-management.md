@@ -17,10 +17,6 @@ A 15-person engineering team manages 24 SSL certificates across production servi
 
 Use the **coding-agent** to build certificate monitoring and renewal automation, the **cicd-pipeline** to integrate certificate deployment into your release process, and **n8n-workflow** to orchestrate renewal notifications and automated actions.
 
-```bash
-npx terminal-skills install coding-agent cicd-pipeline n8n-workflow
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Inventory all certificates

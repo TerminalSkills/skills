@@ -21,10 +21,6 @@ The hardest part is knowing where you stand. Your codebase has no access logging
 
 Combine **security-audit**, **cicd-pipeline**, and **code-reviewer** to perform a comprehensive SOC 2 gap analysis against your actual codebase and infrastructure. Security-audit maps vulnerabilities to trust service criteria. cicd-pipeline checks deployment controls. code-reviewer identifies missing authorization and audit logging. The result is a prioritized checklist your team works through — not a consultant PDF.
 
-```bash
-npx terminal-skills install security-audit cicd-pipeline code-reviewer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Run a SOC 2 gap analysis

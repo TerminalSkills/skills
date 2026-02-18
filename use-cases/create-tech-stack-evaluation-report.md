@@ -17,10 +17,6 @@ Your team needs to pick a new database, frontend framework, or hosting provider.
 
 Use **web-research** to gather current benchmarks and community sentiment, **competitor-alternatives** to map the landscape, **data-analysis** to score options against your criteria, and **report-generator** to produce a professional evaluation document.
 
-```bash
-npx terminal-skills install web-research competitor-alternatives data-analysis report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define your evaluation criteria

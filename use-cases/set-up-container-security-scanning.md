@@ -17,10 +17,6 @@ Your team builds and deploys 15 Docker images across microservices. Each image p
 
 Use **docker-helper** to inspect and manage container images, **security-audit** to analyze vulnerabilities and assess real-world risk, and **coding-agent** to generate Dockerfile fixes and dependency updates.
 
-```bash
-npx terminal-skills install docker-helper security-audit coding-agent
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scan your container images

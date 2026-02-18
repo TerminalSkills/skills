@@ -21,10 +21,6 @@ Code review inefficiency compounds the problem. Reviewers spend more time asking
 
 Combine **git-commit-pro** for intelligent commit analysis, **code-reviewer** for change validation, and **cicd-pipeline** for automated quality gates. The approach: analyze code changes semantically, generate conventional commit messages, validate changes before commit, and integrate with review workflows.
 
-```bash
-npx terminal-skills install git-commit-pro code-reviewer cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Intelligent commit message generation

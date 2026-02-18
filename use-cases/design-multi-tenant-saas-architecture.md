@@ -17,10 +17,6 @@ Converting a single-tenant application to multi-tenant — or designing multi-te
 
 Use `saas-architecture-advisor` to evaluate tenancy strategies against your specific constraints (tenant count, data sensitivity, compliance needs), and `database-schema-designer` to generate the schema, middleware, and row-level security policies. The agent considers your scale, isolation requirements, and team size to recommend the right tradeoff.
 
-```bash
-npx terminal-skills install saas-architecture-advisor database-schema-designer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Evaluate tenancy strategies for your context

@@ -17,10 +17,6 @@ Engineering teams running Kubernetes in production routinely overprovision resou
 
 Combine the `k8s-cost-optimizer` skill to analyze live resource usage against requests/limits, and `cloud-resource-analyzer` to map cluster costs to actual workload value. The agent connects to your cluster via kubectl, pulls metrics, and produces actionable right-sizing recommendations with estimated savings.
 
-```bash
-npx terminal-skills install k8s-cost-optimizer cloud-resource-analyzer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit current resource allocation vs actual usage

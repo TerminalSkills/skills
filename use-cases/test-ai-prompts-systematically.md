@@ -17,10 +17,6 @@ Your team ships an AI feature — a support ticket classifier, a document summar
 
 Use the **prompt-tester** skill to bring engineering rigor to prompt development. Define what good output looks like, build test cases covering normal and edge scenarios, run multiple prompt variants, and compare results with metrics. Combine with **data-analysis** to analyze patterns in failures and measure improvement over iterations.
 
-```bash
-npx terminal-skills install prompt-tester data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define your evaluation rubric

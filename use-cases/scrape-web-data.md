@@ -21,10 +21,6 @@ Data quality compounds the problem. Human error rate: 8.3% from copy-paste mista
 
 Combine **web-scraper** for data extraction, **data-analysis** for pattern recognition, and **batch-processor** for scalable automation. The approach: build intelligent scrapers that adapt to site changes, process data at scale with quality validation, and deliver real-time competitive intelligence.
 
-```bash
-npx terminal-skills install web-scraper data-analysis batch-processor
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Multi-site scraper architecture development

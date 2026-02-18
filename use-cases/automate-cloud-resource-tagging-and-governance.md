@@ -17,10 +17,6 @@ A 40-person engineering organization runs 200+ cloud resources across multiple e
 
 Use the **coding-agent** to build tagging automation scripts that audit, fix, and enforce resource tags, **report-generator** to create governance dashboards, and **hetzner-cloud** for cloud infrastructure management patterns that apply across providers.
 
-```bash
-npx terminal-skills install coding-agent report-generator hetzner-cloud
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit current tagging state

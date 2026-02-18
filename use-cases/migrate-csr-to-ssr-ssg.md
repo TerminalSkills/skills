@@ -21,10 +21,6 @@ The business impact is measurable: conversion rates on marketing pages dropped f
 
 Migrate from client-side rendering to a hybrid SSR/SSG architecture using **ssr-migration** for React-to-Next.js conversion, **frontend-design** for performance optimization, and **docker-helper** for deployment infrastructure. The approach: analyze current performance bottlenecks, implement SSG for static content and SSR for dynamic pages, optimize Core Web Vitals, and measure SEO improvements.
 
-```bash
-npx terminal-skills install ssr-migration frontend-design docker-helper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze current performance and identify migration strategy

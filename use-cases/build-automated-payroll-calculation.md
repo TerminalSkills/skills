@@ -18,10 +18,6 @@ A 30-person agency tracks hours in spreadsheets. Every two weeks the office mana
 
 Use the **excel-processor** skill to ingest and normalize timesheet data from multiple spreadsheets. Feed the cleaned data into the **report-generator** skill to compute gross pay, overtime, deductions, and net pay. Finally use the **template-engine** skill to stamp out individual pay stubs and a company-wide payroll summary PDF.
 
-```bash
-npx terminal-skills install excel-processor report-generator template-engine
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Ingest and normalize timesheets

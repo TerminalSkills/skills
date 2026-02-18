@@ -17,10 +17,6 @@ Adding auth to an existing application is one of the most error-prone tasks in b
 
 Use the **auth-system-setup** skill to scaffold the full auth architecture, **jwt-handler** to implement secure token generation and validation, and **security-audit** to verify the implementation against OWASP guidelines. The agent generates production-ready code, not boilerplate.
 
-```bash
-npx terminal-skills install auth-system-setup jwt-handler security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define the auth requirements

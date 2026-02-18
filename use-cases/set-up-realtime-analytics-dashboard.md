@@ -17,10 +17,6 @@ Your product team wants a live dashboard showing active users, conversion funnel
 
 Wire together an event ingestion API, a columnar database optimized for analytics queries (ClickHouse), and a lightweight frontend that polls or streams aggregated data. Three skills handle each layer.
 
-```bash
-npx terminal-skills install realtime-analytics data-analysis docker-helper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Design the event schema

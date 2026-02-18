@@ -17,10 +17,6 @@ A growth marketer at a 20-person SaaS startup sends 4-6 email campaigns per week
 
 Use the **data-analysis** skill to find patterns in campaign metrics, the **excel-processor** to wrangle exported CSV data, and the **report-generator** to produce actionable insights. The agent analyzes months of campaign data and surfaces what actually drives engagement.
 
-```bash
-npx terminal-skills install data-analysis excel-processor report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Import your campaign data

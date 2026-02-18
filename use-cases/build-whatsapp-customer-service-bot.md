@@ -17,10 +17,6 @@ An e-commerce company with 5,000 monthly orders gets 200+ WhatsApp messages dail
 
 Use `whatsapp-bot-builder` to create a WhatsApp Cloud API bot with interactive menus, `coding-agent` to build the order lookup and FAQ engine, and `template-engine` to manage message templates for outbound notifications.
 
-```bash
-npx terminal-skills install whatsapp-bot-builder coding-agent template-engine
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Set up the WhatsApp Cloud API and welcome flow

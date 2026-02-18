@@ -17,10 +17,6 @@ Your production database holds everything — user data, transactions, years of 
 
 Use the **db-backup** skill to implement automated backup schedules with verification, the **docker-helper** skill to containerize backup and restore tooling, and the **cicd-pipeline** skill to integrate backup verification into your CI workflow.
 
-```bash
-npx terminal-skills install db-backup docker-helper cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Assess your current backup situation

@@ -21,10 +21,6 @@ The team's solution so far: throw hardware at it. They upgraded from 2 CPU cores
 
 Use **job-queue** to build a BullMQ-based background processing system with typed jobs, priority handling, and retry logic. Use **docker-helper** to set up Redis infrastructure and **batch-processor** for high-volume operations. The pattern: web requests enqueue work immediately and return job IDs, dedicated workers process jobs asynchronously with progress tracking, and failed jobs retry automatically without impacting user experience.
 
-```bash
-npx terminal-skills install job-queue docker-helper batch-processor
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Set up queue infrastructure with Redis and job types

@@ -17,10 +17,6 @@ Your team is building a GraphQL API for a multi-tenant project management app. T
 
 Use AI to audit your existing schema (or design one from scratch), identify N+1 query patterns, add proper pagination and field-level complexity limits, and generate optimized resolvers with DataLoader patterns. The `graphql` skill handles schema structure and the `sql-optimizer` skill fixes the underlying queries.
 
-```bash
-npx terminal-skills install graphql sql-optimizer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit your existing schema

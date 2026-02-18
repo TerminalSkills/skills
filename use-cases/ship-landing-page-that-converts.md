@@ -21,10 +21,6 @@ The math is simple: moving from 0.9% to 2.5% cuts cost-per-lead from $33 to $12.
 
 The **page-cro** skill audits your page against CRO frameworks — structure, messaging, trust signals, friction, mobile, and speed. The **frontend-design** skill generates production-ready code for redesigned components. Together, they turn subjective redesign into data-informed, testable improvement.
 
-```bash
-npx terminal-skills install page-cro frontend-design
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Run a CRO audit

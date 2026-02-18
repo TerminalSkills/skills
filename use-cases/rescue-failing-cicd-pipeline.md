@@ -21,10 +21,6 @@ Slow builds compound the problem. Docker builds that don't cache. Serial tests t
 
 Combine **cicd-pipeline** for workflow optimization, **test-generator** for replacing flaky tests, and **docker-helper** for build performance. The approach: profile what's slow, identify what's flaky, fix both, monitor for regression.
 
-```bash
-npx terminal-skills install cicd-pipeline test-generator docker-helper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Profile the pipeline

@@ -17,10 +17,6 @@ Your system has 8 microservices. When a user reports a slow checkout, you SSH in
 
 Instrument all services with OpenTelemetry for unified traces, metrics, and structured logs. Ship telemetry to Grafana's LGTM stack (Loki for logs, Grafana for dashboards, Tempo for traces, Mimir for metrics) running in Docker. Build dashboards that answer the three critical questions: What failed? Where? Why?
 
-```bash
-npx terminal-skills install observability-setup docker-helper cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Instrument services with OpenTelemetry

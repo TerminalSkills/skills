@@ -17,10 +17,6 @@ A 20-person product team has a weekly sync every Monday. The engineering manager
 
 Use the **github** skill to pull PR status and recent commits, the **meeting-notes** skill to structure agendas with clear topics and time boxes, and the **report-generator** to compile everything into a shareable document.
 
-```bash
-npx terminal-skills install github meeting-notes report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Pull project status from all sources

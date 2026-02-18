@@ -19,10 +19,6 @@ The real story of the sprint lives in the data: Git commits, PR review times, ti
 
 Use **github** to pull PR and commit activity, **data-analysis** to identify patterns and bottlenecks, and **report-generator** to produce a structured retro document the team can discuss.
 
-```bash
-npx terminal-skills install github data-analysis report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Gather sprint data from GitHub

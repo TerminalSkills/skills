@@ -21,10 +21,6 @@ Black Friday broke everything: 3,200 concurrent dashboard loads triggered 12,000
 
 Implement a multi-layer caching strategy using **cache-strategy** for intelligent cache design and **docker-helper** for Redis infrastructure. The approach: identify cacheable data patterns, implement application-level caching with smart invalidation, add HTTP caching headers, and monitor cache performance with automatic optimization.
 
-```bash
-npx terminal-skills install cache-strategy docker-helper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze API performance and identify caching opportunities

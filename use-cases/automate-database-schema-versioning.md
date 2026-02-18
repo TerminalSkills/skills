@@ -17,10 +17,6 @@ Your team makes database changes by hand. Someone writes an ALTER TABLE statemen
 
 Use the **schema-versioning** skill to set up timestamped migration files with reversible up/down functions, **cicd-pipeline** to validate every migration in CI before it reaches production, and **docker-helper** to run a shadow database for safe testing. Every schema change becomes a code-reviewed pull request with an automated test that proves it can apply and roll back cleanly.
 
-```bash
-npx terminal-skills install schema-versioning cicd-pipeline docker-helper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Initialize the migration infrastructure

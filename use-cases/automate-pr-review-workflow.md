@@ -17,10 +17,6 @@ Code reviews are the biggest bottleneck in most development teams. A thorough re
 
 An AI agent runs four review passes on every PR — code quality, security, performance, and test coverage — then produces a single consolidated report. Using `code-reviewer`, `security-audit`, `performance-reviewer`, and `test-generator`, you get review depth that would take a senior engineer an hour compressed into minutes.
 
-```bash
-npx terminal-skills install code-reviewer security-audit performance-reviewer test-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Kick off a full review

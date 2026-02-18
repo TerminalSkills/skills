@@ -17,10 +17,6 @@ A backend team of eight has coding standards documented across a Notion page, a 
 
 Use the **doc-parser** skill to extract coding standards from all sources — Notion exports, markdown files, and wiki pages. Have the **code-reviewer** skill synthesize them into a unified, deduplicated checklist. Use the **github** skill to automate checklist enforcement by posting review comments on every PR that flag violations.
 
-```bash
-npx terminal-skills install doc-parser code-reviewer github
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Extract standards from scattered sources

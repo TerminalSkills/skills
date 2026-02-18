@@ -17,10 +17,6 @@ A 25-person startup is hiring three backend engineers but their interview proces
 
 Use the **coding-agent** to analyze your codebase and identify representative patterns, **applicant-screening** to structure the assessment criteria, and **markdown-writer** to produce polished interview question documents with rubrics.
 
-```bash
-npx terminal-skills install coding-agent applicant-screening markdown-writer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze the codebase for interview-worthy patterns

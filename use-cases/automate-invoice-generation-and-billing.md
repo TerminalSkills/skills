@@ -17,10 +17,6 @@ Your finance team spends the first week of every month manually generating invoi
 
 Use the **billing-automation** skill to build the invoicing pipeline and dunning workflows, the **invoice-generator** skill to render professional PDF invoices, and the **template-engine** skill to create email templates for invoice delivery and payment reminders.
 
-```bash
-npx terminal-skills install billing-automation invoice-generator template-engine
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Design the billing data model

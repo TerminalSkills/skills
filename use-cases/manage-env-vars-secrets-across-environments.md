@@ -17,10 +17,6 @@ Environment variable management is a silent source of outages. A missing `STRIPE
 
 An AI agent uses `env-manager` to scan your codebase for every environment variable reference, compare them across environments, and flag missing, stale, or insecure configurations. Combined with `doppler` for secrets management and `security-audit` for detecting exposed credentials, you get a complete picture of your configuration health.
 
-```bash
-npx terminal-skills install env-manager doppler security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit your current state

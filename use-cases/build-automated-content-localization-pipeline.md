@@ -17,10 +17,6 @@ A 15-person SaaS startup is expanding into three new markets — Germany, Brazil
 
 Use the **content-writer** skill to generate contextually accurate translations, **batch-processor** to handle hundreds of keys in a single run, and **data-extractor** to pull translatable strings from source files automatically.
 
-```bash
-npx terminal-skills install content-writer batch-processor data-extractor
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Extract all translatable strings

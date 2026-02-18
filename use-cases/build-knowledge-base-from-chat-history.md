@@ -21,10 +21,6 @@ You tried a wiki, but it went stale in 2 months. The problem isn't the wiki — 
 
 Use **data-extractor** to parse and filter chat exports for high-value content, **web-scraper** to pull in linked resources referenced in conversations, and **markdown-writer** to organize everything into a structured, searchable knowledge base.
 
-```bash
-npx terminal-skills install data-extractor web-scraper markdown-writer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Export and analyze chat history

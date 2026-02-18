@@ -19,10 +19,6 @@ You have the data to predict churn: product analytics show who's logging in, Int
 
 Use **data-analysis** to build the scoring model from historical patterns, **excel-processor** to merge data from multiple exports, and **data-analysis** to create dashboards the CS team can act on daily.
 
-```bash
-npx terminal-skills install data-analysis excel-processor data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Merge and clean multi-source data

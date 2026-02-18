@@ -17,10 +17,6 @@ Your team wants to expose internal tools — inventory lookup, order tracking, c
 
 The **mcp-server-builder** skill scaffolds a production-ready MCP server with tool definitions and transport config. The **api-tester** skill tests each endpoint with realistic requests, edge cases, and error scenarios. The **test-generator** skill creates an automated suite so regressions get caught before deployment.
 
-```bash
-npx terminal-skills install mcp-server-builder api-tester test-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scaffold the MCP server

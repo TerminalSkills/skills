@@ -17,10 +17,6 @@ A 30-person engineering team runs Jenkins with 15 jobs configured through the UI
 
 Use `jenkins-pipelines` to migrate all jobs to Jenkinsfiles with shared libraries, `docker-helper` to containerize build environments for reproducibility, and `kubernetes-helm` to automate deployments from the pipeline.
 
-```bash
-npx terminal-skills install jenkins-pipelines docker-helper kubernetes-helm
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Migrate from UI jobs to Jenkinsfiles

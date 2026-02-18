@@ -17,10 +17,6 @@ Your application is getting slower and nobody knows which queries are responsibl
 
 Use **sql-optimizer** to analyze query execution plans and recommend fixes, **data-analysis** to identify patterns across slow query logs, and **report-generator** to produce actionable reports for the team.
 
-```bash
-npx terminal-skills install sql-optimizer data-analysis report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Extract slow queries from your database logs

@@ -21,10 +21,6 @@ You need automated performance checks on every PR — not a full load test, but 
 
 Use **api-tester** to run performance benchmarks against key endpoints, **cicd-pipeline** to integrate checks into your PR workflow, and **report-generator** to surface results as clear PR comments.
 
-```bash
-npx terminal-skills install api-tester cicd-pipeline report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Identify critical performance paths

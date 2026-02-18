@@ -17,10 +17,6 @@ Your cloud bill is $47,000 per month and growing 15% quarter over quarter, but n
 
 Use **data-analysis** to parse and categorize cloud billing exports, **excel-processor** to merge billing data with team ownership mappings, and **report-generator** to produce monthly cost allocation reports with trend analysis.
 
-```bash
-npx terminal-skills install data-analysis excel-processor report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Export your billing data and team mappings

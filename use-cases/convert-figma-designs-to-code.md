@@ -17,10 +17,6 @@ The handoff from design to code is where velocity dies. A designer delivers pixe
 
 An AI agent uses the `figma-to-code` skill to extract layout structure, design tokens, and component hierarchy from Figma designs, then generates responsive, accessible React components that match the design. Combined with `frontend-design` for polishing and responsive refinement, the full page goes from Figma to working code in under an hour.
 
-```bash
-npx terminal-skills install figma-to-code frontend-design
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Share the design

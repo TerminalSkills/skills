@@ -17,10 +17,6 @@ Your REST API has 30 active endpoints consumed by a mobile app, three partner in
 
 Use the **coding-agent** to implement API versioning infrastructure with minimal code duplication, **api-tester** to validate backward compatibility across versions, and **markdown-writer** to generate versioned API documentation and migration guides.
 
-```bash
-npx terminal-skills install coding-agent api-tester markdown-writer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Describe your API and the breaking change

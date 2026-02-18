@@ -17,10 +17,6 @@ A software consultancy spends 10-15 hours per week writing project estimates for
 
 Use the **data-analysis** skill to analyze past project data and build estimation benchmarks by feature type. Feed new requirements into the **proposal-writer** skill to break them into tasks, estimate effort, and apply risk-adjusted multipliers. Use the **excel-processor** skill to generate formatted cost breakdowns and comparison scenarios that the sales team can present.
 
-```bash
-npx terminal-skills install data-analysis proposal-writer excel-processor
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Build estimation benchmarks from past projects

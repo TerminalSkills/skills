@@ -17,10 +17,6 @@ Your logs are everywhere — stdout on one service, JSON files on another, syslo
 
 Use the **docker-helper** skill to deploy a centralized logging stack, the **coding-agent** to configure structured log shipping from all services, and **data-analysis** to build queries that surface error patterns and anomalies.
 
-```bash
-npx terminal-skills install docker-helper coding-agent data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Describe your current logging landscape

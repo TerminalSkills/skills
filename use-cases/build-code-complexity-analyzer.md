@@ -17,10 +17,6 @@ A 25-person SaaS startup has a three-year-old Node.js backend with 400 files and
 
 Use the **code-reviewer** skill to analyze complexity metrics across the entire codebase, the **coding-agent** to generate concrete refactoring plans with code examples, and the **report-generator** to produce a prioritized action plan the team can actually execute.
 
-```bash
-npx terminal-skills install code-reviewer coding-agent report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Run a full complexity scan

@@ -19,10 +19,6 @@ Use the **voice-to-text** skill to transcribe any audio file using OpenAI Whispe
 
 Install the skill:
 
-```bash
-npx terminal-skills install voice-to-text
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Point the agent at your audio file

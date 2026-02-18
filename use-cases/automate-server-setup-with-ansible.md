@@ -17,10 +17,6 @@ A team manages 12 servers across staging and production. Every new server takes 
 
 Use `ansible-automation` to write playbooks and roles that automate the entire server lifecycle, `security-audit` to define hardening standards as code, and `coding-agent` to build custom Ansible modules for app-specific deployment logic.
 
-```bash
-npx terminal-skills install ansible-automation security-audit coding-agent
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit current servers and create inventory

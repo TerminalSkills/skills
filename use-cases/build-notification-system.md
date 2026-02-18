@@ -17,10 +17,6 @@ Your application needs to notify users through multiple channels — transaction
 
 Use the **notification-system** skill to architect and implement the delivery pipeline with channel routing and preference management, and the **template-engine** skill to create consistent notification templates across all channels. Install both:
 
-```bash
-npx terminal-skills install notification-system template-engine
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define your notification types and channels

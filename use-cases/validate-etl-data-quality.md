@@ -17,10 +17,6 @@ Your morning dashboard shows revenue dropped 80% overnight. Panic. Three hours l
 
 Use the **data-validator** skill to run automated quality checks on your data at every stage of the pipeline. Combine with **sql-optimizer** to write efficient validation queries and **data-analysis** to profile datasets and detect anomalies. Catch problems at ingestion, not at the dashboard.
 
-```bash
-npx terminal-skills install data-validator sql-optimizer data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Profile the incoming data

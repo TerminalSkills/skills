@@ -17,10 +17,6 @@ A growing SaaS company runs 40+ AWS resources created manually through the conso
 
 Use `terraform-iac` to codify all existing infrastructure into Terraform modules, `security-audit` to scan configurations for misconfigurations and compliance issues, and `cicd-pipeline` to automate plan/apply workflows with proper review gates.
 
-```bash
-npx terminal-skills install terraform-iac security-audit cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Import existing infrastructure into Terraform

@@ -17,10 +17,6 @@ A 30-person platform team maintains a REST API with 140 endpoints. Over the year
 
 Use the **api-tester** skill to analyze endpoint usage patterns, the **coding-agent** to build deprecation tracking infrastructure, and **github** to manage the deprecation lifecycle through issues and PRs.
 
-```bash
-npx terminal-skills install api-tester coding-agent github
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Identify deprecation candidates

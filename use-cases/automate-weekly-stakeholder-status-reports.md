@@ -17,10 +17,6 @@ Every Friday afternoon, engineering leads scramble to write status reports for s
 
 Use **weekly-report** to structure the status update, **github** to pull merged PRs and release data, and **report-generator** to format a stakeholder-friendly document.
 
-```bash
-npx terminal-skills install weekly-report github report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Gather the raw data

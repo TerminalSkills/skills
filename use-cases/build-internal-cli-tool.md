@@ -17,10 +17,6 @@ Every new developer spends their first day copying shell commands from a stale C
 
 Use `coding-agent` to scaffold a Node.js CLI with subcommands for every team workflow, `test-generator` to add integration tests for critical commands, and `git-commit-pro` to maintain clean commit history as the tool evolves.
 
-```bash
-npx terminal-skills install coding-agent test-generator git-commit-pro
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define commands from existing tribal knowledge

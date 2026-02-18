@@ -21,10 +21,6 @@ Worst of all, without keyword research and competitor gap analysis, you could wr
 
 Combine **seo-audit** for technical SEO and gap analysis, **content-strategy** for keyword research and planning, and **web-research** for deep topic research. This workflow finds where competitors rank and you don't, builds a prioritized calendar targeting achievable keywords, and produces optimized outlines with the depth to outrank existing content.
 
-```bash
-npx terminal-skills install seo-audit content-strategy web-research
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit your SEO position vs competitors

@@ -17,10 +17,6 @@ Teams ship APIs without knowing their breaking point. A marketing campaign drive
 
 Use `api-load-tester` to generate and execute realistic k6 load test scripts from your API specs or route definitions, and `capacity-planner` to analyze the results and produce scaling recommendations with cost estimates.
 
-```bash
-npx terminal-skills install api-load-tester capacity-planner
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Generate load test scenarios from API routes

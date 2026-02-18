@@ -17,10 +17,6 @@ A 20-person SaaS startup deploys straight to production with a basic blue-green 
 
 Use the **cicd-pipeline** skill to build the deployment pipeline, the **coding-agent** to write the canary infrastructure configuration, and **analytics-tracking** to set up the health metrics that trigger automatic rollback decisions.
 
-```bash
-npx terminal-skills install cicd-pipeline coding-agent analytics-tracking
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define your canary strategy

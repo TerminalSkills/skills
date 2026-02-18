@@ -17,10 +17,6 @@ A 15-person engineering team knows their test coverage is uneven but has no visi
 
 Use the **test-generator** skill to identify and fill coverage gaps, the **coding-agent** to build the tracking infrastructure, and the **data-analysis** to create trend dashboards. The agent sets up automated coverage tracking that surfaces regressions before they become problems.
 
-```bash
-npx terminal-skills install test-generator coding-agent data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze current coverage state

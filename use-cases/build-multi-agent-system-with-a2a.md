@@ -17,10 +17,6 @@ A company has 4 AI agents built by different teams on different frameworks: a re
 
 Use `a2a-protocol` to make each agent A2A-compliant with standard Agent Cards and task management, `coding-agent` to implement the orchestrator that discovers and delegates to specialized agents, and `mcp-server-builder` to give individual agents tool access while they collaborate via A2A.
 
-```bash
-npx terminal-skills install a2a-protocol coding-agent mcp-server-builder
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Create Agent Cards and wrap existing agents

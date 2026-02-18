@@ -17,10 +17,6 @@ Google Search Console shows your site failing Core Web Vitals on 60% of pages. L
 
 Give your AI agent the page URL or source code and let it trace the critical rendering path. It identifies the exact LCP element, pinpoints layout shift sources, profiles main thread bottlenecks causing poor INP, and produces a prioritized fix list with estimated metric improvements for each change.
 
-```bash
-npx terminal-skills install web-vitals-analyzer frontend-design code-reviewer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Get the baseline diagnosis

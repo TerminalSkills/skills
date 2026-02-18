@@ -19,10 +19,6 @@ Existing generators like openapi-generator produce code that works but reads lik
 
 Use **coding-agent** to generate idiomatic SDK code from your OpenAPI spec, **test-generator** to create comprehensive test suites for each SDK, and **markdown-writer** to produce SDK documentation with examples.
 
-```bash
-npx terminal-skills install coding-agent test-generator markdown-writer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Analyze the OpenAPI spec

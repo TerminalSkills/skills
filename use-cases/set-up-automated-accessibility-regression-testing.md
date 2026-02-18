@@ -17,10 +17,6 @@ A 25-person product team did an accessibility audit six months ago and fixed 73 
 
 Use the **test-generator** skill to create accessibility-focused test cases, the **cicd-pipeline** skill to integrate them into your build process, and the **coding-agent** to write custom accessibility testing utilities that go beyond what axe-core catches out of the box.
 
-```bash
-npx terminal-skills install test-generator cicd-pipeline coding-agent
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Baseline your current accessibility state

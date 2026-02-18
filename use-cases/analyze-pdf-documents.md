@@ -21,10 +21,6 @@ PDF complexity compounds the problem. Multi-page tables that split across pages.
 
 Combine **pdf-analyzer** for document extraction, **data-analysis** for pattern recognition, and **excel-processor** for output formatting. The approach: intelligently parse document structure, extract all tabular data, validate accuracy, and deliver analysis-ready datasets.
 
-```bash
-npx terminal-skills install pdf-analyzer data-analysis excel-processor
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Bulk document analysis

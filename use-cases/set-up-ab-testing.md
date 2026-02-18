@@ -17,10 +17,6 @@ Product teams want to run experiments — test a new checkout flow, try a differ
 
 Use **feature-flag-manager** to implement the flag system and user bucketing, **ab-test-setup** to design statistically sound experiments, and **analytics-tracking** to wire up event collection and metric computation. The agent builds the full stack: flag evaluation, consistent user assignment, event pipeline, and a results dashboard.
 
-```bash
-npx terminal-skills install ab-test-setup analytics-tracking feature-flag-manager
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Build the feature flag system with user bucketing

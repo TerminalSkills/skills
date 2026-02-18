@@ -17,10 +17,6 @@ A 15-person B2B SaaS startup has 2,000 registered users but only 300 active week
 
 Use the **analytics-tracking** skill to instrument key user events, the **data-analysis** skill to query and segment funnel data, and the **data-analysis** skill to produce funnel charts and retention curves the team can act on.
 
-```bash
-npx terminal-skills install analytics-tracking data-analysis data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define the critical funnel stages

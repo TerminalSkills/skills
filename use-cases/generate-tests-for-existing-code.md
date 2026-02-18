@@ -19,10 +19,6 @@ But generating tests alone isn't enough. AI-generated tests can test implementat
 
 The **test-generator** skill creates comprehensive test suites. The **code-reviewer** skill audits generated tests for quality issues — weak assertions, missing edge cases, mock anti-patterns. The **cicd-pipeline** skill sets up GitHub Actions with coverage gates to enforce testing on every PR.
 
-```bash
-npx terminal-skills install test-generator code-reviewer cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Generate tests for high-risk modules

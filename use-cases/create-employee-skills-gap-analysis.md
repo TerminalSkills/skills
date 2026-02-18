@@ -17,10 +17,6 @@ Your engineering team is about to take on a major project requiring Kubernetes, 
 
 Use **data-analysis** to process skills data and identify gaps, **report-generator** to produce individual development plans and team-level summaries, and **web-research** to recommend specific training resources.
 
-```bash
-npx terminal-skills install data-analysis report-generator web-research
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define the skills framework

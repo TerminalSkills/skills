@@ -17,10 +17,6 @@ A 40-person e-commerce company uses 28 SaaS vendors — from cloud hosting to em
 
 Use the **contract-review** skill to extract key terms from each vendor agreement, the **pdf-analyzer** skill to parse contracts in PDF format, and the **report-generator** skill to produce a renewal calendar and comparison dashboard.
 
-```bash
-npx terminal-skills install contract-review pdf-analyzer report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Gather all vendor contracts

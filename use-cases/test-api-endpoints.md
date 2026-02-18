@@ -19,10 +19,6 @@ Use the **api-tester** skill to have your AI agent send requests to your API, va
 
 Install the skill:
 
-```bash
-npx terminal-skills install api-tester
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Tell the agent what to test

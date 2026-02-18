@@ -17,10 +17,6 @@ Your API handles 10,000 requests per minute, but you have no systematic way to c
 
 Use **api-tester** to define and execute API benchmarks, **coding-agent** to generate test scripts and CI integration, and **data-analysis** to chart performance trends over time.
 
-```bash
-npx terminal-skills install api-tester coding-agent data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define your benchmark scenarios

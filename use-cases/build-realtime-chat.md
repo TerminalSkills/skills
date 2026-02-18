@@ -17,10 +17,6 @@ Adding real-time chat to an existing application seems straightforward — open 
 
 Use the **websocket-builder** skill to set up the WebSocket server with room management, connection lifecycle, and event routing, then use **realtime-database** to handle message persistence, efficient retrieval, and sync. The agent builds both the server infrastructure and the data layer.
 
-```bash
-npx terminal-skills install websocket-builder realtime-database
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Set up the WebSocket server with rooms

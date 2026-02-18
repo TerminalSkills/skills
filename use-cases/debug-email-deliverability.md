@@ -17,10 +17,6 @@ Users report they never received the password reset email. The support ticket sa
 
 Use `email-deliverability-debugger` to systematically diagnose authentication, reputation, and content issues, and `dns-record-analyzer` to audit SPF, DKIM, and DMARC records for correctness. The agent checks each layer of the email delivery stack and produces specific fixes.
 
-```bash
-npx terminal-skills install email-deliverability-debugger dns-record-analyzer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit DNS email authentication records

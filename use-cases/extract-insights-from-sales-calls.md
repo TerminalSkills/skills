@@ -21,10 +21,6 @@ The math is brutal: 5 sales reps × 12 calls/week × 28 minutes = 280 hours of c
 
 Combine **voice-to-text** for bulk transcription, **data-analysis** for pattern recognition, **report-generator** for structured insights, and **content-writer** for stakeholder communication. The approach: batch transcribe all recordings, extract and categorize feature requests with frequency counts, identify deal-breaking objections, and produce executive-ready insights with quantified customer demand.
 
-```bash
-npx terminal-skills install voice-to-text data-analysis report-generator content-writer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Batch transcribe all sales recordings

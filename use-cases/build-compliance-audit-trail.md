@@ -17,10 +17,6 @@ Your application handles sensitive financial data, and your compliance auditor j
 
 Use the **coding-agent** to instrument your application with structured audit events, **security-audit** to validate the audit trail meets compliance requirements, and **data-analysis** to build queries and reports for auditor access.
 
-```bash
-npx terminal-skills install coding-agent security-audit data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define your audit requirements

@@ -17,10 +17,6 @@ Your team knows security scanning should happen on every pull request, but setti
 
 Use the **security-audit** skill to configure and tune scanning tools, the **cicd-pipeline** skill to integrate scans into your PR workflow, and the **coding-agent** to auto-triage findings and generate fix suggestions.
 
-```bash
-npx terminal-skills install security-audit cicd-pipeline coding-agent
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Ask the agent to assess your current security posture

@@ -17,10 +17,6 @@ A 35-person engineering org uses RFCs to make technical decisions, but the proce
 
 Use the **markdown-writer** skill to generate well-structured RFC documents from rough notes, **github** to manage the review workflow through pull requests, and **template-engine** to maintain consistent RFC formatting across the team.
 
-```bash
-npx terminal-skills install markdown-writer github template-engine
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Generate an RFC from rough notes

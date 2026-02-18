@@ -17,10 +17,6 @@ Your team maintains a 65,000-line Express.js 4 API from 2018 — callback-based,
 
 The **code-migration** skill converts legacy patterns — callbacks to async/await, CommonJS to ESM, outdated ORMs to Prisma. The **test-generator** skill creates baseline tests before migration to catch regressions. The **security-audit** skill reviews migrated code for vulnerabilities introduced during conversion.
 
-```bash
-npx terminal-skills install code-migration test-generator security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Generate baseline tests before migration

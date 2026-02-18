@@ -19,10 +19,6 @@ Most founder-made decks fail for the same reasons: too much text, no visual hier
 
 Use **data-analysis** to turn raw metrics into clean charts, **content-writer** to craft the narrative and key messaging, and **ai-slides** to assemble everything into a professional deck.
 
-```bash
-npx terminal-skills install data-analysis content-writer ai-slides
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Organize your raw data

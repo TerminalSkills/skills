@@ -17,10 +17,6 @@ A mobile team of four ships a React Native app to both iOS and Android. Every re
 
 Use the **cicd-pipeline** skill to scaffold a GitHub Actions workflow that builds, signs, and uploads both platforms on every tagged commit. Add the **changelog-generator** skill to auto-generate release notes from merged PRs. Use the **coding-agent** skill to write and maintain the Fastlane configuration that handles code signing, screenshots, and store metadata.
 
-```bash
-npx terminal-skills install cicd-pipeline changelog-generator coding-agent
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scaffold the CI/CD workflow

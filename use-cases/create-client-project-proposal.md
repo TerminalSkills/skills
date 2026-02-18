@@ -17,10 +17,6 @@ A 12-person digital agency sends out 8 to 10 project proposals per month. Each p
 
 Use the **proposal-writer** skill to generate structured proposals from rough requirements, the **markdown-writer** skill to format them professionally, and the **data-analysis** skill to estimate timelines based on historical project data.
 
-```bash
-npx terminal-skills install proposal-writer markdown-writer data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Feed in the raw requirements

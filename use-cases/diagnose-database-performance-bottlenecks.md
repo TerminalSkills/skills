@@ -17,10 +17,6 @@ Your application dashboard shows p95 latency spiking to 4 seconds. The APM tool 
 
 Feed your slow query log and execution plans to the AI agent. It parses EXPLAIN ANALYZE output, identifies the root cause of each bottleneck, ranks them by impact, and generates exact CREATE INDEX statements and query rewrites — complete with estimated performance improvements.
 
-```bash
-npx terminal-skills install db-explain-analyzer sql-optimizer data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Identify the worst offenders

@@ -19,10 +19,6 @@ Manual license auditing is impractical at scale. Running `npm ls` gives you the 
 
 Use **security-audit** to scan the full dependency tree for license risks, **coding-agent** to build automated CI checks that block problematic licenses, and **report-generator** to produce compliance reports for legal review.
 
-```bash
-npx terminal-skills install security-audit coding-agent report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scan the full dependency tree

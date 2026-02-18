@@ -17,10 +17,6 @@ The European Accessibility Act takes effect in June 2025, ADA lawsuits against w
 
 Feed your components and page templates to the AI agent for a deep accessibility audit. It goes beyond automated scanners — analyzing keyboard interaction patterns, ARIA semantics, focus management in modals and dynamic content, and color contrast computations — to produce a prioritized violation report with exact code fixes for each issue.
 
-```bash
-npx terminal-skills install accessibility-auditor code-reviewer frontend-design
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit the most critical user flows first

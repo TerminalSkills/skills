@@ -19,10 +19,6 @@ New hires spend their first 2-3 weeks piecing together tribal knowledge from old
 
 Use **doc-parser** to extract existing knowledge from READMEs, config files, and CI pipelines, **content-writer** to synthesize it into structured guides, and **markdown-writer** to produce clean documentation that lives in the repo.
 
-```bash
-npx terminal-skills install doc-parser content-writer markdown-writer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Inventory existing documentation

@@ -17,10 +17,6 @@ Your team set up Sentry (or Datadog, or PagerDuty) months ago. At first, every a
 
 Use AI to audit your current alert rules, deduplicate error groups, set severity thresholds based on user impact, and create a tiered escalation policy. The `error-monitoring` skill analyzes your error stream and the `alert-optimizer` skill restructures your alert rules.
 
-```bash
-npx terminal-skills install error-monitoring alert-optimizer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Audit your current error landscape

@@ -17,10 +17,6 @@ Your monorepo has 20 packages and 4 apps. React is on three different versions. 
 
 Use the **monorepo-manager** skill to audit, sync, and maintain dependencies across all workspaces. Combine with **security-audit** to catch vulnerable transitive dependencies and **code-reviewer** to review dependency changes before merging.
 
-```bash
-npx terminal-skills install monorepo-manager security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Map the monorepo structure

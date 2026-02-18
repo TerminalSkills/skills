@@ -21,10 +21,6 @@ Worse: there's no visibility into failures. When a webhook fails, it's gone fore
 
 Build a resilient webhook processing system using **webhook-processor** for reliable ingestion and processing, **batch-processor** for handling high-volume bursts efficiently, and **error-monitoring** for comprehensive failure tracking and automated recovery. The approach: quickly ingest all webhooks into a queue, process them asynchronously with automatic retries, and monitor every step with alerting and recovery mechanisms.
 
-```bash
-npx terminal-skills install webhook-processor batch-processor error-monitoring
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Set up reliable webhook ingestion with immediate acknowledgment

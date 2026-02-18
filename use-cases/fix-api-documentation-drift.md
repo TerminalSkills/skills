@@ -17,10 +17,6 @@ API documentation goes stale the moment a developer merges a route change withou
 
 Point your AI agent at the codebase and existing OpenAPI spec. It scans route definitions, extracts current schemas from type annotations, diffs them against the published spec, and produces an updated OpenAPI document plus a human-readable changelog. Then it validates every updated endpoint actually works by hitting it with test requests.
 
-```bash
-npx terminal-skills install api-doc-generator api-tester code-reviewer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scan the codebase for documentation drift

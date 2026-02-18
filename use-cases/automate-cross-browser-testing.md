@@ -17,10 +17,6 @@ Your web app looks perfect in Chrome, but customers on Safari report broken layo
 
 Use the **test-generator** skill to create comprehensive cross-browser test suites from your existing pages, the **coding-agent** to configure Playwright for multi-browser execution, and the **web-scraper** to capture baseline screenshots for visual comparison.
 
-```bash
-npx terminal-skills install test-generator coding-agent web-scraper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Ask the agent to analyze your app for cross-browser risk areas

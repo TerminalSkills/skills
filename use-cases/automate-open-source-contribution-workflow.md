@@ -17,10 +17,6 @@ Your engineering team wants to contribute to the open source projects you depend
 
 Use the **github** skill to search for issues and manage PRs, **code-reviewer** to understand repository conventions, and **coding-agent** to implement fixes. The agent handles the tedious parts — finding issues, reading CONTRIBUTING.md files, checking CLA requirements — so your team can focus on writing code.
 
-```bash
-npx terminal-skills install github code-reviewer coding-agent
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Find suitable issues in your dependency graph

@@ -17,10 +17,6 @@ A product manager at a growing startup tracks five competitors manually. Every q
 
 Use the **web-research** skill to systematically gather feature information from competitor websites, pricing pages, changelogs, and documentation. Feed the findings into the **competitor-alternatives** skill to structure them into a standardized feature matrix. Use the **data-analysis** skill to produce visual comparison charts for stakeholder presentations.
 
-```bash
-npx terminal-skills install web-research competitor-alternatives data-analysis
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define competitors and feature categories

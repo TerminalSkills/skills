@@ -19,10 +19,6 @@ Setting up CI/CD properly means coordinating tests, container optimization, secu
 
 Four skills build a production-ready pipeline. **test-generator** creates tests so the pipeline gates on something meaningful. **docker-helper** optimizes images for fast builds. **cicd-pipeline** creates the GitHub Actions workflow with staging and production stages. **security-audit** adds vulnerability scanning as a required gate.
 
-```bash
-npx terminal-skills install cicd-pipeline docker-helper test-generator security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Generate tests for the pipeline to run

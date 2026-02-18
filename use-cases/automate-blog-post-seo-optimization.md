@@ -18,10 +18,6 @@ A 15-person content marketing team publishes three blog posts per week. After si
 
 Use the **seo-audit** skill to crawl each post and score it against on-page SEO best practices. Feed the results into the **content-writer** skill to generate improved titles, meta descriptions, and heading outlines. Then use the **web-scraper** skill to map all existing posts by topic and build an internal linking graph that the agent can turn into concrete insert-link-here suggestions.
 
-```bash
-npx terminal-skills install seo-audit content-writer web-scraper
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Crawl the blog and build a content inventory

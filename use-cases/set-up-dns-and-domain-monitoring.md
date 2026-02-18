@@ -17,10 +17,6 @@ Your company manages 30+ domains across production services, marketing sites, an
 
 Use **coding-agent** to build DNS monitoring scripts, **n8n-workflow** to set up automated checks and alerting, and **report-generator** to produce weekly domain health reports.
 
-```bash
-npx terminal-skills install coding-agent n8n-workflow report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Inventory your domains and expected DNS state

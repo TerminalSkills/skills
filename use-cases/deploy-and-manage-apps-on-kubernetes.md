@@ -17,10 +17,6 @@ A team runs 6 microservices on a handful of EC2 instances with docker-compose. D
 
 Use `kubernetes-helm` to write Kubernetes manifests and Helm charts for all services, `docker-helper` to optimize container images for production, `cicd-pipeline` to automate build and deploy with GitOps, and `security-audit` to harden the cluster and scan for misconfigurations.
 
-```bash
-npx terminal-skills install kubernetes-helm docker-helper cicd-pipeline security-audit
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Containerize and optimize all services

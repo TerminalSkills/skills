@@ -21,10 +21,6 @@ Local development is broken too. `docker-compose up` takes 11 minutes on fresh c
 
 Combine **docker-helper** for container configuration, **docker-optimizer** for image size reduction, and **cicd-pipeline** for deployment optimization. The approach: analyze current inefficiencies, implement multi-stage builds with intelligent caching, orchestrate services properly, and optimize the entire pipeline.
 
-```bash
-npx terminal-skills install docker-helper docker-optimizer cicd-pipeline
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Container audit and optimization analysis

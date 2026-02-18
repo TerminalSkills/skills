@@ -17,10 +17,6 @@ A 25-person engineering team runs everything through Slack, but their workflows 
 
 Use `slack-bot-builder` to create interactive Slack bots with slash commands and scheduled messages, `coding-agent` to implement the business logic and database layer, and `n8n-workflow` to connect external services like PagerDuty, Google Calendar, and GitHub.
 
-```bash
-npx terminal-skills install slack-bot-builder coding-agent n8n-workflow
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Build the standup automation

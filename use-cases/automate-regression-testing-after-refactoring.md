@@ -17,10 +17,6 @@ Refactoring is essential but terrifying. You restructure a billing module to be 
 
 An AI agent uses `regression-tester` to analyze your refactoring diff, identify every behavior contract in the changed code, and generate targeted tests that verify equivalence between the old and new implementations. Combined with `test-generator` for coverage gaps and `code-reviewer` for structural issues, you get a comprehensive safety net before merging.
 
-```bash
-npx terminal-skills install regression-tester test-generator code-reviewer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Start the regression check

@@ -17,10 +17,6 @@ A 25-person SaaS team manages 120 cloud resources with Terraform. Over the past 
 
 Use the **coding-agent** skill to analyze drift, reconcile differences, and generate updated Terraform code. Use the **cicd-pipeline** skill to set up automated drift detection on a schedule. Use the **report-generator** to produce clear drift reports for the team.
 
-```bash
-npx terminal-skills install coding-agent cicd-pipeline report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Capture the current drift

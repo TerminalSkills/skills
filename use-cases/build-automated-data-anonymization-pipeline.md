@@ -17,10 +17,6 @@ A fintech team copies production data into staging every week so developers can 
 
 Use the **coding-agent** skill to scan every table and column for PII patterns — names, emails, phone numbers, IDs, and financial data. Feed the findings into the **data-analysis** skill to classify each column by sensitivity level and generate anonymization rules. Use the **sql-optimizer** skill to produce efficient SQL scripts that apply masking, hashing, and synthetic data replacement without breaking foreign key relationships.
 
-```bash
-npx terminal-skills install coding-agent data-analysis sql-optimizer
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Scan the database for PII

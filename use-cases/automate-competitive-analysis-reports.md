@@ -17,10 +17,6 @@ A product manager at a 30-person B2B SaaS company needs to present a competitive
 
 Use the **web-scraper** skill to pull competitor data from public sources, **competitor-alternatives** to structure the comparison, and **report-generator** to produce a polished, shareable report. The agent handles the entire pipeline from data collection through formatted output.
 
-```bash
-npx terminal-skills install web-scraper competitor-alternatives report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Define your competitor landscape

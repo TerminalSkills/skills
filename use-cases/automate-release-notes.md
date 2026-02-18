@@ -17,10 +17,6 @@ Release day arrives and nobody wrote the changelog. The PM asks "what shipped th
 
 Use the **changelog-generator** skill to extract and categorize changes from git history, and **git-commit-pro** to ensure future commits are structured for easy parsing. The agent reads your commits, groups them by type (features, fixes, breaking changes), and outputs polished release notes ready for users.
 
-```bash
-npx terminal-skills install changelog-generator git-commit-pro
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Ask the agent to analyze recent changes

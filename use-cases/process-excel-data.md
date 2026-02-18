@@ -21,10 +21,6 @@ The business cost is devastating: 20 hours × 52 weeks × $45/hour = $46,800 ann
 
 Combine **excel-processor** for data transformation, **data-analysis** for pattern recognition, and **report-generator** for automated reporting. The approach: intelligently clean and normalize data, detect duplicates and outliers, generate insights automatically, and create self-updating dashboards.
 
-```bash
-npx terminal-skills install excel-processor data-analysis report-generator
-```
-
 ## Step-by-Step Walkthrough
 
 ### 1. Multi-file data ingestion and standardization
