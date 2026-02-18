@@ -11,251 +11,183 @@ tags: [supabase, firebase, migration, postgres, database, cost-optimization]
 
 ## The Problem
 
-Leo runs a SaaS app with 8,000 monthly active users on Firebase. The app uses Firestore for data, Firebase Auth for login, Cloud Storage for file uploads, and real-time listeners for live updates. The Firebase bill has grown to $1,400/month and climbing — Firestore reads are the main cost driver at 12 million reads/month, most of them from inefficient queries that read entire collections when they need a few documents. Firebase pricing is unpredictable: one viral day last quarter caused a $600 spike from a single dashboard page that triggered cascading reads.
+Leo runs a project management SaaS with 8,000 monthly active users on Firebase. The bill hit $1,400 last month and it's climbing fast — Firestore charges per read, and one viral day last quarter caused a $600 spike from a single dashboard page that triggered cascading reads across collections.
 
-Beyond cost, the team hits Firestore limitations daily: no JOIN queries (they denormalize everything and maintain 3 copies of user data), no full-text search (they pay $200/month for Algolia on the side), and vendor lock-in makes every architectural decision feel permanent. They want to migrate to Supabase — Postgres gives them JOINs, full-text search, and predictable pricing — but they cannot afford downtime during the switch.
+The cost isn't even the worst part. Every time the team needs to answer "show me all projects where user X is assigned," they hit Firestore's biggest limitation: no JOINs. So they denormalize everything — user data lives in 3 different places, and when someone updates their avatar, a background function has to propagate it everywhere. They pay $200/month for Algolia on the side because Firestore can't do full-text search. And every architectural decision feels permanent because of vendor lock-in.
+
+Leo wants to move to Supabase — Postgres gives them JOINs, full-text search, and predictable pricing — but they can't afford downtime. The app has paying customers who use it all day.
 
 ## The Solution
 
-Use **supabase** for the target platform, **data-migration** to move Firestore documents to Postgres tables with proper relational schema, and **database-schema-designer** to convert the denormalized Firestore structure into a normalized relational model.
+Using the **supabase**, **data-migration**, and **database-schema-designer** skills, the agent plans and executes a zero-downtime migration: redesigns the schema from denormalized Firestore documents to clean relational tables, migrates 363,000 records, converts auth and real-time listeners, and runs both systems in parallel before cutting over.
 
 ## Step-by-Step Walkthrough
 
-### 1. Audit Firebase usage and design the Postgres schema
+### Step 1: Audit Firebase and Design the Postgres Schema
 
-```text
-Here's my Firestore structure:
+First, Leo describes the current Firestore structure to the agent — five collections with nested subcollections, embedded arrays, and duplicated data everywhere. The agent maps each Firestore path to a proper relational table:
 
-- users/{uid}: { name, email, avatar, plan, createdAt }
-- workspaces/{id}: { name, ownerId, members: [uid], settings: {...} }
-- workspaces/{id}/projects/{id}: { name, status, assignedTo: [uid], tags: [...] }
-- workspaces/{id}/projects/{id}/tasks/{id}: { title, status, assigneeId, dueDate, description, comments: [{authorId, text, createdAt}] }
+| Firestore Path | Postgres Table | What Changes |
+|---|---|---|
+| `users/{uid}` | `profiles` | Direct mapping, becomes source of truth |
+| `workspaces/{id}` | `workspaces` + `workspace_members` | Members array → join table (queryable both directions) |
+| `workspaces/.../projects/{id}` | `projects` + `project_assignees` + `project_tags` | Embedded arrays → normalized tables |
+| `.../tasks/{id}` | `tasks` | Flat table with FK to project |
+| `tasks[].comments` | `comments` | Embedded array → separate table (paginated, sortable) |
 
-The problems: members array in workspaces limits queries, comments embedded in tasks can't be paginated, user data is duplicated in tasks for display. We have 8,000 users, 2,100 workspaces, 14,000 projects, 89,000 tasks.
+The schema eliminates all three copies of user data. "Find all workspaces for user X" goes from a client-side filter on every workspace document to a single SQL query on the join table. Full-text search on task titles comes free with a `pg_trgm` index — no more Algolia.
 
-Design a normalized Postgres schema for Supabase that fixes these issues. Map every Firestore path to a table.
+The agent generates the migration file with 8 tables, 14 RLS policies, and 8 indexes:
+
+```sql
+-- supabase/migrations/20260218_initial_schema.sql
+
+-- Members as a proper join table — queryable in both directions
+create table workspace_members (
+  workspace_id uuid references workspaces(id) on delete cascade,
+  user_id uuid references profiles(id) on delete cascade,
+  role text not null default 'member',
+  joined_at timestamptz default now(),
+  primary key (workspace_id, user_id)
+);
+
+-- Comments as a separate table — paginated, sortable, countable
+create table comments (
+  id uuid primary key default gen_random_uuid(),
+  task_id uuid references tasks(id) on delete cascade,
+  author_id uuid references profiles(id),
+  body text not null,
+  created_at timestamptz default now()
+);
+
+-- Full-text search on tasks — replaces the $200/mo Algolia subscription
+create index tasks_search_idx on tasks
+  using gin (to_tsvector('english', title || ' ' || coalesce(description, '')));
 ```
 
-The agent designs the migration:
+### Step 2: Migrate 363,000 Records in 8 Minutes
 
-```text
-Firestore → Postgres schema mapping:
+The agent builds a migration script that exports from Firestore in batches of 500 (to avoid memory issues) and imports into Supabase in batches of 1,000. Collections are migrated in FK-dependency order so foreign keys never point to missing records:
 
-  users/{uid}                        → profiles (id, email, name, avatar, plan)
-  workspaces/{id}                    → workspaces (id, name, owner_id)
-  workspaces/{id}.members            → workspace_members (workspace_id, user_id, role)
-  workspaces/{id}/projects/{id}      → projects (id, workspace_id, name, status)
-  projects ← assignedTo              → project_assignees (project_id, user_id)
-  projects ← tags                    → project_tags (project_id, tag) + tags table
-  .../tasks/{id}                     → tasks (id, project_id, title, status, assignee_id, due_date, description)
-  tasks ← comments                   → comments (id, task_id, author_id, text, created_at)
+```typescript
+// scripts/migrate-firebase-to-supabase.ts
 
-  Improvements over Firestore:
-    ✓ Members are a join table — query "all workspaces for user X" is one SQL query
-    ✓ Comments are a separate table — paginated, sortable, countable
-    ✓ User data referenced by FK — no denormalization, no stale copies
-    ✓ Tags are normalized — "find all projects tagged 'urgent'" is a simple query
-    ✓ Full-text search on tasks.title + tasks.description via pg_trgm
+// Phase 1: Export from Firestore in dependency order
+const migrationOrder = [
+  { collection: 'users', table: 'profiles', count: 8_000 },
+  { collection: 'workspaces', table: 'workspaces', count: 2_100 },
+  // Members extracted from workspace.members array → join table rows
+  { derived: 'workspace_members', count: 9_400 },
+  { collection: 'projects', table: 'projects', count: 14_000 },
+  { derived: 'project_assignees', count: 22_000 },
+  { collection: 'tasks', table: 'tasks', count: 89_000 },
+  // Comments extracted from embedded task.comments array
+  { derived: 'comments', count: 241_000 },
+];
 
-  RLS policies: 14 policies covering all access patterns
-  Indexes: 8 indexes for common query patterns
+// Phase 2: Transform types
+// Firestore Timestamp → ISO string → Postgres timestamptz
+// Firestore doc references → UUID lookup from ID map
+// Embedded arrays → separate rows in join tables
 
-  Migration file: supabase/migrations/20260218_initial_schema.sql
+// Phase 3: Bulk upsert with service role key (bypasses RLS)
+// Idempotent — safe to re-run if it fails halfway
+for (const step of migrationOrder) {
+  const records = await exportFromFirestore(step);
+  const transformed = transformRecords(records, step);
+  await bulkUpsert(supabase, step.table, transformed);
+  console.log(`[${step.table}] ${transformed.length} records ✓`);
+}
 ```
 
-### 2. Export Firestore data and transform for Postgres
+The full migration takes about 8 minutes. Failed records get logged to `migration-errors.json` but the script keeps going — no single bad record stops the whole migration.
 
-```text
-Write a migration script that exports all Firestore data and imports it into Supabase Postgres. Handle these complexities: Firestore timestamps → Postgres timestamptz, Firestore document references → UUID foreign keys, embedded arrays → join tables, nested subcollections → flat tables with foreign keys. Export in batches of 500 to avoid memory issues. Log progress and errors. Use the Firebase Admin SDK for export and Supabase JS client for import.
+### Step 3: Handle Three Types of Auth Users
+
+Auth migration is the trickiest part because Firebase doesn't export password hashes. The agent plans three paths:
+
+**OAuth users (2,400) and magic link users (400)** get the smoothest ride — they sign in with Google or magic link on the new app, Supabase creates their auth record, and a database trigger matches them to their existing profile by email. They notice nothing.
+
+**Email/password users (5,200)** need a one-time password reset. The agent imports their records via `supabase.auth.admin.createUser()` with temporary passwords, then shows a "We've upgraded our platform — set your new password" screen on first login. A magic link email handles the reset.
+
+```typescript
+// Import Firebase Auth users to Supabase
+for (const fbUser of firebaseUsers) {
+  await supabase.auth.admin.createUser({
+    email: fbUser.email,
+    email_confirm: fbUser.emailVerified,
+    user_metadata: {
+      firebase_uid: fbUser.uid,  // Keep for reference during migration
+      display_name: fbUser.displayName,
+      avatar_url: fbUser.photoURL,
+    },
+  });
+}
 ```
 
-The agent builds the migration pipeline:
+The timeline: import auth records in week 1 (no user impact), switch login in week 2, send reminder emails in week 3, disable Firebase Auth in week 4. About 15% of email users need a support nudge to complete the reset.
 
-```text
-Migration script created: scripts/migrate-firebase-to-supabase.ts
+### Step 4: Convert Real-Time Listeners
 
-  Phase 1 — Export from Firestore:
-    Batch size: 500 documents per query
-    Collections exported in order (respecting FK dependencies):
-      1. users → profiles (8,000 records)
-      2. workspaces + members → workspaces + workspace_members (2,100 + 9,400)
-      3. projects + assignees + tags → 3 tables (14,000 + 22,000 + 31,000)
-      4. tasks → tasks (89,000)
-      5. tasks.comments → comments (241,000)
+The app uses Firestore `onSnapshot` in four places. The agent converts each one to Supabase real-time subscriptions. Here's the task list listener — the biggest change:
 
-  Phase 2 — Transform:
-    Firestore Timestamp → ISO 8601 string → Postgres timestamptz
-    Firestore doc ref paths → UUID lookup from Phase 1 ID map
-    Embedded arrays → separate rows in join tables
-    Nested subcollections → flat tables with parent FK
+**Before (Firestore):** one call loads data AND subscribes to changes:
 
-  Phase 3 — Import to Supabase:
-    Uses supabase-js with service role key (bypasses RLS)
-    Bulk upsert in batches of 1000
-    Idempotent — safe to re-run on failure
-
-  Progress output:
-    [1/5] Migrating users... 8,000/8,000 ✓ (12s)
-    [2/5] Migrating workspaces... 2,100/2,100 ✓ (4s)
-           Members... 9,400/9,400 ✓ (8s)
-    [3/5] Migrating projects... 14,000/14,000 ✓ (18s)
-    [4/5] Migrating tasks... 89,000/89,000 ✓ (2m 14s)
-    [5/5] Migrating comments... 241,000/241,000 ✓ (4m 32s)
-
-  Error handling:
-    Failed records logged to migration-errors.json
-    Script continues on individual record failures
-    Summary: 363,500 migrated, 0 failed
-
-  Estimated total time: ~8 minutes for full migration
+```javascript
+onSnapshot(
+  query(collection(db, 'workspaces', wsId, 'projects', projId, 'tasks'),
+    orderBy('position')),
+  (snapshot) => {
+    setTasks(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+  }
+);
 ```
 
-### 3. Migrate authentication
+**After (Supabase):** initial load and real-time are separate, which is actually cleaner:
 
-```text
-Migrate Firebase Auth users to Supabase Auth. We have 8,000 users — 5,200 use email/password, 2,400 use Google OAuth, and 400 use magic links. For email/password users, we can't migrate password hashes (Firebase doesn't export them), so plan a password reset flow. For OAuth users, migration should be seamless — they just sign in with Google again and match by email. Create the migration plan with exact steps.
+```javascript
+// Load current data
+const { data } = await supabase
+  .from('tasks')
+  .select('*, assignee:profiles(name, avatar)')  // JOINs! No more denormalization
+  .eq('project_id', projId)
+  .order('position');
+setTasks(data);
+
+// Subscribe to changes — filter at the database level, not client-side
+supabase.channel(`tasks:${projId}`)
+  .on('postgres_changes',
+    { event: '*', schema: 'public', table: 'tasks',
+      filter: `project_id=eq.${projId}` },
+    (payload) => {
+      if (payload.eventType === 'INSERT') addTask(payload.new);
+      if (payload.eventType === 'UPDATE') updateTask(payload.new);
+      if (payload.eventType === 'DELETE') removeTask(payload.old.id);
+    })
+  .subscribe();
 ```
 
-The agent plans auth migration:
+Notice the `select('*, assignee:profiles(name, avatar)')` — that JOIN replaces the entire denormalization pattern. No more background functions propagating avatar changes.
 
-```text
-Auth migration plan:
+### Step 5: Parallel Run and Cutover
 
-  OAuth users (2,400 + 400 magic link):
-    → No action needed during migration
-    → User signs in with Google/magic link on new app
-    → Supabase creates auth.users record
-    → Trigger matches to existing profiles row by email
-    → Seamless experience — user notices nothing
+The agent sets up a two-week parallel run: all writes go to Supabase (primary) and Firebase (secondary), all reads come from Supabase only. A daily consistency checker at 3 AM compares record counts and samples 100 random records per table for field-level comparison, reporting discrepancies to Slack.
 
-  Email/password users (5,200):
-    → Import user records to Supabase Auth via Admin API
-    → Set temporary random passwords (users can't login with old password)
-    → On first login attempt: show "We've upgraded our platform" message
-    → User clicks "Set new password" → sends magic link to email
-    → After setting password, normal login works going forward
+After 7 consecutive days of clean checks, Leo runs the cutover checklist:
 
-  Migration script: scripts/migrate-auth.ts
-    Uses supabase.auth.admin.createUser() for each Firebase user
-    Maps Firebase UID → Supabase UUID in profiles table
-    Preserves: email, email_verified, created_at, user_metadata
+- All consistency checks green for 7+ days
+- Supabase error rate below 0.1%
+- Real-time subscriptions verified in staging
+- Rollback plan tested (switch reads back to Firebase)
+- Support team briefed on the password reset FAQ
+- Firebase billing alert set to catch unexpected charges
 
-  Timeline:
-    Week 1: Import all auth records (background, no user impact)
-    Week 2: Switch login to Supabase, show password reset for email users
-    Week 3: Send reminder email to users who haven't set new password
-    Week 4: Disable Firebase Auth
-
-  Expected friction: ~15% of email users need support nudge to reset password
-```
-
-### 4. Switch real-time listeners and update the client
-
-```text
-Our app uses Firestore onSnapshot listeners in 4 places: task list (live task updates), comments (new comments appear instantly), workspace members (online status), and notifications. Replace all 4 with Supabase real-time subscriptions. Show me the before/after code for the task list listener and the comments listener.
-```
-
-The agent converts real-time code:
-
-```text
-Real-time migration — before/after:
-
-  Task list listener:
-    BEFORE (Firestore):
-      onSnapshot(
-        query(collection(db, 'workspaces', wsId, 'projects', projId, 'tasks'),
-          orderBy('position')),
-        (snapshot) => {
-          const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          setTasks(tasks);
-        }
-      );
-
-    AFTER (Supabase):
-      // Initial load
-      const { data } = await supabase
-        .from('tasks')
-        .select('*, assignee:profiles(name, avatar)')
-        .eq('project_id', projId)
-        .order('position');
-      setTasks(data);
-
-      // Real-time updates
-      supabase.channel(`tasks:${projId}`)
-        .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'tasks',
-            filter: `project_id=eq.${projId}` },
-          (payload) => {
-            if (payload.eventType === 'INSERT') addTask(payload.new);
-            if (payload.eventType === 'UPDATE') updateTask(payload.new);
-            if (payload.eventType === 'DELETE') removeTask(payload.old.id);
-          })
-        .subscribe();
-
-  Key differences:
-    ✓ Supabase: initial load is a normal query, real-time is separate subscription
-    ✓ Supabase: filter at subscription level (no client-side filtering)
-    ✓ Supabase: payload includes old and new values (easier diffing)
-    ✗ Firestore onSnapshot gives full snapshot; Supabase gives individual changes
-
-  All 4 listeners migrated:
-    tasks          → postgres_changes with project_id filter
-    comments       → postgres_changes with task_id filter
-    online status  → Supabase Presence (track/untrack)
-    notifications  → postgres_changes with user_id filter
-```
-
-### 5. Run parallel for 2 weeks, then cut over
-
-```text
-Create a parallel-run plan where both Firebase and Supabase run simultaneously for 2 weeks. Writes should go to both systems, reads should come from Supabase. This lets us verify data consistency before fully cutting over. Include a consistency checker that compares records between both systems daily. At the end, create a cutover checklist.
-```
-
-The agent creates the cutover plan:
-
-```text
-Parallel run plan:
-
-  Week 1-2: Dual-write mode
-    → All writes go to Supabase (primary) + Firebase (secondary)
-    → All reads come from Supabase only
-    → Consistency checker runs daily at 3 AM:
-      Compares record counts per table/collection
-      Samples 100 random records per table for field-level comparison
-      Reports discrepancies to Slack #migration channel
-
-  Daily consistency report:
-    profiles ↔ users:           8,000 ↔ 8,000 ✓
-    workspaces:                 2,100 ↔ 2,100 ✓
-    tasks:                     89,247 ↔ 89,243 ⚠️ (4 tasks created during migration)
-    comments:                 241,892 ↔ 241,890 ⚠️ (2 delta, within threshold)
-
-  Cutover checklist:
-    □ All consistency checks passing for 7+ consecutive days
-    □ Supabase error rate < 0.1% for 7 days
-    □ All 8,000 users have Supabase auth records
-    □ Real-time subscriptions verified in staging
-    □ Rollback plan tested (switch reads back to Firebase)
-    □ DNS/CDN cache cleared
-    □ Firebase billing alert set (should drop to near-zero)
-    □ Team notified, support team briefed on FAQ
-    □ Remove dual-write code (deploy after 1 week stable)
-    □ Archive Firebase project (don't delete for 90 days)
-
-  Cost projection after migration:
-    Firebase: $1,400/mo → $0/mo
-    Supabase Pro: $25/mo + ~$50 compute = ~$75/mo
-    Algolia (no longer needed): $200/mo → $0/mo
-    Total savings: $1,525/mo → 60% cost reduction
-```
+One week after cutover, the dual-write code gets removed. The Firebase project gets archived — not deleted — for 90 days, just in case.
 
 ## Real-World Example
 
-A SaaS founder is paying $1,400/month for Firebase with 8,000 users and watching the bill climb. Firestore read costs are unpredictable, and the lack of JOINs means maintaining 3 copies of user data across collections. They also pay $200/month for Algolia because Firestore has no full-text search.
+Leo's monthly bill drops from $1,600 (Firebase + Algolia) to $75 (Supabase Pro) — a 95% reduction. The $200/month Algolia subscription disappears entirely because Postgres full-text search handles it natively.
 
-1. They ask the agent to design a normalized Postgres schema — it maps 5 Firestore collections to 8 relational tables, eliminating all data duplication and adding full-text search built-in
-2. The migration script exports 363,000 Firestore documents and imports them into Supabase in 8 minutes, preserving all relationships
-3. Auth migration handles 3 login methods — OAuth users migrate seamlessly, email users get a one-time password reset flow
-4. Real-time listeners are converted from Firestore onSnapshot to Supabase postgres_changes with cleaner filtering
-5. A 2-week parallel run validates consistency before cutover
-6. Monthly cost drops from $1,600 (Firebase + Algolia) to $75 (Supabase Pro) — a 95% reduction. Query performance improves because Postgres JOINs replace client-side data stitching
+But the money is almost secondary to what changes day-to-day. Queries that required reading entire Firestore collections now run as single SQL statements. The team stops maintaining three copies of user data. "Find all projects tagged 'urgent' where user X is assigned" — a query that required client-side gymnastics on Firebase — becomes a two-table JOIN that returns in 12ms.
+
+The migration takes 3 weeks end-to-end, with zero downtime. The 8,000 users don't notice the switch — except that the dashboard loads faster.
