@@ -1,7 +1,9 @@
 ---
 title: Set Up Multi-Protocol Proxy Infrastructure
 slug: set-up-multi-protocol-proxy-infrastructure
+description: "Deploy a 3-server proxy infrastructure across US, EU, and Asia with WireGuard mesh networking, 3proxy for HTTP/SOCKS5 access, IP rotation, and centralized traffic monitoring."
 category: networking
+skills: [wireguard, 3proxy]
 tags: [wireguard, 3proxy, proxy, vpn, networking, security]
 ---
 
