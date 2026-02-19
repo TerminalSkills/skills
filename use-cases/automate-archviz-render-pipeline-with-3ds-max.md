@@ -517,9 +517,3 @@ The batch render starts at 6 PM on Friday. Each interior view renders in 25-40 m
 Saturday morning, the post-processing script runs in 3 minutes: ACES tone mapping, subtle contrast boost, sharpening, and vignette on all 12 images. The final JPEGs land in the `final/` folder, ready for client review.
 
 What used to take 2-3 days of babysitting renders and a full day of Photoshop work now takes 30 minutes of setup and 8 hours of unattended machine time. The artist spends Monday on creative work — adjusting compositions, experimenting with lighting moods — instead of clicking "render" twelve times.
-
-## Related Skills
-
-- [3dsmax-scripting](../skills/3dsmax-scripting/) -- MAXScript deep dive for scene automation
-- [3dsmax-rendering](../skills/3dsmax-rendering/) -- V-Ray and Corona render optimization
-- [blender-render-automation](../skills/blender-render-automation/) -- Similar pipeline for Blender workflows
