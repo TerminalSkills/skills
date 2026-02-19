@@ -1,68 +1,65 @@
-# Sentry — Error Monitoring and Performance
+---
+name: sentry
+description: >-
+  Assists with monitoring application errors, performance, and user experience using Sentry.
+  Use when integrating Sentry SDKs, configuring alerting, analyzing stack traces, uploading
+  source maps, or tracking release health in production. Trigger words: sentry, error
+  monitoring, error tracking, performance monitoring, source maps, session replay.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["sentry", "error-monitoring", "performance", "observability", "debugging"]
+---
 
-> Author: terminal-skills
+# Sentry
 
-You are an expert in Sentry for monitoring application errors, performance, and user experience in production. You configure SDKs, set up alerting, analyze stack traces, track release health, and identify the code changes that introduced regressions.
+## Overview
 
-## Core Competencies
+Sentry is an error monitoring and performance platform that captures unhandled exceptions, tracks request performance with Web Vitals, records session replays, and alerts on regressions. It supports JavaScript, Python, Go, and mobile platforms with auto-instrumentation, source-mapped stack traces, and release health tracking.
 
-### SDK Integration
-- **JavaScript/TypeScript**: `@sentry/browser`, `@sentry/node`, `@sentry/nextjs`, `@sentry/remix`, `@sentry/sveltekit`
-- **Python**: `sentry-sdk` with Django, Flask, FastAPI, Celery integrations
-- **Go**: `sentry-go`
-- **Mobile**: `@sentry/react-native`, `sentry-cocoa`, `sentry-android`
-- Unified config: `Sentry.init({ dsn, tracesSampleRate, environment, release })`
-- Auto-instrumentation: HTTP, database, framework routes captured automatically
+## Instructions
 
-### Error Tracking
-- Automatic capture: unhandled exceptions, promise rejections, console errors
-- Manual capture: `Sentry.captureException(error)`, `Sentry.captureMessage("event")`
-- Breadcrumbs: automatic trail of user actions/events leading to an error
-- Context: `Sentry.setUser({ id, email })`, `Sentry.setTag("feature", "checkout")`
-- Fingerprinting: group similar errors together, customize grouping rules
-- Stack traces: source-mapped for minified JavaScript
+- When integrating the SDK, call `Sentry.init()` with `dsn`, `environment`, `release`, and `tracesSampleRate`, choosing the framework-specific SDK (`@sentry/nextjs`, `@sentry/sveltekit`, `sentry-sdk` for Python) for automatic instrumentation.
+- When configuring error tracking, set up `Sentry.setUser()` after login for user correlation, add custom tags with `Sentry.setTag()` for filtering, and configure `ignoreErrors` for known harmless errors from browser extensions and third-party scripts.
+- When uploading source maps, use `@sentry/vite-plugin` or `@sentry/webpack-plugin` in the CI build step to map minified stack traces back to original source code, associating them with the release version.
+- When monitoring performance, set `tracesSampleRate` to 0.1-0.2 in production, add custom spans with `Sentry.startSpan()` for business-critical operations, and monitor Web Vitals (LCP, CLS, INP) for real user experience.
+- When setting up alerts, configure rules for error rate spikes rather than individual errors, integrate with Slack or PagerDuty, and filter by environment and error level.
+- When using session replay, set `replaysOnErrorSampleRate: 1.0` for all error sessions and `replaysSessionSampleRate: 0.1` for general sampling, with privacy masking for sensitive data.
 
-### Performance Monitoring
-- Transactions: track request lifecycle (API call → database → response)
-- Spans: granular timing within transactions (each DB query, external API call)
-- Web Vitals: LCP, FID, CLS, TTFB, INP for real user monitoring
-- Custom spans: `Sentry.startSpan({ name: "processOrder" }, () => { ... })`
-- `tracesSampleRate`: 0.0-1.0, percentage of transactions to capture
+## Examples
 
-### Source Maps
-- Upload source maps at build time: `@sentry/webpack-plugin`, `@sentry/vite-plugin`
-- Maps minified stack traces back to original source code
-- Release artifacts: associate source maps with a specific release version
-- Debug IDs: automatic source map association without explicit uploads
+### Example 1: Set up Sentry for a Next.js production app
 
-### Releases
-- `Sentry.init({ release: "myapp@1.2.3" })`: tag events with version
-- Release health: crash-free sessions/users percentage
-- Commit integration: link releases to Git commits for suspect commits
-- Deploy tracking: mark when releases go to production/staging
+**User request:** "Add Sentry error monitoring and performance tracking to my Next.js app"
 
-### Alerting
-- Issue alerts: notify on new errors, error frequency spikes, regression
-- Metric alerts: CPU, memory, response time thresholds
-- Integrations: Slack, PagerDuty, Opsgenie, email, webhooks
-- Alert rules: filter by environment, error level, tags
+**Actions:**
+1. Install `@sentry/nextjs` and run the setup wizard to configure `sentry.client.config.ts` and `sentry.server.config.ts`
+2. Configure `Sentry.init()` with environment, release, and `tracesSampleRate: 0.2`
+3. Add source map upload to the CI build pipeline with `@sentry/nextjs` webpack integration
+4. Set up Slack alerts for error rate spikes in the production environment
 
-### Session Replay
-- Record user sessions leading to errors (DOM snapshots, not video)
-- Privacy: mask sensitive data (inputs, text, images)
-- Replay on error: only capture sessions where errors occurred
-- Network tab: see API requests/responses during the session
+**Output:** A Next.js app with automatic error capture, source-mapped stack traces, performance monitoring, and Slack alerting.
 
-### Crons Monitoring
-- Monitor scheduled jobs: detect missed, late, or failed cron runs
-- `Sentry.cron.monitorCheckIn()`: check-in from cron job code
-- Alerts: notify when a cron job misses its expected schedule
+### Example 2: Track release health and identify regressions
 
-## Code Standards
-- Set `tracesSampleRate` to 0.1-0.2 in production — 100% sampling is expensive and unnecessary
-- Upload source maps in CI: `@sentry/vite-plugin` or `sentry-cli` — unreadable stack traces are useless
-- Set `environment` and `release` on every `Sentry.init()` — filter errors by staging vs production
-- Use `Sentry.setUser()` after login — correlate errors with specific users for support
-- Configure alert rules for error rate spikes, not individual errors — reduce noise
-- Use Session Replay only for error sessions: `replaysOnErrorSampleRate: 1.0`, `replaysSessionSampleRate: 0.1`
-- Set `ignoreErrors` for known, harmless errors: browser extensions, network timeouts, third-party scripts
+**User request:** "Set up release tracking to identify which deployment introduced a bug"
+
+**Actions:**
+1. Configure `release` in `Sentry.init()` using the git commit SHA or semantic version
+2. Integrate with GitHub to link releases to commits for suspect commit detection
+3. Set up deploy tracking to mark when releases go to staging and production
+4. Configure regression alerts that notify when a previously resolved issue reappears
+
+**Output:** Release health monitoring with crash-free session tracking, suspect commits, and regression alerts.
+
+## Guidelines
+
+- Set `tracesSampleRate` to 0.1-0.2 in production since 100% sampling is expensive and unnecessary.
+- Upload source maps in CI since unreadable minified stack traces are not useful for debugging.
+- Set `environment` and `release` on every `Sentry.init()` call to filter errors by staging versus production.
+- Use `Sentry.setUser()` after login to correlate errors with specific users for support.
+- Configure alert rules for error rate spikes rather than individual errors to reduce noise.
+- Set `ignoreErrors` for known harmless errors from browser extensions, network timeouts, and third-party scripts.

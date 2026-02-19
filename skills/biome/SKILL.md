@@ -1,50 +1,65 @@
-# Biome — Fast Formatter and Linter
+---
+name: biome
+description: >-
+  Assists with formatting and linting JavaScript, TypeScript, JSX, JSON, and CSS using Biome.
+  Use when replacing ESLint and Prettier with a single fast tool, configuring lint rules,
+  setting up CI checks, or migrating from existing linter configurations. Trigger words:
+  biome, linter, formatter, code quality, lint, eslint replacement.
+license: Apache-2.0
+compatibility: "Requires Node.js 16+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["biome", "linter", "formatter", "code-quality", "typescript"]
+---
 
-> Author: terminal-skills
+# Biome
 
-You are an expert in Biome for formatting and linting JavaScript, TypeScript, JSX, JSON, and CSS. You replace ESLint + Prettier with a single tool that's 35x faster, requires zero configuration, and produces consistent output across teams.
+## Overview
 
-## Core Competencies
+Biome is a fast all-in-one formatter and linter for JavaScript, TypeScript, JSX, JSON, and CSS that replaces ESLint and Prettier with a single tool. It offers 300+ lint rules with auto-fix, formats 10K-file monorepos in under a second, and requires minimal configuration with sensible defaults.
 
-### Formatter
-- Drop-in Prettier replacement: same output for most code, intentional improvements for edge cases
-- Languages: JavaScript, TypeScript, JSX, TSX, JSON, JSONC, CSS
-- Configuration: `biome.json` — `indentStyle`, `indentWidth`, `lineWidth`, `quoteStyle`
-- `biome format --write`: format files in-place
-- `biome format --check`: check without modifying (CI mode)
-- Speed: formats a 10K-file monorepo in under 1 second
+## Instructions
 
-### Linter
-- 300+ rules covering correctness, performance, accessibility, security, style
-- Rule categories: `correctness`, `suspicious`, `style`, `performance`, `a11y`, `security`, `complexity`
-- `recommended` preset: safe defaults, no false positives
-- Auto-fix: `biome check --fix` applies safe fixes automatically
-- Unsafe fixes: `biome check --fix --unsafe` for riskier but usually correct fixes
+- When setting up Biome, run `biome init` to generate `biome.json` with recommended defaults, then configure `indentStyle`, `lineWidth`, and `quoteStyle` to match team preferences.
+- When running checks, use `biome check` for combined lint and format verification, `biome check --fix` for auto-fixing, and `biome ci` in CI pipelines for strict validation without fixes.
+- When migrating from ESLint, run `biome migrate eslint` to automatically map ESLint rules, and `biome migrate prettier` to carry over formatter settings.
+- When customizing rules, start with `"recommended": true` and disable specific rules only with documented reasons, using per-directory overrides for different rules in tests versus source.
+- When integrating with editors, install the Biome VS Code extension or IntelliJ plugin for format-on-save and inline diagnostics.
+- When setting up pre-commit hooks, use `biome check --fix` via `husky` or `lefthook` to fix issues before they reach CI.
 
-### Configuration
-- `biome.json`: single config file for formatter + linter
-- Per-rule overrides: enable/disable individual rules
-- Ignore patterns: `files.ignore` for vendor, generated code
-- Override per-directory: different rules for tests vs source
-- `biome migrate eslint`: auto-migrate from ESLint config
+## Examples
 
-### CLI
-- `biome check`: lint + format check in one command
-- `biome check --fix`: lint fix + format in one command
-- `biome ci`: CI-optimized (no fixes, exits with error on issues)
-- `biome init`: generate `biome.json` with recommended defaults
-- `biome migrate prettier`: migrate from Prettier config
+### Example 1: Replace ESLint and Prettier with Biome
 
-### Editor Integration
-- VS Code: Biome extension with format-on-save and inline diagnostics
-- IntelliJ: Biome plugin
-- LSP: Language Server Protocol for any editor
-- Organize imports: automatic import sorting built-in
+**User request:** "Migrate my project from ESLint + Prettier to Biome"
 
-## Code Standards
-- Use `biome ci` in CI pipelines — it checks formatting and linting in one pass, fails fast
-- Start with `"recommended": true` — disable specific rules only when you have a documented reason
-- Run `biome migrate eslint` to transition from ESLint — Biome maps most ESLint rules automatically
-- Use `biome check --fix` in pre-commit hooks (via `husky` or `lefthook`) — fix issues before they reach CI
-- Keep `biome.json` minimal — the defaults are well-chosen, override only what your team genuinely disagrees with
-- Enable organize imports: Biome sorts imports faster than ESLint's `sort-imports` plugin
+**Actions:**
+1. Run `biome migrate eslint` and `biome migrate prettier` to generate `biome.json`
+2. Remove ESLint and Prettier configs, dependencies, and scripts
+3. Update CI pipeline to use `biome ci` for combined lint and format checks
+4. Configure VS Code settings to use Biome as default formatter
+
+**Output:** A project using Biome as the single code quality tool, with faster checks and simpler configuration.
+
+### Example 2: Set up Biome in a monorepo with pre-commit hooks
+
+**User request:** "Configure Biome for a monorepo with different rules for apps and packages"
+
+**Actions:**
+1. Create root `biome.json` with `"recommended": true` and shared settings
+2. Add per-directory overrides for test files (relaxed rules) and packages (strict rules)
+3. Set up `lefthook` with `biome check --fix` on pre-commit
+4. Add `biome ci` to the CI pipeline with `files.ignore` for generated code
+
+**Output:** A monorepo with consistent code quality, auto-fix on commit, and strict CI validation.
+
+## Guidelines
+
+- Use `biome ci` in CI pipelines since it checks formatting and linting in one pass and fails fast.
+- Start with `"recommended": true` and disable specific rules only with documented justification.
+- Run `biome migrate eslint` to transition from ESLint since Biome maps most rules automatically.
+- Use `biome check --fix` in pre-commit hooks to fix issues before they reach CI.
+- Keep `biome.json` minimal since the defaults are well-chosen; override only what the team genuinely disagrees with.
+- Enable organize imports since Biome sorts imports faster than ESLint plugins.
