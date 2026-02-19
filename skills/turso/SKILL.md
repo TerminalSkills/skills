@@ -1,71 +1,67 @@
-# Turso — Edge SQLite Database
+---
+name: turso
+description: >-
+  Assists with building applications using Turso, an edge SQLite database built on libSQL.
+  Use when setting up embedded replicas for zero-latency reads, implementing multi-tenant
+  database-per-user architecture, or integrating with Drizzle ORM. Trigger words: turso,
+  libsql, edge sqlite, embedded replica, database-per-tenant, turso cli.
+license: Apache-2.0
+compatibility: "Works with any JavaScript/TypeScript runtime via @libsql/client"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["turso", "sqlite", "edge-database", "libsql", "embedded-replica"]
+---
 
-> Author: terminal-skills
+# Turso
 
-You are an expert in Turso for building applications with SQLite databases replicated to the edge. You leverage Turso's libSQL fork of SQLite, embedded replicas for zero-latency reads, and multi-tenant database-per-user architecture for SaaS applications.
+## Overview
 
-## Core Competencies
+Turso is an edge SQLite database built on libSQL (a fork of SQLite) that replicates data to 30+ edge locations worldwide. It features embedded replicas for sub-millisecond reads, a multi-database architecture for SaaS multi-tenancy, and compatibility with Drizzle ORM and Prisma via driver adapters.
 
-### libSQL (SQLite Fork)
-- Full SQLite compatibility with extensions: ALTER COLUMN, random ROWID, WASM UDFs
-- HTTP protocol: query over HTTP/WebSocket (works in serverless and edge runtimes)
-- Native TCP protocol: low-latency for long-running servers
-- Embedded replicas: sync a local SQLite copy from Turso for sub-millisecond reads
-- Vector search: built-in vector similarity search (no pgvector equivalent needed)
-- Extensions: `vector`, `regex`, `uuid`, `crypto` built-in
+## Instructions
 
-### Client SDK
-- `@libsql/client`: TypeScript/JavaScript client
-  - `createClient({ url, authToken })`: connect to Turso cloud
-  - `createClient({ url: "file:local.db", syncUrl, authToken })`: embedded replica
-- `execute()`: single statement with positional (`?`) or named (`:name`) parameters
-- `batch()`: multiple statements in a transaction
-- `transaction()`: interactive transaction with commit/rollback
-- Drizzle ORM: `drizzle-orm/libsql` adapter for type-safe queries
-- Prisma: `@prisma/adapter-libsql` driver adapter
+- When connecting to Turso, use `createClient({ url, authToken })` for cloud access, or `createClient({ url: "file:local.db", syncUrl, authToken })` for embedded replicas with local reads.
+- When setting up embedded replicas, configure `syncInterval` based on staleness tolerance (60s for dashboards, 5s for collaborative apps) and call `client.sync()` after important writes for immediate consistency.
+- When executing queries, use `execute()` for single statements with parameterized queries, `batch()` for multiple related writes in a single transaction and network round-trip, and `transaction()` for interactive transactions.
+- When building multi-tenant SaaS, use database-per-tenant architecture with database groups for shared schema, and the Platform API for programmatic database creation and deletion.
+- When integrating with ORMs, use `drizzle-orm/libsql` adapter for Drizzle or `@prisma/adapter-libsql` for Prisma, and reserve raw SQL for complex analytics queries.
+- When managing databases, use the `turso` CLI for creating databases, adding replicas to regions, generating auth tokens, and running interactive SQL shells.
+- When using vector search, leverage Turso's built-in vector similarity search without needing external extensions.
 
-### Embedded Replicas
-- Local SQLite file synced from Turso cloud: reads in <1ms (no network)
-- `syncInterval`: automatic background sync (e.g., every 60 seconds)
-- `client.sync()`: manual sync for immediate consistency
-- Writes go to primary (Turso cloud), reads from local replica
-- Perfect for read-heavy workloads: dashboard analytics, content sites, config stores
-- Works offline: local replica serves reads even without network
+## Examples
 
-### Multi-Database Architecture
-- Database-per-tenant: isolate customer data at the database level
-- Database groups: share schema across thousands of databases
-- Placement groups: co-locate databases with users for lower latency
-- Platform API: create/delete databases programmatically via REST
-- Schema migrations: apply to all databases in a group simultaneously
+### Example 1: Set up embedded replicas for a read-heavy app
 
-### CLI (`turso`)
-- `turso db create`: create a database
-- `turso db list/show/destroy`: manage databases
-- `turso db shell`: interactive SQL shell
-- `turso db replicate <db> <location>`: add read replica in a region
-- `turso auth token`: generate auth tokens for applications
-- `turso group create/list`: manage database groups
+**User request:** "Configure Turso with local embedded replicas for my analytics dashboard"
 
-### Performance
-- Read replicas in 30+ edge locations worldwide
-- Sub-5ms reads from nearest replica
-- Write latency depends on primary location (single writer)
-- Connection pooling built-in (no PgBouncer equivalent needed)
-- Free tier: 9GB storage, 500 databases, 25M row reads/month
+**Actions:**
+1. Create a Turso database with `turso db create` and add replicas in target regions
+2. Configure `@libsql/client` with `file:local.db` and `syncUrl` pointing to Turso cloud
+3. Set `syncInterval` to 60 seconds for dashboard-appropriate freshness
+4. Implement read queries against local replica and writes against the primary
 
-### Advanced Features
-- Point-in-time recovery: restore to any second within retention window
-- Branching: create database copies for testing/staging
-- Extensions: load custom SQLite extensions
-- Encryption at rest: all data encrypted on Turso's infrastructure
-- Multi-region: primary in one region, replicas everywhere
+**Output:** An analytics dashboard with sub-millisecond reads from the local SQLite replica.
 
-## Code Standards
-- Use embedded replicas for read-heavy applications — local reads are 100x faster than network queries
-- Call `client.sync()` after important writes when using embedded replicas to immediately see changes
-- Use `batch()` for multiple related writes — they execute in a single transaction and single network round-trip
-- Prefer database-per-tenant over row-level isolation for SaaS — simpler queries, better performance, easier data deletion
-- Set `syncInterval` based on staleness tolerance: 60s for dashboards, 5s for collaborative apps
-- Use Drizzle ORM with the libSQL adapter for type-safe queries — raw SQL only for complex analytics
-- Keep databases small: SQLite scales better with many small databases than one large one
+### Example 2: Build multi-tenant SaaS with database-per-user
+
+**User request:** "Set up isolated databases for each customer in my SaaS app"
+
+**Actions:**
+1. Create a database group with shared schema using `turso group create`
+2. Implement tenant provisioning that creates a database per customer via the Platform API
+3. Configure placement groups to co-locate databases near their users
+4. Apply schema migrations to all databases in the group simultaneously
+
+**Output:** An isolated multi-tenant architecture with per-customer databases sharing a common schema.
+
+## Guidelines
+
+- Use embedded replicas for read-heavy applications; local reads are 100x faster than network queries.
+- Call `client.sync()` after important writes when using embedded replicas to see changes immediately.
+- Use `batch()` for multiple related writes; they execute in a single transaction and network round-trip.
+- Prefer database-per-tenant over row-level isolation for SaaS for simpler queries and easier data deletion.
+- Set `syncInterval` based on staleness tolerance: 60s for dashboards, 5s for collaborative apps.
+- Use Drizzle ORM with the libSQL adapter for type-safe queries; raw SQL only for complex analytics.
+- Keep databases small; SQLite scales better with many small databases than one large one.

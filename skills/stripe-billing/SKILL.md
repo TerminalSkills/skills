@@ -1,14 +1,17 @@
 ---
 name: stripe-billing
-category: business
-version: 1.0.0
 description: >-
   Build subscription billing with Stripe — products, prices, checkout sessions,
   subscriptions, invoices, usage-based metering, customer portal, coupons,
   webhooks, and dunning. Use when tasks involve SaaS billing, recurring payments,
   free trials, plan upgrades/downgrades, or usage-based pricing.
-author: terminal-skills
-tags: [stripe, billing, subscriptions, payments, saas, invoicing]
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: business
+  tags: ["stripe", "billing", "subscriptions", "payments", "saas"]
 ---
 
 # Stripe Billing

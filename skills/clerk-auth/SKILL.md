@@ -1,15 +1,18 @@
 ---
 name: clerk-auth
-category: development
-version: 1.0.0
 description: >-
   Add authentication to web apps with Clerk — social login, email/password,
   magic links, organizations, RBAC, session management, webhooks, and
   multi-framework support. Use when tasks involve user authentication, team/org
   management, role-based access control, or integrating auth into Next.js,
   React, Remix, or Express applications.
-author: terminal-skills
-tags: [clerk, authentication, nextjs, react, rbac, organizations]
+license: Apache-2.0
+compatibility: "Requires Node.js 16+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["clerk", "authentication", "nextjs", "react", "rbac"]
 ---
 
 # Clerk Authentication

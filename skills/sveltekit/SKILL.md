@@ -1,84 +1,67 @@
-# SvelteKit — Full-Stack Svelte Framework
+---
+name: sveltekit
+description: >-
+  Assists with building full-stack web applications using SvelteKit. Use when creating Svelte
+  apps with file-based routing, server-side rendering, form actions, or API endpoints. Trigger
+  words: sveltekit, svelte, svelte routing, form actions, svelte hooks, svelte adapter,
+  svelte load function.
+license: Apache-2.0
+compatibility: "Requires Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["sveltekit", "svelte", "full-stack", "ssr", "web-framework"]
+---
 
-> Author: terminal-skills
+# SvelteKit
 
-You are an expert in SvelteKit for building full-stack web applications. You leverage Svelte's compiler-first approach to ship minimal JavaScript, use SvelteKit's file-based routing for both pages and API endpoints, and configure deployment adapters for any hosting platform.
+## Overview
 
-## Core Competencies
+SvelteKit is a full-stack framework built on Svelte's compiler-first approach, shipping minimal JavaScript with no virtual DOM runtime. It provides file-based routing for pages and API endpoints, server-side form actions with progressive enhancement, and deployment adapters for any hosting platform.
 
-### Routing
-- File-based routing: `src/routes/about/+page.svelte` → `/about`
-- Dynamic routes: `src/routes/blog/[slug]/+page.svelte`
-- Optional parameters: `src/routes/[[lang]]/about/+page.svelte`
-- Rest parameters: `src/routes/docs/[...path]/+page.svelte`
-- Route groups: `(auth)/login`, `(auth)/register` — shared layouts without URL segments
-- Parallel/named layouts: `+layout@.svelte` to reset layout hierarchy
+## Instructions
 
-### Data Loading
-- `+page.server.ts`: server-side data loading (runs only on server)
-- `+page.ts`: universal data loading (runs on server for SSR, then client for navigation)
-- `+layout.server.ts` / `+layout.ts`: shared data loading for layouts
-- Streaming: return promises in `load()` for progressive rendering
-- Invalidation: `invalidate()` and `invalidateAll()` for manual reloading
-- Depends: `depends("app:cart")` for granular invalidation keys
+- When setting up routing, use file-based conventions: `+page.svelte` for pages, `+layout.svelte` for shared layouts, `+server.ts` for API endpoints, and route groups `(name)` for shared layouts without URL impact.
+- When loading data, use `+page.server.ts` for server-only loading (database queries, secrets) and `+page.ts` for universal loading. Keep `load()` functions thin and move business logic to `$lib/server/`.
+- When handling forms, use server-side form actions in `+page.server.ts` with `fail()` for validation errors and `redirect()` for success. Add `use:enhance` for progressive enhancement.
+- When creating API routes, export `GET`, `POST`, `PUT`, `DELETE` handlers from `+server.ts` files, returning `json()`, `text()`, or `error()` responses.
+- When configuring rendering, default to SSR, use `export const prerender = true` for static pages (marketing, docs, blog), and `export const ssr = false` for client-only pages.
+- When adding middleware, use `src/hooks.server.ts` with the `handle` function for auth, logging, and redirects, and `sequence()` to compose multiple hooks.
+- When deploying, choose the appropriate adapter: `adapter-auto` for auto-detection, `adapter-node` for self-hosted, `adapter-static` for full SSG, or platform-specific adapters for Vercel, Cloudflare, or Netlify.
 
-### Form Actions
-- `+page.server.ts` actions: handle form submissions without client-side JavaScript
-- Progressive enhancement: forms work without JS, enhanced with JS when available
-- `use:enhance` action for client-side form interception with fallback
-- Named actions: `?/create`, `?/delete` for multiple forms on one page
-- Validation: return `fail(400, { errors })` for field-level error display
-- Redirect after success: `redirect(303, "/success")`
+## Examples
 
-### API Routes
-- `+server.ts`: REST endpoints with `GET`, `POST`, `PUT`, `DELETE`, `PATCH` handlers
-- Return `json()`, `text()`, `error()` helper responses
-- Access cookies, headers, locals from the `RequestEvent`
-- Streaming responses with `ReadableStream`
-- Server-Sent Events for real-time data
+### Example 1: Build a CRUD app with form actions
 
-### Hooks
-- `src/hooks.server.ts`: server hooks for every request
-  - `handle`: middleware chain (auth, logging, redirects)
-  - `handleFetch`: modify/intercept server-side fetch calls
-  - `handleError`: custom error handling and reporting
-- `src/hooks.client.ts`: client-side error handling
-- Sequence multiple hooks: `sequence(authHook, loggingHook)`
+**User request:** "Create a SvelteKit app with form-based task management"
 
-### Rendering Modes
-- **SSR** (default): server-render on first load, client-navigate after
-- **CSR**: `export const ssr = false` for client-only pages
-- **Prerender**: `export const prerender = true` for static generation
-- **Hybrid**: mix SSR, CSR, and prerendered pages in the same app
-- Streaming SSR: `+page.server.ts` can return promises that resolve progressively
+**Actions:**
+1. Define routes for task list (`/tasks/+page.svelte`) and detail (`/tasks/[id]/+page.svelte`)
+2. Implement `load()` in `+page.server.ts` to fetch tasks from the database
+3. Add form actions for create, update, and delete with Zod validation
+4. Enhance forms with `use:enhance` for no-JS fallback
 
-### State Management
-- Svelte stores: `writable()`, `readable()`, `derived()` for reactive state
-- Runes (Svelte 5): `$state`, `$derived`, `$effect` for fine-grained reactivity
-- `$page` store: current URL, params, data, errors, form results
-- Context API: `setContext()` / `getContext()` for component-tree scoped state
-- Snapshots: `export const snapshot` for preserving form state on navigation
+**Output:** A full-stack task management app with progressive enhancement and server-side validation.
 
-### Adapters
-- `@sveltejs/adapter-auto`: auto-detect platform (Vercel, Netlify, Cloudflare)
-- `@sveltejs/adapter-node`: self-hosted Node.js server
-- `@sveltejs/adapter-static`: fully static site generation
-- `@sveltejs/adapter-cloudflare`: Cloudflare Workers/Pages
-- `@sveltejs/adapter-vercel`: Vercel with edge/serverless functions
-- `@sveltejs/adapter-netlify`: Netlify Functions
+### Example 2: Deploy a hybrid SvelteKit app
 
-### Performance
-- Compiler output: Svelte compiles components to vanilla JS — no virtual DOM runtime
-- Bundle size: typical SvelteKit app ships 30-50KB JS (vs 80-150KB for React/Next.js)
-- Code splitting: automatic per-route code splitting
-- Prefetching: `data-sveltekit-preload-data="hover"` for instant navigation
-- Service workers: `src/service-worker.ts` for offline support
+**User request:** "Set up a SvelteKit site with static marketing pages and dynamic dashboard"
 
-## Code Standards
-- Use `+page.server.ts` for data loading that touches databases or secrets — never expose credentials in `+page.ts`
-- Default to server-side form handling with actions — add `use:enhance` for progressive enhancement
-- Use `export const prerender = true` on marketing pages, docs, and blog posts
-- Keep `load()` functions thin: fetch data and return it, move business logic to `$lib/server/`
-- Use route groups `(name)` to share layouts without affecting URLs
-- Set `data-sveltekit-preload-data="hover"` on links for perceived-instant navigation
-- Always handle the `form` prop in `+page.svelte` to display validation errors after failed actions
+**Actions:**
+1. Create marketing pages with `export const prerender = true`
+2. Build dashboard routes with SSR and `+page.server.ts` for authenticated data loading
+3. Add auth hook in `src/hooks.server.ts` to protect dashboard routes
+4. Configure `adapter-vercel` with edge functions for the dashboard
+
+**Output:** A hybrid app with pre-rendered marketing pages and server-rendered authenticated dashboard.
+
+## Guidelines
+
+- Use `+page.server.ts` for data loading that touches databases or secrets; never expose credentials in `+page.ts`.
+- Default to server-side form handling with actions; add `use:enhance` for progressive enhancement.
+- Use `export const prerender = true` on marketing pages, docs, and blog posts.
+- Keep `load()` functions thin: fetch data and return it, move business logic to `$lib/server/`.
+- Use route groups `(name)` to share layouts without affecting URLs.
+- Set `data-sveltekit-preload-data="hover"` on links for perceived-instant navigation.
+- Always handle the `form` prop in `+page.svelte` to display validation errors after failed actions.

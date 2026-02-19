@@ -1,14 +1,17 @@
 ---
 name: resend
-category: automation
-version: 1.0.0
 description: >-
   Send transactional and marketing emails with Resend — API sending, React email
   templates, domain verification, delivery tracking, batch sending, audiences,
   and webhooks. Use when tasks involve sending emails from an application,
   building email templates, tracking delivery, or migrating from SMTP.
-author: terminal-skills
-tags: [resend, email, transactional, react-email, templates, delivery]
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: automation
+  tags: ["resend", "email", "transactional", "react-email", "templates"]
 ---
 
 # Resend
