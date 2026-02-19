@@ -1,71 +1,66 @@
-# Vitest — Blazing Fast Unit Testing
+---
+name: vitest
+description: >-
+  Assists with unit and integration testing using Vitest, a Vite-native test runner. Use when
+  writing tests, configuring mocks, setting up coverage, or migrating from Jest. Trigger words:
+  vitest, unit testing, test runner, vi.fn, vi.mock, test coverage, jest replacement.
+license: Apache-2.0
+compatibility: "Requires Vite or standalone Vitest configuration"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["vitest", "testing", "unit-testing", "vite", "jest-alternative"]
+---
 
-> Author: terminal-skills
+# Vitest
 
-You are an expert in Vitest for testing JavaScript and TypeScript applications. You configure Vitest as a drop-in Jest replacement that shares Vite's config, runs tests with native ESM support, and provides instant feedback through watch mode with HMR.
+## Overview
 
-## Core Competencies
+Vitest is a Vite-native test runner that provides a Jest-compatible API with native ESM support, instant watch mode via Vite's HMR, and shared Vite configuration for aliases, plugins, and transforms. It serves as a drop-in Jest replacement with significantly faster startup and execution.
 
-### Test API
-- Test functions: `test()`, `it()`, `describe()`, `bench()`
-- Lifecycle hooks: `beforeAll()`, `afterAll()`, `beforeEach()`, `afterEach()`
-- Assertions: `expect(value)` with Jest-compatible matchers
-- Async testing: `async/await`, `resolves`, `rejects` matchers
-- Concurrent tests: `it.concurrent()` for parallel execution within a suite
-- Skip/only: `it.skip()`, `it.only()`, `describe.skip()`, `describe.only()`
-- Todo: `it.todo("implement later")` as test placeholders
-- Each: `it.each([[1, 2, 3], [4, 5, 9]])("add(%i, %i) = %i", (a, b, expected) => ...)`
+## Instructions
 
-### Matchers
-- Equality: `toBe()`, `toEqual()`, `toStrictEqual()`, `toMatchObject()`
-- Truthiness: `toBeTruthy()`, `toBeFalsy()`, `toBeNull()`, `toBeUndefined()`, `toBeDefined()`
-- Numbers: `toBeGreaterThan()`, `toBeLessThan()`, `toBeCloseTo()`
-- Strings: `toMatch()`, `toContain()`, `toHaveLength()`
-- Arrays/objects: `toContain()`, `toContainEqual()`, `toHaveProperty()`
-- Errors: `toThrow()`, `toThrowError()`
-- Snapshots: `toMatchSnapshot()`, `toMatchInlineSnapshot()`
-- Custom matchers: `expect.extend({ toBeWithinRange() { ... } })`
+- When writing tests, use `describe()` blocks to group related tests, `it()` or `test()` for individual cases, and follow the pattern of naming tests as behavior descriptions (e.g., "should return 404 when user not found").
+- When mocking, use `vi.fn()` for function mocks, `vi.mock("./module")` for module mocks, `vi.useFakeTimers()` for timer control, and `vi.setSystemTime()` for date mocking.
+- When setting up assertions, use `toBe()` for primitives, `toEqual()` for objects/arrays, and `toMatchInlineSnapshot()` for small expected outputs.
+- When configuring, define test settings in `vite.config.ts` under the `test` property or in a separate `vitest.config.ts`, choosing the appropriate environment (`jsdom`, `happy-dom`, `node`).
+- When measuring coverage, use `@vitest/coverage-v8` with `vitest --coverage` and set minimum thresholds in CI with `--coverage.thresholds.lines=80`.
+- When testing in browsers, use `@vitest/browser` with Playwright or WebDriverIO providers for real DOM testing instead of jsdom simulation.
+- When working in monorepos, use `vitest.workspace.ts` for multi-project configuration that shares common settings.
 
-### Mocking
-- Function mocks: `vi.fn()`, `vi.spyOn(obj, "method")`
-- Module mocks: `vi.mock("./module")` with auto-mocking or factory
-- Timer mocks: `vi.useFakeTimers()`, `vi.advanceTimersByTime(1000)`, `vi.runAllTimers()`
-- Date mocking: `vi.setSystemTime(new Date("2025-01-15"))`
-- Import mocking: `vi.importActual()` for partial mocking
-- Mock reset: `vi.clearAllMocks()`, `vi.resetAllMocks()`, `vi.restoreAllMocks()`
-- Mock implementations: `mockFn.mockReturnValue()`, `mockResolvedValue()`, `mockImplementation()`
+## Examples
 
-### Configuration
-- `vitest.config.ts` or inline in `vite.config.ts` via `test` property
-- Environment: `jsdom`, `happy-dom`, `node`, `edge-runtime`
-- Coverage: `@vitest/coverage-v8` or `@vitest/coverage-istanbul`
-- Reporters: `default`, `verbose`, `json`, `html`, `junit`
-- Global setup/teardown: `globalSetup` for database seeding, server start
-- Workspace: `vitest.workspace.ts` for monorepo multi-project configuration
+### Example 1: Test a service with API mocking
 
-### Watch Mode
-- Instant re-run on file change (uses Vite's module graph for minimal re-execution)
-- Filter by filename, test name, or changed files
-- UI mode: `vitest --ui` for browser-based test explorer
-- Type checking: `vitest typecheck` to run type tests
+**User request:** "Write Vitest tests for a user service that calls an external API"
 
-### Browser Testing
-- `@vitest/browser`: run tests in real browsers (Chromium, Firefox, WebKit)
-- Playwright or WebDriverIO providers
-- Component testing with actual DOM (not jsdom simulation)
-- Screenshots and visual regression
+**Actions:**
+1. Mock the HTTP module with `vi.mock()` to intercept API calls
+2. Write tests for success, error, and edge cases using `describe` and `it`
+3. Assert responses with `toEqual()` and error handling with `toThrow()`
+4. Use `beforeEach` with `vi.clearAllMocks()` for test isolation
 
-### Integration
-- Shares Vite config: aliases, plugins, transforms work in tests automatically
-- ESM native: no CommonJS transformation issues
-- TypeScript: works without `ts-jest` or any transpilation config
-- Framework testing: React Testing Library, Vue Test Utils, Svelte Testing Library
+**Output:** Isolated unit tests for the user service with mocked external dependencies.
 
-## Code Standards
-- Use `describe` blocks to group related tests; keep individual tests focused on one behavior
-- Prefer `toEqual()` for objects/arrays and `toBe()` for primitives
-- Mock external dependencies (HTTP, database), not internal modules — test real integration where possible
-- Use `beforeEach` for test isolation, not `beforeAll` — shared state between tests causes flaky results
-- Name tests as behavior descriptions: `"should return 404 when user not found"`, not `"test getUserById"`
-- Use inline snapshots for small expected outputs; file snapshots for large/complex structures
-- Run `vitest --coverage` in CI with a minimum threshold: `--coverage.thresholds.lines=80`
+### Example 2: Migrate from Jest to Vitest
+
+**User request:** "Switch our test suite from Jest to Vitest"
+
+**Actions:**
+1. Install `vitest` and add test config to `vite.config.ts`
+2. Replace `jest.fn()` with `vi.fn()` and `jest.mock()` with `vi.mock()`
+3. Update `package.json` scripts to use `vitest` and `vitest --coverage`
+4. Remove `ts-jest`, `babel-jest`, and Jest config files
+
+**Output:** A Vitest-powered test suite with the same tests running faster with native ESM support.
+
+## Guidelines
+
+- Use `describe` blocks to group related tests; keep individual tests focused on one behavior.
+- Prefer `toEqual()` for objects/arrays and `toBe()` for primitives.
+- Mock external dependencies (HTTP, database), not internal modules; test real integration where possible.
+- Use `beforeEach` for test isolation, not `beforeAll`; shared state between tests causes flaky results.
+- Name tests as behavior descriptions: "should return 404 when user not found", not "test getUserById".
+- Use inline snapshots for small expected outputs; file snapshots for large/complex structures.
+- Run `vitest --coverage` in CI with a minimum threshold: `--coverage.thresholds.lines=80`.

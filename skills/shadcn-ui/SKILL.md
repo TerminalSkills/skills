@@ -1,68 +1,67 @@
-# shadcn/ui — Copy-Paste Component Library
+---
+name: shadcn-ui
+description: >-
+  Assists with building accessible, customizable React interfaces using shadcn/ui components.
+  Use when adding UI components from shadcn CLI, theming with CSS variables, building data tables,
+  or integrating forms with React Hook Form and Zod. Trigger words: shadcn, shadcn-ui, radix,
+  component library, ui components, tailwind components, cn utility.
+license: Apache-2.0
+compatibility: "Requires React 18+, Tailwind CSS 3+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: design
+  tags: ["shadcn-ui", "react", "components", "tailwind", "radix-ui"]
+---
 
-> Author: terminal-skills
+# shadcn/ui
 
-You are an expert in shadcn/ui for building accessible, customizable React interfaces. You use the shadcn CLI to add components to the project source code (not as npm dependencies), customize them with Tailwind CSS, and compose complex UIs from primitive building blocks built on Radix UI primitives.
+## Overview
 
-## Core Competencies
+shadcn/ui is a copy-paste component library for React built on Radix UI primitives and styled with Tailwind CSS. Components are added to the project source code via CLI (not as npm dependencies), giving full ownership and customization without library version lock-in.
 
-### Architecture
-- Not a package: components are copied into your project's `components/ui/` directory
-- Full ownership: modify any component directly — no library version lock-in
-- Built on Radix UI primitives: accessible, unstyled headless components
-- Styled with Tailwind CSS and `class-variance-authority` (CVA) for variants
-- `cn()` utility: merge Tailwind classes with conflict resolution (uses `clsx` + `tailwind-merge`)
+## Instructions
 
-### CLI
-- `npx shadcn@latest init`: initialize project with `components.json` config
-- `npx shadcn@latest add button`: add a single component
-- `npx shadcn@latest add button card dialog input`: add multiple components
-- `npx shadcn@latest add --all`: add every available component
-- `npx shadcn@latest diff button`: show changes between local and upstream
-- Config: `components.json` defines paths, aliases, CSS variables, TypeScript/RSC options
+- When adding components, use the CLI (`npx shadcn@latest add button card dialog`) instead of copying from the website, as the CLI handles dependencies and path configuration.
+- When theming, customize CSS variables (`--primary`, `--secondary`, `--background`, etc.) in HSL format for consistent palette generation, and use the `dark:` Tailwind prefix with CSS variable switching for dark mode.
+- When merging classes, always use the `cn()` utility (built on `clsx` + `tailwind-merge`) for dynamic class merging instead of manual string concatenation.
+- When building forms, use the `Form` component which wraps React Hook Form with Zod validation, along with `FormField`, `FormItem`, `FormLabel`, `FormControl`, and `FormMessage` for consistent accessible layout.
+- When building data tables, use the `DataTable` component built on TanStack Table with column definitions, sorting, filtering, pagination, and row selection.
+- When composing complex UI, combine primitives: `Sheet` + `Form` for slide-out editors, `Dialog` + `Form` for modals, `Command` + `Popover` for comboboxes.
+- When organizing code, keep `components/ui/` for shadcn components only and place custom components in `components/`.
 
-### Component Categories
-- **Layout**: `Card`, `Separator`, `Aspect-Ratio`, `Collapsible`, `Resizable`, `Scroll-Area`
-- **Forms**: `Input`, `Textarea`, `Select`, `Checkbox`, `Radio-Group`, `Switch`, `Slider`, `DatePicker`, `Combobox`, `Form` (React Hook Form + Zod)
-- **Feedback**: `Alert`, `Alert-Dialog`, `Toast` (Sonner), `Progress`, `Skeleton`, `Badge`
-- **Navigation**: `Tabs`, `Navigation-Menu`, `Breadcrumb`, `Pagination`, `Command`, `Menubar`
-- **Overlay**: `Dialog`, `Sheet`, `Drawer`, `Popover`, `Tooltip`, `Hover-Card`, `Context-Menu`, `Dropdown-Menu`
-- **Data Display**: `Table`, `Data-Table` (TanStack Table), `Accordion`, `Avatar`, `Calendar`, `Carousel`, `Chart` (Recharts)
-- **Typography**: `Label`, `Toggle`, `Toggle-Group`
+## Examples
 
-### Theming
-- CSS variables for colors: `--primary`, `--secondary`, `--background`, `--foreground`, etc.
-- Dark mode: `dark:` Tailwind prefix with CSS variable switching
-- Multiple themes: swap CSS variable sets for brand themes
-- Design tokens: HSL color format for consistent palette generation
-- Radius: `--radius` variable controls global border radius
+### Example 1: Build a settings page with form validation
 
-### Data Table
-- Built on TanStack Table (headless table library)
-- Column definitions with type-safe accessors
-- Sorting, filtering, pagination, row selection
-- Column visibility toggle
-- Faceted filtering for categorical columns
-- Server-side pagination and filtering patterns
+**User request:** "Create a settings form with shadcn/ui components and Zod validation"
 
-### Form Integration
-- `Form` component wraps React Hook Form with Zod validation
-- `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage` for consistent layout
-- Accessible error messages linked to inputs via `aria-describedby`
-- Server-side validation display with `form.setError()`
+**Actions:**
+1. Add required components: `npx shadcn@latest add form input select switch card`
+2. Define Zod schema for settings fields (name, email, theme, notifications)
+3. Build form using `Form`, `FormField`, `FormItem`, and `FormControl` components
+4. Style with Card wrapper and add toast notifications for save feedback
 
-### Customization Patterns
-- Modify component source directly (it's your code)
-- Add new variants to CVA definitions
-- Compose primitives: build `Combobox` from `Command` + `Popover`
-- Extend with animations: Framer Motion or Tailwind `animate-*`
-- Swap Radix primitives for alternatives when needed
+**Output:** An accessible settings form with client-side validation and consistent styling.
 
-## Code Standards
-- Use the CLI to add components — don't copy-paste from the website (CLI handles dependencies and paths)
-- Keep `components/ui/` for shadcn components only — custom components go in `components/`
-- Use the `cn()` utility for all dynamic class merging — never concatenate Tailwind strings manually
-- Define form schemas with Zod and use the `Form` component for consistent validation UX
-- Customize via CSS variables first, component source second — theme changes shouldn't require editing every component
-- Use the `Command` component (cmdk) for search/command palette patterns — it handles keyboard navigation and filtering
-- Compose complex UI from primitives: `Sheet` + `Form` for slide-out editors, `Dialog` + `Form` for modals
+### Example 2: Create a searchable data table
+
+**User request:** "Add a data table with sorting, filtering, and pagination"
+
+**Actions:**
+1. Add data table components: `npx shadcn@latest add table input dropdown-menu`
+2. Define typed column definitions with accessors and cell formatters
+3. Implement sorting, column filtering, and pagination controls
+4. Add row actions dropdown menu for edit/delete operations
+
+**Output:** A fully interactive data table with TanStack Table powering the logic.
+
+## Guidelines
+
+- Use the CLI to add components; do not copy-paste from the website.
+- Keep `components/ui/` for shadcn components only; custom components go in `components/`.
+- Use the `cn()` utility for all dynamic class merging; never concatenate Tailwind strings manually.
+- Define form schemas with Zod and use the `Form` component for consistent validation UX.
+- Customize via CSS variables first, component source second; theme changes should not require editing every component.
+- Use the `Command` component for search/command palette patterns; it handles keyboard navigation and filtering.
+- Compose complex UI from primitives: `Sheet` + `Form` for slide-out editors, `Dialog` + `Form` for modals.

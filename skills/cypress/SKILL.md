@@ -1,87 +1,67 @@
-# Cypress — End-to-End Testing Framework
+---
+name: cypress
+description: >-
+  Assists with end-to-end testing of web applications using Cypress. Use when writing E2E tests,
+  setting up component testing, configuring CI pipelines with parallelization, or building custom
+  test commands. Trigger words: cypress, e2e testing, end-to-end, cypress run, cy.get, integration
+  testing, browser testing.
+license: Apache-2.0
+compatibility: "Requires Node.js 18+ and a supported browser (Chrome, Firefox, Edge)"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["cypress", "e2e-testing", "testing", "browser-testing", "automation"]
+---
 
-> Author: terminal-skills
+# Cypress
 
-You are an expert in Cypress for end-to-end testing of web applications. You write reliable, fast E2E tests that catch real user-facing bugs, configure CI pipelines with parallelization, and build custom commands for common testing patterns.
+## Overview
 
-## Core Competencies
+Cypress is an end-to-end testing framework for web applications that runs tests directly in the browser for fast, reliable feedback. It provides element selection, network interception, component testing, and CI integration with parallelization and video recording.
 
-### Test Structure
-- `describe()` / `context()` for grouping tests
-- `it()` for individual test cases
-- `before()`, `after()`, `beforeEach()`, `afterEach()` lifecycle hooks
-- `.only` and `.skip` for focused/excluded tests
-- Retries: `Cypress.config("retries", { runMode: 2, openMode: 0 })`
+## Instructions
 
-### Selecting Elements
-- `cy.get("[data-testid='submit']")`: attribute selector (recommended)
-- `cy.contains("Submit Order")`: text content
-- `cy.get("form").find("input[name='email']")`: scoped selection
-- `cy.get("ul > li").first()`, `.last()`, `.eq(2)`: positional
-- `cy.get("button").filter(":visible")`: filter by state
-- Best practice: use `data-testid` or `data-cy` attributes, not CSS classes or IDs
+- When selecting elements, use `data-testid` or `data-cy` attributes with `cy.get("[data-testid='submit']")` instead of CSS classes or IDs for resilient selectors.
+- When testing interactions, use `cy.get().type()`, `.click()`, `.select()`, and `.check()` for user actions, and chain `.should()` assertions for expected outcomes.
+- When handling API calls, use `cy.intercept()` to stub external APIs with fixtures or spy on requests, and `cy.wait("@alias")` after actions that trigger calls instead of `cy.wait(ms)`.
+- When writing custom commands, use `Cypress.Commands.add()` for reusable patterns like login, database seeding, and common workflows, with TypeScript declarations for IntelliSense.
+- When testing components, use `cy.mount()` with framework-specific mounting libraries (`@cypress/react`, `@cypress/vue`) to test components in isolation.
+- When configuring CI, use `cypress run --record --key` for Cypress Cloud integration with `--parallel` to split tests across machines, and `--browser` to specify the browser.
+- When setting up the project, configure `cypress.config.ts` with `baseUrl`, viewport dimensions, timeouts, and environment variables.
 
-### Actions
-- `cy.get("input").type("hello{enter}")`: type text with special keys
-- `cy.get("button").click()`, `.dblclick()`, `.rightclick()`
-- `cy.get("select").select("Option 2")`: select dropdown value
-- `cy.get("input[type='checkbox']").check()`, `.uncheck()`
-- `cy.get("input[type='file']").selectFile("path/to/file.pdf")`
-- `cy.get("div").scrollIntoView()`, `cy.scrollTo("bottom")`
-- `cy.get("element").trigger("mouseover")`: custom DOM events
-- `.clear()`: clear input value before typing
+## Examples
 
-### Assertions
-- `cy.get("h1").should("have.text", "Dashboard")`
-- `.should("be.visible")`, `.should("not.exist")`, `.should("be.disabled")`
-- `.should("have.class", "active")`, `.should("have.attr", "href", "/about")`
-- `.should("have.length", 3)`: assert element count
-- `.should("contain.text", "Success")`: partial text match
-- `.and("have.css", "color", "rgb(0, 128, 0)")`: chained assertions
-- `cy.url().should("include", "/dashboard")`
-- `cy.getCookie("session").should("exist")`
+### Example 1: Write E2E tests for a checkout flow
 
-### Network Interception
-- `cy.intercept("GET", "/api/users", { fixture: "users.json" })`: stub API response
-- `cy.intercept("POST", "/api/orders").as("createOrder")`: spy on request
-- `cy.wait("@createOrder").its("request.body").should("have.property", "total")`
-- Dynamic responses: `cy.intercept("/api/*", (req) => { req.reply({ statusCode: 500 }) })`
-- Delay: `cy.intercept("/api/data", (req) => { req.reply({ delay: 2000, body: {} }) })`
+**User request:** "Add Cypress tests for our e-commerce checkout process"
 
-### Custom Commands
-- `Cypress.Commands.add("login", (email, password) => { ... })`
-- `Cypress.Commands.add("seedDatabase", () => { cy.task("db:seed") })`
-- Override existing commands: `Cypress.Commands.overwrite("visit", ...)`
-- Type declarations in `cypress/support/commands.d.ts` for IntelliSense
+**Actions:**
+1. Set up test with `cy.visit("/products")` and select a product
+2. Intercept the cart API with `cy.intercept("POST", "/api/cart")` and alias it
+3. Fill in shipping form using `cy.get("[data-testid='email']").type(...)`
+4. Assert order confirmation with `cy.url().should("include", "/confirmation")`
 
-### Component Testing
-- `cy.mount(<Component prop={value} />)`: render React/Vue/Svelte component
-- `@cypress/react`, `@cypress/vue`, `@cypress/svelte` mounting libraries
-- Same Cypress API for component tests: `cy.get()`, `.click()`, `.should()`
-- Isolated component testing without full app context
+**Output:** A reliable E2E test covering the full checkout flow with stubbed API responses.
 
-### Configuration
-- `cypress.config.ts`: TypeScript configuration
-- `baseUrl`: default URL for `cy.visit("/")`
-- `viewportWidth`/`viewportHeight`: default browser size
-- `defaultCommandTimeout`: how long Cypress waits for elements (default 4s)
-- `video`: record test runs (default true in CI)
-- `screenshotOnRunFailure`: capture screenshots on failure
-- `env`: environment variables accessible via `Cypress.env("API_KEY")`
+### Example 2: Set up component testing for React
 
-### CI Integration
-- `cypress run`: headless execution for CI
-- `cypress run --record --key <key>`: record to Cypress Cloud for parallelization
-- `cypress run --parallel`: split tests across CI machines
-- `cypress run --browser chrome|firefox|edge|electron`
-- `cypress run --spec "cypress/e2e/checkout/**"`: run specific specs
-- Docker: `cypress/included` image with all dependencies pre-installed
+**User request:** "Configure Cypress component testing for our React project"
 
-## Code Standards
-- Use `data-testid` attributes for test selectors — never rely on CSS classes, text content, or DOM structure
-- Keep tests independent: each test should set up its own state (login, seed data)
-- Use `cy.intercept()` to stub external APIs — don't let tests depend on third-party service availability
-- Add `cy.wait("@alias")` after actions that trigger API calls — don't use `cy.wait(ms)` for timing
-- Write tests from the user's perspective: "fill in the form, click submit, see confirmation" — not "check Redux state"
-- Use fixtures for large API response data; inline small responses in `cy.intercept()`
-- Run Cypress in CI with `--record` for test replay, screenshots, and video on failure
+**Actions:**
+1. Install `@cypress/react` and configure component testing in `cypress.config.ts`
+2. Create stories for key components using `cy.mount(<Component />)`
+3. Test interactions with `cy.get().click()` and assert DOM changes
+4. Add to CI pipeline alongside E2E tests
+
+**Output:** Isolated component tests running in a real browser with full Cypress API.
+
+## Guidelines
+
+- Use `data-testid` attributes for test selectors; never rely on CSS classes, text content, or DOM structure.
+- Keep tests independent: each test should set up its own state (login, seed data).
+- Use `cy.intercept()` to stub external APIs; do not let tests depend on third-party service availability.
+- Add `cy.wait("@alias")` after actions that trigger API calls; do not use `cy.wait(ms)` for timing.
+- Write tests from the user's perspective: "fill in the form, click submit, see confirmation."
+- Use fixtures for large API response data; inline small responses in `cy.intercept()`.
+- Run Cypress in CI with `--record` for test replay, screenshots, and video on failure.
