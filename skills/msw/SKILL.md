@@ -1,58 +1,65 @@
-# MSW (Mock Service Worker) — API Mocking for Tests and Development
+---
+name: msw
+description: >-
+  Assists with intercepting network requests for API mocking using Mock Service Worker (MSW).
+  Use when mocking REST or GraphQL APIs for unit tests, integration tests, or local
+  development without modifying application code or running mock servers. Trigger words:
+  msw, mock service worker, api mocking, test mocking, request handlers, setupServer.
+license: Apache-2.0
+compatibility: "Requires Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["msw", "testing", "api-mocking", "rest", "graphql"]
+---
 
-> Author: terminal-skills
+# MSW (Mock Service Worker)
 
-You are an expert in MSW for intercepting network requests at the service worker level. You mock REST and GraphQL APIs for unit tests, integration tests, and local development — without modifying application code or running a separate mock server.
+## Overview
 
-## Core Competencies
+MSW intercepts network requests at the service worker level (browser) or in-memory (Node.js) to mock REST and GraphQL APIs for tests and local development. It uses the same handlers for both environments, keeping mocks consistent, and works transparently with any HTTP client (fetch, axios, Apollo) without modifying application code.
 
-### Request Handlers
-- `http.get("/api/users", ({ request }) => { ... })`: intercept GET requests
-- `http.post("/api/users", async ({ request }) => { const body = await request.json(); ... })`
-- `http.put()`, `http.patch()`, `http.delete()`: all HTTP methods
-- `HttpResponse.json({ data })`: return JSON responses
-- `HttpResponse.text("ok")`, `HttpResponse.xml()`, `HttpResponse.arrayBuffer()`
-- Dynamic params: `http.get("/api/users/:id", ({ params }) => { ... })`
-- Query params: `new URL(request.url).searchParams.get("page")`
+## Instructions
 
-### GraphQL Handlers
-- `graphql.query("GetUser", ({ variables }) => { ... })`: mock named queries
-- `graphql.mutation("CreatePost", ({ variables }) => { ... })`: mock mutations
-- `HttpResponse.json({ data: { user: { id: "1", name: "Jo" } } })`
-- `graphql.operation()`: catch-all for any GraphQL operation
+- When setting up handlers, define REST handlers with `http.get()`, `http.post()`, etc. and GraphQL handlers with `graphql.query()` and `graphql.mutation()`, returning responses via `HttpResponse.json()`.
+- When testing in Node.js, use `setupServer(...handlers)` with `server.listen()` before tests, `server.resetHandlers()` between tests, and `server.close()` after all tests.
+- When developing in the browser, use `setupWorker(...handlers)` and run `npx msw init ./public` to generate the service worker file, which intercepts requests visible in DevTools.
+- When overriding per test, use `server.use()` to add temporary handlers for error states or edge cases, which scope to the current test and reset afterward.
+- When simulating network issues, use `delay(ms)` for latency, `HttpResponse.error()` for failures, and custom status codes for error responses.
+- When organizing handlers, keep shared handlers in `src/mocks/handlers.ts` for reuse across test files and the dev server, with per-test overrides via `server.use()`.
 
-### Browser Integration (Development)
-- `setupWorker(...handlers)`: register service worker for browser mocking
-- `npx msw init ./public`: generate service worker file
-- Intercepts `fetch` and `XMLHttpRequest` transparently
-- Network tab shows mocked requests (visible in DevTools)
-- No proxy server, no code changes — works with any HTTP client
+## Examples
 
-### Node.js Integration (Tests)
-- `setupServer(...handlers)`: in-memory request interception for Node.js
-- `server.listen()`: start before tests
-- `server.resetHandlers()`: reset to default handlers between tests
-- `server.close()`: cleanup after tests
-- Per-test overrides: `server.use(http.get("/api/users", () => HttpResponse.json([])))`
+### Example 1: Mock a REST API for component tests
 
-### Response Utilities
-- `HttpResponse.json(data, { status: 201 })`: custom status codes
-- `HttpResponse.json(null, { status: 500 })`: simulate errors
-- `delay(ms)`: simulate network latency
-- `passthrough()`: let the request pass through to the real server
-- Response headers: `HttpResponse.json(data, { headers: { "X-Custom": "value" } })`
-- Streaming: `HttpResponse` with `ReadableStream` body
+**User request:** "Set up MSW to mock my user API for React Testing Library tests"
 
-### Network Behaviors
-- `server.use()`: runtime handler overrides (scoped to current test)
-- `http.all("*", () => HttpResponse.error())`: simulate network failure
-- One-time handlers: `server.use(http.get("/api", () => ..., { once: true }))`
-- Conditional responses based on request headers, cookies, body content
+**Actions:**
+1. Define handlers in `src/mocks/handlers.ts` for GET `/api/users`, POST `/api/users`, and GET `/api/users/:id`
+2. Set up `setupServer(...handlers)` in the test setup file with beforeAll/afterEach/afterAll hooks
+3. Write component tests that render with data from the mock API
+4. Add per-test error overrides with `server.use(http.get("/api/users", () => HttpResponse.json(null, { status: 500 })))`
 
-## Code Standards
-- Use MSW in both tests AND development — the same handlers power both, keeping mocks consistent
-- Define handlers in a shared `src/mocks/handlers.ts` — reuse across test files and dev server
-- Use `server.use()` for per-test overrides, not separate handler files — keep the default happy path in shared handlers
-- Always mock error states in tests: `server.use(http.get("/api", () => HttpResponse.json(null, { status: 500 })))` — test error handling
-- Use `delay()` in development mocks to simulate real latency — catch loading state bugs before production
-- Reset handlers after each test: `afterEach(() => server.resetHandlers())` — prevent test pollution
+**Output:** Component tests with realistic API mocking, including happy path and error state coverage.
+
+### Example 2: Mock a GraphQL API for development
+
+**User request:** "Set up MSW to mock my GraphQL API during local development"
+
+**Actions:**
+1. Define GraphQL handlers for queries (`GetPosts`, `GetUser`) and mutations (`CreatePost`)
+2. Set up `setupWorker(...handlers)` in the browser entry point with conditional activation
+3. Add `delay(300)` to simulate realistic network latency
+4. Run `npx msw init ./public` and start the dev server
+
+**Output:** A development environment with mocked GraphQL API visible in browser DevTools, with realistic latency.
+
+## Guidelines
+
+- Use MSW in both tests and development with the same handlers to keep mocks consistent.
+- Define handlers in a shared `src/mocks/handlers.ts` file for reuse across test files and the dev server.
+- Use `server.use()` for per-test overrides; keep the default happy path in shared handlers.
+- Always mock error states in tests to verify error handling works correctly.
+- Use `delay()` in development mocks to simulate real latency and catch loading state bugs.
+- Reset handlers after each test with `afterEach(() => server.resetHandlers())` to prevent test pollution.

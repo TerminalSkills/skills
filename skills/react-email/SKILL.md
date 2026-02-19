@@ -1,56 +1,65 @@
-# React Email — Build Emails with React Components
+---
+name: react-email
+description: >-
+  Assists with building responsive, cross-client email templates using React Email components.
+  Use when creating transactional emails (welcome, receipts, password reset) that render
+  correctly in Gmail, Outlook, Apple Mail, and mobile clients. Trigger words: react email,
+  email template, transactional email, email components, email rendering.
+license: Apache-2.0
+compatibility: "Requires React 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: automation
+  tags: ["react-email", "email", "transactional", "templates", "rendering"]
+---
 
-> Author: terminal-skills
+# React Email
 
-You are an expert in React Email for building responsive, cross-client email templates using React components. You create transactional emails (welcome, receipts, notifications, password reset) that render correctly in Gmail, Outlook, Apple Mail, and mobile clients — without writing raw HTML tables.
+## Overview
 
-## Core Competencies
+React Email is a library for building responsive, cross-client email templates using React components. It provides pre-built components (Container, Section, Button, Text, Img) that compile to inline-styled, table-based HTML compatible with Gmail, Outlook, and mobile clients, with a local dev server for previewing templates and integration with any email sending service.
 
-### Components
-- `<Html>`, `<Head>`, `<Body>`: document structure
-- `<Container>`: centered content wrapper (max-width)
-- `<Section>`: grouping with padding/margins
-- `<Row>`, `<Column>`: table-based responsive grid
-- `<Text>`: paragraph with styles
-- `<Heading>`: h1-h6 with cross-client rendering
-- `<Link>`: anchor with styles (UTM params, tracking)
-- `<Button>`: call-to-action with padding and background color
-- `<Img>`: images with alt text and responsive sizing
-- `<Hr>`: horizontal rule
-- `<Preview>`: inbox preview text (shows before opening)
-- `<Font>`: custom web fonts (with fallbacks)
-- `<CodeBlock>`, `<CodeInline>`: syntax-highlighted code
-- `<Markdown>`: render Markdown content as email HTML
+## Instructions
 
-### Styling
-- Inline styles via React `style` prop — email clients strip `<style>` tags
-- Tailwind CSS: `@react-email/tailwind` wraps templates with Tailwind utility classes
-- Responsive: media queries supported by most modern clients (fallback inline styles for Outlook)
-- Dark mode: `@media (prefers-color-scheme: dark)` with `<Head>` styles
+- When building templates, use React Email components (`<Html>`, `<Container>`, `<Section>`, `<Text>`, `<Button>`, `<Img>`) with props for personalization, keeping the container max-width at 600px for email client compatibility.
+- When styling, use the `<Tailwind>` wrapper for utility classes that compile to inline styles, or use React `style` props directly since email clients strip `<style>` tags.
+- When rendering, use `render(element)` to produce HTML strings and `render(element, { plainText: true })` for plain text versions, compatible with Resend, SendGrid, Nodemailer, or any email service.
+- When previewing, use `email dev` for a local preview server with hot reload and test email sending.
+- When adding inbox preview text, include `<Preview>` on every email to control the 40-90 character preview shown in inbox listings.
+- When handling dynamic content, pass data as typed props to email components for type-safe personalization (name, order details, links).
 
-### Rendering
-- `render(element)`: React component → HTML string
-- `render(element, { plainText: true })`: generate plain text version
-- Output is production-ready HTML with inline styles and table-based layout
-- Compatible with any email sending service (Resend, SendGrid, Postmark, AWS SES)
+## Examples
 
-### Development
-- `email dev`: local preview server with hot reload
-- Side-by-side preview of multiple email templates
-- Send test emails from the preview UI
-- Directory structure: `emails/welcome.tsx`, `emails/receipt.tsx`
+### Example 1: Build a welcome email with CTA button
 
-### Integration
-- Resend: `resend.emails.send({ react: <WelcomeEmail name="Jo" /> })`
-- Nodemailer: `render(<WelcomeEmail />)` → pass HTML to `transporter.sendMail()`
-- SendGrid, Postmark, AWS SES: render to HTML string, send via their SDK
-- Any provider: `render()` produces standard HTML
+**User request:** "Create a welcome email template for new user signups"
 
-## Code Standards
-- Use `<Preview>` on every email — it controls the inbox preview text (40-90 chars)
-- Use `<Tailwind>` wrapper for styling — utilities compile to inline styles that email clients understand
-- Always include a plain text version: `render(template, { plainText: true })` — spam filters penalize HTML-only emails
-- Test in Litmus or Email on Acid before deploying — Outlook renders differently from everything else
-- Keep emails under 102KB HTML — Gmail clips emails above this threshold
-- Use `<Container maxWidth={600}>` — 600px is the safe width for all email clients
-- Props for personalization: `<WelcomeEmail name={user.name} />` — type-safe templates
+**Actions:**
+1. Create `emails/welcome.tsx` with `<Html>`, `<Head>`, `<Preview>`, `<Body>`, and `<Container>`
+2. Add a logo with `<Img>`, personalized greeting with `<Text>`, and onboarding CTA with `<Button>`
+3. Wrap with `<Tailwind>` for responsive styling and dark mode support
+4. Render with `render(<WelcomeEmail name={user.name} />)` and send via Resend
+
+**Output:** A responsive welcome email with personalized content that renders correctly across all major email clients.
+
+### Example 2: Build a receipt email with order details
+
+**User request:** "Create an order receipt email with line items and totals"
+
+**Actions:**
+1. Define a typed props interface for order data (items, prices, shipping, total)
+2. Use `<Section>` for header, order summary, and footer sections
+3. Build line items table with `<Row>` and `<Column>` for responsive grid layout
+4. Add formatted prices and order number, with a "View Order" `<Button>` linking to the dashboard
+
+**Output:** A receipt email with dynamic line items, formatted prices, and responsive layout for mobile.
+
+## Guidelines
+
+- Use `<Preview>` on every email to control inbox preview text (40-90 characters).
+- Use the `<Tailwind>` wrapper for styling since utilities compile to inline styles that email clients understand.
+- Always include a plain text version with `render(template, { plainText: true })` since spam filters penalize HTML-only emails.
+- Test in Litmus or Email on Acid before deploying since Outlook renders differently from other clients.
+- Keep emails under 102KB of HTML since Gmail clips emails above this threshold.
+- Use `<Container maxWidth={600}>` since 600px is the safe width for all email clients.
