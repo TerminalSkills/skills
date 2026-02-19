@@ -323,7 +323,3 @@ The following Friday, the team merges three PRs to `main` throughout the day. Ea
 
 After a month, the team has merged 47 PRs. The pipeline caught 12 issues that would have reached production: 4 type errors, 3 lint violations that indicated bugs, 2 test failures from regressions, and 3 build failures from missing imports. Each issue was caught in under 2 minutes and fixed before review even started.
 
-## Related Skills
-
-- [github-actions](../skills/github-actions/) -- Deep dive into workflow syntax, custom actions, and matrix builds
-- [playwright-testing](../skills/playwright-testing/) -- E2E testing patterns for the CI pipeline
