@@ -1,80 +1,66 @@
-# React Native — Cross-Platform Mobile Apps
+---
+name: react-native
+description: >-
+  Assists with building iOS and Android applications from a single TypeScript codebase
+  using React Native. Use when implementing mobile UI components, navigation, native device
+  APIs, performance optimization, or setting up testing and CI pipelines for mobile apps.
+  Trigger words: react native, mobile app, ios, android, flatlist, reanimated.
+license: Apache-2.0
+compatibility: "Requires Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["react-native", "mobile", "ios", "android", "cross-platform"]
+---
 
-> Author: terminal-skills
+# React Native
 
-You are an expert in React Native for building iOS and Android applications from a single TypeScript codebase. You leverage Expo for rapid development, React Navigation for routing, and native modules for platform-specific functionality.
+## Overview
 
-## Core Competencies
+React Native is a framework for building native iOS and Android applications from a single TypeScript codebase. It provides core UI components (View, Text, FlatList), integrates with Expo for managed development and cloud builds, supports performant animations via Reanimated, and offers access to native device APIs through Expo SDK modules.
 
-### Expo
-- `npx create-expo-app`: scaffold with TypeScript, file-based routing, and dev tools
-- Expo Go: test on physical devices without Xcode/Android Studio
-- EAS Build: cloud builds for iOS and Android (no Mac needed for iOS)
-- EAS Submit: automated App Store and Google Play submission
-- Expo Router: file-based routing (`app/` directory, like Next.js)
-- Config plugins: modify native code without ejecting (`app.json` / `app.config.ts`)
-- OTA updates: `expo-updates` for instant bug fixes without app store review
+## Instructions
 
-### Core Components
-- `View`, `Text`, `Image`, `ScrollView`, `FlatList`, `SectionList`
-- `TouchableOpacity`, `Pressable` for touch interactions
-- `TextInput` for forms, `Switch` for toggles
-- `Modal`, `Alert` for overlays and system dialogs
-- `SafeAreaView` for notch/status bar handling
-- `KeyboardAvoidingView` for form screens
+- When starting a project, use Expo (`npx create-expo-app`) unless you need a native module Expo does not support, since ejecting adds significant complexity.
+- When building lists, use `FlatList` for any list over 20 items with `getItemLayout` and `keyExtractor`; avoid `ScrollView` for large datasets since it renders all items at once.
+- When implementing navigation, use Expo Router for file-based routing or React Navigation for programmatic control, with stack, tab, drawer, and modal patterns.
+- When styling components, use `StyleSheet.create({})` for performant styles with Flexbox layout, `Platform.select()` for platform-specific styles, and NativeWind for Tailwind CSS syntax.
+- When managing state, use React Query or TanStack Query for server state, Zustand or Jotai for client state, and `expo-secure-store` for auth tokens and secrets.
+- When optimizing performance, use Reanimated for 60fps UI-thread animations, Gesture Handler for touch gestures, `React.memo` to prevent unnecessary re-renders, and the Hermes engine (default in Expo SDK 50+).
+- When testing, use Jest with React Native Testing Library for unit and component tests, and Detox or Maestro for end-to-end testing on simulators.
 
-### Navigation (React Navigation / Expo Router)
-- Stack navigation: `app/(tabs)/index.tsx`, `app/profile/[id].tsx`
-- Tab navigation: `app/(tabs)/_layout.tsx` with bottom tabs
-- Drawer navigation: side menu patterns
-- Modal routes: `app/modal.tsx` presented as overlay
-- Deep linking: URL scheme and universal links
-- Type-safe navigation with TypeScript route params
+## Examples
 
-### Styling
-- StyleSheet API: `StyleSheet.create({})` for performant styles
-- Flexbox layout (default): `flexDirection: "column"`, `justifyContent`, `alignItems`
-- Platform-specific: `Platform.select({ ios: {}, android: {} })`
-- NativeWind: Tailwind CSS for React Native
-- Responsive: `Dimensions`, `useWindowDimensions()`, `PixelRatio`
+### Example 1: Build a social feed with infinite scroll
 
-### State and Data
-- React Query / TanStack Query for server state
-- Zustand or Jotai for client state (lighter than Redux)
-- AsyncStorage: persistent key-value storage
-- MMKV: high-performance storage (10x faster than AsyncStorage)
-- SQLite: `expo-sqlite` for local relational data
-- SecureStore: `expo-secure-store` for tokens and secrets
+**User request:** "Create a social media feed with infinite scrolling and pull-to-refresh"
 
-### Native APIs (Expo SDK)
-- Camera: `expo-camera` for photos and video
-- Location: `expo-location` for GPS and geofencing
-- Notifications: `expo-notifications` for push (APNs + FCM)
-- File System: `expo-file-system` for downloads and file management
-- Haptics: `expo-haptics` for tactile feedback
-- Auth: `expo-auth-session` for OAuth flows
-- Sensors: accelerometer, gyroscope, barometer
-- Contacts, Calendar, MediaLibrary, Clipboard
+**Actions:**
+1. Set up a `FlatList` with `onEndReached` for pagination and `refreshControl` for pull-to-refresh
+2. Use React Query with infinite query for server state management
+3. Implement post cards with `expo-image` for optimized image loading
+4. Add Reanimated-based like animation on double-tap gesture
 
-### Performance
-- FlatList: virtualized lists for large datasets (`getItemLayout`, `keyExtractor`)
-- `React.memo`, `useMemo`, `useCallback` to prevent unnecessary re-renders
-- Hermes engine: optimized JS engine (default in Expo SDK 50+)
-- Image optimization: `expo-image` with caching, blurhash placeholders
-- Reanimated: 60fps animations running on the UI thread
-- Gesture Handler: performant touch gestures (swipe, pinch, pan)
+**Output:** A performant social feed with infinite scroll, pull-to-refresh, optimized images, and smooth animations.
 
-### Testing and CI
-- Jest + React Native Testing Library for unit/component tests
-- Detox or Maestro for E2E testing on simulators
-- EAS Build + EAS Submit in CI for automated releases
-- CodePush / expo-updates for OTA patches
+### Example 2: Add biometric login to a finance app
 
-## Code Standards
-- Use Expo unless you need a native module that Expo doesn't support — ejecting adds complexity
-- Use `expo-image` over `Image` for better caching, transitions, and format support
-- Use `FlatList` for any list over 20 items — `ScrollView` renders all items at once (crashes on large lists)
-- Store auth tokens in `expo-secure-store`, not AsyncStorage — AsyncStorage is unencrypted
-- Use Reanimated for animations, not `Animated` API — Reanimated runs on the UI thread (no JS bridge bottleneck)
-- Test on real devices: simulators miss performance issues, permission flows, and push notifications
-- Use EAS Build for production: local builds are fragile and hard to reproduce
+**User request:** "Implement Face ID and fingerprint login for my React Native banking app"
+
+**Actions:**
+1. Use `expo-local-authentication` to check biometric availability and authenticate
+2. Store auth tokens in `expo-secure-store` (backed by Keychain on iOS, Keystore on Android)
+3. Add fallback to PIN/password when biometrics are unavailable
+4. Handle authentication state with Zustand and persist session securely
+
+**Output:** A banking app with biometric login, secure token storage, and graceful fallback authentication.
+
+## Guidelines
+
+- Use Expo unless a specific native module requires ejecting; the managed workflow reduces complexity significantly.
+- Use `expo-image` over `Image` for better caching, transitions, and format support.
+- Use `FlatList` for lists over 20 items since `ScrollView` renders all items at once and can crash on large datasets.
+- Store auth tokens in `expo-secure-store`, not AsyncStorage, since AsyncStorage is unencrypted.
+- Use Reanimated for animations instead of the `Animated` API since Reanimated runs on the UI thread without JS bridge bottleneck.
+- Test on real devices because simulators miss performance issues, permission flows, and push notifications.

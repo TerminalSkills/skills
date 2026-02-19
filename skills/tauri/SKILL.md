@@ -1,75 +1,66 @@
-# Tauri — Lightweight Desktop Apps with Web Tech
+---
+name: tauri
+description: >-
+  Assists with building lightweight cross-platform desktop (and mobile) applications using
+  Tauri. Use when creating small, fast, secure apps with a web frontend and Rust backend
+  that use the system webview instead of bundling Chromium. Trigger words: tauri, rust
+  desktop, system webview, tauri commands, tauri plugins.
+license: Apache-2.0
+compatibility: "Requires Rust toolchain and Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["tauri", "desktop", "rust", "cross-platform", "webview"]
+---
 
-> Author: terminal-skills
+# Tauri
 
-You are an expert in Tauri for building cross-platform desktop applications using web technologies for the frontend and Rust for the backend. You create small, fast, secure desktop apps that use the system webview instead of bundling Chromium — resulting in binaries under 10MB.
+## Overview
 
-## Core Competencies
+Tauri is a framework for building cross-platform desktop and mobile applications using any web framework for the frontend and Rust for the backend. By using the system webview instead of bundling Chromium, Tauri produces binaries under 10MB with 30-80MB memory usage, featuring capability-based security, type-safe IPC commands, and a plugin ecosystem for native APIs.
 
-### Architecture
-- Frontend: any web framework (React, Vue, Svelte, Solid, vanilla) rendered in system webview
-- Backend: Rust for system access, file I/O, native APIs, heavy computation
-- IPC: type-safe communication between frontend (JS) and backend (Rust) via commands and events
-- No Chromium bundled: uses WebView2 (Windows), WKWebView (macOS), WebKitGTK (Linux)
-- Binary size: 2-10MB (vs 150MB+ for Electron)
-- Memory usage: 30-80MB (vs 200-500MB for Electron)
+## Instructions
 
-### Commands (Rust → JS Bridge)
-- Define Rust functions with `#[tauri::command]`: `fn greet(name: &str) -> String`
-- Call from frontend: `invoke("greet", { name: "World" })` — returns a Promise
-- Type-safe: generate TypeScript bindings from Rust command signatures
-- Async commands: `async fn` for non-blocking I/O operations
-- Error handling: return `Result<T, E>` — errors propagate to JS as rejected promises
-- State management: `tauri::State<T>` for shared application state
+- When setting up the architecture, build the UI with any web framework (React, Vue, Svelte, Solid) rendered in the system webview, and implement system access and heavy computation in Rust backend commands.
+- When implementing IPC, define Rust functions with `#[tauri::command]` for request-response patterns (called via `invoke()` from JS), and use events for push-style communication from backend to frontend.
+- When accessing native APIs, use Tauri plugins (`@tauri-apps/plugin-fs`, `@tauri-apps/plugin-dialog`, `@tauri-apps/plugin-shell`, `@tauri-apps/plugin-notification`) and define allowed capabilities in the `capabilities/` directory.
+- When managing security, define capability-based permissions to restrict which APIs the frontend can access, set CSP headers, and use the isolation pattern for sandboxed environments.
+- When building for distribution, use `cargo tauri build` to produce platform-specific installers (NSIS/MSI for Windows, DMG for macOS, AppImage/deb for Linux) with code signing and notarization.
+- When implementing auto-updates, use `@tauri-apps/plugin-updater` with GitHub Releases or a custom server, with signature verification to prevent tampering.
 
-### Events
-- Frontend to backend: `emit("event-name", payload)` — fire-and-forget
-- Backend to frontend: `window.emit("event-name", payload)` — push updates
-- Global events: `app.emit("update-available", version)` — all windows receive
-- Listen: `listen("event-name", callback)` — subscribe to events
-- Use for: progress updates, system notifications, background task completion
+## Examples
 
-### Plugins
-- File system: `@tauri-apps/plugin-fs` — read, write, watch files with permission scoping
-- Dialog: `@tauri-apps/plugin-dialog` — native file picker, save dialog, message box
-- Shell: `@tauri-apps/plugin-shell` — execute system commands, open URLs
-- Clipboard: `@tauri-apps/plugin-clipboard-manager`
-- Notification: `@tauri-apps/plugin-notification` — system notifications
-- Store: `@tauri-apps/plugin-store` — persistent key-value storage (like electron-store)
-- Updater: `@tauri-apps/plugin-updater` — auto-update with signature verification
-- Stronghold: encrypted storage for secrets and keys
-- Window: multi-window management, window customization
+### Example 1: Build a note-taking app with encrypted local storage
 
-### Security
-- Capability-based permissions: allowlist which APIs the frontend can access
-- CSP (Content Security Policy): restrict loaded resources
-- No Node.js in the frontend: no `require()`, no access to system APIs from JS
-- Rust backend: memory-safe, no buffer overflows
-- Signature verification: signed updates prevent tampering
-- Isolation pattern: run frontend in a sandboxed environment
+**User request:** "Create a Tauri note-taking app with local file storage and encryption"
 
-### Tauri v2
-- Mobile support: iOS and Android (in addition to desktop)
-- Plugin system: unified plugins across desktop and mobile
-- Multi-webview: multiple webviews in a single window
-- Tray icon: system tray support with menus
-- Deep linking: custom URL scheme handling
-- `tauri-cli` v2: `cargo tauri dev`, `cargo tauri build`
+**Actions:**
+1. Set up a Svelte frontend with the Tauri project scaffolding
+2. Implement Rust commands for reading, writing, and encrypting note files using the `aes-gcm` crate
+3. Use `@tauri-apps/plugin-store` for app settings and `@tauri-apps/plugin-dialog` for file dialogs
+4. Configure capability permissions to allow only the required file system paths
 
-### Building and Distribution
-- `cargo tauri build`: produce platform-specific installers
-- Windows: `.msi`, `.exe` (NSIS)
-- macOS: `.dmg`, `.app`
-- Linux: `.deb`, `.rpm`, `.AppImage`
-- Code signing: macOS notarization, Windows Authenticode
-- Auto-updater: GitHub Releases, S3, or custom update server
-- CI: GitHub Actions templates for cross-platform builds
+**Output:** A lightweight note-taking app with encrypted local storage and native file dialogs, under 10MB.
 
-## Code Standards
-- Use commands for request-response patterns, events for push notifications — don't mix them
-- Define all allowed APIs in `capabilities/` — principle of least privilege
-- Use `tauri::State<Mutex<T>>` for shared mutable state — Rust enforces thread safety
-- Keep the frontend framework-agnostic: Tauri works with any web framework
-- Use `@tauri-apps/plugin-store` over localStorage for persistent data — it survives app updates
-- Handle errors in Rust with `Result<T, String>` — the error message surfaces in JS
-- Use the auto-updater for production apps — don't make users manually download updates
+### Example 2: Build a system monitoring dashboard
+
+**User request:** "Create a desktop app that shows CPU, memory, and disk usage in real time"
+
+**Actions:**
+1. Define Rust commands using the `sysinfo` crate to collect system metrics
+2. Use Tauri events to push metric updates from backend to frontend every second
+3. Build a React dashboard with real-time charts displaying CPU, memory, and disk usage
+4. Add system tray icon with quick-view menu using `@tauri-apps/plugin-tray`
+
+**Output:** A real-time system monitor with tray icon, using under 50MB of memory.
+
+## Guidelines
+
+- Use commands for request-response patterns and events for push notifications; do not mix them.
+- Define all allowed APIs in `capabilities/` following the principle of least privilege.
+- Use `tauri::State<Mutex<T>>` for shared mutable state since Rust enforces thread safety.
+- Use `@tauri-apps/plugin-store` over `localStorage` for persistent data since it survives app updates.
+- Handle errors in Rust with `Result<T, String>` so error messages surface as rejected promises in JS.
+- Keep the frontend framework-agnostic since Tauri works with any web framework.
+- Use the auto-updater with signature verification for production apps.

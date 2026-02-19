@@ -1,82 +1,66 @@
-# Electron — Desktop Apps with Web Technologies
+---
+name: electron
+description: >-
+  Assists with building cross-platform desktop applications using Electron. Use when
+  architecting main/renderer process communication, configuring secure contexts, implementing
+  auto-updates, or packaging apps for Windows, macOS, and Linux. Trigger words: electron,
+  desktop app, browserwindow, ipc, auto-update, electron-builder.
+license: Apache-2.0
+compatibility: "Requires Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["electron", "desktop", "cross-platform", "ipc", "packaging"]
+---
 
-> Author: terminal-skills
+# Electron
 
-You are an expert in Electron for building cross-platform desktop applications. You architect main/renderer process communication, configure secure contexts, implement auto-updates, and optimize performance for production desktop software.
+## Overview
 
-## Core Competencies
+Electron is a framework for building cross-platform desktop applications using web technologies. It combines a Node.js main process for system access and window management with Chromium renderer processes for the UI, communicating via IPC with context isolation and preload scripts for security.
 
-### Architecture
-- **Main process**: Node.js — system access, window management, native APIs, app lifecycle
-- **Renderer process**: Chromium — web page rendering, UI, frontend framework
-- **Preload scripts**: bridge between main and renderer with controlled API exposure
-- **Context isolation**: renderer cannot access Node.js APIs directly (security)
-- IPC: `ipcMain.handle()` / `ipcRenderer.invoke()` for request-response communication
+## Instructions
 
-### Window Management
-- `BrowserWindow`: create application windows with configurable options
-- Frameless windows: custom title bars with `-webkit-app-region: drag`
-- Multi-window: manage multiple windows with shared state
-- Tray: system tray icon with context menu
-- Dock (macOS): badge count, bounce, custom menu
-- Splash screen: show loading window while main window initializes
+- When setting up the architecture, create a main process for window management and system APIs, renderer processes for UI, and preload scripts to expose a controlled API bridge via `contextBridge.exposeInMainWorld()`.
+- When implementing IPC, use `ipcMain.handle()` / `ipcRenderer.invoke()` for async request-response patterns, and `webContents.send()` for main-to-renderer push communication.
+- When accessing native APIs, use dialogs, file system, clipboard, notifications, and shell operations in the main process, exposing them to the renderer through the preload bridge.
+- When configuring security, keep `contextIsolation: true` and `nodeIntegration: false` (defaults), set CSP headers on all windows, sandbox renderer processes, and validate all IPC inputs in the main process.
+- When packaging the app, use `electron-builder` or `electron-forge` to produce platform-specific installers (NSIS/MSI for Windows, DMG for macOS, AppImage/deb for Linux) with code signing and notarization.
+- When implementing auto-updates, use `electron-updater` with GitHub Releases or a custom server, configure delta updates for smaller downloads, and verify update signatures.
 
-### IPC (Inter-Process Communication)
-- `ipcMain.handle("channel", handler)` + `ipcRenderer.invoke("channel", args)`: async request-response
-- `ipcMain.on("channel", handler)` + `ipcRenderer.send("channel", args)`: fire-and-forget
-- `webContents.send("channel", data)`: main → renderer push
-- Context bridge: `contextBridge.exposeInMainWorld("api", { ... })` — safe API exposure
-- Type safety: define shared types for IPC channels
+## Examples
 
-### Native APIs
-- File system: full Node.js `fs` access in main process
-- Shell: `shell.openExternal(url)`, `shell.openPath(path)`
-- Dialog: `dialog.showOpenDialog()`, `dialog.showSaveDialog()`, `dialog.showMessageBox()`
-- Clipboard: `clipboard.readText()`, `clipboard.writeText()`
-- Notifications: `new Notification({ title, body })` — native system notifications
-- Screen: `screen.getPrimaryDisplay()`, monitor detection
-- Power: `powerMonitor` for sleep/wake, battery status
-- Protocol: custom URL scheme handling (`myapp://`)
-- Global shortcuts: system-wide keyboard shortcuts
+### Example 1: Build a file manager with native dialogs
 
-### Security
-- Context isolation: `contextIsolation: true` (default) — renderer can't access Node.js
-- Preload scripts: controlled bridge between main and renderer
-- CSP headers: restrict loaded content sources
-- `nodeIntegration: false` (default) — no `require()` in renderer
-- `sandbox: true`: additional renderer process sandboxing
-- Remote module disabled by default in Electron 14+
-- Validate all IPC inputs in the main process
+**User request:** "Create an Electron app that browses and manages files with native dialogs"
 
-### Auto-Updates
-- `electron-updater` (`electron-builder`): auto-update with GitHub Releases, S3, or custom server
-- `autoUpdater`: built-in Squirrel-based updater (macOS/Windows)
-- Delta updates: download only changed files
-- Staged rollout: update percentage of users gradually
-- Signature verification: prevent malicious updates
+**Actions:**
+1. Set up main process with `BrowserWindow` and preload script exposing file system commands
+2. Implement IPC handlers for `dialog.showOpenDialog()`, `dialog.showSaveDialog()`, and file operations
+3. Build a React-based renderer UI for browsing directories and previewing files
+4. Add context menus and keyboard shortcuts for file operations
 
-### Packaging
-- `electron-builder`: build installers for all platforms
-  - Windows: NSIS, MSI, AppX, portable
-  - macOS: DMG, PKG, MAS (Mac App Store)
-  - Linux: AppImage, deb, rpm, snap, flatpak
-- `electron-forge`: Electron's official build tool
-- Code signing: macOS notarization, Windows Authenticode signing
-- ASAR packaging: bundle app source into an archive
+**Output:** A cross-platform file manager with native OS dialogs and secure IPC-based file access.
 
-### Performance
-- Lazy window creation: don't create windows until needed
-- Background throttling: `backgroundThrottling: false` for always-active apps
-- V8 snapshots: faster startup with pre-compiled code
-- `BrowserView`: embed web content without full window overhead
-- Worker threads: offload computation from main process
-- Memory management: monitor with `process.memoryUsage()`, handle `renderer-process-gone`
+### Example 2: Add auto-updates with staged rollout
 
-## Code Standards
-- Always use context isolation and preload scripts — never enable `nodeIntegration` in renderer
-- Validate all IPC message data in the main process — renderer is untrusted (like a browser)
-- Use `ipcMain.handle()` / `ipcRenderer.invoke()` for async operations — not the older `send`/`on` pattern
-- Minimize main process work: keep it responsive for window management and IPC routing
-- Use `electron-builder` for cross-platform packaging — it handles code signing and auto-updates
-- Set CSP headers on all windows: `default-src 'self'; script-src 'self'`
-- Test on all target platforms: Windows, macOS, and Linux behave differently (menus, shortcuts, file paths)
+**User request:** "Set up auto-updates for my Electron app using GitHub Releases"
+
+**Actions:**
+1. Configure `electron-builder` with `publish` settings pointing to GitHub Releases
+2. Add `electron-updater` in the main process with update check on startup
+3. Implement update UI in the renderer showing download progress and restart prompt
+4. Configure staged rollout to update a percentage of users first
+
+**Output:** An Electron app that automatically checks for updates, downloads them in the background, and prompts the user to restart.
+
+## Guidelines
+
+- Always use context isolation and preload scripts; never enable `nodeIntegration` in the renderer.
+- Validate all IPC message data in the main process since the renderer is untrusted like a browser.
+- Use `ipcMain.handle()` / `ipcRenderer.invoke()` for async operations over the older `send`/`on` pattern.
+- Minimize main process work to keep it responsive for window management and IPC routing.
+- Set CSP headers on all windows: `default-src 'self'; script-src 'self'`.
+- Test on all target platforms since Windows, macOS, and Linux behave differently for menus, shortcuts, and file paths.
+- Handle the `renderer-process-gone` event and monitor memory usage with `process.memoryUsage()`.

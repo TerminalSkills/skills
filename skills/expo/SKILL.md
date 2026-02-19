@@ -1,69 +1,65 @@
-# Expo — React Native Development Platform
+---
+name: expo
+description: >-
+  Assists with building, deploying, and updating React Native applications using Expo. Use
+  when setting up file-based routing with Expo Router, configuring EAS Build and Submit,
+  implementing over-the-air updates, or integrating Expo SDK modules for camera, location,
+  and notifications. Trigger words: expo, expo router, eas build, eas update, expo sdk.
+license: Apache-2.0
+compatibility: "Requires Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["expo", "react-native", "mobile", "eas", "cross-platform"]
+---
 
-> Author: terminal-skills
+# Expo
 
-You are an expert in Expo for building, deploying, and updating React Native applications. You use Expo's managed workflow, EAS Build/Submit, and over-the-air updates to ship iOS and Android apps without managing native code, Xcode, or Android Studio.
+## Overview
 
-## Core Competencies
+Expo is a development platform for React Native that provides file-based routing (Expo Router), cloud builds (EAS Build), automated store submissions (EAS Submit), and over-the-air updates (EAS Update). It includes 50+ SDK modules for native device APIs and lets developers ship iOS and Android apps without managing Xcode or Android Studio.
 
-### Expo Router (File-Based Routing)
-- `app/index.tsx` → home screen
-- `app/(tabs)/_layout.tsx` → tab navigator
-- `app/profile/[id].tsx` → dynamic route with params
-- `app/(auth)/login.tsx` → route groups for auth flow
-- `app/modal.tsx` → modal presentation
-- `app/+not-found.tsx` → 404 screen
-- Deep linking and universal links built-in
-- Type-safe navigation with `useLocalSearchParams<{ id: string }>()`
+## Instructions
 
-### EAS (Expo Application Services)
-- **EAS Build**: cloud builds for iOS and Android — no Mac needed for iOS builds
-- **EAS Submit**: automated submission to App Store and Google Play
-- **EAS Update**: over-the-air JavaScript updates (bypass app store review)
-- **EAS Metadata**: manage App Store/Play Store listing metadata as code
-- Build profiles: `development`, `preview`, `production` in `eas.json`
-- Internal distribution: share dev builds via QR code (TestFlight alternative)
+- When starting a new app, use `npx create-expo-app` with TypeScript and set up Expo Router for file-based navigation in the `app/` directory with layouts, dynamic routes, and route groups.
+- When building for production, configure EAS Build profiles (`development`, `preview`, `production`) in `eas.json` and use cloud builds instead of local builds for reproducibility.
+- When deploying updates, use EAS Update for instant JavaScript-only bug fixes that bypass app store review, with channel-based routing and rollback support.
+- When accessing device APIs, use Expo SDK modules (`expo-camera`, `expo-location`, `expo-notifications`, `expo-secure-store`) and config plugins to handle native permissions without ejecting.
+- When testing, use Expo Go for quick iteration on physical devices, and development builds for testing custom native modules.
+- When optimizing performance, use `expo-image` over the built-in `Image` component for caching and modern format support, and configure splash screens and app icons via `app.config.ts`.
 
-### Config Plugins
-- Modify native code without ejecting: `app.config.ts` plugins
-- `expo-camera`: automatically adds camera permissions to Info.plist / AndroidManifest
-- Custom plugins: write Node.js scripts to modify Xcode/Gradle projects
-- Community plugins: Firebase, OneSignal, Sentry, RevenueCat
+## Examples
 
-### Expo SDK Modules
-- `expo-camera`: camera capture with barcode scanning
-- `expo-location`: foreground/background GPS, geofencing
-- `expo-notifications`: local and push notifications (APNs + FCM)
-- `expo-image-picker`: photo/video selection from library or camera
-- `expo-file-system`: file read/write, downloads with progress
-- `expo-secure-store`: encrypted key-value storage (Keychain/Keystore)
-- `expo-auth-session`: OAuth/OpenID Connect flows
-- `expo-local-authentication`: Face ID / fingerprint
-- `expo-haptics`: vibration and haptic feedback
-- `expo-av`: audio/video playback and recording
-- `expo-sqlite`: local SQLite database
-- `expo-linking`: deep links and URL handling
-- `expo-image`: high-performance image component (replaces `Image`)
+### Example 1: Build a mobile app with tab navigation and push notifications
 
-### Development Workflow
-- `npx expo start`: start dev server
-- Expo Go: scan QR code to test on physical device (no build needed)
-- Development builds: custom Expo Go with your native modules
-- `npx expo prebuild`: generate native projects for customization
-- `npx expo run:ios` / `npx expo run:android`: local native builds
+**User request:** "Create an Expo app with tabs, push notifications, and deep linking"
 
-### Over-the-Air Updates
-- `expo-updates`: fetch and apply JS bundle updates without app store
-- Channel-based: route updates to specific build profiles
-- Rollback: revert to previous update if issues detected
-- Branch-based: preview updates before promoting to production
-- Fingerprint: detect native code changes that require a new build
+**Actions:**
+1. Scaffold with `npx create-expo-app` and set up Expo Router with `app/(tabs)/_layout.tsx`
+2. Configure `expo-notifications` for push notifications (APNs and FCM) with config plugin
+3. Add deep linking via universal links in `app.config.ts`
+4. Set up EAS Build profiles and EAS Submit for App Store and Google Play
 
-## Code Standards
-- Use Expo Router for navigation — file-based routing is simpler and supports deep linking automatically
-- Use EAS Build instead of local builds — reproducible, no local Xcode/Android Studio setup
-- Use `expo-image` over `Image` — it handles caching, transitions, and modern formats (WebP, AVIF)
-- Store sensitive data in `expo-secure-store`, never in AsyncStorage or MMKV
-- Use config plugins instead of ejecting — you keep the managed workflow benefits
-- Set up EAS Update for instant bug fixes — app store review takes 1-3 days, OTA updates are instant
-- Use development builds for testing native modules — Expo Go doesn't support custom native code
+**Output:** A tab-based mobile app with push notifications, deep linking, and automated store submission.
+
+### Example 2: Ship a bug fix via over-the-air update
+
+**User request:** "Push an urgent fix to production without going through app store review"
+
+**Actions:**
+1. Fix the bug in the JavaScript/TypeScript code
+2. Run `eas update --channel production` to publish the update
+3. Verify the update fingerprint to ensure no native code changes are required
+4. Monitor rollout and use rollback if issues are detected
+
+**Output:** A production fix deployed instantly to all users without waiting for app store review.
+
+## Guidelines
+
+- Use Expo Router for navigation since file-based routing is simpler and supports deep linking automatically.
+- Use EAS Build instead of local builds for reproducible, cross-platform builds without local Xcode or Android Studio.
+- Use `expo-image` over `Image` for better caching, transitions, and modern format support (WebP, AVIF).
+- Store sensitive data in `expo-secure-store`, never in AsyncStorage or MMKV which are unencrypted.
+- Use config plugins instead of ejecting to keep managed workflow benefits.
+- Use development builds for testing native modules since Expo Go does not support custom native code.
