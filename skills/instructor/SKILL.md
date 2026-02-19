@@ -1,63 +1,68 @@
-# Instructor — Structured LLM Outputs
+---
+name: instructor
+description: >-
+  Assists with extracting structured, validated data from LLM responses using Instructor.
+  Use when converting unstructured text into typed objects, classifying content, extracting
+  entities, or building reliable data extraction pipelines with automatic retries.
+  Trigger words: instructor, structured output, pydantic, llm extraction, entity extraction,
+  structured data, response model.
+license: Apache-2.0
+compatibility: "Python 3.9+ or TypeScript/Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["instructor", "structured-output", "llm", "extraction", "validation"]
+---
 
-> Author: terminal-skills
+# Instructor
 
-You are an expert in Instructor for extracting structured, validated data from LLM responses. You use Pydantic models (Python) or Zod schemas (TypeScript) to define output types, and Instructor handles prompt engineering, retries, and validation automatically — turning unreliable LLM text into reliable typed data.
+## Overview
 
-## Core Competencies
+Instructor extracts structured, validated data from LLM responses using Pydantic models (Python) or Zod schemas (TypeScript). It handles prompt engineering, retries, and validation automatically, turning unreliable LLM text into reliable typed data with support for OpenAI, Anthropic, Google, and other providers.
 
-### Python (instructor)
-- Patch any client: `instructor.from_openai(OpenAI())`, `instructor.from_anthropic(Anthropic())`
-- Response model: `client.chat.completions.create(response_model=User, ...)`
-- Pydantic models define the output schema with validation rules
-- Automatic retries on validation failure (default 3 attempts)
-- Streaming: `client.chat.completions.create_partial(response_model=User, stream=True)`
-- Iterable: `create_iterable()` for extracting lists of objects from text
-- Supported providers: OpenAI, Anthropic, Google, Mistral, Ollama, Groq, LiteLLM
+## Instructions
 
-### TypeScript (instructor)
-- `import Instructor from "@instructor-ai/instructor"`
-- `const client = Instructor({ client: openai, mode: "TOOLS" })`
-- Zod schemas: `client.chat.completions.create({ response_model: { schema: UserSchema, name: "User" } })`
-- Streaming with partial objects: `{ stream: true }` returns partial results as they generate
-- Modes: `TOOLS` (function calling), `JSON` (JSON mode), `MD_JSON` (markdown JSON)
+- When defining output schemas, use Pydantic models (Python) or Zod schemas (TypeScript) with descriptive field descriptions that guide the LLM, and include `Optional` fields for data that may not be present in the input.
+- When extracting data, use `client.chat.completions.create(response_model=Schema, ...)` and set `max_retries=3` for production since most validation failures self-correct on the first retry.
+- When improving accuracy, include a `reasoning` or `chain_of_thought` field in the schema to force the model to think before outputting structured fields.
+- When validating business rules, add field validators and model validators for cross-field constraints (e.g., "end_date must be after start_date", "amount must be positive").
+- When extracting multiple objects, use `create_iterable()` for variable-length extractions instead of `List[Item]` for better streaming and pagination support.
+- When streaming results, use `create_partial()` (Python) or `{ stream: true }` (TypeScript) to display incomplete results as the model generates them.
+- When monitoring quality, log extraction attempts and retry counts; high retry rates indicate schema or prompt issues that need refinement.
 
-### Validation and Retries
-- Field validators: Pydantic `@field_validator` / Zod `.refine()` for custom rules
-- Model validators: cross-field validation (e.g., end_date must be after start_date)
-- `max_retries`: number of attempts if validation fails (model sees the error and tries again)
-- `validation_context`: pass additional context to validators (allowed values, user permissions)
-- LLM self-correction: validation errors are sent back to the model as feedback
+## Examples
 
-### Extraction Patterns
-- **Entity extraction**: pull structured entities from unstructured text (names, dates, amounts)
-- **Classification**: categorize text into predefined classes with confidence scores
-- **Summarization**: structured summaries with required fields (title, key_points, action_items)
-- **Data transformation**: convert natural language descriptions into structured formats
-- **Multi-object extraction**: `create_iterable()` for extracting multiple objects from one prompt
-- **Chain of thought**: include `reasoning: str` field for the model to show its work before answering
+### Example 1: Extract structured entities from text
 
-### Advanced Patterns
-- **Streaming partial objects**: display incomplete results as the model generates
-- **Multimodal**: extract structured data from images (receipts, screenshots, charts)
-- **Function calling mode**: leverage native tool use for structured output
-- **Caching**: cache identical requests to reduce API costs
-- **Hooks**: `on_completion` callbacks for logging, monitoring, cost tracking
-- **Batch processing**: process multiple inputs with consistent schemas
+**User request:** "Parse customer support emails into structured tickets"
 
-### Use Cases
-- Parse resumes into structured candidate profiles
-- Extract invoice line items from scanned documents
-- Classify support tickets by category, urgency, and sentiment
-- Convert natural language queries to SQL or API calls
-- Extract action items and decisions from meeting transcripts
-- Parse medical records into structured clinical data
+**Actions:**
+1. Define a Pydantic model with fields: subject, category, urgency, customer_name, issue_description
+2. Add a `reasoning` field for the model to analyze the email before structuring
+3. Patch the OpenAI client with Instructor and call with `response_model=SupportTicket`
+4. Add field validators for category and urgency enums with descriptive error messages
 
-## Code Standards
-- Define output models with descriptive field descriptions — the LLM reads them as schema guidance
-- Include a `reasoning` or `chain_of_thought` field for complex extractions — it improves accuracy by forcing the model to think before outputting structured fields
-- Set `max_retries=3` for production — most validation failures self-correct on the first retry
-- Use `Optional[str]` / `z.string().optional()` for fields that may not be present in the input
-- Validate business logic in model validators, not just type checks — "amount must be positive", "date must be in the future"
-- Use `create_iterable()` for variable-length extractions instead of `List[Item]` — it handles pagination and streaming better
-- Log extraction attempts and retry counts for monitoring — high retry rates indicate schema/prompt issues
+**Output:** Structured support tickets with consistent categorization and validated fields.
+
+### Example 2: Classify documents with confidence scores
+
+**User request:** "Classify legal documents by type with confidence scoring"
+
+**Actions:**
+1. Define classification schema with `document_type`, `confidence`, and `key_indicators` fields
+2. Add validation that confidence is between 0 and 1
+3. Use `create_iterable()` to process a batch of documents
+4. Log retry counts to monitor classification quality over time
+
+**Output:** Typed classification results with confidence scores and supporting evidence.
+
+## Guidelines
+
+- Define output models with descriptive field descriptions; the LLM reads them as schema guidance.
+- Include a `reasoning` field for complex extractions to improve accuracy.
+- Set `max_retries=3` for production; most validation failures self-correct on the first retry.
+- Use `Optional` types for fields that may not be present in the input.
+- Validate business logic in model validators, not just type checks.
+- Use `create_iterable()` for variable-length extractions instead of `List[Item]`.
+- Log extraction attempts and retry counts for monitoring; high retry rates indicate schema or prompt issues.
