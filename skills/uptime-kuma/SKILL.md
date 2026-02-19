@@ -1,15 +1,18 @@
 ---
 name: uptime-kuma
-category: devops
-version: 1.0.0
 description: >-
   Monitor service uptime with Uptime Kuma — HTTP, TCP, DNS, Docker, and keyword
   checks, multi-channel alerts (Slack, email, webhook, Telegram, Discord),
   status pages, maintenance windows, and API automation. Use when tasks involve
   monitoring website or service availability, setting up alerting, creating
   public status pages, or tracking SLA metrics.
-author: terminal-skills
-tags: [uptime-kuma, monitoring, alerts, status-page, uptime, self-hosted]
+license: Apache-2.0
+compatibility: "Requires Docker or Node.js 18+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: devops
+  tags: ["uptime-kuma", "monitoring", "alerts", "status-page", "uptime"]
 ---
 
 # Uptime Kuma

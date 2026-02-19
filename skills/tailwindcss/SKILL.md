@@ -1,15 +1,18 @@
 ---
 name: tailwindcss
-category: development
-version: 1.0.0
 description: >-
   Build UIs with Tailwind CSS — utility classes, responsive design, dark mode,
   custom configuration, component patterns, animations, plugins, and design
   system setup. Use when tasks involve styling web applications, configuring
   design tokens, building responsive layouts, or migrating from other CSS
   approaches.
-author: terminal-skills
-tags: [tailwindcss, css, frontend, responsive, design-system, styling]
+license: Apache-2.0
+compatibility: "Requires Node.js 16+"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["tailwindcss", "css", "frontend", "responsive", "design-system"]
 ---
 
 # Tailwind CSS
