@@ -1,66 +1,178 @@
 ---
 name: zustand
 description: >-
-  Assists with managing global and shared state in React applications using Zustand. Use
-  when creating stores, handling async operations, persisting state, integrating with
-  DevTools, or splitting stores into slices. Trigger words: zustand, state management,
-  store, persist, selectors, react state.
+  Manage React state with Zustand. Use when a user asks to set up global state
+  in React, replace Redux with something simpler, share state between components,
+  persist state to localStorage, or implement a lightweight store.
 license: Apache-2.0
-compatibility: "Requires React 18+"
+compatibility: 'React 18+'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["zustand", "state-management", "react", "store", "global-state"]
+  version: 1.0.0
+  category: frontend
+  tags:
+    - zustand
+    - react
+    - state
+    - store
+    - frontend
 ---
 
 # Zustand
 
 ## Overview
 
-Zustand is a lightweight state management library for React that provides global stores with minimal boilerplate, automatic render optimization via selectors, built-in middleware for persistence and DevTools integration, and async action support without additional libraries. Stores are created outside of React and require no providers.
+Zustand is a minimal state management library for React. No providers, no boilerplate, no context — just a hook. It's 1KB, works outside React components, supports middleware (persist, devtools, immer), and handles async operations natively.
 
 ## Instructions
 
-- When creating stores, use `create<State>()((set, get) => ({ ... }))` with typed state and actions, using `set()` for updates (shallow merge by default) and `get()` for reading current state in async functions.
-- When consuming state, always use selectors (`useStore((s) => s.count)`) to prevent unnecessary re-renders, and use the `shallow` comparator for object or array selectors.
-- When handling async operations, define async functions directly in the store that call `set()` for loading, success, and error states, without needing middleware.
-- When persisting state, use the `persist` middleware with `partialize` to save only specific fields, `version` for schema migrations, and custom storage backends (localStorage, sessionStorage, AsyncStorage).
-- When debugging, use the `devtools` middleware to connect to Redux DevTools for state inspection and time-travel debugging.
-- When scaling stores, use the slices pattern to split large stores into focused domain slices (auth, cart, ui) that combine into a single store with cross-slice access via `get()`.
+### Step 1: Create Store
 
-## Examples
+```typescript
+// stores/useAuthStore.ts — Authentication state
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
-### Example 1: Build an e-commerce cart store with persistence
+interface User {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'member'
+}
 
-**User request:** "Create a Zustand store for a shopping cart that persists across page reloads"
+interface AuthState {
+  user: User | null
+  token: string | null
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<void>
+  logout: () => void
+  updateProfile: (updates: Partial<User>) => void
+}
 
-**Actions:**
-1. Define the store with cart items, add/remove/update actions, and computed total
-2. Add `persist` middleware with `partialize` to save only cart items (not UI state)
-3. Add `devtools` middleware for debugging
-4. Use selectors in components: `useCartStore((s) => s.items)` and `useCartStore((s) => s.total)`
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      isLoading: false,
 
-**Output:** A cart store with add, remove, and quantity update actions, persisted to localStorage and connected to DevTools.
+      login: async (email, password) => {
+        set({ isLoading: true })
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password }),
+          })
+          const { user, token } = await res.json()
+          set({ user, token, isLoading: false })
+        } catch {
+          set({ isLoading: false })
+          throw new Error('Login failed')
+        }
+      },
 
-### Example 2: Build an auth store with async login
+      logout: () => set({ user: null, token: null }),
 
-**User request:** "Create a Zustand store for authentication with login/logout and token management"
+      updateProfile: (updates) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates } : null,
+        })),
+    }),
+    { name: 'auth-storage' }   // persists to localStorage
+  )
+)
+```
 
-**Actions:**
-1. Define the store with user, token, loading, and error state fields
-2. Implement `login` as an async action that calls the API and updates state
-3. Add `persist` middleware to save the token (not loading/error state)
-4. Use `subscribeWithSelector` to trigger side effects on token changes
+### Step 2: Use in Components
 
-**Output:** An auth store with async login/logout, persistent token storage, and reactive side effects.
+```tsx
+// components/Header.tsx — Consume state with a hook
+import { useAuthStore } from '../stores/useAuthStore'
+
+export function Header() {
+  // Only re-renders when these specific values change
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+
+  return (
+    <header>
+      {user ? (
+        <>
+          <span>Welcome, {user.name}</span>
+          <button onClick={logout}>Sign Out</button>
+        </>
+      ) : (
+        <a href="/login">Sign In</a>
+      )}
+    </header>
+  )
+}
+```
+
+### Step 3: Complex Store with Slices
+
+```typescript
+// stores/useAppStore.ts — Combined store with slices
+import { create } from 'zustand'
+import { devtools, immer } from 'zustand/middleware'
+
+interface AppState {
+  // UI slice
+  sidebarOpen: boolean
+  theme: 'light' | 'dark'
+  toggleSidebar: () => void
+  setTheme: (theme: 'light' | 'dark') => void
+
+  // Notifications slice
+  notifications: Array<{ id: string; message: string; type: 'info' | 'error' }>
+  addNotification: (message: string, type: 'info' | 'error') => void
+  removeNotification: (id: string) => void
+}
+
+export const useAppStore = create<AppState>()(
+  devtools(
+    immer((set) => ({
+      sidebarOpen: true,
+      theme: 'light',
+      notifications: [],
+
+      toggleSidebar: () => set((state) => { state.sidebarOpen = !state.sidebarOpen }),
+      setTheme: (theme) => set((state) => { state.theme = theme }),
+
+      addNotification: (message, type) => set((state) => {
+        state.notifications.push({ id: crypto.randomUUID(), message, type })
+      }),
+      removeNotification: (id) => set((state) => {
+        state.notifications = state.notifications.filter(n => n.id !== id)
+      }),
+    })),
+    { name: 'app-store' }    // shows in Redux DevTools
+  )
+)
+```
+
+### Step 4: Use Outside React
+
+```typescript
+// lib/api.ts — Access store from non-React code
+import { useAuthStore } from '../stores/useAuthStore'
+
+export async function fetchWithAuth(url: string) {
+  const token = useAuthStore.getState().token
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (res.status === 401) {
+    useAuthStore.getState().logout()
+  }
+  return res
+}
+```
 
 ## Guidelines
 
-- Always use selectors (`useStore((s) => s.count)`); never call `useStore()` without a selector since it re-renders on any state change.
-- Use `shallow` for object selectors to prevent unnecessary re-renders from new object references.
-- Use `persist` with `partialize` to save only what needs to survive page reloads, not the entire store.
-- Use `immer` middleware for deeply nested state updates to avoid spread chains.
-- Keep stores small and focused: one store per domain (auth, cart, ui) rather than one giant global store.
-- Use `devtools` middleware in development for state inspection via Redux DevTools.
-- Define actions inside the store, not in components, to colocate state with the logic that modifies it.
+- Use selectors `useStore(s => s.field)` to avoid unnecessary re-renders.
+- `persist` middleware saves to localStorage automatically — great for auth, preferences.
+- `immer` middleware allows mutable-style updates (Zustand handles immutability).
+- Zustand works with Redux DevTools via the `devtools` middleware.
+- For server-side state (API data), use TanStack Query instead — Zustand is for client state.
