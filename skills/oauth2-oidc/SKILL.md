@@ -1,77 +1,67 @@
-# OAuth 2.0 / OpenID Connect — Authentication and Authorization
+---
+name: oauth2-oidc
+description: >-
+  Assists with implementing OAuth 2.0 and OpenID Connect for secure authentication and
+  authorization. Use when configuring authorization flows, validating tokens, implementing
+  PKCE for public clients, setting up social login, or building secure token handling for
+  SPAs, mobile apps, and APIs. Trigger words: oauth, oidc, openid connect, authorization
+  code, pkce, jwt, access token, refresh token.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: devops
+  tags: ["oauth2", "oidc", "authentication", "authorization", "jwt"]
+---
 
-> Author: terminal-skills
+# OAuth 2.0 / OpenID Connect
 
-You are an expert in OAuth 2.0 and OpenID Connect (OIDC) for implementing secure authentication and authorization. You configure authorization flows, validate tokens, implement PKCE for public clients, set up social login, and build secure token handling for SPAs, mobile apps, and APIs.
+## Overview
 
-## Core Competencies
+OAuth 2.0 is the industry standard for API authorization, and OpenID Connect (OIDC) extends it for user authentication. Together they provide Authorization Code + PKCE for secure token exchange, JWT-based identity tokens, refresh token rotation, and integration with identity providers (Auth0, Okta, Keycloak, Google, Azure AD) for social login and enterprise SSO.
 
-### OAuth 2.0 Flows
-- **Authorization Code + PKCE**: recommended for all clients (SPAs, mobile, server)
-  - Client generates `code_verifier` + `code_challenge`
-  - Redirect to `/authorize?response_type=code&code_challenge=...`
-  - Exchange code for tokens at `/token` with `code_verifier`
-- **Client Credentials**: machine-to-machine (no user involved)
-  - `POST /token` with `client_id` + `client_secret`
-  - Returns access token directly
-- **Device Authorization**: smart TVs, CLI tools (limited input devices)
-  - Display code, user authorizes on another device
-- **Implicit** (deprecated): tokens in URL fragment — insecure, don't use
-- **Resource Owner Password** (deprecated): direct username/password — don't use
+## Instructions
 
-### OpenID Connect
-- Layer on top of OAuth 2.0 for authentication (who the user is)
-- `id_token`: JWT with user identity claims (sub, email, name)
-- `userinfo` endpoint: fetch additional user profile data
-- `scope: openid profile email`: request identity information
-- Discovery: `/.well-known/openid-configuration` for auto-configuration
-- Standard claims: `sub`, `email`, `email_verified`, `name`, `picture`, `locale`
+- When implementing authentication, use the Authorization Code + PKCE flow for all client types (SPAs, mobile, server) since it is the only secure flow; never use the deprecated Implicit or Resource Owner Password flows.
+- When validating tokens on the API side, verify the JWT signature using the provider's JWKS endpoint, check `exp`, `iss`, and `aud` claims, and never trust client-side token validation alone.
+- When storing tokens in web apps, use `httpOnly`, `secure`, `sameSite=lax` cookies; never store tokens in localStorage since it is vulnerable to XSS.
+- When managing token lifecycle, use short-lived access tokens (5-15 minutes) with refresh token rotation where each refresh token is single-use and a new one is issued with each refresh.
+- When integrating a provider, use the discovery endpoint (`/.well-known/openid-configuration`) for auto-configuration rather than hardcoding endpoints.
+- When implementing logout, revoke the refresh token, clear the session, and redirect to the provider's logout endpoint for complete session termination.
 
-### Tokens
-- **Access Token**: short-lived (5-60 min), used for API authorization
-- **Refresh Token**: long-lived, used to get new access tokens
-- **ID Token**: JWT with user identity, consumed by the client
-- JWT structure: header.payload.signature (base64url encoded)
-- Claims: `iss` (issuer), `sub` (subject), `aud` (audience), `exp` (expiration), `iat` (issued at)
-- Token validation: verify signature, check `exp`, verify `iss` and `aud`
+## Examples
 
-### PKCE (Proof Key for Code Exchange)
-- Required for public clients (SPAs, mobile apps) — no client secret
-- `code_verifier`: random 43-128 character string
-- `code_challenge`: SHA-256 hash of verifier (base64url encoded)
-- Prevents authorization code interception attacks
-- `code_challenge_method: S256` (never use `plain`)
+### Example 1: Add social login to a Next.js app with PKCE
 
-### Providers
-- **Auth0**: multi-tenant, social + enterprise SSO, free tier
-- **Okta**: enterprise identity, workforce + customer identity
-- **Keycloak**: open-source, self-hosted, full-featured
-- **Google**: Google accounts, Workspace integration
-- **Azure AD / Entra ID**: Microsoft ecosystem, enterprise SSO
-- **Clerk**: developer-focused, pre-built UI components
-- **AWS Cognito**: user pools, federated identity
+**User request:** "Implement Google and GitHub login for my Next.js app using OAuth 2.0"
 
-### Security
-- Use PKCE on every flow — even confidential clients benefit
-- Store tokens in httpOnly cookies (server-side) or in-memory (SPA) — never localStorage
-- Validate `state` parameter to prevent CSRF
-- Validate `nonce` in ID tokens to prevent replay attacks
-- Use short access token TTL (5-15 min) + refresh token rotation
-- Revoke refresh tokens on logout and password change
-- Validate JWT signature with provider's JWKS endpoint
+**Actions:**
+1. Configure the OIDC providers with client IDs and redirect URIs
+2. Implement the Authorization Code + PKCE flow with state and nonce validation
+3. Exchange the code for tokens and validate the ID token JWT claims
+4. Store the session in httpOnly cookies with refresh token rotation
 
-### Scopes and Claims
-- Standard scopes: `openid`, `profile`, `email`, `address`, `phone`
-- Custom scopes: `read:orders`, `write:products` — resource-specific
-- Custom claims: add roles, permissions, organization to tokens
-- Scope consent: user approves requested permissions
-- Claim mapping: transform provider claims to application roles
+**Output:** A Next.js app with secure social login via Google and GitHub, PKCE-protected token exchange, and httpOnly cookie sessions.
 
-## Code Standards
-- Always use Authorization Code + PKCE — it's the only secure flow for all client types
-- Validate tokens on the API side: verify signature, `exp`, `iss`, `aud` — never trust client-side token validation alone
-- Use `httpOnly`, `secure`, `sameSite=lax` cookies for token storage in web apps — not localStorage
-- Implement refresh token rotation: each refresh token is single-use, issue a new one with each refresh
-- Use the provider's discovery endpoint for configuration — don't hardcode endpoints
-- Request minimum scopes needed: `openid email` for login, not `openid profile email address phone`
-- Implement proper logout: revoke refresh token, clear session, redirect to provider's logout endpoint
+### Example 2: Secure a REST API with JWT validation
+
+**User request:** "Add OAuth 2.0 token validation to my API endpoints"
+
+**Actions:**
+1. Fetch the provider's JWKS from the discovery endpoint
+2. Create middleware that validates the access token signature, expiration, issuer, and audience
+3. Extract user claims and custom scopes from the validated token
+4. Return 401 for invalid tokens and 403 for insufficient scopes
+
+**Output:** An API with JWT-based authorization that validates tokens against the provider's JWKS and enforces scope-based access control.
+
+## Guidelines
+
+- Always use Authorization Code + PKCE since it is the only secure flow for all client types.
+- Validate tokens on the API side: verify signature, `exp`, `iss`, and `aud`; never trust client-side validation alone.
+- Use `httpOnly`, `secure`, `sameSite=lax` cookies for token storage in web apps, not localStorage.
+- Implement refresh token rotation where each refresh token is single-use.
+- Use the provider's discovery endpoint for configuration rather than hardcoding endpoints.
+- Request minimum scopes needed: `openid email` for login, not all available scopes.
+- Implement proper logout: revoke refresh token, clear session, redirect to provider's logout endpoint.

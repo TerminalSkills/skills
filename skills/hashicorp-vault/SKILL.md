@@ -1,76 +1,67 @@
-# HashiCorp Vault — Secrets Management
+---
+name: hashicorp-vault
+description: >-
+  Assists with managing secrets, encryption keys, and dynamic credentials using HashiCorp
+  Vault. Use when configuring secret engines, setting up dynamic database credentials,
+  implementing access policies, integrating with Kubernetes, or using Transit for encryption
+  as a service. Trigger words: vault, secrets management, dynamic secrets, transit engine,
+  pki, approle, vault agent.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: devops
+  tags: ["hashicorp-vault", "secrets", "security", "encryption", "dynamic-credentials"]
+---
 
-> Author: terminal-skills
+# HashiCorp Vault
 
-You are an expert in HashiCorp Vault for managing secrets, encryption keys, and access credentials in production systems. You configure secret engines, set up dynamic credentials, implement fine-grained access policies, and integrate Vault with applications and CI/CD pipelines.
+## Overview
 
-## Core Competencies
+HashiCorp Vault is a secrets management platform that provides KV storage with versioning, dynamic short-lived credentials for databases and cloud providers, PKI certificate management, Transit encryption as a service, and fine-grained HCL-based access policies. It integrates with Kubernetes via sidecar injection and CI/CD pipelines via AppRole authentication.
 
-### Secret Engines
-- **KV (Key-Value)**: static secrets with versioning (API keys, config values)
-  - v2: version history, soft delete, metadata
-  - `vault kv put secret/app/db password="hunter2"`
-  - `vault kv get -version=2 secret/app/db`
-- **Database**: dynamic, short-lived database credentials
-  - Supports PostgreSQL, MySQL, MongoDB, MSSQL, Oracle
-  - Auto-rotation: credentials expire after TTL
-- **AWS**: dynamic IAM credentials, assumed roles, federation tokens
-- **PKI**: X.509 certificate authority — issue and manage TLS certificates
-- **Transit**: encryption as a service (encrypt/decrypt without exposing keys)
-- **SSH**: signed SSH certificates for secure remote access
-- **TOTP**: generate/validate TOTP codes
+## Instructions
 
-### Authentication Methods
-- **AppRole**: machine-to-machine auth (CI/CD, services)
-- **Kubernetes**: pod service account authentication
-- **JWT/OIDC**: SSO integration (Okta, Auth0, Google)
-- **AWS IAM**: authenticate using AWS instance identity
-- **Token**: direct token authentication
-- **GitHub**: authenticate with GitHub personal access tokens
-- **Userpass**: username/password (human operators)
+- When storing static secrets, use the KV v2 engine with versioning for API keys and configuration values, organizing secrets by application and environment paths.
+- When managing database access, use the Database secret engine to generate dynamic, short-lived credentials that automatically expire, limiting the blast radius of credential leaks.
+- When authenticating applications, use AppRole for services and CI/CD (with secret_id rotation), Kubernetes auth for pods, and JWT/OIDC for SSO integration; never hardcode tokens.
+- When encrypting data, use the Transit engine for encryption as a service so applications encrypt/decrypt data without managing keys, with support for key rotation and convergent encryption.
+- When defining access, write HCL policies with deny-by-default, granting minimum capabilities (create, read, update, delete, list) per path, and use path templating for per-user isolation.
+- When deploying in Kubernetes, use Vault Agent sidecar injector or CSI provider to inject secrets into pods as files or environment variables, so applications read secrets without a Vault SDK.
 
-### Policies
-- HCL-based access control: define what paths each entity can access
-- Capabilities: `create`, `read`, `update`, `delete`, `list`, `sudo`, `deny`
-- Path templating: `secret/data/{{identity.entity.name}}/*` — per-user paths
-- Deny by default: no access unless explicitly granted
-- Policy assignment: attach to tokens, AppRoles, auth method entities
+## Examples
 
-### Dynamic Secrets
-- Generate credentials on-demand with automatic expiration
-- Database: `vault read database/creds/readonly` → temporary user/password
-- AWS: `vault read aws/creds/deploy-role` → temporary IAM credentials
-- TTL: credentials auto-revoke after configurable duration
-- Lease renewal: extend credential lifetime within max TTL
-- Revocation: `vault lease revoke` for immediate invalidation
+### Example 1: Set up dynamic database credentials for a microservice
 
-### Transit Engine (Encryption as a Service)
-- `vault write transit/encrypt/my-key plaintext=$(base64 <<< "secret")`
-- `vault write transit/decrypt/my-key ciphertext="vault:v1:..."`
-- Key rotation: new encryption key version, old data still decryptable
-- Convergent encryption: same plaintext → same ciphertext (for indexed lookups)
-- Supports: AES-GCM, ChaCha20, RSA, ECDSA, Ed25519
+**User request:** "Configure Vault to issue short-lived PostgreSQL credentials for my API service"
 
-### High Availability
-- Raft storage backend: built-in HA consensus
-- Auto-unseal: AWS KMS, Azure Key Vault, GCP KMS, HSM
-- Replication: performance replicas for read scaling
-- DR replication: disaster recovery with automatic failover
-- Audit logging: every request logged for compliance
+**Actions:**
+1. Enable the Database secret engine and configure the PostgreSQL connection
+2. Create a role with a SQL statement for read-only access and a 1-hour TTL
+3. Set up AppRole authentication for the API service with a policy allowing `database/creds/readonly`
+4. Configure Vault Agent sidecar to inject credentials into the pod and auto-renew leases
 
-### Agent and Integrations
-- **Vault Agent**: sidecar that auto-authenticates and caches tokens
-- **Template rendering**: Agent renders secrets into config files
-- **Kubernetes sidecar injector**: inject secrets into pods as files or env vars
-- **CSI provider**: mount secrets as Kubernetes volumes
-- **Terraform provider**: manage Vault config as code
-- **GitHub Actions**: `hashicorp/vault-action` for CI secret injection
+**Output:** A microservice that receives dynamic database credentials with automatic rotation and a 1-hour expiry.
 
-## Code Standards
-- Use dynamic secrets for databases — short-lived credentials limit blast radius of a breach
-- Use AppRole for services, never hardcoded tokens — AppRole supports secret_id rotation
-- Use Transit engine instead of application-level encryption — key management is Vault's job, not yours
-- Set TTLs as short as practical: 1 hour for database creds, 15 minutes for CI tokens
-- Audit all access: enable audit device logging — compliance requires knowing who accessed what and when
-- Use Vault Agent sidecar in Kubernetes — applications read secrets from files, no Vault SDK needed
-- Store Vault root token in a secure location and revoke it after initial setup — operators use personal tokens
+### Example 2: Add encryption as a service with Transit engine
+
+**User request:** "Encrypt sensitive user data at rest using Vault Transit without managing keys"
+
+**Actions:**
+1. Enable the Transit secret engine and create a named encryption key
+2. Build an API middleware that encrypts data via `transit/encrypt/key-name` before database writes
+3. Add a decryption path that calls `transit/decrypt/key-name` on reads
+4. Configure key rotation policy and verify old data remains decryptable
+
+**Output:** Application-level encryption using Vault Transit with automatic key management and rotation.
+
+## Guidelines
+
+- Use dynamic secrets for databases since short-lived credentials limit the blast radius of a breach.
+- Use AppRole for services, never hardcoded tokens, since AppRole supports secret_id rotation.
+- Use Transit engine instead of application-level encryption since key management is Vault's responsibility.
+- Set TTLs as short as practical: 1 hour for database credentials and 15 minutes for CI tokens.
+- Enable audit device logging for compliance since it records who accessed what and when.
+- Use Vault Agent sidecar in Kubernetes so applications read secrets from files without needing a Vault SDK.
+- Store the root token securely and revoke it after initial setup; operators should use personal tokens.
