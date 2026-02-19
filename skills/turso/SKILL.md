@@ -1,67 +1,102 @@
 ---
 name: turso
 description: >-
-  Assists with building applications using Turso, an edge SQLite database built on libSQL.
-  Use when setting up embedded replicas for zero-latency reads, implementing multi-tenant
-  database-per-user architecture, or integrating with Drizzle ORM. Trigger words: turso,
-  libsql, edge sqlite, embedded replica, database-per-tenant, turso cli.
+  Use Turso for edge SQLite databases. Use when a user asks to set up an edge
+  database, use SQLite in production, replicate databases globally, or choose
+  a serverless database for low-latency reads.
 license: Apache-2.0
-compatibility: "Works with any JavaScript/TypeScript runtime via @libsql/client"
+compatibility: 'Node.js, Bun, Deno, Python, Go, Rust'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: data-ai
-  tags: ["turso", "sqlite", "edge-database", "libsql", "embedded-replica"]
+  version: 1.0.0
+  category: database
+  tags:
+    - turso
+    - sqlite
+    - edge
+    - serverless
+    - libsql
 ---
 
 # Turso
 
 ## Overview
 
-Turso is an edge SQLite database built on libSQL (a fork of SQLite) that replicates data to 30+ edge locations worldwide. It features embedded replicas for sub-millisecond reads, a multi-database architecture for SaaS multi-tenancy, and compatibility with Drizzle ORM and Prisma via driver adapters.
+Turso is a managed SQLite database built on libSQL (an open-source fork of SQLite). It replicates your database to edge locations worldwide for sub-10ms reads. Free tier includes 9GB storage and 500 databases — ideal for per-tenant databases in multi-tenant SaaS.
 
 ## Instructions
 
-- When connecting to Turso, use `createClient({ url, authToken })` for cloud access, or `createClient({ url: "file:local.db", syncUrl, authToken })` for embedded replicas with local reads.
-- When setting up embedded replicas, configure `syncInterval` based on staleness tolerance (60s for dashboards, 5s for collaborative apps) and call `client.sync()` after important writes for immediate consistency.
-- When executing queries, use `execute()` for single statements with parameterized queries, `batch()` for multiple related writes in a single transaction and network round-trip, and `transaction()` for interactive transactions.
-- When building multi-tenant SaaS, use database-per-tenant architecture with database groups for shared schema, and the Platform API for programmatic database creation and deletion.
-- When integrating with ORMs, use `drizzle-orm/libsql` adapter for Drizzle or `@prisma/adapter-libsql` for Prisma, and reserve raw SQL for complex analytics queries.
-- When managing databases, use the `turso` CLI for creating databases, adding replicas to regions, generating auth tokens, and running interactive SQL shells.
-- When using vector search, leverage Turso's built-in vector similarity search without needing external extensions.
+### Step 1: Setup
 
-## Examples
+```bash
+# Install Turso CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+turso auth signup
 
-### Example 1: Set up embedded replicas for a read-heavy app
+# Create database
+turso db create my-app
+turso db show my-app --url     # get the connection URL
+turso db tokens create my-app   # get auth token
+```
 
-**User request:** "Configure Turso with local embedded replicas for my analytics dashboard"
+### Step 2: Connect from Node.js
 
-**Actions:**
-1. Create a Turso database with `turso db create` and add replicas in target regions
-2. Configure `@libsql/client` with `file:local.db` and `syncUrl` pointing to Turso cloud
-3. Set `syncInterval` to 60 seconds for dashboard-appropriate freshness
-4. Implement read queries against local replica and writes against the primary
+```typescript
+// db/client.ts — Turso + Drizzle ORM
+import { drizzle } from 'drizzle-orm/libsql'
+import { createClient } from '@libsql/client'
 
-**Output:** An analytics dashboard with sub-millisecond reads from the local SQLite replica.
+const turso = createClient({
+  url: process.env.TURSO_DATABASE_URL!,       // libsql://my-app-user.turso.io
+  authToken: process.env.TURSO_AUTH_TOKEN!,
+})
 
-### Example 2: Build multi-tenant SaaS with database-per-user
+export const db = drizzle(turso)
+```
 
-**User request:** "Set up isolated databases for each customer in my SaaS app"
+### Step 3: Per-Tenant Databases
 
-**Actions:**
-1. Create a database group with shared schema using `turso group create`
-2. Implement tenant provisioning that creates a database per customer via the Platform API
-3. Configure placement groups to co-locate databases near their users
-4. Apply schema migrations to all databases in the group simultaneously
+```typescript
+// lib/tenant-db.ts — One database per customer (multi-tenant)
+import { createClient } from '@libsql/client'
 
-**Output:** An isolated multi-tenant architecture with per-customer databases sharing a common schema.
+const tenantClients = new Map()
+
+export function getTenantDb(tenantId: string) {
+  if (!tenantClients.has(tenantId)) {
+    const client = createClient({
+      url: `libsql://${tenantId}-myapp.turso.io`,
+      authToken: process.env.TURSO_GROUP_TOKEN!,
+    })
+    tenantClients.set(tenantId, drizzle(client))
+  }
+  return tenantClients.get(tenantId)
+}
+
+// Usage
+const db = getTenantDb('acme-corp')
+const users = await db.select().from(schema.users)
+```
+
+### Step 4: Embedded Replicas
+
+```typescript
+// db/client.ts — Local replica for zero-latency reads
+import { createClient } from '@libsql/client'
+
+const client = createClient({
+  url: 'file:local-replica.db',                    // local SQLite file
+  syncUrl: process.env.TURSO_DATABASE_URL!,        // remote Turso DB
+  authToken: process.env.TURSO_AUTH_TOKEN!,
+  syncInterval: 60,                                 // sync every 60 seconds
+})
+
+// Reads hit local file (< 1ms), writes go to remote
+```
 
 ## Guidelines
 
-- Use embedded replicas for read-heavy applications; local reads are 100x faster than network queries.
-- Call `client.sync()` after important writes when using embedded replicas to see changes immediately.
-- Use `batch()` for multiple related writes; they execute in a single transaction and network round-trip.
-- Prefer database-per-tenant over row-level isolation for SaaS for simpler queries and easier data deletion.
-- Set `syncInterval` based on staleness tolerance: 60s for dashboards, 5s for collaborative apps.
-- Use Drizzle ORM with the libSQL adapter for type-safe queries; raw SQL only for complex analytics.
-- Keep databases small; SQLite scales better with many small databases than one large one.
+- Free tier: 9GB storage, 500 databases, 25M row reads/month — very generous for SaaS.
+- Use per-tenant databases for data isolation (GDPR, compliance, per-customer performance).
+- Embedded replicas give local SQLite performance with remote sync — great for edge deployments.
+- Works with Drizzle ORM natively via the libSQL dialect.
