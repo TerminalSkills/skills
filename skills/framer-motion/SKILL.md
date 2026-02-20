@@ -1,66 +1,141 @@
 ---
 name: framer-motion
 description: >-
-  Assists with building fluid animations and gestures in React applications using Framer
-  Motion. Use when creating enter/exit animations, layout transitions, scroll-triggered
-  effects, drag interactions, or orchestrated animation sequences. Trigger words: framer
-  motion, motion, animate, spring, layout animation, animatepresence, scroll animation.
+  Animate React components with Framer Motion. Use when adding page transitions,
+  gesture animations, layout animations, scroll-triggered effects, or building
+  interactive UI with spring physics.
 license: Apache-2.0
-compatibility: "Requires React 18+"
+compatibility: 'React 18+, Next.js'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: design
-  tags: ["framer-motion", "animation", "react", "gestures", "transitions"]
+  version: 1.0.0
+  category: frontend
+  tags: [framer-motion, animation, react, transitions, gestures]
 ---
 
 # Framer Motion
 
 ## Overview
 
-Framer Motion is a production-ready animation library for React that provides declarative animations, spring physics, layout transitions, gesture handling, and scroll-driven effects. It enables smooth enter/exit animations via AnimatePresence, shared element transitions with layoutId, and orchestrated sequences with variants and stagger.
+Framer Motion is the production animation library for React. Declarative animations via props, spring physics, layout animations, gestures (drag, hover, tap), scroll-triggered effects, and shared layout transitions. Used by Vercel, Linear, Raycast.
 
 ## Instructions
 
-- When animating components, use `<motion.div>` with `initial`, `animate`, and `exit` props for declarative mount/unmount animations, choosing `type: "spring"` for interactive elements and `type: "tween"` for loading animations.
-- When implementing exit animations, wrap conditionally rendered components with `<AnimatePresence>` and use `mode="wait"` for page transitions where the exit must complete before the enter begins.
-- When building layout animations, add the `layout` prop for automatic position and size transitions, and use `layoutId` for shared element morphing between components (like expanding a card to a full page).
-- When orchestrating sequences, define `variants` with named states and use `staggerChildren`, `delayChildren`, and `staggerDirection` for coordinated multi-element animations.
-- When handling gestures, use `whileHover`, `whileTap`, `whileDrag`, and `whileInView` for gesture-driven animation states, with `drag` and `dragConstraints` for draggable elements.
-- When creating scroll animations, use `useScroll()` to track scroll progress and `useTransform()` to map scroll position to animation values like parallax offsets or progress bars.
+### Step 1: Basic Animations
 
-## Examples
+```tsx
+import { motion } from 'framer-motion'
 
-### Example 1: Build a page transition system
+// Animate on mount
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5, ease: 'easeOut' }}
+>
+  <h1>Hello</h1>
+</motion.div>
 
-**User request:** "Add smooth page transitions to my React app"
+// Animate on hover and tap
+<motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+>
+  Click me
+</motion.button>
 
-**Actions:**
-1. Wrap the router outlet with `<AnimatePresence mode="wait">`
-2. Add `initial`, `animate`, and `exit` props to each page component with slide and fade
-3. Use `variants` with staggered children to animate page content elements sequentially
-4. Add a shared header using `layoutId` so it morphs smoothly between pages
+// Exit animations (requires AnimatePresence)
+import { AnimatePresence } from 'framer-motion'
 
-**Output:** A React app with smooth slide-and-fade page transitions and staggered content entrance animations.
+<AnimatePresence>
+  {isVisible && (
+    <motion.div
+      key="modal"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+    />
+  )}
+</AnimatePresence>
+```
 
-### Example 2: Create a draggable card stack with reordering
+### Step 2: Layout Animations
 
-**User request:** "Build a Tinder-like card stack with swipe gestures"
+```tsx
+// Automatic layout animation — element smoothly moves when layout changes
+<motion.div layout>
+  {items.map(item => (
+    <motion.div key={item.id} layout>
+      {item.title}
+    </motion.div>
+  ))}
+</motion.div>
 
-**Actions:**
-1. Set up a card stack with `<motion.div drag="x">` and `dragConstraints`
-2. Use `useMotionValue()` and `useTransform()` to rotate and fade cards based on drag offset
-3. Add `onDragEnd` handler to detect swipe direction and threshold
-4. Use `<AnimatePresence>` for exit animation as cards fly off screen
+// Shared layout animation — element transitions between two positions
+<motion.div layoutId={`card-${id}`}>
+  {isExpanded ? <ExpandedCard /> : <CompactCard />}
+</motion.div>
+```
 
-**Output:** An interactive card stack with swipe gestures, rotation effects, and smooth exit animations.
+### Step 3: Scroll Animations
+
+```tsx
+import { motion, useScroll, useTransform } from 'framer-motion'
+
+function ParallaxHero() {
+  const { scrollYProgress } = useScroll()
+  const y = useTransform(scrollYProgress, [0, 1], [0, -200])
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+
+  return (
+    <motion.div style={{ y, opacity }}>
+      <h1>Scroll to reveal</h1>
+    </motion.div>
+  )
+}
+
+// Animate when element enters viewport
+function FadeInOnScroll({ children }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.6 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+```
+
+### Step 4: Staggered Children
+
+```tsx
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+}
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+}
+
+<motion.ul variants={container} initial="hidden" animate="show">
+  {items.map(i => (
+    <motion.li key={i.id} variants={item}>{i.name}</motion.li>
+  ))}
+</motion.ul>
+```
 
 ## Guidelines
 
-- Use `spring` type for interactive animations (hover, tap, drag) since they feel more natural than tween.
-- Use `tween` with specific `duration` for loading and progress animations where predictable timing matters.
-- Always wrap conditional renders with `<AnimatePresence>` to enable exit animations.
-- Use `layoutId` for shared element transitions instead of manual position calculations.
-- Respect `prefers-reduced-motion` using `useReducedMotion()` to disable or simplify animations.
-- Keep UI interaction animations under 300ms to avoid feeling sluggish.
-- Use `useTransform()` over `useEffect` for scroll-driven animations since it runs off the main thread.
+- Use `type: 'spring'` for natural-feeling animations — avoid linear easing.
+- `layoutId` creates shared element transitions (like iOS hero animations).
+- `AnimatePresence` is required for exit animations — wrap conditional renders.
+- `whileInView` with `viewport: { once: true }` for scroll-triggered animations.
+- Framer Motion adds ~30KB to bundle. For simple animations, consider CSS transitions.
