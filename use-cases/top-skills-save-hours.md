@@ -2,7 +2,7 @@
 title: "10 Terminal Skills That Save Hours Every Week"
 slug: top-skills-save-hours
 description: "Discover the most popular AI agent skills for documents, business, development, and research workflows."
-skill: null
+skills: [contract-review, chat-with-pdf, doc-parser, excel-processor, email-drafter, cv-builder, code-reviewer, frontend-design, content-writer, data-analysis]
 category: overview
 tags: [productivity, automation, best-skills, claude-code, ai-agent]
 ---
@@ -16,12 +16,6 @@ You're using AI coding assistants like Claude Code, Codex, or Cursor — but you
 ## The Solution
 
 Install **Terminal Skills** — purpose-built capabilities that extend what your AI agent can do. Each skill is designed for a specific workflow and saves real time on real tasks.
-
-Install the CLI:
-
-```bash
-npm i -g terminal-skills
-```
 
 ## Top 10 Skills by Category
 
@@ -163,22 +157,17 @@ terminal-skills install data-analysis
 
 ## Getting Started
 
-1. **Install the CLI:**
-   ```bash
-   npm i -g terminal-skills
-   ```
-
-2. **Search for skills:**
+1. **Search for skills:**
    ```bash
    terminal-skills search pdf
    ```
 
-3. **Install what you need:**
+2. **Install what you need:**
    ```bash
    terminal-skills install contract-review
    ```
 
-4. **Use with your AI agent:**
+3. **Use with your AI agent:**
 
 ```text
 > Review this NDA for red flags
