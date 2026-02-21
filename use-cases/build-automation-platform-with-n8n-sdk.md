@@ -7,7 +7,7 @@ description: >-
   environment-based deployment, and a library of reusable workflow templates.
 skills:
   - n8n-workflow-sdk
-  - n8n
+  - n8n-workflow
   - zod
   - vitest
 category: automation
