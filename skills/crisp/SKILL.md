@@ -9,7 +9,7 @@ compatibility: 'Any website, React, Vue, mobile apps'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: communication
+  category: business
   tags:
     - crisp
     - chat

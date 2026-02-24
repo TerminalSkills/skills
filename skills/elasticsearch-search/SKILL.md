@@ -10,7 +10,7 @@ compatibility: "Elasticsearch 8.10+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["elasticsearch", "search", "full-text-search", "aggregations", "analyzers", "mappings"]
 ---
 

@@ -10,7 +10,7 @@ compatibility: "Atlassian Statuspage API v1, Cachet, Instatus"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["statuspage", "incident-communication", "status-page", "uptime", "components"]
 ---
 

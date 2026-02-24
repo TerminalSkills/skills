@@ -9,7 +9,7 @@ compatibility: 'Any language, React, Next.js'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: media
+  category: content
   tags: [cloudinary, images, video, cdn, optimization]
 ---
 

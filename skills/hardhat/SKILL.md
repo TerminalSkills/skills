@@ -9,7 +9,7 @@ compatibility: 'Node.js 18+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: web3
+  category: development
   tags:
     - hardhat
     - ethereum

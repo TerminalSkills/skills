@@ -9,7 +9,7 @@ compatibility: 'Python 3.8+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: observability
+  category: devops
   tags:
     - structlog
     - logging

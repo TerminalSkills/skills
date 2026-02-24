@@ -9,7 +9,7 @@ compatibility: 'Python 3.7+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: developer-tools
+  category: development
   tags:
     - ruff
     - linting

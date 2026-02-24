@@ -9,7 +9,7 @@ compatibility: 'Node.js, Bun, Deno, Python, Go, Rust'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: database
+  category: data-ai
   tags:
     - turso
     - sqlite

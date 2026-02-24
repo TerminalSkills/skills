@@ -9,7 +9,7 @@ compatibility: 'Any web app via SDK/API'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: product
+  category: business
   tags:
     - canny
     - feedback

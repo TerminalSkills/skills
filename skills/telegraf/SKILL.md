@@ -10,7 +10,7 @@ compatibility: "Telegraf 1.28+, InfluxDB 2.x/3.x"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["telegraf", "metrics", "influxdb", "monitoring", "collection-agent", "observability"]
 ---
 

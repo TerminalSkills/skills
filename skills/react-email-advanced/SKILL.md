@@ -9,7 +9,7 @@ compatibility: 'React 18+, any email provider'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: communication
+  category: business
   tags:
     - react-email
     - email

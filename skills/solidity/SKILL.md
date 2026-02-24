@@ -9,7 +9,7 @@ compatibility: 'Ethereum, Polygon, Arbitrum, Base, BSC (any EVM chain)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: web3
+  category: development
   tags:
     - solidity
     - smart-contracts

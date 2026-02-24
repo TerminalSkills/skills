@@ -10,7 +10,7 @@ compatibility: 'Any web framework via API'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: payments
+  category: business
   tags:
     - paddle
     - payments

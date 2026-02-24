@@ -7,7 +7,7 @@ compatibility: 'Node.js, any CI'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: developer-tools
+  category: development
   tags:
     - semantic-release
     - versioning

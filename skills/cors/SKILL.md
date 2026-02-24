@@ -9,7 +9,7 @@ compatibility: 'Express, Fastify, Next.js, any HTTP server'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: security
+  category: devops
   tags:
     - cors
     - security

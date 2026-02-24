@@ -10,7 +10,7 @@ compatibility: "Datadog Agent 7+, Datadog API v1/v2"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["datadog", "monitoring", "apm", "logs", "dashboards", "alerts", "observability"]
 ---
 

@@ -10,7 +10,7 @@ compatibility: 'Any frontend via REST/GraphQL API, Next.js Commerce'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: ecommerce
+  category: business
   tags:
     - bigcommerce
     - ecommerce

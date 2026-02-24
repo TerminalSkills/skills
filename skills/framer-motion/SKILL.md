@@ -9,7 +9,7 @@ compatibility: 'React 18+, Next.js'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags: [framer-motion, animation, react, transitions, gestures]
 ---
 

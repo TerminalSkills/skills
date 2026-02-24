@@ -4,7 +4,7 @@ description: When the user wants to perform load testing, stress testing, or per
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - load-testing
     - performance

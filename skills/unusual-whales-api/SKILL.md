@@ -1,15 +1,5 @@
 ---
 name: unusual-whales-api
-category: data
-tags:
-  - finance
-  - options
-  - trading
-  - api
-  - dark-pool
-  - market-data
-  - stocks
-version: 1.0.0
 description: >
   Query the Unusual Whales API for unusual options flow, dark pool prints,
   market tide sentiment, gamma exposure, congressional trading, and stock
@@ -17,7 +7,17 @@ description: >
   "dark pool prints", "market sentiment", "gamma exposure", "GEX",
   "congressional trading", "insider trading", or needs real-time and historical
   market data for trading analysis and AI agent integration.
-author: terminal-skills
+license: Apache-2.0
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags:
+    - finance
+    - options
+    - trading
+    - dark-pool
+    - market-data
 ---
 
 # Unusual Whales API

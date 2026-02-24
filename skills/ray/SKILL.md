@@ -12,7 +12,7 @@ compatibility:
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: ai-ml
+  category: data-ai
   tags:
     - distributed-computing
     - model-serving

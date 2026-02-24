@@ -7,7 +7,7 @@ compatibility: 'VS Code, GitHub Codespaces'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: developer-tools
+  category: development
   tags:
     - devcontainers
     - docker

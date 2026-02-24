@@ -9,7 +9,7 @@ compatibility: 'React 18+, Next.js, Vue, Svelte, Solid'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags:
     - tanstack-query
     - react-query

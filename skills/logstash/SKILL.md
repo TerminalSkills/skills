@@ -10,7 +10,7 @@ compatibility: "Logstash 8.10+, Elasticsearch 8+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["logstash", "logging", "grok", "elk", "log-processing", "pipelines"]
 ---
 

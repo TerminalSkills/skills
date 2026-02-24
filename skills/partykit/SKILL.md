@@ -12,7 +12,7 @@ compatibility: 'Node.js 18+ (deploys to Cloudflare Workers)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: backend
+  category: development
   tags:
     - partykit
     - realtime

@@ -10,7 +10,7 @@ compatibility: "Zabbix 6.4+, Zabbix Agent 2"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["zabbix", "enterprise-monitoring", "templates", "triggers", "discovery"]
 ---
 

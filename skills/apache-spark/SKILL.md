@@ -9,7 +9,7 @@ compatibility: 'Python (PySpark), Scala, Java, R'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: data-engineering
+  category: data-ai
   tags:
     - spark
     - pyspark

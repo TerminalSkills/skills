@@ -11,7 +11,7 @@ compatibility: "Node.js 14+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: document-generation
+  category: documents
   tags: ["zip", "tar", "archive", "compression", "bundling"]
 ---
 

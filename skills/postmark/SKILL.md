@@ -9,7 +9,7 @@ compatibility: 'Node.js, Python, Ruby, PHP, Go'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: communication
+  category: business
   tags:
     - postmark
     - email

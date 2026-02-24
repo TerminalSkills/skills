@@ -9,7 +9,7 @@ compatibility: 'Any platform via REST API, mobile SDKs'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: payments
+  category: business
   tags:
     - square
     - payments

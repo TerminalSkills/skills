@@ -9,7 +9,7 @@ compatibility: 'Next.js 13+, SvelteKit, Express'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: auth
+  category: development
   tags:
     - nextauth
     - auth

@@ -9,7 +9,7 @@ compatibility: 'Linux (Kali), macOS, Docker'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: security
+  category: devops
   tags:
     - metasploit
     - exploitation

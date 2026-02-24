@@ -9,7 +9,7 @@ compatibility: 'WordPress 6.0+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: ecommerce
+  category: business
   tags:
     - woocommerce
     - wordpress

@@ -9,7 +9,7 @@ compatibility: 'Linux, macOS, Windows (Python 3)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: security
+  category: devops
   tags:
     - sqlmap
     - sql-injection

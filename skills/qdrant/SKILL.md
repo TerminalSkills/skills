@@ -11,7 +11,7 @@ compatibility:
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: databases
+  category: data-ai
   tags:
     - qdrant
     - vector-database

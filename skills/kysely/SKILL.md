@@ -9,7 +9,7 @@ compatibility: 'PostgreSQL, MySQL, SQLite, MSSQL'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: database
+  category: data-ai
   tags:
     - kysely
     - sql

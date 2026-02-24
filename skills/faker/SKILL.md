@@ -4,7 +4,7 @@ description: When the user wants to generate realistic fake data for testing, se
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - test-data
     - data-generation

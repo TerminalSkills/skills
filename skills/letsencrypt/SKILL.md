@@ -9,7 +9,7 @@ compatibility: 'Any web server (Nginx, Apache, standalone)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: security
+  category: devops
   tags:
     - letsencrypt
     - tls

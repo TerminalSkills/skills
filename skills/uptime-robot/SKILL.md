@@ -9,7 +9,7 @@ compatibility: 'Any website or API (cloud service)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: monitoring
+  category: devops
   tags:
     - uptime
     - monitoring

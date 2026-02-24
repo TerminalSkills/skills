@@ -9,7 +9,7 @@ compatibility: 'Python 3.10+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: backend
+  category: development
   tags:
     - pydantic
     - validation

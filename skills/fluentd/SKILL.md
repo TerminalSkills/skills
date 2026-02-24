@@ -10,7 +10,7 @@ compatibility: "Fluentd 1.16+, Fluent Bit 2.0+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["fluentd", "logging", "log-collection", "log-routing", "kubernetes", "observability"]
 ---
 

@@ -4,7 +4,7 @@ description: When the user wants to automate browser testing across multiple bro
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - browser-automation
     - e2e-testing

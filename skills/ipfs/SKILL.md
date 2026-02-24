@@ -9,7 +9,7 @@ compatibility: 'Any platform via HTTP API'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: web3
+  category: development
   tags:
     - ipfs
     - decentralized

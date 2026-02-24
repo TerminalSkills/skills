@@ -9,7 +9,7 @@ compatibility: 'Any web app, GitHub Actions, GitLab CI'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: testing
+  category: development
   tags:
     - lighthouse
     - performance

@@ -9,7 +9,7 @@ compatibility: 'Tailwind CSS 3+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags: [tailwind, animation, css, transitions, ui]
 ---
 

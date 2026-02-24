@@ -9,7 +9,7 @@ compatibility: 'Docker, Ruby on Rails, any website'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: communication
+  category: business
   tags:
     - chatwoot
     - chat

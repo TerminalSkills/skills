@@ -4,7 +4,7 @@ description: When the user wants to create HTTP mock servers with advanced reque
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - api-mocking
     - http

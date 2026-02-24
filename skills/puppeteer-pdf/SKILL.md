@@ -11,7 +11,7 @@ compatibility: "Node.js 16+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: document-generation
+  category: documents
   tags: ["puppeteer", "pdf", "html-to-pdf", "headless-chrome", "reports"]
 ---
 

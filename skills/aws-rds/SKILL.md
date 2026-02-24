@@ -13,7 +13,7 @@ compatibility:
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: cloud-services
+  category: devops
   tags:
     - aws
     - rds

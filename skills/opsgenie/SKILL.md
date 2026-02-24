@@ -10,7 +10,7 @@ compatibility: "Opsgenie API v2"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["opsgenie", "alert-management", "on-call", "routing", "incident-response"]
 ---
 

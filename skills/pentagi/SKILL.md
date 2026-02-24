@@ -10,7 +10,7 @@ compatibility: 'Docker, any LLM provider (OpenAI, Anthropic, Ollama, Bedrock, Ge
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: security
+  category: devops
   tags:
     - pentagi
     - penetration-testing

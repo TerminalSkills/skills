@@ -4,7 +4,7 @@ description: When the user wants to implement consumer-driven contract testing b
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - contract-testing
     - microservices

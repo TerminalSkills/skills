@@ -8,7 +8,7 @@ compatibility: 'Next.js 13+, Express'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: auth
+  category: development
   tags: [iron-session, sessions, nextjs, cookies, auth]
 ---
 

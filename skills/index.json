@@ -68,6 +68,27 @@
       ]
     },
     {
+      "name": "act",
+      "slug": "act",
+      "description": "Run GitHub Actions locally with act. Use when a user asks to test GitHub Actions workflows locally, debug CI pipelines without pushing, or run workflows offline.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "activepieces",
+      "slug": "activepieces",
+      "description": "Build workflow automations with Activepieces. Use when a user asks to self-host a Zapier alternative, automate workflows with a visual builder, create no-code integrations, or set up open-source business automation.",
+      "category": "automation",
+      "tags": []
+    },
+    {
+      "name": "actix-web",
+      "slug": "actix-web",
+      "description": "Actix Web is a powerful, high-performance web framework for Rust. It provides async handlers, type-safe extractors, middleware, and integrates with the Rust ecosystem for building fast, reliable, and memory-safe web services.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "after-effects",
       "slug": "after-effects",
       "description": "Automate Adobe After Effects workflows. Use when a user asks to script After Effects with ExtendScript or CEP, batch render compositions, automate motion graphics templates (MOGRTs), build render pipelines with aerender, create expressions for animations, manage project files programmatically, automate text and image replacements in templates, build data-driven motion graphics, integrate After Effects with CI/CD, or control AE via command line. Covers ExtendScript, CEP panels, expressions, aerender CLI, and template automation.",
@@ -88,6 +109,13 @@
       ]
     },
     {
+      "name": "airflow",
+      "slug": "airflow",
+      "description": "Apache Airflow is a platform for programmatically authoring, scheduling, and monitoring workflows. Learn to write DAGs, use operators, set up connections, configure scheduling, and deploy with Docker Compose.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "airtable",
       "slug": "airtable",
       "description": "Build integrations with the Airtable Web API — bases, tables, records, fields, views, webhooks, and OAuth. Use when tasks involve reading or writing Airtable data, syncing external sources with Airtable bases, building automations triggered by record changes, or migrating data to/from Airtable.",
@@ -99,6 +127,13 @@
         "databases",
         "automation"
       ]
+    },
+    {
+      "name": "alembic",
+      "slug": "alembic",
+      "description": "Manage database migrations with Alembic. Use when a user asks to version database schemas, create migration scripts, handle schema changes in production, or manage SQLAlchemy model migrations.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "alert-optimizer",
@@ -114,10 +149,31 @@
       ]
     },
     {
+      "name": "alpine",
+      "slug": "alpine",
+      "description": "Alpine.js is a lightweight JavaScript framework for adding interactivity to HTML markup. It provides reactive data, event handling, and DOM manipulation through HTML attributes — like a modern jQuery replacement with declarative syntax.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "analytics-tracking",
       "slug": "analytics-tracking",
       "description": "When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions \"set up tracking,\" \"GA4,\" \"Google Analytics,\" \"conversion tracking,\" \"event tracking,\" \"UTM parameters,\" \"tag manager,\" \"GTM,\" \"analytics implementation,\" or \"tracking plan.\" For A/B test measurement, see ab-test-setup.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "angular",
+      "slug": "angular",
+      "description": "Angular is Google's TypeScript-based frontend framework for building scalable single-page applications. It provides components, dependency injection, RxJS-based reactivity, routing, forms, HTTP client, and a powerful CLI for development.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "ansible",
+      "slug": "ansible",
+      "description": "Configuration management and automation with Ansible. Use when the user needs to write playbooks, manage inventory, create roles, use Ansible Vault for secrets, or orchestrate multi-server deployments across environments.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -131,6 +187,20 @@
         "automation",
         "devops"
       ]
+    },
+    {
+      "name": "ansible-roles",
+      "slug": "ansible-roles",
+      "description": "Organize server configuration with Ansible roles. Use when a user asks to structure Ansible playbooks, create reusable configuration modules, set up server provisioning, or build a library of infrastructure configurations.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "apache-spark",
+      "slug": "apache-spark",
+      "description": "Process large-scale data with Apache Spark. Use when a user asks to process big data, run distributed computations, build ETL pipelines, perform data analysis at scale, or use PySpark for data engineering.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "api-doc-generator",
@@ -158,6 +228,13 @@
       ]
     },
     {
+      "name": "api-rate-limiting",
+      "slug": "api-rate-limiting",
+      "description": "Implement API rate limiting. Use when a user asks to throttle API requests, prevent abuse, implement sliding window rate limiting, add per-user quotas, or protect APIs from DDoS and scraping.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "api-tester",
       "slug": "api-tester",
       "description": "Test REST and GraphQL API endpoints with structured assertions and reporting. Use when a user asks to test an API, hit an endpoint, check if an API works, validate a response, debug an API call, test authentication flows, or verify API contracts. Supports GET, POST, PUT, PATCH, DELETE with headers, body, auth, and response validation.",
@@ -171,6 +248,20 @@
       ]
     },
     {
+      "name": "api-versioning",
+      "slug": "api-versioning",
+      "description": "Version REST and GraphQL APIs. Use when a user asks to version an API, handle breaking changes, implement API deprecation, manage multiple API versions, or design an API evolution strategy.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "appium",
+      "slug": "appium",
+      "description": "When the user wants to automate mobile app testing on iOS and Android using Appium. Also use when the user mentions \"appium,\" \"mobile automation,\" \"iOS testing,\" \"Android testing,\" \"mobile WebDriver,\" \"XCUITest,\" or \"UiAutomator.\" For React Native-specific testing, see detox.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "applicant-screening",
       "slug": "applicant-screening",
       "description": "Screen job applications against requirements and score candidates objectively. Use when a user asks to review applications, evaluate candidates, screen resumes, rank applicants, assess qualifications against a job description, shortlist candidates, or build a hiring scorecard.",
@@ -182,6 +273,33 @@
         "hr",
         "candidates"
       ]
+    },
+    {
+      "name": "archiver",
+      "slug": "archiver",
+      "description": "Create ZIP and TAR archives programmatically with Archiver — bundle files, directories, and streams into compressed archives with progress tracking. Use when tasks involve generating downloadable bundles, backing up directories, creating deployment packages, or building export features that zip multiple files together.",
+      "category": "documents",
+      "tags": [
+        "zip",
+        "tar",
+        "archive",
+        "compression",
+        "bundling"
+      ]
+    },
+    {
+      "name": "argocd",
+      "slug": "argocd",
+      "description": "Argo CD for GitOps continuous delivery on Kubernetes. Use when the user needs to define applications declaratively, sync Kubernetes manifests from Git repositories, manage sync policies, and implement progressive delivery workflows.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "artillery",
+      "slug": "artillery",
+      "description": "When the user wants to perform load testing or performance testing using Artillery with YAML-based scenario definitions. Also use when the user mentions \"artillery,\" \"YAML load test,\" \"WebSocket testing,\" \"Socket.io load test,\" \"scenario-based load testing,\" or \"artillery run.\" For JavaScript-based load testing, see k6.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "astro",
@@ -230,6 +348,125 @@
       ]
     },
     {
+      "name": "autocannon",
+      "slug": "autocannon",
+      "description": "Benchmark HTTP APIs with Autocannon. Use when a user asks to load test an API, measure request throughput, find performance bottlenecks, benchmark API endpoints, or compare server configurations.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "automatic1111",
+      "slug": "automatic1111",
+      "description": "Feature-rich Stable Diffusion Web UI for image generation. Supports txt2img, img2img, inpainting, outpainting, LoRA, extensions, upscaling, and batch processing. Widely used desktop interface with an extensive extension ecosystem and API access.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "aws-cli",
+      "slug": "aws-cli",
+      "description": "AWS Command Line Interface for managing Amazon Web Services. Use when the user needs to interact with S3, EC2, Lambda, CloudWatch, IAM, and other AWS services directly from the terminal for operations, scripting, and automation.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-cloudfront",
+      "slug": "aws-cloudfront",
+      "description": "Configure Amazon CloudFront for global content delivery. Set up distributions with S3 and ALB origins, define cache behaviors and TTLs, invalidate cached content, and use Lambda@Edge for request/response manipulation at the edge.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-cognito",
+      "slug": "aws-cognito",
+      "description": "Implement authentication with Amazon Cognito. Create user pools for sign-up and sign-in, configure identity pools for AWS access, handle JWT tokens, set up social federation with Google and Facebook, and secure APIs with Cognito authorizers.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-dynamodb",
+      "slug": "aws-dynamodb",
+      "description": "Build with Amazon DynamoDB for fast, scalable NoSQL storage. Design tables with partition and sort keys, create GSI and LSI for flexible queries, enable streams for change data capture, and apply single-table design patterns for efficient data modeling.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-ec2",
+      "slug": "aws-ec2",
+      "description": "Launch and manage Amazon EC2 instances for scalable compute. Configure AMIs, security groups, key pairs, and EBS volumes. Set up auto-scaling groups for high availability and cost optimization across availability zones.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-ecs",
+      "slug": "aws-ecs",
+      "description": "Run containerized applications with Amazon ECS. Define tasks and services, deploy on Fargate for serverless containers or EC2 for full control. Configure load balancing, auto-scaling, and service discovery for production workloads.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-rds",
+      "slug": "aws-rds",
+      "description": "Manage Amazon RDS for fully managed relational databases. Provision MySQL, PostgreSQL, and Aurora instances with automated backups and patching. Configure read replicas for scaling, snapshots for recovery, and Aurora Serverless for variable workloads.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-s3",
+      "slug": "aws-s3",
+      "description": "Master Amazon S3 for scalable object storage. Create and configure buckets, upload and manage objects, generate presigned URLs for secure temporary access, set up lifecycle policies for cost optimization, and enable versioning for data protection and compliance.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-ses",
+      "slug": "aws-ses",
+      "description": "Send transactional and marketing emails with Amazon SES. Verify domains and identities, create reusable email templates, configure receipt rules for incoming mail, and handle bounces and complaints with SNS notifications.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-sns",
+      "slug": "aws-sns",
+      "description": "Use Amazon SNS for pub/sub messaging and notifications. Create topics and manage subscriptions across protocols (SQS, Lambda, HTTP, email, SMS). Configure message filtering, mobile push notifications, and fan-out architectures.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "aws-sqs",
+      "slug": "aws-sqs",
+      "description": "Work with Amazon SQS for reliable message queuing. Create standard and FIFO queues, configure dead-letter queues for failed messages, send and receive messages in batches, and build decoupled event-driven architectures.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "azure-blob-storage",
+      "slug": "azure-blob-storage",
+      "description": "Store and manage unstructured data with Azure Blob Storage. Create containers, upload and organize blobs, configure access tiers (Hot, Cool, Archive) for cost optimization, generate SAS tokens for secure temporary access, and set lifecycle management policies.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "azure-cli",
+      "slug": "azure-cli",
+      "description": "Azure Command Line Interface for managing Microsoft Azure resources. Use when the user needs to create VMs, manage storage accounts, deploy functions, configure resource groups, and automate Azure operations from the terminal.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "azure-cosmos-db",
+      "slug": "azure-cosmos-db",
+      "description": "Build globally distributed apps with Azure Cosmos DB. Work with multiple data models (document, key-value, graph), configure global replication with tunable consistency levels, manage throughput with RU/s, and query with SQL API.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "azure-functions",
+      "slug": "azure-functions",
+      "description": "Build serverless applications with Azure Functions. Create HTTP and event-driven functions with input/output bindings, configure triggers for queues, timers, and blob storage. Use Durable Functions for stateful orchestration workflows.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "batch-processor",
       "slug": "batch-processor",
       "description": "Process multiple documents in bulk with parallel execution. Use when a user asks to batch process files, convert many documents at once, run parallel file operations, bulk rename, bulk transform, or process a directory of files concurrently. Covers parallel execution, error handling, and progress tracking.",
@@ -241,6 +478,20 @@
         "processing",
         "automation"
       ]
+    },
+    {
+      "name": "better-auth",
+      "slug": "better-auth",
+      "description": "Add authentication to any framework with Better Auth. Use when a user asks to implement auth, set up login/signup, add OAuth providers, implement session management, or choose between auth libraries for TypeScript apps.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "bigcommerce",
+      "slug": "bigcommerce",
+      "description": "Build enterprise e-commerce with BigCommerce. Use when a user asks to set up a large-scale online store, use a hosted e-commerce platform with headless API, integrate with Next.js Commerce, or migrate from Shopify to a more API-friendly platform.",
+      "category": "business",
+      "tags": []
     },
     {
       "name": "billing-automation",
@@ -431,6 +682,13 @@
       ]
     },
     {
+      "name": "burp-suite",
+      "slug": "burp-suite",
+      "description": "Test web application security with Burp Suite. Use when a user asks to intercept HTTP traffic, test for web vulnerabilities, fuzz API endpoints, analyze authentication flows, or perform manual web application pentesting.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "cache-strategy",
       "slug": "cache-strategy",
       "description": "Design and implement caching layers for APIs and web applications using Redis or Memcached. Use when you need to reduce database load, improve response times, or handle traffic spikes. Covers cache-aside, write-through, and write-behind patterns, TTL strategies, cache invalidation, and stampede prevention. Trigger words: cache, Redis, Memcached, TTL, cache invalidation, response time, throughput, rate limiting.",
@@ -463,6 +721,26 @@
       "tags": []
     },
     {
+      "name": "canny",
+      "slug": "canny",
+      "description": "Collect and manage product feedback with Canny. Use when a user asks to set up a feature request board, prioritize product feedback, build a public roadmap, or let users vote on features.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "canvas-api",
+      "slug": "canvas-api",
+      "description": "Draw 2D graphics with the HTML5 Canvas API — shapes, text, images, gradients, transformations, pixel manipulation, and offscreen rendering. Use when tasks involve generating images server-side (with node-canvas), creating charts, image compositing, watermarking, or browser-based drawing applications.",
+      "category": "design",
+      "tags": [
+        "canvas",
+        "2d-graphics",
+        "image-manipulation",
+        "drawing",
+        "node-canvas"
+      ]
+    },
+    {
       "name": "capacity-planner",
       "slug": "capacity-planner",
       "description": "Translates performance test results into infrastructure scaling recommendations with cost estimates. Use when someone has load test data and needs to know what infrastructure changes are required to handle target traffic. Trigger words: capacity planning, scaling plan, infrastructure sizing, how many pods, RDS sizing, handle more traffic, scale for launch.",
@@ -472,6 +750,40 @@
         "scaling",
         "infrastructure",
         "cost-estimation"
+      ]
+    },
+    {
+      "name": "cassandra",
+      "slug": "cassandra",
+      "description": "Apache Cassandra is a distributed NoSQL database designed for high availability and linear scalability. Learn CQL (Cassandra Query Language), data modeling with partition keys, replication strategies, and integration with Node.js using the DataStax driver.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "celery",
+      "slug": "celery",
+      "description": "Run background tasks in Python with Celery. Use when a user asks to process tasks asynchronously, schedule periodic jobs, run background workers, build task queues in Python, or offload heavy processing from web requests.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "cert-manager",
+      "slug": "cert-manager",
+      "description": "cert-manager for automatic TLS certificate management in Kubernetes. Use when the user needs to issue, renew, and manage TLS certificates from Let's Encrypt or other CAs, configure ClusterIssuers, and secure Ingress resources.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "chalk-advanced",
+      "slug": "chalk-advanced",
+      "description": "Style terminal output with Chalk. Use when adding colors to CLI output, formatting log messages, building styled terminal UIs, or creating developer tools with colored output.",
+      "category": "development",
+      "tags": [
+        "chalk",
+        "cli",
+        "terminal",
+        "colors",
+        "formatting"
       ]
     },
     {
@@ -514,6 +826,13 @@
       ]
     },
     {
+      "name": "chatwoot",
+      "slug": "chatwoot",
+      "description": "Self-host customer support with Chatwoot. Use when a user asks to set up open-source customer support, add live chat without SaaS costs, build a multi-channel inbox, or deploy a free Intercom alternative.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "chromadb",
       "slug": "chromadb",
       "description": "Assists with storing, searching, and managing vector embeddings using ChromaDB. Use when building RAG pipelines, semantic search engines, or recommendation systems. Trigger words: chromadb, chroma, vector database, embeddings, semantic search, similarity search, vector store, rag.",
@@ -527,6 +846,26 @@
       ]
     },
     {
+      "name": "chromajs",
+      "slug": "chromajs",
+      "description": "Manipulate colors with chroma.js — convert between color spaces (RGB, HSL, LAB, LCH), generate palettes and scales, mix and blend colors, check contrast ratios, and build accessible color systems. Use when tasks involve creating color palettes, theming, accessibility checks, or data visualization color scales.",
+      "category": "design",
+      "tags": [
+        "color",
+        "palette",
+        "accessibility",
+        "chroma",
+        "design-tokens"
+      ]
+    },
+    {
+      "name": "chromatic",
+      "slug": "chromatic",
+      "description": "When the user wants to perform visual regression testing with Storybook integration using Chromatic. Also use when the user mentions \"chromatic,\" \"visual regression,\" \"Storybook testing,\" \"UI review,\" \"visual diff,\" or \"component snapshot testing.\" For general screenshot comparison, see percy.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "cicd-pipeline",
       "slug": "cicd-pipeline",
       "description": "Generate and optimize CI/CD pipelines for automated testing, building, and deployment. Use when a user asks to create a GitHub Actions workflow, set up GitLab CI, build a CI pipeline, automate deployments, add test automation, configure continuous integration, set up continuous deployment, create a release workflow, or optimize build times. Supports GitHub Actions, GitLab CI, and CircleCI.",
@@ -537,6 +876,19 @@
         "gitlab-ci",
         "pipeline",
         "deployment"
+      ]
+    },
+    {
+      "name": "class-variance-authority",
+      "slug": "class-variance-authority",
+      "description": "Define component variants with CVA. Use when creating variant-based components with Tailwind, building design system tokens, or managing complex conditional class names in React.",
+      "category": "development",
+      "tags": [
+        "cva",
+        "tailwind",
+        "variants",
+        "design-system",
+        "components"
       ]
     },
     {
@@ -572,6 +924,13 @@
       ]
     },
     {
+      "name": "cloudflare",
+      "slug": "cloudflare",
+      "description": "Protect and accelerate websites with Cloudflare. Use when a user asks to add CDN, DDoS protection, DNS management, SSL, WAF, or edge computing to a website or API.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "cloudflare-workers",
       "slug": "cloudflare-workers",
       "description": "Assists with building and deploying applications on Cloudflare Workers edge computing platform. Use when working with Workers runtime, Wrangler CLI, KV, D1, R2, Durable Objects, Queues, or Hyperdrive. Trigger words: cloudflare, workers, edge functions, wrangler, KV, D1, R2, durable objects, edge computing.",
@@ -582,6 +941,19 @@
         "serverless",
         "workers",
         "wrangler"
+      ]
+    },
+    {
+      "name": "cloudinary",
+      "slug": "cloudinary",
+      "description": "Manage images and videos with Cloudinary. Use when a user asks to optimize images, add image transformations, implement responsive images, upload media, or serve optimized assets from a CDN.",
+      "category": "content",
+      "tags": [
+        "cloudinary",
+        "images",
+        "video",
+        "cdn",
+        "optimization"
       ]
     },
     {
@@ -649,6 +1021,33 @@
       ]
     },
     {
+      "name": "comfyui",
+      "slug": "comfyui",
+      "description": "Node-based graphical interface for Stable Diffusion workflows. Build complex image generation pipelines by connecting nodes visually. Supports custom nodes, ControlNet, LoRA, upscaling, and advanced workflows with full control over the diffusion process.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "commander",
+      "slug": "commander",
+      "description": "Build CLI tools with Commander.js. Use when creating command-line applications, parsing arguments, implementing subcommands, or building developer tools with flags and options.",
+      "category": "development",
+      "tags": [
+        "commander",
+        "cli",
+        "nodejs",
+        "developer-tools",
+        "terminal"
+      ]
+    },
+    {
+      "name": "commitlint",
+      "slug": "commitlint",
+      "description": "Enforce conventional commit messages with commitlint. Use when a user asks to standardize commit messages, enforce commit conventions, set up commit linting in CI, or generate changelogs from commits.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "competitor-alternatives",
       "slug": "competitor-alternatives",
       "description": "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables.",
@@ -660,6 +1059,26 @@
       "slug": "confluence",
       "description": "Manage knowledge bases and documentation with Confluence Cloud. Use when a user asks to create or manage Confluence spaces, pages, and blogs, build documentation systems, automate page creation from templates, use Confluence REST API v2, manage page trees and hierarchies, set up permissions, integrate Confluence with Jira or other tools, generate reports from Confluence data, build macros or Forge apps, or migrate content between spaces. Covers content management, API automation, templates, and Atlassian ecosystem integration.",
       "category": "documents",
+      "tags": []
+    },
+    {
+      "name": "conform",
+      "slug": "conform",
+      "description": "Build progressive forms with Conform. Use when creating forms that work without JavaScript, implementing server-validated forms in Remix/Next.js, or building accessible forms with progressive enhancement.",
+      "category": "development",
+      "tags": [
+        "conform",
+        "forms",
+        "remix",
+        "progressive-enhancement",
+        "server-validation"
+      ]
+    },
+    {
+      "name": "consul",
+      "slug": "consul",
+      "description": "HashiCorp Consul for service discovery, health checking, and service mesh. Use when the user needs to register services, perform health checks, store configuration in the KV store, or set up Connect for secure service-to-service communication.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -736,6 +1155,13 @@
       "tags": []
     },
     {
+      "name": "cors",
+      "slug": "cors",
+      "description": "Configure CORS for web APIs. Use when a user asks to fix CORS errors, allow cross-origin requests, configure CORS headers, handle preflight requests, or secure API access from different domains.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "cover-letter",
       "slug": "cover-letter",
       "description": "Create compelling, personalized cover letters that help you stand out in job applications. Use when a user asks to write a cover letter, draft a job application letter, create a letter of interest, compose a motivation letter, or personalize an application for a specific company and role.",
@@ -747,6 +1173,54 @@
         "writing",
         "hiring"
       ]
+    },
+    {
+      "name": "crisp",
+      "slug": "crisp",
+      "description": "Add live chat and customer support with Crisp. Use when a user asks to add a chat widget, implement live customer support, set up a help desk, create a knowledge base, or add a chatbot to a website.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "cron",
+      "slug": "cron",
+      "description": "Schedule recurring tasks with cron on Linux/macOS. Use when a user asks to run scripts on a schedule, set up automated backups, schedule data processing, or configure periodic tasks on a server.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "crossplane",
+      "slug": "crossplane",
+      "description": "Crossplane for infrastructure as code using Kubernetes CRDs. Use when the user needs to provision and manage cloud resources declaratively through Kubernetes APIs, compose custom infrastructure abstractions, or build internal platforms.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "crowdsec",
+      "slug": "crowdsec",
+      "description": "Protect servers with CrowdSec collaborative security. Use when a user asks to block malicious IPs, detect brute force attacks, protect web servers, or set up a community-driven firewall and intrusion detection system.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "csv-parse",
+      "slug": "csv-parse",
+      "description": "Parse and generate CSV files with the csv package — stream large files, handle custom delimiters, transform records, validate data, and generate CSV output from objects. Use when tasks involve data import/export, ETL pipelines, processing uploaded CSV files, or generating downloadable reports.",
+      "category": "documents",
+      "tags": [
+        "csv",
+        "parsing",
+        "streaming",
+        "data-import",
+        "export"
+      ]
+    },
+    {
+      "name": "cucumber",
+      "slug": "cucumber",
+      "description": "When the user wants to write behavior-driven development (BDD) tests using Gherkin syntax and Cucumber step definitions. Also use when the user mentions \"cucumber,\" \"BDD,\" \"Gherkin,\" \"feature files,\" \"given-when-then,\" \"step definitions,\" or \"behavior-driven.\" For contract testing, see pact.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "cv-builder",
@@ -786,6 +1260,13 @@
         "svg",
         "interactive"
       ]
+    },
+    {
+      "name": "dagster",
+      "slug": "dagster",
+      "description": "Dagster is a data pipeline orchestrator built around the concept of software-defined assets. Learn to define assets, ops, jobs, schedules, sensors, and resources for building maintainable data platforms.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "data-analysis",
@@ -851,6 +1332,21 @@
       ]
     },
     {
+      "name": "datadog",
+      "slug": "datadog",
+      "description": "Configure and manage Datadog for infrastructure monitoring, application performance monitoring (APM), log management, and alerting. Use when a user needs to set up Datadog agents, create dashboards, configure monitors and alerts, integrate services, or query metrics and logs through Datadog's API.",
+      "category": "devops",
+      "tags": [
+        "datadog",
+        "monitoring",
+        "apm",
+        "logs",
+        "dashboards",
+        "alerts",
+        "observability"
+      ]
+    },
+    {
       "name": "davinci-resolve",
       "slug": "davinci-resolve",
       "description": "Automate and script DaVinci Resolve workflows. Use when a user asks to script DaVinci Resolve via Python/Lua API, automate color grading, batch render projects, manage timelines programmatically, automate media import, build render queues, create Fusion compositions via script, automate Fairlight audio processing, manage project databases, build custom tool scripts, or integrate Resolve into production pipelines. Covers the Resolve Scripting API (Python/Lua), Fusion scripting, and workflow automation.",
@@ -869,6 +1365,20 @@
         "postgresql",
         "mysql"
       ]
+    },
+    {
+      "name": "dbt",
+      "slug": "dbt",
+      "description": "dbt (data build tool) transforms data in your warehouse using SQL SELECT statements. Learn project setup, models, tests, documentation, incremental materializations, and integration with data warehouses like PostgreSQL, BigQuery, and Snowflake.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "dbt-advanced",
+      "slug": "dbt-advanced",
+      "description": "Build data transformation pipelines with dbt (advanced patterns). Use when a user asks to implement incremental models, build data marts, add data quality tests, manage dbt projects at scale, or optimize dbt performance.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "deno",
@@ -897,6 +1407,13 @@
       ]
     },
     {
+      "name": "detox",
+      "slug": "detox",
+      "description": "When the user wants to write end-to-end tests for React Native apps using Detox's gray-box testing approach. Also use when the user mentions \"detox,\" \"React Native testing,\" \"React Native E2E,\" \"gray-box testing,\" or \"Wix Detox.\" For general mobile testing, see appium. For simpler mobile UI flows, see maestro.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "dev-slides",
       "slug": "dev-slides",
       "description": "Create developer-friendly presentations using Slidev. Build Vue-powered slides with live code execution, syntax highlighting, and diagrams. Use when a user asks to create a presentation, build slides, make a tech talk, create a slide deck, or prepare a developer presentation.",
@@ -908,6 +1425,27 @@
         "vue",
         "developer-tools"
       ]
+    },
+    {
+      "name": "devcontainers",
+      "slug": "devcontainers",
+      "description": "Define reproducible development environments with Dev Containers. Use when a user asks to standardize dev environments, set up VS Code remote containers, create reproducible dev setups, or onboard developers faster.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "direnv",
+      "slug": "direnv",
+      "description": "Auto-load environment variables per directory with direnv. Use when a user asks to manage env vars per project, auto-switch configs between projects, or avoid manual .env loading.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "django",
+      "slug": "django",
+      "description": "Django is a batteries-included Python web framework that follows the model-template-view pattern. It provides an ORM, admin interface, authentication, and everything needed to build full-featured web applications rapidly and securely.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "dns-record-analyzer",
@@ -961,6 +1499,26 @@
       ]
     },
     {
+      "name": "docker-multi-stage",
+      "slug": "docker-multi-stage",
+      "description": "Build optimized Docker images with multi-stage builds. Use when a user asks to reduce Docker image size, optimize build times, separate build and runtime dependencies, or create production Docker images.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "docx",
+      "slug": "docx",
+      "description": "Generate Word documents programmatically with the docx library — create paragraphs, tables, images, headers, footers, numbered lists, and styled content. Use when tasks involve generating contracts, proposals, resumes, or any .docx output from application data in Node.js.",
+      "category": "documents",
+      "tags": [
+        "docx",
+        "word",
+        "document",
+        "reports",
+        "office"
+      ]
+    },
+    {
       "name": "doppler",
       "slug": "doppler",
       "description": "Manage secrets and environment variables using the Doppler CLI. Use when the user wants to set up Doppler, inject secrets into processes, manage projects and configs, upload or download secrets, create service tokens, use secret templates, or integrate Doppler with Docker, Kubernetes, or CI/CD pipelines. Trigger words: doppler, secrets manager, env vars, secret injection, doppler run, doppler setup, service token, secret rotation.",
@@ -984,6 +1542,27 @@
         "database",
         "typescript",
         "sql"
+      ]
+    },
+    {
+      "name": "dvc",
+      "slug": "dvc",
+      "description": "Data Version Control for ML projects. Track large datasets and models alongside Git, build reproducible ML pipelines, and run experiments with metric comparison. Works with any storage backend including S3, GCS, Azure, and local filesystems.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "elasticsearch-search",
+      "slug": "elasticsearch-search",
+      "description": "Configure and use Elasticsearch for full-text search, custom analyzers, aggregations, and index management. Use when a user needs to design search mappings, write complex queries, build aggregation pipelines, tune relevance scoring, or optimize index performance for search workloads.",
+      "category": "devops",
+      "tags": [
+        "elasticsearch",
+        "search",
+        "full-text-search",
+        "aggregations",
+        "analyzers",
+        "mappings"
       ]
     },
     {
@@ -1059,6 +1638,13 @@
       ]
     },
     {
+      "name": "ethers-js",
+      "slug": "ethers-js",
+      "description": "Interact with Ethereum and EVM blockchains using ethers.js. Use when a user asks to connect to Ethereum, read blockchain data, send transactions, interact with smart contracts, or build a dApp frontend.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "excel-processor",
       "slug": "excel-processor",
       "description": "Read, transform, analyze, and generate Excel and CSV files. Use when a user asks to open a spreadsheet, process Excel data, merge CSVs, create pivot tables, clean up data, convert between Excel and CSV, add formulas, filter rows, or generate reports from tabular data. Handles .xlsx, .xls, and .csv.",
@@ -1069,6 +1655,19 @@
         "spreadsheet",
         "data",
         "pandas"
+      ]
+    },
+    {
+      "name": "exceljs",
+      "slug": "exceljs",
+      "description": "Generate and parse Excel spreadsheets with ExcelJS — create workbooks with multiple sheets, styled cells, formulas, charts, images, and conditional formatting. Use when tasks involve exporting application data to .xlsx, building financial reports, parsing uploaded spreadsheets, or creating data import/export pipelines.",
+      "category": "documents",
+      "tags": [
+        "excel",
+        "xlsx",
+        "spreadsheet",
+        "exceljs",
+        "reports"
       ]
     },
     {
@@ -1098,10 +1697,52 @@
       ]
     },
     {
+      "name": "external-dns",
+      "slug": "external-dns",
+      "description": "ExternalDNS for automatic DNS record management in Kubernetes. Use when the user needs to synchronize Kubernetes Ingress and Service resources with DNS providers like Route 53, CloudDNS, or Cloudflare automatically.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "facebook-marketing",
       "slug": "facebook-marketing",
       "description": "Create, optimize, and automate Facebook content for Pages, Groups, and Ads. Use when someone asks to \"grow Facebook page\", \"create Facebook ads\", \"manage Facebook group\", \"Facebook API integration\", \"automate Facebook posting\", \"Facebook analytics\", or \"Facebook marketing strategy\". Covers Pages, Groups, Graph API publishing, Ads Manager API, Messenger bots, and growth strategies.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "fail2ban",
+      "slug": "fail2ban",
+      "description": "Protect servers from brute force attacks with Fail2Ban. Use when a user asks to block repeated failed login attempts, protect SSH, secure web servers from brute force, or ban malicious IPs automatically.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "faker",
+      "slug": "faker",
+      "description": "When the user wants to generate realistic fake data for testing, seeding databases, or prototyping. Also use when the user mentions \"faker,\" \"fake data,\" \"test data generation,\" \"seed data,\" \"mock data,\" \"random names,\" or \"realistic test data.\" For API mocking, see mockoon or wiremock.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "fastapi",
+      "slug": "fastapi",
+      "description": "FastAPI is a modern, high-performance Python web framework for building APIs. It leverages Python type hints and Pydantic for automatic validation, serialization, and OpenAPI documentation generation with async/await support out of the box.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "fastapi-advanced",
+      "slug": "fastapi-advanced",
+      "description": "Build production APIs with FastAPI advanced patterns. Use when a user asks to implement dependency injection, background tasks, WebSockets, middleware, database sessions, or structured error handling in FastAPI.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "fastify",
+      "slug": "fastify",
+      "description": "Fastify is a high-performance Node.js web framework focused on developer experience and low overhead. It features JSON Schema validation, a powerful plugin system, lifecycle hooks, and automatic serialization for blazing-fast APIs.",
+      "category": "development",
       "tags": []
     },
     {
@@ -1127,6 +1768,19 @@
         "ffmpeg",
         "multimedia",
         "conversion"
+      ]
+    },
+    {
+      "name": "figma-api",
+      "slug": "figma-api",
+      "description": "Interact with the Figma REST API to read design files, export assets, extract components, and pull design tokens programmatically. Use when tasks involve automating design handoff, syncing design tokens to code, exporting icons/images from Figma, or building integrations between Figma and development pipelines.",
+      "category": "design",
+      "tags": [
+        "figma",
+        "api",
+        "design-tokens",
+        "export",
+        "components"
       ]
     },
     {
@@ -1168,6 +1822,34 @@
       ]
     },
     {
+      "name": "flask",
+      "slug": "flask",
+      "description": "Flask is a lightweight Python micro web framework that provides the essentials for web development without imposing structure. It uses Jinja2 templates and Werkzeug WSGI toolkit, with a rich ecosystem of extensions for databases, auth, and more.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "flink",
+      "slug": "flink",
+      "description": "Process real-time data streams with Apache Flink. Use when a user asks to build real-time analytics, process event streams with low latency, implement complex event processing, or run stateful stream processing at scale.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "fluentd",
+      "slug": "fluentd",
+      "description": "Configure Fluentd for unified log collection, routing, filtering, and forwarding across distributed systems. Use when a user needs to aggregate logs from multiple sources, transform log data with filters, route logs to different destinations, or set up Fluentd as a Kubernetes log collector.",
+      "category": "devops",
+      "tags": [
+        "fluentd",
+        "logging",
+        "log-collection",
+        "log-routing",
+        "kubernetes",
+        "observability"
+      ]
+    },
+    {
       "name": "fly-io",
       "slug": "fly-io",
       "description": "Assists with deploying applications globally on Fly.io edge infrastructure. Use when deploying Docker-based apps, configuring multi-region machines, setting up persistent storage, or managing global databases. Trigger words: fly.io, fly deploy, fly machines, fly launch, multi-region, edge deployment, flyctl.",
@@ -1188,16 +1870,29 @@
       "tags": []
     },
     {
+      "name": "formik",
+      "slug": "formik",
+      "description": "Build forms in React with Formik. Use when creating complex forms with validation, multi-step forms, dynamic form fields, or handling form submission with error states.",
+      "category": "development",
+      "tags": [
+        "formik",
+        "forms",
+        "react",
+        "validation",
+        "ui"
+      ]
+    },
+    {
       "name": "framer-motion",
       "slug": "framer-motion",
-      "description": "Assists with building fluid animations and gestures in React applications using Framer Motion. Use when creating enter/exit animations, layout transitions, scroll-triggered effects, drag interactions, or orchestrated animation sequences. Trigger words: framer motion, motion, animate, spring, layout animation, animatepresence, scroll animation.",
-      "category": "design",
+      "description": "Animate React components with Framer Motion. Use when adding page transitions, gesture animations, layout animations, scroll-triggered effects, or building interactive UI with spring physics.",
+      "category": "development",
       "tags": [
         "framer-motion",
         "animation",
         "react",
-        "gestures",
-        "transitions"
+        "transitions",
+        "gestures"
       ]
     },
     {
@@ -1221,6 +1916,48 @@
       ]
     },
     {
+      "name": "gcloud",
+      "slug": "gcloud",
+      "description": "Google Cloud CLI for managing GCP resources. Use when the user needs to work with Compute Engine, Cloud Storage, Cloud Functions, IAM, GKE, and other Google Cloud services from the terminal.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-bigquery",
+      "slug": "gcp-bigquery",
+      "description": "Analyze massive datasets with Google BigQuery. Run SQL queries on petabytes of data, load and stream data in real-time, create materialized views, and use BigQuery ML for machine learning models directly in SQL.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-cloud-functions",
+      "slug": "gcp-cloud-functions",
+      "description": "Build serverless functions on Google Cloud Functions. Deploy HTTP and event-driven functions triggered by Pub/Sub, Cloud Storage, and Firestore. Configure runtime settings, manage dependencies, and connect to other GCP services.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-cloud-run",
+      "slug": "gcp-cloud-run",
+      "description": "Deploy serverless containers on Google Cloud Run. Build and push container images, configure auto-scaling from zero, split traffic between revisions for canary deployments, and set up custom domains with managed TLS.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-cloud-storage",
+      "slug": "gcp-cloud-storage",
+      "description": "Manage Google Cloud Storage for scalable object storage. Create and configure buckets, upload and organize objects, generate signed URLs for secure temporary access, set lifecycle rules for cost optimization, and configure access control.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-firestore",
+      "slug": "gcp-firestore",
+      "description": "Build real-time applications with Google Cloud Firestore. Model data with collections and documents, execute queries with composite indexes, set up real-time listeners for live updates, enable offline persistence, and write security rules for client-side access control.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "gdpr-compliance",
       "slug": "gdpr-compliance",
       "description": "Automate GDPR and privacy compliance for web applications. Use when someone asks to \"make the app GDPR compliant\", \"add cookie consent\", \"handle data deletion requests\", \"audit PII\", \"data subject access request\", or \"privacy policy generator\". Covers PII auditing, consent management, data subject request endpoints, retention policies, and privacy policy generation.",
@@ -1231,6 +1968,13 @@
         "compliance",
         "data-protection"
       ]
+    },
+    {
+      "name": "gin",
+      "slug": "gin",
+      "description": "Gin is a high-performance HTTP web framework for Go with a martini-like API. It features fast routing with radix trees, middleware support, JSON binding and validation, and structured error handling for building REST APIs.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "git-commit-pro",
@@ -1272,6 +2016,20 @@
       ]
     },
     {
+      "name": "github-actions-advanced",
+      "slug": "github-actions-advanced",
+      "description": "Build advanced CI/CD pipelines with GitHub Actions. Use when a user asks to create reusable workflows, build matrix strategies, implement conditional deployments, cache dependencies, or optimize CI pipeline speed.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gobuster",
+      "slug": "gobuster",
+      "description": "Brute force directories, files, DNS subdomains, and virtual hosts with Gobuster. Use when a user asks to discover hidden endpoints, enumerate subdomains, find backup files, or perform web content discovery during penetration testing.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "google-indexing",
       "slug": "google-indexing",
       "description": "Submit URLs to Google for indexing using the Google Indexing API and bulk-submit from sitemaps. Use when a user asks to index pages on Google, submit URLs to Google Search Console, speed up Google indexing, request crawling, bulk index pages, submit a sitemap's URLs for indexing, or check indexing status. Also use when the user mentions \"Google Indexing API\", \"request indexing\", \"submit to Google\", or \"pages not indexed\".",
@@ -1285,6 +2043,13 @@
       ]
     },
     {
+      "name": "gradio",
+      "slug": "gradio",
+      "description": "Python library for building ML demo UIs with minimal code. Create interactive web interfaces for models with text, image, audio, and video inputs/outputs. Share demos via public links or deploy to Hugging Face Spaces.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "graphql",
       "slug": "graphql",
       "description": "Build and consume GraphQL APIs. Use when a user asks to create a GraphQL server, write GraphQL schemas, implement resolvers, set up subscriptions, build a GraphQL API, add authentication to GraphQL, optimize queries with DataLoader, implement pagination, handle file uploads, generate types from schema, consume a GraphQL endpoint, or migrate from REST to GraphQL. Covers Apollo Server, Apollo Client, schema design, resolvers, subscriptions, federation, and production patterns.",
@@ -1292,9 +2057,36 @@
       "tags": []
     },
     {
+      "name": "great-expectations",
+      "slug": "great-expectations",
+      "description": "Great Expectations is a Python framework for data quality testing and validation. Learn to define expectations, create validation suites, build data docs, and integrate with data pipelines for automated quality checks.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "grpc",
       "slug": "grpc",
       "description": "Build high-performance RPC services with gRPC and Protocol Buffers. Use when a user asks to create gRPC services, define protobuf schemas, implement streaming RPCs, build microservice communication, set up service-to-service calls, implement bidirectional streaming, add interceptors/middleware to gRPC, generate client stubs, handle gRPC errors, implement health checks, configure load balancing, or build gRPC-Web for browser clients. Covers unary, server/client/bidirectional streaming, interceptors, deadlines, metadata, reflection, and production patterns.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "gsap",
+      "slug": "gsap",
+      "description": "Create advanced animations with GSAP. Use when building complex timelines, scroll-driven animations, SVG morphing, text animations, or high-performance web animations beyond CSS capabilities.",
+      "category": "development",
+      "tags": [
+        "gsap",
+        "animation",
+        "scrolltrigger",
+        "timeline",
+        "svg"
+      ]
+    },
+    {
+      "name": "hardhat",
+      "slug": "hardhat",
+      "description": "Develop and test Ethereum smart contracts with Hardhat. Use when a user asks to set up a Solidity development environment, test smart contracts, deploy to testnets, or debug Ethereum transactions.",
       "category": "development",
       "tags": []
     },
@@ -1310,6 +2102,13 @@
         "encryption",
         "dynamic-credentials"
       ]
+    },
+    {
+      "name": "helicone",
+      "slug": "helicone",
+      "description": "LLM observability proxy that sits between your app and LLM providers. Logs every request, enables caching, rate limiting, and provides cost analytics. Works with OpenAI, Anthropic, and other providers with a one-line integration change.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "hetzner-cloud",
@@ -1338,6 +2137,81 @@
       ]
     },
     {
+      "name": "hoppscotch",
+      "slug": "hoppscotch",
+      "description": "Test and debug APIs with Hoppscotch. Use when a user asks to test API endpoints, debug REST/GraphQL/WebSocket APIs, create API collections, or find a Postman alternative that's open-source.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "htmx",
+      "slug": "htmx",
+      "description": "htmx gives you access to AJAX, CSS transitions, WebSockets, and Server-Sent Events directly in HTML using attributes. It enables dynamic web UIs without writing JavaScript by letting any element issue HTTP requests and swap content into the DOM.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "htop",
+      "slug": "htop",
+      "description": "Monitor system resources with htop and related tools. Use when a user asks to check CPU/memory usage, find resource-hungry processes, monitor server performance, or diagnose system bottlenecks.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "huggingface",
+      "slug": "huggingface",
+      "description": "Work with Hugging Face's ecosystem for machine learning — transformers library, model hub, tokenizers, inference pipelines, and fine-tuning. Covers downloading pre-trained models, running inference, training custom models, and publishing to the Hub.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "husky",
+      "slug": "husky",
+      "description": "Run scripts on Git hooks with Husky. Use when a user asks to run linters before commit, validate commit messages, run tests before push, or set up Git hooks for a team.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "i18next",
+      "slug": "i18next",
+      "description": "Internationalize JavaScript apps with i18next. Use when adding translations, handling plurals, loading locale files dynamically, or i18n for React/Vue/Node.",
+      "category": "development",
+      "tags": [
+        "i18next",
+        "i18n",
+        "localization",
+        "translations",
+        "react-i18next"
+      ]
+    },
+    {
+      "name": "imgix",
+      "slug": "imgix",
+      "description": "Optimize and transform images with imgix. Use when serving responsive images, implementing image CDN, adding real-time transformations, or optimizing Core Web Vitals with image delivery.",
+      "category": "content",
+      "tags": [
+        "imgix",
+        "images",
+        "cdn",
+        "optimization",
+        "responsive"
+      ]
+    },
+    {
+      "name": "influxdb",
+      "slug": "influxdb",
+      "description": "Set up and manage InfluxDB for time-series data storage, querying, and analysis. Use when a user needs to configure InfluxDB buckets, write Flux queries, set up retention policies, create tasks for data downsampling, or build dashboards for time-series metrics.",
+      "category": "devops",
+      "tags": [
+        "influxdb",
+        "time-series",
+        "flux",
+        "metrics",
+        "retention",
+        "monitoring"
+      ]
+    },
+    {
       "name": "infra-rate-limiting",
       "slug": "infra-rate-limiting",
       "description": "Assists with configuring infrastructure-level rate limiting at the reverse proxy, API gateway, CDN, and WAF layers. Use when setting up Nginx rate limiting, Cloudflare rate rules, AWS API Gateway throttling, Kong rate limiting plugins, or CDN-level DDoS protection. Trigger words: nginx rate limit, api gateway throttling, cloudflare rate limiting, waf, cdn rate limit, infrastructure throttling.",
@@ -1348,6 +2222,19 @@
         "api-gateway",
         "cdn",
         "waf"
+      ]
+    },
+    {
+      "name": "inquirer",
+      "slug": "inquirer",
+      "description": "Build interactive CLI prompts with Inquirer.js. Use when creating interactive terminal UIs, multi-step wizards, form-like CLI inputs, or configuration generators with user input.",
+      "category": "development",
+      "tags": [
+        "inquirer",
+        "cli",
+        "prompts",
+        "interactive",
+        "terminal"
       ]
     },
     {
@@ -1371,6 +2258,13 @@
       ]
     },
     {
+      "name": "intercom",
+      "slug": "intercom",
+      "description": "Add customer messaging and support with Intercom. Use when a user asks to add in-app messaging, build a help center, set up customer onboarding flows, create product tours, or implement a support ticketing system.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "invoice-generator",
       "slug": "invoice-generator",
       "description": "Create professional invoices with proper formatting. Use when a user asks to generate an invoice, create a bill, make an invoice PDF, build an invoice for a client, or produce a billing document. Supports multiple currencies, tax calculations, discounts, and customizable templates.",
@@ -1381,6 +2275,54 @@
         "pdf",
         "business",
         "finance"
+      ]
+    },
+    {
+      "name": "ipfs",
+      "slug": "ipfs",
+      "description": "Store and retrieve files on IPFS (InterPlanetary File System). Use when a user asks to store files in a decentralized way, pin content on IPFS, upload NFT metadata, or use content-addressed storage.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "iptables",
+      "slug": "iptables",
+      "description": "Configure Linux firewall with iptables/nftables. Use when a user asks to set up a firewall, block ports, allow specific traffic, configure NAT, or secure a Linux server network.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "iron-session",
+      "slug": "iron-session",
+      "description": "Manage encrypted sessions in Next.js with iron-session. Use for session auth, encrypted cookies, or stateless sessions without a database.",
+      "category": "development",
+      "tags": [
+        "iron-session",
+        "sessions",
+        "nextjs",
+        "cookies",
+        "auth"
+      ]
+    },
+    {
+      "name": "istio",
+      "slug": "istio",
+      "description": "Istio service mesh for Kubernetes traffic management, security, and observability. Use when the user needs to configure traffic routing, mTLS, circuit breaking, fault injection, or observability for microservices.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "jaeger",
+      "slug": "jaeger",
+      "description": "Deploy and use Jaeger for distributed tracing across microservices. Use when a user needs to set up trace collection, instrument applications with OpenTelemetry, analyze trace data to find latency bottlenecks, or configure Jaeger storage backends and sampling strategies.",
+      "category": "devops",
+      "tags": [
+        "jaeger",
+        "tracing",
+        "distributed-tracing",
+        "opentelemetry",
+        "observability",
+        "spans"
       ]
     },
     {
@@ -1428,6 +2370,26 @@
       ]
     },
     {
+      "name": "jose-jwt",
+      "slug": "jose-jwt",
+      "description": "Work with JWTs using jose. Use when implementing JWT auth, token signing/ verification, refresh tokens, or stateless API auth.",
+      "category": "development",
+      "tags": [
+        "jwt",
+        "jose",
+        "authentication",
+        "tokens",
+        "api-auth"
+      ]
+    },
+    {
+      "name": "jotai",
+      "slug": "jotai",
+      "description": "Manage React state with Jotai atoms. Use when a user asks to manage granular React state, replace Context with something performant, create derived state, or build bottom-up state management with atomic primitives.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "jupyter",
       "slug": "jupyter",
       "description": "Assists with interactive data analysis, visualization, and reproducible research using Jupyter notebooks. Use when building notebooks that combine code with rich output, managing kernels, converting to reports, or parameterizing notebooks for batch execution. Trigger words: jupyter, notebook, jupyterlab, ipynb, nbconvert, papermill.",
@@ -1441,6 +2403,13 @@
       ]
     },
     {
+      "name": "just",
+      "slug": "just",
+      "description": "Run project commands with just (a modern make alternative). Use when a user asks to define project commands, replace Makefile, create a command runner, or standardize dev scripts.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "jwt-handler",
       "slug": "jwt-handler",
       "description": "When the user needs to generate, validate, refresh, or debug JSON Web Tokens. Use when the user mentions \"JWT,\" \"access token,\" \"refresh token,\" \"token rotation,\" \"token expiration,\" \"token validation,\" \"bearer token,\" or \"decode JWT.\" Handles secure token lifecycle including signing, verification, refresh rotation, and revocation. For full auth system design, see auth-system-setup.",
@@ -1451,6 +2420,13 @@
         "authentication",
         "security"
       ]
+    },
+    {
+      "name": "k6",
+      "slug": "k6",
+      "description": "When the user wants to perform load testing, stress testing, or performance testing of APIs and websites using k6. Also use when the user mentions \"k6,\" \"load test,\" \"performance test,\" \"stress test,\" \"spike test,\" \"soak test,\" \"thresholds,\" \"virtual users,\" or \"VUs.\" For browser-based testing, see selenium.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "k8s-cost-optimizer",
@@ -1467,15 +2443,9 @@
     {
       "name": "kafka",
       "slug": "kafka",
-      "description": "Build event-driven systems with Apache Kafka — producers, consumers, consumer groups, topics, partitions, schemas, and exactly-once semantics. Use when tasks involve real-time event streaming, microservice communication, log aggregation, change data capture, or building event sourcing pipelines.",
-      "category": "devops",
-      "tags": [
-        "kafka",
-        "streaming",
-        "event-driven",
-        "messaging",
-        "microservices"
-      ]
+      "description": "Build event-driven systems with Apache Kafka. Use when a user asks to set up message streaming, implement event sourcing, build pub/sub systems, process real-time data streams, or connect microservices with async messaging.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "kaggle-finetune",
@@ -1483,6 +2453,20 @@
       "description": "End-to-end workflow for fine-tuning LLMs using Kaggle datasets. Use when downloading datasets from Kaggle for model training, preparing conversation/customer service data for chatbot fine-tuning, or building domain-specific AI assistants. Covers dataset discovery, download, preprocessing into chat format, and integration with PEFT/LoRA training.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "kibana",
+      "slug": "kibana",
+      "description": "Configure and use Kibana for Elasticsearch data visualization, dashboard creation, and log exploration. Use when a user needs to build dashboards with Lens, write KQL queries, set up data views, create visualizations, or configure Kibana spaces and role-based access.",
+      "category": "devops",
+      "tags": [
+        "kibana",
+        "elasticsearch",
+        "dashboards",
+        "visualization",
+        "kql",
+        "elk"
+      ]
     },
     {
       "name": "kubernetes-helm",
@@ -1497,9 +2481,30 @@
       ]
     },
     {
+      "name": "kysely",
+      "slug": "kysely",
+      "description": "Write type-safe SQL with Kysely query builder. Use when a user asks to write raw SQL with TypeScript safety, build queries without an ORM, use a lightweight SQL builder, or migrate from Knex with type safety.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "label-studio",
+      "slug": "label-studio",
+      "description": "Open-source data labeling and annotation platform for ML projects. Supports text, image, audio, video, and time-series data. Features configurable labeling interfaces, ML-assisted labeling, team collaboration, and API integration for automated workflows.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "langchain",
       "slug": "langchain",
       "description": "Build LLM-powered applications with LangChain. Use when a user asks to create AI chains, build RAG pipelines, implement agents with tools, set up document loaders, create vector stores, build conversational AI, implement prompt templates, chain LLM calls, add memory to chatbots, or orchestrate language model workflows. Covers LangChain v0.3+ with LCEL (LangChain Expression Language), structured output, tool calling, retrieval, and production deployment patterns.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "langfuse",
+      "slug": "langfuse",
+      "description": "Open-source LLM observability and analytics platform. Trace LLM calls, score outputs, manage prompts, and monitor cost/latency across your AI application. Integrates with OpenAI, LangChain, LlamaIndex, and other LLM frameworks.",
       "category": "data-ai",
       "tags": []
     },
@@ -1518,10 +2523,24 @@
       "tags": []
     },
     {
+      "name": "laravel",
+      "slug": "laravel",
+      "description": "Laravel is a PHP web framework with expressive syntax and a rich ecosystem. It provides Eloquent ORM, Blade templates, queues, task scheduling, Sanctum for API auth, and tools for building modern full-stack or API applications.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "launch-strategy",
       "slug": "launch-strategy",
       "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' or 'product update.' This skill covers phased launches, channel strategy, and ongoing launch momentum.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "launchdarkly",
+      "slug": "launchdarkly",
+      "description": "Manage feature flags with LaunchDarkly. Use when a user asks to implement feature flags, roll out features gradually, do A/B testing, control feature access by user segment, or implement kill switches for features.",
+      "category": "development",
       "tags": []
     },
     {
@@ -1538,6 +2557,13 @@
       ]
     },
     {
+      "name": "lefthook",
+      "slug": "lefthook",
+      "description": "Fast Git hooks manager written in Go. Use when a user asks to set up Git hooks without Node.js dependency, run parallel pre-commit checks, or find a faster alternative to Husky.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "lemon-squeezy",
       "slug": "lemon-squeezy",
       "description": "Assists with selling digital products, SaaS subscriptions, and software licenses using Lemon Squeezy as a Merchant of Record. Use when setting up checkout flows, webhook handling, license key validation, or subscription management with automatic global tax compliance. Trigger words: lemon squeezy, merchant of record, digital sales, license keys, subscriptions.",
@@ -1551,6 +2577,20 @@
       ]
     },
     {
+      "name": "letsencrypt",
+      "slug": "letsencrypt",
+      "description": "Get free TLS certificates with Certbot and Let's Encrypt. Use when a user asks to add HTTPS to a website, get a free SSL certificate, auto-renew certificates, or secure a web server with TLS.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "lighthouse-ci",
+      "slug": "lighthouse-ci",
+      "description": "Automate Lighthouse audits in CI with Lighthouse CI. Use when a user asks to track Core Web Vitals, prevent performance regressions, audit accessibility in CI, or set performance budgets for web apps.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "linear",
       "slug": "linear",
       "description": "Manage projects and issues with Linear. Use when a user asks to set up Linear workspaces, create issues and projects, automate workflows, build Linear integrations, sync issues with GitHub, manage sprints and cycles, set up triage processes, build custom views, use Linear's GraphQL API, create webhooks, automate issue transitions, or build tools on top of Linear. Covers workspace configuration, team workflows, API automation, and integration patterns.",
@@ -1562,6 +2602,13 @@
       "slug": "linkedin-marketing",
       "description": "Create, optimize, and automate LinkedIn content for personal branding, lead generation, and B2B marketing. Use when someone asks to \"write a LinkedIn post\", \"grow on LinkedIn\", \"LinkedIn content strategy\", \"LinkedIn API integration\", \"automate LinkedIn posting\", \"LinkedIn carousel\", \"LinkedIn analytics\", or \"LinkedIn outreach\". Covers content creation with platform-specific formatting, API integration, analytics, and growth strategies.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "linkerd",
+      "slug": "linkerd",
+      "description": "Linkerd lightweight service mesh for Kubernetes. Use when the user needs automatic mTLS, traffic splitting, retries, and observability with minimal resource overhead and operational complexity.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -1598,6 +2645,13 @@
       "tags": []
     },
     {
+      "name": "locust",
+      "slug": "locust",
+      "description": "When the user wants to perform load testing using Python with Locust's distributed architecture and real-time web UI. Also use when the user mentions \"locust,\" \"Python load testing,\" \"distributed load test,\" \"locust web UI,\" or \"locustfile.\" For JavaScript-based load testing, see k6 or artillery.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "log-analyzer",
       "slug": "log-analyzer",
       "description": "Analyze application logs, server logs, and error traces to identify root causes, patterns, and anomalies. Use when debugging production incidents, investigating error spikes, parsing crash reports, or correlating events across multiple log sources. Trigger words: logs, errors, stack trace, crash, exception, debug, incident, 500 errors, timeout, latency spike.",
@@ -1607,6 +2661,40 @@
         "debugging",
         "incident-response",
         "observability"
+      ]
+    },
+    {
+      "name": "logstash",
+      "slug": "logstash",
+      "description": "Configure Logstash for log ingestion, parsing, transformation, and output to Elasticsearch and other destinations. Use when a user needs to build log processing pipelines, write Grok patterns, parse unstructured logs, enrich events, or set up multi-pipeline Logstash deployments.",
+      "category": "devops",
+      "tags": [
+        "logstash",
+        "logging",
+        "grok",
+        "elk",
+        "log-processing",
+        "pipelines"
+      ]
+    },
+    {
+      "name": "loops",
+      "slug": "loops",
+      "description": "Send marketing and transactional emails with Loops. Use when a user asks to set up email marketing for a SaaS, create drip campaigns, send product update emails, or use a modern alternative to Mailchimp for startups.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "lottie",
+      "slug": "lottie",
+      "description": "Play After Effects animations on web and mobile with Lottie — load JSON animation files, control playback, listen to events, and integrate animations into React, Vue, or vanilla JS apps. Use when tasks involve adding motion graphics, animated icons, loading indicators, or micro-interactions exported from After Effects or other animation tools.",
+      "category": "design",
+      "tags": [
+        "lottie",
+        "animation",
+        "after-effects",
+        "motion",
+        "micro-interactions"
       ]
     },
     {
@@ -1621,6 +2709,20 @@
         "oauth",
         "two-factor"
       ]
+    },
+    {
+      "name": "maestro",
+      "slug": "maestro",
+      "description": "When the user wants to write mobile UI tests using Maestro's simple YAML-based flow definitions. Also use when the user mentions \"maestro,\" \"mobile UI testing,\" \"YAML mobile tests,\" \"maestro flows,\" or \"maestro studio.\" For React Native-specific gray-box testing, see detox. For cross-platform mobile automation, see appium.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "mailgun",
+      "slug": "mailgun",
+      "description": "Send and receive emails with Mailgun. Use when a user asks to send bulk emails, set up email routing, validate email addresses, track email engagement, or handle both transactional and marketing emails.",
+      "category": "business",
+      "tags": []
     },
     {
       "name": "maps-geolocation",
@@ -1709,6 +2811,20 @@
       ]
     },
     {
+      "name": "metabase",
+      "slug": "metabase",
+      "description": "Metabase is an open-source business intelligence tool for creating dashboards and visualizations. Learn Docker deployment, database connections, creating questions and dashboards, embedding analytics, and API usage.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "metasploit",
+      "slug": "metasploit",
+      "description": "Exploit vulnerabilities with Metasploit Framework. Use when a user asks to exploit known CVEs, generate payloads, perform post-exploitation, pivot through networks, or build exploit chains in penetration tests.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "microsoft-teams",
       "slug": "microsoft-teams",
       "description": "Build bots, automate workflows, and manage Microsoft Teams programmatically via Microsoft Graph API. Use when someone asks to \"build a Teams bot\", \"automate Teams messages\", \"create Teams channels\", \"integrate with Teams\", \"Teams webhook\", \"send Teams notifications\", \"manage Teams meetings\", or \"Teams app development\". Covers Graph API for messaging, channels, meetings, bots with Bot Framework, incoming webhooks, and Power Automate integration.",
@@ -1720,6 +2836,34 @@
       "slug": "microsoft-word",
       "description": "Create, edit, and manipulate Word documents (.docx) programmatically. Use when someone asks to \"generate a Word document\", \"create a report in docx\", \"mail merge\", \"fill Word template\", \"extract text from Word\", \"convert markdown to Word\", \"add tables to Word\", or \"automate document generation\". Covers python-docx for file manipulation, docxtpl for templates, and Microsoft Graph API for cloud documents.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "mise",
+      "slug": "mise",
+      "description": "Manage tool versions and tasks with mise (formerly rtx). Use when a user asks to manage Node.js/Python/Go versions per project, replace nvm/pyenv/asdf, or define project-level tool requirements.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "mlflow",
+      "slug": "mlflow",
+      "description": "Open-source platform for managing the ML lifecycle. Track experiments with metrics and parameters, register and version models, deploy models to various targets, and build reproducible ML pipelines. Integrates with all major ML frameworks.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "mockoon",
+      "slug": "mockoon",
+      "description": "When the user wants to create mock API servers locally using Mockoon with its GUI or CLI. Also use when the user mentions \"mockoon,\" \"API mocking,\" \"mock server,\" \"mock API,\" \"OpenAPI mock,\" or \"local API simulation.\" For programmatic HTTP mocking, see wiremock.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "modal",
+      "slug": "modal",
+      "description": "Serverless GPU compute platform for running Python functions in the cloud. Deploy ML models, run training jobs, and serve inference endpoints without managing infrastructure. Supports A100/H100 GPUs, custom container images, and scales to zero automatically.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -1788,6 +2932,20 @@
       ]
     },
     {
+      "name": "mysql",
+      "slug": "mysql",
+      "description": "MySQL is the world's most popular open-source relational database management system. Learn installation, SQL queries, indexing strategies, replication setup, and client integration with Node.js (mysql2) and Python (mysql-connector).",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "n8n",
+      "slug": "n8n",
+      "description": "Build workflow automations with n8n. Use when a user asks to automate business workflows, connect APIs visually, build integrations between apps, self-host a Zapier alternative, or create data pipelines with a visual editor.",
+      "category": "automation",
+      "tags": []
+    },
+    {
       "name": "n8n-self-host",
       "slug": "n8n-self-host",
       "description": "Self-host, configure, scale, and manage n8n instances. Use when a user asks to install n8n with Docker, set up n8n in production, configure n8n environment variables, scale n8n with workers, back up n8n workflows, restore n8n data, manage n8n via CLI or REST API, monitor n8n, troubleshoot n8n issues, set up n8n with PostgreSQL, or deploy n8n with a reverse proxy. For designing n8n workflows and nodes, see n8n-workflow.",
@@ -1821,6 +2979,19 @@
       "tags": []
     },
     {
+      "name": "nagios",
+      "slug": "nagios",
+      "description": "Configure Nagios for infrastructure monitoring, service checks, host monitoring, and alert notifications. Use when a user needs to set up Nagios Core, write check commands, configure host and service definitions, manage notification contacts, or create custom monitoring plugins.",
+      "category": "devops",
+      "tags": [
+        "nagios",
+        "infrastructure-monitoring",
+        "checks",
+        "notifications",
+        "plugins"
+      ]
+    },
+    {
       "name": "nda-generator",
       "slug": "nda-generator",
       "description": "Generate professional Non-Disclosure Agreements for meetings, partnerships, and employment. Use when a user asks to create an NDA, draft a confidentiality agreement, generate a non-disclosure document, make an NDA for a meeting, or prepare a mutual NDA for a partnership. Supports unilateral and mutual NDAs.",
@@ -1832,6 +3003,13 @@
         "agreement",
         "business"
       ]
+    },
+    {
+      "name": "neo4j",
+      "slug": "neo4j",
+      "description": "Neo4j is the leading graph database for connected data. Learn Cypher query language, node and relationship modeling, graph algorithms, and integration with Node.js using the official neo4j-driver.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "neon",
@@ -1847,17 +3025,52 @@
       ]
     },
     {
+      "name": "nestjs",
+      "slug": "nestjs",
+      "description": "NestJS is a progressive TypeScript framework for building scalable server-side applications on Node.js. It uses decorators, modules, dependency injection, and an opinionated architecture inspired by Angular.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "new-relic",
+      "slug": "new-relic",
+      "description": "Set up and manage New Relic for full-stack observability including APM, browser monitoring, infrastructure monitoring, and alerting. Use when a user needs to instrument applications, write NRQL queries, create dashboards, configure alert policies, or integrate New Relic with their deployment pipeline.",
+      "category": "devops",
+      "tags": [
+        "new-relic",
+        "observability",
+        "apm",
+        "nrql",
+        "browser-monitoring",
+        "alerts"
+      ]
+    },
+    {
+      "name": "next-auth",
+      "slug": "next-auth",
+      "description": "Add authentication to Next.js with NextAuth.js (Auth.js). Use when a user asks to add login to Next.js, implement OAuth, set up session management, protect routes, or integrate social login providers.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "next-intl",
       "slug": "next-intl",
-      "description": "Assists with adding internationalization to Next.js applications using next-intl. Use when configuring locale routing, managing translation messages, handling pluralization and date/number formatting, or building localized apps with App Router and Server Components. Trigger words: next-intl, i18n, internationalization, translations, locale, pluralization.",
+      "description": "Internationalize Next.js apps with next-intl. Use when adding multi-language support, locale routing, date/number formatting, or translating UI content.",
       "category": "development",
       "tags": [
-        "next-intl",
         "i18n",
-        "internationalization",
+        "next-intl",
         "nextjs",
-        "localization"
+        "localization",
+        "internationalization"
       ]
+    },
+    {
+      "name": "next-safe-action",
+      "slug": "next-safe-action",
+      "description": "Type-safe Server Actions in Next.js with next-safe-action. Use when a user asks to validate server action inputs, handle errors in server actions, add middleware to actions, or build type-safe mutations in Next.js.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "nextjs",
@@ -1886,6 +3099,27 @@
       ]
     },
     {
+      "name": "nikto",
+      "slug": "nikto",
+      "description": "Scan web servers for vulnerabilities with Nikto. Use when a user asks to audit web server configuration, find outdated software, detect dangerous files, check for misconfigurations, or perform web server security scanning.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "nmap-recon",
+      "slug": "nmap-recon",
+      "description": "Perform network reconnaissance with Nmap. Use when a user asks to scan networks, discover hosts and services, detect OS versions, find open ports, enumerate service versions, or perform initial reconnaissance for a penetration test.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "nomad",
+      "slug": "nomad",
+      "description": "HashiCorp Nomad workload orchestrator for deploying containers, VMs, and standalone applications. Use when the user needs to write job specifications, manage deployments, configure scaling, or run batch and service workloads across a cluster.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "notification-system",
       "slug": "notification-system",
       "description": "Designs and implements multi-channel notification systems with email, push, and in-app delivery. Use when you need to build a notification service, set up user notification preferences, create delivery pipelines, implement retry logic for failed notifications, or route messages across channels. Trigger words: notification system, push notifications, email notifications, in-app notifications, notification preferences, delivery tracking, unsubscribe, notification routing.",
@@ -1908,6 +3142,20 @@
         "databases",
         "automation"
       ]
+    },
+    {
+      "name": "nuxt",
+      "slug": "nuxt",
+      "description": "Nuxt is a Vue.js meta-framework for building full-stack web applications with server-side rendering, static generation, and file-based routing. It includes Nitro server engine, auto-imports, and a powerful module ecosystem.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "nx",
+      "slug": "nx",
+      "description": "Build and manage monorepos with Nx. Use when a user asks to set up a monorepo, manage multiple packages/apps, cache builds, run affected tests, or migrate from Lerna.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "oauth2-oidc",
@@ -1996,6 +3244,20 @@
       ]
     },
     {
+      "name": "onnx",
+      "slug": "onnx",
+      "description": "Open Neural Network Exchange format for model interoperability across frameworks. Export models from PyTorch, TensorFlow, and other frameworks to ONNX, optimize with ONNX Runtime, and deploy for cross-platform inference on CPU, GPU, and edge devices.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "openapi-spec",
+      "slug": "openapi-spec",
+      "description": "Design and maintain OpenAPI specifications. Use when a user asks to create an API spec, document REST APIs, generate client SDKs from a spec, validate API contracts, or implement design-first API development.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "openclaw",
       "slug": "openclaw",
       "description": "Deploy and manage OpenClaw, a self-hosted gateway bridging messaging platforms to AI coding agents. Use when a user asks to set up OpenClaw, connect WhatsApp or Telegram or Discord to an AI agent, configure multi-agent routing, schedule cron jobs in OpenClaw, set up webhooks, manage OpenClaw channels, pair a messaging account, configure heartbeats, spawn sub-agents, or troubleshoot OpenClaw gateway issues. Covers installation, channel setup, agent configuration, cron scheduling, webhooks, and sub-agents.",
@@ -2007,6 +3269,13 @@
         "gateway",
         "self-hosted"
       ]
+    },
+    {
+      "name": "openrouter",
+      "slug": "openrouter",
+      "description": "Unified API gateway for accessing multiple LLM providers through a single endpoint. Supports OpenAI, Anthropic, Google, Meta, Mistral and dozens more. Provides automatic fallbacks, model routing, cost tracking, and OpenAI-compatible API format.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "opentelemetry",
@@ -2022,9 +3291,55 @@
       ]
     },
     {
+      "name": "opentype-js",
+      "slug": "opentype-js",
+      "description": "Parse and manipulate OpenType/TrueType fonts with opentype.js — read font metadata, access glyph outlines, measure text, generate font subsets, and render text to SVG paths. Use when tasks involve custom text rendering, font analysis, glyph extraction, or building font tools.",
+      "category": "design",
+      "tags": [
+        "fonts",
+        "typography",
+        "opentype",
+        "glyphs",
+        "text-rendering"
+      ]
+    },
+    {
       "name": "openvpn",
       "slug": "openvpn",
       "description": "Deploy and manage OpenVPN servers and clients. Use when a user asks to set up a VPN server, create client certificates, configure site-to-site tunnels, set up split tunneling, manage PKI with EasyRSA, harden OpenVPN security, automate client provisioning, configure routing and NAT, set up MFA for VPN, monitor connected clients, or troubleshoot VPN connectivity. Covers server deployment, PKI management, client configuration, and production hardening.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "opsgenie",
+      "slug": "opsgenie",
+      "description": "Configure Opsgenie for alert management, on-call scheduling, routing rules, and incident response. Use when a user needs to set up alert routing, create escalation policies, manage on-call rotations, integrate with monitoring tools, or automate incident workflows with Opsgenie.",
+      "category": "devops",
+      "tags": [
+        "opsgenie",
+        "alert-management",
+        "on-call",
+        "routing",
+        "incident-response"
+      ]
+    },
+    {
+      "name": "ora",
+      "slug": "ora",
+      "description": "Add terminal spinners with Ora. Use when showing loading indicators in CLI tools, displaying progress during async operations, or building polished command-line interfaces with status feedback.",
+      "category": "development",
+      "tags": [
+        "ora",
+        "cli",
+        "spinner",
+        "loading",
+        "terminal"
+      ]
+    },
+    {
+      "name": "otel-js",
+      "slug": "otel-js",
+      "description": "Instrument Node.js apps with OpenTelemetry. Use when a user asks to add distributed tracing, collect metrics, instrument HTTP requests, trace database queries, or set up observability for microservices.",
       "category": "devops",
       "tags": []
     },
@@ -2049,11 +3364,45 @@
       ]
     },
     {
+      "name": "packer",
+      "slug": "packer",
+      "description": "HashiCorp Packer for building automated machine images. Use when the user needs to create AMIs, Docker images, or GCP images using HCL templates with provisioners for consistent, reproducible infrastructure images.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "pact",
+      "slug": "pact",
+      "description": "When the user wants to implement consumer-driven contract testing between microservices using Pact. Also use when the user mentions \"pact,\" \"contract testing,\" \"consumer-driven contracts,\" \"CDC testing,\" \"provider verification,\" or \"Pact Broker.\" For API mocking, see mockoon or wiremock.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "paddle",
+      "slug": "paddle",
+      "description": "Accept payments with Paddle as merchant of record. Use when a user asks to add subscription billing without handling tax compliance, accept international payments, implement a payment system where Paddle handles VAT/sales tax, or build a SaaS billing system.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "page-cro",
       "slug": "page-cro",
       "description": "When the user wants to optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. Also use when the user says \"CRO,\" \"conversion rate optimization,\" \"this page isn't converting,\" \"improve conversions,\" or \"why isn't this page working.\" For signup/registration flows, see signup-flow-cro. For post-signup activation, see onboarding-cro. For forms outside of signup, see form-cro. For popups/modals, see popup-cro.",
       "category": "marketing",
       "tags": []
+    },
+    {
+      "name": "pagerduty",
+      "slug": "pagerduty",
+      "description": "Configure PagerDuty for incident management, on-call scheduling, alert routing, and escalation policies. Use when a user needs to set up PagerDuty services, create escalation policies, configure integrations with monitoring tools, manage on-call rotations, or automate incident workflows.",
+      "category": "devops",
+      "tags": [
+        "pagerduty",
+        "incident-management",
+        "on-call",
+        "escalation",
+        "alerting"
+      ]
     },
     {
       "name": "paid-ads",
@@ -2073,6 +3422,33 @@
         "dataframe",
         "python",
         "tabular-data"
+      ]
+    },
+    {
+      "name": "pandas-ai",
+      "slug": "pandas-ai",
+      "description": "PandasAI enables natural language queries on pandas DataFrames using LLMs. Learn to ask questions in plain English, generate charts, clean data, and integrate with OpenAI and local models for conversational data analysis.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "partykit",
+      "slug": "partykit",
+      "description": "Build multiplayer and collaborative apps with PartyKit. Use when a user asks to build real-time collaboration features, create multiplayer experiences, add live cursors, build collaborative editing, create real-time voting or polls, sync state across clients, or build WebSocket servers on the edge. Covers PartyServer definition, client connections, state management, hibernation, and deployment to Cloudflare.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "passport-js",
+      "slug": "passport-js",
+      "description": "Add authentication to Express with Passport.js. Use when implementing login with Google/GitHub/email, OAuth, session auth, or social login.",
+      "category": "development",
+      "tags": [
+        "passport",
+        "authentication",
+        "oauth",
+        "express",
+        "social-login"
       ]
     },
     {
@@ -2135,6 +3511,19 @@
       ]
     },
     {
+      "name": "pdfkit",
+      "slug": "pdfkit",
+      "description": "Generate PDF documents programmatically with PDFKit — add text, images, vector graphics, tables, headers/footers, and custom fonts. Use when tasks involve creating invoices, reports, certificates, or any structured PDF output from application data in Node.js.",
+      "category": "documents",
+      "tags": [
+        "pdf",
+        "pdfkit",
+        "reports",
+        "invoices",
+        "node"
+      ]
+    },
+    {
       "name": "peft-fine-tuning",
       "slug": "peft-fine-tuning",
       "description": "Parameter-efficient fine-tuning for LLMs using LoRA, QLoRA, and 25+ methods. Use when a user asks to fine-tune a language model, train a custom LLM, adapt a model to their data, use LoRA or QLoRA, fine-tune Llama or Mistral, or train a model on consumer GPUs. Covers PEFT methods for 7B-70B parameter models.",
@@ -2148,6 +3537,20 @@
       ]
     },
     {
+      "name": "pentagi",
+      "slug": "pentagi",
+      "description": "Run AI-powered penetration testing with PentAGI. Use when a user asks to automate security testing, set up autonomous pentesting, deploy an AI-driven vulnerability scanner, build a self-hosted security testing platform, or conduct penetration tests with LLM-powered agents.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "percy",
+      "slug": "percy",
+      "description": "When the user wants to perform visual testing with automated screenshot comparison using Percy by BrowserStack. Also use when the user mentions \"percy,\" \"visual testing,\" \"screenshot comparison,\" \"visual diff,\" \"percy snapshot,\" or \"BrowserStack visual.\" For Storybook-specific visual testing, see chromatic.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "performance-reviewer",
       "slug": "performance-reviewer",
       "description": "Review code for performance issues and optimization opportunities. Use when someone needs to check for N+1 queries, unnecessary re-renders, memory leaks, inefficient algorithms, missing indexes, or bundle size regressions. Trigger words: performance review, slow query, N+1, memory leak, bundle size, latency, optimization, re-render, Big O.",
@@ -2158,6 +3561,13 @@
         "code-review",
         "profiling"
       ]
+    },
+    {
+      "name": "phoenix",
+      "slug": "phoenix",
+      "description": "Phoenix is an Elixir web framework built on the BEAM VM for fault-tolerant, real-time applications. It features LiveView for interactive UIs without JavaScript, channels for WebSockets, and Ecto for database access with compile-time query validation.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "picoclaw",
@@ -2173,10 +3583,31 @@
       ]
     },
     {
+      "name": "pinecone",
+      "slug": "pinecone",
+      "description": "Pinecone is a managed vector database for AI and machine learning applications. Learn to create indexes, upsert embeddings, query by similarity, use namespaces and metadata filtering for semantic search and RAG pipelines.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "pino",
+      "slug": "pino",
+      "description": "Log in Node.js with Pino. Use when a user asks to add structured logging, improve logging performance, configure log levels, format logs for production, or replace console.log with proper logging.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "playwright-testing",
       "slug": "playwright-testing",
       "description": "Write and maintain end-to-end tests with Playwright. Use when someone asks to \"add e2e tests\", \"test my web app\", \"set up Playwright\", \"write browser tests\", \"test login flow\", \"visual regression testing\", \"test across browsers\", or \"automate UI testing\". Covers test setup, page objects, authentication, API mocking, visual comparisons, and CI integration.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "plunk",
+      "slug": "plunk",
+      "description": "Send transactional and marketing emails with Plunk. Use when a user asks to send emails from an app, set up email automation, create drip campaigns, or use a simple open-source email platform.",
+      "category": "business",
       "tags": []
     },
     {
@@ -2191,6 +3622,20 @@
         "real-time",
         "baas"
       ]
+    },
+    {
+      "name": "poetry",
+      "slug": "poetry",
+      "description": "Manage Python projects with Poetry. Use when a user asks to manage Python dependencies, create virtual environments, publish packages to PyPI, handle dependency resolution, or set up a Python project structure.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "polars",
+      "slug": "polars",
+      "description": "Polars is a blazingly fast DataFrame library written in Rust with a Python API. Learn eager and lazy evaluation, expressions, groupby, joins, and how Polars outperforms pandas for large datasets through parallel execution.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "popup-cro",
@@ -2213,6 +3658,13 @@
       ]
     },
     {
+      "name": "postmark",
+      "slug": "postmark",
+      "description": "Send transactional emails with Postmark. Use when a user asks to send reliable transactional emails, improve email deliverability, use email templates with variables, or set up email sending for a SaaS app.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "powerpoint",
       "slug": "powerpoint",
       "description": "Create, edit, and manipulate PowerPoint (.pptx) files programmatically using python-pptx. Use when a user asks to generate a PPTX, modify slides, extract text from a presentation, add charts or tables to PowerPoint, build slides from data, convert content to PPTX, or automate PowerPoint file creation.",
@@ -2224,6 +3676,13 @@
         "slides",
         "python-pptx"
       ]
+    },
+    {
+      "name": "prefect",
+      "slug": "prefect",
+      "description": "Prefect is a modern workflow orchestration framework for Python data pipelines. Learn to define flows and tasks with decorators, handle retries and scheduling, create deployments, and monitor via the Prefect UI.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "pricing-strategy",
@@ -2258,6 +3717,20 @@
       "description": "When the user wants to create SEO-driven pages at scale using templates and data. Also use when the user mentions \"programmatic SEO,\" \"template pages,\" \"pages at scale,\" \"directory pages,\" \"location pages,\" \"[keyword] + [city] pages,\" \"comparison pages,\" \"integration pages,\" or \"building many pages for SEO.\" For auditing existing SEO issues, see seo-audit.",
       "category": "marketing",
       "tags": []
+    },
+    {
+      "name": "prometheus-alertmanager",
+      "slug": "prometheus-alertmanager",
+      "description": "Configure Prometheus Alertmanager for alert routing, grouping, silencing, and notification delivery. Use when a user needs to set up alert receivers (Slack, PagerDuty, email), define routing trees, manage silences and inhibition rules, or troubleshoot alert delivery pipelines.",
+      "category": "devops",
+      "tags": [
+        "alertmanager",
+        "prometheus",
+        "alerts",
+        "routing",
+        "notifications",
+        "on-call"
+      ]
     },
     {
       "name": "prompt-tester",
@@ -2298,6 +3771,33 @@
       ]
     },
     {
+      "name": "puppeteer-pdf",
+      "slug": "puppeteer-pdf",
+      "description": "Generate pixel-perfect PDFs from HTML and CSS using Puppeteer — render web pages or HTML templates to PDF with full CSS support including flexbox, grid, web fonts, and print media queries. Use when tasks involve converting HTML reports to PDF, generating invoices from templates, or creating PDFs that require complex CSS layouts.",
+      "category": "documents",
+      "tags": [
+        "puppeteer",
+        "pdf",
+        "html-to-pdf",
+        "headless-chrome",
+        "reports"
+      ]
+    },
+    {
+      "name": "pydantic",
+      "slug": "pydantic",
+      "description": "Validate and serialize data with Pydantic. Use when a user asks to validate API inputs, parse JSON/env config, define data models in Python, serialize objects, or implement data validation with type hints.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "pytest",
+      "slug": "pytest",
+      "description": "Test Python code with pytest. Use when a user asks to write unit tests, set up test fixtures, mock dependencies, run async tests, measure coverage, or implement test-driven development in Python.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "pytorch",
       "slug": "pytorch",
       "description": "Assists with building, training, and deploying neural networks using PyTorch. Use when designing architectures for computer vision, NLP, or tabular data, optimizing training with mixed precision and distributed strategies, or exporting models for production inference. Trigger words: pytorch, torch, neural network, deep learning, training loop, cuda.",
@@ -2311,6 +3811,20 @@
       ]
     },
     {
+      "name": "qdrant",
+      "slug": "qdrant",
+      "description": "Qdrant is an open-source vector similarity search engine with advanced filtering. Learn to create collections, upsert points with payloads, query with filters, and deploy with Docker for AI and semantic search applications.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "qwik",
+      "slug": "qwik",
+      "description": "Qwik is a resumable web framework that delivers instant-loading applications by eliminating hydration. It serializes application state on the server and lazily loads JavaScript on interaction, making it ideal for edge deployment.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "rabbitmq",
       "slug": "rabbitmq",
       "description": "Build messaging systems with RabbitMQ — queues, exchanges, routing, dead-letter queues, delayed messages, priority queues, and RPC patterns. Use when tasks involve task queues, background job processing, inter-service communication, request-reply patterns, or reliable message delivery with acknowledgments.",
@@ -2322,6 +3836,26 @@
         "amqp",
         "microservices"
       ]
+    },
+    {
+      "name": "radix-ui",
+      "slug": "radix-ui",
+      "description": "Build accessible UI primitives with Radix UI. Use when creating accessible dropdowns, dialogs, popovers, tabs, tooltips, or building a design system with unstyled, composable components.",
+      "category": "development",
+      "tags": [
+        "radix-ui",
+        "accessibility",
+        "components",
+        "react",
+        "primitives"
+      ]
+    },
+    {
+      "name": "rails",
+      "slug": "rails",
+      "description": "Ruby on Rails is a full-stack web framework following convention over configuration. It provides ActiveRecord ORM, Action Controller, Action View templates, Action Cable for WebSockets, and generators for rapid application development.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "railway-deploy",
@@ -2348,6 +3882,26 @@
       ]
     },
     {
+      "name": "ray",
+      "slug": "ray",
+      "description": "Framework for scaling Python applications from a laptop to a cluster. Includes Ray Core for distributed computing, Ray Serve for model serving, Ray Tune for hyperparameter optimization, and Ray Data for distributed data processing.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "react-aria",
+      "slug": "react-aria",
+      "description": "Build accessible UI components with React Aria. Use when creating accessible form controls, implementing ARIA patterns, building design systems, or fixing accessibility issues.",
+      "category": "development",
+      "tags": [
+        "react-aria",
+        "accessibility",
+        "a11y",
+        "design-system",
+        "components"
+      ]
+    },
+    {
       "name": "react-email",
       "slug": "react-email",
       "description": "Assists with building responsive, cross-client email templates using React Email components. Use when creating transactional emails (welcome, receipts, password reset) that render correctly in Gmail, Outlook, Apple Mail, and mobile clients. Trigger words: react email, email template, transactional email, email components, email rendering.",
@@ -2361,6 +3915,20 @@
       ]
     },
     {
+      "name": "react-email-advanced",
+      "slug": "react-email-advanced",
+      "description": "Build email templates with React Email. Use when a user asks to create responsive HTML emails with React components, build a transactional email system, design email templates with TypeScript, or preview emails locally.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "react-hook-form",
+      "slug": "react-hook-form",
+      "description": "Build performant forms in React with React Hook Form. Use when a user asks to handle form validation, build complex multi-step forms, integrate forms with Zod schemas, or reduce form re-renders in React.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "react-native",
       "slug": "react-native",
       "description": "Assists with building iOS and Android applications from a single TypeScript codebase using React Native. Use when implementing mobile UI components, navigation, native device APIs, performance optimization, or setting up testing and CI pipelines for mobile apps. Trigger words: react native, mobile app, ios, android, flatlist, reanimated.",
@@ -2372,6 +3940,13 @@
         "android",
         "cross-platform"
       ]
+    },
+    {
+      "name": "react-query",
+      "slug": "react-query",
+      "description": "Manage server state in React with TanStack Query. Use when a user asks to fetch data in React, cache API responses, handle loading/error states, implement optimistic updates, or manage server state efficiently.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "realtime-analytics",
@@ -2495,6 +4070,13 @@
       ]
     },
     {
+      "name": "replicate",
+      "slug": "replicate",
+      "description": "Run machine learning models in the cloud via API. Access thousands of open-source models for image generation, language, audio, and video. Fine-tune models on custom data and deploy custom models with Cog packaging format.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "report-generator",
       "slug": "report-generator",
       "description": "Generate professional data reports with charts, tables, and visualizations. Use when a user asks to create a report, generate a data report, build a dashboard report, produce a PDF report with charts, create an executive summary, or generate a weekly/monthly report from data.",
@@ -2539,6 +4121,33 @@
         "optimization",
         "keywords"
       ]
+    },
+    {
+      "name": "rive",
+      "slug": "rive",
+      "description": "Build interactive animations with Rive — load .riv files, control state machines, respond to user input, and embed runtime animations in web and mobile apps. Use when tasks involve interactive UI animations, character animations with state logic, animated icons with hover/click states, or game-like interactions in production apps.",
+      "category": "design",
+      "tags": [
+        "rive",
+        "animation",
+        "state-machine",
+        "interactive",
+        "motion"
+      ]
+    },
+    {
+      "name": "rsync",
+      "slug": "rsync",
+      "description": "Sync files and directories with rsync. Use when a user asks to copy files between servers, sync directories, create incremental backups, deploy files to a remote server, or mirror directories efficiently.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "ruff",
+      "slug": "ruff",
+      "description": "Lint and format Python with Ruff. Use when a user asks to set up Python linting, replace flake8/black/isort, configure code quality rules, or speed up Python code formatting.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "s3-storage",
@@ -2649,6 +4258,20 @@
       ]
     },
     {
+      "name": "selenium",
+      "slug": "selenium",
+      "description": "When the user wants to automate browser testing across multiple browsers using Selenium WebDriver. Also use when the user mentions \"selenium,\" \"WebDriver,\" \"browser automation,\" \"cross-browser testing,\" \"browser testing,\" \"headless Chrome testing,\" or \"Selenium Grid.\" For mobile testing, see appium.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "semantic-release",
+      "slug": "semantic-release",
+      "description": "Automate versioning and package publishing with semantic-release. Use when a user asks to automate npm publishing, generate changelogs, handle semantic versioning in CI, or automate GitHub releases.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "senior-computer-vision",
       "slug": "senior-computer-vision",
       "description": "Object detection, image segmentation, and visual AI. Use when a user asks to detect objects in images, segment images, run YOLO inference, build a computer vision pipeline, use Faster R-CNN or SAM, deploy a vision model with TensorRT, or perform image classification. Covers YOLO, SAM, Mask R-CNN, and TensorRT optimization.",
@@ -2697,14 +4320,14 @@
     {
       "name": "shadcn-ui",
       "slug": "shadcn-ui",
-      "description": "Assists with building accessible, customizable React interfaces using shadcn/ui components. Use when adding UI components from shadcn CLI, theming with CSS variables, building data tables, or integrating forms with React Hook Form and Zod. Trigger words: shadcn, shadcn-ui, radix, component library, ui components, tailwind components, cn utility.",
-      "category": "design",
+      "description": "Build UIs with shadcn/ui components. Use when adding accessible, styled React components, building a design system with Tailwind, customizing component libraries, or scaffolding UI for Next.js apps.",
+      "category": "development",
       "tags": [
         "shadcn-ui",
-        "react",
         "components",
         "tailwind",
-        "radix-ui"
+        "react",
+        "design-system"
       ]
     },
     {
@@ -2713,6 +4336,19 @@
       "description": "Build integrations with SharePoint Online for document management, site automation, and intranet development. Use when someone asks to \"integrate with SharePoint\", \"upload files to SharePoint\", \"manage SharePoint lists\", \"create SharePoint site\", \"automate SharePoint\", \"search SharePoint documents\", \"SharePoint API\", or \"SharePoint permissions\". Covers Graph API for sites, lists, document libraries, file operations, search, permissions, and SharePoint Framework (SPFx) development.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "sharp-image",
+      "slug": "sharp-image",
+      "description": "Process images at high speed with sharp — resize, crop, convert formats, add watermarks, extract metadata, and generate thumbnails. Built on libvips for performance far exceeding Canvas or ImageMagick. Use when tasks involve image processing pipelines, thumbnail generation, format conversion, or building image upload APIs.",
+      "category": "design",
+      "tags": [
+        "sharp",
+        "image-processing",
+        "resize",
+        "thumbnails",
+        "webp"
+      ]
     },
     {
       "name": "signup-flow-cro",
@@ -2734,6 +4370,20 @@
       ]
     },
     {
+      "name": "snipcart",
+      "slug": "snipcart",
+      "description": "Add e-commerce to any website with Snipcart. Use when a user asks to add a shopping cart to a static site, sell products from a JAMstack site, add buy buttons to any HTML page, or integrate e-commerce without a backend.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "snyk",
+      "slug": "snyk",
+      "description": "Find and fix vulnerabilities in code and dependencies with Snyk. Use when a user asks to scan for security vulnerabilities, audit npm packages, check Docker images for CVEs, or integrate security into CI/CD.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "social-content",
       "slug": "social-content",
       "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies.",
@@ -2741,10 +4391,38 @@
       "tags": []
     },
     {
+      "name": "socketio",
+      "slug": "socketio",
+      "description": "Add real-time communication with Socket.IO. Use when a user asks to build real-time features, add WebSocket communication, build a chat application, implement live notifications, create collaborative editing, stream live data, build real-time dashboards, add presence indicators, or implement pub/sub messaging in a web app. Covers server setup, client connection, rooms, namespaces, authentication, scaling with Redis adapter, and Next.js integration.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "solid",
+      "slug": "solid",
+      "description": "SolidJS is a reactive UI library that compiles to efficient vanilla JavaScript. It uses fine-grained reactivity with signals and stores, has no virtual DOM, and provides JSX components with excellent performance and small bundle size.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "solidity",
+      "slug": "solidity",
+      "description": "Write smart contracts with Solidity for Ethereum. Use when a user asks to create a smart contract, build an ERC-20 token, deploy to Ethereum, write NFT contracts, or develop DeFi protocols.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "sox",
       "slug": "sox",
       "description": "Process audio files with SoX (Sound eXchange). Use when a user asks to apply audio effects, mix and combine audio tracks, convert audio formats, batch process audio files, normalize volume, trim silence, add reverb or echo, change tempo or pitch, split audio files, create spectrograms, generate test tones, resample audio, or build audio processing pipelines. Covers all SoX effects, format conversion, mixing, and batch workflows.",
       "category": "content",
+      "tags": []
+    },
+    {
+      "name": "spring-boot",
+      "slug": "spring-boot",
+      "description": "Spring Boot is a Java framework that simplifies building production-ready applications. It provides auto-configuration, embedded servers, and opinionated defaults for REST APIs, data access with JPA, security, and monitoring via Actuator.",
+      "category": "development",
       "tags": []
     },
     {
@@ -2759,6 +4437,41 @@
         "performance",
         "queries"
       ]
+    },
+    {
+      "name": "sqlalchemy",
+      "slug": "sqlalchemy",
+      "description": "Work with databases in Python using SQLAlchemy. Use when a user asks to set up a Python ORM, define database models, write async database queries, manage migrations with Alembic, or choose between SQLAlchemy and Django ORM.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "sqlite",
+      "slug": "sqlite",
+      "description": "SQLite is a self-contained, serverless, zero-configuration embedded SQL database engine. Learn CLI usage, Node.js integration with better-sqlite3, Python's built-in sqlite3 module, and best practices for schema design, indexing, and WAL mode.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "sqlmap",
+      "slug": "sqlmap",
+      "description": "Detect and exploit SQL injection with sqlmap. Use when a user asks to test for SQL injection, extract database contents, bypass authentication via SQLi, automate injection testing, or dump database schemas.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "square",
+      "slug": "square",
+      "description": "Accept payments and manage commerce with Square. Use when a user asks to accept in-person and online payments, process credit cards, manage inventory, handle subscriptions, or build a POS integration.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "ssh",
+      "slug": "ssh",
+      "description": "Secure server access and tunneling with SSH. Use when a user asks to connect to remote servers, set up SSH keys, create tunnels, configure jump hosts, manage SSH config, or automate remote commands.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "ssr-migration",
@@ -2787,6 +4500,26 @@
       ]
     },
     {
+      "name": "statuspage",
+      "slug": "statuspage",
+      "description": "Configure and manage status pages for incident communication and service health transparency. Use when a user needs to set up Atlassian Statuspage or open-source alternatives, manage components and incidents, automate status updates, or integrate with monitoring and alerting tools.",
+      "category": "devops",
+      "tags": [
+        "statuspage",
+        "incident-communication",
+        "status-page",
+        "uptime",
+        "components"
+      ]
+    },
+    {
+      "name": "step-ca",
+      "slug": "step-ca",
+      "description": "Run a private certificate authority with step-ca. Use when a user asks to issue internal TLS certificates, set up mTLS between services, create a private PKI, or manage certificates for internal infrastructure.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "storybook",
       "slug": "storybook",
       "description": "Assists with developing, documenting, and testing UI components in isolation using Storybook. Use when writing component stories, setting up visual regression testing, configuring addons, or generating component documentation. Trigger words: storybook, stories, csf, component story format, visual testing, chromatic, storybook addons.",
@@ -2798,6 +4531,13 @@
         "documentation",
         "visual-testing"
       ]
+    },
+    {
+      "name": "streamlit",
+      "slug": "streamlit",
+      "description": "Streamlit turns Python scripts into interactive web applications for data science. Learn to build dashboards with widgets, charts, file uploads, caching, multi-page apps, and deployment to Streamlit Cloud.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "stripe-billing",
@@ -2826,10 +4566,24 @@
       ]
     },
     {
+      "name": "structlog-python",
+      "slug": "structlog-python",
+      "description": "Add structured logging to Python with structlog. Use when a user asks to implement structured logging, add context to Python logs, configure log processing pipelines, or replace standard logging with typed output.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "supabase",
       "slug": "supabase",
       "description": "Build applications with Supabase as the backend — Postgres database, authentication, real-time subscriptions, storage, and edge functions. Use when someone asks to \"set up Supabase\", \"add authentication\", \"create a real-time app\", \"set up row-level security\", \"configure Supabase storage\", \"write edge functions\", or \"migrate from Firebase to Supabase\". Covers project setup, schema design with RLS, auth flows, real-time subscriptions, file storage, and edge functions.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "superset",
+      "slug": "superset",
+      "description": "Apache Superset is an open-source data exploration and visualization platform. Learn Docker deployment, database connections, chart creation, dashboard building, SQL Lab usage, and programmatic access via the REST API.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -2844,6 +4598,26 @@
         "ssr",
         "web-framework"
       ]
+    },
+    {
+      "name": "svgo",
+      "slug": "svgo",
+      "description": "Optimize SVG files with SVGO — remove unnecessary metadata, minify paths, merge shapes, configure plugins, and integrate into build pipelines. Use when tasks involve reducing SVG file size, cleaning up exported SVGs from design tools, building icon systems, or automating SVG optimization in CI/CD.",
+      "category": "design",
+      "tags": [
+        "svg",
+        "optimization",
+        "icons",
+        "minification",
+        "build-tools"
+      ]
+    },
+    {
+      "name": "systemd",
+      "slug": "systemd",
+      "description": "Manage Linux services with systemd. Use when a user asks to create a system service, run an app on boot, manage background processes, set up timers (cron replacement), or configure service dependencies and auto-restart.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "table-extractor",
@@ -2869,6 +4643,19 @@
         "networking",
         "wireguard",
         "zero-trust"
+      ]
+    },
+    {
+      "name": "tailwind-animate",
+      "slug": "tailwind-animate",
+      "description": "Add animations to Tailwind CSS projects. Use when implementing CSS animations with Tailwind, adding entrance effects, building animated components, or creating loading spinners and skeleton screens.",
+      "category": "development",
+      "tags": [
+        "tailwind",
+        "animation",
+        "css",
+        "transitions",
+        "ui"
       ]
     },
     {
@@ -2898,6 +4685,13 @@
       ]
     },
     {
+      "name": "tanstack-start",
+      "slug": "tanstack-start",
+      "description": "Build full-stack React apps with TanStack Start. Use when a user asks to create a full-stack React application with type-safe server functions, set up file-based routing with SSR/SSG/SPA modes, build APIs with middleware and validation, implement server-side data fetching with TanStack Router, or deploy to Cloudflare/Netlify/Vercel/Node.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "tauri",
       "slug": "tauri",
       "description": "Assists with building lightweight cross-platform desktop (and mobile) applications using Tauri. Use when creating small, fast, secure apps with a web frontend and Rust backend that use the system webview instead of bundling Chromium. Trigger words: tauri, rust desktop, system webview, tauri commands, tauri plugins.",
@@ -2920,6 +4714,20 @@
         "code-quality",
         "refactoring",
         "engineering"
+      ]
+    },
+    {
+      "name": "telegraf",
+      "slug": "telegraf",
+      "description": "Configure Telegraf as a metrics collection agent for infrastructure and application monitoring. Use when a user needs to collect system metrics, set up input plugins for databases and services, configure output to InfluxDB or Prometheus, or build custom metric pipelines.",
+      "category": "devops",
+      "tags": [
+        "telegraf",
+        "metrics",
+        "influxdb",
+        "monitoring",
+        "collection-agent",
+        "observability"
       ]
     },
     {
@@ -2948,6 +4756,27 @@
       ]
     },
     {
+      "name": "temporal",
+      "slug": "temporal",
+      "description": "Build reliable distributed workflows with Temporal. Use when a user asks to orchestrate microservices, handle long-running workflows, implement saga patterns, build reliable background jobs, or create fault-tolerant distributed systems.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "terraform-aws",
+      "slug": "terraform-aws",
+      "description": "Infrastructure as Code for AWS using Terraform. Use when the user needs to provision AWS resources like EC2 instances, S3 buckets, RDS databases, VPCs, IAM roles, and Lambda functions using declarative HCL configuration.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "terraform-gcp",
+      "slug": "terraform-gcp",
+      "description": "Infrastructure as Code for Google Cloud Platform using Terraform. Use when the user needs to provision GCP resources like Compute Engine instances, Cloud Storage buckets, Cloud SQL databases, VPC networks, and IAM bindings.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "terraform-iac",
       "slug": "terraform-iac",
       "description": "Manages cloud infrastructure using Terraform (and OpenTofu). Use when the user wants to write Terraform configurations, provision cloud resources, manage state, create modules, set up multi-environment deployments, import existing infrastructure, debug plan/apply errors, migrate between providers, or implement IaC best practices. Trigger words: terraform, opentofu, infrastructure as code, IaC, tf, hcl, terraform module, terraform state, terraform plan, terraform apply, terraform import, cloud provisioning, AWS terraform, GCP terraform, Azure terraform.",
@@ -2960,6 +4789,13 @@
       ]
     },
     {
+      "name": "terraform-modules",
+      "slug": "terraform-modules",
+      "description": "Build reusable Terraform modules. Use when a user asks to create reusable infrastructure components, organize Terraform code, build a module registry, or standardize infrastructure across teams and environments.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "test-generator",
       "slug": "test-generator",
       "description": "Generate unit, integration, and end-to-end tests for existing code. Use when a user asks to write tests, add test coverage, create unit tests, generate integration tests, build e2e tests, improve code coverage, write specs, or add testing to a project. Supports Jest, Vitest, Pytest, Playwright, React Testing Library, and Cypress. Analyzes code to produce meaningful assertions, edge cases, and mock setups.",
@@ -2970,6 +4806,26 @@
         "e2e",
         "jest",
         "pytest"
+      ]
+    },
+    {
+      "name": "testcontainers",
+      "slug": "testcontainers",
+      "description": "When the user wants to run integration tests with real dependencies using Docker containers managed by Testcontainers. Also use when the user mentions \"testcontainers,\" \"integration testing with Docker,\" \"database integration tests,\" \"containerized tests,\" or \"test with real database.\" For API mocking without containers, see mockoon or wiremock.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "thanos",
+      "slug": "thanos",
+      "description": "Deploy and configure Thanos for long-term Prometheus metric storage, global querying across multiple Prometheus instances, and data compaction. Use when a user needs durable metric storage in object storage, a unified query view across clusters, downsampling for historical data, or high-availability Prometheus with deduplication.",
+      "category": "devops",
+      "tags": [
+        "thanos",
+        "prometheus",
+        "long-term-storage",
+        "global-query",
+        "compaction"
       ]
     },
     {
@@ -2990,6 +4846,27 @@
       "slug": "tiktok-marketing",
       "description": "Create, optimize, and automate TikTok content for brand awareness, audience growth, and conversions. Use when someone asks to \"grow on TikTok\", \"create TikTok content\", \"TikTok marketing strategy\", \"TikTok API integration\", \"automate TikTok posting\", \"TikTok analytics\", or \"TikTok for business\". Covers short-form video strategy, trending sounds, TikTok Content Posting API, analytics, and growth tactics.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "together-ai",
+      "slug": "together-ai",
+      "description": "Cloud platform for running open-source AI models. Provides inference APIs for LLMs, image models, and embedding models. Supports fine-tuning on custom data, OpenAI-compatible API format, and competitive pricing for open-source model hosting.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "triton",
+      "slug": "triton",
+      "description": "NVIDIA Triton Inference Server for deploying AI models at scale. Supports multiple frameworks (ONNX, TensorRT, PyTorch, TensorFlow), model ensembles, dynamic batching, model versioning, and GPU/CPU inference with high throughput and low latency.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "trivy",
+      "slug": "trivy",
+      "description": "Scan containers, filesystems, and repos for vulnerabilities with Trivy. Use when a user asks to scan Docker images for CVEs, audit filesystem for secrets, check IaC for misconfigurations, or add security scanning to CI.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -3021,21 +4898,22 @@
     {
       "name": "turso",
       "slug": "turso",
-      "description": "Assists with building applications using Turso, an edge SQLite database built on libSQL. Use when setting up embedded replicas for zero-latency reads, implementing multi-tenant database-per-user architecture, or integrating with Drizzle ORM. Trigger words: turso, libsql, edge sqlite, embedded replica, database-per-tenant, turso cli.",
+      "description": "Use Turso for edge SQLite databases. Use when a user asks to set up an edge database, use SQLite in production, replicate databases globally, or choose a serverless database for low-latency reads.",
       "category": "data-ai",
-      "tags": [
-        "turso",
-        "sqlite",
-        "edge-database",
-        "libsql",
-        "embedded-replica"
-      ]
+      "tags": []
     },
     {
       "name": "twitter-x-marketing",
       "slug": "twitter-x-marketing",
       "description": "Create, optimize, and automate content for Twitter/X including tweets, threads, Spaces, and API automation. Use when someone asks to \"write a tweet\", \"create a Twitter thread\", \"grow on X\", \"Twitter API integration\", \"automate tweeting\", \"Twitter analytics\", \"Twitter bot\", or \"X content strategy\". Covers platform-specific formatting, X API v2 integration, thread creation, analytics, and growth tactics.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "typesense",
+      "slug": "typesense",
+      "description": "Typesense is an open-source, typo-tolerant search engine optimized for instant search experiences. Learn to deploy with Docker, define collections, index documents, and build search UIs as a modern alternative to Algolia.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -3049,6 +4927,33 @@
         "design-system",
         "user-experience",
         "interaction-design"
+      ]
+    },
+    {
+      "name": "unusual-whales-api",
+      "slug": "unusual-whales-api",
+      "description": "Query the Unusual Whales API for unusual options flow, dark pool prints, market tide sentiment, gamma exposure, congressional trading, and stock greeks. Use when someone asks about \"unusual options activity\", \"whale trades\", \"dark pool prints\", \"market sentiment\", \"gamma exposure\", \"GEX\", \"congressional trading\", \"insider trading\", or needs real-time and historical market data for trading analysis and AI agent integration.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "uploadthing",
+      "slug": "uploadthing",
+      "description": "Handle file uploads in TypeScript apps with UploadThing. Use when a user asks to implement file uploads, handle image uploads in Next.js, add drag and drop file upload, or integrate S3-backed file storage without managing infrastructure.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "uploadthing-advanced",
+      "slug": "uploadthing-advanced",
+      "description": "Handle file uploads in Next.js with UploadThing. Use when adding file uploads, implementing image upload with preview, building drag-and-drop upload UI, or handling large file uploads with progress.",
+      "category": "content",
+      "tags": [
+        "uploadthing",
+        "file-upload",
+        "nextjs",
+        "s3",
+        "drag-drop"
       ]
     },
     {
@@ -3078,6 +4983,41 @@
       ]
     },
     {
+      "name": "uptime-robot",
+      "slug": "uptime-robot",
+      "description": "Monitor website uptime with UptimeRobot. Use when a user asks to monitor website availability, get alerts when a site goes down, create a public status page, or set up HTTP/ping/port monitoring.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "uvicorn",
+      "slug": "uvicorn",
+      "description": "Deploy Python ASGI apps with Uvicorn. Use when a user asks to run FastAPI in production, configure an ASGI server, set up Gunicorn with Uvicorn workers, or optimize Python web server performance.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "vault",
+      "slug": "vault",
+      "description": "HashiCorp Vault for secrets management and data protection. Use when the user needs to store and access secrets, manage encryption keys, configure dynamic credentials, handle PKI certificates, or integrate secrets into applications.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "vault-secrets",
+      "slug": "vault-secrets",
+      "description": "Manage application secrets with HashiCorp Vault. Use when a user asks to store API keys securely, rotate database credentials, manage certificates, inject secrets into applications, or implement dynamic secrets.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "velero",
+      "slug": "velero",
+      "description": "Velero for Kubernetes backup and disaster recovery. Use when the user needs to back up cluster resources and persistent volumes, restore workloads, migrate between clusters, or schedule automated backups.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "vercel-ai-sdk",
       "slug": "vercel-ai-sdk",
       "description": "Assists with building AI-powered applications using the Vercel AI SDK. Use when streaming LLM responses, generating structured data with Zod, building chat interfaces, creating multi-step agents with tool calling, or implementing RAG. Trigger words: vercel ai sdk, ai sdk, streamText, generateObject, useChat, tool calling, ai agent.",
@@ -3101,6 +5041,19 @@
         "veo",
         "image-generation",
         "video-generation"
+      ]
+    },
+    {
+      "name": "victoriametrics",
+      "slug": "victoriametrics",
+      "description": "Deploy and configure VictoriaMetrics as a high-performance time-series database for metrics storage and querying. Use when a user needs a Prometheus-compatible long-term storage backend, wants to write MetricsQL queries, configure vmagent for metrics scraping, or set up VictoriaMetrics cluster mode for horizontal scaling.",
+      "category": "devops",
+      "tags": [
+        "victoriametrics",
+        "time-series",
+        "metricsql",
+        "prometheus",
+        "vmagent"
       ]
     },
     {
@@ -3156,6 +5109,41 @@
       ]
     },
     {
+      "name": "vllm",
+      "slug": "vllm",
+      "description": "High-throughput LLM serving engine with PagedAttention for efficient memory management. Serves open-source models with OpenAI-compatible API, continuous batching, tensor parallelism, and quantization support. Optimized for production inference workloads.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "vue",
+      "slug": "vue",
+      "description": "Vue.js is a progressive JavaScript framework for building user interfaces. It features the Composition API with reactive refs and computed values, single-file components, and an approachable learning curve with powerful scaling capabilities.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "wagmi",
+      "slug": "wagmi",
+      "description": "Build React dApps with wagmi and viem. Use when a user asks to connect wallets in React, read blockchain data in components, send transactions from a frontend, or build a Web3 user interface.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "wandb",
+      "slug": "wandb",
+      "description": "Weights & Biases platform for ML experiment tracking, hyperparameter optimization, and artifact management. Log metrics, visualize training runs, run sweeps for hyperparameter tuning, and version datasets and models.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "weaviate",
+      "slug": "weaviate",
+      "description": "Weaviate is an open-source vector database with built-in vectorization modules. Learn schema definition, GraphQL and REST APIs, hybrid search combining BM25 and vectors, and self-hosted deployment with Docker.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "web-research",
       "slug": "web-research",
       "description": "Deep web research with Brave Search API. Find sources, extract content, and compile comprehensive reports. Use when a user asks to research a topic on the web, find information online, compile a research report, search the internet for sources, do a deep dive on a subject, gather web sources for a report, or investigate a topic thoroughly using multiple online sources.",
@@ -3189,6 +5177,20 @@
       "tags": []
     },
     {
+      "name": "webgl",
+      "slug": "webgl",
+      "description": "Render 3D graphics in the browser with WebGL — set up rendering pipelines, write vertex and fragment shaders in GLSL, manage buffers and textures, handle camera transformations, and build interactive 3D scenes. Use when tasks involve 3D visualization, GPU-accelerated rendering, custom shaders, or building graphics-intensive web applications.",
+      "category": "design",
+      "tags": [
+        "webgl",
+        "3d",
+        "shaders",
+        "glsl",
+        "gpu",
+        "graphics"
+      ]
+    },
+    {
       "name": "webhook-processor",
       "slug": "webhook-processor",
       "description": "Build and configure webhook processing systems with retry logic, signature verification, and dead letter queues. Use when you need to receive, validate, and reliably process incoming webhooks from payment providers, version control platforms, or third-party APIs. Trigger words: webhook, callback URL, event handler, retry, idempotency, payload processing.",
@@ -3199,6 +5201,13 @@
         "event-driven",
         "idempotency"
       ]
+    },
+    {
+      "name": "webhook-security",
+      "slug": "webhook-security",
+      "description": "Secure webhook endpoints. Use when a user asks to verify webhook signatures, prevent replay attacks, handle webhook retries, or implement secure webhook receivers for Stripe, GitHub, Slack, or any provider.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "websocket-builder",
@@ -3245,6 +5254,13 @@
       "tags": []
     },
     {
+      "name": "windmill",
+      "slug": "windmill",
+      "description": "Build internal tools and workflows with Windmill. Use when a user asks to create internal tools, build admin dashboards, orchestrate scripts, automate DevOps tasks, or self-host a Retool alternative with code-first approach.",
+      "category": "automation",
+      "tags": []
+    },
+    {
       "name": "wireguard",
       "slug": "wireguard",
       "description": "Deploy and manage WireGuard VPN tunnels. Use when a user asks to set up a WireGuard server, create peer configurations, build mesh networks, configure split tunneling, set up site-to-site links, automate peer provisioning, integrate with DNS (Pi-hole/AdGuard), manage keys, monitor connections, or build WireGuard-based overlay networks. Covers server setup, peer management, routing, DNS integration, and production deployment patterns.",
@@ -3252,10 +5268,31 @@
       "tags": []
     },
     {
+      "name": "wiremock",
+      "slug": "wiremock",
+      "description": "When the user wants to create HTTP mock servers with advanced request matching, recording, and proxying using WireMock. Also use when the user mentions \"wiremock,\" \"HTTP mocking,\" \"request stubbing,\" \"API recording,\" \"wire mock,\" or \"HTTP stub server.\" For GUI-based API mocking, see mockoon.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "woocommerce",
+      "slug": "woocommerce",
+      "description": "Build e-commerce stores with WooCommerce for WordPress. Use when a user asks to add a shop to WordPress, manage products and orders, customize checkout, integrate payment gateways, or build a WordPress-based online store.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "xray",
       "slug": "xray",
       "description": "Deploy and configure Xray proxy servers. Use when a user asks to set up VLESS, VMess, Trojan, or Shadowsocks proxies, configure Reality or TLS transport, deploy Xray with XTLS, set up fallback routing, manage multi-user access, configure traffic routing rules, set up CDN-based tunneling, build subscription links for client apps, monitor Xray traffic, or bypass network restrictions. Covers all major Xray protocols, transports, and deployment patterns.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "xstate",
+      "slug": "xstate",
+      "description": "Model complex UI logic with XState state machines. Use when a user asks to manage complex multi-step flows, model stateful UI (wizards, forms, auth), prevent impossible states, or implement finite state machines in JavaScript.",
+      "category": "development",
       "tags": []
     },
     {
@@ -3286,6 +5323,52 @@
       "tags": []
     },
     {
+      "name": "yup",
+      "slug": "yup",
+      "description": "Validate data with Yup schemas. Use when adding form validation, defining API request schemas, validating configuration, or building type-safe validation pipelines in JavaScript/TypeScript.",
+      "category": "development",
+      "tags": [
+        "yup",
+        "validation",
+        "schema",
+        "forms",
+        "typescript"
+      ]
+    },
+    {
+      "name": "zabbix",
+      "slug": "zabbix",
+      "description": "Configure Zabbix for enterprise infrastructure monitoring with templates, triggers, discovery rules, and dashboards. Use when a user needs to set up Zabbix server, configure host monitoring, create custom templates, define trigger expressions, or automate host discovery and registration.",
+      "category": "devops",
+      "tags": [
+        "zabbix",
+        "enterprise-monitoring",
+        "templates",
+        "triggers",
+        "discovery"
+      ]
+    },
+    {
+      "name": "zapier",
+      "slug": "zapier",
+      "description": "Automate workflows between apps with Zapier. Use when a user asks to connect apps without code, automate repetitive tasks, sync data between services, or build no-code integrations between SaaS tools.",
+      "category": "automation",
+      "tags": []
+    },
+    {
+      "name": "zipkin",
+      "slug": "zipkin",
+      "description": "Deploy and configure Zipkin for distributed tracing and request flow visualization. Use when a user needs to set up trace collection, instrument Java/Spring or other services with Zipkin, analyze service dependencies, or configure storage backends for trace data.",
+      "category": "devops",
+      "tags": [
+        "zipkin",
+        "tracing",
+        "distributed-tracing",
+        "spring-boot",
+        "observability"
+      ]
+    },
+    {
       "name": "zod",
       "slug": "zod",
       "description": "Assists with TypeScript-first schema validation using Zod. Use when defining data schemas, validating API inputs, parsing environment variables, integrating with form libraries or tRPC, or generating TypeScript types from runtime validators. Trigger words: zod, schema validation, type inference, z.object, z.infer, input validation.",
@@ -3308,15 +5391,9 @@
     {
       "name": "zustand",
       "slug": "zustand",
-      "description": "Assists with managing global and shared state in React applications using Zustand. Use when creating stores, handling async operations, persisting state, integrating with DevTools, or splitting stores into slices. Trigger words: zustand, state management, store, persist, selectors, react state.",
+      "description": "Manage React state with Zustand. Use when a user asks to set up global state in React, replace Redux with something simpler, share state between components, persist state to localStorage, or implement a lightweight store.",
       "category": "development",
-      "tags": [
-        "zustand",
-        "state-management",
-        "react",
-        "store",
-        "global-state"
-      ]
+      "tags": []
     }
   ],
   "categories": [
@@ -3332,5 +5409,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-02-21T20:50:27.081Z"
+  "updatedAt": "2026-02-24T22:51:28.989Z"
 }

@@ -8,7 +8,7 @@ compatibility: 'React, Vue, Node.js, vanilla JS'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags: [i18next, i18n, localization, translations, react-i18next]
 ---
 

@@ -4,7 +4,7 @@ description: When the user wants to write behavior-driven development (BDD) test
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - bdd
     - gherkin

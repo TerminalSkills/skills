@@ -4,7 +4,7 @@ description: When the user wants to run integration tests with real dependencies
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - integration-testing
     - docker

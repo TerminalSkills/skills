@@ -9,7 +9,7 @@ compatibility: 'Node.js 16+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: devtools
+  category: development
   tags: [chalk, cli, terminal, colors, formatting]
 ---
 

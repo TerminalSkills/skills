@@ -9,7 +9,7 @@ compatibility: 'React 18+, Next.js'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: web3
+  category: development
   tags:
     - wagmi
     - viem

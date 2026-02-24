@@ -4,7 +4,7 @@ description: When the user wants to write end-to-end tests for React Native apps
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - react-native
     - e2e-testing

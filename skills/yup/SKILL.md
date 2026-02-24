@@ -9,7 +9,7 @@ compatibility: 'Any JavaScript runtime'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: validation
+  category: development
   tags: [yup, validation, schema, forms, typescript]
 ---
 

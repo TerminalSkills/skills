@@ -10,7 +10,7 @@ compatibility: "New Relic One platform, Agent versions 8+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["new-relic", "observability", "apm", "nrql", "browser-monitoring", "alerts"]
 ---
 

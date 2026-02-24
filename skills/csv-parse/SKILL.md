@@ -10,7 +10,7 @@ compatibility: "Node.js 14+ or browser"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: document-generation
+  category: documents
   tags: ["csv", "parsing", "streaming", "data-import", "export"]
 ---
 

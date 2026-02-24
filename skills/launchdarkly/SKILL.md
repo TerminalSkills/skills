@@ -9,7 +9,7 @@ compatibility: 'Any language — JS, Python, Go, Java, Ruby, .NET SDKs'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: developer-tools
+  category: development
   tags:
     - launchdarkly
     - feature-flags

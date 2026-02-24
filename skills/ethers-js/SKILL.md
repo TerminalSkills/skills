@@ -9,7 +9,7 @@ compatibility: 'Node.js, browsers'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: web3
+  category: development
   tags:
     - ethers
     - ethereum

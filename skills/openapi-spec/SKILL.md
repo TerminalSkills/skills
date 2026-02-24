@@ -9,7 +9,7 @@ compatibility: 'Any language, any framework'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: api
+  category: development
   tags:
     - openapi
     - swagger

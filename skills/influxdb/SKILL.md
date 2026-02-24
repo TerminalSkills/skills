@@ -10,7 +10,7 @@ compatibility: "InfluxDB 2.7+, Flux query language"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["influxdb", "time-series", "flux", "metrics", "retention", "monitoring"]
 ---
 

@@ -9,7 +9,7 @@ compatibility: 'Any JavaScript, React, Vue'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags: [gsap, animation, scrolltrigger, timeline, svg]
 ---
 

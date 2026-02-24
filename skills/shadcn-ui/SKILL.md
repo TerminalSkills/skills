@@ -9,7 +9,7 @@ compatibility: 'React 18+, Next.js, Vite'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags: [shadcn-ui, components, tailwind, react, design-system]
 ---
 

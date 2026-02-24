@@ -9,7 +9,7 @@ compatibility: 'Python 3.8+, PostgreSQL, MySQL, SQLite'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: database
+  category: data-ai
   tags:
     - alembic
     - migrations

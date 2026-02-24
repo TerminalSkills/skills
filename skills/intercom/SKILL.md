@@ -9,7 +9,7 @@ compatibility: 'Any web app, iOS, Android'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: communication
+  category: business
   tags:
     - intercom
     - chat

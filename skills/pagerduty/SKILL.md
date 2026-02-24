@@ -10,7 +10,7 @@ compatibility: "PagerDuty API v2, Events API v2"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["pagerduty", "incident-management", "on-call", "escalation", "alerting"]
 ---
 

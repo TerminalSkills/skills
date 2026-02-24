@@ -9,7 +9,7 @@ compatibility: 'Any language (REST API)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: communication
+  category: business
   tags:
     - mailgun
     - email

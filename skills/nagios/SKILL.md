@@ -10,7 +10,7 @@ compatibility: "Nagios Core 4.4+, Nagios Plugins 2.4+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["nagios", "infrastructure-monitoring", "checks", "notifications", "plugins"]
 ---
 

@@ -9,7 +9,7 @@ compatibility: 'Next.js, Nuxt, SvelteKit, Astro, Express, Hono'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: auth
+  category: development
   tags:
     - better-auth
     - authentication

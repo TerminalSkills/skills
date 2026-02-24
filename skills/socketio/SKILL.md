@@ -12,7 +12,7 @@ compatibility: 'Node.js 16+ (server), any browser (client)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: backend
+  category: development
   tags:
     - socketio
     - websocket

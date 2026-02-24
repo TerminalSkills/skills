@@ -9,7 +9,7 @@ compatibility: 'Any HTML website, JAMstack, static sites'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: ecommerce
+  category: business
   tags:
     - snipcart
     - ecommerce

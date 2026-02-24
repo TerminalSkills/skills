@@ -9,7 +9,7 @@ compatibility: 'Next.js 14+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags:
     - next-safe-action
     - server-actions

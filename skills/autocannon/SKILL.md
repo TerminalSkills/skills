@@ -9,7 +9,7 @@ compatibility: 'Node.js'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: testing
+  category: development
   tags:
     - autocannon
     - benchmarking

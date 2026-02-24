@@ -10,7 +10,7 @@ compatibility: 'TypeScript, Go, Python, Java, .NET'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: backend
+  category: development
   tags:
     - temporal
     - workflow

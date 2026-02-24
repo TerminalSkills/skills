@@ -7,7 +7,7 @@ compatibility: 'Any OS, any language'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: developer-tools
+  category: development
   tags:
     - just
     - command-runner

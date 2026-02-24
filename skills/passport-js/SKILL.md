@@ -8,7 +8,7 @@ compatibility: 'Express, Node.js'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: auth
+  category: development
   tags: [passport, authentication, oauth, express, social-login]
 ---
 

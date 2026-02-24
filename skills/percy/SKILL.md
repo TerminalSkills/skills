@@ -4,7 +4,7 @@ description: When the user wants to perform visual testing with automated screen
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
+  category: development
   tags:
     - visual-testing
     - screenshots

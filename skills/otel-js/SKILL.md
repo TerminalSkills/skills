@@ -9,7 +9,7 @@ compatibility: 'Node.js 16+, Express, Fastify, NestJS'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: observability
+  category: devops
   tags:
     - opentelemetry
     - tracing

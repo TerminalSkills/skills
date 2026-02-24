@@ -8,7 +8,7 @@ compatibility: 'Node.js, Deno, Bun, Edge runtimes'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: auth
+  category: development
   tags: [jwt, jose, authentication, tokens, api-auth]
 ---
 

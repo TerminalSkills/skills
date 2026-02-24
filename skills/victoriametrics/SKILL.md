@@ -11,7 +11,7 @@ compatibility: "VictoriaMetrics 1.95+, vmagent, vmalert"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["victoriametrics", "time-series", "metricsql", "prometheus", "vmagent"]
 ---
 

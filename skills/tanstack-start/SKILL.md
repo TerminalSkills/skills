@@ -11,7 +11,7 @@ compatibility: 'React 18+, Vite, Node.js, Cloudflare Workers, Netlify, Vercel'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frameworks
+  category: development
   tags:
     - tanstack
     - react

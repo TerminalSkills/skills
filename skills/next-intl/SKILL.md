@@ -8,7 +8,7 @@ compatibility: 'Next.js 13+ (App Router)'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: frontend
+  category: development
   tags: [i18n, next-intl, nextjs, localization, internationalization]
 ---
 

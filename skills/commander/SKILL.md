@@ -9,7 +9,7 @@ compatibility: 'Node.js 14+'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: devtools
+  category: development
   tags: [commander, cli, nodejs, developer-tools, terminal]
 ---
 

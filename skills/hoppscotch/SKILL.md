@@ -9,7 +9,7 @@ compatibility: 'Web, Desktop, Self-hosted'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: developer-tools
+  category: development
   tags:
     - hoppscotch
     - api-testing

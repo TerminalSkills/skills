@@ -10,7 +10,7 @@ compatibility: "Zipkin 2.24+, Spring Boot 3+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["zipkin", "tracing", "distributed-tracing", "spring-boot", "observability"]
 ---
 

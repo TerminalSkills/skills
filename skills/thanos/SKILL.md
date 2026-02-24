@@ -11,7 +11,7 @@ compatibility: "Thanos 0.33+, Prometheus 2.45+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: monitoring
+  category: devops
   tags: ["thanos", "prometheus", "long-term-storage", "global-query", "compaction"]
 ---
 
