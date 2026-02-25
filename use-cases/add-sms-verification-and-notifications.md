@@ -10,7 +10,7 @@ skills:
   - twilio
   - sendgrid
   - nextjs
-category: backend
+category: development
 tags:
   - sms
   - 2fa

@@ -6,7 +6,7 @@ skills:
   - fly-io
   - neon
   - docker-helper
-category: Deployment
+category: devops
 tags:
   - deployment
   - multi-region

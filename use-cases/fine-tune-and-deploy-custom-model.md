@@ -8,7 +8,7 @@ skills:
   - huggingface
   - wandb
   - vllm
-category: ai-ml
+category: data-ai
 tags:
   - fine-tuning
   - llm

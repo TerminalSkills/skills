@@ -6,7 +6,7 @@ skills:
   - metabase
   - postgresql
   - docker-compose
-category: analytics
+category: data-ai
 tags:
   - business-intelligence
   - dashboards

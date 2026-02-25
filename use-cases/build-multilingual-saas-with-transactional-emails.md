@@ -7,7 +7,7 @@ skills:
   - react-email
   - resend
   - nextjs
-category: Full-Stack Development
+category: development
 tags:
   - i18n
   - localization

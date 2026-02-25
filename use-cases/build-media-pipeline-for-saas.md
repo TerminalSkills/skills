@@ -11,7 +11,7 @@ skills:
   - imgix
   - sharp-image
   - s3-storage
-category: media
+category: content
 tags:
   - images
   - uploads

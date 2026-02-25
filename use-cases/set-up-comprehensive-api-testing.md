@@ -7,7 +7,7 @@ skills:
   - pact
   - mockoon
   - vitest
-category: Testing & QA
+category: devops
 tags:
   - api-testing
   - contract-testing

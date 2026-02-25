@@ -9,7 +9,7 @@ skills:
   - next-intl
   - i18next
   - react-aria
-category: frontend
+category: development
 tags:
   - i18n
   - nextjs

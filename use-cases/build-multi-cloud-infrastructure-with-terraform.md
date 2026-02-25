@@ -8,7 +8,7 @@ skills:
   - terraform-aws
   - terraform-gcp
   - terraform-iac
-category: cloud
+category: devops
 tags:
   - terraform
   - multi-cloud

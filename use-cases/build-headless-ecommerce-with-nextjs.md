@@ -11,7 +11,7 @@ skills:
   - stripe-billing
   - meilisearch
   - nextjs
-category: ecommerce
+category: business
 tags:
   - ecommerce
   - headless

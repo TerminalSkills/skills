@@ -11,7 +11,7 @@ skills:
   - webhook-security
   - cors
   - api-rate-limiting
-category: api
+category: development
 tags:
   - api-design
   - rest

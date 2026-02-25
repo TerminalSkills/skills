@@ -12,7 +12,7 @@ skills:
   - husky
   - semantic-release
   - devcontainers
-category: developer-tools
+category: development
 tags:
   - monorepo
   - dx

@@ -6,7 +6,7 @@ skills:
   - expo
   - react-native
   - supabase
-category: Mobile Development
+category: development
 tags:
   - mobile
   - ios

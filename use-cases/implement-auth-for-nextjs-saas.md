@@ -11,7 +11,7 @@ skills:
   - iron-session
   - next-auth
   - better-auth
-category: auth
+category: development
 tags:
   - authentication
   - nextjs

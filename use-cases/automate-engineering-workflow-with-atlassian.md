@@ -3,7 +3,7 @@ title: Automate Engineering Workflow with Atlassian Stack
 slug: automate-engineering-workflow-with-atlassian
 description: "Build an integration layer that connects Jira, Confluence, and Bitbucket — auto-create Confluence RFCs from Jira epics, link PRs to issues, generate sprint reports, and sync deployment status across the stack."
 skills: [jira, confluence, bitbucket]
-category: project-management
+category: business
 tags: [jira, confluence, bitbucket, atlassian, automation, engineering, devops]
 ---
 

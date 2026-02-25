@@ -8,7 +8,7 @@ skills:
   - chromadb
   - instructor
   - nextjs
-category: AI/ML
+category: data-ai
 tags:
   - rag
   - chatbot

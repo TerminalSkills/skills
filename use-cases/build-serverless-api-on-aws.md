@@ -6,7 +6,7 @@ skills:
   - aws-lambda
   - aws-dynamodb
   - aws-cognito
-category: cloud-services
+category: devops
 tags:
   - serverless
   - aws

@@ -11,7 +11,7 @@ skills:
   - partykit
   - socketio
   - nextjs
-category: frontend
+category: development
 tags:
   - realtime
   - collaboration

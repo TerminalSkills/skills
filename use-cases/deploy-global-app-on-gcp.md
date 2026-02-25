@@ -6,7 +6,7 @@ skills:
   - gcp-cloud-run
   - gcp-firestore
   - gcp-cloud-storage
-category: cloud-services
+category: devops
 tags:
   - gcp
   - global

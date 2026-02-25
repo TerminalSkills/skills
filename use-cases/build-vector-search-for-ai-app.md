@@ -6,7 +6,7 @@ skills:
   - pinecone
   - openai-sdk
   - nextjs
-category: ai
+category: data-ai
 tags:
   - semantic-search
   - rag

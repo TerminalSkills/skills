@@ -6,7 +6,7 @@ skills:
   - posthog
   - nextjs
   - docker-compose
-category: analytics
+category: data-ai
 tags:
   - product-analytics
   - posthog

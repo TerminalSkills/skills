@@ -7,7 +7,7 @@ skills:
   - neon
   - upstash
   - hono
-category: Backend Development
+category: development
 tags:
   - serverless
   - api

@@ -6,7 +6,7 @@ skills:
   - sanity
   - nextjs
   - vite
-category: Content Management
+category: content
 tags:
   - cms
   - marketing

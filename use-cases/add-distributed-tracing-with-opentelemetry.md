@@ -6,7 +6,7 @@ skills:
   - opentelemetry
   - error-monitoring
   - docker-helper
-category: Observability
+category: devops
 tags:
   - tracing
   - monitoring

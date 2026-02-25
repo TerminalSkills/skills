@@ -7,7 +7,7 @@ skills:
   - tanstack
   - zod
   - neon
-category: Full-Stack Development
+category: development
 tags:
   - dashboard
   - react

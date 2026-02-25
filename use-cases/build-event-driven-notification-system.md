@@ -11,7 +11,7 @@ skills:
   - novu
   - inngest
   - nextjs
-category: backend
+category: development
 tags:
   - notifications
   - events

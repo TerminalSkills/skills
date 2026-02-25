@@ -10,7 +10,7 @@ skills:
   - inquirer
   - chalk-advanced
   - ora
-category: devtools
+category: development
 tags:
   - cli
   - developer-tools

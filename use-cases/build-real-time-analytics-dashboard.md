@@ -10,7 +10,7 @@ skills:
   - grafana
   - loki
   - docker-compose
-category: data-infrastructure
+category: data-ai
 tags:
   - analytics
   - dashboarding

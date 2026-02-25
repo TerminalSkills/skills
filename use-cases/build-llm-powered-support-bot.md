@@ -9,7 +9,7 @@ skills:
   - langchain
   - chromadb
   - langfuse
-category: ai-ml
+category: data-ai
 tags:
   - chatbot
   - rag

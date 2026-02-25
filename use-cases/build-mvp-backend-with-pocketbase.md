@@ -5,7 +5,7 @@ description: Ship a full backend for a SaaS MVP in a single afternoon using Pock
 skills:
   - pocketbase
   - cloudflare-workers
-category: Backend Development
+category: development
 tags:
   - mvp
   - backend

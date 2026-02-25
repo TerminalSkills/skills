@@ -6,7 +6,7 @@ skills:
   - trpc
   - zod
   - prisma
-category: Full-Stack Development
+category: development
 tags:
   - typescript
   - api

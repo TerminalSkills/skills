@@ -7,7 +7,7 @@ skills:
   - vitest
   - cypress
   - shadcn-ui
-category: Frontend Development
+category: development
 tags:
   - components
   - testing

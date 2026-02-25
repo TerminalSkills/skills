@@ -11,7 +11,7 @@ skills:
   - openai-sdk
   - ollama
   - chromadb
-category: ai
+category: data-ai
 tags:
   - rag
   - embeddings

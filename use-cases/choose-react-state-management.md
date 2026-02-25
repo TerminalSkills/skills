@@ -10,7 +10,7 @@ skills:
   - jotai
   - xstate
   - tanstack-query
-category: frontend
+category: development
 tags:
   - react
   - state-management

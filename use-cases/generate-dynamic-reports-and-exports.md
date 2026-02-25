@@ -7,7 +7,7 @@ skills:
   - exceljs
   - csv-parse
   - sharp-image
-category: Document Generation
+category: documents
 tags:
   - reports
   - pdf

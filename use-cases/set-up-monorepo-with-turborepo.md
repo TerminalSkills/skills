@@ -6,7 +6,7 @@ skills:
   - turborepo
   - vite
   - github-actions
-category: Developer Experience
+category: development
 tags:
   - monorepo
   - ci-cd

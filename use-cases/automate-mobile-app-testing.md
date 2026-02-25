@@ -6,7 +6,7 @@ skills:
   - maestro
   - detox
   - react-native
-category: Testing & QA
+category: devops
 tags:
   - mobile-testing
   - e2e-testing

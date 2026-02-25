@@ -7,7 +7,7 @@ skills:
   - scikit-learn
   - jupyter
   - postgresql
-category: Data Science
+category: data-ai
 tags:
   - machine-learning
   - churn

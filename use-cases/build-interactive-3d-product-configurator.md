@@ -7,7 +7,7 @@ skills:
   - framer-motion
   - nextjs
   - tailwindcss
-category: Frontend Development
+category: development
 tags:
   - 3d
   - ecommerce

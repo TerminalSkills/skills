@@ -10,7 +10,7 @@ skills:
   - cheerio
   - puppeteer
   - postgresql
-category: scraping
+category: automation
 tags:
   - scraping
   - monitoring

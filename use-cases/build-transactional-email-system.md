@@ -10,7 +10,7 @@ skills:
   - resend
   - postmark
   - bullmq
-category: communication
+category: productivity
 tags:
   - email
   - transactional

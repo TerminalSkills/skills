@@ -6,7 +6,7 @@ skills:
   - figma-api
   - chromajs
   - tailwindcss
-category: Design Systems
+category: design
 tags:
   - design-tokens
   - figma

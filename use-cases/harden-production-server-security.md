@@ -13,7 +13,7 @@ skills:
   - cloudflare
   - trivy
   - vault-secrets
-category: security
+category: development
 tags:
   - server-hardening
   - security

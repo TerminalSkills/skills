@@ -10,7 +10,7 @@ skills:
   - meilisearch
   - postgresql
   - nextjs
-category: backend
+category: development
 tags:
   - search
   - meilisearch

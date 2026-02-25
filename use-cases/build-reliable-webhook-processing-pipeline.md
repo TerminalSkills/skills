@@ -11,7 +11,7 @@ skills:
   - bullmq
   - redis
   - docusaurus
-category: backend
+category: development
 tags:
   - webhooks
   - queues

@@ -5,7 +5,7 @@ description: Build a developer documentation site with Astro that scores 100 on 
 skills:
   - astro
   - vite
-category: Frontend Development
+category: development
 tags:
   - static-site
   - performance
@@ -80,7 +80,7 @@ export const collections = { docs, authors, changelogs };
 # src/content/docs/authentication/api-keys.md
 title: "API Key Authentication"
 description: "Generate, rotate, and manage API keys for server-to-server authentication with rate limiting and scope controls."
-category: "guides"
+category: content
 order: 2
 lastUpdated: 2025-01-15
 author: "ravi"

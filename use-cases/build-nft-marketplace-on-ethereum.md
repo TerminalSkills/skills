@@ -11,7 +11,7 @@ skills:
   - wagmi
   - ipfs
   - ethers-js
-category: web3
+category: development
 tags:
   - nft
   - marketplace

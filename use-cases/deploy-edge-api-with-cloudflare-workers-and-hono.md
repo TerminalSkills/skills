@@ -6,7 +6,7 @@ skills:
   - cloudflare-workers
   - hono
   - zod
-category: Edge Computing
+category: devops
 tags:
   - cloudflare
   - edge

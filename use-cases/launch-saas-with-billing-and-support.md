@@ -12,7 +12,7 @@ skills:
   - crisp
   - loops
   - canny
-category: saas
+category: business
 tags:
   - saas
   - billing

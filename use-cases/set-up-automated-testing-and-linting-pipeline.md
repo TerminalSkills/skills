@@ -11,7 +11,7 @@ skills:
   - eslint
   - prettier
   - github-actions
-category: ci-cd
+category: devops
 tags:
   - testing
   - linting

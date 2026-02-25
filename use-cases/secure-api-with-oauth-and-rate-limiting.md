@@ -7,7 +7,7 @@ skills:
   - rate-limiting
   - hashicorp-vault
   - owasp-zap
-category: Security
+category: development
 tags:
   - api-security
   - oauth

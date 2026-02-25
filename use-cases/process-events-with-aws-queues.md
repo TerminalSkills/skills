@@ -6,7 +6,7 @@ skills:
   - aws-sqs
   - aws-sns
   - aws-lambda
-category: cloud-services
+category: devops
 tags:
   - event-driven
   - aws

@@ -3,7 +3,7 @@ title: "Set Up a Local AI Development Environment"
 slug: set-up-local-ai-development-environment
 description: "Configure a fully local LLM development setup using Ollama, LM Studio, and LangChain for private, offline AI application development without cloud API costs."
 skills: [ollama-local, lm-studio-subagents, langchain]
-category: ai
+category: data-ai
 tags: [llm, local-ai, ollama, langchain, development-environment, privacy]
 ---
 

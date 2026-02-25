@@ -12,7 +12,7 @@ skills:
   - next-safe-action
   - prisma
   - stripe
-category: fullstack
+category: development
 tags:
   - nextjs
   - saas

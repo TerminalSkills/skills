@@ -13,7 +13,7 @@ skills:
   - pytest
   - uvicorn
   - docker-multi-stage
-category: backend
+category: development
 tags:
   - fastapi
   - python

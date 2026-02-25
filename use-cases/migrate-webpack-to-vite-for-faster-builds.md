@@ -5,7 +5,7 @@ description: Convert a React + Webpack application to Vite, cutting dev server s
 skills:
   - vite
   - trpc
-category: Developer Experience
+category: development
 tags:
   - build-tools
   - vite

@@ -6,7 +6,7 @@ skills:
   - sveltekit
   - turso
   - upstash
-category: Full-Stack Development
+category: development
 tags:
   - saas
   - svelte

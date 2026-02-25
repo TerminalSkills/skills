@@ -11,7 +11,7 @@ skills:
   - autocannon
   - lighthouse-ci
   - grafana
-category: observability
+category: devops
 tags:
   - performance
   - profiling

@@ -7,7 +7,7 @@ skills:
   - stripe-billing
   - nextjs
   - neon
-category: SaaS
+category: business
 tags:
   - authentication
   - billing

@@ -10,7 +10,7 @@ skills:
   - apache-spark
   - clickhouse
   - grafana
-category: data-engineering
+category: data-ai
 tags:
   - real-time
   - analytics

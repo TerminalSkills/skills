@@ -7,7 +7,7 @@ skills:
   - changesets
   - renovate
   - github-actions
-category: Developer Experience
+category: development
 tags:
   - devops
   - monorepo

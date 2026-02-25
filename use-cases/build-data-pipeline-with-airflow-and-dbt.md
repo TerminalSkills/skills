@@ -6,7 +6,7 @@ skills:
   - airflow
   - dbt
   - postgresql
-category: data-engineering
+category: data-ai
 tags:
   - etl
   - data-pipeline

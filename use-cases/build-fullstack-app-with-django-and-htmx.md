@@ -6,7 +6,7 @@ skills:
   - django
   - htmx
   - postgresql
-category: use-cases
+category: development
 tags:
   - python
   - fullstack

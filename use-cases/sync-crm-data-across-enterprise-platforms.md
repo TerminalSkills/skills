@@ -3,7 +3,7 @@ title: Sync CRM Data Across Enterprise Platforms
 slug: sync-crm-data-across-enterprise-platforms
 description: "Build a TypeScript middleware that syncs deals, invoices, inventory, and payments across Salesforce, SAP S/4HANA, and Zoho Books with retry logic and Slack alerting."
 skills: [salesforce, sap, zoho]
-category: crm
+category: business
 tags: [salesforce, zoho, sap, integration, data-sync, automation]
 ---
 
