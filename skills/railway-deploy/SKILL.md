@@ -273,6 +273,70 @@ $ railway redeploy
 > Deployment live
 ```
 
+### Task H: Health Checks and Auto-Rollback
+
+After deploying, verify the service is healthy before considering the deploy complete. If unhealthy, roll back to the previous deployment.
+
+```bash
+# Deploy and wait for completion
+$ railway up --detach
+
+# Health check loop — verify the service responds
+HEALTH_URL="https://your-app.railway.app/api/health"
+TIMEOUT=60
+DEADLINE=$((SECONDS + TIMEOUT))
+HEALTHY=false
+
+while [ $SECONDS -lt $DEADLINE ]; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
+  if [ "$STATUS" = "200" ]; then
+    HEALTHY=true
+    break
+  fi
+  echo "Waiting for healthy response... (status: $STATUS)"
+  sleep 3
+done
+
+if [ "$HEALTHY" = true ]; then
+  echo "✅ Deployment healthy!"
+else
+  echo "❌ Health check failed! Rolling back..."
+  railway rollback
+  echo "⏪ Rolled back to previous deployment"
+fi
+```
+
+**Automated deploy script with health verification:**
+
+```python
+# deploy_railway.py — Deploy with health check and auto-rollback
+import subprocess
+import time
+import httpx
+
+def deploy_with_health_check(health_url, timeout=60):
+    """Deploy to Railway, verify health, rollback on failure."""
+    print("🚀 Deploying to Railway...")
+    subprocess.run(["railway", "up", "--detach"], check=True)
+
+    print(f"🏥 Health checking {health_url}...")
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            r = httpx.get(health_url, timeout=5)
+            if r.status_code == 200:
+                print("✅ Healthy!")
+                return True
+        except httpx.RequestError:
+            pass
+        time.sleep(3)
+
+    print("❌ Unhealthy! Rolling back...")
+    subprocess.run(["railway", "rollback"], check=True)
+    print("⏪ Rolled back")
+    return False
+```
+
 ## Guidelines
 
 - Always run `railway status` first to confirm project, service, and environment context before making changes.

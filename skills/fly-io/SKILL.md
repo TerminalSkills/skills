@@ -56,6 +56,49 @@ Fly.io deploys applications to Firecracker microVMs across 30+ edge regions worl
 
 **Output:** A staging environment that stops idle machines and wakes in sub-second on the next request.
 
+### Example 3: Canary deployment with auto-rollback
+
+**User request:** "Deploy my app to Fly.io but test on one machine first. If the health check fails, roll back."
+
+**Actions:**
+1. Deploy with `--strategy canary` to spin up a single new machine
+2. Health check the canary machine at the app's health endpoint
+3. If healthy, promote with `fly deploy --strategy rolling` to replace all machines
+4. If unhealthy, rollback with `fly releases rollback`
+
+```bash
+#!/bin/bash
+# deploy-canary.sh — Fly.io canary deployment with auto-rollback
+set -euo pipefail
+
+APP="${1:?Usage: deploy-canary.sh <app-name>}"
+HEALTH_PATH="${2:-/api/health}"
+
+echo "🐤 Deploying canary..."
+fly deploy --app "$APP" --strategy canary --wait-timeout 120
+
+HEALTH_URL="https://${APP}.fly.dev${HEALTH_PATH}"
+HEALTHY=false
+DEADLINE=$((SECONDS + 60))
+
+while [ $SECONDS -lt $DEADLINE ]; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || true)
+  [ "$STATUS" = "200" ] && HEALTHY=true && break
+  sleep 3
+done
+
+if [ "$HEALTHY" = true ]; then
+  echo "✅ Canary healthy! Promoting..."
+  fly deploy --app "$APP" --strategy rolling
+  echo "🎉 Production deploy complete"
+else
+  echo "❌ Canary failed! Rolling back..."
+  fly releases rollback --app "$APP"
+  echo "⏪ Rolled back"
+  exit 1
+fi
+```
+
 ## Guidelines
 
 - Use `auto_stop_machines = "stop"` for dev/staging to save costs; machines stop after idle timeout.

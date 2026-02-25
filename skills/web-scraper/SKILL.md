@@ -1,18 +1,19 @@
 ---
 name: web-scraper
 description: >-
-  Extract structured data from web pages reliably. Use when a user asks to
-  scrape a website, extract data from a webpage, pull prices from a site,
-  collect links, gather product listings, download page content, or parse
-  HTML for specific information. Handles static HTML and JavaScript-rendered
-  pages.
+  Extract structured data from web pages and load it into databases. Use when
+  a user asks to scrape a website, build a data pipeline, extract data from a
+  webpage, pull prices from a site, collect links, gather product listings,
+  download page content, parse HTML, set up ETL, or automate data collection.
+  Handles static HTML, JavaScript-rendered pages, anti-bot proxies (Bright Data),
+  data transformation, deduplication, and database loading.
 license: Apache-2.0
 compatibility: "Requires Python 3.9+ with requests and beautifulsoup4 installed. For JS-rendered pages, requires playwright."
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: automation
-  tags: ["scraping", "web", "html", "data-extraction", "beautifulsoup"]
+  tags: ["scraping", "web", "html", "data-extraction", "beautifulsoup", "etl", "bright-data", "pipeline"]
 ---
 
 # Web Scraper
@@ -204,6 +205,99 @@ Extracted 25 rows with columns: ['Year', 'Population', 'Growth Rate']
 Saved to table_data.json
 ```
 
+### Step 6: Transform and deduplicate
+
+Clean raw scraped data before loading — normalize prices, deduplicate by content hash, validate required fields.
+
+```python
+import hashlib
+
+def transform_products(raw_items):
+    """Clean and deduplicate scraped product data."""
+    seen_hashes = set()
+    clean = []
+
+    for item in raw_items:
+        # Skip items missing required fields
+        if not item.get("name") or not item.get("price"):
+            continue
+
+        # Normalize price: "$1,299.99" → 129999 (cents)
+        price_str = item["price"].replace(",", "").replace("$", "").strip()
+        try:
+            price_cents = int(float(price_str) * 100)
+        except ValueError:
+            continue
+
+        # Deduplicate by content hash
+        content_hash = hashlib.md5(
+            f"{item['name']}|{item.get('link', '')}".encode()
+        ).hexdigest()
+
+        if content_hash in seen_hashes:
+            continue
+        seen_hashes.add(content_hash)
+
+        clean.append({
+            "name": item["name"][:500],
+            "price_cents": price_cents,
+            "url": item.get("link", {}).get("href", ""),
+            "rating": item.get("rating"),
+            "content_hash": content_hash,
+            "scraped_at": datetime.utcnow().isoformat(),
+        })
+
+    return clean
+```
+
+### Step 7: Load into a database
+
+Batch upsert into Postgres/Supabase for persistent storage with automatic price change tracking.
+
+```python
+from supabase import create_client
+
+def load_to_supabase(products, supabase_url, supabase_key):
+    """Batch upsert products into Supabase with conflict handling."""
+    client = create_client(supabase_url, supabase_key)
+
+    # Upsert in batches of 100
+    for i in range(0, len(products), 100):
+        batch = products[i:i+100]
+        client.table("products").upsert(
+            batch,
+            on_conflict="content_hash"  # Update if exists
+        ).execute()
+        print(f"  Loaded batch {i//100 + 1}: {len(batch)} records")
+
+    return len(products)
+```
+
+### Step 8: Handle anti-bot protection with Bright Data
+
+For sites that block datacenter IPs, use Bright Data's residential proxy or Web Unlocker.
+
+```python
+import requests
+
+def fetch_with_proxy(url, bright_data_config):
+    """Fetch a page through Bright Data residential proxy."""
+    proxy_url = (
+        f"http://{bright_data_config['customer']}"
+        f"-zone-{bright_data_config['zone']}"
+        f":{bright_data_config['password']}"
+        f"@brd.superproxy.io:22225"
+    )
+    response = requests.get(
+        url,
+        proxies={"http": proxy_url, "https": proxy_url},
+        headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return BeautifulSoup(response.text, "html.parser")
+```
+
 ## Guidelines
 
 - Always set a User-Agent header. Requests without one are often blocked.
@@ -216,3 +310,8 @@ Saved to table_data.json
 - Prefer CSS selectors over XPath. They are more readable and sufficient for most cases.
 - When scraping tables, always validate that row cell counts match header counts before zipping.
 - Output data in the format the user needs. Default to JSON for structured data and CSV for tabular data.
+- For recurring scraping, use upsert (ON CONFLICT) to avoid duplicates across runs.
+- Store prices as integers in cents — avoid floating-point rounding errors.
+- Use Bright Data residential proxies for sites that block datacenter IPs. Budget ~$0.50/GB.
+- Separate extract, transform, and load stages so each can fail and retry independently.
+- Track content hashes for deduplication — same product from different scrape runs should update, not duplicate.
