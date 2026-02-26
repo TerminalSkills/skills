@@ -11,8 +11,8 @@ compatibility: "REST API. Any language. ClickHouse SQL dialect."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["analytics", "tinybird", "real-time", "clickhouse", "events", "api"]
+  category: data-ai
+  tags: ["analytics", "tinybird", "real-time", "clickhouse", "events"]
 ---
 
 # Tinybird

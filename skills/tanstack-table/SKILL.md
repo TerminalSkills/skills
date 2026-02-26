@@ -11,8 +11,8 @@ compatibility: "React, Vue, Svelte, Solid, vanilla JS. TypeScript."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
-  tags: ["table", "data-grid", "tanstack", "react", "sorting", "filtering"]
+  category: development
+  tags: ["table", "data-grid", "tanstack", "react", "sorting"]
 ---
 
 # TanStack Table

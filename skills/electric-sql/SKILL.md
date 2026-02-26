@@ -12,8 +12,8 @@ compatibility: "PostgreSQL. Clients: React, React Native, Expo, any HTTP client.
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["sync", "local-first", "offline", "postgres", "real-time", "electric-sql"]
+  category: data-ai
+  tags: ["sync", "local-first", "offline", "postgres", "real-time"]
 ---
 
 # ElectricSQL

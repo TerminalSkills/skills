@@ -12,8 +12,8 @@ compatibility: "Chrome, Firefox, Safari, Edge. Supports React, Vue, Svelte, Soli
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
-  tags: ["browser-extension", "chrome", "firefox", "wxt", "manifest-v3", "typescript"]
+  category: development
+  tags: ["browser-extension", "chrome", "firefox", "wxt", "manifest-v3"]
 ---
 
 # WXT

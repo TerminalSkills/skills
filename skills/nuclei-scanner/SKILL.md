@@ -12,8 +12,8 @@ compatibility: "Any OS. Go binary. Targets: HTTP, DNS, TCP, SSL, headless browse
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: ["security", "vulnerability", "scanning", "nuclei", "pentest", "cve"]
+  category: devops
+  tags: ["security", "vulnerability", "scanning", "nuclei", "pentest"]
 ---
 
 # Nuclei Scanner

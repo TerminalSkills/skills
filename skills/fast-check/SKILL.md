@@ -12,8 +12,8 @@ compatibility: "TypeScript/JavaScript. Vitest, Jest, Mocha, or standalone."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
-  tags: ["testing", "property-based", "fast-check", "fuzzing", "edge-cases", "random"]
+  category: development
+  tags: ["testing", "property-based", "fast-check", "fuzzing", "edge-cases"]
 ---
 
 # fast-check

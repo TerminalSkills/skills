@@ -11,7 +11,7 @@ compatibility: "TypeScript 5.1+. Node.js/Bun/Deno/browser."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
+  category: development
   tags: ["validation", "typescript", "arktype", "runtime-types", "schema"]
 ---
 

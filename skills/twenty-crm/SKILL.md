@@ -11,8 +11,8 @@ compatibility: "Self-hosted (Docker) or cloud. REST + GraphQL API. TypeScript."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["crm", "twenty", "sales", "customer", "open-source", "self-hosted"]
+  category: business
+  tags: ["crm", "twenty", "sales", "customer", "open-source"]
 ---
 
 # Twenty CRM

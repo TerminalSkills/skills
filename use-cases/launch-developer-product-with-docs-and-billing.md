@@ -7,7 +7,7 @@ skills:
   - polar
   - infisical
   - formbricks
-category: business
+category: development
 tags:
   - developer-tools
   - documentation

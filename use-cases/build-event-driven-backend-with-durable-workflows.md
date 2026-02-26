@@ -7,7 +7,7 @@ skills:
   - hatchet
   - tinybird
   - d1-database
-category: backend
+category: development
 tags:
   - event-driven
   - durable-execution

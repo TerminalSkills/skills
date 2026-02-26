@@ -11,8 +11,8 @@ compatibility: "React 18+. Also works with vanilla JS, Vue, Svelte."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
-  tags: ["state", "valtio", "react", "proxy", "store", "reactive"]
+  category: development
+  tags: ["state", "valtio", "react", "proxy", "store"]
 ---
 
 # Valtio

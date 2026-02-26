@@ -6,7 +6,7 @@ skills:
   - nuclei-scanner
   - ffuf
   - security-audit
-category: security
+category: devops
 tags:
   - security
   - pentest

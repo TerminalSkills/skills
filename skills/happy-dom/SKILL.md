@@ -11,8 +11,8 @@ compatibility: "Node.js 18+. Vitest, Jest, or standalone."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
-  tags: ["testing", "dom", "happy-dom", "jsdom", "vitest", "ssr"]
+  category: development
+  tags: ["testing", "dom", "happy-dom", "jsdom", "vitest"]
 ---
 
 # Happy DOM

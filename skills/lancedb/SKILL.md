@@ -12,8 +12,8 @@ compatibility: "Node.js/Python. Runs locally (embedded) or serverless cloud."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["vector", "embedded-db", "lancedb", "rag", "search", "serverless"]
+  category: data-ai
+  tags: ["vector", "embedded-db", "lancedb", "rag", "search"]
 ---
 
 # LanceDB

@@ -13,8 +13,8 @@ compatibility: "Any AI coding agent. No dependencies."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: workflow
-  tags: ["spec", "planning", "rfc", "architecture", "design-doc", "requirements"]
+  category: development
+  tags: ["spec", "planning", "rfc", "architecture", "design-doc"]
 ---
 
 # Spec-Driven Development

@@ -11,8 +11,8 @@ compatibility: "Python 3.11+. Playwright. Any LLM via LangChain."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai
-  tags: ["ai-agent", "browser", "automation", "browser-use", "web-agent", "playwright"]
+  category: data-ai
+  tags: ["ai-agent", "browser", "automation", "browser-use", "web-agent"]
 ---
 
 # Browser Use

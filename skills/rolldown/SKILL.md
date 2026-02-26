@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["bundling", "rolldown", "rollup", "rust", "vite", "oxc", "build-tools"]
+  tags: ["bundling", "rolldown", "rollup", "rust", "vite"]
 ---
 
 # Rolldown

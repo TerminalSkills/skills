@@ -12,8 +12,8 @@ compatibility: "TypeScript/Python/Go. Self-hostable or Hatchet Cloud."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["workflows", "background-jobs", "hatchet", "queue", "orchestration", "durable"]
+  category: development
+  tags: ["workflows", "background-jobs", "hatchet", "queue", "orchestration"]
 ---
 
 # Hatchet

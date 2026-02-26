@@ -11,8 +11,8 @@ compatibility: "Python/TypeScript. Works with LangChain, CrewAI, OpenAI, Anthrop
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai
-  tags: ["ai-agent", "integrations", "composio", "tools", "oauth", "api"]
+  category: data-ai
+  tags: ["ai-agent", "integrations", "composio", "tools", "oauth"]
 ---
 
 # Composio

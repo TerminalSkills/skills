@@ -12,8 +12,8 @@ compatibility: "React 18+. Next.js, Remix, Vite."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
-  tags: ["data-fetching", "swr", "react", "cache", "revalidation", "hooks"]
+  category: development
+  tags: ["data-fetching", "swr", "react", "cache", "revalidation"]
 ---
 
 # SWR

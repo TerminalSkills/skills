@@ -12,8 +12,8 @@ compatibility: "Any web framework (React, Vue, Angular, Svelte). iOS + Android."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
-  tags: ["mobile", "capacitor", "hybrid", "native", "ios", "android", "pwa"]
+  category: development
+  tags: ["mobile", "capacitor", "hybrid", "native", "ios"]
 ---
 
 # Capacitor

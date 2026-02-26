@@ -12,8 +12,8 @@ compatibility: "Any HTTP API. TypeScript SDK. Self-hostable or managed cloud."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["api", "auth", "rate-limiting", "api-keys", "unkey", "usage-billing"]
+  category: development
+  tags: ["api", "auth", "rate-limiting", "api-keys", "unkey"]
 ---
 
 # Unkey

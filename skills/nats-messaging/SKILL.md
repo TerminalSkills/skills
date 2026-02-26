@@ -12,8 +12,8 @@ compatibility: "Node.js 18+. NATS server (nats-server or Synadia Cloud)."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["messaging", "pub-sub", "nats", "queue", "distributed", "event-driven"]
+  category: development
+  tags: ["messaging", "pub-sub", "nats", "queue", "distributed"]
 ---
 
 # NATS Messaging

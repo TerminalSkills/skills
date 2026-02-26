@@ -11,8 +11,8 @@ compatibility: "React Native / Expo. Tailwind CSS v3.4+."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
-  tags: ["react-native", "tailwind", "nativewind", "styling", "mobile", "css"]
+  category: development
+  tags: ["tailwind", "react-native", "styling", "nativewind", "mobile"]
 ---
 
 # NativeWind

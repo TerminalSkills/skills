@@ -12,8 +12,8 @@ compatibility: "React, Vue, Svelte, Angular, Preact. Vitest/Jest."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: testing
-  tags: ["testing", "react", "components", "accessibility", "testing-library", "ui"]
+  category: development
+  tags: ["testing", "react", "components", "accessibility", "testing-library"]
 ---
 
 # Testing Library

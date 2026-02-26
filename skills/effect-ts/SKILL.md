@@ -12,7 +12,7 @@ compatibility: "Node.js 18+ or Bun. TypeScript 5.0+."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
+  category: development
   tags: ["typescript", "error-handling", "fp", "concurrency", "dependency-injection"]
 ---
 

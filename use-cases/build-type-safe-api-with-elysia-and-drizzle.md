@@ -6,7 +6,7 @@ skills:
   - elysia
   - drizzle-kit
   - test-generator
-category: backend
+category: development
 tags:
   - bun
   - elysia

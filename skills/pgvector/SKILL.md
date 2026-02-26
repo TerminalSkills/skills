@@ -12,8 +12,8 @@ compatibility: "PostgreSQL 15+. Works with Supabase, Neon, RDS. Node.js/Python c
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["vector", "embeddings", "postgres", "pgvector", "rag", "semantic-search"]
+  category: data-ai
+  tags: ["vector", "embeddings", "postgres", "pgvector", "rag"]
 ---
 
 # pgvector

@@ -12,8 +12,8 @@ compatibility: "Node.js 18+. Deploys to: Node, Deno, Bun, Cloudflare Workers, Ve
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["server", "api", "edge", "universal", "nuxt", "serverless", "nitro"]
+  category: development
+  tags: ["server", "api", "edge", "universal", "nitro"]
 ---
 
 # Nitro

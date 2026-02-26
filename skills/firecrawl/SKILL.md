@@ -12,8 +12,8 @@ compatibility: "Any language. REST API. TypeScript/Python SDKs. Self-hostable."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["scraping", "firecrawl", "llm", "rag", "markdown", "data-extraction"]
+  category: data-ai
+  tags: ["scraping", "firecrawl", "llm", "rag", "markdown"]
 ---
 
 # Firecrawl

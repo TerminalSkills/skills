@@ -6,7 +6,7 @@ skills:
   - ai-eval-ci
   - cicd-pipeline
   - prompt-tester
-category: data-ai
+category: development
 tags:
   - eval
   - ci-cd

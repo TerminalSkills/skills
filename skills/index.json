@@ -89,11 +89,64 @@
       "tags": []
     },
     {
+      "name": "adonisjs",
+      "slug": "adonisjs",
+      "description": "Build full-stack web applications with AdonisJS — a batteries-included Node.js framework with ORM, auth, validation, and mailer built-in. Use when someone asks to \"build a web app with Node.js\", \"Laravel for Node.js\", \"full-stack Node framework\", \"AdonisJS\", \"batteries-included backend\", or \"Node.js with built-in ORM and auth\". Covers Lucid ORM, auth (sessions, tokens, social), VineJS validation, Edge templates, and deployment.",
+      "category": "development",
+      "tags": [
+        "nodejs",
+        "framework",
+        "orm",
+        "auth",
+        "full-stack"
+      ]
+    },
+    {
       "name": "after-effects",
       "slug": "after-effects",
       "description": "Automate Adobe After Effects workflows. Use when a user asks to script After Effects with ExtendScript or CEP, batch render compositions, automate motion graphics templates (MOGRTs), build render pipelines with aerender, create expressions for animations, manage project files programmatically, automate text and image replacements in templates, build data-driven motion graphics, integrate After Effects with CI/CD, or control AE via command line. Covers ExtendScript, CEP panels, expressions, aerender CLI, and template automation.",
       "category": "content",
       "tags": []
+    },
+    {
+      "name": "agent-memory",
+      "slug": "agent-memory",
+      "description": "Add persistent memory to AI coding agents — file-based, vector, and semantic search memory systems that survive between sessions. Use when a user asks to \"remember this\", \"add memory to my agent\", \"persist context between sessions\", \"build a knowledge base for my agent\", \"set up agent memory\", or \"make my AI remember things\". Covers file-based memory (MEMORY.md), SQLite with embeddings, vector databases (ChromaDB, Pinecone), semantic search, memory consolidation, and automatic context injection.",
+      "category": "data-ai",
+      "tags": [
+        "memory",
+        "persistence",
+        "embeddings",
+        "vector-search",
+        "context",
+        "rag"
+      ]
+    },
+    {
+      "name": "agent-sandbox",
+      "slug": "agent-sandbox",
+      "description": "Run AI agent code safely in isolated sandboxes with resource limits, audit trails, and kill switches. Use when someone asks to \"sandbox my agent\", \"run agent code safely\", \"add guardrails to AI agent\", \"isolate agent execution\", \"audit agent actions\", \"prevent agent from deleting files\", \"restrict agent permissions\", or \"add safety controls to AI coding agent\". Covers Docker isolation, filesystem restrictions, network policies, resource locking, and comprehensive audit logging.",
+      "category": "devops",
+      "tags": [
+        "sandbox",
+        "security",
+        "guardrails",
+        "agent-safety",
+        "isolation"
+      ]
+    },
+    {
+      "name": "ai-eval-ci",
+      "slug": "ai-eval-ci",
+      "description": "Run AI agent and LLM evaluations in CI/CD pipelines — automated quality gates that fail the build when AI output quality drops. Use when someone asks to \"test my AI agent\", \"add evals to CI\", \"catch prompt regressions\", \"compare models\", \"evaluate LLM output quality\", \"set up AI quality gates\", or \"benchmark my agent before deploying\". Covers eval frameworks (Cobalt, Promptfoo, Braintrust), LLM-as-judge scoring, threshold-based assertions, and GitHub Actions integration.",
+      "category": "data-ai",
+      "tags": [
+        "eval",
+        "ci-cd",
+        "llm",
+        "quality",
+        "regression"
+      ]
     },
     {
       "name": "ai-slides",
@@ -307,6 +360,19 @@
       "description": "Argo CD for GitOps continuous delivery on Kubernetes. Use when the user needs to define applications declaratively, sync Kubernetes manifests from Git repositories, manage sync policies, and implement progressive delivery workflows.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "arktype",
+      "slug": "arktype",
+      "description": "Define runtime-validated types with ArkType — TypeScript's 1:1 validator. Use when someone asks to \"validate data in TypeScript\", \"runtime type checking\", \"ArkType\", \"type-safe validation\", \"alternative to Zod\", \"faster validation library\", or \"validate with TypeScript syntax\". Covers type definitions, validation, morphs (transforms), scopes, and comparison with Zod.",
+      "category": "development",
+      "tags": [
+        "validation",
+        "typescript",
+        "arktype",
+        "runtime-types",
+        "schema"
+      ]
     },
     {
       "name": "artillery",
@@ -683,6 +749,19 @@
       ]
     },
     {
+      "name": "browser-use",
+      "slug": "browser-use",
+      "description": "Give AI agents browser control with Browser Use — autonomous web browsing for LLM agents. Use when someone asks to \"AI browse the web\", \"browser automation with AI\", \"Browser Use\", \"LLM web agent\", \"autonomous browsing\", \"AI fill out forms\", or \"agent that can navigate websites\". Covers autonomous browsing, task completion, data extraction, and form filling.",
+      "category": "data-ai",
+      "tags": [
+        "ai-agent",
+        "browser",
+        "automation",
+        "browser-use",
+        "web-agent"
+      ]
+    },
+    {
       "name": "bullmq",
       "slug": "bullmq",
       "description": "Build job queues and background workers with BullMQ. Use when a user asks to set up a job queue, process tasks in the background, build a worker system, handle async processing, schedule recurring jobs, rate-limit API calls, process webhooks in a queue, or add reliable background processing to a Node.js app. Covers queues, workers, job scheduling, retries, rate limiting, priorities, events, and dashboard monitoring with Bull Board.",
@@ -759,6 +838,19 @@
         "image-manipulation",
         "drawing",
         "node-canvas"
+      ]
+    },
+    {
+      "name": "capacitor",
+      "slug": "capacitor",
+      "description": "Turn web apps into native mobile apps with Capacitor — access native device APIs from JavaScript. Use when someone asks to \"convert my website to a mobile app\", \"Capacitor\", \"web to native app\", \"access camera from JavaScript\", \"deploy web app to App Store\", \"hybrid mobile app\", or \"Ionic Capacitor\". Covers native API access, plugin system, web-to-native bridge, and app store deployment.",
+      "category": "development",
+      "tags": [
+        "mobile",
+        "capacitor",
+        "hybrid",
+        "native",
+        "ios"
       ]
     },
     {
@@ -1090,6 +1182,19 @@
       "tags": []
     },
     {
+      "name": "composio",
+      "slug": "composio",
+      "description": "Connect AI agents to 250+ tools and APIs with Composio — managed integrations for LLM agents. Use when someone asks to \"connect AI to tools\", \"Composio\", \"AI agent integrations\", \"give my agent access to GitHub/Slack/Gmail\", \"tool use for AI agents\", or \"managed OAuth for AI apps\". Covers tool connections, auth management, action execution, and framework integrations.",
+      "category": "data-ai",
+      "tags": [
+        "ai-agent",
+        "integrations",
+        "composio",
+        "tools",
+        "oauth"
+      ]
+    },
+    {
       "name": "confluence",
       "slug": "confluence",
       "description": "Manage knowledge bases and documentation with Confluence Cloud. Use when a user asks to create or manage Confluence spaces, pages, and blogs, build documentation systems, automate page creation from templates, use Confluence REST API v2, manage page trees and hierarchies, set up permissions, integrate Confluence with Jira or other tools, generate reports from Confluence data, build macros or Forge apps, or migrate content between spaces. Covers content management, API automation, templates, and Atlassian ecosystem integration.",
@@ -1210,6 +1315,19 @@
       ]
     },
     {
+      "name": "crawlee",
+      "slug": "crawlee",
+      "description": "Build reliable web scrapers and crawlers with Crawlee — Apify's open-source framework for structured web scraping. Use when someone asks to \"scrape a website\", \"build a crawler\", \"Crawlee\", \"web scraping at scale\", \"scrape JavaScript-rendered pages\", \"crawl with Playwright/Puppeteer\", or \"extract data from websites reliably\". Covers HTTP crawling, browser crawling, request queues, proxy rotation, and data export.",
+      "category": "data-ai",
+      "tags": [
+        "scraping",
+        "crawling",
+        "crawlee",
+        "apify",
+        "playwright"
+      ]
+    },
+    {
       "name": "crisp",
       "slug": "crisp",
       "description": "Add live chat and customer support with Crisp. Use when a user asks to add a chat widget, implement live customer support, set up a help desk, create a knowledge base, or add a chatbot to a website.",
@@ -1284,6 +1402,19 @@
       ]
     },
     {
+      "name": "d1-database",
+      "slug": "d1-database",
+      "description": "Build serverless applications with Cloudflare D1 — SQLite at the edge. Use when someone asks to \"serverless database\", \"Cloudflare D1\", \"SQLite at the edge\", \"database for Workers\", \"edge database\", or \"serverless SQL\". Covers schema setup, queries, migrations, Workers integration, and Drizzle ORM.",
+      "category": "data-ai",
+      "tags": [
+        "database",
+        "cloudflare",
+        "d1",
+        "sqlite",
+        "edge"
+      ]
+    },
+    {
       "name": "d3",
       "slug": "d3",
       "description": "Assists with building custom interactive data visualizations using D3.js. Use when creating charts, graphs, maps, force layouts, or hierarchical diagrams that require fine-grained control beyond what charting libraries provide. Trigger words: d3, data visualization, chart, svg, scales, force graph, treemap, choropleth.",
@@ -1294,6 +1425,19 @@
         "charts",
         "svg",
         "interactive"
+      ]
+    },
+    {
+      "name": "dagger",
+      "slug": "dagger",
+      "description": "Write CI/CD pipelines as code with Dagger — portable, cacheable, container-based pipelines that run locally and in any CI system. Use when someone asks to \"write CI pipeline in TypeScript\", \"portable CI/CD\", \"run GitHub Actions locally\", \"Dagger pipeline\", \"CI as code\", \"containerized build pipeline\", or \"test my CI locally before pushing\". Covers Dagger SDK (TypeScript/Python), pipeline composition, caching, secrets, and multi-stage builds.",
+      "category": "devops",
+      "tags": [
+        "ci-cd",
+        "containers",
+        "pipelines",
+        "dagger",
+        "docker"
       ]
     },
     {
@@ -1581,6 +1725,19 @@
       ]
     },
     {
+      "name": "drizzle-kit",
+      "slug": "drizzle-kit",
+      "description": "Manage database migrations and schema with Drizzle Kit. Use when someone asks to \"run database migrations\", \"generate migration files\", \"push schema to database\", \"introspect existing database\", \"set up Drizzle migrations\", \"manage database schema changes\", or \"use drizzle-kit\". Covers drizzle-kit push, generate, migrate, introspect, studio, and schema-first workflows for Postgres, MySQL, and SQLite.",
+      "category": "development",
+      "tags": [
+        "database",
+        "migrations",
+        "schema",
+        "drizzle",
+        "postgres"
+      ]
+    },
+    {
       "name": "drizzle-orm",
       "slug": "drizzle-orm",
       "description": "Build type-safe database layers with Drizzle ORM — schema definition in TypeScript, SQL-like query builder, migrations, relations, and prepared statements. Use when tasks need a lightweight, SQL-first ORM for TypeScript with zero code generation, edge runtime support, or migration from raw SQL.",
@@ -1615,6 +1772,32 @@
       "tags": []
     },
     {
+      "name": "e2b-sandbox",
+      "slug": "e2b-sandbox",
+      "description": "Run AI-generated code safely in cloud sandboxes with E2B — secure execution environments for LLM agents. Use when someone asks to \"run code in a sandbox\", \"E2B\", \"execute AI-generated code safely\", \"code interpreter for AI\", \"sandboxed code execution\", \"run untrusted code\", or \"give my AI agent a computer\". Covers sandbox creation, code execution, file system, process management, and custom environments.",
+      "category": "data-ai",
+      "tags": [
+        "sandbox",
+        "code-execution",
+        "e2b",
+        "ai-agents",
+        "security"
+      ]
+    },
+    {
+      "name": "effect-ts",
+      "slug": "effect-ts",
+      "description": "Build robust TypeScript applications with Effect — type-safe error handling, concurrency, dependency injection, and streaming. Use when someone asks to \"handle errors without try-catch\", \"type-safe error handling in TypeScript\", \"dependency injection without classes\", \"concurrent TypeScript\", \"Effect library\", \"replace try-catch with typed errors\", or \"functional programming in TypeScript\". Covers Effect, Layer, Schedule, Stream, and Schema.",
+      "category": "development",
+      "tags": [
+        "typescript",
+        "error-handling",
+        "fp",
+        "concurrency",
+        "dependency-injection"
+      ]
+    },
+    {
       "name": "elasticsearch-search",
       "slug": "elasticsearch-search",
       "description": "Configure and use Elasticsearch for full-text search, custom analyzers, aggregations, and index management. Use when a user needs to design search mappings, write complex queries, build aggregation pipelines, tune relevance scoring, or optimize index performance for search workloads.",
@@ -1629,6 +1812,19 @@
       ]
     },
     {
+      "name": "electric-sql",
+      "slug": "electric-sql",
+      "description": "Build local-first applications with ElectricSQL — sync Postgres data to client devices in real-time. Use when someone asks to \"sync database to client\", \"local-first app\", \"ElectricSQL\", \"offline-first sync\", \"real-time Postgres sync\", \"sync Postgres to SQLite\", or \"build an app that works offline\". Covers shape-based sync, real-time subscriptions, offline support, and conflict resolution.",
+      "category": "data-ai",
+      "tags": [
+        "sync",
+        "local-first",
+        "offline",
+        "postgres",
+        "real-time"
+      ]
+    },
+    {
       "name": "electron",
       "slug": "electron",
       "description": "Assists with building cross-platform desktop applications using Electron. Use when architecting main/renderer process communication, configuring secure contexts, implementing auto-updates, or packaging apps for Windows, macOS, and Linux. Trigger words: electron, desktop app, browserwindow, ipc, auto-update, electron-builder.",
@@ -1639,6 +1835,19 @@
         "cross-platform",
         "ipc",
         "packaging"
+      ]
+    },
+    {
+      "name": "elysia",
+      "slug": "elysia",
+      "description": "Build high-performance APIs with Elysia on Bun. Use when someone asks to \"create an API with Bun\", \"build a REST API with Elysia\", \"set up WebSocket server on Bun\", \"type-safe API with Eden Treaty\", \"Elysia plugin\", or \"fastest TypeScript HTTP framework\". Covers REST routes, WebSocket, validation with TypeBox, Eden Treaty type-safe client, plugins, auth guards, and OpenAPI/Swagger generation.",
+      "category": "development",
+      "tags": [
+        "bun",
+        "api",
+        "typescript",
+        "websocket",
+        "elysia"
       ]
     },
     {
@@ -1673,6 +1882,19 @@
       "description": "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions \"email sequence,\" \"drip campaign,\" \"nurture sequence,\" \"onboarding emails,\" \"welcome sequence,\" \"re-engagement emails,\" \"email automation,\" or \"lifecycle emails.\" For in-app onboarding, see onboarding-cro.",
       "category": "marketing",
       "tags": []
+    },
+    {
+      "name": "encore",
+      "slug": "encore",
+      "description": "Build cloud backend applications with Encore — type-safe backend framework with built-in infrastructure. Use when someone asks to \"build a backend\", \"Encore\", \"type-safe API framework\", \"backend with built-in infra\", \"auto-provision cloud resources\", or \"backend framework with databases built-in\". Covers API definition, databases, pub/sub, cron, and auto-provisioned infrastructure.",
+      "category": "development",
+      "tags": [
+        "backend",
+        "encore",
+        "framework",
+        "infrastructure",
+        "type-safe"
+      ]
     },
     {
       "name": "env-manager",
@@ -1767,6 +1989,19 @@
       ]
     },
     {
+      "name": "expo-router",
+      "slug": "expo-router",
+      "description": "Build native mobile apps with file-based routing using Expo Router — React Native navigation that works like Next.js. Use when someone asks to \"add navigation to React Native\", \"Expo Router\", \"file-based routing for mobile\", \"deep linking in React Native\", \"mobile app navigation\", or \"React Native routing like Next.js\". Covers file-based routes, layouts, deep linking, tabs, stacks, and universal links.",
+      "category": "development",
+      "tags": [
+        "expo",
+        "routing",
+        "react-native",
+        "navigation",
+        "file-based"
+      ]
+    },
+    {
       "name": "external-dns",
       "slug": "external-dns",
       "description": "ExternalDNS for automatic DNS record management in Kubernetes. Use when the user needs to synchronize Kubernetes Ingress and Service resources with DNS providers like Route 53, CloudDNS, or Cloudflare automatically.",
@@ -1795,6 +2030,19 @@
       "tags": []
     },
     {
+      "name": "fast-check",
+      "slug": "fast-check",
+      "description": "Find edge-case bugs with property-based testing using fast-check — generate thousands of random inputs automatically. Use when someone asks to \"find edge cases\", \"fast-check\", \"property-based testing\", \"fuzz testing in TypeScript\", \"generate random test data\", \"QuickCheck for JavaScript\", or \"test with random inputs\". Covers property definitions, arbitraries, shrinking, model-based testing, and integration with Vitest/Jest.",
+      "category": "development",
+      "tags": [
+        "testing",
+        "property-based",
+        "fast-check",
+        "fuzzing",
+        "edge-cases"
+      ]
+    },
+    {
       "name": "fastapi",
       "slug": "fastapi",
       "description": "FastAPI is a modern, high-performance Python web framework for building APIs. It leverages Python type hints and Pydantic for automatic validation, serialization, and OpenAPI documentation generation with async/await support out of the box.",
@@ -1814,6 +2062,19 @@
       "description": "Fastify is a high-performance Node.js web framework focused on developer experience and low overhead. It features JSON Schema validation, a powerful plugin system, lifecycle hooks, and automatic serialization for blazing-fast APIs.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "fastlane",
+      "slug": "fastlane",
+      "description": "Automate mobile app builds, signing, and deployment with Fastlane — CI/CD for iOS and Android. Use when someone asks to \"automate App Store deployment\", \"Fastlane\", \"automate iOS build\", \"CI/CD for mobile\", \"automate Play Store upload\", \"code signing automation\", or \"mobile release pipeline\". Covers build automation, code signing, TestFlight, Play Store, screenshots, and CI.",
+      "category": "devops",
+      "tags": [
+        "mobile",
+        "cicd",
+        "fastlane",
+        "ios",
+        "android"
+      ]
     },
     {
       "name": "feature-flag-manager",
@@ -1845,6 +2106,19 @@
         "ffmpeg",
         "multimedia",
         "conversion"
+      ]
+    },
+    {
+      "name": "ffuf",
+      "slug": "ffuf",
+      "description": "Discover hidden content, directories, subdomains, and API endpoints with ffuf — the fastest web fuzzer. Use when someone asks to \"find hidden directories\", \"fuzz URLs\", \"discover API endpoints\", \"subdomain enumeration\", \"content discovery\", \"ffuf\", \"brute force paths\", or \"find hidden files on a website\". Covers directory fuzzing, parameter fuzzing, subdomain discovery, virtual host enumeration, and recursive scanning.",
+      "category": "devops",
+      "tags": [
+        "security",
+        "fuzzing",
+        "recon",
+        "ffuf",
+        "content-discovery"
       ]
     },
     {
@@ -1899,6 +2173,19 @@
       ]
     },
     {
+      "name": "firecrawl",
+      "slug": "firecrawl",
+      "description": "Convert any website into clean, structured data with Firecrawl — API-first web scraping service. Use when someone asks to \"turn a website into markdown\", \"scrape website for LLM\", \"Firecrawl\", \"extract website content as clean text\", \"crawl and convert to structured data\", or \"scrape website for RAG\". Covers single-page scraping, full-site crawling, structured extraction, and LLM-ready output.",
+      "category": "data-ai",
+      "tags": [
+        "scraping",
+        "firecrawl",
+        "llm",
+        "rag",
+        "markdown"
+      ]
+    },
+    {
       "name": "flask",
       "slug": "flask",
       "description": "Flask is a lightweight Python micro web framework that provides the essentials for web development without imposing structure. It uses Jinja2 templates and Werkzeug WSGI toolkit, with a rich ecosystem of extensions for databases, auth, and more.",
@@ -1945,6 +2232,19 @@
       "description": "When the user wants to optimize any form that is NOT signup/registration — including lead capture forms, contact forms, demo request forms, application forms, survey forms, or checkout forms. Also use when the user mentions \"form optimization,\" \"lead form conversions,\" \"form friction,\" \"form fields,\" \"form completion rate,\" or \"contact form.\" For signup/registration forms, see signup-flow-cro. For popups containing forms, see popup-cro.",
       "category": "marketing",
       "tags": []
+    },
+    {
+      "name": "formbricks",
+      "slug": "formbricks",
+      "description": "Collect user feedback and run in-app surveys with Formbricks — open-source experience management platform. Use when someone asks to \"add surveys to my app\", \"Formbricks\", \"in-app feedback\", \"NPS survey\", \"user research\", \"product feedback tool\", or \"open-source Typeform alternative\". Covers in-app surveys, website popups, link surveys, targeting, and analytics.",
+      "category": "development",
+      "tags": [
+        "surveys",
+        "feedback",
+        "formbricks",
+        "nps",
+        "user-research"
+      ]
     },
     {
       "name": "formik",
@@ -2182,6 +2482,19 @@
       ]
     },
     {
+      "name": "happy-dom",
+      "slug": "happy-dom",
+      "description": "Run DOM tests without a browser using Happy DOM — fast JavaScript DOM implementation. Use when someone asks to \"test without a browser\", \"Happy DOM\", \"fast DOM environment for tests\", \"replace jsdom\", \"Vitest DOM environment\", or \"server-side DOM\". Covers test environment setup, Vitest/Jest integration, SSR testing, and performance comparison with jsdom.",
+      "category": "development",
+      "tags": [
+        "testing",
+        "dom",
+        "happy-dom",
+        "jsdom",
+        "vitest"
+      ]
+    },
+    {
       "name": "hardhat",
       "slug": "hardhat",
       "description": "Develop and test Ethereum smart contracts with Hardhat. Use when a user asks to set up a Solidity development environment, test smart contracts, deploy to testnets, or debug Ethereum transactions.",
@@ -2199,6 +2512,19 @@
         "security",
         "encryption",
         "dynamic-credentials"
+      ]
+    },
+    {
+      "name": "hatchet",
+      "slug": "hatchet",
+      "description": "Orchestrate background jobs and workflows with Hatchet — open-source distributed task queue with DAG workflows. Use when someone asks to \"run background jobs\", \"Hatchet\", \"workflow orchestration\", \"distributed task queue\", \"durable execution\", \"replace Celery/Bull\", or \"DAG workflow engine\". Covers workflow definition, step functions, retries, concurrency control, and event-driven triggers.",
+      "category": "development",
+      "tags": [
+        "workflows",
+        "background-jobs",
+        "hatchet",
+        "queue",
+        "orchestration"
       ]
     },
     {
@@ -2307,6 +2633,19 @@
         "cdn",
         "optimization",
         "responsive"
+      ]
+    },
+    {
+      "name": "infisical",
+      "slug": "infisical",
+      "description": "Manage application secrets and environment variables with Infisical — open-source secrets management platform. Use when someone asks to \"manage secrets\", \"Infisical\", \"centralize environment variables\", \"secrets manager\", \"replace .env files\", \"rotate API keys\", or \"sync secrets to CI/CD\". Covers secret storage, team sharing, auto-rotation, CI/CD injection, and Kubernetes integration.",
+      "category": "devops",
+      "tags": [
+        "secrets",
+        "security",
+        "infisical",
+        "env-vars",
+        "configuration"
       ]
     },
     {
@@ -2581,6 +2920,19 @@
       "tags": []
     },
     {
+      "name": "kamal",
+      "slug": "kamal",
+      "description": "Deploy web applications to any server with Kamal — zero-downtime Docker deployments without Kubernetes. Use when someone asks to \"deploy to a VPS\", \"deploy without Kubernetes\", \"Kamal deploy\", \"simple Docker deployment\", \"deploy Rails/Node/Python to a server\", \"zero-downtime deployment to bare metal\", or \"replace Heroku with a VPS\". Covers Docker-based deployment, zero downtime with Traefik, multi-server, secrets, and accessory services.",
+      "category": "devops",
+      "tags": [
+        "deployment",
+        "docker",
+        "vps",
+        "kamal",
+        "zero-downtime"
+      ]
+    },
+    {
       "name": "kibana",
       "slug": "kibana",
       "description": "Configure and use Kibana for Elasticsearch data visualization, dashboard creation, and log exploration. Use when a user needs to build dashboards with Lens, write KQL queries, set up data views, create visualizations, or configure Kibana spaces and role-based access.",
@@ -2592,6 +2944,19 @@
         "visualization",
         "kql",
         "elk"
+      ]
+    },
+    {
+      "name": "knip",
+      "slug": "knip",
+      "description": "Find and remove unused files, dependencies, and exports in JavaScript/TypeScript projects with Knip. Use when someone asks to \"find unused code\", \"clean up dependencies\", \"remove dead code\", \"find unused exports\", \"Knip\", \"reduce bundle size by removing unused files\", or \"audit npm dependencies\". Covers unused files, dependencies, exports, types, and CI integration.",
+      "category": "devops",
+      "tags": [
+        "unused-code",
+        "dependencies",
+        "knip",
+        "cleanup",
+        "dead-code"
       ]
     },
     {
@@ -2619,6 +2984,19 @@
       "description": "Open-source data labeling and annotation platform for ML projects. Supports text, image, audio, video, and time-series data. Features configurable labeling interfaces, ML-assisted labeling, team collaboration, and API integration for automated workflows.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "lancedb",
+      "slug": "lancedb",
+      "description": "Embedded vector database with LanceDB — serverless, zero-config vector search for AI applications. Use when someone asks to \"vector search without a server\", \"embedded vector database\", \"LanceDB\", \"local vector search\", \"serverless vector DB\", \"vector search in a file\", or \"lightweight RAG storage\". Covers table creation, vector search, full-text search, hybrid search, and multimodal embeddings.",
+      "category": "data-ai",
+      "tags": [
+        "vector",
+        "embedded-db",
+        "lancedb",
+        "rag",
+        "search"
+      ]
     },
     {
       "name": "langchain",
@@ -2738,6 +3116,19 @@
       "tags": []
     },
     {
+      "name": "litellm",
+      "slug": "litellm",
+      "description": "Call 100+ LLM APIs with one interface using LiteLLM — unified API proxy for OpenAI, Anthropic, Google, Mistral, Cohere, and self-hosted models. Use when someone asks to \"switch between LLM providers\", \"LiteLLM\", \"unified LLM API\", \"LLM proxy\", \"call Claude and GPT with the same code\", \"LLM load balancing\", or \"multi-model AI gateway\". Covers provider routing, fallbacks, rate limiting, spend tracking, and self-hosted proxy.",
+      "category": "data-ai",
+      "tags": [
+        "llm",
+        "proxy",
+        "litellm",
+        "gateway",
+        "multi-model"
+      ]
+    },
+    {
       "name": "llamaindex",
       "slug": "llamaindex",
       "description": "Assists with building RAG pipelines, knowledge assistants, and data-augmented LLM applications using LlamaIndex. Use when ingesting documents, configuring retrieval strategies, building query engines, or creating multi-step agents. Trigger words: llamaindex, rag, retrieval augmented generation, vector index, query engine, document loader, knowledge base.",
@@ -2748,6 +3139,19 @@
         "llm",
         "retrieval",
         "knowledge-base"
+      ]
+    },
+    {
+      "name": "llm-cost-optimizer",
+      "slug": "llm-cost-optimizer",
+      "description": "Track, analyze, and reduce LLM API costs — model routing, prompt caching, semantic caching, and budget alerts. Use when someone asks to \"reduce AI costs\", \"track LLM spending\", \"optimize API costs\", \"set up model routing\", \"cache LLM responses\", \"compare model costs\", \"set budget limits for AI\", or \"my OpenAI bill is too high\". Covers cost tracking per feature/user, smart model routing (expensive model for hard tasks, cheap for easy), semantic caching, prompt compression, and budget alerting.",
+      "category": "data-ai",
+      "tags": [
+        "cost",
+        "optimization",
+        "llm",
+        "caching",
+        "routing"
       ]
     },
     {
@@ -2993,6 +3397,19 @@
       "tags": []
     },
     {
+      "name": "mintlify",
+      "slug": "mintlify",
+      "description": "Create beautiful developer documentation with Mintlify — AI-powered docs platform. Use when someone asks to \"create documentation site\", \"Mintlify\", \"developer docs\", \"API documentation\", \"beautiful docs like Stripe\", or \"documentation platform with AI search\". Covers page creation, API reference generation, components, analytics, and AI chat.",
+      "category": "content",
+      "tags": [
+        "documentation",
+        "mintlify",
+        "docs",
+        "api-reference",
+        "developer-experience"
+      ]
+    },
+    {
       "name": "mise",
       "slug": "mise",
       "description": "Manage tool versions and tasks with mise (formerly rtx). Use when a user asks to manage Node.js/Python/Go versions per project, replace nvm/pyenv/asdf, or define project-level tool requirements.",
@@ -3070,6 +3487,19 @@
         "dependencies",
         "workspaces",
         "turborepo"
+      ]
+    },
+    {
+      "name": "moonrepo",
+      "slug": "moonrepo",
+      "description": "Manage monorepos and task orchestration with moonrepo — a Rust-based build system for JavaScript/TypeScript projects. Use when someone asks to \"manage a monorepo\", \"moonrepo\", \"task runner for monorepo\", \"faster than Turborepo\", \"build system with dependency graph\", or \"monorepo tooling\". Covers project configuration, task orchestration, dependency graph, caching, CI optimization, and toolchain management.",
+      "category": "devops",
+      "tags": [
+        "monorepo",
+        "build-system",
+        "moonrepo",
+        "task-runner",
+        "ci"
       ]
     },
     {
@@ -3157,6 +3587,32 @@
         "checks",
         "notifications",
         "plugins"
+      ]
+    },
+    {
+      "name": "nativewind",
+      "slug": "nativewind",
+      "description": "Use Tailwind CSS in React Native with NativeWind — write className instead of StyleSheet. Use when someone asks to \"use Tailwind in React Native\", \"NativeWind\", \"style React Native with Tailwind\", \"className in React Native\", or \"utility-first styling for mobile\". Covers setup, responsive design, dark mode, animations, and platform-specific styles.",
+      "category": "development",
+      "tags": [
+        "tailwind",
+        "react-native",
+        "styling",
+        "nativewind",
+        "mobile"
+      ]
+    },
+    {
+      "name": "nats-messaging",
+      "slug": "nats-messaging",
+      "description": "Build distributed messaging systems with NATS — pub/sub, request/reply, JetStream persistent messaging, and key-value store. Use when someone asks to \"set up message queue\", \"pub/sub system\", \"event-driven architecture\", \"NATS messaging\", \"distributed messaging\", \"microservice communication\", \"message broker\", or \"replace Kafka/RabbitMQ with something simpler\". Covers core NATS, JetStream, KV store, and object store.",
+      "category": "development",
+      "tags": [
+        "messaging",
+        "pub-sub",
+        "nats",
+        "queue",
+        "distributed"
       ]
     },
     {
@@ -3274,6 +3730,19 @@
       "tags": []
     },
     {
+      "name": "nitro",
+      "slug": "nitro",
+      "description": "Build server-side applications with Nitro — the engine behind Nuxt server routes and Analog. Use when someone asks to \"create an API server\", \"deploy to edge\", \"build server routes\", \"universal JavaScript server\", \"Nitro server\", \"deploy to Cloudflare Workers/Vercel/Netlify/Deno\", or \"isomorphic server\". Covers API routes, middleware, storage, caching, WebSocket, task scheduling, and deployment to 15+ platforms with zero config changes.",
+      "category": "development",
+      "tags": [
+        "server",
+        "api",
+        "edge",
+        "universal",
+        "nitro"
+      ]
+    },
+    {
       "name": "nmap-recon",
       "slug": "nmap-recon",
       "description": "Perform network reconnaissance with Nmap. Use when a user asks to scan networks, discover hosts and services, detect OS versions, find open ports, enumerate service versions, or perform initial reconnaissance for a penetration test.",
@@ -3317,6 +3786,19 @@
       "description": "Build notification infrastructure with Novu. Use when a user asks to add notifications to an app, send emails and push notifications, build a notification center, manage notification preferences, set up multi-channel notifications (email, SMS, push, in-app, chat), create notification workflows, or build a notification system with templates and subscriber management. Covers providers (SendGrid, Twilio, FCM), workflows, templates, subscriber preferences, and the in-app notification center component.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "nuclei-scanner",
+      "slug": "nuclei-scanner",
+      "description": "Scan web applications and infrastructure for vulnerabilities with Nuclei — template-based security scanner. Use when someone asks to \"scan for vulnerabilities\", \"security scan my website\", \"Nuclei scanner\", \"find CVEs\", \"automated security testing\", \"vulnerability assessment\", or \"check for misconfigurations\". Covers template scanning, custom templates, CI integration, and severity-based reporting.",
+      "category": "devops",
+      "tags": [
+        "security",
+        "vulnerability",
+        "scanning",
+        "nuclei",
+        "pentest"
+      ]
     },
     {
       "name": "nuxt",
@@ -3553,6 +4035,19 @@
       ]
     },
     {
+      "name": "oxlint",
+      "slug": "oxlint",
+      "description": "Lint JavaScript/TypeScript at blazing speed with oxlint — a Rust-based linter 50-100x faster than ESLint. Use when someone asks to \"speed up linting\", \"oxlint\", \"fast JavaScript linter\", \"replace ESLint\", \"Rust linter for JS\", or \"lint in CI faster\". Covers rule configuration, ESLint migration, framework plugins, and CI integration.",
+      "category": "devops",
+      "tags": [
+        "linting",
+        "oxlint",
+        "rust",
+        "eslint",
+        "code-quality"
+      ]
+    },
+    {
       "name": "packer",
       "slug": "packer",
       "description": "HashiCorp Packer for building automated machine images. Use when the user needs to create AMIs, Docker images, or GCP images using HCL templates with provisioners for consistent, reproducible infrastructure images.",
@@ -3752,6 +4247,19 @@
       ]
     },
     {
+      "name": "pgvector",
+      "slug": "pgvector",
+      "description": "Store and search vector embeddings in PostgreSQL with pgvector — no separate vector database needed. Use when someone asks to \"vector search in Postgres\", \"store embeddings\", \"pgvector\", \"similarity search\", \"RAG with Postgres\", \"semantic search in existing database\", or \"add AI search to my app without a separate vector DB\". Covers vector columns, indexing (IVFFlat, HNSW), similarity search, and integration with ORMs.",
+      "category": "data-ai",
+      "tags": [
+        "vector",
+        "embeddings",
+        "postgres",
+        "pgvector",
+        "rag"
+      ]
+    },
+    {
       "name": "phoenix",
       "slug": "phoenix",
       "description": "Phoenix is an Elixir web framework built on the BEAM VM for fault-tolerant, real-time applications. It features LiveView for interactive UIs without JavaScript, channels for WebSockets, and Ecto for database access with compile-time query validation.",
@@ -3832,6 +4340,19 @@
       "description": "Manage Python projects with Poetry. Use when a user asks to manage Python dependencies, create virtual environments, publish packages to PyPI, handle dependency resolution, or set up a Python project structure.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "polar",
+      "slug": "polar",
+      "description": "Monetize open-source and digital products with Polar — payment and billing platform for developers. Use when someone asks to \"monetize open source\", \"Polar\", \"sell API access\", \"developer billing\", \"GitHub Sponsors alternative\", \"sell digital products as a developer\", or \"subscription billing for SaaS\". Covers products, subscriptions, checkout, license keys, webhooks, and usage-based billing.",
+      "category": "business",
+      "tags": [
+        "monetization",
+        "payments",
+        "polar",
+        "billing",
+        "subscriptions"
+      ]
     },
     {
       "name": "polars",
@@ -3966,6 +4487,19 @@
         "llm",
         "evaluation",
         "ai-agents"
+      ]
+    },
+    {
+      "name": "promptfoo",
+      "slug": "promptfoo",
+      "description": "Test and evaluate LLM prompts systematically with Promptfoo — open-source eval framework. Use when someone asks to \"test my prompts\", \"evaluate LLM output\", \"Promptfoo\", \"prompt regression testing\", \"compare LLM models\", \"LLM evaluation framework\", or \"benchmark prompts against test cases\". Covers test cases, assertions, model comparison, red-teaming, and CI integration.",
+      "category": "data-ai",
+      "tags": [
+        "llm",
+        "testing",
+        "evaluation",
+        "promptfoo",
+        "prompts"
       ]
     },
     {
@@ -4173,6 +4707,19 @@
       ]
     },
     {
+      "name": "react-native-reanimated",
+      "slug": "react-native-reanimated",
+      "description": "Build smooth 60fps animations in React Native with Reanimated — run animations on the UI thread without JS bridge delays. Use when someone asks to \"animate in React Native\", \"Reanimated\", \"smooth mobile animations\", \"gesture animations\", \"shared element transitions\", or \"60fps React Native animations\". Covers worklets, shared values, layout animations, gestures, and scroll-driven animations.",
+      "category": "development",
+      "tags": [
+        "react-native",
+        "animation",
+        "reanimated",
+        "gestures",
+        "ui"
+      ]
+    },
+    {
       "name": "react-query",
       "slug": "react-query",
       "description": "Manage server state in React with TanStack Query. Use when a user asks to fetch data in React, cache API responses, handle loading/error states, implement optimistic updates, or manage server state efficiently.",
@@ -4341,6 +4888,19 @@
       "tags": []
     },
     {
+      "name": "restate",
+      "slug": "restate",
+      "description": "Build resilient distributed applications with Restate — durable execution engine for TypeScript/Java/Go. Use when someone asks to \"durable execution\", \"Restate\", \"resilient workflows\", \"distributed transactions\", \"saga pattern\", \"fault-tolerant services\", or \"replace Temporal with something lighter\". Covers durable handlers, virtual objects, workflows, and sagas.",
+      "category": "development",
+      "tags": [
+        "durable-execution",
+        "restate",
+        "distributed",
+        "workflows",
+        "resilience"
+      ]
+    },
+    {
       "name": "restic",
       "slug": "restic",
       "description": "Back up and restore data with Restic. Use when a user asks to set up backups, create encrypted backups, back up to S3 or cloud storage, implement a backup strategy, restore files from backup, deduplicate backup storage, schedule automated backups, back up databases or servers, or set up offsite backups. Covers repository initialization, backup/restore operations, snapshot management, pruning, encryption, and multiple storage backends (local, S3, SFTP, B2, Azure, GCS).",
@@ -4371,6 +4931,32 @@
         "state-machine",
         "interactive",
         "motion"
+      ]
+    },
+    {
+      "name": "rolldown",
+      "slug": "rolldown",
+      "description": "Bundle JavaScript with Rolldown — Rust-based Rollup replacement, future Vite bundler. Use when someone asks to \"Rolldown\", \"Rust Rollup\", \"fast Rollup alternative\", \"future Vite bundler\", \"Rolldown bundler\", or \"OXC bundler\". Covers Rollup-compatible config, Vite integration roadmap, performance comparison, and migration from Rollup.",
+      "category": "devops",
+      "tags": [
+        "bundling",
+        "rolldown",
+        "rollup",
+        "rust",
+        "vite"
+      ]
+    },
+    {
+      "name": "rspack",
+      "slug": "rspack",
+      "description": "Bundle JavaScript/TypeScript applications with Rspack — Rust-based webpack replacement that's 5-10x faster. Use when someone asks to \"speed up webpack\", \"Rspack\", \"fast bundler\", \"Rust bundler for JavaScript\", \"replace webpack\", \"migrate from webpack\", or \"faster build times\". Covers webpack compatibility, configuration, loaders, plugins, and migration from webpack.",
+      "category": "devops",
+      "tags": [
+        "bundling",
+        "rspack",
+        "webpack",
+        "rust",
+        "build-tools"
       ]
     },
     {
@@ -4493,6 +5079,19 @@
         "vulnerabilities",
         "audit",
         "secrets"
+      ]
+    },
+    {
+      "name": "segment",
+      "slug": "segment",
+      "description": "Collect and route customer data with Segment — customer data platform (CDP) that sends events to any destination. Use when someone asks to \"track user events across tools\", \"Segment\", \"customer data platform\", \"send events to multiple analytics tools\", \"CDP\", or \"unify analytics across Mixpanel/ Amplitude/BigQuery\". Covers identify, track, page, group, and destination routing.",
+      "category": "data-ai",
+      "tags": [
+        "analytics",
+        "segment",
+        "cdp",
+        "events",
+        "tracking"
       ]
     },
     {
@@ -4671,6 +5270,19 @@
       "tags": []
     },
     {
+      "name": "spec-driven-dev",
+      "slug": "spec-driven-dev",
+      "description": "Write specifications before code — the agent creates detailed technical specs, validates them, then implements. Use when someone asks to \"write a spec first\", \"plan before coding\", \"create a technical design document\", \"spec-driven development\", \"Kiro-style development\", \"validate my idea before building\", \"write an RFC\", or \"create an architecture doc before implementation\". Covers requirement extraction, technical spec templates, validation checklists, implementation plans, and spec-to-code workflows.",
+      "category": "development",
+      "tags": [
+        "spec",
+        "planning",
+        "rfc",
+        "architecture",
+        "design-doc"
+      ]
+    },
+    {
       "name": "spring-boot",
       "slug": "spring-boot",
       "description": "Spring Boot is a Java framework that simplifies building production-ready applications. It provides auto-configuration, embedded servers, and opinionated defaults for REST APIs, data access with JPA, security, and monitoring via Actuator.",
@@ -4825,6 +5437,19 @@
       "tags": []
     },
     {
+      "name": "structured-output",
+      "slug": "structured-output",
+      "description": "Force LLMs to return typed, validated JSON — not free-text. Use when someone asks to \"get structured data from LLM\", \"parse LLM response as JSON\", \"make AI return typed output\", \"validate LLM output\", \"extract structured data with AI\", \"use instructor with OpenAI\", or \"get reliable JSON from Claude/GPT\". Covers OpenAI structured outputs, Anthropic tool_use for structured data, Instructor library, Zod schemas, Pydantic models, and retry strategies for malformed responses.",
+      "category": "data-ai",
+      "tags": [
+        "llm",
+        "json",
+        "validation",
+        "zod",
+        "pydantic"
+      ]
+    },
+    {
       "name": "supabase",
       "slug": "supabase",
       "description": "Build applications with Supabase as the backend — Postgres database, authentication, real-time subscriptions, storage, and edge functions. Use when someone asks to \"set up Supabase\", \"add authentication\", \"create a real-time app\", \"set up row-level security\", \"configure Supabase storage\", \"write edge functions\", or \"migrate from Firebase to Supabase\". Covers project setup, schema design with RLS, auth flows, real-time subscriptions, file storage, and edge functions.",
@@ -4862,6 +5487,19 @@
         "icons",
         "minification",
         "build-tools"
+      ]
+    },
+    {
+      "name": "swr",
+      "slug": "swr",
+      "description": "Fetch, cache, and revalidate data in React with SWR — stale-while-revalidate data fetching library by Vercel. Use when someone asks to \"fetch data in React\", \"SWR\", \"data fetching hook\", \"cache API calls\", \"stale-while- revalidate\", \"auto-refresh data\", or \"React data fetching without Redux\". Covers data fetching, caching, revalidation, mutation, pagination, and optimistic updates.",
+      "category": "development",
+      "tags": [
+        "data-fetching",
+        "swr",
+        "react",
+        "cache",
+        "revalidation"
       ]
     },
     {
@@ -4937,11 +5575,37 @@
       ]
     },
     {
+      "name": "tanstack-router",
+      "slug": "tanstack-router",
+      "description": "Type-safe routing for React with file-based routes, validated search params, loaders, and automatic code splitting. Use when someone asks to \"set up routing for React\", \"type-safe router\", \"TanStack Router\", \"file-based routing\", \"search params validation\", \"replace React Router with something type-safe\", or \"add route-level data loading\". Covers file-based routing, search params with Zod, route loaders, code splitting, and layouts.",
+      "category": "development",
+      "tags": [
+        "react",
+        "routing",
+        "typescript",
+        "tanstack",
+        "file-based-routes"
+      ]
+    },
+    {
       "name": "tanstack-start",
       "slug": "tanstack-start",
       "description": "Build full-stack React apps with TanStack Start. Use when a user asks to create a full-stack React application with type-safe server functions, set up file-based routing with SSR/SSG/SPA modes, build APIs with middleware and validation, implement server-side data fetching with TanStack Router, or deploy to Cloudflare/Netlify/Vercel/Node.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "tanstack-table",
+      "slug": "tanstack-table",
+      "description": "Build powerful data tables with TanStack Table — headless, framework-agnostic table library. Use when someone asks to \"build a data table\", \"TanStack Table\", \"sortable table\", \"filterable data grid\", \"paginated table\", \"React table\", or \"headless table library\". Covers sorting, filtering, pagination, column resizing, row selection, and virtualization.",
+      "category": "development",
+      "tags": [
+        "table",
+        "data-grid",
+        "tanstack",
+        "react",
+        "sorting"
+      ]
     },
     {
       "name": "tauri",
@@ -5075,6 +5739,19 @@
       "tags": []
     },
     {
+      "name": "testing-library",
+      "slug": "testing-library",
+      "description": "Test UI components the way users interact with them using Testing Library — query by role, text, and label instead of implementation details. Use when someone asks to \"test React components\", \"Testing Library\", \"user-centric testing\", \"test accessibility\", \"test without implementation details\", or \"render and query components in tests\". Covers React Testing Library, queries, user events, async testing, and accessibility assertions.",
+      "category": "development",
+      "tags": [
+        "testing",
+        "react",
+        "components",
+        "accessibility",
+        "testing-library"
+      ]
+    },
+    {
       "name": "thanos",
       "slug": "thanos",
       "description": "Deploy and configure Thanos for long-term Prometheus metric storage, global querying across multiple Prometheus instances, and data compaction. Use when a user needs durable metric storage in object storage, a unified query view across clusters, downsampling for historical data, or high-availability Prometheus with deduplication.",
@@ -5106,6 +5783,19 @@
       "description": "Create, optimize, and automate TikTok content for brand awareness, audience growth, and conversions. Use when someone asks to \"grow on TikTok\", \"create TikTok content\", \"TikTok marketing strategy\", \"TikTok API integration\", \"automate TikTok posting\", \"TikTok analytics\", or \"TikTok for business\". Covers short-form video strategy, trending sounds, TikTok Content Posting API, analytics, and growth tactics.",
       "category": "marketing",
       "tags": []
+    },
+    {
+      "name": "tinybird",
+      "slug": "tinybird",
+      "description": "Build real-time analytics APIs with Tinybird — ingest millions of events and query with SQL over HTTP. Use when someone asks to \"build analytics API\", \"Tinybird\", \"real-time analytics\", \"event analytics\", \"ClickHouse as a service\", \"usage metering\", or \"product analytics backend\". Covers data ingestion, SQL pipes, API endpoints, and real-time dashboards.",
+      "category": "data-ai",
+      "tags": [
+        "analytics",
+        "tinybird",
+        "real-time",
+        "clickhouse",
+        "events"
+      ]
     },
     {
       "name": "together-ai",
@@ -5156,6 +5846,19 @@
       ]
     },
     {
+      "name": "tsup",
+      "slug": "tsup",
+      "description": "Bundle TypeScript libraries with tsup — zero-config, powered by esbuild. Use when someone asks to \"bundle a TypeScript library\", \"build npm package\", \"tsup\", \"publish TypeScript to npm\", \"build ESM and CJS\", \"bundle with esbuild\", or \"library bundling with zero config\". Covers ESM/CJS dual output, declaration files, tree-shaking, and npm publishing.",
+      "category": "devops",
+      "tags": [
+        "bundling",
+        "typescript",
+        "tsup",
+        "esbuild",
+        "library"
+      ]
+    },
+    {
       "name": "turborepo",
       "slug": "turborepo",
       "description": "Assists with managing JavaScript/TypeScript monorepos using Turborepo. Use when configuring build pipelines, setting up caching, pruning workspaces for Docker, or optimizing CI/CD for monorepo projects. Trigger words: turborepo, turbo, monorepo, pipeline, workspace, remote cache, turbo.json.",
@@ -5174,6 +5877,19 @@
       "description": "Use Turso for edge SQLite databases. Use when a user asks to set up an edge database, use SQLite in production, replicate databases globally, or choose a serverless database for low-latency reads.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "twenty-crm",
+      "slug": "twenty-crm",
+      "description": "Build custom CRM workflows with Twenty — open-source CRM alternative to Salesforce. Use when someone asks to \"set up a CRM\", \"Twenty CRM\", \"open-source Salesforce alternative\", \"customer relationship management\", \"self-hosted CRM\", or \"CRM with API access\". Covers contacts, companies, pipelines, custom objects, automations, and API integration.",
+      "category": "business",
+      "tags": [
+        "crm",
+        "twenty",
+        "sales",
+        "customer",
+        "open-source"
+      ]
     },
     {
       "name": "twilio",
@@ -5207,6 +5923,32 @@
         "design-system",
         "user-experience",
         "interaction-design"
+      ]
+    },
+    {
+      "name": "umami",
+      "slug": "umami",
+      "description": "Track website analytics with Umami — privacy-focused, open-source Google Analytics alternative. Use when someone asks to \"track website analytics\", \"Umami\", \"privacy-friendly analytics\", \"self-hosted analytics\", \"GDPR analytics\", \"replace Google Analytics\", or \"website traffic tracking without cookies\". Covers setup, event tracking, custom properties, API, and self-hosting.",
+      "category": "data-ai",
+      "tags": [
+        "analytics",
+        "umami",
+        "privacy",
+        "tracking",
+        "open-source"
+      ]
+    },
+    {
+      "name": "unkey",
+      "slug": "unkey",
+      "description": "Add API key management and rate limiting to your API with Unkey — open-source API authentication infrastructure. Use when someone asks to \"add API keys to my API\", \"rate limit my API\", \"API key management\", \"Unkey\", \"usage-based API billing\", \"issue API keys to customers\", or \"per-customer rate limits\". Covers key creation, verification, rate limiting, usage tracking, and analytics.",
+      "category": "development",
+      "tags": [
+        "api",
+        "auth",
+        "rate-limiting",
+        "api-keys",
+        "unkey"
       ]
     },
     {
@@ -5275,6 +6017,32 @@
       "description": "Deploy Python ASGI apps with Uvicorn. Use when a user asks to run FastAPI in production, configure an ASGI server, set up Gunicorn with Uvicorn workers, or optimize Python web server performance.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "val-town",
+      "slug": "val-town",
+      "description": "Write and deploy server-side TypeScript functions instantly with Val Town. Use when someone asks to \"deploy a function quickly\", \"serverless TypeScript\", \"quick API endpoint\", \"webhook handler\", \"cron job in the cloud\", \"Val Town\", \"instant API without infrastructure\", or \"deploy a script without a server\". Covers HTTP vals, cron vals, email vals, SQLite storage, and the Val Town API.",
+      "category": "development",
+      "tags": [
+        "serverless",
+        "typescript",
+        "functions",
+        "val-town",
+        "cron"
+      ]
+    },
+    {
+      "name": "valtio",
+      "slug": "valtio",
+      "description": "Manage React state with Valtio — proxy-based state that just works. Use when someone asks to \"simple React state management\", \"Valtio\", \"proxy state\", \"mutable state in React\", \"alternative to Zustand/Redux\", or \"state management without boilerplate\". Covers proxy state, subscriptions, computed values, and devtools.",
+      "category": "development",
+      "tags": [
+        "state",
+        "valtio",
+        "react",
+        "proxy",
+        "store"
+      ]
     },
     {
       "name": "vault",
@@ -5439,14 +6207,17 @@
     {
       "name": "web-scraper",
       "slug": "web-scraper",
-      "description": "Extract structured data from web pages reliably. Use when a user asks to scrape a website, extract data from a webpage, pull prices from a site, collect links, gather product listings, download page content, or parse HTML for specific information. Handles static HTML and JavaScript-rendered pages.",
+      "description": "Extract structured data from web pages and load it into databases. Use when a user asks to scrape a website, build a data pipeline, extract data from a webpage, pull prices from a site, collect links, gather product listings, download page content, parse HTML, set up ETL, or automate data collection. Handles static HTML, JavaScript-rendered pages, anti-bot proxies (Bright Data), data transformation, deduplication, and database loading.",
       "category": "automation",
       "tags": [
         "scraping",
         "web",
         "html",
         "data-extraction",
-        "beautifulsoup"
+        "beautifulsoup",
+        "etl",
+        "bright-data",
+        "pipeline"
       ]
     },
     {
@@ -5560,6 +6331,19 @@
       "description": "Build e-commerce stores with WooCommerce for WordPress. Use when a user asks to add a shop to WordPress, manage products and orders, customize checkout, integrate payment gateways, or build a WordPress-based online store.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "wxt",
+      "slug": "wxt",
+      "description": "Build cross-browser extensions with WXT — the modern framework for Chrome, Firefox, Safari, and Edge extensions. Use when someone asks to \"build a browser extension\", \"Chrome extension with React\", \"WXT framework\", \"cross- browser extension\", \"manifest v3 extension\", \"build Firefox extension\", or \"browser extension with TypeScript\". Covers content scripts, background workers, popup/options pages, storage, messaging, and publishing.",
+      "category": "development",
+      "tags": [
+        "browser-extension",
+        "chrome",
+        "firefox",
+        "wxt",
+        "manifest-v3"
+      ]
     },
     {
       "name": "xray",
@@ -5689,5 +6473,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-02-24T23:00:37.384Z"
+  "updatedAt": "2026-02-26T22:55:04.128Z"
 }

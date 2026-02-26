@@ -12,8 +12,8 @@ compatibility: "TypeScript/Python SDK. Cloud sandboxes (E2B hosted or self-hoste
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai
-  tags: ["sandbox", "code-execution", "e2b", "ai-agents", "security", "cloud"]
+  category: data-ai
+  tags: ["sandbox", "code-execution", "e2b", "ai-agents", "security"]
 ---
 
 # E2B Sandbox

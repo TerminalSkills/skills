@@ -8,7 +8,7 @@ skills:
   - composio
   - promptfoo
   - litellm
-category: ai
+category: data-ai
 tags:
   - ai-agent
   - tool-use

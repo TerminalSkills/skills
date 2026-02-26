@@ -12,8 +12,8 @@ compatibility: "Expo SDK 50+. iOS, Android, Web."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
-  tags: ["react-native", "expo", "routing", "navigation", "mobile", "deep-linking"]
+  category: development
+  tags: ["expo", "routing", "react-native", "navigation", "file-based"]
 ---
 
 # Expo Router

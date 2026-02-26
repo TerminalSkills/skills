@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["linting", "oxlint", "rust", "dx", "eslint", "code-quality"]
+  tags: ["linting", "oxlint", "rust", "eslint", "code-quality"]
 ---
 
 # oxlint
@@ -37,8 +37,8 @@ oxlint is a JavaScript/TypeScript linter written in Rust — 50-100x faster than
 # Install
 npm install -D oxlint
 
-# Or standalone binary (no Node.js needed)
-curl -fsSL https://oxc.rs/install.sh | bash
+# Or standalone binary via Homebrew (no Node.js needed)
+brew install oxlint
 ```
 
 ### Basic Usage

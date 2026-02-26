@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["secrets", "security", "infisical", "env-vars", "devops", "configuration"]
+  tags: ["secrets", "security", "infisical", "env-vars", "configuration"]
 ---
 
 # Infisical

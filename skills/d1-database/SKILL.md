@@ -10,8 +10,8 @@ compatibility: "Cloudflare Workers. Wrangler CLI. SQLite-compatible."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["database", "cloudflare", "d1", "sqlite", "edge", "serverless"]
+  category: data-ai
+  tags: ["database", "cloudflare", "d1", "sqlite", "edge"]
 ---
 
 # Cloudflare D1

@@ -12,8 +12,8 @@ compatibility: "JavaScript, Node.js, Python, iOS, Android. 400+ integrations."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["analytics", "segment", "cdp", "events", "tracking", "data-routing"]
+  category: data-ai
+  tags: ["analytics", "segment", "cdp", "events", "tracking"]
 ---
 
 # Segment

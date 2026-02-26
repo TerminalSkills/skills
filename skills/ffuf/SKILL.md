@@ -12,8 +12,8 @@ compatibility: "Any OS. Go binary."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: ["security", "fuzzing", "recon", "ffuf", "content-discovery", "pentest"]
+  category: devops
+  tags: ["security", "fuzzing", "recon", "ffuf", "content-discovery"]
 ---
 
 # ffuf (Fuzz Faster U Fool)

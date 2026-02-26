@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["ci-cd", "containers", "pipelines", "dagger", "docker", "portable"]
+  tags: ["ci-cd", "containers", "pipelines", "dagger", "docker"]
 ---
 
 # Dagger
@@ -35,8 +35,8 @@ Dagger lets you write CI/CD pipelines in TypeScript, Python, or Go instead of YA
 ### Setup
 
 ```bash
-# Install Dagger CLI
-curl -fsSL https://dl.dagger.io/dagger/install.sh | sh
+# Install Dagger CLI (macOS/Linux)
+brew install dagger/tap/dagger
 
 # Initialize in your project
 dagger init --sdk=typescript

@@ -11,7 +11,7 @@ compatibility: "MDX. Hosted or self-hosted. GitHub integration."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: devops
+  category: content
   tags: ["documentation", "mintlify", "docs", "api-reference", "developer-experience"]
 ---
 

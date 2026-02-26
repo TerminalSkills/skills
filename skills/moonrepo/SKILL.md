@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["monorepo", "build-system", "moonrepo", "task-runner", "ci", "rust"]
+  tags: ["monorepo", "build-system", "moonrepo", "task-runner", "ci"]
 ---
 
 # moonrepo
@@ -36,7 +36,7 @@ moonrepo (moon) is a Rust-based monorepo management tool and task runner. It und
 
 ```bash
 # Install moon CLI
-curl -fsSL https://moonrepo.dev/install/moon.sh | bash
+npm install -D @moonrepo/cli
 
 # Initialize in your monorepo
 moon init

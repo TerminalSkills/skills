@@ -12,8 +12,8 @@ compatibility: "Node.js 20+. TypeScript."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["nodejs", "framework", "orm", "auth", "full-stack", "adonisjs"]
+  category: development
+  tags: ["nodejs", "framework", "orm", "auth", "full-stack"]
 ---
 
 # AdonisJS

@@ -12,8 +12,8 @@ compatibility: "Bun 1.0+. TypeScript."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["bun", "http", "api", "typescript", "websocket", "elysia"]
+  category: development
+  tags: ["bun", "api", "typescript", "websocket", "elysia"]
 ---
 
 # Elysia

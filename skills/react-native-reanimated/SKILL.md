@@ -12,8 +12,8 @@ compatibility: "React Native / Expo. iOS + Android."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
-  tags: ["react-native", "animation", "reanimated", "mobile", "gestures", "ui"]
+  category: development
+  tags: ["react-native", "animation", "reanimated", "gestures", "ui"]
 ---
 
 # React Native Reanimated

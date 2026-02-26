@@ -12,8 +12,8 @@ compatibility: "Node.js 18+. Optional: Playwright or Puppeteer for JS-rendered p
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: data
-  tags: ["scraping", "crawling", "crawlee", "apify", "playwright", "data-extraction"]
+  category: data-ai
+  tags: ["scraping", "crawling", "crawlee", "apify", "playwright"]
 ---
 
 # Crawlee

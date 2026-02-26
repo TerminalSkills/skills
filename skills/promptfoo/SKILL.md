@@ -12,8 +12,8 @@ compatibility: "Node.js 18+. Works with any LLM provider."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai
-  tags: ["llm", "testing", "evaluation", "promptfoo", "prompts", "red-team"]
+  category: data-ai
+  tags: ["llm", "testing", "evaluation", "promptfoo", "prompts"]
 ---
 
 # Promptfoo

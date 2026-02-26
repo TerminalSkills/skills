@@ -11,8 +11,8 @@ compatibility: "macOS for iOS builds. Any OS for Android. Ruby."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
-  tags: ["mobile", "cicd", "fastlane", "ios", "android", "deployment", "app-store"]
+  category: devops
+  tags: ["mobile", "cicd", "fastlane", "ios", "android"]
 ---
 
 # Fastlane

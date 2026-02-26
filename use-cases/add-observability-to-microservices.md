@@ -3,7 +3,7 @@ title: Add Observability to a Node.js Microservices Architecture
 slug: add-observability-to-microservices
 description: Instrument a multi-service Node.js backend with OpenTelemetry tracing, NATS event correlation, and Jaeger visualization to debug cross-service latency.
 skills:
-  - opentelemetry-js
+  - otel-js
   - nats-messaging
   - nitro
 category: devops

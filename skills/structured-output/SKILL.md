@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: data-ai
-  tags: ["llm", "json", "validation", "zod", "pydantic", "instructor", "typed"]
+  tags: ["llm", "json", "validation", "zod", "pydantic"]
 ---
 
 # Structured Output

@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["dx", "unused-code", "dependencies", "knip", "cleanup", "dead-code"]
+  tags: ["unused-code", "dependencies", "knip", "cleanup", "dead-code"]
 ---
 
 # Knip

@@ -11,8 +11,8 @@ compatibility: "React/Next.js SDK. REST API. Self-hostable or cloud."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
-  tags: ["surveys", "feedback", "formbricks", "nps", "user-research", "product"]
+  category: development
+  tags: ["surveys", "feedback", "formbricks", "nps", "user-research"]
 ---
 
 # Formbricks

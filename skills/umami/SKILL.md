@@ -12,8 +12,8 @@ compatibility: "Any website. Self-hosted (Docker/Vercel) or Umami Cloud."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: devops
-  tags: ["analytics", "umami", "privacy", "tracking", "open-source", "gdpr"]
+  category: data-ai
+  tags: ["analytics", "umami", "privacy", "tracking", "open-source"]
 ---
 
 # Umami

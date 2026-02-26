@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["bundling", "rspack", "webpack", "rust", "build-tools", "performance"]
+  tags: ["bundling", "rspack", "webpack", "rust", "build-tools"]
 ---
 
 # Rspack

@@ -12,8 +12,8 @@ compatibility: "Node.js 18+ or Bun. drizzle-orm + drizzle-kit packages."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["database", "migrations", "schema", "drizzle", "postgres", "orm"]
+  category: development
+  tags: ["database", "migrations", "schema", "drizzle", "postgres"]
 ---
 
 # Drizzle Kit

@@ -8,7 +8,7 @@ skills:
   - react-native-reanimated
   - fastlane
   - capacitor
-category: mobile
+category: development
 tags:
   - mobile
   - expo

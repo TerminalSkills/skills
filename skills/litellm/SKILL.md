@@ -12,8 +12,8 @@ compatibility: "Python. Node.js via OpenAI SDK (proxy mode). Self-hostable."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai
-  tags: ["llm", "proxy", "litellm", "gateway", "multi-model", "ai-infrastructure"]
+  category: data-ai
+  tags: ["llm", "proxy", "litellm", "gateway", "multi-model"]
 ---
 
 # LiteLLM

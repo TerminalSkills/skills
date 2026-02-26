@@ -11,8 +11,8 @@ compatibility: "TypeScript/Java/Go/Rust/Python. Self-hosted or Restate Cloud."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["durable-execution", "restate", "distributed", "workflows", "resilience", "sagas"]
+  category: development
+  tags: ["durable-execution", "restate", "distributed", "workflows", "resilience"]
 ---
 
 # Restate

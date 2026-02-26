@@ -11,8 +11,8 @@ compatibility: "Browser or any HTTP client. Deno-compatible TypeScript runtime."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["serverless", "typescript", "functions", "val-town", "instant-deploy", "cron"]
+  category: development
+  tags: ["serverless", "typescript", "functions", "val-town", "cron"]
 ---
 
 # Val Town

@@ -13,7 +13,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["deployment", "docker", "vps", "kamal", "zero-downtime", "bare-metal"]
+  tags: ["deployment", "docker", "vps", "kamal", "zero-downtime"]
 ---
 
 # Kamal

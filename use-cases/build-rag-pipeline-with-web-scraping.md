@@ -6,7 +6,7 @@ skills:
   - firecrawl
   - pgvector
   - crawlee
-category: ai
+category: data-ai
 tags:
   - rag
   - vector-search

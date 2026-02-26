@@ -12,8 +12,8 @@ compatibility: "TypeScript or Go. Encore Cloud or self-hosted."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["backend", "encore", "framework", "infrastructure", "type-safe", "cloud"]
+  category: development
+  tags: ["backend", "encore", "framework", "infrastructure", "type-safe"]
 ---
 
 # Encore
@@ -35,8 +35,8 @@ Encore is a backend framework where infrastructure is part of the code — defin
 ### Setup
 
 ```bash
-# Install Encore CLI
-curl -L https://encore.dev/install.sh | bash
+# Install Encore CLI (macOS/Linux)
+brew install encoredev/tap/encore
 
 # Create a new app
 encore app create my-app --lang=ts

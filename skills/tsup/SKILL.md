@@ -12,7 +12,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["bundling", "typescript", "npm", "tsup", "esbuild", "library"]
+  tags: ["bundling", "typescript", "tsup", "esbuild", "library"]
 ---
 
 # tsup

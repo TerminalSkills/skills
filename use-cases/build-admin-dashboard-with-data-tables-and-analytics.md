@@ -7,7 +7,7 @@ skills:
   - swr
   - valtio
   - umami
-category: frontend
+category: development
 tags:
   - admin
   - dashboard

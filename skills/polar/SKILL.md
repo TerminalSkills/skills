@@ -12,8 +12,8 @@ compatibility: "REST API. TypeScript/Python SDKs. Stripe-powered payments."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: backend
-  tags: ["monetization", "payments", "polar", "billing", "open-source", "subscriptions"]
+  category: business
+  tags: ["monetization", "payments", "polar", "billing", "subscriptions"]
 ---
 
 # Polar

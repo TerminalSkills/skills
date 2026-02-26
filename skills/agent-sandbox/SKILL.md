@@ -14,7 +14,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: ["sandbox", "security", "guardrails", "agent-safety", "isolation", "audit"]
+  tags: ["sandbox", "security", "guardrails", "agent-safety", "isolation"]
 ---
 
 # Agent Sandbox
