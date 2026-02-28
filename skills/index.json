@@ -3723,6 +3723,19 @@
       ]
     },
     {
+      "name": "ngrok",
+      "slug": "ngrok",
+      "description": "Expose local services to the internet through secure tunnels. Use ngrok to share development servers, test webhooks locally, demo applications to clients, and create temporary public URLs for any local port.",
+      "category": "development",
+      "tags": [
+        "tunneling",
+        "webhooks",
+        "networking",
+        "localhost",
+        "development"
+      ]
+    },
+    {
       "name": "nikto",
       "slug": "nikto",
       "description": "Scan web servers for vulnerabilities with Nikto. Use when a user asks to audit web server configuration, find outdated software, detect dangerous files, check for misconfigurations, or perform web server security scanning.",
@@ -5202,6 +5215,20 @@
       ]
     },
     {
+      "name": "shopify",
+      "slug": "shopify",
+      "description": "Build and customize Shopify stores — themes with Liquid, Storefront API, custom apps, and headless commerce with Hydrogen. Use when someone asks to \"build a Shopify store\", \"Shopify theme\", \"Liquid templates\", \"Shopify API\", \"Shopify app\", \"headless Shopify\", \"Hydrogen storefront\", \"customize Shopify\", \"Shopify product management\", or \"e-commerce with Shopify\". Covers Liquid templating, theme development, Storefront/Admin APIs, custom apps, checkout extensions, and Hydrogen (React-based headless).",
+      "category": "ecommerce",
+      "tags": [
+        "shopify",
+        "ecommerce",
+        "liquid",
+        "storefront",
+        "hydrogen",
+        "themes"
+      ]
+    },
+    {
       "name": "signup-flow-cro",
       "slug": "signup-flow-cro",
       "description": "When the user wants to optimize signup, registration, account creation, or trial activation flows. Also use when the user mentions \"signup conversions,\" \"registration friction,\" \"signup form optimization,\" \"free trial signup,\" \"reduce signup dropoff,\" or \"account creation flow.\" For post-signup onboarding, see onboarding-cro. For lead capture forms (not account creation), see form-cro.",
@@ -5783,6 +5810,20 @@
       "description": "Create, optimize, and automate TikTok content for brand awareness, audience growth, and conversions. Use when someone asks to \"grow on TikTok\", \"create TikTok content\", \"TikTok marketing strategy\", \"TikTok API integration\", \"automate TikTok posting\", \"TikTok analytics\", or \"TikTok for business\". Covers short-form video strategy, trending sounds, TikTok Content Posting API, analytics, and growth tactics.",
       "category": "marketing",
       "tags": []
+    },
+    {
+      "name": "tilda",
+      "slug": "tilda",
+      "description": "Build and customize websites with Tilda — zero-code website builder with advanced customization. Use when someone asks to \"build a website with Tilda\", \"Tilda Publishing\", \"customize Tilda site\", \"Tilda API\", \"landing page builder\", \"no-code website\", \"Tilda custom code\", or \"integrate Tilda with external services\". Covers block-based building, custom HTML/CSS/JS, Tilda API, form handling, e-commerce, and integrations.",
+      "category": "frontend",
+      "tags": [
+        "tilda",
+        "website-builder",
+        "no-code",
+        "landing-page",
+        "ecommerce",
+        "cms"
+      ]
     },
     {
       "name": "tinybird",
@@ -6469,9 +6510,11 @@
     "development",
     "devops",
     "documents",
+    "ecommerce",
+    "frontend",
     "marketing",
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-02-26T22:55:04.128Z"
+  "updatedAt": "2026-02-28T12:47:59.925Z"
 }
