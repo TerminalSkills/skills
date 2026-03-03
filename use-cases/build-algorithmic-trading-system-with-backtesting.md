@@ -98,6 +98,12 @@ After successful paper trading, deploy with real capital ($5,000). But the risk 
 
 The bot runs on a VPS (not a local machine) for uptime. Use a process manager (PM2 or systemd) with automatic restart. Log every order, signal, and risk check to a database for weekly performance review.
 
-## The Outcome
+## Real-World Example
 
 Marta's backtest shows a Sharpe ratio of 1.4, max drawdown of 11.2%, and 52% win rate over 2 years — outperforming buy-and-hold by 23% with lower volatility. The sentiment overlay prevented 3 major losing trades during the test period (a regulatory FUD event and two exchange incidents). After 30 days of paper trading confirming the backtest results within 8% deviation, she deploys with $5,000. The bot trades 3-5 times per week, sends execution reports to Telegram, and respects all risk limits automatically. Marta reviews performance weekly, adjusting parameters quarterly based on accumulated data. The system replaces 15+ hours per week of chart-watching with a disciplined, emotion-free execution engine.
+
+## Related Skills
+
+- **algo-trading** — Core trading system: backtesting, strategy development, risk management, and live execution
+- **prediction-markets** — Market sentiment overlay using Polymarket data for risk-adjusted position sizing
+- **dspy** — Self-optimizing news sentiment classifier for macro event detection

@@ -8,6 +8,7 @@ description: >-
   customer acquisition cost. Covers multi-platform campaign management and
   creative performance analysis.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"
@@ -18,16 +19,17 @@ metadata:
     - meta-ads
     - google-ads
     - campaign
-    - roas
 ---
 
 # Ad Campaign Optimization
 
+## Overview
+
 Optimize paid advertising across platforms — Google Ads, Meta (Facebook/Instagram), TikTok, LinkedIn, Twitter/X. Improve ROAS, reduce CAC, and scale winning campaigns.
 
-## Campaign Structure
+## Instructions
 
-### Account architecture
+### Campaign structure
 
 Organize campaigns by objective, then ad sets by audience, then ads by creative variant:
 
@@ -57,23 +59,18 @@ Account
 
 **Key principles:**
 - Separate cold, warm, and hot audiences into different campaigns (different budgets, different optimization)
-- Use Campaign Budget Optimization (CBO) within each campaign — let the algorithm allocate between ad sets
+- Use Campaign Budget Optimization (CBO) within each campaign
 - Exclude audiences across campaigns (retarget pool excluded from prospecting)
 - Keep 3-5 ads per ad set minimum for creative rotation
 
-## Audience Strategy
+### Audience strategy
 
-### Prospecting audiences (cold)
+**Prospecting (cold):**
+- Lookalike audiences: Seed from highest-value customers, start with 1% lookalike, expand to 2-5% as you scale
+- Interest-based: Layer interests with demographics. Instead of "fitness" (too broad), use "fitness AND CrossFit AND 25-44"
+- Broad targeting: On Meta, broad targeting often outperforms detailed targeting at scale
 
-**Lookalike audiences**: Seed from your highest-value customers (purchasers, high LTV), not just all customers. Start with 1% lookalike, expand to 2-5% as you scale.
-
-**Interest-based targeting**: Layer interests with demographics. Instead of "fitness" (too broad), use "fitness AND CrossFit AND 25-44 AND iPhone owners."
-
-**Broad targeting**: On Meta especially, broad targeting (no interests, just age/geo) often outperforms detailed targeting at scale because Meta's algorithm learns faster with more data.
-
-### Retargeting audiences (warm)
-
-Build these exclusion-layered audiences:
+**Retargeting (warm)** — build exclusion-layered audiences:
 
 ```
 Tier 1 (hottest): Cart/checkout abandoners, 0-7 days
@@ -86,162 +83,71 @@ Each tier excludes all tiers above it.
 Tier 1 gets highest bid/budget (closest to conversion).
 ```
 
-### Lookalike seed quality
+**Lookalike seed quality** (in order): Top 25% LTV customers > Repeat purchasers > All purchasers > Add-to-cart users > High-engagement visitors. Minimum seed: 1,000 users.
 
-The seed audience quality matters more than size:
+### Creative strategy
 
-```
-Best seeds (in order):
-1. Top 25% LTV customers (purchases × retention)
-2. Repeat purchasers (2+ orders)
-3. All purchasers
-4. Add-to-cart users
-5. High-engagement website visitors (3+ pages, 2+ min)
-
-Minimum seed size: 1,000 users (Meta), 1,000 (Google)
-Optimal seed size: 5,000-20,000
-```
-
-## Creative Strategy
-
-### Creative DNA — what makes ads work
-
-Break winning ads into components to understand WHY they work:
+Break winning ads into components:
 
 ```
 HOOK (first 3 seconds)
-├── Pattern interrupt: unexpected visual/sound that stops scrolling
-├── Curiosity gap: "I tried X for 30 days, here's what happened"
-├── Problem callout: "Tired of [specific pain point]?"
-└── Social proof: "500K people already switched to..."
+├── Pattern interrupt: unexpected visual/sound
+├── Curiosity gap: "I tried X for 30 days..."
+├── Problem callout: "Tired of [specific pain]?"
+└── Social proof: "500K people already switched"
 
 BODY (next 10-20 seconds)
-├── Problem amplification: make the pain vivid
-├── Solution introduction: show the product solving it
-├── Proof elements: testimonials, data, demonstrations
+├── Problem amplification → Solution introduction
+├── Proof elements: testimonials, data, demos
 └── Differentiation: why this, not alternatives
 
 CTA (final 3-5 seconds)
 ├── Direct: "Start your free trial"
-├── Urgency: "Offer ends Sunday"
-├── Risk reversal: "30-day money-back guarantee"
+├── Urgency or risk reversal
 └── Social: "Join 50,000 happy customers"
 ```
 
-### Creative formats by platform
+**Formats by platform:**
+- **Meta**: 15-30s vertical video, carousels (3-5 cards), static images, UGC-style
+- **TikTok**: Native-feeling video, 1-2s hook, text overlays, Spark Ads
+- **Google**: Search (headline = keyword match + benefit + CTA), Performance Max (diverse assets), YouTube bumpers
+- **LinkedIn**: Document ads, thought leadership ads, lead gen forms
 
-**Meta (Facebook/Instagram)**:
-- Video: 15-30 sec vertical (9:16), first 3 sec hook, captions mandatory (80% watch muted)
-- Carousel: 3-5 cards, each tells a mini-story, swipe = engagement signal
-- Static image: bold text, clear product shot, single benefit
-- UGC-style: filmed on phone, authentic feel, talking-head + screen recording
+**Creative testing:**
+- Phase 1: Test 3-5 hooks/angles, $20-50/day each, 3-5 days → winner by CTR and CPA
+- Phase 2: Test 3-5 variations of winner, $30-75/day, 5-7 days → winner by CPA and ROAS
+- Phase 3: Scale winners 20-30%/day, refresh at frequency >3.0
 
-**TikTok**:
-- Native-feeling video: no polished ads, match organic content style
-- Hook in 1-2 seconds (faster than Meta)
-- Text overlays, trending sounds, face-to-camera
-- Spark Ads: boost organic creator posts as ads
-
-**Google Ads**:
-- Search: headline 1 = keyword match, headline 2 = benefit, headline 3 = CTA
-- Performance Max: provide diverse assets (images, videos, headlines, descriptions)
-- YouTube: 6-sec bumper for awareness, 15-sec skippable for consideration
-
-**LinkedIn**:
-- Document ads (PDF carousel): highest organic reach
-- Thought leadership ads: boost exec's organic post
-- Lead gen forms: auto-fill from profile, higher conversion than landing pages
-
-### Creative testing framework
-
-```
-Phase 1: Concept testing (what message works?)
-- Test 3-5 different hooks/angles with same CTA
-- Budget: $20-50/day per ad, run 3-5 days
-- Winner metric: CTR and CPA
-
-Phase 2: Variation testing (optimize the winning concept)
-- Test 3-5 executions of winning concept
-- Different visuals, presenters, formats (video vs static)
-- Budget: $30-75/day per ad, run 5-7 days
-- Winner metric: CPA and ROAS
-
-Phase 3: Scale testing (does it hold at volume?)
-- Increase budget 20-30% every 3 days on winners
-- Monitor frequency: creative fatigue starts at 2.5-3.0 frequency
-- Replace fatigued creatives before performance tanks
-```
-
-## Bid Strategy and Budget
-
-### Bid strategies by objective
+### Bid strategy and budget
 
 ```
 Awareness:    CPM bidding, optimize for reach
 Consideration: CPC bidding or landing page view optimization
-Conversion:   CPA/ROAS bidding (need 50+ conversions/week for learning)
+Conversion:   CPA/ROAS bidding (need 50+ conversions/week)
 Retention:    Value-based bidding (optimize for LTV)
 ```
 
-### Budget allocation
+Start with 70/20/10 split: 70% prospecting, 20% retargeting, 10% testing. Scale winners by increasing budget 20-30% every 3 days.
 
-Start with 70/20/10 split:
-- **70% Prospecting**: New customer acquisition
-- **20% Retargeting**: Convert warm audiences
-- **10% Testing**: New creatives, audiences, platforms
+Meta and Google need 50 conversion events per ad set per week to exit the learning phase. If not hitting this: consolidate ad sets, move optimization event up the funnel, or increase budget.
 
-Scale winners by increasing budget 20-30% every 3 days. Don't double budgets overnight — algorithmic learning resets with dramatic changes.
-
-### The learning phase
-
-Meta and Google need 50 conversion events per ad set per week to exit the learning phase. If you're not hitting this:
-- Consolidate ad sets (fewer, larger audiences)
-- Move the optimization event up the funnel (optimize for add-to-cart instead of purchase)
-- Increase budget to reach the threshold
-
-## Attribution
-
-### Attribution models
+### Attribution
 
 ```
-Last-click:       Simple but undervalues awareness campaigns
+Last-click:       Simple but undervalues awareness
 First-click:      Values discovery but ignores nurturing
-Linear:           Equal credit to all touchpoints
 Time-decay:       More credit to recent touchpoints
-Position-based:   40% first, 40% last, 20% middle
 Data-driven:      ML-based, available at scale (Google, Meta)
 ```
 
-### Cross-platform attribution challenges
+Cross-platform solutions: UTM parameters (tag every link), incrementality testing (10% holdout), Marketing Mix Modeling (statistical model), post-purchase surveys.
 
-Each platform claims credit for conversions it influenced. A user sees a Meta ad, searches on Google, and buys — both platforms claim the conversion.
-
-Solutions:
-- **UTM parameters**: Tag every link, analyze in GA4/Mixpanel
-- **Incrementality testing**: Run holdout tests (10% of audience sees no ads)
-- **Marketing Mix Modeling (MMM)**: Statistical model using spend + revenue data over time
-- **Post-purchase surveys**: "How did you hear about us?" (simple, directionally useful)
-
-## Performance Metrics
+### Performance metrics
 
 ```
-EFFICIENCY
-- CPA (Cost Per Acquisition): $[amount] (target: <1/3 of LTV)
-- ROAS (Return on Ad Spend): [x]:1 (target: >3:1 for profitable)
-- CTR: [rate]% (benchmark: 1-2% Meta, 3-5% Google Search)
-- CPC: $[amount]
-
-QUALITY
-- Conversion rate (click → purchase): [rate]%
-- Landing page bounce rate: [rate]%
-- Creative fatigue (frequency): [number] (refresh at >3.0)
-- Quality Score (Google): [1-10]
-
-SCALE
-- Daily spend: $[amount]
-- CAC trend: [improving/stable/declining]
-- Impression share (Google): [rate]%
-- Audience saturation: [rate]%
+EFFICIENCY: CPA (<1/3 of LTV), ROAS (>3:1), CTR (1-2% Meta, 3-5% Google Search), CPC
+QUALITY: Conversion rate, bounce rate, frequency (<3.0), Quality Score (Google 1-10)
+SCALE: Daily spend, CAC trend, impression share, audience saturation
 ```
 
 ## Examples
@@ -263,3 +169,13 @@ Our Google Ads ROAS dropped from 4.2x to 2.1x over the past month. Monthly spend
 ```prompt
 We run ads on Meta, Google, TikTok, and LinkedIn with $50K/month total spend. Each platform reports different ROAS numbers and we suspect double-counting. Design an attribution framework that gives us a single source of truth for cross-platform performance. Include UTM structure, holdout testing plan, and weekly reporting template.
 ```
+
+## Guidelines
+
+- Always separate cold, warm, and hot audiences into different campaigns with independent budgets
+- Never double budgets overnight — algorithmic learning resets with dramatic changes
+- Ensure every ad link has UTM parameters before launch
+- Monitor creative frequency and replace fatigued ads before performance tanks (frequency >3.0)
+- Run incrementality tests quarterly to validate platform-reported attribution
+- Start with proven formats (UGC video, testimonial) before testing experimental creative
+- Keep at least 3 ads per ad set for rotation and learning

@@ -110,6 +110,13 @@ Track the growth dashboard weekly:
 
 Each week, ask: what's the biggest bottleneck? If conversion is high but activation is low, focus on onboarding. If activation is high but Day 7 retention is low, focus on the habit loop (reminders, streaks, social features). If retention is good but downloads are low, increase ad spend or expand to new channels.
 
-## The Outcome
+## Real-World Example
 
 After 90 days, Dani's app grows from 15 to 200+ daily downloads. The App Store listing converts at 34% (up from 18%) after keyword optimization and professional screenshots. Paid campaigns on Meta and TikTok deliver installs at $1.20 CPA with a 3.2x ROAS on premium subscriptions. The activation rate climbs to 41% after removing the signup wall and adding pre-populated habits. Day 7 retention hits 26% after shipping better reminders — the #1 user-requested feature. The streak-sharing feature generates 8% of new installs organically, reducing blended CAC over time. Total active users: 10,400, with a clear growth trajectory and a data-driven playbook for scaling to the next milestone.
+
+## Related Skills
+
+- **app-store-optimization** — ASO keyword research, metadata optimization, screenshot design, and A/B testing
+- **growth-hacking** — Viral loops, activation funnel optimization, cohort analysis, and retention strategies
+- **ad-campaign-optimization** — Paid campaign structure, creative testing, and budget allocation across Meta and TikTok
+- **feedback-analysis** — Multi-channel feedback collection, theme extraction, and RICE prioritization
