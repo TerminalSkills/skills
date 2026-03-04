@@ -7,13 +7,13 @@ description: >-
   or auditing applications that fetch external URLs. Covers blind and non-blind
   SSRF, cloud metadata exploitation, and defense strategies.
 license: Apache-2.0
+compatibility: "Python 3.8+ for prevention code, AWS CLI for cloud metadata sections"
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
   tags:
     - ssrf
-    - security
     - web-security
     - penetration-testing
     - owasp
@@ -22,9 +22,13 @@ metadata:
 
 # SSRF Detection
 
+## Overview
+
 Find, exploit, and fix Server-Side Request Forgery. SSRF tricks the server into making HTTP requests to unintended destinations — accessing internal services, cloud metadata, or other systems that the server can reach but the attacker cannot.
 
-## How SSRF Works
+## Instructions
+
+### How SSRF Works
 
 ```
 Normal flow:
@@ -45,7 +49,7 @@ Any feature that takes a URL from user input and fetches it server-side is a pot
 - RSS/feed readers
 - Document converters
 
-## SSRF Types
+### SSRF Types
 
 ### Non-blind (classic) SSRF
 
@@ -81,7 +85,7 @@ The server makes the request but doesn't return the response body. The attacker 
 
 The full response isn't returned, but partial information leaks — error messages, response times, status codes, or content length.
 
-## Detection and Exploitation
+### Detection and Exploitation
 
 ### Testing methodology
 
@@ -171,7 +175,7 @@ Protocol smuggling:
   file:///etc/passwd                      # Local file read
 ```
 
-## Prevention
+### Prevention
 
 ### URL validation
 
@@ -300,3 +304,12 @@ Our Node.js application has an endpoint that accepts a URL and fetches content f
 ```prompt
 Audit our AWS infrastructure for SSRF exposure. Check all EC2 instances for IMDSv1 (should be IMDSv2 only), review security groups for overly permissive internal access, identify application endpoints that accept URLs, and verify network segmentation between web-facing services and internal databases. Produce a risk report with prioritized remediation steps.
 ```
+
+## Guidelines
+
+- Only test for SSRF on applications you have explicit written authorization to test
+- Cloud metadata exploitation can expose real IAM credentials — handle findings as sensitive data and report through secure channels
+- SSRF testing against internal networks can disrupt services — coordinate with the infrastructure team before scanning internal IP ranges
+- Always implement both application-level URL validation and network-level controls (IMDSv2, network segmentation) as defense-in-depth
+- DNS rebinding bypasses require a controlled domain — never use rebinding against targets without explicit scope authorization
+- Report all SSRF findings through responsible disclosure, especially when cloud credentials are exposed

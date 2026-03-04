@@ -7,13 +7,13 @@ description: >-
   Content Security Policy, sanitizing user input, or auditing web applications
   for injection vulnerabilities. Covers detection, exploitation, and remediation.
 license: Apache-2.0
+compatibility: "Go 1.21+ for dalfox, Python 3.8+ for XSStrike"
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
   tags:
     - xss
-    - security
     - web-security
     - injection
     - penetration-testing
@@ -22,9 +22,13 @@ metadata:
 
 # XSS Detection
 
+## Overview
+
 Find, prove, and fix Cross-Site Scripting vulnerabilities. XSS lets attackers inject scripts into web pages viewed by other users — stealing sessions, redirecting to phishing sites, or modifying page content.
 
-## XSS Types
+## Instructions
+
+### XSS Types
 
 ### Reflected XSS
 
@@ -66,7 +70,7 @@ document.getElementById('content').innerHTML = hash;  // XSS!
 // Traditional server-side scanning won't detect this
 ```
 
-## Detection
+### Detection
 
 ### Manual testing
 
@@ -156,7 +160,7 @@ window.postMessage data
 localStorage / sessionStorage
 ```
 
-## Filter Bypass Techniques
+### Filter Bypass Techniques
 
 When WAF or input filters block basic payloads:
 
@@ -191,7 +195,7 @@ When WAF or input filters block basic payloads:
 %253Cscript%253Ealert(1)%253C%252Fscript%253E
 ```
 
-## Prevention
+### Prevention
 
 ### Server-side output encoding
 
@@ -322,3 +326,12 @@ Our Express.js application has no Content Security Policy. Implement a strict CS
 ```prompt
 Set up an automated XSS testing pipeline that runs on every PR. It should: 1) Spider the running application to discover all forms and URL parameters, 2) Test each input with context-appropriate payloads, 3) Check for DOM XSS by analyzing JavaScript for dangerous sink/source patterns, 4) Verify CSP headers are present and properly configured, 5) Report findings with severity ratings. Use dalfox for reflected/stored and a custom scanner for DOM-based.
 ```
+
+## Guidelines
+
+- Only test for XSS on applications you have explicit written authorization to test
+- Use `alert(1)` or `alert(document.domain)` as proof-of-concept — never use actual cookie-stealing payloads against real users
+- Stored XSS payloads persist in the database — coordinate with the target team to clean up after testing
+- CSP is the strongest defense but is not a replacement for output encoding — implement both
+- Context-aware encoding is critical: HTML encoding in a JavaScript context does not prevent XSS
+- Always report XSS findings through responsible disclosure channels, never publicly

@@ -7,12 +7,12 @@ description: >-
   (Apache, Nginx, IIS), finding JavaScript frameworks, discovering WAF presence,
   or mapping the technology stack of a target during reconnaissance.
 license: Apache-2.0
+compatibility: "Ruby 2.7+ or Docker"
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
   tags:
-    - whatweb
     - fingerprinting
     - reconnaissance
     - security
@@ -22,9 +22,13 @@ metadata:
 
 # WhatWeb
 
+## Overview
+
 Identify web technologies on target websites. WhatWeb recognizes CMS platforms, web frameworks, JavaScript libraries, analytics tools, web servers, embedded devices, version numbers, and more. It has over 1,800 plugins for technology detection.
 
-## Installation
+## Instructions
+
+### Installation
 
 ```bash
 # Debian/Ubuntu
@@ -41,7 +45,7 @@ cd WhatWeb && sudo make install
 docker run --rm guidelacour/whatweb https://example.com
 ```
 
-## Basic Usage
+### Basic Usage
 
 ```bash
 # Scan a single URL
@@ -60,7 +64,7 @@ whatweb https://example.com --log-csv=results.csv      # CSV
 whatweb https://example.com -v                          # Verbose
 ```
 
-## Aggression Levels
+### Aggression Levels
 
 WhatWeb has 4 aggression levels that control how much it probes the target:
 
@@ -84,7 +88,7 @@ whatweb -a 4 https://example.com
 
 For authorized pentests, use level 3 or 4. For passive recon, stick with level 1.
 
-## Plugin System
+### Plugin System
 
 WhatWeb's power comes from its 1,800+ plugins. Each plugin detects a specific technology:
 
@@ -147,7 +151,7 @@ OTHER
 └── Embedded devices (routers, cameras, printers)
 ```
 
-## Interpreting Results
+### Interpreting Results
 
 ```bash
 # Example output:
@@ -165,7 +169,7 @@ OTHER
 # - X-Powered-By header → information leakage (should be disabled)
 ```
 
-## Pipeline Integration
+### Pipeline Integration
 
 ```bash
 # Combine with subfinder and httpx for full recon:
@@ -186,7 +190,7 @@ cat tech-stack.json | jq -r '
 '
 ```
 
-## Bulk Scanning
+### Bulk Scanning
 
 ```bash
 # Scan a large list with rate limiting
@@ -219,3 +223,12 @@ Scan our 5 production domains and check for: WAF presence (Cloudflare, AWS WAF, 
 ```prompt
 Before starting a penetration test on our client's web application at app.client.com, fingerprint the complete technology stack using WhatWeb at aggression level 3. Identify the web server, backend language, framework, CMS, JavaScript libraries, CDN, and any third-party services. Cross-reference all detected versions against the NVD database for known vulnerabilities. Produce a target profile document for the pentest team.
 ```
+
+## Guidelines
+
+- Only scan targets you have explicit written authorization to test
+- Start with aggression level 1 (stealthy) for initial recon; only escalate to level 3-4 on authorized pentests
+- Level 4 (heavy) is noisy and will appear in target logs — use only when stealth is not a concern
+- Use `--wait` for rate limiting when scanning large URL lists to avoid overwhelming targets
+- Cross-reference detected versions against NVD/CVE databases for vulnerability context
+- WhatWeb results may include false positives — verify critical technology findings manually

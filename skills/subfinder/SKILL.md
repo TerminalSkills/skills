@@ -8,12 +8,12 @@ description: >-
   (certificate transparency logs, DNS datasets, search engines) to find subdomains
   without touching the target directly.
 license: Apache-2.0
+compatibility: "Go 1.21+ or Docker"
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
   tags:
-    - subfinder
     - subdomain
     - reconnaissance
     - security
@@ -23,9 +23,13 @@ metadata:
 
 # Subfinder
 
+## Overview
+
 Discover subdomains of a target domain using passive sources. Subfinder queries certificate transparency logs, DNS datasets, search engines, and other OSINT sources to enumerate subdomains without directly touching the target infrastructure.
 
-## Installation
+## Instructions
+
+### Installation
 
 ```bash
 # Go install (requires Go 1.21+)
@@ -38,7 +42,7 @@ go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 docker pull projectdiscovery/subfinder:latest
 ```
 
-## Basic Usage
+### Basic Usage
 
 ```bash
 # Enumerate subdomains for a single domain
@@ -57,7 +61,7 @@ subfinder -d example.com -o subdomains.txt
 subfinder -d example.com -oJ -o subdomains.json
 ```
 
-## Configuration
+### Configuration
 
 ### API keys for better results
 
@@ -109,7 +113,7 @@ subfinder -d example.com -es github
 subfinder -ls
 ```
 
-## Advanced Usage
+### Advanced Usage
 
 ### Recursive enumeration
 
@@ -159,7 +163,7 @@ cat subs.txt | naabu -silent -top-ports 1000 -o ports.txt
 cat live.txt | nuclei -t cves/ -severity critical,high -o vulns.txt
 ```
 
-## Passive vs Active Enumeration
+### Passive vs Active Enumeration
 
 Subfinder is passive by default — it queries third-party data sources, NOT the target:
 
@@ -180,7 +184,7 @@ ACTIVE (use additional tools) — touches the target
 
 For authorized pentests, combine both: subfinder for passive discovery, then active brute-forcing for what passive sources missed.
 
-## Interpreting Results
+### Interpreting Results
 
 Common subdomain patterns and what they reveal:
 
@@ -218,3 +222,12 @@ Our company has 5 registered domains. Enumerate all subdomains across all of the
 ```prompt
 Build a subdomain monitoring pipeline that runs weekly on our 3 primary domains. It should compare results against the previous week's baseline, alert on new subdomains (potential new attack surface or subdomain takeover), and generate a diff report. Store historical data for trend analysis. Use subfinder for enumeration and httpx for liveness checks.
 ```
+
+## Guidelines
+
+- Only run against domains you have explicit written authorization to test
+- Passive enumeration (subfinder default) does not touch the target, but active tools like httpx and naabu do — ensure they are in scope
+- Configure API keys for better coverage — free sources alone miss many subdomains
+- Use rate limiting (`-rate-limit`) to avoid overwhelming third-party data sources
+- Validate findings before reporting — some passive sources return stale or incorrect data
+- Combine with active DNS brute-forcing (puredns, shuffledns) for comprehensive coverage on authorized engagements

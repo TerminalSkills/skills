@@ -8,12 +8,12 @@ description: >-
   generates thousands of test cases from your schema and finds bugs that manual
   testing misses.
 license: Apache-2.0
+compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
   tags:
-    - schemathesis
     - api-testing
     - fuzzing
     - openapi
@@ -23,9 +23,13 @@ metadata:
 
 # Schemathesis
 
+## Overview
+
 Automatically generate and run API tests from OpenAPI and GraphQL schemas. Schemathesis finds bugs by generating thousands of test cases — boundary values, invalid types, malformed payloads, deep nesting — that developers never think to write manually.
 
-## Installation
+## Instructions
+
+### Installation
 
 ```bash
 pip install schemathesis
@@ -34,7 +38,7 @@ pip install schemathesis
 pip install schemathesis[all]
 ```
 
-## Quick Start
+### Quick Start
 
 ```bash
 # Test a live API using its OpenAPI schema
@@ -47,7 +51,7 @@ st run ./openapi.yaml --base-url http://localhost:8080
 st run https://api.example.com/graphql
 ```
 
-## How It Works
+### How It Works
 
 Schemathesis reads your API schema (OpenAPI 2.0/3.0/3.1 or GraphQL) and:
 
@@ -67,7 +71,7 @@ Schema → Generator → Request → Response → Checker → Report
          └── Unicode/special chars
 ```
 
-## CLI Options
+### CLI Options
 
 ```bash
 # Basic testing
@@ -94,7 +98,7 @@ st run URL --cassette-path=cassette.yaml  # Save all requests/responses
 st run URL --junit-xml=results.xml      # JUnit format for CI
 ```
 
-## Test Strategies
+### Test Strategies
 
 ### Negative testing
 
@@ -179,7 +183,7 @@ def response_time_acceptable(response, case):
 st run URL --checks all --hypothesis-max-examples=200
 ```
 
-## Python API
+### Python API
 
 ```python
 # test_api.py
@@ -213,7 +217,7 @@ def test_create_user(case):
     assert response.status_code != 500, f"Server error with input: {case.body}"
 ```
 
-## CI Integration
+### CI Integration
 
 ```yaml
 # .github/workflows/api-test.yml
@@ -249,7 +253,7 @@ jobs:
           path: results.xml
 ```
 
-## Security-Focused Testing
+### Security-Focused Testing
 
 For penetration testing, configure Schemathesis to look for security issues:
 
@@ -291,3 +295,12 @@ Set up Schemathesis in our GitHub Actions CI to run on every PR. The API starts 
 ```prompt
 We're doing a security assessment of our payment API. Use Schemathesis to test all endpoints with maximum fuzzing intensity. Check for: SQL injection indicators (500 errors with special chars), information disclosure in error responses, slow queries suggesting time-based injection, and missing input validation. Produce a security findings report with severity ratings.
 ```
+
+## Guidelines
+
+- Always test against staging or development environments first — never fuzz a production API without explicit authorization
+- Start with a low `--hypothesis-max-examples` value (50-100) to validate setup before running full intensity
+- Use `--workers` carefully — too many parallel workers can overwhelm the target and cause false failures
+- Ensure your OpenAPI/GraphQL schema is up to date — stale schemas produce misleading results
+- Schemathesis finds crashes and violations but does not confirm exploitability — triage 500 errors manually
+- Use `--cassette-path` to record all requests for reproducibility and audit trails
