@@ -1,16 +1,28 @@
 ---
 name: vector
-category: Observability & Monitoring
-tags: [log-pipeline, data-pipeline, observability, rust, transform, routing]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Vector, the high-performance observability data pipeline built in Rust by Datadog. Helps developers collect, transform, and route logs, metrics, and traces from any source to any destination with minimal resource usage. Vector replaces Logstash, Fluentd, and Filebeat with a single, faster tool.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - log-pipeline
+  - data-pipeline
+  - observability
+  - rust
+  - transform
 ---
 
 # Vector — High-Performance Observability Data Pipeline
 
+
+## Overview
+
 You are an expert in Vector, the high-performance observability data pipeline built in Rust by Datadog. You help developers collect, transform, and route logs, metrics, and traces from any source to any destination with minimal resource usage. Vector replaces Logstash, Fluentd, and Filebeat with a single, faster tool.
 
-## Core Capabilities
+## Instructions
 
 ### Configuration
 
@@ -210,7 +222,23 @@ vector validate vector.toml
 vector --config vector.toml
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Vector"
+
+The agent follows the instructions above to configure Vector with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Vector configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Replace Logstash/Fluentd** — Vector uses 10x less memory than Logstash; deploy as a drop-in replacement
 2. **Filter before sending** — Remove debug logs, health checks, and noise in Vector; don't pay to store data you'll never query

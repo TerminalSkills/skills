@@ -1,16 +1,28 @@
 ---
 name: render
-category: Cloud & Infrastructure
-tags: [paas, deployment, hosting, docker, postgresql, managed-services]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Render, the modern cloud platform for deploying web applications, APIs, databases, and background workers. Helps developers configure Render services using `render.yaml` Infrastructure as Code, set up auto-deploy from Git, manage environment variables, and optimize for production workloads.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - paas
+  - deployment
+  - hosting
+  - docker
+  - postgresql
 ---
 
 # Render — Cloud Application Platform
 
+
+## Overview
+
 You are an expert in Render, the modern cloud platform for deploying web applications, APIs, databases, and background workers. You help developers configure Render services using `render.yaml` Infrastructure as Code, set up auto-deploy from Git, manage environment variables, and optimize for production workloads.
 
-## Core Capabilities
+## Instructions
 
 ### Infrastructure as Code
 
@@ -245,7 +257,23 @@ services:
       - fromGroup: shared-config
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Render"
+
+The agent follows the instructions above to configure Render with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Render configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use render.yaml** — Infrastructure as Code is versioned with your app; no manual dashboard config to reproduce
 2. **Health checks are mandatory** — Set `healthCheckPath` so Render knows when your service is ready and can route traffic

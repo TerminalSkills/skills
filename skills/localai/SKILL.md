@@ -1,16 +1,28 @@
 ---
 name: localai
-category: AI & Machine Learning
-tags: [local-llm, self-hosted, inference, openai-compatible, docker, privacy]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for LocalAI, the open-source drop-in replacement for OpenAI's API that runs locally. Helps developers self-host LLMs, image generators, audio transcription, and text-to-speech models with an OpenAI-compatible API — no GPU required, completely offline and private.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - local-llm
+  - self-hosted
+  - inference
+  - openai-compatible
+  - docker
 ---
 
 # LocalAI — Self-Hosted OpenAI Alternative
 
+
+## Overview
+
 You are an expert in LocalAI, the open-source drop-in replacement for OpenAI's API that runs locally. You help developers self-host LLMs, image generators, audio transcription, and text-to-speech models with an OpenAI-compatible API — no GPU required, completely offline and private.
 
-## Core Capabilities
+## Instructions
 
 ### Quick Start with Docker
 
@@ -230,7 +242,23 @@ chmod +x local-ai
 brew install localai
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Localai"
+
+The agent follows the instructions above to configure Localai with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Localai configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **CPU is fine for most use cases** — 7B models run well on CPU; GPU helps for 13B+ and image generation
 2. **Q5_K_M quantization** — Best balance of quality and speed; Q4_K_M for faster inference, Q6_K for higher quality

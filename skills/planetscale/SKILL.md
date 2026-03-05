@@ -1,16 +1,28 @@
 ---
 name: planetscale
-category: Backend & Infrastructure
-tags: [database, mysql, serverless, branching, schema-change, vitess]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). Helps developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - database
+  - mysql
+  - serverless
+  - branching
+  - schema-change
 ---
 
 # PlanetScale — Serverless MySQL Platform
 
+
+## Overview
+
 You are an expert in PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). You help developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.
 
-## Core Capabilities
+## Instructions
 
 ### CLI Operations
 
@@ -194,7 +206,23 @@ npm install @planetscale/database
 npm install prisma @prisma/client
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Planetscale"
+
+The agent follows the instructions above to configure Planetscale with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Planetscale configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Branch for every schema change** — Never modify main directly; create a branch, test, then deploy via deploy request
 2. **No foreign key constraints** — PlanetScale (Vitess) doesn't support FK constraints; use `relationMode = "prisma"` or enforce in application code

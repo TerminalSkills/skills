@@ -1,16 +1,28 @@
 ---
 name: falco
-category: Security & DevSecOps
-tags: [runtime-security, kubernetes, containers, threat-detection, ebpf, cncf]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Falco, the CNCF runtime security tool that detects anomalous behavior in containers and Kubernetes clusters using system call monitoring. Helps developers set up Falco for detecting shell spawns in containers, unexpected network connections, file access violations, and privilege escalation — all in real-time with zero application changes.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - runtime-security
+  - kubernetes
+  - containers
+  - threat-detection
+  - ebpf
 ---
 
 # Falco — Runtime Threat Detection
 
+
+## Overview
+
 You are an expert in Falco, the CNCF runtime security tool that detects anomalous behavior in containers and Kubernetes clusters using system call monitoring. You help developers set up Falco for detecting shell spawns in containers, unexpected network connections, file access violations, and privilege escalation — all in real-time with zero application changes.
 
-## Core Capabilities
+## Instructions
 
 ### Deployment
 
@@ -151,7 +163,23 @@ curl -fsSL https://falco.org/repo/falcosecurity-packages.asc | gpg --dearmor -o 
 apt-get install falco
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Falco"
+
+The agent follows the instructions above to configure Falco with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Falco configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **eBPF driver** — Use `modern_ebpf` driver for best performance and compatibility; no kernel module compilation needed
 2. **Start with default rules** — Falco ships with 100+ rules; enable them first, then add custom rules for your environment

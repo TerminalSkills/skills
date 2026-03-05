@@ -1,16 +1,28 @@
 ---
 name: okr-planning
-category: Product Management
-tags: [okrs, goals, planning, alignment, objectives, key-results, quarterly]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. The agent apply frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: business
+  tags:
+  - okrs
+  - goals
+  - planning
+  - alignment
+  - objectives
 ---
 
 # OKR Planning — Objectives and Key Results
 
+
+## Overview
+
 You are an expert in OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. You apply frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
 
-## Core Capabilities
+## Instructions
 
 ### Writing OKRs
 
@@ -166,7 +178,23 @@ Company Objective: "Achieve product-market fit in the SMB segment"
 7. **Missing counter-metrics**: "Increase signups" without tracking quality leads to gaming (bot signups, low-quality traffic).
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Okr Planning"
+
+The agent follows the instructions above to configure Okr Planning with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Okr Planning configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Outcomes over outputs** — Key Results measure impact on users/business, not tasks completed or features shipped
 2. **Ambitious but achievable** — Target 70% completion; consistently scoring 1.0 means you're not stretching enough

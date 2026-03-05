@@ -2,18 +2,40 @@
 title: Build an Internal Analytics Platform for a SaaS Product
 slug: build-internal-analytics-platform-for-saas
 description: Build a self-serve analytics platform using DuckDB via MotherDuck for the data warehouse, Ibis for portable Python analytics, Cube as the semantic layer, Evidence for SQL-driven dashboards, and Pandera for data quality validation.
-skills: [motherduck, ibis, cube, evidence, pandera]
-category: Data & Analytics
-tags: [analytics, dashboards, data-warehouse, semantic-layer, data-quality, saas]
+skills:
+- motherduck
+- ibis
+- cube
+- evidence
+- pandera
+category: data-ai
+tags:
+- analytics
+- dashboards
+- data-warehouse
+- semantic-layer
+- data-quality
 ---
 
 # Build an Internal Analytics Platform for a SaaS Product
+
+## The Problem
 
 Priya is the first data hire at a 30-person SaaS company doing $500K ARR. The team has been running analytics on raw PostgreSQL queries — each person writes their own SQL, gets different numbers, and nobody trusts the dashboard. She needs to build a proper analytics stack: a warehouse for historical data, validated metrics everyone agrees on, and self-serve dashboards that non-technical teammates can use.
 
 Her budget is effectively zero. She can't justify a $50K/year Looker license or a dedicated Snowflake instance for a company this size. Everything needs to be open-source or developer-tier pricing.
 
-## Step 1: Set Up the Data Warehouse
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install motherduck ibis cube evidence pandera
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Set Up the Data Warehouse
 
 MotherDuck gives Priya a cloud DuckDB instance — fast analytical queries, shared access for the team, and no infrastructure to manage. She loads data from the production PostgreSQL into MotherDuck daily.
 
@@ -141,7 +163,7 @@ if __name__ == "__main__":
     run_daily_etl()
 ```
 
-## Step 2: Define the Semantic Layer
+### Step 2: Define the Semantic Layer
 
 Cube sits between the warehouse and every analytics consumer. When anyone asks "what's our MRR?" or "how many active users do we have?", Cube ensures they all get the same number — regardless of whether they're querying from Evidence dashboards, the Streamlit app, or the API.
 
@@ -226,7 +248,7 @@ cube(`Revenue`, {
 });
 ```
 
-## Step 3: Build Dashboards with Evidence
+### Step 3: Build Dashboards with Evidence
 
 Evidence turns SQL queries into beautiful dashboards — Markdown files that product managers can read and even edit. No Tableau, no drag-and-drop, no "let me send you a screenshot of the dashboard."
 
@@ -291,7 +313,7 @@ ORDER BY 2 DESC
 </DataTable>
 ```
 
-## Step 4: Portable Analytics with Ibis
+### Step 4: Portable Analytics with Ibis
 
 For ad-hoc analysis and data science work, Priya uses Ibis. The same Python code runs locally on DuckDB during development and on MotherDuck in production — zero SQL rewriting.
 
@@ -353,7 +375,8 @@ prod = ibis.duckdb.connect("md:analytics")
 result = cohort_retention(prod, months_back=12)
 ```
 
-## Results
+
+## Real-World Example
 
 After two weeks of building, Priya's analytics platform is live. The Evidence dashboard loads in under a second — SQL queries run against MotherDuck's pre-computed tables, and Evidence serves static HTML. The CEO checks MRR every morning without asking anyone for a spreadsheet.
 
@@ -362,3 +385,11 @@ Data quality is measurably better. Pandera caught 23 corrupt order records in th
 The semantic layer resolved the "everyone gets different numbers" problem. Before Cube, the sales team counted refunded orders as revenue (their SQL didn't filter status), while the finance team excluded pending orders (theirs was too aggressive). Now everyone queries the same `Revenue.mrr` measure and gets the same $42K.
 
 The total cost: $0/month for Evidence (static hosting), $0/month for Cube (open-source), $20/month for MotherDuck (developer tier), and the VPS they already had. Under $25/month for a complete analytics platform that would cost $2K+ with commercial tools.
+
+## Related Skills
+
+- [motherduck](../skills/motherduck/) -- Complementary skill for this workflow
+- [ibis](../skills/ibis/) -- Complementary skill for this workflow
+- [cube](../skills/cube/) -- Complementary skill for this workflow
+- [evidence](../skills/evidence/) -- Complementary skill for this workflow
+- [pandera](../skills/pandera/) -- Complementary skill for this workflow

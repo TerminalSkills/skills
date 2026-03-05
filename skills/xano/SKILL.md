@@ -1,16 +1,28 @@
 ---
 name: xano
-category: Backend & Infrastructure
-tags: [no-code-backend, api-builder, database, auth, serverless, visual]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. Helps developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - no-code-backend
+  - api-builder
+  - database
+  - auth
+  - serverless
 ---
 
 # Xano — No-Code Backend Builder
 
+
+## Overview
+
 You are an expert in Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. You help developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.
 
-## Core Capabilities
+## Instructions
 
 ### Database Schema
 
@@ -162,7 +174,23 @@ Run function stacks on a schedule:
 - Weekly: Send digest emails
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Xano"
+
+The agent follows the instructions above to configure Xano with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Xano configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Start with the data model** — Design your tables and relationships first; Xano generates CRUD endpoints automatically
 2. **Use function stacks for logic** — Keep business logic in Xano's visual builder; don't put it in the frontend

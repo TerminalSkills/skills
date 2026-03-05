@@ -1,16 +1,28 @@
 ---
 name: tldraw
-category: Real-Time & Collaboration
-tags: [canvas, whiteboard, drawing, collaboration, react, infinite-canvas]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for tldraw, the open-source library for creating infinite canvas experiences in React applications. Helps developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - canvas
+  - whiteboard
+  - drawing
+  - collaboration
+  - react
 ---
 
 # tldraw — Infinite Canvas SDK
 
+
+## Overview
+
 You are an expert in tldraw, the open-source library for creating infinite canvas experiences in React applications. You help developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Setup
 
@@ -302,7 +314,23 @@ npm install tldraw
 npm install @tldraw/yjs yjs y-websocket
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Tldraw"
+
+The agent follows the instructions above to configure Tldraw with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Tldraw configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Full viewport container** — tldraw needs a container with explicit dimensions; `position: fixed; inset: 0` is the simplest approach
 2. **Custom shapes for domain logic** — Don't force everything into draw/text; create shapes that represent your domain (tasks, nodes, cards)

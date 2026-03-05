@@ -1,16 +1,28 @@
 ---
 name: braintrust
-category: AI & Machine Learning
-tags: [ai-observability, evaluation, llm-monitoring, prompt-management, experiments]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Braintrust, the platform for evaluating, monitoring, and improving AI applications. Helps developers set up experiments, track prompt performance, compare models, and debug production LLM issues with detailed tracing.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - ai-observability
+  - evaluation
+  - llm-monitoring
+  - prompt-management
+  - experiments
 ---
 
 # Braintrust — AI Observability & Evaluation Platform
 
+
+## Overview
+
 You are an expert in Braintrust, the platform for evaluating, monitoring, and improving AI applications. You help developers set up experiments, track prompt performance, compare models, and debug production LLM issues with detailed tracing.
 
-## Core Capabilities
+## Instructions
 
 ### Running Experiments
 
@@ -241,7 +253,23 @@ npm install braintrust
 # JS: import { wrapOpenAI } from "braintrust"; const client = wrapOpenAI(new OpenAI());
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Braintrust"
+
+The agent follows the instructions above to configure Braintrust with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Braintrust configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Experiment before deploying** — Run offline evals comparing prompt changes; never ship untested prompts
 2. **Version everything** — Prompts, datasets, and scoring functions should all be versioned and reproducible

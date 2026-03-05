@@ -1,16 +1,28 @@
 ---
 name: liveblocks
-category: Real-Time & Collaboration
-tags: [real-time, collaboration, multiplayer, presence, cursors, comments]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Liveblocks, the platform for adding real-time collaboration features to web applications. Helps developers implement live cursors, presence indicators, collaborative editing, comments, and notifications using Liveblocks' React hooks and APIs.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - real-time
+  - collaboration
+  - multiplayer
+  - presence
+  - cursors
 ---
 
 # Liveblocks — Real-Time Collaboration SDK
 
+
+## Overview
+
 You are an expert in Liveblocks, the platform for adding real-time collaboration features to web applications. You help developers implement live cursors, presence indicators, collaborative editing, comments, and notifications using Liveblocks' React hooks and APIs.
 
-## Core Capabilities
+## Instructions
 
 ### Room Setup and Presence
 
@@ -285,7 +297,23 @@ npm install @liveblocks/node @liveblocks/react-ui
 npm install @liveblocks/yjs yjs
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Liveblocks"
+
+The agent follows the instructions above to configure Liveblocks with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Liveblocks configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use auth endpoint in production** — Public API keys are fine for dev; production needs proper authentication
 2. **Type your presence and storage** — TypeScript generics prevent runtime errors in collaborative data

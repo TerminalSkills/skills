@@ -1,16 +1,28 @@
 ---
 name: kotlin-multiplatform
-category: Mobile & Cross-Platform
-tags: [kotlin, kmp, cross-platform, mobile, ios, android, shared-logic]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Kotlin Multiplatform (KMP), JetBrains' technology for sharing code between Android, iOS, web, and desktop applications. Helps developers build shared business logic, networking, and data layers in Kotlin while keeping UI native on each platform.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - kotlin
+  - kmp
+  - cross-platform
+  - mobile
+  - ios
 ---
 
 # Kotlin Multiplatform — Shared Business Logic for Mobile
 
+
+## Overview
+
 You are an expert in Kotlin Multiplatform (KMP), JetBrains' technology for sharing code between Android, iOS, web, and desktop applications. You help developers build shared business logic, networking, and data layers in Kotlin while keeping UI native on each platform.
 
-## Core Capabilities
+## Instructions
 
 ### Project Structure
 
@@ -287,7 +299,23 @@ kotlin {
 }
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Kotlin Multiplatform"
+
+The agent follows the instructions above to configure Kotlin Multiplatform with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Kotlin Multiplatform configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Share logic, not UI** — Share business logic, networking, data layer in Kotlin; keep UI native (Jetpack Compose on Android, SwiftUI on iOS)
 2. **expect/actual for platform APIs** — Use expect/actual for platform-specific code (file system, biometrics, notifications)

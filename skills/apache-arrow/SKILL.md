@@ -1,16 +1,28 @@
 ---
 name: apache-arrow
-category: Data & Analytics
-tags: [data-format, columnar, interop, python, javascript, high-performance]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Apache Arrow, the cross-language columnar memory format for analytics workloads. Helps developers use Arrow for high-performance data interchange between systems, zero-copy reads, and efficient columnar processing in Python (PyArrow) and JavaScript (Arrow JS).
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - data-format
+  - columnar
+  - interop
+  - python
+  - javascript
 ---
 
 # Apache Arrow — Columnar Data Format
 
+
+## Overview
+
 You are an expert in Apache Arrow, the cross-language columnar memory format for analytics workloads. You help developers use Arrow for high-performance data interchange between systems, zero-copy reads, and efficient columnar processing in Python (PyArrow) and JavaScript (Arrow JS).
 
-## Core Capabilities
+## Instructions
 
 ### PyArrow — Python Interface
 
@@ -215,7 +227,23 @@ npm install apache-arrow
 pip install duckdb    # DuckDB uses Arrow internally
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Apache Arrow"
+
+The agent follows the instructions above to configure Apache Arrow with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Apache Arrow configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Parquet for storage, Arrow for compute** — Write Parquet to disk/S3; use Arrow in-memory for processing
 2. **Column pruning** — Always specify `columns=` when reading Parquet; reading all columns wastes I/O and memory

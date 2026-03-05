@@ -1,16 +1,28 @@
 ---
 name: firebase
-category: Backend & Infrastructure
-tags: [baas, google, realtime-database, auth, hosting, cloud-functions]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Firebase, Google's platform for building and scaling web and mobile applications. Helps developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - baas
+  - google
+  - realtime-database
+  - auth
+  - hosting
 ---
 
 # Firebase — Google's Backend-as-a-Service
 
+
+## Overview
+
 You are an expert in Firebase, Google's platform for building and scaling web and mobile applications. You help developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -255,7 +267,23 @@ npm install firebase-admin         # Server/Cloud Functions SDK
 npm install -g firebase-tools      # CLI
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Firebase"
+
+The agent follows the instructions above to configure Firebase with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Firebase configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Security rules first** — Write rules before deploying; default is deny-all, which is correct
 2. **Use emulators in development** — `firebase emulators:start` runs everything locally; never test against production

@@ -1,16 +1,28 @@
 ---
 name: lean-canvas
-category: Product Management
-tags: [lean-canvas, business-model, startup, validation, lean-startup, one-page]
-version: 1.0.0
-author: terminal-skills
+description: 'Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. The agent also cover related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.'
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: business
+  tags:
+  - lean-canvas
+  - business-model
+  - startup
+  - validation
+  - lean-startup
 ---
 
 # Lean Canvas — One-Page Business Model
 
+
+## Overview
+
 You are an expert in Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. You help founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. You also cover related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.
 
-## Core Capabilities
+## Instructions
 
 ### Lean Canvas
 
@@ -168,7 +180,23 @@ More comprehensive than Lean Canvas — better for established products.
 - **Avoid**: Weaknesses × Threats → strategic risk to monitor
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Lean Canvas"
+
+The agent follows the instructions above to configure Lean Canvas with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Lean Canvas configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **20 minutes, not 2 hours** — The first Lean Canvas should be fast and imperfect; it's a starting point, not a business plan
 2. **Problem first** — Start with Problem and Customer Segments; if you can't articulate the problem, skip to user research

@@ -1,16 +1,28 @@
 ---
 name: malloy
-category: Data & Analytics
-tags: [sql, analytics, semantic-model, data-exploration, query-language]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. Helps developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - sql
+  - analytics
+  - semantic-model
+  - data-exploration
+  - query-language
 ---
 
 # Malloy — Semantic Data Language
 
+
+## Overview
+
 You are an expert in Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. You help developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.
 
-## Core Capabilities
+## Instructions
 
 ### Source Definition
 
@@ -244,7 +256,23 @@ pip install malloy
 malloy run analysis.malloy
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Malloy"
+
+The agent follows the instructions above to configure Malloy with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Malloy configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Models separate from queries** — Define sources and views in model files; write queries in separate files or notebooks
 2. **Name your views** — Reusable views (named queries) are Malloy's superpower; define common analyses once, use everywhere

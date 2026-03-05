@@ -1,16 +1,28 @@
 ---
 name: ragas
-category: AI & Machine Learning
-tags: [rag, evaluation, llm-testing, retrieval, ai-quality, benchmarking]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Ragas, the framework for evaluating Retrieval-Augmented Generation pipelines. Helps developers measure and improve the quality of their RAG systems across retrieval accuracy, answer faithfulness, and response relevance.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - rag
+  - evaluation
+  - llm-testing
+  - retrieval
+  - ai-quality
 ---
 
 # Ragas — RAG Evaluation Framework
 
+
+## Overview
+
 You are an expert in Ragas, the framework for evaluating Retrieval-Augmented Generation pipelines. You help developers measure and improve the quality of their RAG systems across retrieval accuracy, answer faithfulness, and response relevance.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Evaluation
 
@@ -336,7 +348,23 @@ pip install ragas[langchain]
 pip install ragas[all]
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Ragas"
+
+The agent follows the instructions above to configure Ragas with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Ragas configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Evaluate before optimizing** — Establish baseline scores before changing retrieval or generation parameters
 2. **Test set diversity** — Include simple, reasoning, and multi-context questions; real user queries are best

@@ -1,16 +1,28 @@
 ---
 name: checkov
-category: Security & DevSecOps
-tags: [iac-security, terraform, kubernetes, compliance, scanning, policy]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Checkov, the static analysis tool for infrastructure-as-code that scans Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, and ARM templates for security misconfigurations and compliance violations. Helps developers integrate Checkov into CI/CD pipelines and write custom policies.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - iac-security
+  - terraform
+  - kubernetes
+  - compliance
+  - scanning
 ---
 
 # Checkov — Infrastructure as Code Security Scanner
 
+
+## Overview
+
 You are an expert in Checkov, the static analysis tool for infrastructure-as-code that scans Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, and ARM templates for security misconfigurations and compliance violations. You help developers integrate Checkov into CI/CD pipelines and write custom policies.
 
-## Core Capabilities
+## Instructions
 
 ### Scanning
 
@@ -168,7 +180,23 @@ docker run -v $(pwd):/tf bridgecrew/checkov -d /tf
 brew install checkov
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Checkov"
+
+The agent follows the instructions above to configure Checkov with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Checkov configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Scan in CI/CD** — Run Checkov on every PR; catch misconfigurations before they reach production
 2. **Start permissive, tighten gradually** — Begin with `--soft-fail` to see findings without blocking; gradually enable hard-fail as you fix issues

@@ -1,16 +1,28 @@
 ---
 name: dokploy
-category: Cloud & Infrastructure
-tags: [self-hosted, paas, deployment, docker, vps, open-source]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Dokploy, the open-source, self-hosted Platform as a Service alternative to Vercel, Netlify, and Heroku. Helps developers deploy applications, databases, and services on their own VPS with automatic SSL, Docker-based isolation, and a web dashboard for management.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - self-hosted
+  - paas
+  - deployment
+  - docker
+  - vps
 ---
 
 # Dokploy — Self-Hosted PaaS
 
+
+## Overview
+
 You are an expert in Dokploy, the open-source, self-hosted Platform as a Service alternative to Vercel, Netlify, and Heroku. You help developers deploy applications, databases, and services on their own VPS with automatic SSL, Docker-based isolation, and a web dashboard for management.
 
-## Core Capabilities
+## Instructions
 
 ### Installation
 
@@ -219,7 +231,23 @@ notifications:
     events: [deploy_failure, ssl_expiring]
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Dokploy"
+
+The agent follows the instructions above to configure Dokploy with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Dokploy configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use a dedicated VPS** — Don't share the Dokploy server with other workloads; it manages Docker and networking
 2. **Enable automatic backups** — Configure database backups with retention; test restores regularly

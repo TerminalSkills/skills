@@ -1,16 +1,28 @@
 ---
 name: kyverno
-category: Security & DevSecOps
-tags: [kubernetes, policy, admission-control, mutation, validation, cncf]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Kyverno, the Kubernetes-native policy engine that validates, mutates, and generates resources using YAML policies (no Rego required). Helps developers enforce security policies, automate resource defaults, and ensure compliance across Kubernetes clusters.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - kubernetes
+  - policy
+  - admission-control
+  - mutation
+  - validation
 ---
 
 # Kyverno — Kubernetes Native Policy Engine
 
+
+## Overview
+
 You are an expert in Kyverno, the Kubernetes-native policy engine that validates, mutates, and generates resources using YAML policies (no Rego required). You help developers enforce security policies, automate resource defaults, and ensure compliance across Kubernetes clusters.
 
-## Core Capabilities
+## Instructions
 
 ### Validation Policies
 
@@ -292,7 +304,23 @@ brew install kyverno
 kyverno apply policy.yaml --resource pod.yaml
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Kyverno"
+
+The agent follows the instructions above to configure Kyverno with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Kyverno configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **YAML, not Rego** — Kyverno policies are pure YAML; lower barrier to entry than OPA/Gatekeeper for Kubernetes teams
 2. **Audit before enforce** — Start with `validationFailureAction: Audit` to see violations without blocking; switch to `Enforce` once clean

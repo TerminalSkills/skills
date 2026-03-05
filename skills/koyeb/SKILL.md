@@ -1,16 +1,28 @@
 ---
 name: koyeb
-category: Cloud & Infrastructure
-tags: [paas, serverless, deployment, edge, docker, global]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. Helps developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - paas
+  - serverless
+  - deployment
+  - edge
+  - docker
 ---
 
 # Koyeb — Global Serverless Platform
 
+
+## Overview
+
 You are an expert in Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. You help developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.
 
-## Core Capabilities
+## Instructions
 
 ### CLI Deployment
 
@@ -158,7 +170,23 @@ koyeb service update my-api/web \
   --env DATABASE_URL=@main-db-connection-string
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Koyeb"
+
+The agent follows the instructions above to configure Koyeb with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Koyeb configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use Git-based deployment** — Push to deploy; Koyeb handles builds, caching, and zero-downtime rollouts
 2. **Multi-region for latency** — Deploy to regions closest to your users; Koyeb's edge routes traffic automatically

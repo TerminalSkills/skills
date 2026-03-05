@@ -1,16 +1,28 @@
 ---
 name: prd-writing
-category: Product Management
-tags: [prd, requirements, specification, user-stories, acceptance-criteria, documentation]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. The agent produce PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: business
+  tags:
+  - prd
+  - requirements
+  - specification
+  - user-stories
+  - acceptance-criteria
 ---
 
 # PRD Writing — Product Requirements Documents
 
+
+## Overview
+
 You are an expert in writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. You produce PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
 
-## Core Capabilities
+## Instructions
 
 ### PRD Template
 
@@ -212,7 +224,23 @@ before the weekly forecast meeting."
 - **T**estable: Has clear acceptance criteria
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Prd Writing"
+
+The agent follows the instructions above to configure Prd Writing with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Prd Writing configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Problem before solution** — The first section of every PRD defines the problem with evidence; if you can't articulate the problem, you shouldn't build the solution
 2. **One primary metric** — Every PRD has one number that defines success; secondary metrics support it but don't replace it

@@ -2,16 +2,35 @@
 title: Deploy a Full-Stack App to Production on Your Own Server
 slug: deploy-fullstack-app-to-production-on-own-server
 description: Deploy a Next.js application with PostgreSQL, Redis, and background workers on a VPS using Dokploy for self-hosted PaaS management and Nixpacks for zero-config builds.
-skills: [dokploy, nixpacks]
-category: Cloud & Infrastructure
-tags: [self-hosted, deployment, docker, vps, postgresql, production]
+skills:
+- dokploy
+- nixpacks
+category: devops
+tags:
+- self-hosted
+- deployment
+- docker
+- vps
+- postgresql
 ---
 
 # Deploy a Full-Stack App to Production on Your Own Server
 
+## The Problem
+
 Leo runs a bootstrapped SaaS and his Vercel bill just crossed $150/month for what's essentially a Next.js app, a Postgres database, and a background job runner. A $20/month VPS on Hetzner can handle the same workload, but he doesn't want to spend a week writing Docker Compose files and configuring Nginx. He needs the Heroku/Vercel developer experience on his own hardware.
 
-## Step 1: Set Up Dokploy on the VPS
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install dokploy nixpacks
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Set Up Dokploy on the VPS
 
 Dokploy turns any Linux server into a managed platform. One command installs the dashboard, reverse proxy (Traefik), and Docker orchestration.
 
@@ -35,7 +54,7 @@ curl -sSL https://dokploy.com/install.sh | sh
 # Dokploy auto-provisions SSL via Let's Encrypt
 ```
 
-## Step 2: Provision the Database
+### Step 2: Provision the Database
 
 Leo adds PostgreSQL through Dokploy's database management — no manual Docker commands or volume configuration.
 
@@ -58,7 +77,7 @@ Leo adds PostgreSQL through Dokploy's database management — no manual Docker c
 # Internal URL: redis://dokploy-redis-xxx:6379
 ```
 
-## Step 3: Configure the Application Build
+### Step 3: Configure the Application Build
 
 Leo's Next.js app needs zero Dockerfile configuration thanks to Nixpacks. He adds a minimal config to handle Prisma's code generation step.
 
@@ -82,7 +101,7 @@ NEXT_TELEMETRY_DISABLED = "1"       # Disable Next.js telemetry in build
 
 The Nixpacks config is intentionally minimal. Nixpacks detects Node.js 20 from the `.nvmrc` file, runs `npm ci` automatically, and sets `NODE_ENV=production`. The only manual additions are Prisma-specific — the code generation and migration steps that Nixpacks can't infer.
 
-## Step 4: Deploy the Application
+### Step 4: Deploy the Application
 
 ```markdown
 ## In Dokploy Dashboard:
@@ -135,7 +154,7 @@ Click "Deploy" — Dokploy:
 5. Keeps the previous container for instant rollback
 ```
 
-## Step 5: Background Worker
+### Step 5: Background Worker
 
 The SaaS needs a background worker for email sending, webhook processing, and scheduled reports. It's the same codebase, different entry point.
 
@@ -193,7 +212,7 @@ cmd = "node dist/worker.js"
 
 Deploy the worker as a separate Dokploy application from the same repository, but with a different Nixpacks config path and no public port.
 
-## Step 6: Automated Backups
+### Step 6: Automated Backups
 
 ```bash
 # scripts/backup.sh — Database backup script
@@ -230,7 +249,8 @@ echo "✅ Backup complete: saas_${TIMESTAMP}.dump"
 0 3 * * * /opt/scripts/backup.sh >> /var/log/backup.log 2>&1
 ```
 
-## Results
+
+## Real-World Example
 
 Leo's migration from Vercel + Supabase + Railway to a single Hetzner VPS with Dokploy took one afternoon. The monthly cost dropped from $150 to $8.49 for the VPS plus $3 for S3 backups — a 92% reduction.
 
@@ -239,3 +259,8 @@ Deployment speed is comparable: Nixpacks builds take 45 seconds (cached) versus 
 The self-hosted setup actually improved debugging. Leo has direct SSH access to the server, can inspect Docker logs in real time, and can exec into containers to diagnose production issues. The Dokploy dashboard gives the same visual overview as Vercel's dashboard — deployment history, environment variables, domain management, and log streaming.
 
 The only trade-off is maintenance responsibility. Leo runs `apt update && apt upgrade` monthly and monitors disk usage. Dokploy handles certificate renewal, container restarts, and reverse proxy configuration automatically. For a bootstrapped SaaS doing $3K MRR, the hour of monthly maintenance is worth the $140 savings.
+
+## Related Skills
+
+- [dokploy](../skills/dokploy/) -- Complementary skill for this workflow
+- [nixpacks](../skills/nixpacks/) -- Complementary skill for this workflow

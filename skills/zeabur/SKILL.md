@@ -1,16 +1,28 @@
 ---
 name: zeabur
-category: Cloud & Infrastructure
-tags: [paas, deployment, serverless, edge, docker, one-click]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. Helps developers deploy full-stack applications with automatic scaling and one-click marketplace services.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - paas
+  - deployment
+  - serverless
+  - edge
+  - docker
 ---
 
 # Zeabur — Modern Cloud Deployment Platform
 
+
+## Overview
+
 You are an expert in Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. You help developers deploy full-stack applications with automatic scaling and one-click marketplace services.
 
-## Core Capabilities
+## Instructions
 
 ### CLI Deployment
 
@@ -186,7 +198,23 @@ async function restartService(serviceId: string) {
 }
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Zeabur"
+
+The agent follows the instructions above to configure Zeabur with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Zeabur configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Let auto-detection work** — Don't add config unless Zeabur gets it wrong; framework detection handles 90% of cases
 2. **Use marketplace for databases** — Don't containerize your own Postgres; Zeabur's managed services handle backups and scaling

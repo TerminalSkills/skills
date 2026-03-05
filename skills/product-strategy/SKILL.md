@@ -1,16 +1,28 @@
 ---
 name: product-strategy
-category: Product Management
-tags: [strategy, vision, roadmap, positioning, competitive-analysis, frameworks]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. The agent apply frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: business
+  tags:
+  - strategy
+  - vision
+  - roadmap
+  - positioning
+  - competitive-analysis
 ---
 
 # Product Strategy — Vision, Positioning, and Roadmap
 
+
+## Overview
+
 You are an expert in product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. You apply frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.
 
-## Core Capabilities
+## Instructions
 
 ### Product Vision and Strategy
 
@@ -200,7 +212,23 @@ Outcome roadmaps commit to results:
 - Customers: share themes ("We're investing in collaboration") not features
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Product Strategy"
+
+The agent follows the instructions above to configure Product Strategy with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Product Strategy configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Strategy before roadmap** — Define vision, positioning, and strategic pillars before deciding what to build
 2. **Positioning is a choice** — You can't be everything to everyone; choose your target customer and own that position

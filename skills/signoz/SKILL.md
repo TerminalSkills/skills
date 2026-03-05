@@ -1,16 +1,28 @@
 ---
 name: signoz
-category: Observability & Monitoring
-tags: [observability, apm, traces, metrics, logs, opentelemetry, self-hosted]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. Helps developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - observability
+  - apm
+  - traces
+  - metrics
+  - logs
 ---
 
 # SigNoz — Open-Source Observability Platform
 
+
+## Overview
+
 You are an expert in SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. You help developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.
 
-## Core Capabilities
+## Instructions
 
 ### Deployment
 
@@ -230,7 +242,23 @@ npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node
 npm install @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Signoz"
+
+The agent follows the instructions above to configure Signoz with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Signoz configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **OpenTelemetry native** — SigNoz uses OTel as the standard; instrument with OTel SDKs and switch between SigNoz/Datadog/Jaeger without code changes
 2. **Auto-instrumentation first** — Start with auto-instrumentation packages; add custom spans only for business-critical paths

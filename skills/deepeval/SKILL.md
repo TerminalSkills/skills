@@ -1,16 +1,28 @@
 ---
 name: deepeval
-category: AI & Machine Learning
-tags: [llm-testing, evaluation, ai-quality, unit-testing, benchmarking, guardrails]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - llm-testing
+  - evaluation
+  - ai-quality
+  - unit-testing
+  - benchmarking
 ---
 
 # DeepEval — LLM Testing & Evaluation Framework
 
+
+## Overview
+
 You are an expert in DeepEval, the open-source framework for unit testing LLM applications. You help developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Test Cases
 
@@ -269,7 +281,23 @@ deepeval test run tests/ -v
 deepeval login
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Deepeval"
+
+The agent follows the instructions above to configure Deepeval with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Deepeval configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Test the full pipeline** — Don't just test the LLM; test retrieval + generation + post-processing together
 2. **Threshold tuning** — Start with low thresholds (0.5), measure baseline, then raise gradually

@@ -89,6 +89,13 @@
       "tags": []
     },
     {
+      "name": "ad-campaign-optimization",
+      "slug": "ad-campaign-optimization",
+      "description": "Optimize paid advertising campaigns across Google Ads, Meta, TikTok, LinkedIn, and other platforms. Use when tasks involve bid optimization, audience targeting, creative testing, ROAS improvement, attribution modeling, budget allocation, campaign structure, retargeting strategies, lookalike audiences, or reducing customer acquisition cost. Covers multi-platform campaign management and creative performance analysis.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "adonisjs",
       "slug": "adonisjs",
       "description": "Build full-stack web applications with AdonisJS — a batteries-included Node.js framework with ORM, auth, validation, and mailer built-in. Use when someone asks to \"build a web app with Node.js\", \"Laravel for Node.js\", \"full-stack Node framework\", \"AdonisJS\", \"batteries-included backend\", or \"Node.js with built-in ORM and auth\". Covers Lucid ORM, auth (sessions, tokens, social), VineJS validation, Edge templates, and deployment.",
@@ -136,6 +143,13 @@
       ]
     },
     {
+      "name": "agent-swarm-orchestration",
+      "slug": "agent-swarm-orchestration",
+      "description": "Coordinate multiple AI agents working together on complex tasks — routing, handoffs, consensus, memory sharing, and quality gates. Use when tasks involve building multi-agent systems, coordinating specialist agents in a pipeline, implementing agent-to-agent communication, designing swarm architectures, setting up agent orchestration frameworks, or building autonomous agent teams with supervision and quality control. Covers hierarchical, mesh, and pipeline topologies.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "ai-eval-ci",
       "slug": "ai-eval-ci",
       "description": "Run AI agent and LLM evaluations in CI/CD pipelines — automated quality gates that fail the build when AI output quality drops. Use when someone asks to \"test my AI agent\", \"add evals to CI\", \"catch prompt regressions\", \"compare models\", \"evaluate LLM output quality\", \"set up AI quality gates\", or \"benchmark my agent before deploying\". Covers eval frameworks (Cobalt, Promptfoo, Braintrust), LLM-as-judge scoring, threshold-based assertions, and GitHub Actions integration.",
@@ -147,6 +161,20 @@
         "quality",
         "regression"
       ]
+    },
+    {
+      "name": "ai-guardrails",
+      "slug": "ai-guardrails",
+      "description": "Implement safety guardrails for AI systems — content filtering, prompt injection detection, output validation, bias mitigation, and responsible AI practices. Use when tasks involve adding safety layers to LLM applications, detecting prompt injection attacks, filtering harmful content, implementing rate limiting for AI APIs, validating LLM outputs against schemas, building moderation pipelines, or ensuring AI systems comply with safety policies.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "ai-pentesting",
+      "slug": "ai-pentesting",
+      "description": "Run autonomous AI-driven penetration tests on web applications using tools like Shannon, PentAGI, and similar frameworks. Use when tasks involve setting up automated penetration testing pipelines, combining AI agents with security tools (nmap, subfinder, nuclei, sqlmap), building autonomous exploit chains, generating pentest reports with proof-of-concept exploits, or integrating AI pentesting into CI/CD pipelines. Covers the full pentest lifecycle from reconnaissance to reporting using AI orchestration.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "ai-slides",
@@ -202,6 +230,13 @@
       ]
     },
     {
+      "name": "algo-trading",
+      "slug": "algo-trading",
+      "description": "Build algorithmic trading systems — backtesting, strategy development, live execution, and risk management. Use when tasks involve backtesting trading strategies, connecting to exchange APIs (Binance, Alpaca, Interactive Brokers), implementing technical indicators, portfolio optimization, order execution, risk management rules, market data processing, or building trading bots. Covers both crypto and traditional markets.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "alpine",
       "slug": "alpine",
       "description": "Alpine.js is a lightweight JavaScript framework for adding interactivity to HTML markup. It provides reactive data, event handling, and DOM manipulation through HTML attributes — like a modern jQuery replacement with declarative syntax.",
@@ -252,6 +287,13 @@
       "name": "anthropic-sdk",
       "slug": "anthropic-sdk",
       "description": "Integrate Claude AI into applications with the Anthropic SDK. Use when a user asks to add Claude to an app, use Claude for text generation, build a chatbot with Claude, use Claude's long context window, implement tool use with Claude, stream Claude responses, use Claude for code generation, document analysis, or reasoning tasks. Covers Messages API, streaming, tool use, vision, system prompts, extended thinking, and batch processing.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "apache-arrow",
+      "slug": "apache-arrow",
+      "description": "Expert guidance for Apache Arrow, the cross-language columnar memory format for analytics workloads. Helps developers use Arrow for high-performance data interchange between systems, zero-copy reads, and efficient columnar processing in Python (PyArrow) and JavaScript (Arrow JS).",
       "category": "data-ai",
       "tags": []
     },
@@ -315,6 +357,13 @@
       "tags": []
     },
     {
+      "name": "app-store-optimization",
+      "slug": "app-store-optimization",
+      "description": "Optimize mobile app listings for discovery and conversion in Apple App Store and Google Play. Use when tasks involve ASO keyword research, title and subtitle optimization, screenshot and preview video design, A/B testing store listings, review management, localization for international markets, tracking keyword rankings, or improving download conversion rates. Covers both iOS and Android store algorithms and best practices.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "appium",
       "slug": "appium",
       "description": "When the user wants to automate mobile app testing on iOS and Android using Appium. Also use when the user mentions \"appium,\" \"mobile automation,\" \"iOS testing,\" \"Android testing,\" \"mobile WebDriver,\" \"XCUITest,\" or \"UiAutomator.\" For React Native-specific testing, see detox.",
@@ -355,6 +404,13 @@
       ]
     },
     {
+      "name": "arcjet",
+      "slug": "arcjet",
+      "description": "Expert guidance for Arcjet, the developer-first security platform that provides rate limiting, bot protection, email validation, and attack detection as a code-first SDK. Helps developers add security layers to Next.js, Node.js, and other JavaScript/TypeScript applications without managing infrastructure.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "argocd",
       "slug": "argocd",
       "description": "Argo CD for GitOps continuous delivery on Kubernetes. Use when the user needs to define applications declaratively, sync Kubernetes manifests from Git repositories, manage sync policies, and implement progressive delivery workflows.",
@@ -393,6 +449,13 @@
         "ssg",
         "content"
       ]
+    },
+    {
+      "name": "atuin",
+      "slug": "atuin",
+      "description": "Expert guidance for Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. Helps developers install, configure, and get the most out of Atuin for shell history management and productivity.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "audiowaveform",
@@ -519,6 +582,13 @@
       "tags": []
     },
     {
+      "name": "axiom",
+      "slug": "axiom",
+      "description": "Expert guidance for Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. Helps developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "azure-blob-storage",
       "slug": "azure-blob-storage",
       "description": "Store and manage unstructured data with Azure Blob Storage. Create containers, upload and organize blobs, configure access tiers (Hot, Cool, Archive) for cost optimization, generate SAS tokens for secure temporary access, and set lifecycle management policies.",
@@ -564,6 +634,13 @@
       "slug": "better-auth",
       "description": "Add authentication to any framework with Better Auth. Use when a user asks to implement auth, set up login/signup, add OAuth providers, implement session management, or choose between auth libraries for TypeScript apps.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "betterstack",
+      "slug": "betterstack",
+      "description": "Expert guidance for Better Stack (formerly Better Uptime + Logtail), the observability platform combining uptime monitoring, log management, incident response, and status pages. Helps developers set up comprehensive monitoring with alerting, on-call schedules, and public status pages.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -736,6 +813,13 @@
       ]
     },
     {
+      "name": "braintrust",
+      "slug": "braintrust",
+      "description": "Expert guidance for Braintrust, the platform for evaluating, monitoring, and improving AI applications. Helps developers set up experiments, track prompt performance, compare models, and debug production LLM issues with detailed tracing.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "brand-guidelines",
       "slug": "brand-guidelines",
       "description": "Create and maintain brand style guides for consistent visual identity. Use when a user asks to create brand guidelines, build a style guide, define a brand identity, create a design system document, establish brand colors and typography, or produce any brand standards documentation.",
@@ -814,6 +898,13 @@
       ]
     },
     {
+      "name": "cal-com",
+      "slug": "cal-com",
+      "description": "Expert guidance for Cal.com, the open-source scheduling platform for building booking and appointment systems. Helps developers integrate Cal.com's embed widgets, REST API, and webhooks to add scheduling capabilities to their applications.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "calendar-integration",
       "slug": "calendar-integration",
       "description": "Integrate with Google Calendar and Microsoft Outlook Calendar for scheduling, event management, and availability tracking. Use when someone asks to \"create calendar events\", \"check availability\", \"schedule meetings\", \"sync calendars\", \"Google Calendar API\", \"Outlook Calendar API\", \"booking system\", \"find free slots\", or \"manage recurring events\". Covers Google Calendar API v3, Microsoft Graph Calendar API, event CRUD, availability/free-busy queries, recurring events, and building scheduling features.",
@@ -866,6 +957,13 @@
       ]
     },
     {
+      "name": "caprover",
+      "slug": "caprover",
+      "description": "Expert guidance for CapRover, the open-source PaaS that turns any Linux server into a Heroku-like platform with automatic HTTPS, one-click app deployment, and Docker-based containerization. Helps developers deploy applications, configure custom domains, and manage the CapRover cluster.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "cassandra",
       "slug": "cassandra",
       "description": "Apache Cassandra is a distributed NoSQL database designed for high availability and linear scalability. Learn CQL (Cassandra Query Language), data modeling with partition keys, replication strategies, and integration with Node.js using the DataStax driver.",
@@ -877,6 +975,13 @@
       "slug": "celery",
       "description": "Run background tasks in Python with Celery. Use when a user asks to process tasks asynchronously, schedule periodic jobs, run background workers, build task queues in Python, or offload heavy processing from web requests.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "cerebras",
+      "slug": "cerebras",
+      "description": "Expert guidance for Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). Helps developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -946,6 +1051,20 @@
       "tags": []
     },
     {
+      "name": "checkly",
+      "slug": "checkly",
+      "description": "Expert guidance for Checkly, the synthetic monitoring platform that runs Playwright-based browser checks and API checks from locations worldwide. Helps developers implement monitoring-as-code (MaC) with the Checkly CLI, set up API and browser checks, configure alerting, and integrate monitoring into CI/CD pipelines.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "checkov",
+      "slug": "checkov",
+      "description": "Expert guidance for Checkov, the static analysis tool for infrastructure-as-code that scans Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, and ARM templates for security misconfigurations and compliance violations. Helps developers integrate Checkov into CI/CD pipelines and write custom policies.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "cheerio",
       "slug": "cheerio",
       "description": "Parse and extract data from HTML with Cheerio. Use when a user asks to scrape static web pages, parse HTML files, extract data from HTML, build a web scraper for server-rendered pages, extract text or links from HTML documents, parse RSS/XML feeds, transform HTML content, or process HTML emails. Covers jQuery-style selectors, DOM traversal, text extraction, attribute parsing, and integration with HTTP clients for web scraping pipelines.",
@@ -1010,6 +1129,13 @@
         "design-system",
         "components"
       ]
+    },
+    {
+      "name": "clearml",
+      "slug": "clearml",
+      "description": "Expert guidance for ClearML, the open-source MLOps platform for experiment tracking, pipeline orchestration, data management, and model deployment. Helps developers set up ML experiment tracking with minimal code, build reproducible pipelines, and manage the full ML lifecycle from training to serving.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "clerk-auth",
@@ -1146,6 +1272,13 @@
         "background-process",
         "orchestration"
       ]
+    },
+    {
+      "name": "comet-ml",
+      "slug": "comet-ml",
+      "description": "Expert guidance for Comet ML, the platform for tracking machine learning experiments, managing models, and monitoring production ML systems. Helps developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "comfyui",
@@ -1302,6 +1435,13 @@
       "tags": []
     },
     {
+      "name": "cosign",
+      "slug": "cosign",
+      "description": "Expert guidance for Cosign, the Sigstore tool for signing, verifying, and attaching metadata to container images and other OCI artifacts. Helps developers implement supply chain security by signing images in CI/CD, verifying signatures before deployment, and attaching SBOMs and vulnerability scan results as attestations.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "cover-letter",
       "slug": "cover-letter",
       "description": "Create compelling, personalized cover letters that help you stand out in job applications. Use when a user asks to write a cover letter, draft a job application letter, create a letter of interest, compose a motivation letter, or personalize an application for a specific company and role.",
@@ -1367,6 +1507,13 @@
         "data-import",
         "export"
       ]
+    },
+    {
+      "name": "cube",
+      "slug": "cube",
+      "description": "Expert guidance for Cube, the headless BI and semantic layer that sits between your data warehouse and analytics applications. Helps developers define data models, create metrics APIs, and build analytics features in applications with consistent, governed access to business metrics.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "cucumber",
@@ -1560,6 +1707,13 @@
       "tags": []
     },
     {
+      "name": "deepeval",
+      "slug": "deepeval",
+      "description": "Expert guidance for DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "deno",
       "slug": "deno",
       "description": "Assists with building secure JavaScript and TypeScript applications using the Deno runtime. Use when creating servers, CLI tools, or scripts with Deno's built-in tooling, permission model, and web standards APIs. Trigger words: deno, deno deploy, deno serve, deno kv, deno permissions, secure runtime, jsr.",
@@ -1712,6 +1866,13 @@
       ]
     },
     {
+      "name": "dokploy",
+      "slug": "dokploy",
+      "description": "Expert guidance for Dokploy, the open-source, self-hosted Platform as a Service alternative to Vercel, Netlify, and Heroku. Helps developers deploy applications, databases, and services on their own VPS with automatic SSL, Docker-based isolation, and a web dashboard for management.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "doppler",
       "slug": "doppler",
       "description": "Manage secrets and environment variables using the Doppler CLI. Use when the user wants to set up Doppler, inject secrets into processes, manage projects and configs, upload or download secrets, create service tokens, use secret templates, or integrate Doppler with Docker, Kubernetes, or CI/CD pipelines. Trigger words: doppler, secrets manager, env vars, secret injection, doppler run, doppler setup, service token, secret rotation.",
@@ -1754,6 +1915,13 @@
       "name": "drizzle-studio",
       "slug": "drizzle-studio",
       "description": "Explore and manage databases with Drizzle Studio. Use when a user asks to browse database contents visually, inspect tables and data, run ad-hoc queries, manage database records through a GUI, debug database issues, or use a lightweight alternative to pgAdmin or DBeaver. Covers setup with Drizzle ORM, standalone usage, data browsing, filtering, and inline editing.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "dspy",
+      "slug": "dspy",
+      "description": "Build self-optimizing LLM pipelines with DSPy — declarative prompt programming, automatic prompt optimization, and modular AI workflows. Use when tasks involve building LLM pipelines that self-improve, optimizing prompts systematically instead of manually, chaining LLM calls with typed signatures, evaluating and comparing prompt strategies, or building retrieval-augmented generation (RAG) systems with automatic tuning. Covers DSPy modules, optimizers, and evaluation.",
       "category": "data-ai",
       "tags": []
     },
@@ -1937,6 +2105,20 @@
       "tags": []
     },
     {
+      "name": "evidence",
+      "slug": "evidence",
+      "description": "Expert guidance for Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. Helps developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "excalidraw",
+      "slug": "excalidraw",
+      "description": "Expert guidance for Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. Helps developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "excel-processor",
       "slug": "excel-processor",
       "description": "Read, transform, analyze, and generate Excel and CSV files. Use when a user asks to open a spreadsheet, process Excel data, merge CSVs, create pivot tables, clean up data, convert between Excel and CSV, add formulas, filter rows, or generate reports from tabular data. Handles .xlsx, .xls, and .csv.",
@@ -2030,6 +2212,13 @@
       "tags": []
     },
     {
+      "name": "falco",
+      "slug": "falco",
+      "description": "Expert guidance for Falco, the CNCF runtime security tool that detects anomalous behavior in containers and Kubernetes clusters using system call monitoring. Helps developers set up Falco for detecting shell spawns in containers, unexpected network connections, file access violations, and privilege escalation — all in real-time with zero application changes.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "fast-check",
       "slug": "fast-check",
       "description": "Find edge-case bugs with property-based testing using fast-check — generate thousands of random inputs automatically. Use when someone asks to \"find edge cases\", \"fast-check\", \"property-based testing\", \"fuzz testing in TypeScript\", \"generate random test data\", \"QuickCheck for JavaScript\", or \"test with random inputs\". Covers property definitions, arbitraries, shrinking, model-based testing, and integration with Vitest/Jest.",
@@ -2089,6 +2278,13 @@
       ]
     },
     {
+      "name": "feedback-analysis",
+      "slug": "feedback-analysis",
+      "description": "Collect, categorize, and synthesize user feedback from multiple channels into actionable product insights. Use when tasks involve analyzing support tickets, app store reviews, NPS survey responses, social media mentions, user interviews, feature request prioritization, sentiment analysis, churn prediction from feedback patterns, or building voice-of-customer reports. Covers multi-channel feedback aggregation and data-driven product decisions.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "ffmpeg",
       "slug": "ffmpeg",
       "description": "Transcode, convert, edit, and process audio and video with FFmpeg. Use when a user asks to convert video formats (webm to mp4, mkv to mp4), extract audio from video, compress video files, trim or cut clips, concatenate videos, add subtitles, create thumbnails, apply filters, change resolution or bitrate, re-encode media, create GIFs from video, add watermarks, normalize audio, stream media, or build automated media processing pipelines.",
@@ -2120,6 +2316,13 @@
         "ffuf",
         "content-discovery"
       ]
+    },
+    {
+      "name": "fig",
+      "slug": "fig",
+      "description": "Expert guidance for Amazon Q Developer (formerly Fig), the terminal tool that provides IDE-style autocomplete, AI chat, and CLI builder capabilities. Helps developers create custom completion specs, build CLI tools with autocomplete, and configure terminal productivity features.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "figma-api",
@@ -2173,6 +2376,13 @@
       ]
     },
     {
+      "name": "firebase",
+      "slug": "firebase",
+      "description": "Expert guidance for Firebase, Google's platform for building and scaling web and mobile applications. Helps developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "firecrawl",
       "slug": "firecrawl",
       "description": "Convert any website into clean, structured data with Firecrawl — API-first web scraping service. Use when someone asks to \"turn a website into markdown\", \"scrape website for LLM\", \"Firecrawl\", \"extract website content as clean text\", \"crawl and convert to structured data\", or \"scrape website for RAG\". Covers single-page scraping, full-site crawling, structured extraction, and LLM-ready output.",
@@ -2184,6 +2394,13 @@
         "rag",
         "markdown"
       ]
+    },
+    {
+      "name": "fireworks-ai",
+      "slug": "fireworks-ai",
+      "description": "Expert guidance for Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. Helps developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "flask",
@@ -2212,6 +2429,13 @@
         "kubernetes",
         "observability"
       ]
+    },
+    {
+      "name": "flutter",
+      "slug": "flutter",
+      "description": "Expert guidance for Flutter, Google's UI toolkit for building natively compiled applications for mobile, web, and desktop from a single Dart codebase. Helps developers build performant cross-platform apps with custom widgets, state management, platform channels, and production deployment.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "fly-io",
@@ -2297,6 +2521,13 @@
       "slug": "gallery-dl",
       "description": "Download images and media galleries from websites with gallery-dl. Use when a user asks to download images from Instagram, Twitter/X, Reddit, Pixiv, DeviantArt, Danbooru, Tumblr, Flickr, ArtStation, or other image hosting sites, bulk download image galleries, archive artist portfolios, scrape images with metadata, download from image boards, save entire user profiles or tagged collections, or build image dataset pipelines.",
       "category": "content",
+      "tags": []
+    },
+    {
+      "name": "gatus",
+      "slug": "gatus",
+      "description": "Expert guidance for Gatus, the lightweight, self-hosted health check and status page tool written in Go. Helps developers set up endpoint monitoring with conditions, alerting, and a beautiful status page — all configured via a single YAML file with no database required.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -2414,6 +2645,20 @@
       "tags": []
     },
     {
+      "name": "gleam",
+      "slug": "gleam",
+      "description": "Expert guidance for Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. Helps developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "go-to-market",
+      "slug": "go-to-market",
+      "description": "Expert guidance for go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. The agent apply frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "gobuster",
       "slug": "gobuster",
       "description": "Brute force directories, files, DNS subdomains, and virtual hosts with Gobuster. Use when a user asks to discover hidden endpoints, enumerate subdomains, find backup files, or perform web content discovery during penetration testing.",
@@ -2462,10 +2707,31 @@
       "tags": []
     },
     {
+      "name": "groq",
+      "slug": "groq",
+      "description": "Expert guidance for Groq, the LLM inference platform that provides the fastest token generation speeds available, powered by custom LPU (Language Processing Unit) hardware. Helps developers integrate Groq's API for real-time AI applications where latency matters — chatbots, code completion, and streaming responses.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "growth-hacking",
+      "slug": "growth-hacking",
+      "description": "Design and execute growth experiments for rapid user acquisition and retention. Use when tasks involve viral loops, referral programs, conversion funnel optimization, A/B testing strategies, CAC/LTV analysis, product-led growth, activation rate improvement, cohort analysis, or scaling user growth through data-driven experimentation. Covers the full growth lifecycle from acquisition through retention.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "grpc",
       "slug": "grpc",
       "description": "Build high-performance RPC services with gRPC and Protocol Buffers. Use when a user asks to create gRPC services, define protobuf schemas, implement streaming RPCs, build microservice communication, set up service-to-service calls, implement bidirectional streaming, add interceptors/middleware to gRPC, generate client stubs, handle gRPC errors, implement health checks, configure load balancing, or build gRPC-Web for browser clients. Covers unary, server/client/bidirectional streaming, interceptors, deadlines, metadata, reflection, and production patterns.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "grype",
+      "slug": "grype",
+      "description": "Expert guidance for Grype, the open-source vulnerability scanner by Anchore that finds known vulnerabilities (CVEs) in container images, filesystems, and SBOMs. Helps developers integrate Grype into CI/CD pipelines, triage findings, and combine it with Syft for SBOM generation.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -2513,6 +2779,13 @@
         "encryption",
         "dynamic-credentials"
       ]
+    },
+    {
+      "name": "hasura",
+      "slug": "hasura",
+      "description": "Expert guidance for Hasura, the GraphQL engine that gives the agent instant, real-time GraphQL APIs over PostgreSQL (and other databases). Helps developers set up Hasura, configure permissions, write custom business logic with Actions and Event Triggers, and optimize GraphQL queries for production.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "hatchet",
@@ -2621,6 +2894,13 @@
         "translations",
         "react-i18next"
       ]
+    },
+    {
+      "name": "ibis",
+      "slug": "ibis",
+      "description": "Expert guidance for Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. Helps developers write analytics code once and run it anywhere without rewriting SQL for each database.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "imgix",
@@ -2734,6 +3014,13 @@
         "business",
         "finance"
       ]
+    },
+    {
+      "name": "ionic",
+      "slug": "ionic",
+      "description": "Expert guidance for Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Helps developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "ipfs",
@@ -2933,6 +3220,13 @@
       ]
     },
     {
+      "name": "keystonejs",
+      "slug": "keystonejs",
+      "description": "Expert guidance for KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. Helps developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.",
+      "category": "content",
+      "tags": []
+    },
+    {
       "name": "kibana",
       "slug": "kibana",
       "description": "Configure and use Kibana for Elasticsearch data visualization, dashboard creation, and log exploration. Use when a user needs to build dashboards with Lens, write KQL queries, set up data views, create visualizations, or configure Kibana spaces and role-based access.",
@@ -2960,6 +3254,20 @@
       ]
     },
     {
+      "name": "kotlin-multiplatform",
+      "slug": "kotlin-multiplatform",
+      "description": "Expert guidance for Kotlin Multiplatform (KMP), JetBrains' technology for sharing code between Android, iOS, web, and desktop applications. Helps developers build shared business logic, networking, and data layers in Kotlin while keeping UI native on each platform.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "koyeb",
+      "slug": "koyeb",
+      "description": "Expert guidance for Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. Helps developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "kubernetes-helm",
       "slug": "kubernetes-helm",
       "description": "Manages Kubernetes clusters and Helm charts. Use when the user wants to write Kubernetes manifests, create Helm charts, deploy applications, debug pods, configure networking (services, ingress), set up autoscaling, manage secrets and config maps, write operators, troubleshoot cluster issues, or implement GitOps workflows. Trigger words: kubernetes, k8s, kubectl, helm, helm chart, pod, deployment, service, ingress, namespace, configmap, secret, hpa, pvc, statefulset, daemonset, cronjob, operator, kustomize, argocd, flux, gitops, node pool, taint, toleration, affinity.",
@@ -2976,6 +3284,13 @@
       "slug": "kysely",
       "description": "Write type-safe SQL with Kysely query builder. Use when a user asks to write raw SQL with TypeScript safety, build queries without an ORM, use a lightweight SQL builder, or migrate from Knex with type safety.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "kyverno",
+      "slug": "kyverno",
+      "description": "Expert guidance for Kyverno, the Kubernetes-native policy engine that validates, mutates, and generates resources using YAML policies (no Rego required). Helps developers enforce security policies, automate resource defaults, and ensure compliance across Kubernetes clusters.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -3061,6 +3376,13 @@
       ]
     },
     {
+      "name": "lean-canvas",
+      "slug": "lean-canvas",
+      "description": "Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. The agent also cover related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "lefthook",
       "slug": "lefthook",
       "description": "Fast Git hooks manager written in Go. Use when a user asks to set up Git hooks without Node.js dependency, run parallel pre-commit checks, or find a faster alternative to Husky.",
@@ -3129,6 +3451,20 @@
       ]
     },
     {
+      "name": "liveblocks",
+      "slug": "liveblocks",
+      "description": "Expert guidance for Liveblocks, the platform for adding real-time collaboration features to web applications. Helps developers implement live cursors, presence indicators, collaborative editing, comments, and notifications using Liveblocks' React hooks and APIs.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "llamafile",
+      "slug": "llamafile",
+      "description": "Expert guidance for llamafile, the tool that packages LLMs into single executable files that run on any OS (Linux, macOS, Windows, FreeBSD) without installation. Helps developers create portable AI applications, run models offline, and distribute LLMs as self-contained binaries with built-in web UI and OpenAI-compatible API.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "llamaindex",
       "slug": "llamaindex",
       "description": "Assists with building RAG pipelines, knowledge assistants, and data-augmented LLM applications using LlamaIndex. Use when ingesting documents, configuring retrieval strategies, building query engines, or creating multi-step agents. Trigger words: llamaindex, rag, retrieval augmented generation, vector index, query engine, document loader, knowledge base.",
@@ -3172,6 +3508,13 @@
       "slug": "load-balancer",
       "description": "Configure and optimize load balancers and reverse proxies using Nginx, HAProxy, and cloud ALBs. Use when someone asks to \"set up load balancing\", \"configure Nginx reverse proxy\", \"set up HAProxy\", \"add SSL termination\", \"configure health checks\", \"proxy WebSocket connections\", \"rate limit traffic\", or \"set up failover\". Covers L4/L7 balancing, SSL, rate limiting, caching, WebSocket proxying, and health checks.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "localai",
+      "slug": "localai",
+      "description": "Expert guidance for LocalAI, the open-source drop-in replacement for OpenAI's API that runs locally. Helps developers self-host LLMs, image generators, audio transcription, and text-to-speech models with an OpenAI-compatible API — no GPU required, completely offline and private.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -3262,6 +3605,13 @@
       "tags": []
     },
     {
+      "name": "malloy",
+      "slug": "malloy",
+      "description": "Expert guidance for Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. Helps developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "maps-geolocation",
       "slug": "maps-geolocation",
       "description": "Build location-based features with mapping APIs. Use when a user asks to integrate Google Maps, Mapbox, or Leaflet, implement geocoding and reverse geocoding, calculate routes and distances, build store locators, add interactive maps to web apps, implement geofencing, work with GeoJSON, build delivery tracking systems, optimize routes for fleets, display heatmaps, implement address autocomplete, or build any location-aware application. Covers Google Maps Platform, Mapbox, Leaflet, and OpenStreetMap/Nominatim.",
@@ -3309,6 +3659,13 @@
       "tags": []
     },
     {
+      "name": "mastra",
+      "slug": "mastra",
+      "description": "Expert guidance for Mastra, the TypeScript-first framework for building AI agents, workflows, and RAG pipelines. Helps developers create production-ready AI applications with tool use, memory, and multi-step reasoning.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "mcp-server-builder",
       "slug": "mcp-server-builder",
       "description": "Build Model Context Protocol (MCP) servers that connect AI agents to external services and data sources. Use when a user asks to create an MCP server, build an MCP tool, connect an AI agent to an API, create a tool server for Claude, build MCP resources, or expose a database/service via MCP. Generates TypeScript or Python MCP servers with tools, resources, and prompts following the official MCP specification.",
@@ -3320,6 +3677,13 @@
         "integration",
         "protocol"
       ]
+    },
+    {
+      "name": "media-buying",
+      "slug": "media-buying",
+      "description": "Plan and execute media buying across digital and traditional channels — programmatic advertising, DSP platforms, direct buys, and budget allocation. Use when tasks involve programmatic ad buying, real-time bidding (RTB), demand-side platform setup, media plan creation, CPM/CPC/CPA optimization, cross-channel budget allocation, audience segmentation for paid media, or negotiating direct ad placements.",
+      "category": "business",
+      "tags": []
     },
     {
       "name": "media-transcoder",
@@ -3465,6 +3829,13 @@
       ]
     },
     {
+      "name": "mojo",
+      "slug": "mojo",
+      "description": "Expert guidance for Mojo, the programming language by Modular that combines Python's usability with C-level performance. Helps developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "mongodb",
       "slug": "mongodb",
       "description": "Assists with designing document schemas, building aggregation pipelines, managing indexes, and operating MongoDB clusters. Use when working with flexible schemas, nested documents, horizontal scaling, Atlas Search, or vector search for AI applications. Trigger words: mongodb, mongo, document database, aggregation, atlas, nosql.",
@@ -3501,6 +3872,13 @@
         "task-runner",
         "ci"
       ]
+    },
+    {
+      "name": "motherduck",
+      "slug": "motherduck",
+      "description": "Expert guidance for MotherDuck, the serverless analytics platform built on DuckDB that combines local and cloud query execution. Helps developers run SQL analytics on cloud-hosted data, share datasets, and build hybrid local-cloud data pipelines using DuckDB's familiar interface.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "moviepy",
@@ -3736,6 +4114,13 @@
       ]
     },
     {
+      "name": "nhost",
+      "slug": "nhost",
+      "description": "Expert guidance for Nhost, the open-source backend platform built on PostgreSQL, Hasura GraphQL, and serverless functions. Helps developers set up authentication, database, file storage, and real-time subscriptions with auto-generated GraphQL APIs and a developer-friendly SDK.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "nikto",
       "slug": "nikto",
       "description": "Scan web servers for vulnerabilities with Nikto. Use when a user asks to audit web server configuration, find outdated software, detect dangerous files, check for misconfigurations, or perform web server security scanning.",
@@ -3756,6 +4141,13 @@
       ]
     },
     {
+      "name": "nixpacks",
+      "slug": "nixpacks",
+      "description": "Expert guidance for Nixpacks, the build system created by Railway that automatically detects your application's language and framework, installs dependencies, and produces optimized Docker images — all without writing a Dockerfile. Helps developers configure Nixpacks for custom build steps, multi-language projects, and CI/CD integration.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "nmap-recon",
       "slug": "nmap-recon",
       "description": "Perform network reconnaissance with Nmap. Use when a user asks to scan networks, discover hosts and services, detect OS versions, find open ports, enumerate service versions, or perform initial reconnaissance for a penetration test.",
@@ -3766,6 +4158,13 @@
       "name": "nomad",
       "slug": "nomad",
       "description": "HashiCorp Nomad workload orchestrator for deploying containers, VMs, and standalone applications. Use when the user needs to write job specifications, manage deployments, configure scaling, or run batch and service workloads across a cluster.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "northflank",
+      "slug": "northflank",
+      "description": "Expert guidance for Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. Helps developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.",
       "category": "devops",
       "tags": []
     },
@@ -3874,6 +4273,13 @@
       ]
     },
     {
+      "name": "okr-planning",
+      "slug": "okr-planning",
+      "description": "Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. The agent apply frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "ollama",
       "slug": "ollama",
       "description": "Run LLMs locally with Ollama. Use when a user asks to run AI models locally, self-host a language model, use LLaMA or Mistral on their machine, run offline AI, build a local chatbot, avoid sending data to cloud AI providers, generate text without API costs, fine-tune or customize local models, or set up a private AI inference server. Covers model management, API usage, Modelfile customization, GPU acceleration, and integration with LangChain and other frameworks.",
@@ -3925,6 +4331,13 @@
       "slug": "onnx",
       "description": "Open Neural Network Exchange format for model interoperability across frameworks. Export models from PyTorch, TensorFlow, and other frameworks to ONNX, optimize with ONNX Runtime, and deploy for cross-platform inference on CPU, GPU, and edge devices.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "opa",
+      "slug": "opa",
+      "description": "Expert guidance for OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -4019,6 +4432,13 @@
         "loading",
         "terminal"
       ]
+    },
+    {
+      "name": "orama",
+      "slug": "orama",
+      "description": "Expert guidance for Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. Helps developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "otel-js",
@@ -4125,6 +4545,13 @@
       "name": "pandas-ai",
       "slug": "pandas-ai",
       "description": "PandasAI enables natural language queries on pandas DataFrames using LLMs. Learn to ask questions in plain English, generate charts, clean data, and integrate with OpenAI and local models for conversational data analysis.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "pandera",
+      "slug": "pandera",
+      "description": "Expert guidance for Pandera, the Python library for validating pandas and Polars DataFrames with expressive schemas. Helps developers define data contracts, validate data pipelines, and catch data quality issues before they corrupt downstream systems.",
       "category": "data-ai",
       "tags": []
     },
@@ -4307,6 +4734,20 @@
       "tags": []
     },
     {
+      "name": "planetscale",
+      "slug": "planetscale",
+      "description": "Expert guidance for PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). Helps developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "plasmo",
+      "slug": "plasmo",
+      "description": "Expert guidance for Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. Helps developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "plausible",
       "slug": "plausible",
       "description": "Privacy-first web analytics with Plausible — lightweight script tag, no cookies, GDPR-compliant by default. Self-host with Docker or use Plausible Cloud. Covers script installation, custom event goals, pageview filtering, the Stats API for programmatic access, and Google Search Console integration. Use when tasks involve adding website analytics without cookie banners, replacing Google Analytics with a privacy-friendly alternative, or querying traffic data via API.",
@@ -4382,6 +4823,20 @@
       "tags": []
     },
     {
+      "name": "porter",
+      "slug": "porter",
+      "description": "Expert guidance for Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. Helps developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "portkey",
+      "slug": "portkey",
+      "description": "Expert guidance for Portkey, the AI gateway that provides a unified interface for routing, caching, monitoring, and managing LLM API calls across multiple providers. Helps developers build reliable, cost-efficient AI applications with automatic failover, semantic caching, and detailed analytics.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "postgresql",
       "slug": "postgresql",
       "description": "Assists with designing schemas, writing performant queries, managing indexes, and operating PostgreSQL databases. Use when working with JSONB, full-text search, window functions, CTEs, row-level security, replication, or performance tuning. Trigger words: postgresql, postgres, sql, database, jsonb, rls, window functions, cte.",
@@ -4429,6 +4884,20 @@
       ]
     },
     {
+      "name": "prd-writing",
+      "slug": "prd-writing",
+      "description": "Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. The agent produce PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "prediction-markets",
+      "slug": "prediction-markets",
+      "description": "Build tools and dashboards for prediction markets — Polymarket, Manifold, Kalshi, and Metaculus. Use when tasks involve fetching prediction market data, building probability dashboards, analyzing market liquidity, creating trading bots for prediction markets, visualizing event probabilities, or tracking forecasting accuracy. Covers both API integration and market analysis.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "prefect",
       "slug": "prefect",
       "description": "Prefect is a modern workflow orchestration framework for Python data pipelines. Learn to define flows and tasks with decorators, handle retries and scheduling, create deployments, and monitor via the Prefect UI.",
@@ -4463,10 +4932,31 @@
       ]
     },
     {
+      "name": "product-analytics",
+      "slug": "product-analytics",
+      "description": "Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. The agent apply frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.",
+      "category": "business",
+      "tags": []
+    },
+    {
+      "name": "product-discovery",
+      "slug": "product-discovery",
+      "description": "Expert guidance for product discovery, the continuous process of deciding what to build based on evidence rather than opinions. Helps product teams identify assumptions, design experiments, conduct user interviews, build opportunity solution trees, and prioritize what to validate next — following frameworks from Teresa Torres (Continuous Discovery Habits) and Alberto Savoia (The Right It).",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "product-marketing-context",
       "slug": "product-marketing-context",
       "description": "When the user wants to create or update their product marketing context document. Also use when the user mentions 'product context,' 'marketing context,' 'set up context,' 'positioning,' or wants to avoid repeating foundational information across marketing tasks. Creates `.claude/product-marketing-context.md` that other marketing skills reference.",
       "category": "marketing",
+      "tags": []
+    },
+    {
+      "name": "product-strategy",
+      "slug": "product-strategy",
+      "description": "Expert guidance for product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. The agent apply frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.",
+      "category": "business",
       "tags": []
     },
     {
@@ -4629,6 +5119,13 @@
       ]
     },
     {
+      "name": "ragas",
+      "slug": "ragas",
+      "description": "Expert guidance for Ragas, the framework for evaluating Retrieval-Augmented Generation pipelines. Helps developers measure and improve the quality of their RAG systems across retrieval accuracy, answer faithfulness, and response relevance.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "rails",
       "slug": "rails",
       "description": "Ruby on Rails is a full-stack web framework following convention over configuration. It provides ActiveRecord ORM, Action Controller, Action View templates, Action Cable for WebSockets, and generators for rapid application development.",
@@ -4664,6 +5161,13 @@
       "slug": "ray",
       "description": "Framework for scaling Python applications from a laptop to a cluster. Includes Ray Core for distributed computing, Ray Serve for model serving, Ray Tune for hyperparameter optimization, and Ray Data for distributed data processing.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "raycast",
+      "slug": "raycast",
+      "description": "Expert guidance for building Raycast extensions — custom commands, views, and integrations for the Raycast launcher on macOS. Helps developers create productivity extensions using React, TypeScript, and Raycast's API for lists, forms, actions, and preferences.",
+      "category": "development",
       "tags": []
     },
     {
@@ -4846,6 +5350,13 @@
         "animation",
         "rendering"
       ]
+    },
+    {
+      "name": "render",
+      "slug": "render",
+      "description": "Expert guidance for Render, the modern cloud platform for deploying web applications, APIs, databases, and background workers. Helps developers configure Render services using `render.yaml` Infrastructure as Code, set up auto-deploy from Git, manage environment variables, and optimize for production workloads.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "renovate",
@@ -5057,6 +5568,13 @@
       ]
     },
     {
+      "name": "schemathesis",
+      "slug": "schemathesis",
+      "description": "Automatically test APIs by generating test cases from OpenAPI/GraphQL schemas. Use when tasks involve API fuzzing, finding edge cases in REST or GraphQL APIs, testing schema compliance, generating property-based tests from API specs, finding crashes and 500 errors, or validating API contracts. Schemathesis generates thousands of test cases from your schema and finds bugs that manual testing misses.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "scikit-learn",
       "slug": "scikit-learn",
       "description": "Assists with building, evaluating, and deploying machine learning models using scikit-learn. Use when performing data preprocessing, feature engineering, model selection, hyperparameter tuning, cross-validation, or building pipelines for classification, regression, and clustering tasks. Trigger words: sklearn, scikit-learn, machine learning, classification, regression, pipeline, cross-validation.",
@@ -5119,6 +5637,13 @@
       "slug": "semantic-release",
       "description": "Automate versioning and package publishing with semantic-release. Use when a user asks to automate npm publishing, generate changelogs, handle semantic versioning in CI, or automate GitHub releases.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "semgrep",
+      "slug": "semgrep",
+      "description": "Expert guidance for Semgrep, the fast, open-source static analysis tool that finds bugs, security vulnerabilities, and anti-patterns in code. Helps developers write custom rules, integrate Semgrep into CI/CD pipelines, and use the registry of community rules for security scanning.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -5227,6 +5752,13 @@
         "hydrogen",
         "themes"
       ]
+    },
+    {
+      "name": "signoz",
+      "slug": "signoz",
+      "description": "Expert guidance for SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. Helps developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "signup-flow-cro",
@@ -5378,6 +5910,13 @@
       ]
     },
     {
+      "name": "ssrf-detection",
+      "slug": "ssrf-detection",
+      "description": "Detect, exploit, and prevent Server-Side Request Forgery (SSRF) vulnerabilities. Use when tasks involve testing for SSRF in web applications, accessing internal services through SSRF, bypassing SSRF filters, implementing SSRF prevention, or auditing applications that fetch external URLs. Covers blind and non-blind SSRF, cloud metadata exploitation, and defense strategies.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "sst",
       "slug": "sst",
       "description": "Assists with building and deploying full-stack serverless applications on AWS using SST. Use when defining Lambda functions, API Gateway routes, DynamoDB tables, S3 buckets, or deploying Next.js/Remix/Astro with SSR on AWS. Trigger words: sst, serverless stack, sst dev, sst deploy, aws lambda, sst ion, resource linking.",
@@ -5389,6 +5928,13 @@
         "lambda",
         "full-stack"
       ]
+    },
+    {
+      "name": "starship",
+      "slug": "starship",
+      "description": "Expert guidance for Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. Helps developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.",
+      "category": "development",
+      "tags": []
     },
     {
       "name": "statuspage",
@@ -5426,7 +5972,7 @@
     {
       "name": "streamlit",
       "slug": "streamlit",
-      "description": "Streamlit turns Python scripts into interactive web applications for data science. Learn to build dashboards with widgets, charts, file uploads, caching, multi-page apps, and deployment to Streamlit Cloud.",
+      "description": "Expert guidance for Streamlit, the Python framework for building interactive data applications and dashboards. Helps developers create web apps for data exploration, ML model demos, and internal tools using pure Python — no frontend skills required.",
       "category": "data-ai",
       "tags": []
     },
@@ -5475,6 +6021,13 @@
         "zod",
         "pydantic"
       ]
+    },
+    {
+      "name": "subfinder",
+      "slug": "subfinder",
+      "description": "Discover subdomains of a target domain using passive and active enumeration techniques. Use when tasks involve subdomain enumeration, attack surface mapping, DNS reconnaissance, finding hidden services, identifying forgotten subdomains, or expanding the scope of a security assessment. Subfinder uses passive sources (certificate transparency logs, DNS datasets, search engines) to find subdomains without touching the target directly.",
+      "category": "devops",
+      "tags": []
     },
     {
       "name": "supabase",
@@ -5826,6 +6379,13 @@
       ]
     },
     {
+      "name": "tinacms",
+      "slug": "tinacms",
+      "description": "Expert guidance for TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. Helps developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.",
+      "category": "content",
+      "tags": []
+    },
+    {
       "name": "tinybird",
       "slug": "tinybird",
       "description": "Build real-time analytics APIs with Tinybird — ingest millions of events and query with SQL over HTTP. Use when someone asks to \"build analytics API\", \"Tinybird\", \"real-time analytics\", \"event analytics\", \"ClickHouse as a service\", \"usage metering\", or \"product analytics backend\". Covers data ingestion, SQL pipes, API endpoints, and real-time dashboards.",
@@ -5839,6 +6399,13 @@
       ]
     },
     {
+      "name": "tldraw",
+      "slug": "tldraw",
+      "description": "Expert guidance for tldraw, the open-source library for creating infinite canvas experiences in React applications. Helps developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "together-ai",
       "slug": "together-ai",
       "description": "Cloud platform for running open-source AI models. Provides inference APIs for LLMs, image models, and embedding models. Supports fine-tuning on custom data, OpenAI-compatible API format, and competitive pricing for open-source model hosting.",
@@ -5850,6 +6417,13 @@
       "slug": "traefik",
       "description": "Route traffic and manage TLS with Traefik reverse proxy. Use when a user asks to set up a reverse proxy, route traffic to Docker containers, auto-provision SSL certificates with Let's Encrypt, set up load balancing, configure HTTPS for multiple services, use a modern alternative to nginx for Docker, set up path-based or host-based routing, add middleware (rate limiting, auth, headers), or manage ingress for containerized applications.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "trieve",
+      "slug": "trieve",
+      "description": "Expert guidance for Trieve, the all-in-one search infrastructure that combines full-text, semantic, and hybrid search with built-in RAG capabilities. Helps developers implement production search with chunking, re-ranking, recommendations, and analytics without managing vector databases or embedding models.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -6053,6 +6627,13 @@
       "tags": []
     },
     {
+      "name": "user-research",
+      "slug": "user-research",
+      "description": "Expert guidance for user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. The agent apply both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "uvicorn",
       "slug": "uvicorn",
       "description": "Deploy Python ASGI apps with Uvicorn. Use when a user asks to run FastAPI in production, configure an ASGI server, set up Gunicorn with Uvicorn workers, or optimize Python web server performance.",
@@ -6096,6 +6677,13 @@
       "name": "vault-secrets",
       "slug": "vault-secrets",
       "description": "Manage application secrets with HashiCorp Vault. Use when a user asks to store API keys securely, rotate database credentials, manage certificates, inject secrets into applications, or implement dynamic secrets.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "vector",
+      "slug": "vector",
+      "description": "Expert guidance for Vector, the high-performance observability data pipeline built in Rust by Datadog. Helps developers collect, transform, and route logs, metrics, and traces from any source to any destination with minimal resource usage. Vector replaces Logstash, Fluentd, and Filebeat with a single, faster tool.",
       "category": "devops",
       "tags": []
     },
@@ -6219,10 +6807,24 @@
       "tags": []
     },
     {
+      "name": "wails",
+      "slug": "wails",
+      "description": "Expert guidance for Wails, the Go framework for building desktop applications with web frontends. Helps developers build lightweight, fast desktop apps where the backend is Go and the frontend is any web framework (React, Vue, Svelte), communicating through auto-generated TypeScript bindings.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "wandb",
       "slug": "wandb",
       "description": "Weights & Biases platform for ML experiment tracking, hyperparameter optimization, and artifact management. Log metrics, visualize training runs, run sweeps for hyperparameter tuning, and version datasets and models.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "warp",
+      "slug": "warp",
+      "description": "Expert guidance for Warp, the modern terminal built for developer productivity. Helps developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.",
+      "category": "development",
       "tags": []
     },
     {
@@ -6339,6 +6941,13 @@
       ]
     },
     {
+      "name": "whatweb",
+      "slug": "whatweb",
+      "description": "Identify web technologies, frameworks, CMS platforms, and server configurations on target websites. Use when tasks involve web technology fingerprinting, identifying CMS versions (WordPress, Drupal, Joomla), detecting web servers (Apache, Nginx, IIS), finding JavaScript frameworks, discovering WAF presence, or mapping the technology stack of a target during reconnaissance.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "whisper",
       "slug": "whisper",
       "description": "Transcribe audio to text with OpenAI Whisper. Use when a user asks to transcribe audio files, generate subtitles (SRT/VTT), transcribe podcasts, convert speech to text, translate audio to English, build transcription pipelines, do speaker diarization, transcribe meetings, process voice memos, create searchable audio archives, or integrate speech-to-text into applications. Covers OpenAI Whisper (local), Whisper API, faster-whisper, whisper.cpp, and production deployment patterns.",
@@ -6387,6 +6996,20 @@
       ]
     },
     {
+      "name": "xano",
+      "slug": "xano",
+      "description": "Expert guidance for Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. Helps developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "xata",
+      "slug": "xata",
+      "description": "Expert guidance for Xata, the serverless data platform that combines PostgreSQL, Elasticsearch, and AI capabilities in a single API. Helps developers build applications with full-text search, vector similarity search, file attachments, and branching — all through a type-safe TypeScript SDK.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "xray",
       "slug": "xray",
       "description": "Deploy and configure Xray proxy servers. Use when a user asks to set up VLESS, VMess, Trojan, or Shadowsocks proxies, configure Reality or TLS transport, deploy Xray with XTLS, set up fallback routing, manage multi-user access, configure traffic routing rules, set up CDN-based tunneling, build subscription links for client apps, monitor Xray traffic, or bypass network restrictions. Covers all major Xray protocols, transports, and deployment patterns.",
@@ -6394,9 +7017,23 @@
       "tags": []
     },
     {
+      "name": "xss-detection",
+      "slug": "xss-detection",
+      "description": "Detect, exploit, and prevent Cross-Site Scripting (XSS) vulnerabilities in web applications. Use when tasks involve testing for reflected, stored, or DOM-based XSS, building XSS payloads, bypassing WAF filters, implementing Content Security Policy, sanitizing user input, or auditing web applications for injection vulnerabilities. Covers detection, exploitation, and remediation.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "xstate",
       "slug": "xstate",
       "description": "Model complex UI logic with XState state machines. Use when a user asks to manage complex multi-step flows, model stateful UI (wizards, forms, auth), prevent impossible states, or implement finite state machines in JavaScript.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "yjs",
+      "slug": "yjs",
+      "description": "Expert guidance for Yjs, the high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications. Helps developers implement real-time document editing, offline-first sync, and peer-to-peer collaboration with automatic conflict resolution.",
       "category": "development",
       "tags": []
     },
@@ -6461,6 +7098,27 @@
       "tags": []
     },
     {
+      "name": "zeabur",
+      "slug": "zeabur",
+      "description": "Expert guidance for Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. Helps developers deploy full-stack applications with automatic scaling and one-click marketplace services.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "zed",
+      "slug": "zed",
+      "description": "Expert guidance for Zed, the high-performance code editor built in Rust with native collaboration, AI integration, and GPU-accelerated rendering. Helps developers configure Zed, create custom extensions, set up collaborative editing sessions, and integrate AI assistants for productive coding.",
+      "category": "development",
+      "tags": []
+    },
+    {
+      "name": "zig",
+      "slug": "zig",
+      "description": "Expert guidance for Zig, the systems programming language focused on performance, safety, and readability. Helps developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "zipkin",
       "slug": "zipkin",
       "description": "Deploy and configure Zipkin for distributed tracing and request flow visualization. Use when a user needs to set up trace collection, instrument Java/Spring or other services with Zipkin, analyze service dependencies, or configure storage backends for trace data.",
@@ -6516,5 +7174,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-02-28T12:47:59.925Z"
+  "updatedAt": "2026-03-05T20:45:20.547Z"
 }

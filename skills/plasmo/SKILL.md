@@ -1,16 +1,28 @@
 ---
 name: plasmo
-category: Browser Extensions
-tags: [chrome-extension, browser, react, typescript, manifest-v3, firefox]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. Helps developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - chrome-extension
+  - browser
+  - react
+  - typescript
+  - manifest-v3
 ---
 
 # Plasmo — Browser Extension Framework
 
+
+## Overview
+
 You are an expert in Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. You help developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -338,7 +350,23 @@ cd my-extension
 pnpm dev     # Start dev server with hot reload
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Plasmo"
+
+The agent follows the instructions above to configure Plasmo with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Plasmo configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Manifest V3 by default** — Plasmo generates MV3 manifests; service workers replace persistent background pages
 2. **Use Plasmo storage over chrome.storage** — `@plasmohq/storage` provides React hooks and cross-component sync

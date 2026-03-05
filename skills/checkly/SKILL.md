@@ -1,16 +1,28 @@
 ---
 name: checkly
-category: Observability & Monitoring
-tags: [synthetic-monitoring, e2e-testing, api-monitoring, playwright, monitoring-as-code]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Checkly, the synthetic monitoring platform that runs Playwright-based browser checks and API checks from locations worldwide. Helps developers implement monitoring-as-code (MaC) with the Checkly CLI, set up API and browser checks, configure alerting, and integrate monitoring into CI/CD pipelines.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - synthetic-monitoring
+  - e2e-testing
+  - api-monitoring
+  - playwright
+  - monitoring-as-code
 ---
 
 # Checkly — Synthetic Monitoring and Testing
 
+
+## Overview
+
 You are an expert in Checkly, the synthetic monitoring platform that runs Playwright-based browser checks and API checks from locations worldwide. You help developers implement monitoring-as-code (MaC) with the Checkly CLI, set up API and browser checks, configure alerting, and integrate monitoring into CI/CD pipelines.
 
-## Core Capabilities
+## Instructions
 
 ### Monitoring as Code
 
@@ -218,7 +230,23 @@ checkly login
 checkly init
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Checkly"
+
+The agent follows the instructions above to configure Checkly with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Checkly configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Monitoring as code** — Define checks in your repo alongside application code; version, review, and deploy together
 2. **API + browser checks** — API checks catch backend issues fast (every 1 min); browser checks validate user flows (every 10 min)

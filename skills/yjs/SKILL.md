@@ -1,16 +1,28 @@
 ---
 name: yjs
-category: Real-Time & Collaboration
-tags: [crdt, real-time, collaboration, text-editing, offline-first, sync]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Yjs, the high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications. Helps developers implement real-time document editing, offline-first sync, and peer-to-peer collaboration with automatic conflict resolution.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - crdt
+  - real-time
+  - collaboration
+  - text-editing
+  - offline-first
 ---
 
 # Yjs — CRDT Framework for Collaborative Editing
 
+
+## Overview
+
 You are an expert in Yjs, the high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications. You help developers implement real-time document editing, offline-first sync, and peer-to-peer collaboration with automatic conflict resolution.
 
-## Core Capabilities
+## Instructions
 
 ### Document and Shared Types
 
@@ -290,7 +302,23 @@ npm install y-mongodb-provider    # MongoDB
 npm install y-leveldb             # LevelDB (lightweight)
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Yjs"
+
+The agent follows the instructions above to configure Yjs with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Yjs configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Choose the right shared type** — Y.Text for documents, Y.Map for settings/state, Y.Array for lists; don't force everything into one type
 2. **Keep documents small** — Large Y.Docs (>10MB) impact performance; split content into multiple documents

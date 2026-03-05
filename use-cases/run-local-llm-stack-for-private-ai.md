@@ -2,16 +2,35 @@
 title: Run a Local LLM Stack for Private AI Applications
 slug: run-local-llm-stack-for-private-ai
 description: Set up a completely private AI stack using LocalAI as the self-hosted OpenAI-compatible API server and llamafile for portable single-file model distribution, enabling chat, embeddings, and audio transcription without any data leaving your network.
-skills: [localai, llamafile]
-category: AI & Machine Learning
-tags: [local-llm, privacy, self-hosted, inference, offline, enterprise]
+skills:
+- localai
+- llamafile
+category: data-ai
+tags:
+- local-llm
+- privacy
+- self-hosted
+- inference
+- offline
 ---
 
 # Run a Local LLM Stack for Private AI Applications
 
+## The Problem
+
 Kai is CTO at a 50-person fintech company handling sensitive customer financial data. The engineering team wants to use LLMs for internal tools — summarizing support tickets, analyzing contracts, generating code — but compliance rules prohibit sending customer data to external APIs. OpenAI, Anthropic, and Groq are all off the table. Every token must stay on their own infrastructure.
 
-## Step 1: Deploy LocalAI as the Central API Server
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install localai llamafile
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Deploy LocalAI as the Central API Server
 
 LocalAI provides an OpenAI-compatible API that runs entirely self-hosted. The team's existing code that uses the OpenAI SDK works unchanged — they just point it to a different URL.
 
@@ -85,7 +104,7 @@ parameters:
   language: en
 ```
 
-## Step 2: Download Models
+### Step 2: Download Models
 
 ```bash
 # Create the models directory
@@ -109,7 +128,7 @@ docker compose up -d
 curl http://localhost:8080/v1/models | python3 -m json.tool
 ```
 
-## Step 3: Integrate with Existing Applications
+### Step 3: Integrate with Existing Applications
 
 The beauty of LocalAI's OpenAI compatibility: the team's existing code works with a one-line change.
 
@@ -160,7 +179,7 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
 }
 ```
 
-## Step 4: Portable Models with llamafile for Developers
+### Step 4: Portable Models with llamafile for Developers
 
 Not every developer needs the full LocalAI server. For individual use — running a model during code review, analyzing logs, or prototyping — llamafile provides a single-file solution that doesn't even need Docker.
 
@@ -202,7 +221,7 @@ cat pull_request.diff | ./fintech-code-reviewer.llamafile --cli
 ./fintech-code-reviewer.llamafile
 ```
 
-## Step 5: Internal RAG for Document Search
+### Step 5: Internal RAG for Document Search
 
 With embeddings running locally, the team builds a document search system that lets anyone query internal knowledge bases — compliance docs, runbooks, architecture decisions.
 
@@ -258,7 +277,8 @@ async function searchAndAnswer(
 }
 ```
 
-## Results
+
+## Real-World Example
 
 After a month of running the local AI stack, Kai's team processes over 2,000 support ticket summaries per day, all without a single byte leaving the company network. The compliance team signed off because the entire inference pipeline runs on company-owned servers in their data center.
 
@@ -269,3 +289,8 @@ The llamafile distribution was an unexpected hit. Developers adopted the code re
 The knowledge search system indexes 3,000 internal documents (compliance policies, engineering runbooks, product specs). The team reports finding answers 5x faster than the previous approach of searching Confluence. Since embeddings run locally, even the most sensitive documents — financial audits, security assessments, customer data handling procedures — are searchable without privacy concerns.
 
 Total monthly cost: $500 for the GPU server. Compared to estimated OpenAI costs of $800-1,200/month for the same workload, plus the compliance risk that would have required a $50K/year DPA review — the local stack pays for itself immediately.
+
+## Related Skills
+
+- [localai](../skills/localai/) -- Complementary skill for this workflow
+- [llamafile](../skills/llamafile/) -- Complementary skill for this workflow

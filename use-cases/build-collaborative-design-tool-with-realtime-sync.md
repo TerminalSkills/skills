@@ -2,18 +2,39 @@
 title: Build a Collaborative Design Tool with Real-Time Sync
 slug: build-collaborative-design-tool-with-realtime-sync
 description: Build a multiplayer whiteboard application using Liveblocks for presence and cursors, Yjs for conflict-free document sync, tldraw for the infinite canvas, and Arcjet for rate limiting and bot protection.
-skills: [liveblocks, yjs, tldraw, arcjet]
-category: Real-Time & Collaboration
-tags: [collaboration, real-time, whiteboard, multiplayer, crdt, canvas]
+skills:
+- liveblocks
+- yjs
+- tldraw
+- arcjet
+category: development
+tags:
+- collaboration
+- real-time
+- whiteboard
+- multiplayer
+- crdt
 ---
 
 # Build a Collaborative Design Tool with Real-Time Sync
+
+## The Problem
 
 Dani runs a design agency where the team constantly shares mockups, diagrams, and brainstorm boards. Their current workflow — export a PNG, upload to Slack, get feedback as text messages — loses context with every handoff. She wants a shared whiteboard where everyone draws simultaneously, sees each other's cursors, and the board survives browser refreshes.
 
 The technical challenge: multiple people editing the same canvas at the same time without conflicts, data loss, or a loading spinner every time someone moves a shape.
 
-## Step 1: Set Up the Infinite Canvas
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install liveblocks yjs tldraw arcjet
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Set Up the Infinite Canvas
 
 The canvas is the core of the experience. tldraw provides a production-ready infinite canvas with drawing tools, shapes, and zoom — the same engine behind tldraw.com, which handles millions of users.
 
@@ -54,7 +75,7 @@ export function DesignBoard({ boardId, userName, userColor }: Props) {
 }
 ```
 
-## Step 2: Wire Up CRDT Sync with Yjs
+### Step 2: Wire Up CRDT Sync with Yjs
 
 Yjs handles the hard part — conflict resolution. When two designers move the same shape simultaneously, Yjs merges both changes without losing either one. The CRDT algorithm guarantees that all clients converge to the same state, regardless of network delays or ordering.
 
@@ -160,7 +181,7 @@ export function useYjsStore({ roomId, shapeUtils }: {
 }
 ```
 
-## Step 3: Add Live Cursors and Presence
+### Step 3: Add Live Cursors and Presence
 
 Seeing where teammates are working is essential for collaboration. Liveblocks' presence system shows cursor positions, user names, and what each person has selected — all updating in under 50ms.
 
@@ -269,7 +290,7 @@ export function ActiveUsers() {
 }
 ```
 
-## Step 4: Protect the API
+### Step 4: Protect the API
 
 Before going live, Dani adds Arcjet to protect the board creation API and WebSocket upgrade endpoints from abuse. Without this, bots could create thousands of boards or flood the WebSocket server.
 
@@ -332,7 +353,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-## Step 5: Yjs WebSocket Server
+### Step 5: Yjs WebSocket Server
 
 The final piece is the server that relays Yjs updates between clients and persists board state to the database.
 
@@ -399,7 +420,8 @@ wss.on("connection", async (ws, req) => {
 console.log("Yjs WebSocket server running on port 4444");
 ```
 
-## Results
+
+## Real-World Example
 
 After deploying the collaborative board to the design team, Dani sees immediate changes in their workflow. Design reviews happen on the board itself — designers draw, annotate, and discuss in real time instead of exporting screenshots. The average design feedback cycle dropped from 4 hours (export → upload → comment → re-export) to 15 minutes (draw together, talk, iterate).
 
@@ -408,3 +430,10 @@ The Yjs CRDT layer handles conflict resolution invisibly. In one session, three 
 Arcjet blocked 340 bot requests in the first week — mostly automated scanners probing the API endpoints. The rate limiter caught one incident where a buggy integration script tried to create boards in a loop.
 
 The board loads in under 2 seconds, including Yjs state hydration from the database. Live cursors update at 60fps with Liveblocks' presence system, giving the team a genuine feeling of working in the same room.
+
+## Related Skills
+
+- [liveblocks](../skills/liveblocks/) -- Complementary skill for this workflow
+- [yjs](../skills/yjs/) -- Complementary skill for this workflow
+- [tldraw](../skills/tldraw/) -- Complementary skill for this workflow
+- [arcjet](../skills/arcjet/) -- Complementary skill for this workflow

@@ -1,16 +1,28 @@
 ---
 name: groq
-category: AI & Machine Learning
-tags: [llm, inference, api, fast-inference, chat, completions]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Groq, the LLM inference platform that provides the fastest token generation speeds available, powered by custom LPU (Language Processing Unit) hardware. Helps developers integrate Groq's API for real-time AI applications where latency matters — chatbots, code completion, and streaming responses.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - llm
+  - inference
+  - api
+  - fast-inference
+  - chat
 ---
 
 # Groq — Ultra-Fast LLM Inference
 
+
+## Overview
+
 You are an expert in Groq, the LLM inference platform that provides the fastest token generation speeds available, powered by custom LPU (Language Processing Unit) hardware. You help developers integrate Groq's API for real-time AI applications where latency matters — chatbots, code completion, and streaming responses.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Chat Completion
 
@@ -251,7 +263,23 @@ pip install groq
 # Just set base_url to https://api.groq.com/openai/v1
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Groq"
+
+The agent follows the instructions above to configure Groq with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Groq configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use Groq for latency-sensitive tasks** — Chatbots, autocomplete, real-time analysis; Groq's speed is 5-10x faster than cloud GPU providers
 2. **llama-3.1-8b for simple tasks** — Don't use the 70B model for classification or extraction; 8B is faster and cheaper

@@ -1,16 +1,28 @@
 ---
 name: flutter
-category: Mobile & Cross-Platform
-tags: [mobile, cross-platform, dart, ios, android, web, desktop, google]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Flutter, Google's UI toolkit for building natively compiled applications for mobile, web, and desktop from a single Dart codebase. Helps developers build performant cross-platform apps with custom widgets, state management, platform channels, and production deployment.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - mobile
+  - cross-platform
+  - dart
+  - ios
+  - android
 ---
 
 # Flutter — Cross-Platform UI Framework
 
+
+## Overview
+
 You are an expert in Flutter, Google's UI toolkit for building natively compiled applications for mobile, web, and desktop from a single Dart codebase. You help developers build performant cross-platform apps with custom widgets, state management, platform channels, and production deployment.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -292,7 +304,23 @@ flutter pub add freezed_annotation  # Immutable models
 flutter pub add hive                # Local storage
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Flutter"
+
+The agent follows the instructions above to configure Flutter with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Flutter configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Composition over inheritance** — Build UIs by composing small widgets; extract widgets when a build method exceeds ~50 lines
 2. **Riverpod for state** — Use Riverpod over setState/Provider; it's compile-safe, testable, and handles async naturally

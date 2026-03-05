@@ -2,16 +2,34 @@
 title: Build a Browser Extension for Developer Productivity
 slug: build-browser-extension-for-developer-productivity
 description: Build a Chrome extension that saves code snippets from any webpage, organizes them with tags, and syncs across devices — using Plasmo for the extension framework with React and TypeScript.
-skills: [plasmo]
-category: Browser Extensions
-tags: [chrome-extension, browser, productivity, react, typescript, manifest-v3]
+skills:
+- plasmo
+category: development
+tags:
+- chrome-extension
+- browser
+- productivity
+- react
+- typescript
 ---
 
 # Build a Browser Extension for Developer Productivity
 
+## The Problem
+
 Ravi spends hours reading documentation, blog posts, and Stack Overflow answers. He highlights useful code snippets, copies them to a notes app, and never finds them again. He wants a browser extension that lets him save snippets directly from any webpage with one click, tag them, and search through them later — all without leaving the browser.
 
-## Step 1: Set Up the Extension
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install plasmo
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Set Up the Extension
 
 Plasmo handles all the Manifest V3 boilerplate — webpack config, service worker setup, content script injection — so Ravi can focus on the actual features.
 
@@ -159,7 +177,7 @@ function SnippetCard({ snippet }: { snippet: Snippet }) {
 export default SnippetPopup;
 ```
 
-## Step 2: Content Script for Saving Snippets
+### Step 2: Content Script for Saving Snippets
 
 The content script runs on every page and shows a save dialog when the user selects text and right-clicks. Plasmo's Shadow DOM isolation ensures the extension's CSS doesn't clash with the page.
 
@@ -287,7 +305,7 @@ function detectLanguage(text: string): string {
 export default SnippetSaverOverlay;
 ```
 
-## Step 3: Background Service Worker
+### Step 3: Background Service Worker
 
 The background script manages the context menu, badge counter, and optional sync to a remote API.
 
@@ -360,7 +378,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 });
 ```
 
-## Step 4: Export and Import
+### Step 4: Export and Import
 
 Ravi adds the ability to export snippets as a JSON file and import from other machines.
 
@@ -420,10 +438,15 @@ function OptionsPage() {
 export default OptionsPage;
 ```
 
-## Results
+
+## Real-World Example
 
 Ravi published the extension internally for his team of 8 developers. In the first month, they collectively saved 1,200 snippets across JavaScript, Python, SQL, and Bash. The most popular tags turned out to be "regex", "docker", and "git" — exactly the kind of commands developers Google repeatedly.
 
 The auto-language detection correctly identifies the language 80% of the time, saving a click on most saves. The search in the popup is instant since Plasmo's storage hook keeps all snippets in memory. The Chrome extension weighs just 45KB — Plasmo's tree-shaking strips everything unused.
 
 The hourly sync to their team's API means snippets saved on a work laptop show up on the home machine within an hour. The export/import feature handles the edge case of switching browsers or sharing snippets with someone who doesn't use the extension.
+
+## Related Skills
+
+- [plasmo](../skills/plasmo/) -- Complementary skill for this workflow

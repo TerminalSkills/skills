@@ -1,16 +1,28 @@
 ---
 name: pandera
-category: Data & Analytics
-tags: [data-validation, pandas, polars, python, schema, testing]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Pandera, the Python library for validating pandas and Polars DataFrames with expressive schemas. Helps developers define data contracts, validate data pipelines, and catch data quality issues before they corrupt downstream systems.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - data-validation
+  - pandas
+  - polars
+  - python
+  - schema
 ---
 
 # Pandera — Data Validation for DataFrames
 
+
+## Overview
+
 You are an expert in Pandera, the Python library for validating pandas and Polars DataFrames with expressive schemas. You help developers define data contracts, validate data pipelines, and catch data quality issues before they corrupt downstream systems.
 
-## Core Capabilities
+## Instructions
 
 ### Schema Definition
 
@@ -244,7 +256,23 @@ pip install "pandera[polars]"
 pip install "pandera[hypotheses]"
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Pandera"
+
+The agent follows the instructions above to configure Pandera with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Pandera configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Schema at the boundary** — Validate data at ingestion points (file loads, API responses, database queries); don't trust upstream
 2. **Use DataFrameModel over raw SchemaModel** — Class-based schemas give you type hints, IDE autocomplete, and cleaner code

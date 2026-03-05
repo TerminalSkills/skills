@@ -1,16 +1,28 @@
 ---
 name: excalidraw
-category: Real-Time & Collaboration
-tags: [whiteboard, diagrams, sketching, collaboration, react, hand-drawn]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. Helps developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - whiteboard
+  - diagrams
+  - sketching
+  - collaboration
+  - react
 ---
 
 # Excalidraw — Hand-Drawn Whiteboard SDK
 
+
+## Overview
+
 You are an expert in Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. You help developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Embedding
 
@@ -301,7 +313,23 @@ npm install @excalidraw/excalidraw
 npm install react react-dom
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Excalidraw"
+
+The agent follows the instructions above to configure Excalidraw with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Excalidraw configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Container must have dimensions** — Excalidraw expands to fill its container; ensure explicit height/width
 2. **Debounce onChange** — Canvas fires updates on every mouse move during drawing; debounce to 500ms for persistence

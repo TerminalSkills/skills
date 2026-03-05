@@ -1,16 +1,28 @@
 ---
 name: fireworks-ai
-category: AI & Machine Learning
-tags: [llm, inference, api, fine-tuning, serverless, open-source-models]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. Helps developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - llm
+  - inference
+  - api
+  - fine-tuning
+  - serverless
 ---
 
 # Fireworks AI — Fast Open-Source Model Inference
 
+
+## Overview
+
 You are an expert in Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. You help developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.
 
-## Core Capabilities
+## Instructions
 
 ### Chat Completions
 
@@ -203,7 +215,23 @@ pip install openai
 # Set base_url to https://api.fireworks.ai/inference/v1
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Fireworks Ai"
+
+The agent follows the instructions above to configure Fireworks Ai with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Fireworks Ai configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **OpenAI SDK compatibility** — Use the standard OpenAI SDK with a different base URL; zero code changes to switch
 2. **firefunction-v2 for tools** — Use the function-calling-optimized model for reliable tool use

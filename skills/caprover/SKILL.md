@@ -1,16 +1,28 @@
 ---
 name: caprover
-category: Cloud & Infrastructure
-tags: [self-hosted, paas, deployment, docker, one-click, heroku-alternative]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for CapRover, the open-source PaaS that turns any Linux server into a Heroku-like platform with automatic HTTPS, one-click app deployment, and Docker-based containerization. Helps developers deploy applications, configure custom domains, and manage the CapRover cluster.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - self-hosted
+  - paas
+  - deployment
+  - docker
+  - one-click
 ---
 
 # CapRover — Self-Hosted PaaS with One-Click Apps
 
+
+## Overview
+
 You are an expert in CapRover, the open-source PaaS that turns any Linux server into a Heroku-like platform with automatic HTTPS, one-click app deployment, and Docker-based containerization. You help developers deploy applications, configure custom domains, and manage the CapRover cluster.
 
-## Core Capabilities
+## Instructions
 
 ### Installation
 
@@ -182,7 +194,23 @@ docker swarm join --token SWMTKN-xxx manager-ip:2377
 # Dashboard → App → App Configs → Node Placement
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Caprover"
+
+The agent follows the instructions above to configure Caprover with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Caprover configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Wildcard DNS first** — Point `*.apps.yourdomain.com` to your server IP before installation; SSL won't work without it
 2. **Use captain-definition** — Version the deployment config with your code; don't rely on dashboard settings

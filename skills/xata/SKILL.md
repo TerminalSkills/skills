@@ -1,16 +1,28 @@
 ---
 name: xata
-category: Backend & Infrastructure
-tags: [database, serverless, search, postgres, ai, typescript-sdk]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Xata, the serverless data platform that combines PostgreSQL, Elasticsearch, and AI capabilities in a single API. Helps developers build applications with full-text search, vector similarity search, file attachments, and branching — all through a type-safe TypeScript SDK.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - database
+  - serverless
+  - search
+  - postgres
+  - ai
 ---
 
 # Xata — Serverless Data Platform
 
+
+## Overview
+
 You are an expert in Xata, the serverless data platform that combines PostgreSQL, Elasticsearch, and AI capabilities in a single API. You help developers build applications with full-text search, vector similarity search, file attachments, and branching — all through a type-safe TypeScript SDK.
 
-## Core Capabilities
+## Instructions
 
 ### Setup and Schema
 
@@ -245,7 +257,23 @@ npm install @xata.io/client
 xata init
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Xata"
+
+The agent follows the instructions above to configure Xata with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Xata configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use the generated client** — `xata init` creates a typed client; never construct queries manually
 2. **Search over queries** — If users are looking for content, use `.search()` instead of `.filter()`; it's faster and supports fuzzy matching

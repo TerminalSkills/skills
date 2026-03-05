@@ -2,16 +2,35 @@
 title: Build a SaaS Backend with Firebase Auth and Hasura GraphQL
 slug: build-saas-backend-with-firebase-and-hasura
 description: Combine Firebase Authentication for user management with Hasura's instant GraphQL API on PostgreSQL to build a production SaaS backend with real-time subscriptions, row-level security, and event-driven workflows — without writing backend CRUD code.
-skills: [firebase, hasura]
-category: Backend & Infrastructure
-tags: [saas, baas, graphql, auth, real-time, postgres]
+skills:
+- firebase
+- hasura
+category: development
+tags:
+- saas
+- baas
+- graphql
+- auth
+- real-time
 ---
 
 # Build a SaaS Backend with Firebase Auth and Hasura GraphQL
 
+## The Problem
+
 Marta is building a project management SaaS. She needs user authentication, a database with real-time updates, role-based access control, and webhooks for integrations — the standard SaaS backend. Writing all of this from scratch with Express or FastAPI would take weeks. Instead, she combines Firebase for authentication (battle-tested, supports Google/GitHub/email login out of the box) with Hasura for the API layer (instant GraphQL over PostgreSQL, no CRUD code needed).
 
-## Step 1: Set Up Firebase Authentication
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install firebase hasura
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Set Up Firebase Authentication
 
 Firebase handles the entire auth flow — sign-up, login, password reset, OAuth providers, email verification. Marta doesn't write a single line of auth server code.
 
@@ -54,7 +73,7 @@ export function onAuthChange(cb: (user: User | null) => void) {
 }
 ```
 
-## Step 2: Connect Firebase JWT to Hasura
+### Step 2: Connect Firebase JWT to Hasura
 
 Hasura validates Firebase JWTs to identify users. Every GraphQL request includes the user's role and ID, which Hasura uses for row-level security.
 
@@ -97,7 +116,7 @@ volumes:
   pgdata:
 ```
 
-## Step 3: Define the Database Schema and Permissions
+### Step 3: Define the Database Schema and Permissions
 
 ```sql
 -- migrations/001_initial_schema.sql
@@ -203,7 +222,7 @@ update_permissions:
           - assignee_id: { _eq: X-Hasura-User-Id }
 ```
 
-## Step 4: Build the Frontend with Real-Time Updates
+### Step 4: Build the Frontend with Real-Time Updates
 
 ```typescript
 // src/hooks/useTasks.ts — Real-time task board with GraphQL subscriptions
@@ -265,7 +284,7 @@ export function useTaskBoard(projectId: string) {
 }
 ```
 
-## Step 5: Event-Driven Workflows with Hasura Triggers
+### Step 5: Event-Driven Workflows with Hasura Triggers
 
 ```yaml
 # metadata/tables/public_tasks.yaml — Event trigger for notifications
@@ -308,7 +327,8 @@ export default async function handler(req: Request) {
 }
 ```
 
-## Results
+
+## Real-World Example
 
 Marta ships the MVP in 10 days instead of the estimated 6 weeks. Firebase handles auth for 500 beta users with zero custom backend code — Google login, GitHub login, email/password, and password reset all work out of the box. She didn't write a single auth endpoint.
 
@@ -319,3 +339,8 @@ The real-time subscriptions changed how the product feels. When one team member 
 The event trigger system handles 15 different notification scenarios (task assigned, status changed, due date approaching, comment added) without any polling or cron jobs. Hasura fires webhooks the instant data changes, keeping notifications under 2-second delivery time.
 
 Total infrastructure cost: $0 (Firebase free tier covers 50K auth operations/month; Hasura runs on a $20/month Render instance with managed PostgreSQL). The team estimates they saved $15-20K in engineering time compared to building auth, API, real-time, and webhooks from scratch.
+
+## Related Skills
+
+- [firebase](../skills/firebase/) -- Complementary skill for this workflow
+- [hasura](../skills/hasura/) -- Complementary skill for this workflow

@@ -1,16 +1,28 @@
 ---
 name: zig
-category: Programming Languages
-tags: [zig, systems, performance, c-interop, comptime, safety, no-gc]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Zig, the systems programming language focused on performance, safety, and readability. Helps developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - zig
+  - systems
+  - performance
+  - c-interop
+  - comptime
 ---
 
 # Zig — Modern Systems Programming Language
 
+
+## Overview
+
 You are an expert in Zig, the systems programming language focused on performance, safety, and readability. You help developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.
 
-## Core Capabilities
+## Instructions
 
 ### Build System
 
@@ -249,7 +261,23 @@ git clone https://github.com/ziglang/zig
 cd zig && cmake -B build && cmake --build build
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Zig"
+
+The agent follows the instructions above to configure Zig with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Zig configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Explicit allocators** — Every function that allocates takes an `Allocator` parameter; this gives you control over where memory comes from
 2. **Arena allocators for requests** — Use `ArenaAllocator` for request-scoped work; free everything at once with `deinit()`

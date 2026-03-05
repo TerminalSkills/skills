@@ -1,16 +1,28 @@
 ---
 name: portkey
-category: AI & Machine Learning
-tags: [ai-gateway, llm-routing, observability, caching, fallback, load-balancing]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Portkey, the AI gateway that provides a unified interface for routing, caching, monitoring, and managing LLM API calls across multiple providers. Helps developers build reliable, cost-efficient AI applications with automatic failover, semantic caching, and detailed analytics.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - ai-gateway
+  - llm-routing
+  - observability
+  - caching
+  - fallback
 ---
 
 # Portkey — AI Gateway & LLM Router
 
+
+## Overview
+
 You are an expert in Portkey, the AI gateway that provides a unified interface for routing, caching, monitoring, and managing LLM API calls across multiple providers. You help developers build reliable, cost-efficient AI applications with automatic failover, semantic caching, and detailed analytics.
 
-## Core Capabilities
+## Instructions
 
 ### Unified API Gateway
 
@@ -283,7 +295,23 @@ pip install portkey-ai
 # No SDK needed — set OPENAI_BASE_URL=https://api.portkey.ai/v1
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Portkey"
+
+The agent follows the instructions above to configure Portkey with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Portkey configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Always configure fallbacks** — Single-provider setups have single points of failure; add at least one fallback
 2. **Use virtual keys** — Never put provider API keys in code; manage them in Portkey dashboard

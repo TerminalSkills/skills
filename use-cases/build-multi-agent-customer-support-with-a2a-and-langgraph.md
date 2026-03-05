@@ -2,18 +2,38 @@
 title: Build Multi-Agent Customer Support System with A2A and LangGraph
 slug: build-multi-agent-customer-support-with-a2a-and-langgraph
 description: Design a production customer support system where specialized AI agents (triage, billing, technical, escalation) communicate via Google's Agent-to-Agent protocol, orchestrated by a LangGraph supervisor that routes conversations based on intent and context.
-skills: [a2a-protocol, langchain, langgraph]
-category: AI & Machine Learning
-tags: [multi-agent, a2a, langchain, langgraph, customer-support, orchestration]
+skills:
+- a2a-protocol
+- langchain
+- langgraph
+category: data-ai
+tags:
+- multi-agent
+- a2a
+- langchain
+- langgraph
+- customer-support
 ---
 
 # Build Multi-Agent Customer Support System with A2A and LangGraph
+
+## The Problem
 
 Dani is lead engineer at a 40-person SaaS company processing 2,000 support tickets daily. The current system is a single monolithic chatbot that handles everything — billing questions, technical issues, account management, refund requests. It works, but poorly. Billing questions get routed to a prompt stuffed with API documentation. Technical issues get answered with billing context. The team keeps adding more instructions to a single system prompt that's now 15,000 tokens long, and accuracy is dropping every week.
 
 Dani decides to break the monolith into specialized agents that communicate via Google's Agent-to-Agent (A2A) protocol. Each agent is an expert in one domain. A LangGraph supervisor orchestrates the conversation, routing to the right specialist and managing handoffs when a conversation spans multiple domains.
 
-## Step 1: Define the Agent Architecture
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install a2a-protocol langchain langgraph
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Define the Agent Architecture
 
 The system has four specialist agents and one supervisor:
 
@@ -122,7 +142,7 @@ technical_card = AgentCard(
 )
 ```
 
-## Step 2: Build the A2A-Compatible Specialist Agents
+### Step 2: Build the A2A-Compatible Specialist Agents
 
 Each specialist runs as an independent service with its own A2A endpoint. The billing agent illustrates the pattern — it receives JSON-RPC messages, processes them with LangChain, and returns structured responses.
 
@@ -292,7 +312,7 @@ if __name__ == "__main__":
 
 The technical agent follows the same pattern but with different tools (log lookup, API status check, SDK documentation search) and a different system prompt focused on debugging and technical guidance.
 
-## Step 3: Build the LangGraph Supervisor
+### Step 3: Build the LangGraph Supervisor
 
 The supervisor is the brain of the system. It receives every incoming customer message, determines intent, routes to the right specialist via A2A, handles multi-turn conversations, and manages cross-domain handoffs.
 
@@ -555,7 +575,7 @@ graph.add_conditional_edges("check_satisfaction", should_continue, {
 support_graph = graph.compile()
 ```
 
-## Step 4: Wire Up the Conversation API
+### Step 4: Wire Up the Conversation API
 
 ```python
 # supervisor/api.py — HTTP API for the customer support system
@@ -618,7 +638,7 @@ async def handle_message(body: dict):
     }
 ```
 
-## Step 5: Deploy with Docker Compose
+### Step 5: Deploy with Docker Compose
 
 ```yaml
 # docker-compose.yml — Full multi-agent support system
@@ -662,7 +682,8 @@ services:
       - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}  # Alert humans
 ```
 
-## Results
+
+## Real-World Example
 
 After two weeks in production, the multi-agent system resolves 78% of support tickets without human intervention, up from 45% with the monolithic chatbot. The key improvement came from specialization — the billing agent's accuracy on refund processing jumped to 96% because its prompt and tools are focused entirely on billing, without the noise of technical documentation.
 
@@ -673,3 +694,9 @@ The LangGraph supervisor catches cross-domain issues that the monolithic bot mis
 Handoff detection reduced repeat contacts by 35%. Previously, customers whose billing issue caused a technical problem would get a billing answer and then open a second ticket for the technical issue. Now the supervisor catches both in one conversation.
 
 Average response time increased from 1.2 seconds (single LLM call) to 3.8 seconds (triage + specialist + satisfaction check), but customer satisfaction scores improved by 40% because the answers are actually correct. The team considers the tradeoff worthwhile.
+
+## Related Skills
+
+- [a2a-protocol](../skills/a2a-protocol/) -- Complementary skill for this workflow
+- [langchain](../skills/langchain/) -- Complementary skill for this workflow
+- [langgraph](../skills/langgraph/) -- Complementary skill for this workflow

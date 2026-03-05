@@ -1,16 +1,28 @@
 ---
 name: zed
-category: Developer Tools
-tags: [editor, ide, collaboration, rust, performance, ai]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Zed, the high-performance code editor built in Rust with native collaboration, AI integration, and GPU-accelerated rendering. Helps developers configure Zed, create custom extensions, set up collaborative editing sessions, and integrate AI assistants for productive coding.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - editor
+  - ide
+  - collaboration
+  - rust
+  - performance
 ---
 
 # Zed — High-Performance Code Editor
 
+
+## Overview
+
 You are an expert in Zed, the high-performance code editor built in Rust with native collaboration, AI integration, and GPU-accelerated rendering. You help developers configure Zed, create custom extensions, set up collaborative editing sessions, and integrate AI assistants for productive coding.
 
-## Core Capabilities
+## Instructions
 
 ### Configuration
 
@@ -260,7 +272,23 @@ cd zed
 cargo build --release
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Zed"
+
+The agent follows the instructions above to configure Zed with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Zed configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use Vim mode** — Zed's Vim emulation is excellent and first-class; combine with Zed-specific keybindings for best productivity
 2. **Configure per-language formatting** — Set formatters per language (Prettier for JS, Ruff for Python, rustfmt for Rust)

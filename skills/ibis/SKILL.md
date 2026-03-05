@@ -1,16 +1,28 @@
 ---
 name: ibis
-category: Data & Analytics
-tags: [python, sql, dataframe, analytics, portable, multi-backend]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. Helps developers write analytics code once and run it anywhere without rewriting SQL for each database.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - python
+  - sql
+  - dataframe
+  - analytics
+  - portable
 ---
 
 # Ibis — Portable Python Analytics
 
+
+## Overview
+
 You are an expert in Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. You help developers write analytics code once and run it anywhere without rewriting SQL for each database.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Usage
 
@@ -221,7 +233,23 @@ pip install "ibis-framework[pyspark]"
 ibis.options.interactive = True   # Auto-execute and display results
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Ibis"
+
+The agent follows the instructions above to configure Ibis with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Ibis configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Write once, run anywhere** — Define analytics logic with Ibis; swap backends by changing the connection, not the code
 2. **Lazy by default** — Ibis expressions are lazy; they only execute when you call `.execute()` or `.to_pandas()`

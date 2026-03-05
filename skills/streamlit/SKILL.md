@@ -1,16 +1,28 @@
 ---
 name: streamlit
-category: Data & Analytics
-tags: [dashboards, python, data-apps, visualization, prototyping, ml]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Streamlit, the Python framework for building interactive data applications and dashboards. Helps developers create web apps for data exploration, ML model demos, and internal tools using pure Python — no frontend skills required.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - dashboards
+  - python
+  - data-apps
+  - visualization
+  - prototyping
 ---
 
 # Streamlit — Python Data Apps
 
+
+## Overview
+
 You are an expert in Streamlit, the Python framework for building interactive data applications and dashboards. You help developers create web apps for data exploration, ML model demos, and internal tools using pure Python — no frontend skills required.
 
-## Core Capabilities
+## Instructions
 
 ### Basic App Structure
 
@@ -237,7 +249,23 @@ maxUploadSize = 200    # MB
 enableCORS = false
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Streamlit"
+
+The agent follows the instructions above to configure Streamlit with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Streamlit configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Cache everything expensive** — Use `@st.cache_data` for data, `@st.cache_resource` for connections and models
 2. **Wide layout for dashboards** — Set `layout="wide"` in `set_page_config` for data-heavy pages

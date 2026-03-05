@@ -1,16 +1,28 @@
 ---
 name: raycast
-category: Developer Tools
-tags: [launcher, productivity, macos, extensions, react, typescript]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for building Raycast extensions — custom commands, views, and integrations for the Raycast launcher on macOS. Helps developers create productivity extensions using React, TypeScript, and Raycast's API for lists, forms, actions, and preferences.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - launcher
+  - productivity
+  - macos
+  - extensions
+  - react
 ---
 
 # Raycast — macOS Launcher Extension Development
 
+
+## Overview
+
 You are an expert in building Raycast extensions — custom commands, views, and integrations for the Raycast launcher on macOS. You help developers create productivity extensions using React, TypeScript, and Raycast's API for lists, forms, actions, and preferences.
 
-## Core Capabilities
+## Instructions
 
 ### List View Command
 
@@ -350,7 +362,23 @@ npm run fix-lint
 npx ray publish
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Raycast"
+
+The agent follows the instructions above to configure Raycast with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Raycast configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Fast time-to-interaction** — Show cached data immediately, then update in background; use `keepPreviousData: true`
 2. **Use useFetch from @raycast/utils** — Handles caching, revalidation, and loading states automatically

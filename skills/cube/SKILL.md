@@ -1,16 +1,28 @@
 ---
 name: cube
-category: Data & Analytics
-tags: [semantic-layer, analytics, api, sql, metrics, olap]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Cube, the headless BI and semantic layer that sits between your data warehouse and analytics applications. Helps developers define data models, create metrics APIs, and build analytics features in applications with consistent, governed access to business metrics.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - semantic-layer
+  - analytics
+  - api
+  - sql
+  - metrics
 ---
 
 # Cube — Semantic Layer for Analytics
 
+
+## Overview
+
 You are an expert in Cube, the headless BI and semantic layer that sits between your data warehouse and analytics applications. You help developers define data models, create metrics APIs, and build analytics features in applications with consistent, governed access to business metrics.
 
-## Core Capabilities
+## Instructions
 
 ### Data Modeling
 
@@ -309,7 +321,23 @@ npm run dev
 # Cube Playground at http://localhost:4000
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Cube"
+
+The agent follows the instructions above to configure Cube with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Cube configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Semantic layer = single source of truth** — Define metrics once in Cube; all apps query the same definitions
 2. **Pre-aggregations for performance** — Materialize common queries; Cube auto-selects the best pre-aggregation

@@ -1,16 +1,28 @@
 ---
 name: starship
-category: Developer Tools
-tags: [shell-prompt, terminal, customization, cross-shell, rust, productivity]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. Helps developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - shell-prompt
+  - terminal
+  - customization
+  - cross-shell
+  - rust
 ---
 
 # Starship — Cross-Shell Prompt
 
+
+## Overview
+
 You are an expert in Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. You help developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.
 
-## Core Capabilities
+## Instructions
 
 ### Installation and Setup
 
@@ -210,7 +222,23 @@ format = '[$all_status]($style)'
 style = "red"
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Starship"
+
+The agent follows the instructions above to configure Starship with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Starship configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Start minimal, add modules** — Begin with a minimal config; add modules as you need context (don't show everything)
 2. **Disable unused modules** — Starship scans for language files by default; disable modules you don't use with `disabled = true`

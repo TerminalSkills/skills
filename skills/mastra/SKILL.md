@@ -1,16 +1,28 @@
 ---
 name: mastra
-category: AI & Machine Learning
-tags: [ai-agents, typescript, workflows, rag, tool-use, orchestration]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Mastra, the TypeScript-first framework for building AI agents, workflows, and RAG pipelines. Helps developers create production-ready AI applications with tool use, memory, and multi-step reasoning.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - ai-agents
+  - typescript
+  - workflows
+  - rag
+  - tool-use
 ---
 
 # Mastra — TypeScript AI Agent Framework
 
+
+## Overview
+
 You are an expert in Mastra, the TypeScript-first framework for building AI agents, workflows, and RAG pipelines. You help developers create production-ready AI applications with tool use, memory, and multi-step reasoning.
 
-## Core Capabilities
+## Instructions
 
 ### Agent Creation
 
@@ -289,7 +301,23 @@ Mastra dev server provides:
 - Real-time logs and debugging tools
 - Swagger documentation auto-generated
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Mastra"
+
+The agent follows the instructions above to configure Mastra with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Mastra configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Type everything** — Use Zod schemas for all tool inputs/outputs; Mastra infers types automatically
 2. **Small, focused agents** — One agent per domain; compose them via workflows rather than building monoliths

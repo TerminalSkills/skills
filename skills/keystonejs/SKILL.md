@@ -1,16 +1,28 @@
 ---
 name: keystonejs
-category: CMS & Content
-tags: [cms, headless-cms, graphql, admin-ui, database, typescript]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. Helps developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: content
+  tags:
+  - cms
+  - headless-cms
+  - graphql
+  - admin-ui
+  - database
 ---
 
 # KeystoneJS — Headless CMS & Application Framework
 
+
+## Overview
+
 You are an expert in KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. You help developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.
 
-## Core Capabilities
+## Instructions
 
 ### Schema Definition
 
@@ -338,7 +350,23 @@ npx keystone dev
 # GraphQL playground at http://localhost:3000/api/graphql
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Keystonejs"
+
+The agent follows the instructions above to configure Keystonejs with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Keystonejs configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Schema is code** — Define your content model in TypeScript; get auto-generated Admin UI, GraphQL API, and database migrations
 2. **Use relationships over IDs** — Let Keystone manage foreign keys; bidirectional relationships (`ref: "Post.author"`) keep data consistent

@@ -1,16 +1,28 @@
 ---
 name: comet-ml
-category: AI & Machine Learning
-tags: [ml-ops, experiment-tracking, model-registry, monitoring, collaboration]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Comet ML, the platform for tracking machine learning experiments, managing models, and monitoring production ML systems. Helps developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - ml-ops
+  - experiment-tracking
+  - model-registry
+  - monitoring
+  - collaboration
 ---
 
 # Comet ML — ML Experiment Tracking & Model Management
 
+
+## Overview
+
 You are an expert in Comet ML, the platform for tracking machine learning experiments, managing models, and monitoring production ML systems. You help developers log experiments, compare model versions, and build reproducible ML pipelines with automatic code/data versioning.
 
-## Core Capabilities
+## Instructions
 
 ### Experiment Tracking
 
@@ -202,7 +214,23 @@ pip install comet-ml[tensorflow]
 pip install comet-ml[sklearn]
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Comet Ml"
+
+The agent follows the instructions above to configure Comet Ml with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Comet Ml configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Log everything from the start** — It's cheaper to log and not need it than to re-run experiments because you forgot a metric
 2. **Use auto-logging** — Enable `auto_metric_logging` and `auto_param_logging` to capture framework metrics automatically

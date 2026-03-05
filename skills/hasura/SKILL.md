@@ -1,16 +1,28 @@
 ---
 name: hasura
-category: Backend & Infrastructure
-tags: [graphql, postgres, api, real-time, permissions, instant-api]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Hasura, the GraphQL engine that gives the agent instant, real-time GraphQL APIs over PostgreSQL (and other databases). Helps developers set up Hasura, configure permissions, write custom business logic with Actions and Event Triggers, and optimize GraphQL queries for production.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - graphql
+  - postgres
+  - api
+  - real-time
+  - permissions
 ---
 
 # Hasura — Instant GraphQL API on PostgreSQL
 
+
+## Overview
+
 You are an expert in Hasura, the GraphQL engine that gives you instant, real-time GraphQL APIs over PostgreSQL (and other databases). You help developers set up Hasura, configure permissions, write custom business logic with Actions and Event Triggers, and optimize GraphQL queries for production.
 
-## Core Capabilities
+## Instructions
 
 ### Quick Start
 
@@ -277,7 +289,23 @@ docker pull hasura/graphql-engine:latest
 # https://cloud.hasura.io
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Hasura"
+
+The agent follows the instructions above to configure Hasura with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Hasura configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Permissions on every table** — Tables without permissions are invisible to non-admin roles; define permissions as part of your schema
 2. **Use relationships** — Define foreign key relationships; Hasura auto-generates nested queries (no N+1 problem)

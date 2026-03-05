@@ -2,18 +2,37 @@
 title: Build a Cross-Platform Task Manager with Flutter and Firebase
 slug: build-cross-platform-app-with-flutter-and-firebase
 description: Build a production task management app that runs on iOS, Android, and web from a single Flutter codebase, using Firebase for authentication, Firestore for real-time data sync, and Cloud Functions for background automation.
-skills: [flutter, firebase]
-category: Mobile & Cross-Platform
-tags: [flutter, firebase, cross-platform, mobile, real-time, dart]
+skills:
+- flutter
+- firebase
+category: development
+tags:
+- flutter
+- firebase
+- cross-platform
+- mobile
+- real-time
 ---
 
 # Build a Cross-Platform Task Manager with Flutter and Firebase
+
+## The Problem
 
 Sasha is a solo developer building a task management app for small teams. The app needs to work on iOS, Android, and web — three platforms from one codebase. It needs user authentication, real-time sync (when one person marks a task done, everyone sees it instantly), push notifications for deadlines, and offline support for when users are on a plane or subway.
 
 Flutter handles the cross-platform UI. Firebase handles everything backend — auth, database, push notifications, and serverless functions. Sasha doesn't write a single API endpoint.
 
-## Step 1: Firebase Authentication with Multiple Providers
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install flutter firebase
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Firebase Authentication with Multiple Providers
 
 ```dart
 // lib/services/auth_service.dart — Authentication with Google, Apple, email
@@ -72,7 +91,7 @@ class AuthService {
 }
 ```
 
-## Step 2: Firestore Data Layer with Real-Time Sync
+### Step 2: Firestore Data Layer with Real-Time Sync
 
 ```dart
 // lib/services/task_service.dart — Firestore CRUD with real-time updates
@@ -163,7 +182,7 @@ class TaskService {
 }
 ```
 
-## Step 3: Kanban Board UI with Drag-and-Drop
+### Step 3: Kanban Board UI with Drag-and-Drop
 
 ```dart
 // lib/screens/board_screen.dart — Kanban board with real-time updates
@@ -284,7 +303,7 @@ class _KanbanColumn extends StatelessWidget {
 }
 ```
 
-## Step 4: Cloud Functions for Deadline Notifications
+### Step 4: Cloud Functions for Deadline Notifications
 
 ```typescript
 // functions/src/index.ts — Firebase Cloud Functions for automation
@@ -362,7 +381,7 @@ export const checkOverdueTasks = onSchedule("every day 09:00", async () => {
 });
 ```
 
-## Step 5: Offline Support
+### Step 5: Offline Support
 
 ```dart
 // lib/main.dart — Enable Firestore offline persistence
@@ -388,7 +407,8 @@ void configureFirestore() {
 // 5. Emitting snapshot events from cache (UI stays live)
 ```
 
-## Results
+
+## Real-World Example
 
 Sasha launches the app on all three platforms in 6 weeks. The Flutter codebase is 12,000 lines of Dart — one codebase producing an iOS app, an Android app, and a web app. Maintaining three separate codebases (Swift + Kotlin + React) would have been 30,000+ lines across three languages.
 
@@ -399,3 +419,8 @@ The offline support came essentially free. Firestore's local cache means the app
 Cloud Functions handle all the automation Sasha would have needed a backend server for — push notifications for task assignments (2,500/day), daily deadline reminders (800 per run), and weekly digest emails. Total monthly cost: $0 (well within Firebase's free tier for 200 users).
 
 The kanban board drag-and-drop works identically on iOS, Android, and web thanks to Flutter's gesture system. Sasha wrote the drag-and-drop logic once and it adapted to touch (mobile) and mouse (web) automatically.
+
+## Related Skills
+
+- [flutter](../skills/flutter/) -- Complementary skill for this workflow
+- [firebase](../skills/firebase/) -- Complementary skill for this workflow

@@ -1,16 +1,28 @@
 ---
 name: clearml
-category: AI & Machine Learning
-tags: [ml-ops, experiment-tracking, pipeline, orchestration, data-management, open-source]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for ClearML, the open-source MLOps platform for experiment tracking, pipeline orchestration, data management, and model deployment. Helps developers set up ML experiment tracking with minimal code, build reproducible pipelines, and manage the full ML lifecycle from training to serving.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - ml-ops
+  - experiment-tracking
+  - pipeline
+  - orchestration
+  - data-management
 ---
 
 # ClearML — Open-Source ML Operations
 
+
+## Overview
+
 You are an expert in ClearML, the open-source MLOps platform for experiment tracking, pipeline orchestration, data management, and model deployment. You help developers set up ML experiment tracking with minimal code, build reproducible pipelines, and manage the full ML lifecycle from training to serving.
 
-## Core Capabilities
+## Instructions
 
 ### Experiment Tracking (Two Lines of Code)
 
@@ -237,7 +249,23 @@ docker compose -f docker-compose.yml up -d
 # https://app.clear.ml
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Clearml"
+
+The agent follows the instructions above to configure Clearml with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Clearml configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Two lines to start** — `Task.init()` auto-captures everything; add explicit logging only for custom metrics
 2. **Use dataset versioning** — Version your training data alongside code; reproducibility requires both

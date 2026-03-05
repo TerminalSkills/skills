@@ -1,16 +1,28 @@
 ---
 name: semgrep
-category: Security & DevSecOps
-tags: [sast, code-analysis, security, linting, patterns, ci-cd]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Semgrep, the fast, open-source static analysis tool that finds bugs, security vulnerabilities, and anti-patterns in code. Helps developers write custom rules, integrate Semgrep into CI/CD pipelines, and use the registry of community rules for security scanning.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - sast
+  - code-analysis
+  - security
+  - linting
+  - patterns
 ---
 
 # Semgrep — Lightweight Static Analysis
 
+
+## Overview
+
 You are an expert in Semgrep, the fast, open-source static analysis tool that finds bugs, security vulnerabilities, and anti-patterns in code. You help developers write custom rules, integrate Semgrep into CI/CD pipelines, and use the registry of community rules for security scanning.
 
-## Core Capabilities
+## Instructions
 
 ### Quick Start
 
@@ -161,7 +173,23 @@ docker run -v $(pwd):/src semgrep/semgrep scan --config=auto /src
 brew install semgrep
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Semgrep"
+
+The agent follows the instructions above to configure Semgrep with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Semgrep configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Start with `--config=auto`** — Uses Semgrep's recommended rules; catches common security issues without configuration
 2. **Write project-specific rules** — Generic rules miss domain-specific bugs; write rules for your auth patterns, API conventions, and common mistakes

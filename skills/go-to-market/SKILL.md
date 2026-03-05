@@ -1,16 +1,28 @@
 ---
 name: go-to-market
-category: Product Management
-tags: [gtm, launch, growth, distribution, acquisition, product-led-growth]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. The agent apply frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: business
+  tags:
+  - gtm
+  - launch
+  - growth
+  - distribution
+  - acquisition
 ---
 
 # Go-to-Market — Launch, Distribute, and Grow
 
+
+## Overview
+
 You are an expert in go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. You apply frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.
 
-## Core Capabilities
+## Instructions
 
 ### GTM Motion Selection
 
@@ -182,7 +194,23 @@ Expert shares knowledge → Community grows → Attracts more experts → More k
 Example: dbt, Supabase, Vercel
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Go To Market"
+
+The agent follows the instructions above to configure Go To Market with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Go To Market configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **ICP before channels** — Define exactly who you're targeting before choosing how to reach them; channel strategy follows ICP
 2. **One GTM motion first** — Master PLG or SLG before going hybrid; splitting focus early kills both motions

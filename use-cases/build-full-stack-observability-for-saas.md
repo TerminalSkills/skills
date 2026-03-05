@@ -2,18 +2,39 @@
 title: Build Full-Stack Observability for a SaaS Application
 slug: build-full-stack-observability-for-saas
 description: Set up comprehensive observability for a production SaaS app using SigNoz for distributed tracing and APM, Vector for log collection and routing, Checkly for synthetic monitoring, and Gatus for internal health checks — all self-hosted and open-source.
-skills: [signoz, vector, checkly, gatus]
-category: Observability & Monitoring
-tags: [observability, monitoring, tracing, logging, synthetic-monitoring, self-hosted]
+skills:
+- signoz
+- vector
+- checkly
+- gatus
+category: devops
+tags:
+- observability
+- monitoring
+- tracing
+- logging
+- synthetic-monitoring
 ---
 
 # Build Full-Stack Observability for a SaaS Application
+
+## The Problem
 
 Nadia is VP of Engineering at a 30-person SaaS startup processing financial transactions. The product has grown to 12 microservices, and debugging production issues has become a nightmare. When a customer reports "my payment didn't go through," the team spends 45 minutes digging through CloudWatch logs, guessing which service is responsible. Last month, a silent database connection pool exhaustion caused a 2-hour outage that nobody noticed until customers started tweeting.
 
 Nadia's budget is tight — Datadog quotes $25K/year for their volume. Instead, she builds a self-hosted observability stack: SigNoz for distributed tracing and APM, Vector for log collection and routing, Checkly for external synthetic monitoring, and Gatus for internal health checks. Total cost: the compute to run it.
 
-## Step 1: Deploy the Observability Infrastructure
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install signoz vector checkly gatus
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Deploy the Observability Infrastructure
 
 ```yaml
 # docker-compose.observability.yml — Self-hosted observability stack
@@ -82,7 +103,7 @@ volumes:
   gatus-data:
 ```
 
-## Step 2: Instrument Applications with OpenTelemetry
+### Step 2: Instrument Applications with OpenTelemetry
 
 Every microservice sends traces and metrics to SigNoz via OpenTelemetry. When a request touches the API gateway, payment service, and database, SigNoz stitches the entire journey into a single trace.
 
@@ -196,7 +217,7 @@ app.post("/api/payments/charge", async (req, res) => {
 });
 ```
 
-## Step 3: Collect and Route Logs with Vector
+### Step 3: Collect and Route Logs with Vector
 
 Vector replaces Fluentd/Logstash. It collects logs from all services, enriches them with trace context, filters out noise, and sends them to SigNoz for correlation with traces.
 
@@ -280,7 +301,7 @@ batch.max_bytes = 104857600
 batch.timeout_secs = 300
 ```
 
-## Step 4: Internal Health Checks with Gatus
+### Step 4: Internal Health Checks with Gatus
 
 Gatus runs inside the infrastructure, checking every service every 30 seconds. It catches issues that external monitoring can't see — database connections, Redis availability, inter-service communication.
 
@@ -376,7 +397,7 @@ endpoints:
       - "[RESPONSE_TIME] < 3000"
 ```
 
-## Step 5: External Synthetic Monitoring with Checkly
+### Step 5: External Synthetic Monitoring with Checkly
 
 Checkly monitors from the outside — testing real user flows from multiple global locations. This catches issues that internal monitoring misses: DNS problems, CDN failures, SSL issues, and regional outages.
 
@@ -432,7 +453,8 @@ new ApiCheck("payment-health", {
 });
 ```
 
-## Results
+
+## Real-World Example
 
 Within the first week, the observability stack catches three issues the team had no visibility into before.
 
@@ -445,3 +467,10 @@ The third catch is from Checkly. The Playwright browser check fails from the `ap
 Vector processes 2GB of logs daily, filtering out 60% as noise (health checks, debug logs) before they reach SigNoz. The S3 archive stores everything compressed at $0.50/month. Without Vector's filtering, SigNoz's ClickHouse storage would need 3x more disk.
 
 Total monthly cost: $45 for a dedicated 8GB server running SigNoz, Gatus, and Vector, plus $29 for Checkly's starter plan (10 browser checks, unlimited API checks). Compared to Datadog's $25K/year quote, the team saves $23K annually while getting deeper visibility into their system.
+
+## Related Skills
+
+- [signoz](../skills/signoz/) -- Complementary skill for this workflow
+- [vector](../skills/vector/) -- Complementary skill for this workflow
+- [checkly](../skills/checkly/) -- Complementary skill for this workflow
+- [gatus](../skills/gatus/) -- Complementary skill for this workflow

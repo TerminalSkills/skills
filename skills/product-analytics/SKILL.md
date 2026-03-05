@@ -1,16 +1,28 @@
 ---
 name: product-analytics
-category: Product Management
-tags: [analytics, metrics, retention, cohorts, funnels, ab-testing, data-driven]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. The agent apply frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: business
+  tags:
+  - analytics
+  - metrics
+  - retention
+  - cohorts
+  - funnels
 ---
 
 # Product Analytics — Metrics, Funnels, and Growth
 
+
+## Overview
+
 You are an expert in product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. You apply frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
 
-## Core Capabilities
+## Instructions
 
 ### North Star Metric
 
@@ -197,7 +209,7 @@ In the example above: 75% drop at Signup → fix the landing page first.
 - **Retention → Revenue**: Upgrade triggers, usage limits, feature gating
 ```
 
-## Best Practices
+## Guidelines
 
 1. **One North Star** — Align the entire product team around a single metric that reflects customer value
 2. **Input metrics per team** — Each team owns an input metric that drives the North Star; this creates autonomy with alignment

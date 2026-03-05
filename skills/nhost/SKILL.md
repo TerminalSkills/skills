@@ -1,16 +1,28 @@
 ---
 name: nhost
-category: Backend & Infrastructure
-tags: [baas, graphql, hasura, postgres, auth, storage, serverless]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Nhost, the open-source backend platform built on PostgreSQL, Hasura GraphQL, and serverless functions. Helps developers set up authentication, database, file storage, and real-time subscriptions with auto-generated GraphQL APIs and a developer-friendly SDK.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - baas
+  - graphql
+  - hasura
+  - postgres
+  - auth
 ---
 
 # Nhost — Open-Source Firebase Alternative with GraphQL
 
+
+## Overview
+
 You are an expert in Nhost, the open-source backend platform built on PostgreSQL, Hasura GraphQL, and serverless functions. You help developers set up authentication, database, file storage, and real-time subscriptions with auto-generated GraphQL APIs and a developer-friendly SDK.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -255,7 +267,23 @@ npm install @nhost/react @nhost/react-apollo
 npm install -g nhost
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Nhost"
+
+The agent follows the instructions above to configure Nhost with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Nhost configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **PostgreSQL = your database** — Nhost uses real PostgreSQL; use migrations, write raw SQL when needed, use Hasura for the GraphQL layer
 2. **Permissions via Hasura** — Define row-level security in Hasura; every table needs permissions before it's accessible via GraphQL

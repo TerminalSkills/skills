@@ -1,16 +1,28 @@
 ---
 name: mojo
-category: Programming Languages
-tags: [mojo, modular, python, performance, ai, systems-programming, simd]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Mojo, the programming language by Modular that combines Python's usability with C-level performance. Helps developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - mojo
+  - modular
+  - python
+  - performance
+  - ai
 ---
 
 # Mojo — Python-Speed Systems Language for AI
 
+
+## Overview
+
 You are an expert in Mojo, the programming language by Modular that combines Python's usability with C-level performance. You help developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.
 
-## Core Capabilities
+## Instructions
 
 ### Python Compatibility
 
@@ -212,7 +224,23 @@ mojo run my_program.mojo
 mojo build my_program.mojo -o my_program
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Mojo"
+
+The agent follows the instructions above to configure Mojo with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Mojo configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Start with Python, optimize in Mojo** — Use Python imports for prototyping; rewrite hot loops in native Mojo for 10-1000x speedups
 2. **Use SIMD for data processing** — `vectorize` processes multiple values per instruction; always prefer it over scalar loops for numeric data

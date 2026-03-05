@@ -1,16 +1,28 @@
 ---
 name: atuin
-category: Developer Tools
-tags: [shell-history, terminal, sync, search, productivity, cli]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. Helps developers install, configure, and get the most out of Atuin for shell history management and productivity.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - shell-history
+  - terminal
+  - sync
+  - search
+  - productivity
 ---
 
 # Atuin — Magical Shell History
 
+
+## Overview
+
 You are an expert in Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. You help developers install, configure, and get the most out of Atuin for shell history management and productivity.
 
-## Core Capabilities
+## Instructions
 
 ### Installation and Setup
 
@@ -158,7 +170,23 @@ atuin stats
 atuin history list --limit 5
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Atuin"
+
+The agent follows the instructions above to configure Atuin with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Atuin configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use fuzzy search mode** — `search_mode = "fuzzy"` is most flexible; finds commands even with typos
 2. **Filter sensitive data** — Configure `history_filter` to exclude commands containing tokens, passwords, or API keys

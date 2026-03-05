@@ -1,16 +1,28 @@
 ---
 name: llamafile
-category: AI & Machine Learning
-tags: [local-llm, inference, portable, single-file, offline, edge]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for llamafile, the tool that packages LLMs into single executable files that run on any OS (Linux, macOS, Windows, FreeBSD) without installation. Helps developers create portable AI applications, run models offline, and distribute LLMs as self-contained binaries with built-in web UI and OpenAI-compatible API.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - local-llm
+  - inference
+  - portable
+  - single-file
+  - offline
 ---
 
 # llamafile — Single-File LLM Executables
 
+
+## Overview
+
 You are an expert in llamafile, the tool that packages LLMs into single executable files that run on any OS (Linux, macOS, Windows, FreeBSD) without installation. You help developers create portable AI applications, run models offline, and distribute LLMs as self-contained binaries with built-in web UI and OpenAI-compatible API.
 
-## Core Capabilities
+## Instructions
 
 ### Running a llamafile
 
@@ -200,7 +212,23 @@ wget https://github.com/Mozilla-Ocho/llamafile/releases/latest/download/llamafil
 chmod +x llamafile
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Llamafile"
+
+The agent follows the instructions above to configure Llamafile with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Llamafile configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Single file = single deployment** — Distribute your AI as one file; users double-click to run, no Python/Docker/CUDA setup
 2. **GPU auto-detection** — llamafile automatically uses GPU when available (CUDA, Metal, ROCm); falls back to CPU

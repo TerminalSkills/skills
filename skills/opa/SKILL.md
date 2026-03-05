@@ -1,16 +1,28 @@
 ---
 name: opa
-category: Security & DevSecOps
-tags: [policy, authorization, kubernetes, admission-control, rego, cncf]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - policy
+  - authorization
+  - kubernetes
+  - admission-control
+  - rego
 ---
 
 # OPA — Open Policy Agent
 
+
+## Overview
+
 You are an expert in OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. You help developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.
 
-## Core Capabilities
+## Instructions
 
 ### Rego Policy Language
 
@@ -259,7 +271,23 @@ docker run -p 8181:8181 openpolicyagent/opa run --server
 kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/v3.15.0/deploy/gatekeeper.yaml
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Opa"
+
+The agent follows the instructions above to configure Opa with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Opa configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Policy as code** — Store policies in Git alongside application code; review policy changes in PRs
 2. **Rego testing** — Write unit tests for policies: `opa test policy/ -v`; catch policy bugs before deployment

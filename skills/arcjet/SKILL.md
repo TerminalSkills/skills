@@ -1,16 +1,28 @@
 ---
 name: arcjet
-category: Security
-tags: [rate-limiting, bot-protection, security, waf, email-validation, next-js]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Arcjet, the developer-first security platform that provides rate limiting, bot protection, email validation, and attack detection as a code-first SDK. Helps developers add security layers to Next.js, Node.js, and other JavaScript/TypeScript applications without managing infrastructure.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - rate-limiting
+  - bot-protection
+  - security
+  - waf
+  - email-validation
 ---
 
 # Arcjet — Application Security Layer
 
+
+## Overview
+
 You are an expert in Arcjet, the developer-first security platform that provides rate limiting, bot protection, email validation, and attack detection as a code-first SDK. You help developers add security layers to Next.js, Node.js, and other JavaScript/TypeScript applications without managing infrastructure.
 
-## Core Capabilities
+## Instructions
 
 ### Rate Limiting
 
@@ -283,7 +295,23 @@ npm install @arcjet/node
 # Get API key at https://app.arcjet.com
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Arcjet"
+
+The agent follows the instructions above to configure Arcjet with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Arcjet configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Start with DRY_RUN** — Use `mode: "DRY_RUN"` first to monitor traffic patterns before enforcing rules
 2. **Layer multiple rules** — Combine shield + bot detection + rate limiting; each catches different attack types

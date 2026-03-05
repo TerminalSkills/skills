@@ -1,16 +1,28 @@
 ---
 name: orama
-category: Search & Data
-tags: [search, full-text, vector-search, browser, edge, hybrid-search]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. Helps developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - search
+  - full-text
+  - vector-search
+  - browser
+  - edge
 ---
 
 # Orama — Full-Text & Vector Search Engine
 
+
+## Overview
+
 You are an expert in Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. You help developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Full-Text Search
 
@@ -263,7 +275,23 @@ npm install @orama/plugin-data-persistence # Save/load indexes
 npm install @orama/react-components        # React hooks
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Orama"
+
+The agent follows the instructions above to configure Orama with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Orama configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Define schema upfront** — Orama builds optimized indexes based on your schema; don't use generic `string` for everything
 2. **Use enums for filters** — Fields you filter by exact match should be `enum`, not `string` — much faster

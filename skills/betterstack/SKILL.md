@@ -1,16 +1,28 @@
 ---
 name: betterstack
-category: Observability & Monitoring
-tags: [uptime, logging, incident-management, status-page, on-call, monitoring]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Better Stack (formerly Better Uptime + Logtail), the observability platform combining uptime monitoring, log management, incident response, and status pages. Helps developers set up comprehensive monitoring with alerting, on-call schedules, and public status pages.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - uptime
+  - logging
+  - incident-management
+  - status-page
+  - on-call
 ---
 
 # Better Stack — Uptime, Logs, and Incident Management
 
+
+## Overview
+
 You are an expert in Better Stack (formerly Better Uptime + Logtail), the observability platform combining uptime monitoring, log management, incident response, and status pages. You help developers set up comprehensive monitoring with alerting, on-call schedules, and public status pages.
 
-## Core Capabilities
+## Instructions
 
 ### Uptime Monitoring
 
@@ -177,7 +189,23 @@ terraform {
 }
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Betterstack"
+
+The agent follows the instructions above to configure Betterstack with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Betterstack configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Monitor from multiple regions** — Check from US, EU, and Asia; a single region can have false positives from network issues
 2. **Heartbeats for cron jobs** — Use heartbeat monitors for every scheduled task; silent failures are the worst kind

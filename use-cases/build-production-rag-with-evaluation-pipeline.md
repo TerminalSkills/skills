@@ -2,18 +2,40 @@
 title: Build a Production RAG System with Automated Evaluation
 slug: build-production-rag-with-evaluation-pipeline
 description: Build a customer support RAG chatbot using Mastra for agent orchestration, Ragas and DeepEval for quality evaluation, Braintrust for experiment tracking, and Portkey as the AI gateway with fallback routing and caching.
-skills: [mastra, ragas, deepeval, braintrust, portkey]
-category: AI & Machine Learning
-tags: [rag, evaluation, ai-agents, observability, production, llm-testing]
+skills:
+- mastra
+- ragas
+- deepeval
+- braintrust
+- portkey
+category: data-ai
+tags:
+- rag
+- evaluation
+- ai-agents
+- observability
+- production
 ---
 
 # Build a Production RAG System with Automated Evaluation
+
+## The Problem
 
 Marta leads AI engineering at a 40-person B2B SaaS company. Their support team drowns in repetitive questions — password resets, billing inquiries, feature explanations — that could be answered from existing documentation. She needs a RAG chatbot that's actually reliable: grounded in real docs, evaluated continuously, and resilient to provider outages.
 
 The challenge isn't building a demo. It's building something that doesn't hallucinate billing policy, stays online when OpenAI has an incident, and gets measurably better over time.
 
-## Step 1: Set Up the AI Gateway
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install mastra ragas deepeval braintrust portkey
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Set Up the AI Gateway
 
 Before writing any agent logic, Marta configures Portkey as the gateway layer. Every LLM call routes through it — this gives her fallback routing, caching, and cost tracking from day one.
 
@@ -54,7 +76,7 @@ export const llmClient = new Portkey({
 
 The semantic cache is critical for support bots. "How do I reset my password?" and "I forgot my password, help" are different strings but the same question. Portkey serves the cached response in ~50ms instead of making a $0.01 API call each time. For a bot handling 500 questions/day, that's real savings.
 
-## Step 2: Build the Support Agent with Mastra
+### Step 2: Build the Support Agent with Mastra
 
 Marta uses Mastra to wire together the RAG pipeline — retrieval, generation, and tool use in a type-safe TypeScript framework.
 
@@ -151,7 +173,7 @@ TONE: Professional, concise, empathetic. One paragraph max per point.`,
 
 The key design decision: the agent's instructions explicitly prohibit fabrication and mandate tool use. LLMs will confidently make up pricing details if you don't constrain them. The `searchDocs` tool forces grounding in actual documentation, and `createTicket` provides a graceful escape hatch for questions outside the knowledge base.
 
-## Step 3: Build the Evaluation Test Suite
+### Step 3: Build the Evaluation Test Suite
 
 Before deploying, Marta builds a comprehensive test suite. She uses DeepEval for unit-style tests that run in CI, catching regressions on every code change.
 
@@ -232,7 +254,7 @@ def test_context_maintained_across_turns():
     assert_test(conversation, [ConversationRelevancyMetric(threshold=0.7)])
 ```
 
-## Step 4: RAG-Specific Evaluation with Ragas
+### Step 4: RAG-Specific Evaluation with Ragas
 
 DeepEval catches individual failures. Ragas measures systemic quality — how well the entire retrieval + generation pipeline performs across hundreds of questions.
 
@@ -324,7 +346,7 @@ def run_evaluation(rag_pipeline, test_df):
     return results
 ```
 
-## Step 5: Experiment Tracking with Braintrust
+### Step 5: Experiment Tracking with Braintrust
 
 Every prompt change, model swap, or retrieval tweak is an experiment. Braintrust tracks them all so Marta can compare results and confidently ship improvements.
 
@@ -374,7 +396,7 @@ Eval("support-agent-prompt-v4", {
 });
 ```
 
-## Step 6: Production Monitoring
+### Step 6: Production Monitoring
 
 With the agent deployed, Marta adds production observability. Every customer interaction is logged, scored, and monitored for quality degradation.
 
@@ -426,7 +448,8 @@ export async function handleSupportRequest(req: Request) {
 }
 ```
 
-## Results
+
+## Real-World Example
 
 After two weeks in production, Marta's dashboard shows:
 
@@ -435,3 +458,11 @@ The support bot handles 73% of incoming questions without human escalation. Fait
 The evaluation pipeline catches problems early. When someone updated the pricing page without updating the support docs, context_recall dropped from 0.88 to 0.71 in the nightly Ragas run. The team spotted the discrepancy within a day and synced the docs.
 
 The Braintrust experiment history shows clear improvement: prompt v1 scored 0.72 on faithfulness, v2 hit 0.84 after adding explicit "don't fabricate" instructions, and v4 reached 0.91 with better retrieval chunking. Each change is documented, comparable, and reversible.
+
+## Related Skills
+
+- [mastra](../skills/mastra/) -- Complementary skill for this workflow
+- [ragas](../skills/ragas/) -- Complementary skill for this workflow
+- [deepeval](../skills/deepeval/) -- Complementary skill for this workflow
+- [braintrust](../skills/braintrust/) -- Complementary skill for this workflow
+- [portkey](../skills/portkey/) -- Complementary skill for this workflow

@@ -1,16 +1,28 @@
 ---
 name: trieve
-category: Search & Data
-tags: [search, ai-search, rag, vector-search, hybrid-search, api]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Trieve, the all-in-one search infrastructure that combines full-text, semantic, and hybrid search with built-in RAG capabilities. Helps developers implement production search with chunking, re-ranking, recommendations, and analytics without managing vector databases or embedding models.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - search
+  - ai-search
+  - rag
+  - vector-search
+  - hybrid-search
 ---
 
 # Trieve — AI Search Infrastructure
 
+
+## Overview
+
 You are an expert in Trieve, the all-in-one search infrastructure that combines full-text, semantic, and hybrid search with built-in RAG capabilities. You help developers implement production search with chunking, re-ranking, recommendations, and analytics without managing vector databases or embedding models.
 
-## Core Capabilities
+## Instructions
 
 ### Dataset and Chunk Management
 
@@ -315,7 +327,23 @@ npm install trieve-ts-sdk
 # All examples above use fetch — zero dependencies
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Trieve"
+
+The agent follows the instructions above to configure Trieve with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Trieve configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Chunk intelligently** — Split by paragraphs or sections, not arbitrary character counts; each chunk should be self-contained
 2. **Use groups for documents** — Group chunks from the same document so you can search by document or by chunk

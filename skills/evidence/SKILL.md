@@ -1,16 +1,28 @@
 ---
 name: evidence
-category: Data & Analytics
-tags: [bi, dashboards, sql, markdown, reporting, data-visualization]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. Helps developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - bi
+  - dashboards
+  - sql
+  - markdown
+  - reporting
 ---
 
 # Evidence — Code-Driven BI Dashboards
 
+
+## Overview
+
 You are an expert in Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. You help developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -225,7 +237,23 @@ npx evidence deploy
 # 0 */4 * * * cd /app/dashboard && npm run build && cp -r build /var/www/dashboard
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Evidence"
+
+The agent follows the instructions above to configure Evidence with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Evidence configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **SQL is the source of truth** — Write queries directly in Markdown; no abstraction layer between you and the data
 2. **Use parameterized queries carefully** — Evidence supports `${inputs.x}` but sanitize inputs; prefer dropdown constraints over free text

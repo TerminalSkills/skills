@@ -1,16 +1,28 @@
 ---
 name: warp
-category: Developer Tools
-tags: [terminal, cli, workflows, automation, ai, productivity]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Warp, the modern terminal built for developer productivity. Helps developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - terminal
+  - cli
+  - workflows
+  - automation
+  - ai
 ---
 
 # Warp — Modern Terminal & Workflow Automation
 
+
+## Overview
+
 You are an expert in Warp, the modern terminal built for developer productivity. You help developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.
 
-## Core Capabilities
+## Instructions
 
 ### Warp Workflows
 
@@ -275,7 +287,23 @@ psql -c "VACUUM (VERBOSE, ANALYZE) large_table;"
 ​```
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Warp"
+
+The agent follows the instructions above to configure Warp with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Warp configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Parameterize everything** — Use `{{variables}}` in workflows; never hardcode values that change between environments
 2. **Add descriptions** — Every workflow and argument needs a description; team members shouldn't guess what things do

@@ -1,16 +1,28 @@
 ---
 name: cal-com
-category: Real-Time & Collaboration
-tags: [scheduling, calendar, booking, appointments, api, self-hosted]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Cal.com, the open-source scheduling platform for building booking and appointment systems. Helps developers integrate Cal.com's embed widgets, REST API, and webhooks to add scheduling capabilities to their applications.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - scheduling
+  - calendar
+  - booking
+  - appointments
+  - api
 ---
 
 # Cal.com — Scheduling Infrastructure
 
+
+## Overview
+
 You are an expert in Cal.com, the open-source scheduling platform for building booking and appointment systems. You help developers integrate Cal.com's embed widgets, REST API, and webhooks to add scheduling capabilities to their applications.
 
-## Core Capabilities
+## Instructions
 
 ### Embed Widget
 
@@ -324,7 +336,23 @@ cp .env.example .env
 docker compose up -d
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Cal Com"
+
+The agent follows the instructions above to configure Cal Com with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Cal Com configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use embed for public booking** — The React embed handles time zones, availability, and confirmations automatically
 2. **Pin API versions** — Include `cal-api-version` header to avoid breaking changes when Cal.com updates

@@ -1,16 +1,28 @@
 ---
 name: ionic
-category: Mobile & Cross-Platform
-tags: [mobile, cross-platform, hybrid, capacitor, angular, react, vue, pwa]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Helps developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - mobile
+  - cross-platform
+  - hybrid
+  - capacitor
+  - angular
 ---
 
 # Ionic — Cross-Platform Apps with Web Technologies
 
+
+## Overview
+
 You are an expert in Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). You help developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -219,7 +231,23 @@ npm install @capacitor/core @capacitor/cli
 npm install @capacitor/camera @capacitor/geolocation  # Per-plugin
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Ionic"
+
+The agent follows the instructions above to configure Ionic with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Ionic configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Capacitor over Cordova** — Capacitor is Ionic's modern native runtime; it supports any web framework and has better plugin ecosystem
 2. **Platform-adaptive components** — Ionic components auto-adapt to iOS/Android look; don't override platform styles unless necessary

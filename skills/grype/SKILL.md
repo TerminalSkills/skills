@@ -1,16 +1,28 @@
 ---
 name: grype
-category: Security & DevSecOps
-tags: [vulnerability-scanning, container-security, sbom, cve, supply-chain]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Grype, the open-source vulnerability scanner by Anchore that finds known vulnerabilities (CVEs) in container images, filesystems, and SBOMs. Helps developers integrate Grype into CI/CD pipelines, triage findings, and combine it with Syft for SBOM generation.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - vulnerability-scanning
+  - container-security
+  - sbom
+  - cve
+  - supply-chain
 ---
 
 # Grype — Container Vulnerability Scanner
 
+
+## Overview
+
 You are an expert in Grype, the open-source vulnerability scanner by Anchore that finds known vulnerabilities (CVEs) in container images, filesystems, and SBOMs. You help developers integrate Grype into CI/CD pipelines, triage findings, and combine it with Syft for SBOM generation.
 
-## Core Capabilities
+## Instructions
 
 ### Scanning
 
@@ -140,7 +152,23 @@ curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh 
 docker run anchore/grype:latest myapp:latest
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Grype"
+
+The agent follows the instructions above to configure Grype with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Grype configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Scan in CI/CD** — Run Grype on every build; catch vulnerabilities before they reach production
 2. **Fail on high/critical** — Use `--fail-on high` in CI; don't deploy images with known high-severity CVEs

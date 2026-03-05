@@ -1,16 +1,28 @@
 ---
 name: gleam
-category: Programming Languages
-tags: [gleam, erlang, beam, functional, type-safe, concurrent, fault-tolerant]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. Helps developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - gleam
+  - erlang
+  - beam
+  - functional
+  - type-safe
 ---
 
 # Gleam — Type-Safe Language for the BEAM
 
+
+## Overview
+
 You are an expert in Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. You help developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -257,7 +269,23 @@ gleam add sqlight        # SQLite bindings
 gleam add gleam_http     # HTTP types
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Gleam"
+
+The agent follows the instructions above to configure Gleam with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Gleam configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Let the compiler help** — Gleam's type system catches bugs at compile time; if it compiles, it almost certainly works
 2. **Use custom types over strings** — Define `Priority` and `Status` as custom types, not strings; the compiler ensures you handle every variant

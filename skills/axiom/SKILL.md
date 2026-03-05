@@ -1,16 +1,28 @@
 ---
 name: axiom
-category: Observability & Monitoring
-tags: [logging, analytics, serverless, observability, s3, cost-effective]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. Helps developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - logging
+  - analytics
+  - serverless
+  - observability
+  - s3
 ---
 
 # Axiom — Serverless Log Analytics
 
+
+## Overview
+
 You are an expert in Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. You help developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.
 
-## Core Capabilities
+## Instructions
 
 ### Ingestion
 
@@ -207,7 +219,23 @@ npm install next-axiom
 pip install axiom-py
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Axiom"
+
+The agent follows the instructions above to configure Axiom with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Axiom configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Datasets as logical groups** — Create separate datasets for different log types (api-logs, frontend-events, infra-metrics); each has its own retention and access controls
 2. **Structured over unstructured** — Send JSON objects, not plain text; structured fields enable filtering, aggregation, and dashboards

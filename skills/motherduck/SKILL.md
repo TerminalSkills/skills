@@ -1,16 +1,28 @@
 ---
 name: motherduck
-category: Data & Analytics
-tags: [duckdb, cloud, analytics, sql, serverless, data-warehouse]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for MotherDuck, the serverless analytics platform built on DuckDB that combines local and cloud query execution. Helps developers run SQL analytics on cloud-hosted data, share datasets, and build hybrid local-cloud data pipelines using DuckDB's familiar interface.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - duckdb
+  - cloud
+  - analytics
+  - sql
+  - serverless
 ---
 
 # MotherDuck — Serverless DuckDB in the Cloud
 
+
+## Overview
+
 You are an expert in MotherDuck, the serverless analytics platform built on DuckDB that combines local and cloud query execution. You help developers run SQL analytics on cloud-hosted data, share datasets, and build hybrid local-cloud data pipelines using DuckDB's familiar interface.
 
-## Core Capabilities
+## Instructions
 
 ### Connection and Setup
 
@@ -219,7 +231,23 @@ npm install duckdb-async
 # Download from https://motherduck.com/docs/getting-started/
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Motherduck"
+
+The agent follows the instructions above to configure Motherduck with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Motherduck configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Hybrid execution** — MotherDuck pushes queries to the cloud OR runs locally depending on where data lives; leverage both
 2. **Parquet for everything** — Store raw data as Parquet files on S3; query them directly without loading into tables

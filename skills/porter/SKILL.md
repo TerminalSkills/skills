@@ -1,16 +1,28 @@
 ---
 name: porter
-category: Cloud & Infrastructure
-tags: [paas, kubernetes, aws, gcp, azure, deployment, heroku-alternative]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. Helps developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - paas
+  - kubernetes
+  - aws
+  - gcp
+  - azure
 ---
 
 # Porter — PaaS on Your Own Cloud
 
+
+## Overview
+
 You are an expert in Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. You help developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.
 
-## Core Capabilities
+## Instructions
 
 ### Getting Started
 
@@ -201,7 +213,23 @@ jobs:
           PORTER_CLUSTER: ${{ secrets.PORTER_CLUSTER }}
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Porter"
+
+The agent follows the instructions above to configure Porter with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Porter configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Your cloud, Porter's UX** — Infrastructure runs in your AWS/GCP/Azure account; you own the data and the bill
 2. **Use porter.yaml** — Define services, scaling, and env vars in code; avoid dashboard-only configuration

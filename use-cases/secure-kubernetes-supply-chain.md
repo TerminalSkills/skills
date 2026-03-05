@@ -2,18 +2,40 @@
 title: Secure the Kubernetes Supply Chain from Code to Cluster
 slug: secure-kubernetes-supply-chain
 description: Implement a complete software supply chain security pipeline using Semgrep for code scanning, Checkov for IaC validation, Grype for vulnerability scanning, Cosign for image signing, and Kyverno for admission control — ensuring only verified, scanned code reaches production.
-skills: [semgrep, checkov, grype, cosign, kyverno]
-category: Security & DevSecOps
-tags: [supply-chain, kubernetes, security, ci-cd, signing, scanning]
+skills:
+- semgrep
+- checkov
+- grype
+- cosign
+- kyverno
+category: devops
+tags:
+- supply-chain
+- kubernetes
+- security
+- ci-cd
+- signing
 ---
 
 # Secure the Kubernetes Supply Chain from Code to Cluster
+
+## The Problem
 
 Leo is security lead at a 60-person fintech company running 20 microservices on Kubernetes. After a competitor suffers a supply chain attack — a compromised npm package exfiltrating customer data — the board mandates a full supply chain security review. Leo finds the current state alarming: no code scanning, no image scanning, no signatures, no admission control. Any developer can push any image to any cluster. A single compromised dependency could reach production unchecked.
 
 Leo designs a five-layer defense: Semgrep scans code for vulnerabilities at PR time, Checkov validates infrastructure configurations, Grype scans container images for known CVEs, Cosign signs verified images, and Kyverno enforces that only signed, scanned images can run in the cluster.
 
-## Step 1: Code Scanning with Semgrep
+## The Solution
+
+Use the skills listed above to implement an automated workflow. Install the required skills:
+
+```bash
+npx terminal-skills install semgrep checkov grype cosign kyverno
+```
+
+## Step-by-Step Walkthrough
+
+### Step 1: Code Scanning with Semgrep
 
 The first gate: catch vulnerabilities in the code itself before it's merged.
 
@@ -74,7 +96,7 @@ rules:
       router.post("/api/public/$ENDPOINT", rateLimiter, async (req, res) => { ... })
 ```
 
-## Step 2: Infrastructure Scanning with Checkov
+### Step 2: Infrastructure Scanning with Checkov
 
 Every Terraform change and Kubernetes manifest goes through Checkov before merge.
 
@@ -121,7 +143,7 @@ Every Terraform change and Kubernetes manifest goes through Checkov before merge
 
 Checkov catches misconfigurations that would otherwise reach production silently — RDS instances without encryption, security groups open to the world, containers running as root, missing health check probes.
 
-## Step 3: Build, Scan, and Sign Images
+### Step 3: Build, Scan, and Sign Images
 
 After code review passes, the build pipeline creates the image, scans it for CVEs with Grype, and signs it with Cosign.
 
@@ -206,7 +228,7 @@ After code review passes, the build pipeline creates the image, scans it for CVE
 
 At this point, the image has been scanned for code vulnerabilities (Semgrep), infrastructure misconfigurations (Checkov), and known CVEs (Grype). It's signed with a cryptographic signature tied to the CI identity (Cosign), and it carries an SBOM and vulnerability report as attestations.
 
-## Step 4: Admission Control with Kyverno
+### Step 4: Admission Control with Kyverno
 
 The final gate: Kyverno in the Kubernetes cluster enforces that only signed, scanned images are allowed to run.
 
@@ -330,7 +352,7 @@ spec:
                 type: RuntimeDefault
 ```
 
-## Step 5: Verify the Pipeline End-to-End
+### Step 5: Verify the Pipeline End-to-End
 
 ```bash
 # Attempt to deploy an unsigned image — Kyverno blocks it
@@ -352,7 +374,8 @@ default     pol-verify-supply     12     0      0
 payments    pol-verify-supply     8      0      0
 ```
 
-## Results
+
+## Real-World Example
 
 Three months after implementing the five-layer defense, Leo presents the results to the board.
 
@@ -365,3 +388,11 @@ Grype has flagged 47 container images with high-severity CVEs since deployment. 
 Kyverno blocked 23 deployment attempts with unsigned or unscanned images. Most were developers trying to deploy directly from their local machines (bypassing CI/CD). Three were from a staging environment where someone had pushed an image manually. The cluster has maintained 100% policy compliance since enforcement was enabled.
 
 The entire pipeline adds 3 minutes to the CI/CD cycle (Semgrep: 45s, Checkov: 30s, build+push: 60s, Grype: 30s, Cosign: 15s). The team considers this acceptable — the security confidence is worth far more than 3 minutes of build time. And since the scanning runs in parallel with tests, the actual wall-clock impact is closer to 90 seconds.
+
+## Related Skills
+
+- [semgrep](../skills/semgrep/) -- Complementary skill for this workflow
+- [checkov](../skills/checkov/) -- Complementary skill for this workflow
+- [grype](../skills/grype/) -- Complementary skill for this workflow
+- [cosign](../skills/cosign/) -- Complementary skill for this workflow
+- [kyverno](../skills/kyverno/) -- Complementary skill for this workflow

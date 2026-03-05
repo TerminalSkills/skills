@@ -1,16 +1,28 @@
 ---
 name: wails
-category: Mobile & Cross-Platform
-tags: [desktop, go, golang, cross-platform, native, webview]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Wails, the Go framework for building desktop applications with web frontends. Helps developers build lightweight, fast desktop apps where the backend is Go and the frontend is any web framework (React, Vue, Svelte), communicating through auto-generated TypeScript bindings.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - desktop
+  - go
+  - golang
+  - cross-platform
+  - native
 ---
 
 # Wails — Desktop Apps with Go and Web Frontend
 
+
+## Overview
+
 You are an expert in Wails, the Go framework for building desktop applications with web frontends. You help developers build lightweight, fast desktop apps where the backend is Go and the frontend is any web framework (React, Vue, Svelte), communicating through auto-generated TypeScript bindings.
 
-## Core Capabilities
+## Instructions
 
 ### Project Setup
 
@@ -291,7 +303,23 @@ xcode-select --install
 sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Wails"
+
+The agent follows the instructions above to configure Wails with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Wails configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Go for backend, web for UI** — Keep business logic, file I/O, database access in Go; keep UI rendering in the frontend
 2. **Auto-generated bindings** — Never write API boilerplate; Wails generates TypeScript types from Go structs automatically

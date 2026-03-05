@@ -1,16 +1,28 @@
 ---
 name: user-research
-category: Product Management
-tags: [user-research, interviews, personas, surveys, usability-testing, ux-research]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. The agent apply both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: business
+  tags:
+  - user-research
+  - interviews
+  - personas
+  - surveys
+  - usability-testing
 ---
 
 # User Research — Understanding Users Through Evidence
 
+
+## Overview
+
 You are an expert in user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. You apply both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.
 
-## Core Capabilities
+## Instructions
 
 ### User Interviews
 
@@ -181,7 +193,23 @@ Write tasks as goals, not instructions:
 4. Test again after fixes (verification round)
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up User Research"
+
+The agent follows the instructions above to configure User Research with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my User Research configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Research before building** — Talk to users before writing a single line of code; every week spent on research saves a month of building the wrong thing
 2. **5 interviews = 80% of insights** — You don't need 50 interviews; 5 per segment reveals the major patterns

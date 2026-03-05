@@ -1,16 +1,28 @@
 ---
 name: nixpacks
-category: Cloud & Infrastructure
-tags: [buildpacks, docker, deployment, ci-cd, nix, auto-detect]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Nixpacks, the build system created by Railway that automatically detects your application's language and framework, installs dependencies, and produces optimized Docker images — all without writing a Dockerfile. Helps developers configure Nixpacks for custom build steps, multi-language projects, and CI/CD integration.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - buildpacks
+  - docker
+  - deployment
+  - ci-cd
+  - nix
 ---
 
 # Nixpacks — App Source to Docker Image
 
+
+## Overview
+
 You are an expert in Nixpacks, the build system created by Railway that automatically detects your application's language and framework, installs dependencies, and produces optimized Docker images — all without writing a Dockerfile. You help developers configure Nixpacks for custom build steps, multi-language projects, and CI/CD integration.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Usage
 
@@ -175,7 +187,23 @@ jobs:
 | Static    | index.html             | -                                    |
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Nixpacks"
+
+The agent follows the instructions above to configure Nixpacks with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Nixpacks configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Start without config** — Try `nixpacks build .` first; auto-detection handles most projects correctly
 2. **Use nixpacks.toml for system deps** — Need FFmpeg, ImageMagick, or native libraries? Add them to `nixPkgs`

@@ -1,16 +1,28 @@
 ---
 name: cosign
-category: Security & DevSecOps
-tags: [container-signing, supply-chain, sigstore, verification, sbom, attestation]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Cosign, the Sigstore tool for signing, verifying, and attaching metadata to container images and other OCI artifacts. Helps developers implement supply chain security by signing images in CI/CD, verifying signatures before deployment, and attaching SBOMs and vulnerability scan results as attestations.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - container-signing
+  - supply-chain
+  - sigstore
+  - verification
+  - sbom
 ---
 
 # Cosign — Container Image Signing and Verification
 
+
+## Overview
+
 You are an expert in Cosign, the Sigstore tool for signing, verifying, and attaching metadata to container images and other OCI artifacts. You help developers implement supply chain security by signing images in CI/CD, verifying signatures before deployment, and attaching SBOMs and vulnerability scan results as attestations.
 
-## Core Capabilities
+## Instructions
 
 ### Sign and Verify Images
 
@@ -156,7 +168,23 @@ brew install cosign
 # Or: Download from https://github.com/sigstore/cosign/releases
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Cosign"
+
+The agent follows the instructions above to configure Cosign with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Cosign configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Keyless signing in CI** — Use Sigstore's keyless signing in GitHub Actions; no key management, signatures tied to OIDC identity
 2. **Sign every image** — Sign in CI/CD, verify before deployment; no unsigned image should reach production

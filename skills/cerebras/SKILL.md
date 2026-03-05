@@ -1,16 +1,28 @@
 ---
 name: cerebras
-category: AI & Machine Learning
-tags: [llm, inference, api, fast-inference, wafer-scale, cloud]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). Helps developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: data-ai
+  tags:
+  - llm
+  - inference
+  - api
+  - fast-inference
+  - wafer-scale
 ---
 
 # Cerebras — Wafer-Scale LLM Inference
 
+
+## Overview
+
 You are an expert in Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). You help developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.
 
-## Core Capabilities
+## Instructions
 
 ### Chat Completions
 
@@ -183,7 +195,23 @@ pip install openai
 # Set base_url to https://api.cerebras.ai/v1
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Cerebras"
+
+The agent follows the instructions above to configure Cerebras with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Cerebras configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use for latency-critical applications** — Cerebras is the fastest inference available; ideal for real-time chat and autocomplete
 2. **OpenAI SDK drop-in** — Change base URL from OpenAI to Cerebras; your code works unchanged

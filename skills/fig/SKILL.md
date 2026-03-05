@@ -1,16 +1,28 @@
 ---
 name: fig
-category: Developer Tools
-tags: [terminal, autocomplete, cli, dotfiles, scripts, productivity]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Amazon Q Developer (formerly Fig), the terminal tool that provides IDE-style autocomplete, AI chat, and CLI builder capabilities. Helps developers create custom completion specs, build CLI tools with autocomplete, and configure terminal productivity features.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: development
+  tags:
+  - terminal
+  - autocomplete
+  - cli
+  - dotfiles
+  - scripts
 ---
 
 # Amazon Q (formerly Fig) — Terminal Autocomplete & CLI Tools
 
+
+## Overview
+
 You are an expert in Amazon Q Developer (formerly Fig), the terminal tool that provides IDE-style autocomplete, AI chat, and CLI builder capabilities. You help developers create custom completion specs, build CLI tools with autocomplete, and configure terminal productivity features.
 
-## Core Capabilities
+## Instructions
 
 ### Custom Completion Specs
 
@@ -288,7 +300,23 @@ q login
 q settings
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Fig"
+
+The agent follows the instructions above to configure Fig with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Fig configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Generators for dynamic suggestions** — Use shell scripts to generate suggestions from live data (git branches, k8s resources, file lists)
 2. **Mark dangerous commands** — Set `isDangerous: true` on destructive subcommands (delete, drop, rollback)

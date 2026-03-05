@@ -1,16 +1,28 @@
 ---
 name: gatus
-category: Observability & Monitoring
-tags: [uptime, health-check, status-page, self-hosted, lightweight, go]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Gatus, the lightweight, self-hosted health check and status page tool written in Go. Helps developers set up endpoint monitoring with conditions, alerting, and a beautiful status page — all configured via a single YAML file with no database required.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - uptime
+  - health-check
+  - status-page
+  - self-hosted
+  - lightweight
 ---
 
 # Gatus — Lightweight Health Check Dashboard
 
+
+## Overview
+
 You are an expert in Gatus, the lightweight, self-hosted health check and status page tool written in Go. You help developers set up endpoint monitoring with conditions, alerting, and a beautiful status page — all configured via a single YAML file with no database required.
 
-## Core Capabilities
+## Instructions
 
 ### Configuration
 
@@ -218,7 +230,23 @@ helm repo add gatus https://twin.github.io/helm-charts
 helm install gatus gatus/gatus
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Gatus"
+
+The agent follows the instructions above to configure Gatus with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Gatus configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Single YAML** — Keep all monitoring in one config file; version control it alongside your infrastructure
 2. **Group endpoints** — Use groups (backend, frontend, infrastructure) for organized status page display

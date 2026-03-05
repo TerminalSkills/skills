@@ -1,16 +1,28 @@
 ---
 name: tinacms
-category: CMS & Content
-tags: [cms, headless-cms, git-backed, markdown, visual-editing, react]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. Helps developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: content
+  tags:
+  - cms
+  - headless-cms
+  - git-backed
+  - markdown
+  - visual-editing
 ---
 
 # TinaCMS — Git-Backed Visual CMS
 
+
+## Overview
+
 You are an expert in TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. You help developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.
 
-## Core Capabilities
+## Instructions
 
 ### Schema Definition
 
@@ -313,7 +325,23 @@ npx tinacms dev -c "next dev"
 npx tinacms build && next build
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Tinacms"
+
+The agent follows the instructions above to configure Tinacms with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Tinacms configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Git is your database** — Content lives in Markdown/JSON files in your repo; every edit creates a git commit
 2. **Use MDX for rich content** — MDX lets editors use custom React components (callouts, embeds, interactive elements)

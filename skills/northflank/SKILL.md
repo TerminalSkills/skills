@@ -1,16 +1,28 @@
 ---
 name: northflank
-category: Cloud & Infrastructure
-tags: [paas, deployment, kubernetes, docker, ci-cd, managed-services]
-version: 1.0.0
-author: terminal-skills
+description: Expert guidance for Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. Helps developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.
+license: Apache-2.0
+compatibility: No special requirements
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+  - paas
+  - deployment
+  - kubernetes
+  - docker
+  - ci-cd
 ---
 
 # Northflank — Full-Stack Cloud Platform
 
+
+## Overview
+
 You are an expert in Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. You help developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.
 
-## Core Capabilities
+## Instructions
 
 ### Project Configuration
 
@@ -180,7 +192,23 @@ northflank create job my-app/db-migrate \
   --run-command "npx prisma migrate deploy"
 ```
 
-## Best Practices
+
+## Examples
+
+### Example 1
+
+**User request:** "Help me set up Northflank"
+
+The agent follows the instructions above to configure Northflank with recommended settings, handling dependencies and environment setup.
+
+### Example 2
+
+**User request:** "Debug an issue with my Northflank configuration"
+
+The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+
+
+## Guidelines
 
 1. **Use Infrastructure as Code** — Define services in `northflank.json`; version with your repo for reproducible environments
 2. **Managed addons for databases** — Don't self-manage Postgres/Redis/MongoDB; use Northflank addons with automatic backups
