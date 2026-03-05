@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. You help developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.
+
+Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. Helps developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.
+
 
 ## Instructions
 
@@ -225,17 +227,26 @@ style = "red"
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Starship"
+### Example 1: Setting up Starship with a custom configuration
 
-The agent follows the instructions above to configure Starship with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Starship. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Starship configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Starship with custom functionality
+
+**User request:**
+
+```
+I want to add a custom configuration to Starship. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Starship's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

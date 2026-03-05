@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). You help developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.
+
+Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). Helps developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.
+
 
 ## Instructions
 
@@ -198,17 +200,26 @@ pip install openai
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Cerebras"
+### Example 1: Setting up an evaluation pipeline for a RAG application
 
-The agent follows the instructions above to configure Cerebras with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a RAG chatbot that answers questions from our docs. Set up Cerebras to evaluate answer quality.
+```
 
-**User request:** "Debug an issue with my Cerebras configuration"
+The agent creates an evaluation suite with appropriate metrics (faithfulness, relevance, answer correctness), configures test datasets from real user questions, runs baseline evaluations, and sets up CI integration so evaluations run on every prompt or retrieval change.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Comparing model performance across prompts
+
+**User request:**
+
+```
+We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Cerebras.
+```
+
+The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
 
 
 ## Guidelines

@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Amazon Q Developer (formerly Fig), the terminal tool that provides IDE-style autocomplete, AI chat, and CLI builder capabilities. You help developers create custom completion specs, build CLI tools with autocomplete, and configure terminal productivity features.
+
+Amazon Q Developer (formerly Fig), the terminal tool that provides IDE-style autocomplete, AI chat, and CLI builder capabilities. Helps developers create custom completion specs, build CLI tools with autocomplete, and configure terminal productivity features.
+
 
 ## Instructions
 
@@ -303,17 +305,26 @@ q settings
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Fig"
+### Example 1: Setting up Fig with a custom configuration
 
-The agent follows the instructions above to configure Fig with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Fig. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Fig configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Fig with custom functionality
+
+**User request:**
+
+```
+I want to add a custom dotfile scripts to Fig. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Fig's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

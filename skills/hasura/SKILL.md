@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Hasura, the GraphQL engine that gives you instant, real-time GraphQL APIs over PostgreSQL (and other databases). You help developers set up Hasura, configure permissions, write custom business logic with Actions and Event Triggers, and optimize GraphQL queries for production.
+
+Hasura, the GraphQL engine that gives the user instant, real-time GraphQL APIs over PostgreSQL (and other databases). Helps developers set up Hasura, configure permissions, write custom business logic with Actions and Event Triggers, and optimize GraphQL queries for production.
+
 
 ## Instructions
 
@@ -292,17 +294,26 @@ docker pull hasura/graphql-engine:latest
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Hasura"
+### Example 1: Building a feature with Hasura
 
-The agent follows the instructions above to configure Hasura with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add a real-time collaborative quick start to my React app using Hasura.
+```
 
-**User request:** "Debug an issue with my Hasura configuration"
+The agent installs the package, creates the component with proper Hasura initialization, implements the quick start with event handling and state management, and adds TypeScript types for the integration.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Migrating an existing feature to Hasura
+
+**User request:**
+
+```
+I have a basic auto-generated api built with custom code. Migrate it to use Hasura for better auto-generated api support.
+```
+
+The agent reads the existing implementation, maps the custom logic to Hasura's API, rewrites the components using Hasura's primitives, preserves existing behavior, and adds features only possible with Hasura (like Permissions, Actions).
 
 
 ## Guidelines

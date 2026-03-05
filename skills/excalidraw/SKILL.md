@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. You help developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.
+
+Excalidraw, the open-source virtual whiteboard library for creating hand-drawn style diagrams and sketches. Helps developers embed Excalidraw in React applications, build custom integrations, and leverage the API for programmatic diagram creation.
+
 
 ## Instructions
 
@@ -316,17 +318,26 @@ npm install react react-dom
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Excalidraw"
+### Example 1: Setting up Excalidraw with a custom configuration
 
-The agent follows the instructions above to configure Excalidraw with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Excalidraw. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Excalidraw configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Excalidraw with custom functionality
+
+**User request:**
+
+```
+I want to add a custom programmatic scene creation to Excalidraw. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Excalidraw's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Grype, the open-source vulnerability scanner by Anchore that finds known vulnerabilities (CVEs) in container images, filesystems, and SBOMs. You help developers integrate Grype into CI/CD pipelines, triage findings, and combine it with Syft for SBOM generation.
+
+Grype, the open-source vulnerability scanner by Anchore that finds known vulnerabilities (CVEs) in container images, filesystems, and SBOMs. Helps developers integrate Grype into CI/CD pipelines, triage findings, and combine it with Syft for SBOM generation.
+
 
 ## Instructions
 
@@ -155,17 +157,26 @@ docker run anchore/grype:latest myapp:latest
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Grype"
+### Example 1: Setting up Grype for a microservices project
 
-The agent follows the instructions above to configure Grype with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Grype for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Grype configuration"
+The agent creates the necessary configuration files based on patterns like `# Install`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting ci/cd integration issues
+
+**User request:**
+
+```
+Grype is showing errors in our ci/cd integration. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Grype issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

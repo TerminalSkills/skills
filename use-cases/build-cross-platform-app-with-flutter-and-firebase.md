@@ -422,5 +422,5 @@ The kanban board drag-and-drop works identically on iOS, Android, and web thanks
 
 ## Related Skills
 
-- [flutter](../skills/flutter/) -- Complementary skill for this workflow
-- [firebase](../skills/firebase/) -- Complementary skill for this workflow
+- [flutter](../skills/flutter/) -- Build cross-platform mobile and desktop apps from a single Dart codebase
+- [firebase](../skills/firebase/) -- Google's BaaS platform for auth, Firestore database, storage, and hosting

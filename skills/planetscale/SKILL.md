@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). You help developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.
+
+PlanetScale, the serverless MySQL platform built on Vitess (the database clustering system powering YouTube). Helps developers set up databases with Git-like branching for schema changes, non-blocking schema migrations, and connection pooling for serverless environments.
+
 
 ## Instructions
 
@@ -209,17 +211,26 @@ npm install prisma @prisma/client
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Planetscale"
+### Example 1: Setting up Planetscale with a custom configuration
 
-The agent follows the instructions above to configure Planetscale with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Planetscale. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Planetscale configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Planetscale with custom functionality
+
+**User request:**
+
+```
+I want to add a custom schema branching to Planetscale. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Planetscale's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

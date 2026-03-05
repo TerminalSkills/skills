@@ -342,5 +342,5 @@ Total infrastructure cost: $0 (Firebase free tier covers 50K auth operations/mon
 
 ## Related Skills
 
-- [firebase](../skills/firebase/) -- Complementary skill for this workflow
-- [hasura](../skills/hasura/) -- Complementary skill for this workflow
+- [firebase](../skills/firebase/) -- Google's BaaS platform for auth, Firestore database, storage, and hosting
+- [hasura](../skills/hasura/) -- Instant GraphQL API over PostgreSQL with real-time subscriptions and authorization

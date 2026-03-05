@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Flutter, Google's UI toolkit for building natively compiled applications for mobile, web, and desktop from a single Dart codebase. You help developers build performant cross-platform apps with custom widgets, state management, platform channels, and production deployment.
+
+Flutter, Google's UI toolkit for building natively compiled applications for mobile, web, and desktop from a single Dart codebase. Helps developers build performant cross-platform apps with custom widgets, state management, platform channels, and production deployment.
+
 
 ## Instructions
 
@@ -307,17 +309,26 @@ flutter pub add hive                # Local storage
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Flutter"
+### Example 1: Setting up Flutter with a custom configuration
 
-The agent follows the instructions above to configure Flutter with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Flutter. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Flutter configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Flutter with custom functionality
+
+**User request:**
+
+```
+I want to add a custom widget composition to Flutter. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Flutter's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

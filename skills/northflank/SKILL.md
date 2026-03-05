@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. You help developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.
+
+Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. Helps developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.
+
 
 ## Instructions
 
@@ -195,17 +197,26 @@ northflank create job my-app/db-migrate \
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Northflank"
+### Example 1: Setting up Northflank for a microservices project
 
-The agent follows the instructions above to configure Northflank with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Northflank for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Northflank configuration"
+The agent creates the necessary configuration files based on patterns like `# Install Northflank CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting cli operations issues
+
+**User request:**
+
+```
+Northflank is showing errors in our cli operations. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Northflank issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

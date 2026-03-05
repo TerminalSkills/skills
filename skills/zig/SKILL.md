@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Zig, the systems programming language focused on performance, safety, and readability. You help developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.
+
+Zig, the systems programming language focused on performance, safety, and readability. Helps developers write high-performance code with compile-time evaluation, seamless C interop, no hidden control flow, and no garbage collector. Zig is used for game engines, operating systems, networking, and as a C/C++ replacement.
+
 
 ## Instructions
 
@@ -264,17 +266,26 @@ cd zig && cmake -B build && cmake --build build
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Zig"
+### Example 1: Building a feature with Zig
 
-The agent follows the instructions above to configure Zig with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add a real-time collaborative build system to my React app using Zig.
+```
 
-**User request:** "Debug an issue with my Zig configuration"
+The agent installs the package, creates the component with proper Zig initialization, implements the build system with event handling and state management, and adds TypeScript types for the integration.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Migrating an existing feature to Zig
+
+**User request:**
+
+```
+I have a basic core language built with custom code. Migrate it to use Zig for better core language support.
+```
+
+The agent reads the existing implementation, maps the custom logic to Zig's API, rewrites the components using Zig's primitives, preserves existing behavior, and adds features only possible with Zig (like Comptime, HTTP Server).
 
 
 ## Guidelines

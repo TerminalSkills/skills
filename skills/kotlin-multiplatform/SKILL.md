@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Kotlin Multiplatform (KMP), JetBrains' technology for sharing code between Android, iOS, web, and desktop applications. You help developers build shared business logic, networking, and data layers in Kotlin while keeping UI native on each platform.
+
+Kotlin Multiplatform (KMP), JetBrains' technology for sharing code between Android, iOS, web, and desktop applications. Helps developers build shared business logic, networking, and data layers in Kotlin while keeping UI native on each platform.
+
 
 ## Instructions
 
@@ -302,17 +304,26 @@ kotlin {
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Kotlin Multiplatform"
+### Example 1: Setting up Kotlin Multiplatform with a custom configuration
 
-The agent follows the instructions above to configure Kotlin Multiplatform with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Kotlin Multiplatform. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Kotlin Multiplatform configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Kotlin Multiplatform with custom functionality
+
+**User request:**
+
+```
+I want to add a custom shared business logic to Kotlin Multiplatform. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Kotlin Multiplatform's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

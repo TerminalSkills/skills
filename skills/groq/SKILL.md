@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Groq, the LLM inference platform that provides the fastest token generation speeds available, powered by custom LPU (Language Processing Unit) hardware. You help developers integrate Groq's API for real-time AI applications where latency matters — chatbots, code completion, and streaming responses.
+
+Groq, the LLM inference platform that provides the fastest token generation speeds available, powered by custom LPU (Language Processing Unit) hardware. Helps developers integrate Groq's API for real-time AI applications where latency matters — chatbots, code completion, and streaming responses.
+
 
 ## Instructions
 
@@ -266,17 +268,26 @@ pip install groq
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Groq"
+### Example 1: Integrating Groq into an existing application
 
-The agent follows the instructions above to configure Groq with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Groq to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Groq configuration"
+The agent installs the SDK, creates an API route that initializes the Groq client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing structured output performance
+
+**User request:**
+
+```
+My Groq calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Groq's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines

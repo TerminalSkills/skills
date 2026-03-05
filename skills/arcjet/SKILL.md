@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Arcjet, the developer-first security platform that provides rate limiting, bot protection, email validation, and attack detection as a code-first SDK. You help developers add security layers to Next.js, Node.js, and other JavaScript/TypeScript applications without managing infrastructure.
+
+Arcjet, the developer-first security platform that provides rate limiting, bot protection, email validation, and attack detection as a code-first SDK. Helps developers add security layers to Next.js, Node.js, and other JavaScript/TypeScript applications without managing infrastructure.
+
 
 ## Instructions
 
@@ -298,17 +300,26 @@ npm install @arcjet/node
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Arcjet"
+### Example 1: Setting up Arcjet with a custom configuration
 
-The agent follows the instructions above to configure Arcjet with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Arcjet. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Arcjet configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Arcjet with custom functionality
+
+**User request:**
+
+```
+I want to add a custom bot protection to Arcjet. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Arcjet's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

@@ -697,6 +697,6 @@ Average response time increased from 1.2 seconds (single LLM call) to 3.8 second
 
 ## Related Skills
 
-- [a2a-protocol](../skills/a2a-protocol/) -- Complementary skill for this workflow
-- [langchain](../skills/langchain/) -- Complementary skill for this workflow
-- [langgraph](../skills/langgraph/) -- Complementary skill for this workflow
+- [a2a-protocol](../skills/a2a-protocol/) -- Google's Agent-to-Agent protocol for inter-agent communication and discovery
+- [langchain](../skills/langchain/) -- Build LLM applications with chains, agents, and retrieval-augmented generation
+- [langgraph](../skills/langgraph/) -- Build stateful multi-agent workflows with cycles, branching, and persistence

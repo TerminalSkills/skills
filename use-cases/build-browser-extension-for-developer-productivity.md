@@ -449,4 +449,4 @@ The hourly sync to their team's API means snippets saved on a work laptop show u
 
 ## Related Skills
 
-- [plasmo](../skills/plasmo/) -- Complementary skill for this workflow
+- [plasmo](../skills/plasmo/) -- Framework for building Chrome/Firefox extensions with React and TypeScript

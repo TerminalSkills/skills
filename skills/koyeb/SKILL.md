@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. You help developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.
+
+Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. Helps developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.
+
 
 ## Instructions
 
@@ -173,17 +175,26 @@ koyeb service update my-api/web \
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Koyeb"
+### Example 1: Setting up Koyeb for a microservices project
 
-The agent follows the instructions above to configure Koyeb with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Koyeb for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Koyeb configuration"
+The agent creates the necessary configuration files based on patterns like `# Install Koyeb CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting service configuration issues
+
+**User request:**
+
+```
+Koyeb is showing errors in our service configuration. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Koyeb issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

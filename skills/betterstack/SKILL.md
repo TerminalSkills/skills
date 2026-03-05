@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Better Stack (formerly Better Uptime + Logtail), the observability platform combining uptime monitoring, log management, incident response, and status pages. You help developers set up comprehensive monitoring with alerting, on-call schedules, and public status pages.
+
+Better Stack (formerly Better Uptime + Logtail), the observability platform combining uptime monitoring, log management, incident response, and status pages. Helps developers set up comprehensive monitoring with alerting, on-call schedules, and public status pages.
+
 
 ## Instructions
 
@@ -192,17 +194,26 @@ terraform {
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Betterstack"
+### Example 1: Setting up Betterstack for a microservices project
 
-The agent follows the instructions above to configure Betterstack with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Betterstack for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Betterstack configuration"
+The agent creates the necessary configuration files based on patterns like `# Escalation policy configuration (via API or dashboard)`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting log management issues
+
+**User request:**
+
+```
+Betterstack is showing errors in our log management. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Betterstack issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

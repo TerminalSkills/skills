@@ -262,5 +262,5 @@ The only trade-off is maintenance responsibility. Leo runs `apt update && apt up
 
 ## Related Skills
 
-- [dokploy](../skills/dokploy/) -- Complementary skill for this workflow
-- [nixpacks](../skills/nixpacks/) -- Complementary skill for this workflow
+- [dokploy](../skills/dokploy/) -- Self-hosted PaaS for deploying apps with Docker and Nixpacks on your own server
+- [nixpacks](../skills/nixpacks/) -- Auto-detect and build container images from source code without Dockerfiles

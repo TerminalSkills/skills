@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. You help developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.
+
+Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. Helps developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.
+
 
 ## Instructions
 
@@ -222,17 +224,26 @@ pip install axiom-py
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Axiom"
+### Example 1: Setting up Axiom for a microservices project
 
-The agent follows the instructions above to configure Axiom with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Axiom for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Axiom configuration"
+The agent creates the necessary configuration files based on patterns like `# Install CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting apl queries issues
+
+**User request:**
+
+```
+Axiom is showing errors in our apl queries. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Axiom issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

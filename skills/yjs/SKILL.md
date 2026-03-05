@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Yjs, the high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications. You help developers implement real-time document editing, offline-first sync, and peer-to-peer collaboration with automatic conflict resolution.
+
+Yjs, the high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications. Helps developers implement real-time document editing, offline-first sync, and peer-to-peer collaboration with automatic conflict resolution.
+
 
 ## Instructions
 
@@ -305,17 +307,26 @@ npm install y-leveldb             # LevelDB (lightweight)
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Yjs"
+### Example 1: Setting up Yjs with a custom configuration
 
-The agent follows the instructions above to configure Yjs with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Yjs. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Yjs configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Yjs with custom functionality
+
+**User request:**
+
+```
+I want to add a custom websocket provider to Yjs. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Yjs's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

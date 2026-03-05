@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. You help developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.
+
+Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. Helps developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.
+
 
 ## Instructions
 
@@ -278,17 +280,26 @@ npm install @orama/react-components        # React hooks
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Orama"
+### Example 1: Integrating Orama into an existing application
 
-The agent follows the instructions above to configure Orama with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Orama to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Orama configuration"
+The agent installs the SDK, creates an API route that initializes the Orama client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing filters and facets performance
+
+**User request:**
+
+```
+My Orama calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Orama's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines

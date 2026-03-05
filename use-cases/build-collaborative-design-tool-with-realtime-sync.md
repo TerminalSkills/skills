@@ -433,7 +433,7 @@ The board loads in under 2 seconds, including Yjs state hydration from the datab
 
 ## Related Skills
 
-- [liveblocks](../skills/liveblocks/) -- Complementary skill for this workflow
-- [yjs](../skills/yjs/) -- Complementary skill for this workflow
-- [tldraw](../skills/tldraw/) -- Complementary skill for this workflow
-- [arcjet](../skills/arcjet/) -- Complementary skill for this workflow
+- [liveblocks](../skills/liveblocks/) -- Add real-time presence, cursors, and collaborative storage to React apps
+- [yjs](../skills/yjs/) -- CRDT-based data syncing for offline-first collaborative editing
+- [tldraw](../skills/tldraw/) -- Embeddable infinite canvas with drawing tools and shape primitives
+- [arcjet](../skills/arcjet/) -- Rate limiting, bot protection, and email validation for securing the app

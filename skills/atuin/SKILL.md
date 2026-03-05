@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. You help developers install, configure, and get the most out of Atuin for shell history management and productivity.
+
+Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. Helps developers install, configure, and get the most out of Atuin for shell history management and productivity.
+
 
 ## Instructions
 
@@ -173,17 +175,26 @@ atuin history list --limit 5
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Atuin"
+### Example 1: Setting up Atuin with a custom configuration
 
-The agent follows the instructions above to configure Atuin with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Atuin. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Atuin configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Atuin with custom functionality
+
+**User request:**
+
+```
+I want to add a custom configuration to Atuin. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Atuin's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

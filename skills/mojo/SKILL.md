@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Mojo, the programming language by Modular that combines Python's usability with C-level performance. You help developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.
+
+Mojo, the programming language by Modular that combines Python's usability with C-level performance. Helps developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.
+
 
 ## Instructions
 
@@ -227,17 +229,26 @@ mojo build my_program.mojo -o my_program
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Mojo"
+### Example 1: Building a feature with Mojo
 
-The agent follows the instructions above to configure Mojo with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add a real-time collaborative python compatibility to my React app using Mojo.
+```
 
-**User request:** "Debug an issue with my Mojo configuration"
+The agent installs the package, creates the component with proper Mojo initialization, implements the python compatibility with event handling and state management, and adds TypeScript types for the integration.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Migrating an existing feature to Mojo
+
+**User request:**
+
+```
+I have a basic high-performance structs built with custom code. Migrate it to use Mojo for better high-performance structs support.
+```
+
+The agent reads the existing implementation, maps the custom logic to Mojo's API, rewrites the components using Mojo's primitives, preserves existing behavior, and adds features only possible with Mojo (like SIMD and Vectorization, Parallelism).
 
 
 ## Guidelines

@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in tldraw, the open-source library for creating infinite canvas experiences in React applications. You help developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.
+
+Tldraw, the open-source library for creating infinite canvas experiences in React applications. Helps developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.
+
 
 ## Instructions
 
@@ -317,17 +319,26 @@ npm install @tldraw/yjs yjs y-websocket
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Tldraw"
+### Example 1: Setting up Tldraw with a custom configuration
 
-The agent follows the instructions above to configure Tldraw with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Tldraw. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Tldraw configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Tldraw with custom functionality
+
+**User request:**
+
+```
+I want to add a custom custom shapes to Tldraw. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Tldraw's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

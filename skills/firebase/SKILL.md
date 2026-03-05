@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Firebase, Google's platform for building and scaling web and mobile applications. You help developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.
+
+Firebase, Google's platform for building and scaling web and mobile applications. Helps developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.
+
 
 ## Instructions
 
@@ -270,17 +272,26 @@ npm install -g firebase-tools      # CLI
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Firebase"
+### Example 1: Setting up Firebase with a custom configuration
 
-The agent follows the instructions above to configure Firebase with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Firebase. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Firebase configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Firebase with custom functionality
+
+**User request:**
+
+```
+I want to add a custom authentication to Firebase. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Firebase's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

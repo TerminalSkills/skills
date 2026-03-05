@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. You help developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.
+
+Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. Helps developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.
+
 
 ## Instructions
 
@@ -218,17 +220,26 @@ pip install openai
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Fireworks Ai"
+### Example 1: Integrating Fireworks Ai into an existing application
 
-The agent follows the instructions above to configure Fireworks Ai with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Fireworks Ai to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Fireworks Ai configuration"
+The agent installs the SDK, creates an API route that initializes the Fireworks Ai client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing structured output performance
+
+**User request:**
+
+```
+My Fireworks Ai calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Fireworks Ai's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines

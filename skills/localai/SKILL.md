@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in LocalAI, the open-source drop-in replacement for OpenAI's API that runs locally. You help developers self-host LLMs, image generators, audio transcription, and text-to-speech models with an OpenAI-compatible API — no GPU required, completely offline and private.
+
+LocalAI, the open-source drop-in replacement for OpenAI's API that runs locally. Helps developers self-host LLMs, image generators, audio transcription, and text-to-speech models with an OpenAI-compatible API — no GPU required, completely offline and private.
+
 
 ## Instructions
 
@@ -245,17 +247,26 @@ brew install localai
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Localai"
+### Example 1: Integrating Localai into an existing application
 
-The agent follows the instructions above to configure Localai with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Localai to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Localai configuration"
+The agent installs the SDK, creates an API route that initializes the Localai client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing model installation performance
+
+**User request:**
+
+```
+My Localai calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Localai's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines

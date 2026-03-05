@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. You help developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.
+
+OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.
+
 
 ## Instructions
 
@@ -274,17 +276,26 @@ kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Opa"
+### Example 1: Setting up Opa for a microservices project
 
-The agent follows the instructions above to configure Opa with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Opa for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Opa configuration"
+The agent creates the necessary configuration files based on patterns like `# Gatekeeper ConstraintTemplate — define reusable policy tem`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting kubernetes admission control issues
+
+**User request:**
+
+```
+Opa is showing errors in our kubernetes admission control. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Opa issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

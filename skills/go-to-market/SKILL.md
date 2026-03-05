@@ -1,6 +1,6 @@
 ---
 name: go-to-market
-description: Expert guidance for go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. The agent apply frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.
+description: Expert guidance for go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. Applies frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. You apply frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.
+
+Go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. This skill applies frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.
+
 
 ## Instructions
 
@@ -197,17 +199,26 @@ Example: dbt, Supabase, Vercel
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Go To Market"
+### Example 1: Creating a gtm motion selection for a new product
 
-The agent follows the instructions above to configure Go To Market with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+We're launching a project management tool for remote design teams. Help me create a gtm motion selection.
+```
 
-**User request:** "Debug an issue with my Go To Market configuration"
+The agent applies the Go To Market framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Reviewing and improving an existing GTM strategy
+
+**User request:**
+
+```
+Here's our current go-to-market plan for our B2B analytics platform. Review it and identify gaps.
+```
+
+The agent analyzes the existing GTM plan against best practices, checks whether the ICP is specific enough, validates channel choices against the target audience, reviews the pricing-value alignment, and identifies missing elements like activation metrics or competitive positioning. It provides specific suggestions with reasoning, not generic advice.
 
 
 ## Guidelines

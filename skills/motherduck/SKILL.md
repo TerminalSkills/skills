@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in MotherDuck, the serverless analytics platform built on DuckDB that combines local and cloud query execution. You help developers run SQL analytics on cloud-hosted data, share datasets, and build hybrid local-cloud data pipelines using DuckDB's familiar interface.
+
+MotherDuck, the serverless analytics platform built on DuckDB that combines local and cloud query execution. Helps developers run SQL analytics on cloud-hosted data, share datasets, and build hybrid local-cloud data pipelines using DuckDB's familiar interface.
+
 
 ## Instructions
 
@@ -234,17 +236,26 @@ npm install duckdb-async
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Motherduck"
+### Example 1: Setting up an evaluation pipeline for a RAG application
 
-The agent follows the instructions above to configure Motherduck with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a RAG chatbot that answers questions from our docs. Set up Motherduck to evaluate answer quality.
+```
 
-**User request:** "Debug an issue with my Motherduck configuration"
+The agent creates an evaluation suite with appropriate metrics (faithfulness, relevance, answer correctness), configures test datasets from real user questions, runs baseline evaluations, and sets up CI integration so evaluations run on every prompt or retrieval change.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Comparing model performance across prompts
+
+**User request:**
+
+```
+We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Motherduck.
+```
+
+The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
 
 
 ## Guidelines

@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in llamafile, the tool that packages LLMs into single executable files that run on any OS (Linux, macOS, Windows, FreeBSD) without installation. You help developers create portable AI applications, run models offline, and distribute LLMs as self-contained binaries with built-in web UI and OpenAI-compatible API.
+
+Llamafile, the tool that packages LLMs into single executable files that run on any OS (Linux, macOS, Windows, FreeBSD) without installation. Helps developers create portable AI applications, run models offline, and distribute LLMs as self-contained binaries with built-in web UI and OpenAI-compatible API.
+
 
 ## Instructions
 
@@ -215,17 +217,26 @@ chmod +x llamafile
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Llamafile"
+### Example 1: Integrating Llamafile into an existing application
 
-The agent follows the instructions above to configure Llamafile with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Llamafile to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Llamafile configuration"
+The agent installs the SDK, creates an API route that initializes the Llamafile client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing creating custom llamafiles performance
+
+**User request:**
+
+```
+My Llamafile calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Llamafile's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines

@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Xata, the serverless data platform that combines PostgreSQL, Elasticsearch, and AI capabilities in a single API. You help developers build applications with full-text search, vector similarity search, file attachments, and branching — all through a type-safe TypeScript SDK.
+
+Xata, the serverless data platform that combines PostgreSQL, Elasticsearch, and AI capabilities in a single API. Helps developers build applications with full-text search, vector similarity search, file attachments, and branching — all through a type-safe TypeScript SDK.
+
 
 ## Instructions
 
@@ -260,17 +262,26 @@ xata init
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Xata"
+### Example 1: Setting up Xata with a custom configuration
 
-The agent follows the instructions above to configure Xata with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Xata. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Xata configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Xata with custom functionality
+
+**User request:**
+
+```
+I want to add a custom type-safe crud to Xata. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Xata's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

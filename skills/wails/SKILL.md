@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Wails, the Go framework for building desktop applications with web frontends. You help developers build lightweight, fast desktop apps where the backend is Go and the frontend is any web framework (React, Vue, Svelte), communicating through auto-generated TypeScript bindings.
+
+Wails, the Go framework for building desktop applications with web frontends. Helps developers build lightweight, fast desktop apps where the backend is Go and the frontend is any web framework (React, Vue, Svelte), communicating through auto-generated TypeScript bindings.
+
 
 ## Instructions
 
@@ -306,17 +308,26 @@ sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Wails"
+### Example 1: Setting up Wails with a custom configuration
 
-The agent follows the instructions above to configure Wails with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Wails. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Wails configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Wails with custom functionality
+
+**User request:**
+
+```
+I want to add a custom go backend to Wails. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Wails's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

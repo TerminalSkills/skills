@@ -1,6 +1,6 @@
 ---
 name: lean-canvas
-description: 'Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. The agent also cover related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.'
+description: 'Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. Also covers related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.'
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. You help founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. You also cover related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.
+
+Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. This skill also covers related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.
+
 
 ## Instructions
 
@@ -183,17 +185,26 @@ More comprehensive than Lean Canvas — better for established products.
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Lean Canvas"
+### Example 1: Creating a lean canvas for a new product
 
-The agent follows the instructions above to configure Lean Canvas with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+We're launching a project management tool for remote design teams. Help me create a lean canvas.
+```
 
-**User request:** "Debug an issue with my Lean Canvas configuration"
+The agent applies the Lean Canvas framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Reviewing and improving an existing lean canvas
+
+**User request:**
+
+```
+Here's our lean canvas for a developer documentation tool. Review it and identify the riskiest assumptions.
+```
+
+The agent analyzes the existing work against lean canvas best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
 
 
 ## Guidelines

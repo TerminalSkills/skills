@@ -470,7 +470,7 @@ Total monthly cost: $45 for a dedicated 8GB server running SigNoz, Gatus, and Ve
 
 ## Related Skills
 
-- [signoz](../skills/signoz/) -- Complementary skill for this workflow
-- [vector](../skills/vector/) -- Complementary skill for this workflow
-- [checkly](../skills/checkly/) -- Complementary skill for this workflow
-- [gatus](../skills/gatus/) -- Complementary skill for this workflow
+- [signoz](../skills/signoz/) -- Self-hosted observability platform with traces, metrics, and logs in one UI
+- [vector](../skills/vector/) -- High-performance log and metric pipeline for collecting, transforming, and routing data
+- [checkly](../skills/checkly/) -- Synthetic monitoring for APIs and web apps with Playwright-based browser checks
+- [gatus](../skills/gatus/) -- Lightweight self-hosted uptime monitoring with a clean status page

@@ -1,6 +1,6 @@
 ---
 name: okr-planning
-description: Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. The agent apply frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
+description: Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. Applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. You apply frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
+
+OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. This skill applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
+
 
 ## Instructions
 
@@ -181,17 +183,26 @@ Company Objective: "Achieve product-market fit in the SMB segment"
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Okr Planning"
+### Example 1: Creating a writing okrs for a new product
 
-The agent follows the instructions above to configure Okr Planning with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+We're launching a project management tool for remote design teams. Help me create a writing okrs.
+```
 
-**User request:** "Debug an issue with my Okr Planning configuration"
+The agent applies the Okr Planning framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Reviewing quarterly OKRs for alignment issues
+
+**User request:**
+
+```
+Here are our Q2 OKRs for the platform team. Check if key results are measurable and objectives are ambitious enough.
+```
+
+The agent analyzes the existing work against OKR best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
 
 
 ## Guidelines

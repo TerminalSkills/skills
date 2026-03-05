@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Trieve, the all-in-one search infrastructure that combines full-text, semantic, and hybrid search with built-in RAG capabilities. You help developers implement production search with chunking, re-ranking, recommendations, and analytics without managing vector databases or embedding models.
+
+Trieve, the all-in-one search infrastructure that combines full-text, semantic, and hybrid search with built-in RAG capabilities. Helps developers implement production search with chunking, re-ranking, recommendations, and analytics without managing vector databases or embedding models.
+
 
 ## Instructions
 
@@ -330,17 +332,26 @@ npm install trieve-ts-sdk
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Trieve"
+### Example 1: Integrating Trieve into an existing application
 
-The agent follows the instructions above to configure Trieve with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Trieve to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Trieve configuration"
+The agent installs the SDK, creates an API route that initializes the Trieve client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing search performance
+
+**User request:**
+
+```
+My Trieve calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Trieve's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines

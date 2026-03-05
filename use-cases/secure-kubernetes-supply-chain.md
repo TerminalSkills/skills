@@ -391,8 +391,8 @@ The entire pipeline adds 3 minutes to the CI/CD cycle (Semgrep: 45s, Checkov: 30
 
 ## Related Skills
 
-- [semgrep](../skills/semgrep/) -- Complementary skill for this workflow
-- [checkov](../skills/checkov/) -- Complementary skill for this workflow
-- [grype](../skills/grype/) -- Complementary skill for this workflow
-- [cosign](../skills/cosign/) -- Complementary skill for this workflow
-- [kyverno](../skills/kyverno/) -- Complementary skill for this workflow
+- [semgrep](../skills/semgrep/) -- Static analysis for finding security vulnerabilities and code quality issues
+- [checkov](../skills/checkov/) -- Scan Terraform, Kubernetes, and Dockerfiles for security misconfigurations
+- [grype](../skills/grype/) -- Scan container images and filesystems for known vulnerabilities (CVEs)
+- [cosign](../skills/cosign/) -- Sign and verify container images with keyless signatures via Sigstore
+- [kyverno](../skills/kyverno/) -- Kubernetes admission controller for enforcing policies on deployments

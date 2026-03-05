@@ -1,6 +1,6 @@
 ---
 name: product-strategy
-description: Expert guidance for product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. The agent apply frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.
+description: Expert guidance for product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. Applies frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. You apply frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.
+
+Product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. This skill applies frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.
+
 
 ## Instructions
 
@@ -215,17 +217,26 @@ Outcome roadmaps commit to results:
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Product Strategy"
+### Example 1: Creating a product vision and strategy for a new product
 
-The agent follows the instructions above to configure Product Strategy with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+We're launching a project management tool for remote design teams. Help me create a product vision and strategy.
+```
 
-**User request:** "Debug an issue with my Product Strategy configuration"
+The agent applies the Product Strategy framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Analyzing competitive positioning
+
+**User request:**
+
+```
+We're a B2B analytics platform competing against Amplitude and Mixpanel. Help us find our differentiated positioning.
+```
+
+The agent analyzes the existing work against product strategy best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
 
 
 ## Guidelines

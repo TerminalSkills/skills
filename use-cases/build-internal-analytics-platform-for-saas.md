@@ -388,8 +388,8 @@ The total cost: $0/month for Evidence (static hosting), $0/month for Cube (open-
 
 ## Related Skills
 
-- [motherduck](../skills/motherduck/) -- Complementary skill for this workflow
-- [ibis](../skills/ibis/) -- Complementary skill for this workflow
-- [cube](../skills/cube/) -- Complementary skill for this workflow
-- [evidence](../skills/evidence/) -- Complementary skill for this workflow
-- [pandera](../skills/pandera/) -- Complementary skill for this workflow
+- [motherduck](../skills/motherduck/) -- Serverless DuckDB for fast analytical queries on local and cloud data
+- [ibis](../skills/ibis/) -- Python dataframe API that compiles to SQL for any backend (DuckDB, Postgres, BigQuery)
+- [cube](../skills/cube/) -- Semantic layer and metrics API for consistent analytics across applications
+- [evidence](../skills/evidence/) -- Build data dashboards and reports with SQL and Markdown
+- [pandera](../skills/pandera/) -- Data validation and testing framework for pandas and Spark DataFrames

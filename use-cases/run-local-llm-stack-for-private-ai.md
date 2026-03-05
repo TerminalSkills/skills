@@ -292,5 +292,5 @@ Total monthly cost: $500 for the GPU server. Compared to estimated OpenAI costs 
 
 ## Related Skills
 
-- [localai](../skills/localai/) -- Complementary skill for this workflow
-- [llamafile](../skills/llamafile/) -- Complementary skill for this workflow
+- [localai](../skills/localai/) -- Self-hosted OpenAI-compatible API for running open-source models locally
+- [llamafile](../skills/llamafile/) -- Single-file executable LLMs that run on any platform without dependencies

@@ -1,6 +1,6 @@
 ---
 name: prd-writing
-description: Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. The agent produce PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
+description: Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. Produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. You produce PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
+
+Writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. This skill produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
+
 
 ## Instructions
 
@@ -227,17 +229,26 @@ before the weekly forecast meeting."
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Prd Writing"
+### Example 1: Creating a prd template for a new product
 
-The agent follows the instructions above to configure Prd Writing with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+We're launching a project management tool for remote design teams. Help me create a prd template.
+```
 
-**User request:** "Debug an issue with my Prd Writing configuration"
+The agent applies the Prd Writing framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Reviewing a draft PRD for completeness
+
+**User request:**
+
+```
+Here's our PRD for the new team permissions feature. Review it for missing edge cases and unclear requirements.
+```
+
+The agent analyzes the existing work against PRD writing best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
 
 
 ## Guidelines

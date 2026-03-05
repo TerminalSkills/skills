@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. You help developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.
+
+Porter, the platform that provides a Heroku-like experience on your own AWS, GCP, or Azure account. Helps developers deploy applications on managed Kubernetes clusters provisioned in their own cloud accounts, with the simplicity of `git push` deployment and the control of owning your infrastructure.
+
 
 ## Instructions
 
@@ -216,17 +218,26 @@ jobs:
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Porter"
+### Example 1: Setting up Porter for a microservices project
 
-The agent follows the instructions above to configure Porter with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Porter for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Porter configuration"
+The agent creates the necessary configuration files based on patterns like `# Porter provisions a Kubernetes cluster in YOUR cloud accou`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting application deployment issues
+
+**User request:**
+
+```
+Porter is showing errors in our application deployment. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Porter issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

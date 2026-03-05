@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. You help developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.
+
+KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. Helps developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.
+
 
 ## Instructions
 
@@ -353,17 +355,26 @@ npx keystone dev
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Keystonejs"
+### Example 1: Setting up Keystonejs with a custom configuration
 
-The agent follows the instructions above to configure Keystonejs with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Keystonejs. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Keystonejs configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Keystonejs with custom functionality
+
+**User request:**
+
+```
+I want to add a custom access control to Keystonejs. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Keystonejs's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

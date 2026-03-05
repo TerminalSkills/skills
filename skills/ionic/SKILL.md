@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). You help developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.
+
+Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Helps developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.
+
 
 ## Instructions
 
@@ -234,17 +236,26 @@ npm install @capacitor/camera @capacitor/geolocation  # Per-plugin
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Ionic"
+### Example 1: Setting up Ionic with a custom configuration
 
-The agent follows the instructions above to configure Ionic with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Ionic. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Ionic configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Ionic with custom functionality
+
+**User request:**
+
+```
+I want to add a custom ui components to Ionic. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Ionic's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

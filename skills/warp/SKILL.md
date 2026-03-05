@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Warp, the modern terminal built for developer productivity. You help developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.
+
+Warp, the modern terminal built for developer productivity. Helps developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.
+
 
 ## Instructions
 
@@ -290,17 +292,26 @@ psql -c "VACUUM (VERBOSE, ANALYZE) large_table;"
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Warp"
+### Example 1: Setting up Warp with a custom configuration
 
-The agent follows the instructions above to configure Warp with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Warp. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Warp configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Warp with custom functionality
+
+**User request:**
+
+```
+I want to add a custom warp drive — team knowledge base to Warp. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Warp's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

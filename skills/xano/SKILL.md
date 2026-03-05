@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. You help developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.
+
+Xano, the no-code/low-code backend platform for building APIs, databases, and authentication without writing server code. Helps developers and non-technical builders create production-ready REST APIs with visual function stacks, manage data models, and integrate with frontend frameworks.
+
 
 ## Instructions
 
@@ -177,17 +179,26 @@ Run function stacks on a schedule:
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Xano"
+### Example 1: Adding Xano to a new project
 
-The agent follows the instructions above to configure Xano with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I'm building a SaaS app with Next.js. Integrate Xano for the database schema functionality.
+```
 
-**User request:** "Debug an issue with my Xano configuration"
+The agent installs the Xano SDK, configures the connection (API keys, environment variables), creates the initial integration code with proper error handling, and writes a working example that demonstrates the database schema feature end-to-end.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Building advanced configuration with Xano
+
+**User request:**
+
+```
+I need to implement advanced configuration in my app. Show me how to do it with Xano.
+```
+
+The agent reads the project structure, identifies the right integration points, implements the advanced configuration feature using Xano's API, handles edge cases (authentication, error states, loading), and adds tests to verify the integration works correctly.
 
 
 ## Guidelines

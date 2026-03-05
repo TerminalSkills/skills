@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. You help developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.
+
+Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. Helps developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.
+
 
 ## Instructions
 
@@ -240,17 +242,26 @@ npx evidence deploy
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Evidence"
+### Example 1: Building a project setup workflow
 
-The agent follows the instructions above to configure Evidence with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have CSV sales data from the last 2 years. Help me set up Evidence to analyze trends and create a dashboard.
+```
 
-**User request:** "Debug an issue with my Evidence configuration"
+The agent reads the data schema, creates the Evidence configuration, writes queries/transformations for key metrics (monthly revenue, growth rate, top products), and produces a working analysis pipeline with visualizations.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Integrating Evidence with existing data infrastructure
+
+**User request:**
+
+```
+We use PostgreSQL for our main database. Set up Evidence to connect and run analytics queries.
+```
+
+The agent configures the database connection, creates the necessary Evidence project files, writes example queries that demonstrate key features (writing reports), and sets up a development workflow with hot-reloading for iterative analysis.
 
 
 ## Guidelines

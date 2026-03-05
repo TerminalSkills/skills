@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. You help developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.
+
+Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. Helps developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.
+
 
 ## Instructions
 
@@ -272,17 +274,26 @@ gleam add gleam_http     # HTTP types
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Gleam"
+### Example 1: Building a feature with Gleam
 
-The agent follows the instructions above to configure Gleam with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add a real-time collaborative project setup to my React app using Gleam.
+```
 
-**User request:** "Debug an issue with my Gleam configuration"
+The agent installs the package, creates the component with proper Gleam initialization, implements the project setup with event handling and state management, and adds TypeScript types for the integration.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Migrating an existing feature to Gleam
+
+**User request:**
+
+```
+I have a basic type-safe web server with wisp built with custom code. Migrate it to use Gleam for better type-safe web server with wisp support.
+```
+
+The agent reads the existing implementation, maps the custom logic to Gleam's API, rewrites the components using Gleam's primitives, preserves existing behavior, and adds features only possible with Gleam (like Custom Types and Pattern Matching, Concurrency with OTP Actors).
 
 
 ## Guidelines

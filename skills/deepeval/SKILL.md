@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in DeepEval, the open-source framework for unit testing LLM applications. You help developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.
+
+DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.
+
 
 ## Instructions
 
@@ -284,17 +286,26 @@ deepeval login
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Deepeval"
+### Example 1: Setting up an evaluation pipeline for a RAG application
 
-The agent follows the instructions above to configure Deepeval with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a RAG chatbot that answers questions from our docs. Set up Deepeval to evaluate answer quality.
+```
 
-**User request:** "Debug an issue with my Deepeval configuration"
+The agent creates an evaluation suite with appropriate metrics (faithfulness, relevance, answer correctness), configures test datasets from real user questions, runs baseline evaluations, and sets up CI integration so evaluations run on every prompt or retrieval change.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Comparing model performance across prompts
+
+**User request:**
+
+```
+We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Deepeval.
+```
+
+The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
 
 
 ## Guidelines

@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. You help developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.
+
+Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. Helps developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.
+
 
 ## Instructions
 
@@ -259,17 +261,26 @@ malloy run analysis.malloy
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Malloy"
+### Example 1: Integrating Malloy into an existing application
 
-The agent follows the instructions above to configure Malloy with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Malloy to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Malloy configuration"
+The agent installs the SDK, creates an API route that initializes the Malloy client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing queries performance
+
+**User request:**
+
+```
+My Malloy calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Malloy's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines

@@ -1,6 +1,6 @@
 ---
 name: user-research
-description: Expert guidance for user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. The agent apply both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.
+description: Expert guidance for user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. Applies both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. You apply both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.
+
+User research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. This skill applies both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.
+
 
 ## Instructions
 
@@ -196,17 +198,26 @@ Write tasks as goals, not instructions:
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up User Research"
+### Example 1: Creating a user interviews for a new product
 
-The agent follows the instructions above to configure User Research with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+We're launching a project management tool for remote design teams. Help me create a user interviews.
+```
 
-**User request:** "Debug an issue with my User Research configuration"
+The agent applies the User Research framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Synthesizing interview findings into personas
+
+**User request:**
+
+```
+I've done 12 user interviews for our project management tool. Help me synthesize the findings into actionable personas.
+```
+
+The agent analyzes the existing work against user research best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
 
 
 ## Guidelines

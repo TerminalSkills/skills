@@ -1,6 +1,6 @@
 ---
 name: product-analytics
-description: Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. The agent apply frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
+description: Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. Applies frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. You apply frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
+
+Product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. This skill applies frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.
+
 
 ## Instructions
 

@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. You help developers deploy full-stack applications with automatic scaling and one-click marketplace services.
+
+Zeabur, the cloud deployment platform that auto-detects frameworks, builds and deploys applications with zero configuration, and provides managed services like databases and message queues. Helps developers deploy full-stack applications with automatic scaling and one-click marketplace services.
+
 
 ## Instructions
 
@@ -201,17 +203,26 @@ async function restartService(serviceId: string) {
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Zeabur"
+### Example 1: Setting up Zeabur for a microservices project
 
-The agent follows the instructions above to configure Zeabur with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have a Node.js API and a React frontend running in Docker. Set up Zeabur for monitoring/deployment.
+```
 
-**User request:** "Debug an issue with my Zeabur configuration"
+The agent creates the necessary configuration files based on patterns like `# Install Zeabur CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Troubleshooting project configuration issues
+
+**User request:**
+
+```
+Zeabur is showing errors in our project configuration. Here are the logs: [error output]
+```
+
+The agent analyzes the error output, identifies the root cause by cross-referencing with common Zeabur issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
 
 
 ## Guidelines

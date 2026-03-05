@@ -461,8 +461,8 @@ The Braintrust experiment history shows clear improvement: prompt v1 scored 0.72
 
 ## Related Skills
 
-- [mastra](../skills/mastra/) -- Complementary skill for this workflow
-- [ragas](../skills/ragas/) -- Complementary skill for this workflow
-- [deepeval](../skills/deepeval/) -- Complementary skill for this workflow
-- [braintrust](../skills/braintrust/) -- Complementary skill for this workflow
-- [portkey](../skills/portkey/) -- Complementary skill for this workflow
+- [mastra](../skills/mastra/) -- AI agent framework for building the RAG pipeline with tool use and memory
+- [ragas](../skills/ragas/) -- Evaluate RAG quality with faithfulness, relevance, and answer correctness metrics
+- [deepeval](../skills/deepeval/) -- Unit-test LLM outputs with automated evaluation metrics and CI integration
+- [braintrust](../skills/braintrust/) -- Track experiments, compare prompt variations, and monitor production LLM performance
+- [portkey](../skills/portkey/) -- Manage LLM API routing, fallbacks, caching, and cost tracking across providers

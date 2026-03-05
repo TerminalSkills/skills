@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. You help developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.
+
+TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. Helps developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.
+
 
 ## Instructions
 
@@ -328,17 +330,26 @@ npx tinacms build && next build
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Tinacms"
+### Example 1: Setting up Tinacms with a custom configuration
 
-The agent follows the instructions above to configure Tinacms with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Tinacms. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Tinacms configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Tinacms with custom functionality
+
+**User request:**
+
+```
+I want to add a custom visual editing in next.js to Tinacms. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Tinacms's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

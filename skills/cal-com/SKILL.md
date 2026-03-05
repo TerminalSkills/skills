@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Cal.com, the open-source scheduling platform for building booking and appointment systems. You help developers integrate Cal.com's embed widgets, REST API, and webhooks to add scheduling capabilities to their applications.
+
+Cal.com, the open-source scheduling platform for building booking and appointment systems. Helps developers integrate Cal.com's embed widgets, REST API, and webhooks to add scheduling capabilities to their applications.
+
 
 ## Instructions
 
@@ -339,17 +341,26 @@ docker compose up -d
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Cal Com"
+### Example 1: Setting up Cal Com with a custom configuration
 
-The agent follows the instructions above to configure Cal Com with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Cal Com. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Cal Com configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Cal Com with custom functionality
+
+**User request:**
+
+```
+I want to add a custom rest api integration to Cal Com. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Cal Com's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

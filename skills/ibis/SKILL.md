@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. You help developers write analytics code once and run it anywhere without rewriting SQL for each database.
+
+Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. Helps developers write analytics code once and run it anywhere without rewriting SQL for each database.
+
 
 ## Instructions
 
@@ -236,17 +238,26 @@ ibis.options.interactive = True   # Auto-execute and display results
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Ibis"
+### Example 1: Building a basic usage workflow
 
-The agent follows the instructions above to configure Ibis with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I have CSV sales data from the last 2 years. Help me set up Ibis to analyze trends and create a dashboard.
+```
 
-**User request:** "Debug an issue with my Ibis configuration"
+The agent reads the data schema, creates the Ibis configuration, writes queries/transformations for key metrics (monthly revenue, growth rate, top products), and produces a working analysis pipeline with visualizations.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Integrating Ibis with existing data infrastructure
+
+**User request:**
+
+```
+We use PostgreSQL for our main database. Set up Ibis to connect and run analytics queries.
+```
+
+The agent configures the database connection, creates the necessary Ibis project files, writes example queries that demonstrate key features (complex transformations), and sets up a development workflow with hot-reloading for iterative analysis.
 
 
 ## Guidelines

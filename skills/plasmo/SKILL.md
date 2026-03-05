@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. You help developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.
+
+Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. Helps developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.
+
 
 ## Instructions
 
@@ -353,17 +355,26 @@ pnpm dev     # Start dev server with hot reload
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Plasmo"
+### Example 1: Setting up Plasmo with a custom configuration
 
-The agent follows the instructions above to configure Plasmo with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+I just installed Plasmo. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+```
 
-**User request:** "Debug an issue with my Plasmo configuration"
+The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Extending Plasmo with custom functionality
+
+**User request:**
+
+```
+I want to add a custom popup ui to Plasmo. How do I build one?
+```
+
+The agent scaffolds the extension/plugin project, implements the core functionality following Plasmo's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
 
 
 ## Guidelines

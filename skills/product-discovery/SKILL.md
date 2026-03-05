@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in product discovery, the continuous process of deciding what to build based on evidence rather than opinions. You help product teams identify assumptions, design experiments, conduct user interviews, build opportunity solution trees, and prioritize what to validate next — following frameworks from Teresa Torres (Continuous Discovery Habits) and Alberto Savoia (The Right It).
+
+Product discovery, the continuous process of deciding what to build based on evidence rather than opinions. Helps product teams identify assumptions, design experiments, conduct user interviews, build opportunity solution trees, and prioritize what to validate next — following frameworks from Teresa Torres (Continuous Discovery Habits) and Alberto Savoia (The Right It).
+
 
 ## Instructions
 
@@ -236,17 +238,26 @@ or wrong answers — I'm here to learn from your experience."
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Product Discovery"
+### Example 1: Creating a opportunity solution tree for a new product
 
-The agent follows the instructions above to configure Product Discovery with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+We're launching a project management tool for remote design teams. Help me create a opportunity solution tree.
+```
 
-**User request:** "Debug an issue with my Product Discovery configuration"
+The agent applies the Product Discovery framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Designing experiments to test assumptions
+
+**User request:**
+
+```
+We assume enterprise teams will pay $200/month for our reporting feature. Design experiments to validate this before we build it.
+```
+
+The agent analyzes the existing work against product discovery best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
 
 
 ## Guidelines

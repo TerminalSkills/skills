@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-You are an expert in Apache Arrow, the cross-language columnar memory format for analytics workloads. You help developers use Arrow for high-performance data interchange between systems, zero-copy reads, and efficient columnar processing in Python (PyArrow) and JavaScript (Arrow JS).
+
+Apache Arrow, the cross-language columnar memory format for analytics workloads. Helps developers use Arrow for high-performance data interchange between systems, zero-copy reads, and efficient columnar processing in Python (PyArrow) and JavaScript (Arrow JS).
+
 
 ## Instructions
 
@@ -230,17 +232,26 @@ pip install duckdb    # DuckDB uses Arrow internally
 
 ## Examples
 
-### Example 1
 
-**User request:** "Help me set up Apache Arrow"
+### Example 1: Integrating Apache Arrow into an existing application
 
-The agent follows the instructions above to configure Apache Arrow with recommended settings, handling dependencies and environment setup.
+**User request:**
 
-### Example 2
+```
+Add Apache Arrow to my Next.js app for the AI chat feature. I want streaming responses.
+```
 
-**User request:** "Debug an issue with my Apache Arrow configuration"
+The agent installs the SDK, creates an API route that initializes the Apache Arrow client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
 
-The agent diagnoses common configuration problems, checks logs, validates settings, and suggests fixes based on the guidelines above.
+### Example 2: Optimizing zero-copy interop performance
+
+**User request:**
+
+```
+My Apache Arrow calls are slow and expensive. Help me optimize the setup.
+```
+
+The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Apache Arrow's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
 
 
 ## Guidelines
