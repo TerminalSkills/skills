@@ -239,25 +239,25 @@ ibis.options.interactive = True   # Auto-execute and display results
 ## Examples
 
 
-### Example 1: Building a basic usage workflow
+### Example 1: Migrating a pandas pipeline to run on BigQuery
 
 **User request:**
 
 ```
-I have CSV sales data from the last 2 years. Help me set up Ibis to analyze trends and create a dashboard.
+I have a pandas script that calculates cohort retention from our events table. Rewrite it using Ibis so it runs on BigQuery instead of loading everything into memory.
 ```
 
-The agent reads the data schema, creates the Ibis configuration, writes queries/transformations for key metrics (monthly revenue, growth rate, top products), and produces a working analysis pipeline with visualizations.
+The agent rewrites the pandas code using Ibis expressions (`ibis.bigquery.connect()`, `t.group_by()`, `_.mutate()`, window functions with `ibis.cumulative_window()`), keeping the same logic but generating SQL that executes on BigQuery. The script goes from loading 50M rows into memory to pushing all computation to the warehouse.
 
-### Example 2: Integrating Ibis with existing data infrastructure
+### Example 2: Building a portable analytics module with DuckDB for dev
 
 **User request:**
 
 ```
-We use PostgreSQL for our main database. Set up Ibis to connect and run analytics queries.
+Write an analytics module that computes daily active users and revenue per plan from Parquet files locally, but can switch to Snowflake in production.
 ```
 
-The agent configures the database connection, creates the necessary Ibis project files, writes example queries that demonstrate key features (complex transformations), and sets up a development workflow with hot-reloading for iterative analysis.
+The agent creates a module using `ibis.duckdb.connect()` for local development with Parquet files, writes composable Ibis expressions for DAU (`t.select('user_id', 'event_date').distinct().group_by('event_date').count()`) and revenue by plan, and adds a `get_connection()` function that switches to `ibis.snowflake.connect()` based on an environment variable — same analytics code, different backend.
 
 
 ## Guidelines

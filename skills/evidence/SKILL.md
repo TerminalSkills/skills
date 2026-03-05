@@ -243,25 +243,25 @@ npx evidence deploy
 ## Examples
 
 
-### Example 1: Building a project setup workflow
+### Example 1: Creating a weekly SaaS metrics report
 
 **User request:**
 
 ```
-I have CSV sales data from the last 2 years. Help me set up Evidence to analyze trends and create a dashboard.
+Build an Evidence dashboard that shows our weekly SaaS metrics — MRR, churn rate, new trials, and conversion rate — from our PostgreSQL database.
 ```
 
-The agent reads the data schema, creates the Evidence configuration, writes queries/transformations for key metrics (monthly revenue, growth rate, top products), and produces a working analysis pipeline with visualizations.
+The agent scaffolds an Evidence project, configures the PostgreSQL connection in `evidence.plugins.yaml`, creates SQL queries for each metric (`select date_trunc('week', created_at) as week, sum(amount) as mrr from subscriptions...`), builds a Markdown page with `<LineChart>`, `<BigValue>`, and `<DataTable>` components, and adds date range inputs with `<DateRange>` for filtering.
 
-### Example 2: Integrating Evidence with existing data infrastructure
+### Example 2: Building a templated customer health page
 
 **User request:**
 
 ```
-We use PostgreSQL for our main database. Set up Evidence to connect and run analytics queries.
+I need a per-customer detail page in Evidence that shows usage trends, support tickets, and renewal date for each customer.
 ```
 
-The agent configures the database connection, creates the necessary Evidence project files, writes example queries that demonstrate key features (writing reports), and sets up a development workflow with hot-reloading for iterative analysis.
+The agent creates a templated page at `pages/customers/[customer_id].md`, writes SQL queries that filter by `${params.customer_id}`, adds a customer index page with `<DataTable>` linking to each detail page, and includes `<BarChart>` for usage and `<Alert>` components for upcoming renewals.
 
 
 ## Guidelines

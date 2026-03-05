@@ -2654,7 +2654,7 @@
     {
       "name": "go-to-market",
       "slug": "go-to-market",
-      "description": "Expert guidance for go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. The agent apply frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.",
+      "description": "Expert guidance for go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. Applies frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.",
       "category": "business",
       "tags": []
     },
@@ -3378,7 +3378,7 @@
     {
       "name": "lean-canvas",
       "slug": "lean-canvas",
-      "description": "Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. The agent also cover related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.",
+      "description": "Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. Also covers related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.",
       "category": "business",
       "tags": []
     },
@@ -4275,7 +4275,7 @@
     {
       "name": "okr-planning",
       "slug": "okr-planning",
-      "description": "Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. The agent apply frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.",
+      "description": "Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. Applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.",
       "category": "business",
       "tags": []
     },
@@ -4886,7 +4886,7 @@
     {
       "name": "prd-writing",
       "slug": "prd-writing",
-      "description": "Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. The agent produce PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.",
+      "description": "Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. Produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.",
       "category": "business",
       "tags": []
     },
@@ -4934,7 +4934,7 @@
     {
       "name": "product-analytics",
       "slug": "product-analytics",
-      "description": "Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. The agent apply frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.",
+      "description": "Expert guidance for product analytics, helping product teams define metrics, build funnels, analyze retention, run A/B tests, and make data-driven decisions. Applies frameworks for North Star metrics, pirate metrics (AARRR), cohort analysis, and experiment design.",
       "category": "business",
       "tags": []
     },
@@ -4955,7 +4955,7 @@
     {
       "name": "product-strategy",
       "slug": "product-strategy",
-      "description": "Expert guidance for product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. The agent apply frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.",
+      "description": "Expert guidance for product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. Applies frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.",
       "category": "business",
       "tags": []
     },
@@ -6629,7 +6629,7 @@
     {
       "name": "user-research",
       "slug": "user-research",
-      "description": "Expert guidance for user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. The agent apply both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.",
+      "description": "Expert guidance for user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. Applies both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.",
       "category": "business",
       "tags": []
     },
@@ -7174,5 +7174,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-03-05T20:45:20.547Z"
+  "updatedAt": "2026-03-05T21:32:10.601Z"
 }
