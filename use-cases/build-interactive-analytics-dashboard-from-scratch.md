@@ -1,14 +1,14 @@
 ---
-title: Build an Interactive Analytics Dashboard from Scratch
+title: Build a React Dashboard with Recharts, Plotly, and Mermaid Diagrams
 slug: build-interactive-analytics-dashboard-from-scratch
 description: >-
-  Build a real-time SaaS analytics dashboard with interactive charts, architecture diagrams, and published documentation for a fintech team.
+  Create a fintech analytics dashboard using Recharts for live metrics, Plotly for deep-dive charts, and Mermaid for architecture documentation.
 skills: [recharts, plotly, mermaid]
 category: data-ai
 tags: [dashboard, analytics, charts, data-visualization, react]
 ---
 
-# Build an Interactive Analytics Dashboard from Scratch
+# Build a React Dashboard with Recharts, Plotly, and Mermaid Diagrams
 
 Priya is an engineering lead at a 50-person fintech startup processing 2 million transactions per day. The operations team relies on a manually-updated Google Sheets dashboard that is always 12 hours stale. When a payment processor goes down, nobody knows until customers complain.
 

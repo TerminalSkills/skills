@@ -1,14 +1,14 @@
 ---
-title: Set Up an AI-Powered Development Workflow That Actually Ships Faster
+title: Accelerate Sprint Velocity with CodeRabbit Reviews and Vercel AI SDK
 slug: set-up-ai-powered-development-workflow
 description: >-
-  Build an AI-augmented dev pipeline using Cursor, CodeRabbit, and Vercel AI SDK to cut sprint cycle time from 2 weeks to 4 days while maintaining code quality.
+  Speed up your dev pipeline by automating code reviews with CodeRabbit and adding AI features with Vercel AI SDK to cut sprint cycles from 2 weeks to 4 days.
 skills: [cursor-ai, coderabbit, vercel-ai-sdk]
 category: development
 tags: [ai-coding, code-review, developer-productivity, vibe-coding, ai-workflow]
 ---
 
-# Set Up an AI-Powered Development Workflow That Actually Ships Faster
+# Accelerate Sprint Velocity with CodeRabbit Reviews and Vercel AI SDK
 
 Nina leads a 6-person engineering team at a B2B SaaS startup. Their sprint cycle is 2 weeks, but features consistently slip to 3. Code reviews take 2-3 days, junior devs spend hours on boilerplate, and 60% of PRs need rework for the same repeated issues.
 

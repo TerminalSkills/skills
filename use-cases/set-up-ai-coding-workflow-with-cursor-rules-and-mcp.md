@@ -1,14 +1,14 @@
 ---
-title: Set Up an AI Coding Workflow with Cursor Rules and MCP Servers
+title: Configure Cursor Rules and MCP Servers for Consistent Team AI Coding
 slug: set-up-ai-coding-workflow-with-cursor-rules-and-mcp
 description: >-
-  Configure a production AI coding environment with Cursor rules, Claude Code, and MCP servers to cut code review rejections from 40% to 8%.
+  Enforce team coding standards with shared Cursor rules, Claude Code CLAUDE.md files, and MCP servers to cut PR rejection rates from 40% to 8%.
 skills: [cursor-ai, claude-code, mcp-server-builder]
 category: development
 tags: [ai-coding, cursor, mcp, developer-experience, productivity]
 ---
 
-# Set Up an AI Coding Workflow with Cursor Rules and MCP Servers
+# Configure Cursor Rules and MCP Servers for Consistent Team AI Coding
 
 Leo leads a 6-person engineering team at a fintech startup. Everyone uses AI coding tools but the output is inconsistent -- one developer gets clean TypeScript, another gets sloppy JavaScript with `any` types. Code review rejection rate is 40%.
 
