@@ -1,16 +1,22 @@
 ---
 name: leaflet
-category: Data Visualization
-tags: [maps, open-source, geospatial, markers, layers, openstreetmap]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build interactive maps with Leaflet.js. Use when a user asks to create map-based applications, add markers and popups, draw shapes, handle geolocation, or integrate tile layers in web applications.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["maps", "open-source", "geospatial", "markers", "layers"]
 ---
-
 # Leaflet — Lightweight Open-Source Maps
+
+## Overview
 
 You are an expert in Leaflet, the lightweight open-source JavaScript library for interactive maps. You help developers build map-based applications using OpenStreetMap tiles (free, no API key), custom markers, GeoJSON layers, clustering, and React integration via react-leaflet.
 
-## Core Capabilities
+## Instructions
 
 ### React Integration
 
@@ -105,7 +111,29 @@ npm install react-leaflet-cluster      # Marker clustering
 npm install @types/leaflet             # TypeScript types
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up leaflet**
+
+User: "Help me set up leaflet for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure leaflet
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with leaflet**
+
+User: "Create a dashboard using leaflet"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Free tiles** — Use OpenStreetMap tiles (no API key, no cost); switch to Mapbox/Stadia for custom styling
 2. **Marker clustering** — Use `react-leaflet-cluster` for 100+ markers; prevents visual clutter and improves performance

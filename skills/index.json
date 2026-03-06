@@ -384,6 +384,19 @@
       ]
     },
     {
+      "name": "appsmith",
+      "slug": "appsmith",
+      "description": "Build internal tools, admin panels, and dashboards with Appsmith. Use when a user asks to create CRUD interfaces, connect to databases or APIs with drag-and-drop widgets, write JSObjects for business logic, or self-host Appsmith with Docker or Kubernetes.",
+      "category": "development",
+      "tags": [
+        "internal-tools",
+        "low-code",
+        "open-source",
+        "admin-panel",
+        "self-hosted"
+      ]
+    },
+    {
       "name": "appwrite",
       "slug": "appwrite",
       "description": "Build backends with Appwrite — open-source Backend-as-a-Service. Use when a user asks to set up user authentication, manage a database without writing backend code, handle file storage and uploads, add realtime subscriptions, set up cloud functions, build a mobile or web app backend, replace Firebase with an open-source alternative, or self-host a BaaS platform. Covers auth, databases, storage, functions, realtime, and SDK integration for web, mobile, and server-side.",
@@ -617,6 +630,19 @@
       "tags": []
     },
     {
+      "name": "baserow",
+      "slug": "baserow",
+      "description": "Build database-powered applications with Baserow, the open-source no-code database. Use when a user asks to create spreadsheet databases, build API-connected workflows, manage relational data, or self-host Baserow as an Airtable alternative.",
+      "category": "development",
+      "tags": [
+        "database",
+        "spreadsheet",
+        "airtable-alternative",
+        "open-source",
+        "no-code"
+      ]
+    },
+    {
       "name": "batch-processor",
       "slug": "batch-processor",
       "description": "Process multiple documents in bulk with parallel execution. Use when a user asks to batch process files, convert many documents at once, run parallel file operations, bulk rename, bulk transform, or process a directory of files concurrently. Covers parallel execution, error handling, and progress tracking.",
@@ -843,6 +869,19 @@
         "automation",
         "browser-use",
         "web-agent"
+      ]
+    },
+    {
+      "name": "bruno",
+      "slug": "bruno",
+      "description": "Test and debug APIs with Bruno, the open-source API client. Use when a user asks to create API requests, organize collections, write test scripts, use environments and variables, or collaborate on API workflows stored in Git.",
+      "category": "development",
+      "tags": [
+        "api-client",
+        "http",
+        "testing",
+        "git-friendly",
+        "open-source"
       ]
     },
     {
@@ -1131,6 +1170,19 @@
       ]
     },
     {
+      "name": "claude-code",
+      "slug": "claude-code",
+      "description": "Build software with Claude Code, the AI-powered CLI coding agent. Use when a user asks to set up Claude Code, configure CLAUDE.md project files, use slash commands, manage permissions, create hooks, or optimize agentic coding workflows.",
+      "category": "development",
+      "tags": [
+        "ai-coding",
+        "cli",
+        "terminal",
+        "pair-programming",
+        "agentic"
+      ]
+    },
+    {
       "name": "clearml",
       "slug": "clearml",
       "description": "Expert guidance for ClearML, the open-source MLOps platform for experiment tracking, pipeline orchestration, data management, and model deployment. Helps developers set up ML experiment tracking with minimal code, build reproducible pipelines, and manage the full ML lifecycle from training to serving.",
@@ -1258,6 +1310,19 @@
         "bugs",
         "security",
         "best-practices"
+      ]
+    },
+    {
+      "name": "coderabbit",
+      "slug": "coderabbit",
+      "description": "Automate code reviews with CodeRabbit, the AI-powered review tool. Use when a user asks to set up automated PR reviews, configure review rules, integrate with GitHub or GitLab, customize review instructions, or manage CodeRabbit settings.",
+      "category": "development",
+      "tags": [
+        "code-review",
+        "ai",
+        "pull-request",
+        "automation",
+        "github"
       ]
     },
     {
@@ -1523,6 +1588,19 @@
       "tags": []
     },
     {
+      "name": "cursor-ai",
+      "slug": "cursor-ai",
+      "description": "Build software with Cursor, the AI-powered code editor. Use when a user asks to configure Cursor rules, set up .cursorrules files, use Composer for multi-file edits, integrate MCP servers, or optimize AI-assisted coding workflows.",
+      "category": "development",
+      "tags": [
+        "ai-coding",
+        "ide",
+        "code-generation",
+        "cursor-rules",
+        "mcp"
+      ]
+    },
+    {
       "name": "cv-builder",
       "slug": "cv-builder",
       "description": "Generate professional CVs and resumes from structured YAML data using rendercv. Use when a user asks to create a CV, build a resume, generate a PDF resume, format a curriculum vitae, make a professional CV from their experience, or convert career data into a polished resume document. Supports multiple templates and PDF output.",
@@ -1712,6 +1790,19 @@
       "description": "Expert guidance for DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "deepgram",
+      "slug": "deepgram",
+      "description": "Transcribe and analyze audio with the Deepgram API. Use when a user asks to convert speech to text, implement real-time transcription, analyze audio intelligence, detect languages, or build voice-enabled applications with Deepgram SDKs.",
+      "category": "data-ai",
+      "tags": [
+        "speech-to-text",
+        "transcription",
+        "realtime",
+        "voice",
+        "audio"
+      ]
     },
     {
       "name": "deno",
@@ -1953,6 +2044,19 @@
       ]
     },
     {
+      "name": "echarts",
+      "slug": "echarts",
+      "description": "Create interactive data visualizations with Apache ECharts. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications.",
+      "category": "data-ai",
+      "tags": [
+        "charts",
+        "interactive",
+        "canvas",
+        "dashboard",
+        "analytics"
+      ]
+    },
+    {
       "name": "effect-ts",
       "slug": "effect-ts",
       "description": "Build robust TypeScript applications with Effect — type-safe error handling, concurrency, dependency injection, and streaming. Use when someone asks to \"handle errors without try-catch\", \"type-safe error handling in TypeScript\", \"dependency injection without classes\", \"concurrent TypeScript\", \"Effect library\", \"replace try-catch with typed errors\", or \"functional programming in TypeScript\". Covers Effect, Layer, Schedule, Stream, and Schema.",
@@ -2003,6 +2107,19 @@
         "cross-platform",
         "ipc",
         "packaging"
+      ]
+    },
+    {
+      "name": "elevenlabs",
+      "slug": "elevenlabs",
+      "description": "Generate realistic speech with the ElevenLabs API. Use when a user asks to convert text to speech, clone voices, build voice-enabled apps, stream audio, or integrate ElevenLabs voice synthesis into applications.",
+      "category": "data-ai",
+      "tags": [
+        "text-to-speech",
+        "voice-synthesis",
+        "voice-cloning",
+        "audio",
+        "realtime"
       ]
     },
     {
@@ -3254,6 +3371,19 @@
       ]
     },
     {
+      "name": "konva",
+      "slug": "konva",
+      "description": "Build interactive 2D canvas applications with Konva. Use when a user asks to create drawing tools, image editors, interactive graphics, drag-and-drop interfaces, or canvas-based UIs using Konva or react-konva.",
+      "category": "data-ai",
+      "tags": [
+        "canvas",
+        "2d",
+        "graphics",
+        "interactive",
+        "react"
+      ]
+    },
+    {
       "name": "kotlin-multiplatform",
       "slug": "kotlin-multiplatform",
       "description": "Expert guidance for Kotlin Multiplatform (KMP), JetBrains' technology for sharing code between Android, iOS, web, and desktop applications. Helps developers build shared business logic, networking, and data layers in Kotlin while keeping UI native on each platform.",
@@ -3376,6 +3506,19 @@
       ]
     },
     {
+      "name": "leaflet",
+      "slug": "leaflet",
+      "description": "Build interactive maps with Leaflet.js. Use when a user asks to create map-based applications, add markers and popups, draw shapes, handle geolocation, or integrate tile layers in web applications.",
+      "category": "data-ai",
+      "tags": [
+        "maps",
+        "open-source",
+        "geospatial",
+        "markers",
+        "layers"
+      ]
+    },
+    {
       "name": "lean-canvas",
       "slug": "lean-canvas",
       "description": "Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. Also covers related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.",
@@ -3456,6 +3599,19 @@
       "description": "Expert guidance for Liveblocks, the platform for adding real-time collaboration features to web applications. Helps developers implement live cursors, presence indicators, collaborative editing, comments, and notifications using Liveblocks' React hooks and APIs.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "livekit",
+      "slug": "livekit",
+      "description": "Build real-time audio and video applications with LiveKit. Use when a user asks to implement WebRTC rooms, video conferencing, live streaming, screen sharing, or real-time communication using the LiveKit SDK.",
+      "category": "data-ai",
+      "tags": [
+        "webrtc",
+        "realtime",
+        "voice",
+        "video",
+        "streaming"
+      ]
     },
     {
       "name": "llamafile",
@@ -3612,6 +3768,32 @@
       "tags": []
     },
     {
+      "name": "mantine",
+      "slug": "mantine",
+      "description": "Build React applications with the Mantine UI component library. Use when a user asks to use Mantine components, configure themes, implement forms with validation, add notifications, or build responsive layouts with Mantine hooks.",
+      "category": "development",
+      "tags": [
+        "react",
+        "ui-library",
+        "components",
+        "hooks",
+        "typescript"
+      ]
+    },
+    {
+      "name": "mapbox",
+      "slug": "mapbox",
+      "description": "Build map-based applications with the Mapbox GL JS SDK. Use when a user asks to create interactive maps, add custom layers, implement geocoding, build navigation features, or visualize geospatial data with Mapbox.",
+      "category": "data-ai",
+      "tags": [
+        "maps",
+        "geospatial",
+        "location",
+        "geocoding",
+        "navigation"
+      ]
+    },
+    {
       "name": "maps-geolocation",
       "slug": "maps-geolocation",
       "description": "Build location-based features with mapping APIs. Use when a user asks to integrate Google Maps, Mapbox, or Leaflet, implement geocoding and reverse geocoding, calculate routes and distances, build store locators, add interactive maps to web apps, implement geofencing, work with GeoJSON, build delivery tracking systems, optimize routes for fleets, display heatmaps, implement address autocomplete, or build any location-aware application. Covers Google Maps Platform, Mapbox, Leaflet, and OpenStreetMap/Nominatim.",
@@ -3726,6 +3908,19 @@
       "tags": []
     },
     {
+      "name": "mermaid",
+      "slug": "mermaid",
+      "description": "Generate diagrams from text with Mermaid.js. Use when a user asks to create flowcharts, sequence diagrams, ERD diagrams, Gantt charts, class diagrams, or embed diagrams in Markdown documentation.",
+      "category": "data-ai",
+      "tags": [
+        "diagrams",
+        "markdown",
+        "flowchart",
+        "sequence-diagram",
+        "docs-as-code"
+      ]
+    },
+    {
       "name": "metabase",
       "slug": "metabase",
       "description": "Metabase is an open-source business intelligence tool for creating dashboards and visualizations. Learn Docker deployment, database connections, creating questions and dashboards, embedding analytics, and API usage.",
@@ -3792,6 +3987,19 @@
         "funnels",
         "retention",
         "ab-testing"
+      ]
+    },
+    {
+      "name": "mkdocs",
+      "slug": "mkdocs",
+      "description": "Build documentation sites with MkDocs and Material for MkDocs. Use when a user asks to create project documentation, configure MkDocs themes, add search and navigation, deploy docs to GitHub Pages, or customize Markdown extensions.",
+      "category": "development",
+      "tags": [
+        "documentation",
+        "python",
+        "static-site",
+        "material-theme",
+        "markdown"
       ]
     },
     {
@@ -4088,6 +4296,19 @@
       ]
     },
     {
+      "name": "nextra",
+      "slug": "nextra",
+      "description": "Build documentation and content sites with Nextra, the Next.js-based static site generator. Use when a user asks to create docs sites, configure Nextra themes, add MDX content, set up search, or deploy Nextra projects.",
+      "category": "development",
+      "tags": [
+        "documentation",
+        "next-js",
+        "mdx",
+        "static-site",
+        "docs-as-code"
+      ]
+    },
+    {
       "name": "nginx",
       "slug": "nginx",
       "description": "Assists with configuring Nginx as a web server, reverse proxy, and load balancer. Use when serving static files, proxying to application servers, setting up TLS termination, configuring caching, rate limiting, or writing security headers. Trigger words: nginx, reverse proxy, load balancer, tls, ssl, server block, location block.",
@@ -4153,6 +4374,19 @@
       "description": "Perform network reconnaissance with Nmap. Use when a user asks to scan networks, discover hosts and services, detect OS versions, find open ports, enumerate service versions, or perform initial reconnaissance for a penetration test.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "nocodb",
+      "slug": "nocodb",
+      "description": "Build database applications with NocoDB, the open-source Airtable alternative. Use when a user asks to create spreadsheet views of databases, build forms, configure automations, use the NocoDB API, or self-host NocoDB.",
+      "category": "development",
+      "tags": [
+        "database",
+        "spreadsheet",
+        "airtable-alternative",
+        "open-source",
+        "no-code"
+      ]
     },
     {
       "name": "nomad",
@@ -4339,6 +4573,19 @@
       "description": "Expert guidance for OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "openai-realtime",
+      "slug": "openai-realtime",
+      "description": "Build voice-enabled AI applications with the OpenAI Realtime API. Use when a user asks to implement real-time voice conversations, stream audio with WebSockets, build voice assistants, or integrate OpenAI audio capabilities.",
+      "category": "data-ai",
+      "tags": [
+        "openai",
+        "realtime",
+        "voice",
+        "websocket",
+        "multimodal"
+      ]
     },
     {
       "name": "openai-sdk",
@@ -4767,6 +5014,19 @@
       "description": "Write and maintain end-to-end tests with Playwright. Use when someone asks to \"add e2e tests\", \"test my web app\", \"set up Playwright\", \"write browser tests\", \"test login flow\", \"visual regression testing\", \"test across browsers\", or \"automate UI testing\". Covers test setup, page objects, authentication, API mocking, visual comparisons, and CI integration.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "plotly",
+      "slug": "plotly",
+      "description": "Create interactive scientific and statistical charts with Plotly. Use when a user asks to build data visualizations, scatter plots, 3D charts, statistical graphs, or dashboards using Plotly.js or react-plotly.js.",
+      "category": "data-ai",
+      "tags": [
+        "charts",
+        "interactive",
+        "python",
+        "javascript",
+        "dashboard"
+      ]
     },
     {
       "name": "plunk",
@@ -5268,6 +5528,19 @@
       ]
     },
     {
+      "name": "recharts",
+      "slug": "recharts",
+      "description": "Build responsive charts in React with Recharts. Use when a user asks to create line charts, bar charts, area charts, pie charts, or composed dashboard visualizations using the Recharts component library.",
+      "category": "development",
+      "tags": [
+        "charts",
+        "react",
+        "data-visualization",
+        "svg",
+        "dashboard"
+      ]
+    },
+    {
       "name": "reddit-insights",
       "slug": "reddit-insights",
       "description": "Semantic search across Reddit to find pain points, validate ideas, discover niches, and analyze sentiment. Use when a user asks to research Reddit, find Reddit discussions about a topic, analyze Reddit sentiment, discover what people complain about on Reddit, validate a business idea on Reddit, find pain points in a subreddit, or mine Reddit for product insights.",
@@ -5312,6 +5585,19 @@
       "description": "When the user wants to create, optimize, or analyze a referral program, affiliate program, or word-of-mouth strategy. Also use when the user mentions 'referral,' 'affiliate,' 'ambassador,' 'word of mouth,' 'viral loop,' 'refer a friend,' or 'partner program.' This skill covers program design, incentive structure, and growth optimization.",
       "category": "marketing",
       "tags": []
+    },
+    {
+      "name": "refine",
+      "slug": "refine",
+      "description": "Build data-intensive React applications with Refine. Use when a user asks to create admin panels, dashboards, or CRUD interfaces using Refine with REST, GraphQL, or custom data providers and Ant Design or Material UI.",
+      "category": "development",
+      "tags": [
+        "admin-panel",
+        "crud",
+        "react",
+        "headless",
+        "data-provider"
+      ]
     },
     {
       "name": "regression-tester",
@@ -5442,6 +5728,19 @@
         "job-search",
         "optimization",
         "keywords"
+      ]
+    },
+    {
+      "name": "retool",
+      "slug": "retool",
+      "description": "Build internal tools with Retool, the low-code platform. Use when a user asks to create admin panels, connect to databases or APIs, build CRUD interfaces with drag-and-drop components, or deploy Retool apps.",
+      "category": "development",
+      "tags": [
+        "internal-tools",
+        "low-code",
+        "admin-panel",
+        "dashboard",
+        "crud"
       ]
     },
     {
@@ -6413,6 +6712,19 @@
       "tags": []
     },
     {
+      "name": "tooljet",
+      "slug": "tooljet",
+      "description": "Build internal tools with ToolJet, the open-source low-code platform. Use when a user asks to create admin dashboards, connect data sources, build CRUD apps with drag-and-drop, or self-host ToolJet.",
+      "category": "development",
+      "tags": [
+        "internal-tools",
+        "low-code",
+        "open-source",
+        "admin-panel",
+        "self-hosted"
+      ]
+    },
+    {
       "name": "traefik",
       "slug": "traefik",
       "description": "Route traffic and manage TLS with Traefik reverse proxy. Use when a user asks to set up a reverse proxy, route traffic to Docker containers, auto-provision SSL certificates with Let's Encrypt, set up load balancing, configure HTTPS for multiple services, use a modern alternative to nginx for Docker, set up path-based or host-based routing, add middleware (rate limiting, auth, headers), or manage ingress for containerized applications.",
@@ -6641,6 +6953,19 @@
       "tags": []
     },
     {
+      "name": "v0-dev",
+      "slug": "v0-dev",
+      "description": "Generate UI components with v0.dev, the AI-powered UI generator by Vercel. Use when a user asks to prototype React components, generate shadcn/ui layouts, create landing pages, or scaffold UI from natural language prompts.",
+      "category": "development",
+      "tags": [
+        "ai-ui",
+        "code-generation",
+        "react",
+        "shadcn-ui",
+        "prototyping"
+      ]
+    },
+    {
       "name": "val-town",
       "slug": "val-town",
       "description": "Write and deploy server-side TypeScript functions instantly with Val Town. Use when someone asks to \"deploy a function quickly\", \"serverless TypeScript\", \"quick API endpoint\", \"webhook handler\", \"cron job in the cloud\", \"Val Town\", \"instant API without infrastructure\", or \"deploy a script without a server\". Covers HTTP vals, cron vals, email vals, SQLite storage, and the Val Town API.",
@@ -6770,6 +7095,19 @@
         "bundler",
         "frontend",
         "hmr"
+      ]
+    },
+    {
+      "name": "vitepress",
+      "slug": "vitepress",
+      "description": "Build documentation sites with VitePress, the Vite-powered static site generator. Use when a user asks to create docs, configure VitePress themes, add custom pages, deploy to GitHub Pages, or extend with Vue components.",
+      "category": "development",
+      "tags": [
+        "documentation",
+        "static-site",
+        "vite",
+        "vue",
+        "markdown"
       ]
     },
     {
@@ -7174,5 +7512,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-03-05T21:32:10.601Z"
+  "updatedAt": "2026-03-06T21:59:53.345Z"
 }

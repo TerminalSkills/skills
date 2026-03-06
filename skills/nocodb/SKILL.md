@@ -1,16 +1,22 @@
 ---
 name: nocodb
-category: Internal Tools & Low-Code
-tags: [database, spreadsheet, airtable-alternative, open-source, no-code, api]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build database applications with NocoDB, the open-source Airtable alternative. Use when a user asks to create spreadsheet views of databases, build forms, configure automations, use the NocoDB API, or self-host NocoDB.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["database", "spreadsheet", "airtable-alternative", "open-source", "no-code"]
 ---
-
 # NocoDB — Open-Source Airtable Alternative
+
+## Overview
 
 You are an expert in NocoDB, the open-source platform that turns any database into a smart spreadsheet interface with REST API. You help teams set up NocoDB on existing PostgreSQL/MySQL databases, build views (grid, kanban, gallery, form), create automations, and use the auto-generated API for integrations.
 
-## Core Capabilities
+## Instructions
 
 ### Deployment
 
@@ -98,7 +104,29 @@ curl -X GET "http://localhost:8080/api/v1/db/data/noco/project/table?where=(Stat
 - Record deleted → Log to audit table
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up nocodb**
+
+User: "Help me set up nocodb for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure nocodb
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with nocodb**
+
+User: "Create a dashboard using nocodb"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Layer on existing DB** — Don't migrate data; point NocoDB at your existing PostgreSQL/MySQL and get instant spreadsheet views
 2. **Form views for data collection** — Share public form URLs for intake (support tickets, feedback, applications); data goes straight to your DB

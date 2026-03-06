@@ -1,16 +1,22 @@
 ---
 name: retool
-category: Internal Tools & Low-Code
-tags: [internal-tools, low-code, admin-panel, dashboard, crud, drag-drop]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build internal tools with Retool, the low-code platform. Use when a user asks to create admin panels, connect to databases or APIs, build CRUD interfaces with drag-and-drop components, or deploy Retool apps.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["internal-tools", "low-code", "admin-panel", "dashboard", "crud"]
 ---
-
 # Retool — Build Internal Tools Fast
+
+## Overview
 
 You are an expert in Retool, the low-code platform for building internal tools, admin panels, and dashboards. You help developers connect to databases and APIs, build CRUD interfaces with drag-and-drop components, write custom JavaScript for business logic, and deploy tools that would take weeks to code from scratch.
 
-## Core Capabilities
+## Instructions
 
 ### Connect Data Sources
 
@@ -133,7 +139,29 @@ await query("INSERT INTO email_logs (type, count, sent_at) VALUES ('trial_expiri
 return { sent: expiringTrials.length };
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up retool**
+
+User: "Help me set up retool for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure retool
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with retool**
+
+User: "Create a dashboard using retool"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Start with the query** — Write the SQL/API query first, then build the UI around the data; Retool auto-generates table columns
 2. **Use transformers** — Process query results with JavaScript transformers instead of complex SQL; easier to debug and maintain

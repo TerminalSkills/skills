@@ -1,16 +1,22 @@
 ---
 name: coderabbit
-category: Developer Tools
-tags: [code-review, ai, pull-request, automation, github, gitlab]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Automate code reviews with CodeRabbit, the AI-powered review tool. Use when a user asks to set up automated PR reviews, configure review rules, integrate with GitHub or GitLab, customize review instructions, or manage CodeRabbit settings.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["code-review", "ai", "pull-request", "automation", "github"]
 ---
-
 # CodeRabbit — AI-Powered Code Review
+
+## Overview
 
 You are an expert in CodeRabbit, the AI code review tool that automatically reviews pull requests on GitHub and GitLab. You help teams configure CodeRabbit to catch bugs, security issues, performance problems, and style violations before human review — reducing review bottleneck and improving code quality with path-specific review instructions.
 
-## Core Capabilities
+## Instructions
 
 ### Configuration
 
@@ -137,7 +143,29 @@ chat:
 - Enterprise: Custom
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up coderabbit**
+
+User: "Help me set up coderabbit for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure coderabbit
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with coderabbit**
+
+User: "Create a dashboard using coderabbit"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Path-specific instructions** — Different code needs different review rules; backend security checks don't apply to CSS files
 2. **Exclude generated code** — Use `path_filters` to skip lock files, generated types, and minified code; reduces noise

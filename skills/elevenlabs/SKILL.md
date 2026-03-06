@@ -1,16 +1,22 @@
 ---
 name: elevenlabs
-category: AI & Machine Learning
-tags: [text-to-speech, voice-synthesis, voice-cloning, audio, realtime, conversational-ai]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Generate realistic speech with the ElevenLabs API. Use when a user asks to convert text to speech, clone voices, build voice-enabled apps, stream audio, or integrate ElevenLabs voice synthesis into applications.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["text-to-speech", "voice-synthesis", "voice-cloning", "audio", "realtime"]
 ---
-
 # ElevenLabs — AI Voice Synthesis & Cloning
+
+## Overview
 
 You are an expert in ElevenLabs, the AI voice platform for high-quality text-to-speech, voice cloning, and conversational AI. You help developers build voice-enabled applications with natural-sounding speech, custom voice creation, multilingual support, and real-time streaming TTS for voice agents, audiobooks, podcasts, and accessibility features.
 
-## Core Capabilities
+## Instructions
 
 ### Text-to-Speech
 
@@ -122,7 +128,29 @@ pip install elevenlabs                    # Python
 npm install elevenlabs                    # Node.js
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up elevenlabs**
+
+User: "Help me set up elevenlabs for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure elevenlabs
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with elevenlabs**
+
+User: "Create a dashboard using elevenlabs"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Turbo model for voice agents** — Use `eleven_turbo_v2_5` for real-time conversations; 200ms latency feels instant
 2. **Streaming for real-time** — Use `convert_as_stream` instead of `convert` for voice agents; first audio chunk arrives in ~200ms

@@ -1,310 +1,93 @@
 ---
 title: Set Up an AI Coding Workflow with Cursor Rules and MCP Servers
 slug: set-up-ai-coding-workflow-with-cursor-rules-and-mcp
-description: Configure a production AI coding environment using Cursor with custom rules for consistent code generation, Claude Code for terminal-based pair programming, and MCP servers that give AI agents access to databases, APIs, and deployment tools — reducing code review rejections from 40% to 8% by teaching AI your team's conventions.
+description: >-
+  Configure a production AI coding environment with Cursor rules, Claude Code, and MCP servers to cut code review rejections from 40% to 8%.
 skills: [cursor-ai, claude-code, mcp-server-builder]
-category: Developer Tools
-tags: [ai-coding, cursor, claude-code, mcp, vibe-coding, developer-experience, productivity]
+category: development
+tags: [ai-coding, cursor, mcp, developer-experience, productivity]
 ---
 
 # Set Up an AI Coding Workflow with Cursor Rules and MCP Servers
 
-Leo leads a 6-person engineering team at a fintech startup. Everyone uses AI coding tools, but the results are inconsistent. One developer gets clean TypeScript from Cursor; another gets sloppy JavaScript with `any` types. MCP servers connect to production databases but have no guardrails. Code review rejection rate is 40% because AI-generated code doesn't follow team conventions.
+Leo leads a 6-person engineering team at a fintech startup. Everyone uses AI coding tools but the output is inconsistent -- one developer gets clean TypeScript, another gets sloppy JavaScript with `any` types. Code review rejection rate is 40%.
 
-Leo fixes this by creating shared Cursor rules that encode team standards, configuring Claude Code as a terminal-based code agent for complex refactors, and building MCP servers that give AI tools safe access to internal systems.
+## The Problem
 
-## Step 1: Cursor Rules for Team Conventions
+Without shared configuration, each developer's AI tool generates code in its own style. Cursor produces different patterns depending on how the prompt is worded. MCP servers connect to production databases without guardrails. New team members take two weeks to learn conventions because they're only documented in a wiki nobody reads. The result is 40% of AI-generated PRs rejected in first review, averaging 3.2 review rounds per PR, with developers spending 25 minutes per prompt just crafting context.
 
-Cursor rules (`.cursor/rules`) tell the AI exactly how your team writes code. Instead of repeating "use TypeScript strict mode" in every prompt, rules apply automatically to every generation.
+## The Solution
 
-```markdown
-<!-- .cursor/rules/typescript.mdc -->
-<!-- Cursor rule: TypeScript conventions for the team -->
-
----
-description: TypeScript coding standards for all source files
-globs: ["src/**/*.ts", "src/**/*.tsx"]
-alwaysApply: true
----
-
-## TypeScript Standards
-
-- **Strict mode always**: `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` enabled
-- **No `any`**: Use `unknown` for truly unknown types, then narrow with type guards
-- **Zod for validation**: All external data (API responses, form inputs, env vars) validated with Zod schemas
-- **Result pattern for errors**: Return `{ success: true, data } | { success: false, error }` instead of throwing
-- **Naming**:
-  - Functions: `camelCase`, verbs first (`getUserById`, `validatePayment`)
-  - Types/Interfaces: `PascalCase`, no `I` prefix (`User`, not `IUser`)
-  - Constants: `SCREAMING_SNAKE_CASE` for true constants, `camelCase` for config
-  - Files: `kebab-case.ts` for modules, `PascalCase.tsx` for React components
-
-## Database Queries (Drizzle ORM)
-
-```typescript
-// ALWAYS use prepared statements
-const getUser = db.query.users.findFirst({
-  where: eq(users.id, sql.placeholder("id")),
-}).prepare("get_user");
-
-// NEVER interpolate values into SQL
-// ❌ db.execute(sql`SELECT * FROM users WHERE id = ${userId}`)
-// ✅ const result = await getUser.execute({ id: userId });
-```
-
-## React Components
-
-- Functional components only, no classes
-- Props interface defined above the component, exported
-- Use `forwardRef` when component wraps a native element
-- Custom hooks in `src/hooks/`, prefixed with `use`
-- Server Components by default (Next.js App Router), `"use client"` only when needed
-```
-
-```markdown
-<!-- .cursor/rules/api-routes.mdc -->
-<!-- Cursor rule: API route patterns -->
-
----
-description: API route patterns for Next.js App Router
-globs: ["src/app/api/**/*.ts"]
-alwaysApply: true
----
-
-## API Route Structure
-
-Every API route follows this exact pattern:
-
-```typescript
-// src/app/api/[resource]/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-
-// 1. Input schema (Zod)
-const CreateResourceSchema = z.object({
-  name: z.string().min(1).max(100),
-  // ...
-});
-
-// 2. Route handler
-export async function POST(req: NextRequest) {
-  // 2a. Auth check
-  const session = await auth();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // 2b. Parse and validate input
-  const body = await req.json();
-  const parsed = CreateResourceSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parsed.error.flatten() },
-      { status: 400 }
-    );
-  }
-
-  // 2c. Business logic
-  try {
-    const result = await db.insert(resources).values({
-      ...parsed.data,
-      userId: session.user.id,
-    }).returning();
-
-    return NextResponse.json(result[0], { status: 201 });
-  } catch (error) {
-    console.error("[API] POST /resource failed:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-```
-
-- Always validate with Zod before touching the database
-- Always check auth before business logic
-- Always return proper HTTP status codes
-- Always log errors with context (route, method)
-- Never expose internal error messages to clients
-```
-
-## Step 2: Claude Code for Complex Refactors
-
-Claude Code works in the terminal as a pair programmer. Leo uses it for tasks that span multiple files — refactoring a payment module, migrating from REST to tRPC, or debugging a production issue by reading logs and tracing code.
-
-```markdown
-<!-- CLAUDE.md — Project instructions for Claude Code -->
-# Project: FinPay API
-
-## Architecture
-- **Framework**: Next.js 15 App Router
-- **Database**: PostgreSQL via Drizzle ORM
-- **Auth**: Better Auth with session tokens
-- **Payments**: Stripe (subscriptions + one-time)
-- **Queue**: BullMQ for async jobs (email, webhooks, reports)
-- **Testing**: Vitest + Testing Library
-
-## Conventions
-- All database queries go through Drizzle — never raw SQL
-- Environment variables validated at startup with `src/env.ts` (Zod)
-- Error handling: Result pattern, never throw in business logic
-- Logging: structured JSON via Pino, levels: error/warn/info/debug
-- Feature flags: checked via `src/lib/flags.ts`, not hardcoded
-
-## Before Making Changes
-1. Read the relevant test file first
-2. Run existing tests: `pnpm test:unit -- --filter=<module>`
-3. After changes, run: `pnpm typecheck && pnpm test:unit`
-
-## Do NOT
-- Add new dependencies without asking
-- Modify database schema without creating a migration
-- Change auth logic without explicit approval
-- Use `console.log` — use the Pino logger
-```
+Create shared Cursor rules that encode team standards, configure Claude Code as a terminal-based agent for complex refactors, and build MCP servers that give AI tools safe access to internal systems.
 
 ```bash
-# Example Claude Code session for a complex refactor
-# Leo starts Claude Code in the project root
-
-$ claude
-
-> Refactor the payment webhook handler in src/app/api/webhooks/stripe/route.ts.
-> Currently it's a 400-line switch statement. Extract each event type into a
-> separate handler in src/lib/stripe/handlers/. Each handler should:
-> 1. Validate the event data with Zod
-> 2. Update the database
-> 3. Queue any side effects (email, Slack notification)
-> 4. Return a typed result
-
-# Claude Code reads the file, understands the structure, creates
-# individual handler files, updates imports, adds Zod schemas,
-# writes tests for each handler, and runs the test suite.
+terminal-skills install mcp-server-builder
 ```
 
-## Step 3: MCP Servers for AI Tool Access
+## Step-by-Step Walkthrough
 
-MCP (Model Context Protocol) servers give AI tools access to internal systems — databases, APIs, deployment tools. Leo builds three MCP servers that both Cursor and Claude Code can use.
+### 1. Define Cursor rules for team conventions
+
+Create `.cursor/rules/` files that apply automatically to every AI generation. These encode standards so developers never need to repeat "use TypeScript strict mode" in prompts.
+
+A TypeScript conventions rule (`.cursor/rules/typescript.mdc`) should cover: strict mode with `noUncheckedIndexedAccess`, no `any` types (use `unknown` and narrow), Zod for all external data validation, result pattern instead of throwing, and consistent naming (camelCase functions, PascalCase types, kebab-case files).
+
+An API routes rule (`.cursor/rules/api-routes.mdc`) should enforce: Zod validation before database access, auth checks before business logic, proper HTTP status codes, structured error logging, and never exposing internal errors to clients.
+
+### 2. Configure Claude Code for complex refactors
+
+Set up a `CLAUDE.md` file in the project root with architecture details, conventions, and explicit boundaries. Claude Code reads this automatically and follows the constraints during terminal-based pair programming sessions.
+
+Key sections to include: framework and tooling overview, database conventions (e.g., "all queries through Drizzle, never raw SQL"), testing requirements ("run existing tests before and after changes"), and explicit restrictions ("no new dependencies without asking, no schema changes without migrations").
+
+This is especially powerful for multi-file refactors -- extracting a 400-line webhook handler into separate handler files with Zod schemas and tests, for example.
+
+### 3. Build MCP servers with safety guardrails
+
+Create MCP servers that give AI tools structured access to internal systems. A database MCP server should expose read-only queries with PII exclusion:
 
 ```typescript
-// mcp-servers/database/index.ts — Safe database access for AI tools
-import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
-import { db } from "./db.js";
-
-const server = new McpServer({
-  name: "finpay-database",
-  version: "1.0.0",
-});
-
-// Tool: Query users (read-only, no PII in results)
 server.tool(
   "query_users",
-  "Search users by email domain or plan. Returns id, plan, created_at (no PII).",
+  "Search users by plan or domain. Returns id, plan, created_at (no PII).",
   {
     filter: z.enum(["free", "pro", "enterprise"]).optional(),
     email_domain: z.string().optional(),
     limit: z.number().max(100).default(20),
   },
   async ({ filter, email_domain, limit }) => {
-    // AI tools can query but NEVER see passwords, tokens, or full emails
     const users = await db.query.users.findMany({
-      columns: {
-        id: true,
-        plan: true,
-        createdAt: true,
-        email: false,             // Explicitly exclude PII
-        passwordHash: false,
-      },
+      columns: { id: true, plan: true, createdAt: true, email: false, passwordHash: false },
       where: (u, { eq, like, and }) => and(
         filter ? eq(u.plan, filter) : undefined,
         email_domain ? like(u.email, `%@${email_domain}`) : undefined,
       ),
       limit,
     });
-
-    return {
-      content: [{ type: "text", text: JSON.stringify(users, null, 2) }],
-    };
+    return { content: [{ type: "text", text: JSON.stringify(users, null, 2) }] };
   }
 );
-
-// Tool: Get table schema (for writing queries)
-server.tool(
-  "get_schema",
-  "Get the Drizzle schema definition for a table",
-  { table: z.string() },
-  async ({ table }) => {
-    const schemaFile = await readFile(`src/db/schema/${table}.ts`, "utf-8");
-    return { content: [{ type: "text", text: schemaFile }] };
-  }
-);
-
-// Resource: Recent error logs
-server.resource(
-  "recent_errors",
-  new ResourceTemplate("logs://errors/{minutes}", { list: undefined }),
-  async (uri, { minutes }) => {
-    const logs = await fetchRecentErrors(parseInt(minutes));
-    return {
-      contents: [{
-        uri: uri.href,
-        text: logs.map(l => `[${l.timestamp}] ${l.level}: ${l.message}`).join("\n"),
-        mimeType: "text/plain",
-      }],
-    };
-  }
-);
-
-// Start server
-const transport = new StdioServerTransport();
-await server.connect(transport);
 ```
 
-```json
-// .cursor/mcp.json — Register MCP servers with Cursor
-{
-  "mcpServers": {
-    "database": {
-      "command": "npx",
-      "args": ["tsx", "mcp-servers/database/index.ts"],
-      "env": {
-        "DATABASE_URL": "postgresql://dev:devpass@localhost:5432/finpay_dev"
-      }
-    },
-    "deployment": {
-      "command": "npx",
-      "args": ["tsx", "mcp-servers/deployment/index.ts"],
-      "env": {
-        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
-      }
-    },
-    "sentry": {
-      "command": "npx",
-      "args": ["-y", "@sentry/mcp-server"],
-      "env": {
-        "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}"
-      }
-    }
-  }
-}
-```
+Register MCP servers in `.cursor/mcp.json` so both Cursor and Claude Code can use them. Add deployment and error tracking servers alongside the database server.
 
-## Step 4: Measuring Impact
+### 4. Measure the impact
 
-After two weeks of shared Cursor rules and MCP servers, Leo tracks the code review metrics.
+Track code review metrics over two weeks to validate the workflow. Compare rejection rates, review rounds, and prompt crafting time before and after adopting shared rules and MCP servers.
 
-Before the workflow:
-- 40% of AI-generated PRs rejected in first review
-- Average 3.2 review rounds per PR
-- Developers spent 25 minutes per prompt crafting context
+## Real-World Example
 
-After the workflow:
-- **8% rejection rate** — AI follows team conventions automatically via rules
-- **1.4 review rounds** per PR — first attempt is usually close
-- **5 minutes** per prompt — MCP servers provide context, rules provide conventions
-- **Onboarding time**: New developers productive in 2 days instead of 2 weeks — they read the Cursor rules to learn team conventions while AI enforces them
+Leo, an engineering lead at a fintech startup in Austin, implements this workflow for his 6-person team. He spends one afternoon writing three Cursor rule files (TypeScript conventions, API route patterns, database query standards) and configuring two MCP servers (read-only database access, Sentry error logs).
+
+Results after two weeks:
+
+1. PR rejection rate drops from 40% to 8% -- AI follows team conventions automatically
+2. Review rounds per PR drop from 3.2 to 1.4 -- first attempts are consistently close
+3. Prompt crafting time drops from 25 minutes to 5 minutes -- MCP servers provide context, rules provide conventions
+4. New developer onboarding drops from 2 weeks to 2 days -- they read Cursor rules to learn conventions while AI enforces them
+
+The shared configuration acts as living documentation that is both human-readable and machine-enforced, solving the consistency problem at the source rather than catching it in code review.
+
+## Related Skills
+
+- [mcp-server-builder](../skills/mcp-server-builder/) -- Build custom MCP servers for database, API, and deployment access

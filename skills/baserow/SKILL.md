@@ -1,16 +1,22 @@
 ---
 name: baserow
-category: Internal Tools & Low-Code
-tags: [database, spreadsheet, airtable-alternative, open-source, no-code, api]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build database-powered applications with Baserow, the open-source no-code database. Use when a user asks to create spreadsheet databases, build API-connected workflows, manage relational data, or self-host Baserow as an Airtable alternative.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["database", "spreadsheet", "airtable-alternative", "open-source", "no-code"]
 ---
-
 # Baserow — Open-Source No-Code Database
+
+## Overview
 
 You are an expert in Baserow, the open-source no-code database platform and Airtable alternative. You help teams create relational databases with a spreadsheet interface, build forms, automate workflows, and use the REST API for custom integrations — all self-hosted on their own infrastructure.
 
-## Core Capabilities
+## Instructions
 
 ### Setup
 
@@ -68,7 +74,29 @@ curl -X PATCH "https://baserow.example.com/api/database/rows/table/TABLE_ID/ROW_
 # Events: rows.created, rows.updated, rows.deleted
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up baserow**
+
+User: "Help me set up baserow for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure baserow
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with baserow**
+
+User: "Create a dashboard using baserow"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Self-host for data sovereignty** — Baserow runs on your infrastructure; ideal for GDPR compliance and sensitive data
 2. **Relationships over duplication** — Use "Link to table" fields instead of duplicating data across tables

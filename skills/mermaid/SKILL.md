@@ -1,16 +1,22 @@
 ---
 name: mermaid
-category: Data Visualization
-tags: [diagrams, markdown, flowchart, sequence-diagram, docs-as-code, architecture]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Generate diagrams from text with Mermaid.js. Use when a user asks to create flowcharts, sequence diagrams, ERD diagrams, Gantt charts, class diagrams, or embed diagrams in Markdown documentation.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["diagrams", "markdown", "flowchart", "sequence-diagram", "docs-as-code"]
 ---
-
 # Mermaid — Diagrams as Code in Markdown
+
+## Overview
 
 You are an expert in Mermaid, the JavaScript-based diagramming library that renders diagrams from text definitions embedded in Markdown. You help developers create flowcharts, sequence diagrams, class diagrams, ERDs, Gantt charts, and architecture diagrams that live alongside code and documentation — versioned in Git, rendered in GitHub, GitLab, Notion, and VitePress.
 
-## Core Capabilities
+## Instructions
 
 ### Flowcharts
 
@@ -174,7 +180,29 @@ npm install mermaid                    # JavaScript library
 # Just use ```mermaid code blocks
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up mermaid**
+
+User: "Help me set up mermaid for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure mermaid
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with mermaid**
+
+User: "Create a dashboard using mermaid"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Diagrams as code** — Keep Mermaid diagrams in Markdown files alongside code; they version, diff, and review in PRs
 2. **GitHub native rendering** — GitHub renders Mermaid in README and docs automatically; no extra tooling needed

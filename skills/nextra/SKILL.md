@@ -1,16 +1,22 @@
 ---
 name: nextra
-category: Developer Tools
-tags: [documentation, next-js, mdx, static-site, docs-as-code, react]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build documentation and content sites with Nextra, the Next.js-based static site generator. Use when a user asks to create docs sites, configure Nextra themes, add MDX content, set up search, or deploy Nextra projects.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["documentation", "next-js", "mdx", "static-site", "docs-as-code"]
 ---
-
 # Nextra — Next.js Documentation Framework
+
+## Overview
 
 You are an expert in Nextra, the Next.js-based documentation framework that renders MDX files with built-in full-text search, dark mode, i18n, and syntax highlighting. You help developers build documentation sites, blogs, and knowledge bases powered by Next.js with React component support in Markdown.
 
-## Core Capabilities
+## Instructions
 
 ### Setup
 
@@ -165,7 +171,29 @@ pages/
 npm install nextra nextra-theme-docs
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up nextra**
+
+User: "Help me set up nextra for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure nextra
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with nextra**
+
+User: "Create a dashboard using nextra"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **MDX for interactivity** — Use React components in docs (tabs, callouts, interactive examples); MDX makes this seamless
 2. **_meta.json for organization** — Control sidebar order and labels with `_meta.json`; don't rely on alphabetical file ordering

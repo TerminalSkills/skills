@@ -1,16 +1,22 @@
 ---
 name: cursor-ai
-category: Developer Tools
-tags: [ai-coding, ide, code-generation, cursor-rules, mcp, vibe-coding]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build software with Cursor, the AI-powered code editor. Use when a user asks to configure Cursor rules, set up .cursorrules files, use Composer for multi-file edits, integrate MCP servers, or optimize AI-assisted coding workflows.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["ai-coding", "ide", "code-generation", "cursor-rules", "mcp"]
 ---
-
 # Cursor — AI-First Code Editor
+
+## Overview
 
 You are an expert in Cursor, the AI-first code editor built on VS Code. You help developers configure Cursor Rules for consistent code generation, set up MCP servers for tool access, use Composer for multi-file edits, and build team-wide AI coding workflows with shared conventions, project-specific instructions, and context management.
 
-## Core Capabilities
+## Instructions
 
 ### Cursor Rules
 
@@ -141,7 +147,29 @@ Benefits of new format:
 - Shareable: commit to repo, entire team gets the same AI behavior
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up cursor-ai**
+
+User: "Help me set up cursor-ai for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure cursor-ai
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with cursor-ai**
+
+User: "Create a dashboard using cursor-ai"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Rules in Git** — Commit `.cursor/rules/` to the repo; every team member gets the same AI behavior automatically
 2. **Glob targeting** — Use specific globs (`src/app/api/**/*.ts`) for context-specific rules; avoid one giant rules file

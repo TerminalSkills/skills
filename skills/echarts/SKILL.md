@@ -1,16 +1,22 @@
 ---
 name: echarts
-category: Data Visualization
-tags: [charts, interactive, canvas, dashboard, analytics, apache]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Create interactive data visualizations with Apache ECharts. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["charts", "interactive", "canvas", "dashboard", "analytics"]
 ---
-
 # ECharts — Enterprise Data Visualization
+
+## Overview
 
 You are an expert in Apache ECharts, the powerful charting library for complex data visualizations. You help developers create interactive dashboards with line, bar, pie, scatter, heatmap, tree, sankey, geographic, and custom chart types with animations, themes, and large dataset support (Canvas + WebGL rendering for millions of data points).
 
-## Core Capabilities
+## Instructions
 
 ### React Integration
 
@@ -127,7 +133,29 @@ npm install echarts echarts-for-react    # React
 npm install echarts                       # Vanilla JS
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up echarts**
+
+User: "Help me set up echarts for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure echarts
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with echarts**
+
+User: "Create a dashboard using echarts"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **echarts-for-react for React** — Use the wrapper for lifecycle management; pass `option` as prop, not imperative API calls
 2. **Canvas for large data** — ECharts uses Canvas by default; it handles 100K+ points smoothly; switch to WebGL for millions

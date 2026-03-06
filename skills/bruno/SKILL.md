@@ -1,16 +1,22 @@
 ---
 name: bruno
-category: Developer Tools
-tags: [api-client, http, testing, git-friendly, open-source, postman-alternative]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Test and debug APIs with Bruno, the open-source API client. Use when a user asks to create API requests, organize collections, write test scripts, use environments and variables, or collaborate on API workflows stored in Git.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["api-client", "http", "testing", "git-friendly", "open-source"]
 ---
-
 # Bruno — Git-Friendly API Client
+
+## Overview
 
 You are an expert in Bruno, the open-source API client that stores collections as plain text files in your Git repository. Unlike Postman (cloud-synced, proprietary format), Bruno uses a human-readable format (Bru) that lives alongside your code — versioned, reviewable, and shareable via Git.
 
-## Core Capabilities
+## Instructions
 
 ### Collection Structure
 
@@ -159,7 +165,29 @@ bru run --env dev --output results.xml --format junit
 npm install -g @usebruno/cli
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up bruno**
+
+User: "Help me set up bruno for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure bruno
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with bruno**
+
+User: "Create a dashboard using bruno"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Git-first workflow** — Store Bruno collections in your repo next to application code; review API changes in PRs
 2. **Environment files for config** — Use environments for base URLs and credentials; secrets marked as `vars:secret` are never committed

@@ -1,16 +1,22 @@
 ---
 name: mapbox
-category: Data Visualization
-tags: [maps, geospatial, location, geocoding, navigation, gl]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build map-based applications with the Mapbox GL JS SDK. Use when a user asks to create interactive maps, add custom layers, implement geocoding, build navigation features, or visualize geospatial data with Mapbox.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["maps", "geospatial", "location", "geocoding", "navigation"]
 ---
-
 # Mapbox — Custom Interactive Maps
+
+## Overview
 
 You are an expert in Mapbox, the platform for custom interactive maps, geocoding, navigation, and geospatial data visualization. You help developers build location-aware applications with custom map styles, markers, layers, 3D terrain, route planning, and real-time location tracking using Mapbox GL JS and the Mapbox APIs.
 
-## Core Capabilities
+## Instructions
 
 ### Basic Map
 
@@ -129,7 +135,29 @@ npm install mapbox-gl react-map-gl
 # Get access token at https://account.mapbox.com/
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up mapbox**
+
+User: "Help me set up mapbox for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure mapbox
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with mapbox**
+
+User: "Create a dashboard using mapbox"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Custom map styles** — Use Mapbox Studio to create branded map styles; match your app's design language
 2. **Clustering for markers** — Use `cluster` property on GeoJSON sources when displaying 100+ points; prevents visual clutter

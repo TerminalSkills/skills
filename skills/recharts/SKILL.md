@@ -1,16 +1,22 @@
 ---
 name: recharts
-category: Frontend & UI
-tags: [charts, react, data-visualization, svg, dashboard, analytics]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build responsive charts in React with Recharts. Use when a user asks to create line charts, bar charts, area charts, pie charts, or composed dashboard visualizations using the Recharts component library.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["charts", "react", "data-visualization", "svg", "dashboard"]
 ---
-
 # Recharts — React Charting Library
+
+## Overview
 
 You are an expert in Recharts, the composable React charting library built on D3. You help developers create line charts, bar charts, area charts, pie charts, scatter plots, and custom visualizations using React's declarative component model with responsive containers and smooth animations.
 
-## Core Capabilities
+## Instructions
 
 ### Common Chart Types
 
@@ -136,7 +142,29 @@ const CustomTooltip = ({ active, payload, label }) => {
 npm install recharts
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up recharts**
+
+User: "Help me set up recharts for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure recharts
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with recharts**
+
+User: "Create a dashboard using recharts"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **ResponsiveContainer always** — Wrap every chart in `<ResponsiveContainer width="100%" height={...}>` for responsive sizing
 2. **Composable architecture** — Mix and match components (Line + Bar + Area in one chart); Recharts is fully composable

@@ -1,16 +1,22 @@
 ---
 name: mkdocs
-category: Developer Tools
-tags: [documentation, python, static-site, material-theme, markdown, search]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build documentation sites with MkDocs and Material for MkDocs. Use when a user asks to create project documentation, configure MkDocs themes, add search and navigation, deploy docs to GitHub Pages, or customize Markdown extensions.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["documentation", "python", "static-site", "material-theme", "markdown"]
 ---
-
 # MkDocs — Python Documentation Generator
+
+## Overview
 
 You are an expert in MkDocs with the Material theme, the Python-powered documentation site generator. You help developers build documentation from Markdown with auto-navigation, search, versioning, and Material Design styling. MkDocs Material is the most popular documentation theme on GitHub, used by FastAPI, Pydantic, and hundreds of open-source projects.
 
-## Core Capabilities
+## Instructions
 
 ### Setup
 
@@ -154,7 +160,29 @@ client = Client(
 pip install mkdocs-material
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up mkdocs**
+
+User: "Help me set up mkdocs for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure mkdocs
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with mkdocs**
+
+User: "Create a dashboard using mkdocs"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Material theme** — Always use `mkdocs-material`; the default theme is functional but Material is beautiful and feature-rich
 2. **Code annotations** — Use code annotations `(1)!` for inline explanations; cleaner than long comments

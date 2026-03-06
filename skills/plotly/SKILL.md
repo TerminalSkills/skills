@@ -1,16 +1,22 @@
 ---
 name: plotly
-category: Data Visualization
-tags: [charts, interactive, python, javascript, dashboard, scientific]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Create interactive scientific and statistical charts with Plotly. Use when a user asks to build data visualizations, scatter plots, 3D charts, statistical graphs, or dashboards using Plotly.js or react-plotly.js.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["charts", "interactive", "python", "javascript", "dashboard"]
 ---
-
 # Plotly — Interactive Scientific Visualization
+
+## Overview
 
 You are an expert in Plotly, the interactive charting library for Python and JavaScript. You help developers create publication-quality interactive charts — scatter plots, heatmaps, 3D surfaces, geographic maps, financial charts, and statistical plots with hover tooltips, zoom, and export capabilities.
 
-## Core Capabilities
+## Instructions
 
 ### Python (Plotly Express)
 
@@ -139,7 +145,29 @@ npm install plotly.js-dist-min         # JavaScript (minimal bundle)
 npm install react-plotly.js            # React wrapper
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up plotly**
+
+User: "Help me set up plotly for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure plotly
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with plotly**
+
+User: "Create a dashboard using plotly"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Plotly Express for 80% of charts** — Use `px.scatter`, `px.line`, `px.bar` for quick charts; drop to `go.Figure` only for complex customization
 2. **Hover templates** — Customize hover text with `hovertemplate`; `%{x}`, `%{y}`, `%{text}` are variables

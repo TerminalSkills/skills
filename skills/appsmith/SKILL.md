@@ -1,16 +1,22 @@
 ---
 name: appsmith
-category: Internal Tools & Low-Code
-tags: [internal-tools, low-code, open-source, admin-panel, self-hosted, crud]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build internal tools, admin panels, and dashboards with Appsmith. Use when a user asks to create CRUD interfaces, connect to databases or APIs with drag-and-drop widgets, write JSObjects for business logic, or self-host Appsmith with Docker or Kubernetes.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["internal-tools", "low-code", "open-source", "admin-panel", "self-hosted"]
 ---
-
 # Appsmith — Open-Source Internal Tool Builder
+
+## Overview
 
 You are an expert in Appsmith, the open-source low-code platform for building internal tools, admin panels, and dashboards. You help developers connect to databases and APIs, build CRUD interfaces with drag-and-drop widgets, write custom JavaScript, and self-host the platform for full data control.
 
-## Core Capabilities
+## Instructions
 
 ### Data Queries
 
@@ -114,7 +120,29 @@ helm install appsmith appsmith/appsmith -n appsmith --create-namespace
 # 4. Merge → auto-deploy to production instance
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up appsmith**
+
+User: "Help me set up appsmith for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure appsmith
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with appsmith**
+
+User: "Create a dashboard using appsmith"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Self-host for security** — Appsmith is open-source; self-host on your infrastructure when data can't leave your network
 2. **JSObjects for logic** — Keep business logic in JSObjects, not in widget event handlers; easier to test and reuse

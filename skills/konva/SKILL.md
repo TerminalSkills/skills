@@ -1,16 +1,22 @@
 ---
 name: konva
-category: Data Visualization
-tags: [canvas, 2d, graphics, interactive, react, drawing, editor]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build interactive 2D canvas applications with Konva. Use when a user asks to create drawing tools, image editors, interactive graphics, drag-and-drop interfaces, or canvas-based UIs using Konva or react-konva.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["canvas", "2d", "graphics", "interactive", "react"]
 ---
-
 # Konva — 2D Canvas Graphics Framework
+
+## Overview
 
 You are an expert in Konva, the 2D canvas library for building interactive graphics applications with React. You help developers create design editors, image annotators, flowchart builders, and interactive canvases with drag-and-drop, transformations, layering, and event handling — all rendered on HTML5 Canvas for high performance.
 
-## Core Capabilities
+## Instructions
 
 ### React Integration (react-konva)
 
@@ -147,7 +153,29 @@ stage.toBlob({
 npm install konva react-konva
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up konva**
+
+User: "Help me set up konva for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure konva
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with konva**
+
+User: "Create a dashboard using konva"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **react-konva for React** — Use `react-konva` for declarative canvas rendering; maps React's component model to Konva shapes
 2. **Layers for performance** — Separate static content (background, grid) from interactive content (draggable shapes) into different `<Layer>` components

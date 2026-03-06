@@ -1,16 +1,22 @@
 ---
 name: refine
-category: Internal Tools & Low-Code
-tags: [admin-panel, crud, react, headless, data-provider, internal-tools]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build data-intensive React applications with Refine. Use when a user asks to create admin panels, dashboards, or CRUD interfaces using Refine with REST, GraphQL, or custom data providers and Ant Design or Material UI.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["admin-panel", "crud", "react", "headless", "data-provider"]
 ---
-
 # Refine — React Framework for Admin Panels
+
+## Overview
 
 You are an expert in Refine, the open-source React framework for building data-intensive applications like admin panels, dashboards, and internal tools. Refine is headless — it provides data fetching, auth, access control, and routing hooks while you choose the UI library (Ant Design, Material UI, Chakra, Mantine, or custom).
 
-## Core Capabilities
+## Instructions
 
 ### Quick Start
 
@@ -188,7 +194,29 @@ npm create refine-app@latest        # Interactive setup
 npm install @refinedev/core @refinedev/antd @refinedev/react-router
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up refine**
+
+User: "Help me set up refine for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure refine
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with refine**
+
+User: "Create a dashboard using refine"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Headless first** — Refine is UI-agnostic; choose Ant Design for speed, Material UI for familiarity, or go fully custom
 2. **Data providers for any backend** — Use built-in providers for Supabase, Strapi, Hasura; write a custom one for your API in ~50 lines

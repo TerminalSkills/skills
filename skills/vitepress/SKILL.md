@@ -1,16 +1,22 @@
 ---
 name: vitepress
-category: Developer Tools
-tags: [documentation, static-site, vite, vue, markdown, docs-as-code]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build documentation sites with VitePress, the Vite-powered static site generator. Use when a user asks to create docs, configure VitePress themes, add custom pages, deploy to GitHub Pages, or extend with Vue components.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["documentation", "static-site", "vite", "vue", "markdown"]
 ---
-
 # VitePress — Vite-Powered Documentation Site
+
+## Overview
 
 You are an expert in VitePress, the Vite-powered static site generator for documentation. You help developers build fast, beautiful documentation sites from Markdown files with Vue component integration, full-text search, i18n, and automatic navigation generation.
 
-## Core Capabilities
+## Instructions
 
 ### Setup
 
@@ -172,7 +178,29 @@ next:
 npm add -D vitepress
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up vitepress**
+
+User: "Help me set up vitepress for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure vitepress
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with vitepress**
+
+User: "Create a dashboard using vitepress"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Docs alongside code** — Keep docs in the same repo as code; changes to API and docs happen in the same PR
 2. **Auto-generate API reference** — Use TypeDoc or similar to generate API pages from JSDoc/TSDoc comments

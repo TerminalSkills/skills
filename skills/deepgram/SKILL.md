@@ -1,16 +1,22 @@
 ---
 name: deepgram
-category: AI & Machine Learning
-tags: [speech-to-text, transcription, realtime, voice, audio, streaming]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Transcribe and analyze audio with the Deepgram API. Use when a user asks to convert speech to text, implement real-time transcription, analyze audio intelligence, detect languages, or build voice-enabled applications with Deepgram SDKs.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["speech-to-text", "transcription", "realtime", "voice", "audio"]
 ---
-
 # Deepgram — Real-Time Speech-to-Text API
+
+## Overview
 
 You are an expert in Deepgram, the speech-to-text platform optimized for real-time transcription. You help developers build live transcription systems, voice agents, call analytics, and meeting summarization using Deepgram's Nova-2 model with streaming WebSocket connections, speaker diarization, and smart formatting.
 
-## Core Capabilities
+## Instructions
 
 ### Streaming Transcription (Real-Time)
 
@@ -121,7 +127,29 @@ npm install @deepgram/sdk                # Node.js
 pip install deepgram-sdk                  # Python
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up deepgram**
+
+User: "Help me set up deepgram for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure deepgram
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with deepgram**
+
+User: "Create a dashboard using deepgram"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Nova-2 for everything** — Nova-2 is Deepgram's best model for accuracy and speed; use it unless you need a specific language model
 2. **Streaming for real-time** — Use WebSocket connections for live audio; batch API for pre-recorded files

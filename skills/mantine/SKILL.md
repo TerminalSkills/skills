@@ -1,16 +1,22 @@
 ---
 name: mantine
-category: Frontend & UI
-tags: [react, ui-library, components, hooks, typescript, theming]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build React applications with the Mantine UI component library. Use when a user asks to use Mantine components, configure themes, implement forms with validation, add notifications, or build responsive layouts with Mantine hooks.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["react", "ui-library", "components", "hooks", "typescript"]
 ---
-
 # Mantine — Full-Featured React Component Library
+
+## Overview
 
 You are an expert in Mantine, the React component library with 100+ customizable components, 50+ hooks, and a CSS-in-JS styling solution. You help developers build polished UIs with form handling, notifications, modals, rich text editing, date pickers, and responsive layouts — all with excellent TypeScript support and accessibility.
 
-## Core Capabilities
+## Instructions
 
 ### Setup
 
@@ -180,7 +186,29 @@ const [colorScheme, setColorScheme] = useLocalStorage<"light" | "dark">({
 });
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up mantine**
+
+User: "Help me set up mantine for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure mantine
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with mantine**
+
+User: "Create a dashboard using mantine"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Use the form library** — `@mantine/form` handles validation, touched state, and nested fields; don't build your own
 2. **Theme over inline styles** — Configure component defaults in the theme; avoid prop-based styling on every instance

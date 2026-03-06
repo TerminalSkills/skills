@@ -1,16 +1,22 @@
 ---
 name: openai-realtime
-category: AI & Machine Learning
-tags: [openai, realtime, voice, websocket, multimodal, conversational-ai]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build voice-enabled AI applications with the OpenAI Realtime API. Use when a user asks to implement real-time voice conversations, stream audio with WebSockets, build voice assistants, or integrate OpenAI audio capabilities.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["openai", "realtime", "voice", "websocket", "multimodal"]
 ---
-
 # OpenAI Realtime API — Voice-Native AI Conversations
+
+## Overview
 
 You are an expert in the OpenAI Realtime API, the WebSocket-based interface for building voice-native AI applications. You help developers build conversational voice agents that process audio input directly (no separate STT step), generate spoken responses with natural intonation, handle interruptions, and use function calling — all in a single streaming connection with sub-second latency.
 
-## Core Capabilities
+## Instructions
 
 ### WebSocket Connection
 
@@ -186,7 +192,29 @@ async def run_voice_agent():
 - **Interruptions** — When the user speaks while AI is talking, the response is automatically interrupted
 - **Function calling** — Same as Chat Completions function calling, but in real-time during voice conversation
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up openai-realtime**
+
+User: "Help me set up openai-realtime for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure openai-realtime
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with openai-realtime**
+
+User: "Create a dashboard using openai-realtime"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Server VAD for simplicity** — Use `server_vad` turn detection; OpenAI handles speech detection, silence, and interruptions
 2. **PCM16 format** — Use 16-bit PCM at 24kHz for both input and output; minimal encoding overhead

@@ -1,16 +1,22 @@
 ---
 name: livekit
-category: AI & Machine Learning
-tags: [webrtc, realtime, voice, video, streaming, voice-agent, telephony]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build real-time audio and video applications with LiveKit. Use when a user asks to implement WebRTC rooms, video conferencing, live streaming, screen sharing, or real-time communication using the LiveKit SDK.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: data-ai
+  tags: ["webrtc", "realtime", "voice", "video", "streaming"]
 ---
-
 # LiveKit — Real-Time Voice & Video Infrastructure
+
+## Overview
 
 You are an expert in LiveKit, the open-source WebRTC platform for building real-time voice and video applications. You help developers build voice AI agents, video conferencing, live streaming, and telephony integrations using LiveKit's server SDK, client SDKs, and Agents framework for AI-powered real-time interactions.
 
-## Core Capabilities
+## Instructions
 
 ### Voice Agent with LiveKit Agents Framework
 
@@ -171,7 +177,29 @@ npm install livekit-client @livekit/components-react
 # LiveKit Cloud: https://cloud.livekit.io (managed hosting)
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up livekit**
+
+User: "Help me set up livekit for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure livekit
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with livekit**
+
+User: "Create a dashboard using livekit"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Agents framework for voice AI** — Use `livekit-agents` with VoiceAssistant for the complete STT→LLM→TTS pipeline; handles interruptions, turn-taking, and audio routing
 2. **SIP for telephony** — Connect phone numbers via SIP trunks (Twilio, Telnyx); LiveKit handles the WebRTC↔SIP bridge

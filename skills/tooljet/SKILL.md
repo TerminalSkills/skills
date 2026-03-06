@@ -1,16 +1,22 @@
 ---
 name: tooljet
-category: Internal Tools & Low-Code
-tags: [internal-tools, low-code, open-source, admin-panel, self-hosted, visual-builder]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build internal tools with ToolJet, the open-source low-code platform. Use when a user asks to create admin dashboards, connect data sources, build CRUD apps with drag-and-drop, or self-host ToolJet.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["internal-tools", "low-code", "open-source", "admin-panel", "self-hosted"]
 ---
-
 # ToolJet — Open-Source Low-Code App Builder
+
+## Overview
 
 You are an expert in ToolJet, the open-source low-code platform for building internal tools with a visual app builder. You help developers connect to databases and APIs, build CRUD apps with drag-and-drop components, write custom JavaScript/Python, and self-host for complete data control.
 
-## Core Capabilities
+## Instructions
 
 ### Setup
 
@@ -83,7 +89,29 @@ if (components.table1.selectedRow.status === 'refunded') {
 - Navigation: programmatic (actions.navigateTo) or link components
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up tooljet**
+
+User: "Help me set up tooljet for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure tooljet
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with tooljet**
+
+User: "Create a dashboard using tooljet"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Self-host for compliance** — ToolJet is open-source (AGPL); self-host when data must stay on your infrastructure
 2. **Query caching** — Enable query caching for frequently accessed data; reduces database load

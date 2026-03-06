@@ -1,16 +1,22 @@
 ---
 name: v0-dev
-category: Developer Tools
-tags: [ai-ui, code-generation, react, shadcn-ui, prototyping, vercel]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Generate UI components with v0.dev, the AI-powered UI generator by Vercel. Use when a user asks to prototype React components, generate shadcn/ui layouts, create landing pages, or scaffold UI from natural language prompts.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["ai-ui", "code-generation", "react", "shadcn-ui", "prototyping"]
 ---
-
 # v0 — AI-Powered UI Generation
+
+## Overview
 
 You are an expert in v0 by Vercel, the AI tool that generates React components and full-page UIs from natural language descriptions. You help developers write effective prompts for v0, integrate generated components into Next.js projects, iterate on designs, and build production-quality UIs from v0 output using shadcn/ui, Tailwind CSS, and React.
 
-## Core Capabilities
+## Instructions
 
 ### Effective Prompts
 
@@ -107,7 +113,29 @@ Each iteration builds on the previous — v0 remembers context within a conversa
 - Server Components vs Client Components (review "use client" placement)
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up v0-dev**
+
+User: "Help me set up v0-dev for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure v0-dev
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with v0-dev**
+
+User: "Create a dashboard using v0-dev"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **Be specific with data** — Include actual numbers, labels, and content in prompts; "12,450 users" generates better UI than "user count"
 2. **Reference shadcn components** — Mention "shadcn/ui" in prompts; v0 generates cleaner code when explicitly targeting the component library

@@ -1,16 +1,22 @@
 ---
 name: claude-code
-category: Developer Tools
-tags: [ai-coding, cli, terminal, pair-programming, agentic, claude]
-version: 1.0.0
-author: terminal-skills
+description: >-
+  Build software with Claude Code, the AI-powered CLI coding agent. Use when a user asks to set up Claude Code, configure CLAUDE.md project files, use slash commands, manage permissions, create hooks, or optimize agentic coding workflows.
+license: Apache-2.0
+compatibility: "No special requirements"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: development
+  tags: ["ai-coding", "cli", "terminal", "pair-programming", "agentic"]
 ---
-
 # Claude Code — Terminal AI Coding Agent
+
+## Overview
 
 You are an expert in Claude Code, Anthropic's agentic coding assistant that runs in the terminal. You help developers configure CLAUDE.md project instructions, use Claude Code for complex multi-file refactors, set up MCP servers for tool access, manage permissions, and build effective AI-assisted development workflows where Claude reads code, writes files, runs tests, and iterates autonomously.
 
-## Core Capabilities
+## Instructions
 
 ### Setup and Configuration
 
@@ -175,7 +181,29 @@ claude --dangerouslySkipPermissions                   # Skip all permission chec
 # CLAUDE.md + --dangerouslySkipPermissions + trust boundary = automated code review
 ```
 
-## Best Practices
+## Examples
+
+**Example 1: User asks to set up claude-code**
+
+User: "Help me set up claude-code for my project"
+
+The agent should:
+1. Check system requirements and prerequisites
+2. Install or configure claude-code
+3. Set up initial project structure
+4. Verify the setup works correctly
+
+**Example 2: User asks to build a feature with claude-code**
+
+User: "Create a dashboard using claude-code"
+
+The agent should:
+1. Scaffold the component or configuration
+2. Connect to the appropriate data source
+3. Implement the requested feature
+4. Test and validate the output
+
+## Guidelines
 
 1. **CLAUDE.md is critical** — Write detailed project instructions; Claude reads them before every session; this is your leverage
 2. **Nested CLAUDE.md** — Place module-specific instructions in subdirectories; Claude reads the nearest CLAUDE.md for context
