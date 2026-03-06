@@ -2,7 +2,7 @@
 title: Build a Podcast Production Pipeline
 slug: build-podcast-production-pipeline
 description: "Automate podcast post-production — audio cleanup, loudness normalization, intro/outro mixing, transcription with Whisper, waveform generation, and multi-format export — from a single command."
-skills: [ffmpeg-video-editing]
+skills: [ffmpeg]
 category: content
 tags: [ffmpeg, sox, whisper, audiowaveform, yt-dlp, podcast, automation]
 ---
@@ -17,7 +17,7 @@ The work is entirely mechanical. The same sox commands, the same ffmpeg flags, t
 
 ## The Solution
 
-Use the **ffmpeg-video-editing** skill along with sox, Whisper, and audiowaveform to build an end-to-end pipeline. A shell script orchestrates the audio tools, a Python script handles transcription and chapter detection. One command produces a fully packaged episode.
+Use the **ffmpeg** skill along with sox, Whisper, and audiowaveform to build an end-to-end pipeline. A shell script orchestrates the audio tools, a Python script handles transcription and chapter detection. One command produces a fully packaged episode.
 
 ## Step-by-Step Walkthrough
 

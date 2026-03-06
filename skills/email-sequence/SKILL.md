@@ -4,7 +4,7 @@ description: When the user wants to create or optimize an email sequence, drip c
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - email
     - automation

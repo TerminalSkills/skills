@@ -12,7 +12,7 @@ compatibility: "Browser-based editor. Custom code: HTML/CSS/JS. API: REST."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
+  category: development
   tags: ["tilda", "website-builder", "no-code", "landing-page", "ecommerce", "cms"]
 ---
 

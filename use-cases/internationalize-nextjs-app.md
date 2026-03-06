@@ -8,8 +8,7 @@ description: >-
 skills:
   - next-intl
   - i18next
-  - react-aria
-category: development
+  - react-ariacategory: development
 tags:
   - i18n
   - nextjs

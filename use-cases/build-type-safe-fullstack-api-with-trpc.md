@@ -5,8 +5,7 @@ description: Create a fully type-safe API layer using tRPC, Zod, and Prisma wher
 skills:
   - trpc
   - zod
-  - prisma
-category: development
+  - prismacategory: development
 tags:
   - typescript
   - api
@@ -227,7 +226,7 @@ The frontend client infers all types from the router definition. Renaming a fiel
 // httpBatchLink combines multiple simultaneous requests into a single HTTP call,
 // reducing network overhead when a page loads several queries at once.
 
-import { createTRPCReact } from "@trpc/react-query";
+import { createTRPCReact } from "@trpc/tanstack";
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import superjson from "superjson";
 import type { AppRouter } from "@/server/routers/_app";

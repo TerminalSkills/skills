@@ -3,9 +3,8 @@ title: Build a Cross-Platform Task Manager with Flutter and Firebase
 slug: build-cross-platform-app-with-flutter-and-firebase
 description: Build a production task management app that runs on iOS, Android, and web from a single Flutter codebase, using Firebase for authentication, Firestore for real-time data sync, and Cloud Functions for background automation.
 skills:
-- flutter
-- firebase
-category: development
+  - flutter
+  - firebasecategory: development
 tags:
 - flutter
 - firebase

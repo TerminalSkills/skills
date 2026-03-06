@@ -10,8 +10,7 @@ description: >-
 skills:
   - partykit
   - socketio
-  - nextjs
-category: development
+  - nextjscategory: development
 tags:
   - realtime
   - collaboration

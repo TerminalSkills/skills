@@ -31,7 +31,7 @@ Start by listing everything developers do manually today:
 I want to build an internal CLI called "dx" (developer experience) for our team.
 Here are the things developers do manually today:
 
-- Set up local env: clone 3 repos, install deps, copy .env.example, run docker-compose, run migrations, seed data
+- Set up local env: clone 3 repos, install deps, copy .env.example, run docker-helper, run migrations, seed data
 - Deploy to staging: build, run tests, push image to ECR, update ECS task definition
 - Reset staging DB: snapshot current, run down migrations, run up migrations, re-seed
 - Tail logs: connect to CloudWatch log group by service name
@@ -67,7 +67,7 @@ The "dx setup" command should:
 2. Clone frontend, backend, and shared-lib repos if not present
 3. Install dependencies in each
 4. Copy .env.example to .env with prompted values (DB password, API keys)
-5. Start docker-compose (Postgres, Redis, Elasticsearch)
+5. Start docker-helper (Postgres, Redis, Elasticsearch)
 6. Wait for services to be healthy
 7. Run migrations and seed data
 8. Print a summary with local URLs

@@ -4,7 +4,7 @@ description: When the user wants to add, fix, or optimize schema markup and stru
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - seo
     - structured-data

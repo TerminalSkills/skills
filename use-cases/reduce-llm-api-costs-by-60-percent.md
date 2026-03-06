@@ -5,8 +5,7 @@ description: Track LLM spending per feature, route simple tasks to cheap models,
 skills:
   - llm-cost-optimizer
   - structured-output
-  - agent-memory
-category: data-ai
+  - agent-memorycategory: data-ai
 tags:
   - cost
   - optimization

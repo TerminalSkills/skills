@@ -257,7 +257,7 @@ External clients get clean SSE — standard browser APIs work. Internally, gRPC 
 All six services share the same proto directory, mounted read-only. A `proto-gen` service runs `protoc` at build time, generating type-safe clients for Node.js, Python, and Go from the same source files:
 
 ```yaml
-# docker-compose.yml
+# docker-helper.yml
 services:
   api-gateway:
     build: { context: ., dockerfile: api-gateway/Dockerfile }

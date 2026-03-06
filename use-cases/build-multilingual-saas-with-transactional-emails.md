@@ -6,8 +6,7 @@ skills:
   - next-intl
   - react-email
   - resend
-  - nextjs
-category: development
+  - nextjscategory: development
 tags:
   - i18n
   - localization

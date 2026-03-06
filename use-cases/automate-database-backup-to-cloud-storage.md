@@ -4,8 +4,7 @@ slug: automate-database-backup-to-cloud-storage
 description: "Set up automated, encrypted database backups with retention policies and S3-compatible storage to guarantee recovery from any data loss scenario."
 skills:
   - db-backup
-  - s3-storage
-category: devops
+  - s3-storagecategory: devops
 tags:
   - database
   - backups

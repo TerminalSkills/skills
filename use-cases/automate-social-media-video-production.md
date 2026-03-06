@@ -2,7 +2,7 @@
 title: Automate Social Media Video Production
 slug: automate-social-media-video-production
 description: "Build a Python pipeline that batch-produces branded short-form videos for Instagram, TikTok, YouTube Shorts, and Twitter from JSON templates and CSV data using MoviePy."
-skills: [ffmpeg-video-editing]
+skills: [ffmpeg]
 category: content
 tags: [moviepy, ffmpeg, video, social-media, automation, batch-processing]
 ---
@@ -19,7 +19,7 @@ Sami wants a Python pipeline that takes a JSON template and a CSV of content, th
 
 ## The Solution
 
-Using the **ffmpeg-video-editing** skill with MoviePy, build a template-driven video renderer. JSON defines the layout (text layers, timing, animations), a brand kit provides client-specific assets (logo, intro, outro, fonts), and a CSV feeds content variations. The pipeline renders all combinations across all platform sizes using multiprocessing, then validates each output against platform upload limits.
+Using the **ffmpeg** skill with MoviePy, build a template-driven video renderer. JSON defines the layout (text layers, timing, animations), a brand kit provides client-specific assets (logo, intro, outro, fonts), and a CSV feeds content variations. The pipeline renders all combinations across all platform sizes using multiprocessing, then validates each output against platform upload limits.
 
 ## Step-by-Step Walkthrough
 

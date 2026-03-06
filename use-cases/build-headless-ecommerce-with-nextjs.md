@@ -10,8 +10,7 @@ skills:
   - medusa
   - stripe-billing
   - meilisearch
-  - nextjs
-category: business
+  - nextjscategory: business
 tags:
   - ecommerce
   - headless

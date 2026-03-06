@@ -4,8 +4,7 @@ slug: optimize-cloud-costs-with-terraform-and-resource-analysis
 description: "Audit cloud infrastructure for waste, right-size resources with data-driven recommendations, and codify changes in Terraform to prevent cost drift."
 skills:
   - terraform-iac
-  - cloud-resource-analyzer
-category: devops
+  - cloud-resource-analyzercategory: devops
 tags:
   - cloud-costs
   - terraform

@@ -4,8 +4,7 @@ slug: capture-retarget-motion-data-for-3d-characters
 description: "Record real-world motion capture data and retarget it onto Blender character rigs for animation production."
 skills:
   - blender-motion-capture
-  - blender-scripting
-category: automation
+  - blender-scriptingcategory: automation
 tags:
   - motion-capture
   - blender

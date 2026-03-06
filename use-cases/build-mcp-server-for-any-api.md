@@ -5,8 +5,7 @@ description: Turn any REST API into a Model Context Protocol server so AI agents
 skills:
   - mcp-server-builder
   - rest-api
-  - test-generator
-category: data-ai
+  - test-generatorcategory: data-ai
 tags:
   - mcp
   - ai-agents

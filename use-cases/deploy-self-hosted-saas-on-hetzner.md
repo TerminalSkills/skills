@@ -4,8 +4,7 @@ slug: deploy-self-hosted-saas-on-hetzner
 description: "Replace expensive managed PaaS providers with a self-hosted Coolify instance on Hetzner Cloud, cutting hosting costs by 70% while keeping one-click deploys."
 skills:
   - coolify
-  - hetzner-cloud
-category: devops
+  - hetzner-cloudcategory: devops
 tags:
   - self-hosting
   - hetzner

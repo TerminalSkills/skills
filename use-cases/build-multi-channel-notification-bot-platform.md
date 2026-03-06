@@ -6,8 +6,7 @@ skills:
   - slack-bot-builder
   - telegram-bot-builder
   - whatsapp-bot-builder
-  - template-engine
-category: automation
+  - template-enginecategory: automation
 tags:
   - chatbots
   - notifications

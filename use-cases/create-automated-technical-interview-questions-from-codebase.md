@@ -116,7 +116,7 @@ automated test suite that validates the submission.
 
 The take-home packages question #4 (webhook processing with idempotency) into a self-contained repository:
 
-- A README with clear setup instructions (one `docker-compose up` command)
+- A README with clear setup instructions (one `docker-helper up` command)
 - Boilerplate code with the webhook endpoint scaffolded
 - A Stripe webhook simulator that sends test events
 - An automated test suite (15 tests) that validates idempotency, error handling, and data consistency

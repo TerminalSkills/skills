@@ -4,8 +4,7 @@ slug: streamline-team-communication-and-reporting
 description: "Automate weekly status reports and routine team emails by pulling data from project tools and formatting updates for different audiences."
 skills:
   - email-drafter
-  - weekly-report
-category: productivity
+  - weekly-reportcategory: productivity
 tags:
   - reporting
   - email

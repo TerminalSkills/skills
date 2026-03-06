@@ -5,8 +5,7 @@ description: "Detect and classify objects in images using YOLO and PyTorch, augm
 skills:
   - senior-computer-vision
   - pytorch
-  - vertex-media-generation
-category: data-ai
+  - vertex-media-generationcategory: data-ai
 tags:
   - computer-vision
   - yolo

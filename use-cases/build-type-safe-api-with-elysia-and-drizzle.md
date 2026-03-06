@@ -4,9 +4,8 @@ slug: build-type-safe-api-with-elysia-and-drizzle
 description: Create a production REST API with Bun, Elysia, and Drizzle ORM — end-to-end type safety from database schema to API client with zero codegen.
 skills:
   - elysia
-  - drizzle-kit
-  - test-generator
-category: development
+  - drizzle-orm
+  - test-generatorcategory: development
 tags:
   - bun
   - elysia
@@ -24,7 +23,7 @@ Juri wants one source of truth: define the database schema in TypeScript, have t
 
 ## The Solution
 
-Use Elysia on Bun for the HTTP layer — it infers API types from route definitions. Use Drizzle ORM with drizzle-kit for the database — schema defined in TypeScript, migrations generated automatically. Use test-generator for API test coverage. The type chain: Drizzle schema → Drizzle queries → Elysia route handlers → Eden Treaty client. Zero manual type definitions.
+Use Elysia on Bun for the HTTP layer — it infers API types from route definitions. Use Drizzle ORM with drizzle-orm for the database — schema defined in TypeScript, migrations generated automatically. Use test-generator for API test coverage. The type chain: Drizzle schema → Drizzle queries → Elysia route handlers → Eden Treaty client. Zero manual type definitions.
 
 ## Step-by-Step Walkthrough
 
@@ -38,12 +37,12 @@ cd my-api
 # Install dependencies
 bun add elysia @elysiajs/cors @elysiajs/swagger @elysiajs/jwt
 bun add drizzle-orm postgres
-bun add -D drizzle-kit @types/bun
+bun add -D drizzle-orm @types/bun
 ```
 
 ```typescript
 // drizzle.config.ts — Drizzle Kit configuration
-import { defineConfig } from "drizzle-kit";
+import { defineConfig } from "drizzle-orm";
 
 export default defineConfig({
   dialect: "postgresql",
@@ -125,8 +124,8 @@ export const db = drizzle(client, { schema });
 
 ```bash
 # Generate and apply initial migration
-bunx drizzle-kit generate
-bunx drizzle-kit migrate
+bunx drizzle-orm generate
+bunx drizzle-orm migrate
 ```
 
 ### Step 4: Build the API with Elysia

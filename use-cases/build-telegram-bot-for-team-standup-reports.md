@@ -5,8 +5,7 @@ description: "Create a Telegram bot that automates daily standup collection, com
 skills:
   - telegram-bot-builder
   - template-engine
-  - batch-processor
-category: automation
+  - batch-processorcategory: automation
 tags:
   - telegram
   - standup

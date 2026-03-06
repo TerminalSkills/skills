@@ -6,8 +6,7 @@ skills:
   - bun
   - neon
   - upstash
-  - hono
-category: development
+  - honocategory: development
 tags:
   - serverless
   - api

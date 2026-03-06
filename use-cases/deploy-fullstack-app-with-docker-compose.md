@@ -1,13 +1,12 @@
 ---
 title: Deploy a Full-Stack App with Docker Compose and Nginx
-slug: deploy-fullstack-app-with-docker-compose
+slug: deploy-fullstack-app-with-docker-helper
 description: Containerize a Node.js API, PostgreSQL database, and React frontend behind Nginx reverse proxy — with health checks, SSL, backups, and zero-downtime deployments on a single $20/month VPS.
 skills:
-  - docker-compose
+  - docker-helper
   - nginx
   - postgresql
-  - github-actions
-category: devops
+  - github-actionscategory: devops
 tags:
   - docker
   - deployment

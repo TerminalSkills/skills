@@ -5,8 +5,7 @@ description: "Add Redis caching to eliminate redundant database queries and set 
 skills:
   - cache-strategy
   - search-engine-setup
-  - redis
-category: development
+  - rediscategory: development
 tags:
   - caching
   - redis

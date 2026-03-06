@@ -9,8 +9,7 @@ skills:
   - kafka
   - apache-spark
   - clickhouse
-  - grafana
-category: data-ai
+  - grafanacategory: data-ai
 tags:
   - real-time
   - analytics

@@ -3,8 +3,7 @@ title: Build a Browser Extension for Developer Productivity
 slug: build-browser-extension-for-developer-productivity
 description: Build a Chrome extension that saves code snippets from any webpage, organizes them with tags, and syncs across devices — using Plasmo for the extension framework with React and TypeScript.
 skills:
-- plasmo
-category: development
+  - plasmocategory: development
 tags:
 - chrome-extension
 - browser

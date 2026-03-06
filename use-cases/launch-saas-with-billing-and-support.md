@@ -11,8 +11,7 @@ skills:
   - launchdarkly
   - crisp
   - loops
-  - canny
-category: business
+  - cannycategory: business
 tags:
   - saas
   - billing

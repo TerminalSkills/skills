@@ -5,8 +5,7 @@ description: "Audit and optimize landing pages, popups, and upgrade flows to inc
 skills:
   - page-cro
   - popup-cro
-  - paywall-upgrade-cro
-category: marketing
+  - paywall-upgrade-crocategory: marketing
 tags:
   - CRO
   - conversion-optimization

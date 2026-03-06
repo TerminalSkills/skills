@@ -4,8 +4,7 @@ slug: design-saas-architecture-for-blender-addon-marketplace
 description: "Architect a multi-tenant SaaS platform for distributing Blender add-ons, combining marketplace design patterns with Blender-specific plugin development."
 skills:
   - saas-architecture-advisor
-  - blender-addon-dev
-category: development
+  - blender-addon-devcategory: development
 tags:
   - saas
   - blender

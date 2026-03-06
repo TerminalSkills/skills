@@ -6,8 +6,7 @@ skills:
   - test-generator
   - msw
   - playwright-testing
-  - regression-tester
-category: development
+  - regression-testercategory: development
 tags:
   - testing
   - mocking

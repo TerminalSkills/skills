@@ -7,9 +7,8 @@ description: >-
   sequences, and internal reporting — all without monthly SaaS fees.
 skills:
   - n8n
-  - docker-compose
-  - postgresql
-category: automation
+  - docker-helper
+  - postgresqlcategory: automation
 tags:
   - automation
   - workflow
@@ -27,7 +26,7 @@ Rosa runs a 15-person digital agency. Every day, the team manually copies data b
 Rosa chooses n8n over Zapier for two reasons: no per-task pricing (Zapier would cost $300+/month for their volume) and data stays on their server. She deploys n8n on the same VPS that hosts their website.
 
 ```yaml
-# docker-compose.yml — n8n with persistent storage
+# docker-helper.yml — n8n with persistent storage
 services:
   n8n:
     image: n8nio/n8n

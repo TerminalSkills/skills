@@ -4,7 +4,7 @@ description: "When the user wants to apply psychological principles, mental mode
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - psychology
     - persuasion

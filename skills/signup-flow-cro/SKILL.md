@@ -4,7 +4,7 @@ description: When the user wants to optimize signup, registration, account creat
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - signup
     - conversion

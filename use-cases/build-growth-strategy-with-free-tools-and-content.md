@@ -4,8 +4,7 @@ slug: build-growth-strategy-with-free-tools-and-content
 description: "Plan and execute a developer-focused growth strategy combining free tool offerings with content marketing to generate qualified leads without paid advertising."
 skills:
   - marketing-ideas
-  - free-tool-strategy
-category: marketing
+  - free-tool-strategycategory: marketing
 tags:
   - growth
   - developer-marketing

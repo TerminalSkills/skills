@@ -3,12 +3,11 @@ title: Secure the Kubernetes Supply Chain from Code to Cluster
 slug: secure-kubernetes-supply-chain
 description: Implement a complete software supply chain security pipeline using Semgrep for code scanning, Checkov for IaC validation, Grype for vulnerability scanning, Cosign for image signing, and Kyverno for admission control — ensuring only verified, scanned code reaches production.
 skills:
-- semgrep
-- checkov
-- grype
-- cosign
-- kyverno
-category: devops
+  - semgrep
+  - checkov
+  - grype
+  - cosign
+  - kyvernocategory: devops
 tags:
 - supply-chain
 - kubernetes

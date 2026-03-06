@@ -3,7 +3,7 @@ title: Build an AI Content Engine That Runs Your Social Media
 slug: build-ai-content-engine-for-social-media
 description: >-
   Automate social media by turning one long-form piece into 30+ platform-optimized posts across LinkedIn, Twitter, and Instagram using OpenAI and n8n orchestration.
-skills: [n8n-workflow, openai-sdk, twitter-x-marketing, linkedin-marketing, instagram-marketing]
+skills: [n8n, openai-sdk, twitter-x-marketing, linkedin-marketing, instagram-marketing]
 category: marketing
 tags: [content-marketing, social-media, automation, ai-content, repurposing]
 ---
@@ -21,7 +21,7 @@ A single blog post contains enough material for 10 LinkedIn posts, 15 tweets, an
 Build an automated pipeline where Leo drops one long-form piece (blog post, podcast transcript, or video script) into a webhook. n8n orchestrates the flow: extract content atoms, generate platform-specific posts via OpenAI, and schedule everything through Buffer.
 
 ```bash
-terminal-skills install n8n-workflow openai-sdk twitter-x-marketing linkedin-marketing instagram-marketing
+terminal-skills install n8n openai-sdk twitter-x-marketing linkedin-marketing instagram-marketing
 ```
 
 ## Step-by-Step Walkthrough
@@ -133,7 +133,7 @@ Leo, solo marketer at DevToolsCo (15 people), records a 30-minute podcast about 
 
 ## Related Skills
 
-- [n8n-workflow](../skills/n8n-workflow/) — Orchestrate the full content pipeline
+- [n8n](../skills/n8n/) — Orchestrate the full content pipeline
 - [openai-sdk](../skills/openai-sdk/) — Power content generation and atomization
 - [twitter-x-marketing](../skills/twitter-x-marketing/) — Platform-specific Twitter optimization
 - [linkedin-marketing](../skills/linkedin-marketing/) — LinkedIn post formatting and strategy

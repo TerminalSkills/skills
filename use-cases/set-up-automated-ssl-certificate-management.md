@@ -2,7 +2,7 @@
 title: "Set Up Automated SSL Certificate Management with AI"
 slug: set-up-automated-ssl-certificate-management
 description: "Automate SSL certificate monitoring, renewal, and deployment to prevent expiration-related outages."
-skills: [cicd-pipeline, coding-agent, n8n-workflow]
+skills: [cicd-pipeline, coding-agent, n8n]
 category: devops
 tags: [ssl, certificates, automation, tls, security]
 ---
@@ -19,7 +19,7 @@ Two other certificates came within 30 days of each other the following month, cr
 
 ## The Solution
 
-Using the **coding-agent**, **cicd-pipeline**, and **n8n-workflow** skills, this walkthrough builds a complete certificate lifecycle system: a full inventory of all 24 certificates, tiered monitoring with Slack alerts, automated Let's Encrypt renewals, and CI/CD gates that block deploys to hosts with expiring certs.
+Using the **coding-agent**, **cicd-pipeline**, and **n8n** skills, this walkthrough builds a complete certificate lifecycle system: a full inventory of all 24 certificates, tiered monitoring with Slack alerts, automated Let's Encrypt renewals, and CI/CD gates that block deploys to hosts with expiring certs.
 
 ## Step-by-Step Walkthrough
 

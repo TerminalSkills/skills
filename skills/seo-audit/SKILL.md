@@ -4,7 +4,7 @@ description: When the user wants to audit, review, or diagnose SEO issues on the
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - seo
     - audit

@@ -4,8 +4,7 @@ slug: build-mvp-backend-with-pocketbase
 description: Ship a full backend for a SaaS MVP in a single afternoon using PocketBase — authentication, real-time data, file uploads, and API rules — deployed as one binary with zero infrastructure.
 skills:
   - pocketbase
-  - cloudflare-workers
-category: development
+  - cloudflare-workerscategory: development
 tags:
   - mvp
   - backend
@@ -372,7 +371,7 @@ CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090"]
 ```
 
 ```yaml
-# docker-compose.yml — Production deployment with Caddy reverse proxy.
+# docker-helper.yml — Production deployment with Caddy reverse proxy.
 # Caddy handles HTTPS automatically (Let's Encrypt).
 # PocketBase data persists in a Docker volume.
 

@@ -5,8 +5,7 @@ description: "Build a LinkedIn content engine that generates inbound leads for B
 skills:
   - linkedin-marketing
   - copywriting
-  - content-strategy
-category: marketing
+  - content-strategycategory: marketing
 tags:
   - LinkedIn
   - B2B

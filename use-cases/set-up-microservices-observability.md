@@ -52,7 +52,7 @@ Every service's logger injects `trace_id` and `span_id` into every log line. Thi
 ### Step 2: Deploy the Observability Stack
 
 ```text
-Write a docker-compose.yml for the observability backend: OpenTelemetry Collector receiving OTLP, Tempo for traces, Loki for logs, Mimir for metrics, and Grafana with pre-provisioned data sources. Pin all versions. Add a collector config that routes traces to Tempo, metrics to Mimir, and logs to Loki. Include health checks and resource limits.
+Write a docker-helper.yml for the observability backend: OpenTelemetry Collector receiving OTLP, Tempo for traces, Loki for logs, Mimir for metrics, and Grafana with pre-provisioned data sources. Pin all versions. Add a collector config that routes traces to Tempo, metrics to Mimir, and logs to Loki. Include health checks and resource limits.
 ```
 
 The OpenTelemetry Collector sits at the center of the architecture. Every service sends all telemetry to one endpoint, and the Collector routes it to the right backend:

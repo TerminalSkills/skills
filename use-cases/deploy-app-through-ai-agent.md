@@ -5,8 +5,7 @@ description: Set up conversational deployment — tell your AI agent "deploy to 
 skills:
   - smart-deployer
   - cicd-pipeline
-  - test-generator
-category: devops
+  - test-generatorcategory: devops
 tags:
   - deployment
   - ci-cd
@@ -254,7 +253,7 @@ async function platformRollback(config: DeployConfig): Promise<void> {
       execSync("fly releases rollback", { encoding: "utf-8" });
       break;
     case "docker-vps":
-      execSync("docker compose down && docker compose -f docker-compose.previous.yml up -d", {
+      execSync("docker compose down && docker compose -f docker-helper.previous.yml up -d", {
         encoding: "utf-8",
       });
       break;

@@ -5,8 +5,7 @@ description: "Set up an integrated documentation and file management system usin
 skills:
   - sharepoint
   - onedrive
-  - onenote
-category: development
+  - onenotecategory: development
 tags:
   - sharepoint
   - onedrive

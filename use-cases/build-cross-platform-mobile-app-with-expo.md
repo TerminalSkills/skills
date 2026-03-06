@@ -5,8 +5,7 @@ description: Build and ship an iOS and Android app from a single TypeScript code
 skills:
   - expo
   - react-native
-  - supabase
-category: development
+  - supabasecategory: development
 tags:
   - mobile
   - ios
@@ -29,7 +28,7 @@ Expo Router turns the `app/` directory into a navigation structure. Tabs, stacks
 // Expo Router reads this file first and uses it as the navigation container.
 
 import { Stack } from "expo-router";
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { QueryClientProvider, QueryClient } from "@tanstack/tanstack";
 import { SessionProvider } from "@/providers/session";
 
 const queryClient = new QueryClient();
@@ -107,7 +106,7 @@ Supabase provides the database, auth, and real-time subscriptions. When one hous
 // TanStack Query handles caching and background refresh.
 
 import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/tanstack";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/providers/session";
@@ -201,7 +200,7 @@ The grocery list aggregates ingredients from all planned meals, merges duplicate
 // Items can be checked off and the list persists locally.
 
 import { View, Text, SectionList, Pressable, StyleSheet } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/tanstack";
 import { useMemo, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";

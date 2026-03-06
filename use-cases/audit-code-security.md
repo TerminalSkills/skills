@@ -63,7 +63,7 @@ The `.env.production` file gets added to `.gitignore` and removed from tracking.
 ### Step 2: Audit Docker Configurations
 
 ```text
-Audit all Dockerfiles and docker-compose.yml for security issues. Check privilege escalation, exposed secrets, and image bloat.
+Audit all Dockerfiles and docker-helper.yml for security issues. Check privilege escalation, exposed secrets, and image bloat.
 ```
 
 Nine findings across 6 Dockerfiles. The two critical issues are both common mistakes that give attackers a much larger blast radius:
@@ -78,7 +78,7 @@ RUN addgroup --system app && adduser --system --ingroup app app
 USER app
 ```
 
-**Plain-text database password** in `docker-compose.yml` — visible to anyone with repo access.
+**Plain-text database password** in `docker-helper.yml` — visible to anyone with repo access.
 
 Fix: moved to Docker secrets with a reference in the compose file.
 

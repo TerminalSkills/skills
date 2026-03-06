@@ -6,8 +6,7 @@ skills:
   - authjs
   - stripe-billing
   - nextjs
-  - neon
-category: business
+  - neoncategory: business
 tags:
   - authentication
   - billing
@@ -29,9 +28,9 @@ Auth.js handles the entire OAuth flow: redirect to Google/GitHub, handle the cal
 // Database sessions store in Neon PostgreSQL.
 // The session callback adds plan info so every page knows the user's tier.
 
-import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
+import NextAuth from "authjs";
+import Google from "authjs/providers/google";
+import GitHub from "authjs/providers/github";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db";
 import { users, accounts, sessions, verificationTokens } from "@/lib/schema";

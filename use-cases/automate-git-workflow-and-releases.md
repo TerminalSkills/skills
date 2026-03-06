@@ -5,8 +5,7 @@ description: "Standardize commit messages, generate changelogs automatically, an
 skills:
   - git-commit-pro
   - changelog-generator
-  - github
-category: development
+  - githubcategory: development
 tags:
   - git
   - changelog

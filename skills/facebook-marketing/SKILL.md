@@ -11,7 +11,7 @@ compatibility: 'Facebook Graph API v19.0+, Marketing API. Requires Facebook Busi
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: marketing
+  category: business
   tags:
     - facebook
     - social-media

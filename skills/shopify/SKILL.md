@@ -13,7 +13,7 @@ compatibility: "Liquid (themes). Node.js/Ruby (apps). React/Remix (Hydrogen). Sh
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ecommerce
+  category: business
   tags: ["shopify", "ecommerce", "liquid", "storefront", "hydrogen", "themes"]
 ---
 

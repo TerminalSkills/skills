@@ -9,9 +9,8 @@ skills:
   - passport-js
   - jose-jwt
   - iron-session
-  - next-auth
-  - better-auth
-category: development
+  - authjs
+  - better-authcategory: development
 tags:
   - authentication
   - nextjs

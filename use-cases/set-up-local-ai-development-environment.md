@@ -2,7 +2,7 @@
 title: "Set Up a Local AI Development Environment"
 slug: set-up-local-ai-development-environment
 description: "Configure a fully local LLM development setup using Ollama, LM Studio, and LangChain for private, offline AI application development without cloud API costs."
-skills: [ollama-local, lm-studio-subagents, langchain]
+skills: [ollama, lm-studio-subagents, langchain]
 category: data-ai
 tags: [llm, local-ai, ollama, langchain, development-environment, privacy]
 ---
@@ -17,7 +17,7 @@ The cloud API route is a dead end. Even with a BAA, the compliance team won't si
 
 ## The Solution
 
-Use **ollama-local** to run and manage local LLM models, **lm-studio-subagents** to test and compare multiple models side by side through a GUI, and **langchain** to build the actual application pipeline with retrieval-augmented generation. All three run entirely on the local machine.
+Use **ollama** to run and manage local LLM models, **lm-studio-subagents** to test and compare multiple models side by side through a GUI, and **langchain** to build the actual application pipeline with retrieval-augmented generation. All three run entirely on the local machine.
 
 ## Step-by-Step Walkthrough
 

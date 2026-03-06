@@ -5,8 +5,7 @@ description: "Monitor Reddit communities to detect emerging technology trends, s
 skills:
   - reddit-insights
   - reddit-readonly
-  - web-research
-category: research
+  - web-researchcategory: research
 tags:
   - trend-analysis
   - reddit

@@ -5,8 +5,7 @@ description: Deploy a globally distributed web application using Cloud Run for s
 skills:
   - gcp-cloud-run
   - gcp-firestore
-  - gcp-cloud-storage
-category: devops
+  - gcp-cloud-storagecategory: devops
 tags:
   - gcp
   - global

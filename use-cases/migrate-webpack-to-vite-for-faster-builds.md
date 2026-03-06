@@ -4,8 +4,7 @@ slug: migrate-webpack-to-vite-for-faster-builds
 description: Convert a React + Webpack application to Vite, cutting dev server startup from 45 seconds to under 1 second and production builds from 4 minutes to 40 seconds — while preserving all existing functionality.
 skills:
   - vite
-  - trpc
-category: development
+  - trpccategory: development
 tags:
   - build-tools
   - vite

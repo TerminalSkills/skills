@@ -3,11 +3,10 @@ title: Build Full-Stack Observability for a SaaS Application
 slug: build-full-stack-observability-for-saas
 description: Set up comprehensive observability for a production SaaS app using SigNoz for distributed tracing and APM, Vector for log collection and routing, Checkly for synthetic monitoring, and Gatus for internal health checks — all self-hosted and open-source.
 skills:
-- signoz
-- vector
-- checkly
-- gatus
-category: devops
+  - signoz
+  - vector
+  - checkly
+  - gatuscategory: devops
 tags:
 - observability
 - monitoring
@@ -37,7 +36,7 @@ npx terminal-skills install signoz vector checkly gatus
 ### Step 1: Deploy the Observability Infrastructure
 
 ```yaml
-# docker-compose.observability.yml — Self-hosted observability stack
+# docker-helper.observability.yml — Self-hosted observability stack
 # Runs on a single 8GB server. SigNoz handles traces + metrics + logs.
 # Gatus monitors internal services. Vector collects and routes data.
 

@@ -4,7 +4,7 @@ description: When the user wants to create SEO-driven pages at scale using templ
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - seo
     - automation

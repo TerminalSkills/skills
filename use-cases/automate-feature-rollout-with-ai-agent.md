@@ -4,8 +4,7 @@ slug: automate-feature-rollout-with-ai-agent
 description: "Use feature flags with an AI coding agent to implement, wrap, and safely roll out new features with minimal manual scaffolding."
 skills:
   - feature-flag-manager
-  - coding-agent
-category: development
+  - coding-agentcategory: development
 tags:
   - feature-flags
   - rollout

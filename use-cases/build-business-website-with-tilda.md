@@ -3,8 +3,7 @@ title: Build a Business Website with Online Store Using Tilda
 slug: build-business-website-with-tilda
 description: Create a full business website with landing pages, blog, and built-in e-commerce using Tilda — staff-editable without any coding or backend infrastructure.
 skills:
-  - tilda
-category: ecommerce
+  - tildacategory: ecommerce
 tags:
   - tilda
   - website-builder

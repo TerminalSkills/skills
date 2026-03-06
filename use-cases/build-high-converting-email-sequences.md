@@ -5,8 +5,7 @@ description: "Design and write email sequences that nurture leads and drive conv
 skills:
   - email-sequence
   - copy-editing
-  - marketing-psychology
-category: marketing
+  - marketing-psychologycategory: marketing
 tags:
   - email-marketing
   - nurture-sequences

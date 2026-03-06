@@ -5,8 +5,7 @@ description: Set up automated evaluations that test your AI agent on every PR â€
 skills:
   - ai-eval-ci
   - cicd-pipeline
-  - prompt-tester
-category: development
+  - prompt-testercategory: development
 tags:
   - eval
   - ci-cd

@@ -5,8 +5,7 @@ description: "Combine web research with Reddit community analysis to validate pr
 skills:
   - web-research
   - reddit-insights
-  - reddit-readonly
-category: research
+  - reddit-readonlycategory: research
 tags:
   - market-research
   - reddit

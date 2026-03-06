@@ -2,7 +2,7 @@
 title: "Set Up Automated DNS and Domain Monitoring with AI"
 slug: set-up-dns-and-domain-monitoring
 description: "Monitor DNS records, domain expiration, SSL certificates, and propagation issues automatically."
-skills: [coding-agent, n8n-workflow, report-generator]
+skills: [coding-agent, n8n, report-generator]
 category: devops
 tags: [dns, domain, monitoring, ssl, infrastructure]
 ---
@@ -19,7 +19,7 @@ Last quarter, the company acquired a smaller company and inherited 12 additional
 
 ## The Solution
 
-Using the **coding-agent**, **n8n-workflow**, and **report-generator** skills, this walkthrough inventories all domains with their expected DNS state, sets up automated monitoring that catches drift and expiration, and produces weekly health reports so nothing slips through the cracks.
+Using the **coding-agent**, **n8n**, and **report-generator** skills, this walkthrough inventories all domains with their expected DNS state, sets up automated monitoring that catches drift and expiration, and produces weekly health reports so nothing slips through the cracks.
 
 ## Step-by-Step Walkthrough
 

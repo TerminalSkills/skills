@@ -12,7 +12,7 @@ compatibility: 'X API v2 (Free, Basic, Pro tiers). Node.js/Python examples.'
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: marketing
+  category: business
   tags:
     - twitter
     - x

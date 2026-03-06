@@ -5,8 +5,7 @@ description: "Move a fragile Jenkins server with 40+ jobs to Bitbucket Pipelines
 skills:
   - jenkins-pipelines
   - bitbucket
-  - cicd-pipeline
-category: devops
+  - cicd-pipelinecategory: devops
 tags:
   - cicd
   - jenkins

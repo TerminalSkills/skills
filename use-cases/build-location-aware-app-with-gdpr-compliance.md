@@ -4,8 +4,7 @@ slug: build-location-aware-app-with-gdpr-compliance
 description: "Implement geolocation features with proper consent flows, data minimization, and GDPR-compliant storage to avoid regulatory fines."
 skills:
   - maps-geolocation
-  - gdpr-compliance
-category: development
+  - gdpr-compliancecategory: development
 tags:
   - geolocation
   - gdpr

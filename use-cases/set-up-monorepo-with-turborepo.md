@@ -5,8 +5,7 @@ description: Structure a multi-app TypeScript monorepo with Turborepo, shared pa
 skills:
   - turborepo
   - vite
-  - github-actions
-category: development
+  - github-actionscategory: development
 tags:
   - monorepo
   - ci-cd

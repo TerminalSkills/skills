@@ -11,7 +11,7 @@ tags: [kubernetes, helm, deployment, gitops, containers, production]
 
 ## The Problem
 
-A team runs 6 microservices on a handful of EC2 instances with docker-compose. Deployments are SSH-and-pray: someone logs into the server, pulls the latest image, and restarts the container. There is no autoscaling — during a product launch last quarter, the API server maxed out and returned 503s for 2 hours while the team scrambled to spin up more instances manually.
+A team runs 6 microservices on a handful of EC2 instances with docker-helper. Deployments are SSH-and-pray: someone logs into the server, pulls the latest image, and restarts the container. There is no autoscaling — during a product launch last quarter, the API server maxed out and returned 503s for 2 hours while the team scrambled to spin up more instances manually.
 
 Rollbacks mean manually reverting image tags and hoping the database migration was backward-compatible. Staging and production drift constantly because configs are edited in place. The team wants to move to Kubernetes but nobody has done it before, and the Kubernetes documentation reads like it was written for people who already know Kubernetes.
 
@@ -28,7 +28,7 @@ The migration happens in five stages: optimize the Docker images, write the Helm
 The Docker images are the foundation, and right now they're massive:
 
 ```text
-We have 6 services: API (Node.js), frontend (React/nginx), auth service (Go), worker (Python), PostgreSQL, and Redis. The Docker images are large (API is 1.2 GB, worker is 900 MB). Optimize all Dockerfiles with multi-stage builds and create a docker-compose.yaml for local development that mirrors the Kubernetes setup. Target image sizes under 200 MB each.
+We have 6 services: API (Node.js), frontend (React/nginx), auth service (Go), worker (Python), PostgreSQL, and Redis. The Docker images are large (API is 1.2 GB, worker is 900 MB). Optimize all Dockerfiles with multi-stage builds and create a docker-helper.yaml for local development that mirrors the Kubernetes setup. Target image sizes under 200 MB each.
 ```
 
 Multi-stage builds make the difference. The Node.js API drops from 1.2GB to 140MB by using an alpine builder stage that installs dependencies, compiles TypeScript, and copies only the production output to a slim runtime image. The Python worker goes from 900MB to 180MB with the same pattern — `pip install` in a build stage, copy site-packages to a slim base.
@@ -129,7 +129,7 @@ This is the kind of hardening that teams skip when they're rushing to get to pro
 
 ## Real-World Example
 
-A lead engineer at a 20-person SaaS startup runs 6 services on EC2 with docker-compose. Deployments require SSH access, there's no autoscaling, and last quarter's product launch caused a 2-hour outage from overloaded servers.
+A lead engineer at a 20-person SaaS startup runs 6 services on EC2 with docker-helper. Deployments require SSH access, there's no autoscaling, and last quarter's product launch caused a 2-hour outage from overloaded servers.
 
 Docker image optimization drops total image size from 4.5GB to 800MB, cutting deploy times by 70%. The Helm chart codifies the entire stack — spinning up a new environment takes 5 minutes instead of a day of manual configuration. EKS with spot instances for workers saves 65% on compute costs compared to on-demand EC2.
 

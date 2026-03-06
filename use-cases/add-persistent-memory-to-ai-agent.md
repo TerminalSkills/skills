@@ -5,8 +5,7 @@ description: Build a memory system that lets your AI agent remember project cont
 skills:
   - agent-memory
   - supabase
-  - test-generator
-category: data-ai
+  - test-generatorcategory: data-ai
 tags:
   - memory
   - ai-agents

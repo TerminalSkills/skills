@@ -2,7 +2,7 @@
 title: "10 Terminal Skills That Save Hours Every Week"
 slug: top-skills-save-hours
 description: "Discover the most popular AI agent skills for documents, business, development, and research workflows."
-skills: [contract-review, chat-with-pdf, doc-parser, excel-processor, email-drafter, cv-builder, code-reviewer, frontend-design, content-writer, data-analysis]
+skills: [contract-review, pdf-analyzer, doc-parser, excel-processor, email-drafter, cv-builder, code-reviewer, frontend-design, content-writer, data-analysis]
 category: productivity
 tags: [productivity, automation, best-skills, claude-code, ai-agent]
 ---
@@ -32,12 +32,12 @@ terminal-skills install contract-review
 **Use case:** Review an NDA before signing
 **Time saved:** 2 hours → 5 minutes
 
-#### 2. chat-with-pdf
+#### 2. pdf-analyzer
 
 Ask questions about any PDF document. Extract key information from 100-page reports in seconds.
 
 ```bash
-terminal-skills install chat-with-pdf
+terminal-skills install pdf-analyzer
 ```
 
 **Use case:** Find specific data in a quarterly report

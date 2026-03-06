@@ -4,7 +4,7 @@ description: "When the user wants to create or update their product marketing co
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - product-marketing
     - positioning

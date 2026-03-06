@@ -6,8 +6,7 @@ skills:
   - job-description
   - applicant-screening
   - offer-letter
-  - resume-tailor
-category: business
+  - resume-tailorcategory: business
 tags:
   - hiring
   - recruiting

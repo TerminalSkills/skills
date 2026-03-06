@@ -6,14 +6,13 @@ description: >-
   Alembic migrations, Pydantic validation, pytest testing, and Docker
   deployment. Complete with dependency injection and structured error handling.
 skills:
-  - fastapi-advanced
+  - fastapi
   - sqlalchemy
   - alembic
   - pydantic
   - pytest
   - uvicorn
-  - docker-multi-stage
-category: development
+  - docker-multi-stagecategory: development
 tags:
   - fastapi
   - python
@@ -65,7 +64,7 @@ notification-service/
 │   ├── test_notifications.py
 │   └── test_services.py
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-helper.yml
 └── pyproject.toml
 ```
 

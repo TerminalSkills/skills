@@ -4,7 +4,7 @@ description: When the user wants to set up, improve, or audit analytics tracking
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - analytics
     - tracking

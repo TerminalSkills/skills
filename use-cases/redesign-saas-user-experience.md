@@ -4,8 +4,7 @@ slug: redesign-saas-user-experience
 description: "Conduct a UX audit, define improved user flows, and produce detailed interaction specifications to transform a confusing SaaS product into an intuitive experience."
 skills:
   - ui-ux-pro-max
-  - frontend-design
-category: design
+  - frontend-designcategory: design
 tags:
   - ux-audit
   - user-experience

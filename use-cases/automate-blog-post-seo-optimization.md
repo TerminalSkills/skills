@@ -30,7 +30,7 @@ The agent uses **web-scraper** to fetch the sitemap, visit each URL, and extract
 
 ```csv
 url,title_tag,meta_description,h1,h2_count,word_count,internal_links
-/blog/api-rate-limiting-guide,API Rate Limiting | Our Blog,,API Rate Limiting Guide,4,1820,1
+/blog/rate-limiter-guide,API Rate Limiting | Our Blog,,API Rate Limiting Guide,4,1820,1
 /blog/caching-strategies,Caching Strategies for 2025 | Our Blog,Learn about caching,Caching Strategies,6,2340,0
 /blog/monitoring-microservices,Monitoring Guide,,How to Monitor Microservices,3,950,2
 ```
@@ -46,7 +46,7 @@ SEO Audit Results — 72 posts analyzed
 
 Critical (3+ issues):
   /blog/monitoring-microservices — missing meta description, thin content (950 words), title too generic
-  /blog/api-rate-limiting-guide — missing meta description, only 1 internal link, no alt text on images
+  /blog/rate-limiter-guide — missing meta description, only 1 internal link, no alt text on images
 
 Warning (1-2 issues):
   /blog/caching-strategies — no internal links
@@ -65,7 +65,7 @@ The **content-writer** skill generates metadata tuned to search intent:
 | URL | New Title Tag | New Meta Description | New H1 |
 |-----|--------------|---------------------|--------|
 | /blog/monitoring-microservices | Monitor Microservices: A Practical Guide | Learn how to set up monitoring for microservices with Prometheus, Grafana, and distributed tracing. Step-by-step. | How to Monitor Microservices in Production |
-| /blog/api-rate-limiting-guide | API Rate Limiting: Patterns and Implementation | Protect your API from abuse with token bucket, sliding window, and fixed window rate limiting patterns. | API Rate Limiting Patterns You Can Implement Today |
+| /blog/rate-limiter-guide | API Rate Limiting: Patterns and Implementation | Protect your API from abuse with token bucket, sliding window, and fixed window rate limiting patterns. | API Rate Limiting Patterns You Can Implement Today |
 
 ### 4. Build an internal linking map
 
@@ -75,12 +75,12 @@ The agent cross-references post content and outputs:
 
 ```text
 Topic Cluster: API Design (8 posts)
-  /blog/api-rate-limiting-guide
+  /blog/rate-limiter-guide
     → Add link: "caching strategies" → /blog/caching-strategies (paragraph 3)
     → Add link: "monitoring your API" → /blog/monitoring-microservices (conclusion)
 
   /blog/caching-strategies
-    → Add link: "rate limiting" → /blog/api-rate-limiting-guide (intro)
+    → Add link: "rate limiting" → /blog/rate-limiter-guide (intro)
     → Add link: "CDN configuration" → /blog/cdn-setup-guide (section 2)
 ```
 

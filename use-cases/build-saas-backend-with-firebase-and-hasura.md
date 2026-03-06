@@ -3,9 +3,8 @@ title: Build a SaaS Backend with Firebase Auth and Hasura GraphQL
 slug: build-saas-backend-with-firebase-and-hasura
 description: Combine Firebase Authentication for user management with Hasura's instant GraphQL API on PostgreSQL to build a production SaaS backend with real-time subscriptions, row-level security, and event-driven workflows — without writing backend CRUD code.
 skills:
-- firebase
-- hasura
-category: development
+  - firebase
+  - hasuracategory: development
 tags:
 - saas
 - baas
@@ -78,7 +77,7 @@ export function onAuthChange(cb: (user: User | null) => void) {
 Hasura validates Firebase JWTs to identify users. Every GraphQL request includes the user's role and ID, which Hasura uses for row-level security.
 
 ```yaml
-# docker-compose.yml — Hasura with Firebase JWT verification
+# docker-helper.yml — Hasura with Firebase JWT verification
 version: "3.6"
 services:
   postgres:

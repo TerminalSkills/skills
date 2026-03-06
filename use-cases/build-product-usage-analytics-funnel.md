@@ -2,7 +2,7 @@
 title: "Build a Product Usage Analytics Funnel with AI"
 slug: build-product-usage-analytics-funnel
 description: "Set up a product usage funnel to identify where users drop off and what features drive retention."
-skills: [analytics-tracking, data-analysis, data-analysis]
+skills: [analytics-tracking, data-analysis]
 category: data-ai
 tags: [analytics, funnel, product, retention, user-behavior]
 ---

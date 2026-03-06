@@ -4,7 +4,7 @@ description: "When the user wants help creating, scheduling, or optimizing socia
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - social-media
     - content

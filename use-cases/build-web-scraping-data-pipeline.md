@@ -5,8 +5,7 @@ description: Scrape websites and APIs, clean and transform the data, and load it
 skills:
   - data-pipeline
   - supabase
-  - playwright-testing
-category: data-ai
+  - playwright-testingcategory: data-ai
 tags:
   - etl
   - scraping

@@ -6,11 +6,10 @@ description: >-
   Resend/Postmark for delivery, queue-based sending for reliability, and
   engagement tracking for optimization.
 skills:
-  - react-email-advanced
+  - react-email
   - resend
   - postmark
-  - bullmq
-category: productivity
+  - job-queuecategory: productivity
 tags:
   - email
   - transactional
@@ -82,7 +81,7 @@ Emails are never sent inline. Every email goes through a BullMQ queue — this d
 
 ```typescript
 // services/email/queue.ts — Email queue with BullMQ
-import { Queue, Worker } from 'bullmq'
+import { Queue, Worker } from 'job-queue'
 import { render } from '@react-email/render'
 import { Resend } from 'resend'
 

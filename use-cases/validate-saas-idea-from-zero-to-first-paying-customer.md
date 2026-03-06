@@ -3,12 +3,11 @@ title: Validate a SaaS Idea from Zero to First Paying Customer
 slug: validate-saas-idea-from-zero-to-first-paying-customer
 description: Take a SaaS idea from initial hypothesis to the first paying customer using Lean Canvas for business model design, product discovery for assumption testing, user research for evidence gathering, product analytics for defining success metrics, and go-to-market strategy for launch planning.
 skills:
-- lean-canvas
-- product-discovery
-- user-research
-- product-analytics
-- go-to-market
-category: business
+  - lean-canvas
+  - product-discovery
+  - user-research
+  - product-analytics
+  - go-to-marketcategory: business
 tags:
 - validation
 - startup

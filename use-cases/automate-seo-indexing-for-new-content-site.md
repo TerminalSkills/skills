@@ -5,8 +5,7 @@ description: "Accelerate Google indexing of new pages by combining automated sit
 skills:
   - google-indexing
   - web-scraper
-  - markdown-new
-category: automation
+  - markdown-newcategory: automation
 tags:
   - seo
   - indexing

@@ -4,8 +4,7 @@ slug: build-content-site-with-astro
 description: Build a developer documentation site with Astro that scores 100 on every Lighthouse metric, ships zero JavaScript for static pages, and hydrates only the interactive search and code playground components.
 skills:
   - astro
-  - vite
-category: development
+  - vitecategory: development
 tags:
   - static-site
   - performance

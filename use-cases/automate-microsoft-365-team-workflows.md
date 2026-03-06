@@ -5,8 +5,7 @@ description: "Connect Microsoft Teams, Outlook, and calendar integrations to aut
 skills:
   - microsoft-teams
   - outlook-email
-  - calendar-integration
-category: development
+  - calendar-integrationcategory: development
 tags:
   - microsoft-365
   - teams

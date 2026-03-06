@@ -4,8 +4,7 @@ slug: centralize-app-secrets-management
 description: "Replace scattered .env files with a centralized secrets management system using Doppler and env-manager to eliminate secret sprawl and accidental leaks."
 skills:
   - doppler
-  - env-manager
-category: devops
+  - env-managercategory: devops
 tags:
   - secrets-management
   - environment-variables
@@ -29,7 +28,7 @@ Using the **doppler** skill to set up a centralized secrets manager with environ
 
 Scan all repositories and services for scattered secrets.
 
-> Scan our 8 repositories for .env files, docker-compose files with hardcoded credentials, and CI/CD pipeline secrets. Build an inventory of every secret: name, value hash, which services use it, and where it is currently stored. Flag duplicates and inconsistencies.
+> Scan our 8 repositories for .env files, docker-helper files with hardcoded credentials, and CI/CD pipeline secrets. Build an inventory of every secret: name, value hash, which services use it, and where it is currently stored. Flag duplicates and inconsistencies.
 
 The audit reveals 47 unique secrets across the 8 repos, with 12 duplicated under different names (DB_URL vs DATABASE_URL vs POSTGRES_CONNECTION_STRING all pointing to the same database). Six secrets exist in .env.example files with real values instead of placeholders.
 

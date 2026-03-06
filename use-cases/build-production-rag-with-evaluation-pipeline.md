@@ -3,12 +3,11 @@ title: Build a Production RAG System with Automated Evaluation
 slug: build-production-rag-with-evaluation-pipeline
 description: Build a customer support RAG chatbot using Mastra for agent orchestration, Ragas and DeepEval for quality evaluation, Braintrust for experiment tracking, and Portkey as the AI gateway with fallback routing and caching.
 skills:
-- mastra
-- ragas
-- deepeval
-- braintrust
-- portkey
-category: data-ai
+  - mastra
+  - ragas
+  - deepeval
+  - braintrust
+  - portkeycategory: data-ai
 tags:
 - rag
 - evaluation

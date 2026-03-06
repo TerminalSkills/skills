@@ -3,10 +3,9 @@ title: "Build a Cost-Optimized Local AI Inference Stack"
 slug: build-cost-optimized-local-ai-stack
 description: "Run a multi-model AI system locally with smart routing so simple tasks use free local models and only complex tasks hit paid APIs."
 skills:
-  - ollama-local
+  - ollama
   - lm-studio-subagents
-  - model-router
-category: data-ai
+  - litellmcategory: data-ai
 tags:
   - local-llm
   - cost-optimization
@@ -23,7 +22,7 @@ A 20-person agency spends $4,800 per month on OpenAI API calls for internal work
 
 ## The Solution
 
-Using the **ollama-local**, **lm-studio-subagents**, and **model-router** skills, the workflow sets up two local inference engines running open-source models, then builds a routing layer that classifies incoming requests by complexity and sends them to the cheapest model capable of handling the task -- falling back to cloud APIs only when local models cannot deliver acceptable quality.
+Using the **ollama**, **lm-studio-subagents**, and **litellm** skills, the workflow sets up two local inference engines running open-source models, then builds a routing layer that classifies incoming requests by complexity and sends them to the cheapest model capable of handling the task -- falling back to cloud APIs only when local models cannot deliver acceptable quality.
 
 ## Step-by-Step Walkthrough
 

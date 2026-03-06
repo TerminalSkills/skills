@@ -6,12 +6,11 @@ description: >-
   provisioning, systemd for service management, SSH hardening, iptables
   firewall, and rsync for deployments. Complete server setup in one playbook.
 skills:
-  - ansible-roles
+  - ansible
   - systemd
   - ssh
   - iptables
-  - rsync
-category: devops
+  - rsynccategory: devops
 tags:
   - server
   - provisioning

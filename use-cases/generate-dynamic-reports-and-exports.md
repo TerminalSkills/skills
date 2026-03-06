@@ -6,8 +6,7 @@ skills:
   - pdfkit
   - exceljs
   - csv-parse
-  - sharp-image
-category: documents
+  - sharpcategory: documents
 tags:
   - reports
   - pdf

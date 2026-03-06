@@ -11,8 +11,7 @@ skills:
   - yt-dlp
   - ffmpeg
   - gallery-dl
-  - telegram-export
-category: content
+  - telegram-exportcategory: content
 tags:
   - video
   - download

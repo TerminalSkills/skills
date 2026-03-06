@@ -9,8 +9,7 @@ skills:
   - clickhouse
   - grafana
   - loki
-  - docker-compose
-category: data-ai
+  - docker-helpercategory: data-ai
 tags:
   - analytics
   - dashboarding
@@ -49,7 +48,7 @@ The data flow is straightforward. Your application emits two types of signals: s
 Start by defining the full stack. This Compose file brings up ClickHouse, Loki, Promtail, and Grafana with all the wiring preconfigured.
 
 ```yaml
-# docker-compose.yml — complete analytics stack
+# docker-helper.yml — complete analytics stack
 # ClickHouse for events, Loki for logs, Grafana for dashboards
 
 version: "3.8"

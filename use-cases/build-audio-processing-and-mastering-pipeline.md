@@ -4,8 +4,7 @@ slug: build-audio-processing-and-mastering-pipeline
 description: "Process, normalize, and master audio files using SoX for command-line audio manipulation and audiowaveform for quality visualization and validation."
 skills:
   - sox
-  - audiowaveform
-category: content
+  - audiowaveformcategory: content
 tags:
   - audio-processing
   - mastering

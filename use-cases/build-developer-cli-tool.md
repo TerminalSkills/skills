@@ -9,8 +9,7 @@ skills:
   - commander
   - inquirer
   - chalk-advanced
-  - ora
-category: development
+  - oracategory: development
 tags:
   - cli
   - developer-tools
@@ -148,7 +147,7 @@ async function scaffold(config: ServiceConfig) {
   if (config.docker) {
     spinner.start('Creating Docker configuration...')
     await createDockerFiles(config)
-    spinner.succeed('Dockerfile + docker-compose.yml created')
+    spinner.succeed('Dockerfile + docker-helper.yml created')
   }
 
   if (config.ci) {

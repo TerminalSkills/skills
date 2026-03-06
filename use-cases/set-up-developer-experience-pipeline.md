@@ -11,8 +11,7 @@ skills:
   - commitlint
   - husky
   - semantic-release
-  - devcontainers
-category: development
+  - devcontainerscategory: development
 tags:
   - monorepo
   - dx
@@ -130,7 +129,7 @@ Leo creates a Dev Container config so new engineers go from clone to coding in u
 // .devcontainer/devcontainer.json — One-click development environment
 {
   "name": "Fintech Platform",
-  "dockerComposeFile": "docker-compose.yml",
+  "dockerComposeFile": "docker-helper.yml",
   "service": "workspace",
   "workspaceFolder": "/workspace",
   "forwardPorts": [3000, 3001, 4000, 5432, 6379],
@@ -161,7 +160,7 @@ Leo creates a Dev Container config so new engineers go from clone to coding in u
 ```
 
 ```yaml
-# .devcontainer/docker-compose.yml — Workspace with local services
+# .devcontainer/docker-helper.yml — Workspace with local services
 services:
   workspace:
     image: mcr.microsoft.com/devcontainers/typescript-node:20

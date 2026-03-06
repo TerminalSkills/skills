@@ -5,8 +5,7 @@ description: Build a marketing website with Sanity CMS for content management, N
 skills:
   - sanity
   - nextjs
-  - vite
-category: content
+  - vitecategory: content
 tags:
   - cms
   - marketing

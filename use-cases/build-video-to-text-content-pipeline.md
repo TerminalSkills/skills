@@ -5,8 +5,7 @@ description: "Download videos, transcribe audio with Whisper, and generate blog 
 skills:
   - whisper
   - youtube-transcription
-  - yt-dlp
-category: content
+  - yt-dlpcategory: content
 tags:
   - transcription
   - video

@@ -4,7 +4,7 @@ description: "When the user wants help with pricing decisions, packaging, or mon
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - pricing
     - monetization

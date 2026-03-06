@@ -3,10 +3,9 @@ title: Build Multi-Agent Customer Support System with A2A and LangGraph
 slug: build-multi-agent-customer-support-with-a2a-and-langgraph
 description: Design a production customer support system where specialized AI agents (triage, billing, technical, escalation) communicate via Google's Agent-to-Agent protocol, orchestrated by a LangGraph supervisor that routes conversations based on intent and context.
 skills:
-- a2a-protocol
-- langchain
-- langgraph
-category: data-ai
+  - a2a-protocol
+  - langchain
+  - langgraphcategory: data-ai
 tags:
 - multi-agent
 - a2a
@@ -641,7 +640,7 @@ async def handle_message(body: dict):
 ### Step 5: Deploy with Docker Compose
 
 ```yaml
-# docker-compose.yml — Full multi-agent support system
+# docker-helper.yml — Full multi-agent support system
 version: "3.8"
 services:
   # Supervisor (LangGraph)

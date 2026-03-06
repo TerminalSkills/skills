@@ -5,8 +5,7 @@ description: Instrument a multi-service Node.js backend with OpenTelemetry traci
 skills:
   - otel-js
   - nats-messaging
-  - nitro
-category: devops
+  - nitrocategory: devops
 tags:
   - observability
   - tracing
@@ -212,7 +211,7 @@ for await (const msg of sub) {
 ### Step 5: Docker Compose for Local Development
 
 ```yaml
-# docker-compose.yml — Full stack with Jaeger + NATS
+# docker-helper.yml — Full stack with Jaeger + NATS
 services:
   jaeger:
     image: jaegertracing/all-in-one:latest

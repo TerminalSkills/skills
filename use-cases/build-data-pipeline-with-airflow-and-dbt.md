@@ -5,8 +5,7 @@ description: Build an ETL pipeline that extracts data from APIs, loads it into P
 skills:
   - airflow
   - dbt
-  - postgresql
-category: data-ai
+  - postgresqlcategory: data-ai
 tags:
   - etl
   - data-pipeline
@@ -33,7 +32,7 @@ The pipeline follows the ELT pattern:
 Start by spinning up PostgreSQL and Airflow with Docker Compose. PostgreSQL serves double duty — it's both Airflow's metadata store and your analytics warehouse.
 
 ```yaml
-# docker-compose.yml: Full stack with Airflow, PostgreSQL, and dbt
+# docker-helper.yml: Full stack with Airflow, PostgreSQL, and dbt
 services:
   postgres:
     image: postgres:16

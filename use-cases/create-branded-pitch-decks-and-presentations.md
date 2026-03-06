@@ -4,8 +4,7 @@ slug: create-branded-pitch-decks-and-presentations
 description: "Generate on-brand presentations using AI slide generation guided by brand guidelines to produce consistent, professional pitch decks and internal presentations."
 skills:
   - ai-slides
-  - brand-guidelines
-category: design
+  - brand-guidelinescategory: design
 tags:
   - presentations
   - pitch-deck

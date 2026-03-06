@@ -7,8 +7,7 @@ skills:
   - nativewind
   - react-native-reanimated
   - fastlane
-  - capacitor
-category: development
+  - capacitorcategory: development
 tags:
   - mobile
   - expo

@@ -11,8 +11,7 @@ skills:
   - restic
   - minio
   - traefik
-  - docker-compose
-category: devops
+  - docker-helpercategory: devops
 tags:
   - backup
   - self-hosted
@@ -33,7 +32,7 @@ She decides to set it up properly: a dedicated backup server running MinIO (S3-c
 Lena provisions a second VPS (the "backup box") with a large disk. She deploys MinIO and Traefik together with Docker Compose.
 
 ```yaml
-# backup-server/docker-compose.yml — MinIO + Traefik on the backup VPS
+# backup-server/docker-helper.yml — MinIO + Traefik on the backup VPS
 # Traefik handles TLS via Let's Encrypt; MinIO stores backup data
 
 services:

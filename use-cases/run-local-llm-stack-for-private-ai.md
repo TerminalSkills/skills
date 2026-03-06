@@ -3,9 +3,8 @@ title: Run a Local LLM Stack for Private AI Applications
 slug: run-local-llm-stack-for-private-ai
 description: Set up a completely private AI stack using LocalAI as the self-hosted OpenAI-compatible API server and llamafile for portable single-file model distribution, enabling chat, embeddings, and audio transcription without any data leaving your network.
 skills:
-- localai
-- llamafile
-category: data-ai
+  - localai
+  - llamafilecategory: data-ai
 tags:
 - local-llm
 - privacy
@@ -35,7 +34,7 @@ npx terminal-skills install localai llamafile
 LocalAI provides an OpenAI-compatible API that runs entirely self-hosted. The team's existing code that uses the OpenAI SDK works unchanged — they just point it to a different URL.
 
 ```yaml
-# docker-compose.yml — Production LocalAI with multiple models
+# docker-helper.yml — Production LocalAI with multiple models
 version: "3.8"
 services:
   localai:

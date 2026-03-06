@@ -5,8 +5,7 @@ description: "Set up, measure, and optimize paid advertising campaigns with prop
 skills:
   - paid-ads
   - ab-test-setup
-  - analytics-tracking
-category: marketing
+  - analytics-trackingcategory: marketing
 tags:
   - paid-advertising
   - Google-Ads

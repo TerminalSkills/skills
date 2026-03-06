@@ -6,13 +6,12 @@ description: >-
   authentication, TanStack Query for data fetching, React Hook Form for
   forms, and next-safe-action for type-safe server mutations.
 skills:
-  - next-auth
-  - react-query
+  - authjs
+  - tanstack
   - react-hook-form
   - next-safe-action
   - prisma
-  - stripe
-category: development
+  - stripecategory: development
 tags:
   - nextjs
   - saas
@@ -109,8 +108,8 @@ Ines sets up NextAuth with Google OAuth and credentials-based login, using Prism
 
 ```typescript
 // auth.ts — Authentication configuration
-import NextAuth from 'next-auth'
-import Google from 'next-auth/providers/google'
+import NextAuth from 'authjs'
+import Google from 'authjs/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/db'
 
@@ -232,7 +231,7 @@ export const updateTaskStatus = authAction
 
 ```tsx
 // hooks/useTasks.ts — Task data hooks
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/tanstack'
 
 export function useTasks(projectId: string) {
   return useQuery({

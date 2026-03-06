@@ -26,7 +26,7 @@ Using the **doc-parser** skill to extract existing knowledge from READMEs, confi
 Before writing anything new, figure out what already exists and what is still accurate. Most teams have more documentation than they think — it is just scattered, outdated, or both.
 
 ```text
-Scan our repo for all documentation: READMEs, markdown files, docker-compose files, Makefiles, and CI configs. List what exists and what's outdated.
+Scan our repo for all documentation: READMEs, markdown files, docker-helper files, Makefiles, and CI configs. List what exists and what's outdated.
 ```
 
 The inventory reveals the real situation:
@@ -35,19 +35,19 @@ The inventory reveals the real situation:
 |---|---|---|
 | `README.md` | Outdated (14 months) | References Node 16, current is Node 20 |
 | `docs/api.md` | Partial | Covers 12 of 31 endpoints |
-| `docker-compose.yml` | Current | 3 services, comments explain setup |
+| `docker-helper.yml` | Current | 3 services, comments explain setup |
 | `.env.example` | Partial | 18 variables, 4 have no description |
 | `Makefile` | Broken | 12 targets, 3 no longer work |
 | `.github/workflows/deploy.yml` | Current | Well-commented |
 
-The gaps are where new hires spend their time: no setup guide, no architecture overview, no debugging playbook. The information exists — scattered across `docker-compose.yml` comments, `.env.example` defaults, `Makefile` targets, and CI configs. Nobody has assembled these fragments into something a new hire can follow from top to bottom.
+The gaps are where new hires spend their time: no setup guide, no architecture overview, no debugging playbook. The information exists — scattered across `docker-helper.yml` comments, `.env.example` defaults, `Makefile` targets, and CI configs. Nobody has assembled these fragments into something a new hire can follow from top to bottom.
 
 ### Step 2: Generate the Local Development Setup Guide
 
 The setup guide is the highest-value document because every single new hire needs it on day one. Getting the dev environment running should take 30 minutes, not 3 days.
 
 ```text
-Create a step-by-step local dev setup guide from docker-compose.yml, .env.example, and the Makefile.
+Create a step-by-step local dev setup guide from docker-helper.yml, .env.example, and the Makefile.
 ```
 
 The guide is built by reading the actual config files — not by asking someone to recall the process from memory. This matters because what people remember often differs from what the config files actually say.
@@ -132,13 +132,13 @@ Documentation that is not maintained is documentation that lies. The README said
 Create a CI check that flags PRs changing code without updating related docs.
 ```
 
-The workflow `.github/workflows/docs-check.yml` triggers on PRs that modify `src/`, `docker-compose.yml`, or `.env.example`. If the corresponding files in `docs/` were not updated in the same PR, the CI posts a reminder comment — not a blocking check (that would be too aggressive), just a nudge: "This PR modifies docker-compose.yml. Does docs/setup.md need an update?"
+The workflow `.github/workflows/docs-check.yml` triggers on PRs that modify `src/`, `docker-helper.yml`, or `.env.example`. If the corresponding files in `docs/` were not updated in the same PR, the CI posts a reminder comment — not a blocking check (that would be too aggressive), just a nudge: "This PR modifies docker-helper.yml. Does docs/setup.md need an update?"
 
 A quarterly scheduled issue on the first Monday of each quarter triggers a full documentation review. The issue template includes a checklist of every doc file with a "still accurate?" checkbox.
 
 ## Real-World Example
 
-Dani runs the three-skill workflow on a Thursday afternoon. The doc-parser finds 14 existing markdown files, 6 of which reference deprecated services or outdated Node versions. The content-writer cross-references `docker-compose.yml`, the `Makefile`, and the CI config to build accurate instructions — catching that the Makefile's `make test` target still references a test runner the team replaced six months ago. The markdown-writer produces a four-document onboarding package: setup guide, architecture overview, first-week checklist, and debugging playbook.
+Dani runs the three-skill workflow on a Thursday afternoon. The doc-parser finds 14 existing markdown files, 6 of which reference deprecated services or outdated Node versions. The content-writer cross-references `docker-helper.yml`, the `Makefile`, and the CI config to build accurate instructions — catching that the Makefile's `make test` target still references a test runner the team replaced six months ago. The markdown-writer produces a four-document onboarding package: setup guide, architecture overview, first-week checklist, and debugging playbook.
 
 The following Monday, the next hire Rui starts. He has his dev environment running by lunch on day one — previously a 2-3 day ordeal involving multiple Slack conversations, at least one "works on my machine" dead end, and a senior engineer spending an hour debugging a port conflict over screen share. He opens his first PR on Wednesday. On Friday, he updates two outdated steps in the setup guide (the Redis version in the prerequisites and a missing environment variable), establishing the update-as-you-go culture Dani wanted.
 

@@ -4,8 +4,7 @@ slug: run-content-operations-with-airtable-and-writers
 description: "Manage a content production pipeline in Airtable with automated drafting, editorial tracking, and publishing workflows for consistent blog and marketing output."
 skills:
   - airtable
-  - content-writer
-category: productivity
+  - content-writercategory: productivity
 tags:
   - content-ops
   - airtable

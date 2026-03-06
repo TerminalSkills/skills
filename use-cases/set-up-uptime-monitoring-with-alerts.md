@@ -131,7 +131,7 @@ During maintenance, the status page shows "Scheduled Maintenance" instead of "Do
 If Uptime Kuma runs on the same Docker network as your services, it can monitor containers directly:
 
 ```yaml
-# docker-compose.yml
+# docker-helper.yml
 services:
   uptime-kuma:
     image: louislam/uptime-kuma:1

@@ -13,7 +13,7 @@ compatibility: 'LinkedIn API v2, LinkedIn Marketing API. Node.js/Python examples
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: marketing
+  category: business
   tags:
     - linkedin
     - social-media

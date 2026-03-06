@@ -9,8 +9,7 @@ skills:
   - argocd
   - cert-manager
   - external-dns
-  - kubernetes-helm
-category: devops
+  - kubernetes-helmcategory: devops
 tags:
   - kubernetes
   - gitops

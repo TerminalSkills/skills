@@ -4,7 +4,7 @@ description: When the user wants to optimize any form that is NOT signup/registr
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - forms
     - conversion

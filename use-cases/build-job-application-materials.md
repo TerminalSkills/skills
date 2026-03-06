@@ -4,8 +4,7 @@ slug: build-job-application-materials
 description: "Create tailored CVs and cover letters for specific job postings by analyzing role requirements, matching candidate experience, and optimizing for applicant tracking systems."
 skills:
   - cv-builder
-  - cover-letter
-category: business
+  - cover-lettercategory: business
 tags:
   - job-search
   - resume

@@ -9,8 +9,7 @@ description: >-
 skills:
   - meilisearch
   - postgresql
-  - nextjs
-category: development
+  - nextjscategory: development
 tags:
   - search
   - meilisearch
@@ -30,7 +29,7 @@ Dani decides to add Meilisearch — a dedicated search engine that handles typo 
 Dani adds Meilisearch to the existing Docker Compose stack. It runs alongside PostgreSQL and the Next.js app.
 
 ```yaml
-# docker-compose.yml — Add Meilisearch service to existing stack
+# docker-helper.yml — Add Meilisearch service to existing stack
 # Meilisearch stores its index on a volume for persistence across restarts
 
 services:

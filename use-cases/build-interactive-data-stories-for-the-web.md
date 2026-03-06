@@ -4,8 +4,7 @@ slug: build-interactive-data-stories-for-the-web
 description: "Create interactive data visualizations with D3.js and design compelling article layouts that combine narrative text with explorable charts and graphics."
 skills:
   - d3
-  - blog-article-design
-category: design
+  - blog-article-designcategory: design
 tags:
   - data-visualization
   - d3

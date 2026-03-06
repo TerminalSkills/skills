@@ -5,8 +5,7 @@ description: Deploy PostHog self-hosted, instrument event tracking for a Next.js
 skills:
   - posthog
   - nextjs
-  - docker-compose
-category: data-ai
+  - docker-helpercategory: data-ai
 tags:
   - product-analytics
   - posthog
@@ -25,7 +24,7 @@ Mateo's team shipped a project management tool three months ago. They have 2,000
 The team runs their infrastructure on a single VPS with Docker Compose. PostHog needs PostgreSQL, Redis, ClickHouse, and Kafka — the official Docker Compose file bundles everything.
 
 ```yaml
-# docker-compose.posthog.yml — PostHog self-hosted stack.
+# docker-helper.posthog.yml — PostHog self-hosted stack.
 # Sits alongside the existing app stack. Uses a dedicated network.
 version: '3.8'
 
@@ -127,7 +126,7 @@ POSTHOG_DB_PASSWORD=$POSTHOG_DB_PASSWORD
 EOF
 
 # Start the stack
-docker compose -f docker-compose.posthog.yml --env-file .env.posthog up -d
+docker compose -f docker-helper.posthog.yml --env-file .env.posthog up -d
 
 # Wait for PostHog to be ready
 echo "Waiting for PostHog..."

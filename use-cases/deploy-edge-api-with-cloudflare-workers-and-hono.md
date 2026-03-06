@@ -5,8 +5,7 @@ description: Build and deploy a globally distributed API on Cloudflare Workers u
 skills:
   - cloudflare-workers
   - hono
-  - zod
-category: devops
+  - zodcategory: devops
 tags:
   - cloudflare
   - edge

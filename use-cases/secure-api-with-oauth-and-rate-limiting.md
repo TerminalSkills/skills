@@ -6,8 +6,7 @@ skills:
   - oauth2-oidc
   - rate-limiting
   - hashicorp-vault
-  - owasp-zap
-category: development
+  - owasp-zapcategory: development
 tags:
   - api-security
   - oauth

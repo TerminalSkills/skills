@@ -6,8 +6,7 @@ skills:
   - blender-compositing
   - blender-vse-pipeline
   - blender-render-automation
-  - blender-scripting
-category: automation
+  - blender-scriptingcategory: automation
 tags:
   - blender
   - vfx

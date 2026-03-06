@@ -2,7 +2,7 @@
 title: "Monitor Data Pipeline Health with AI"
 slug: monitor-data-pipeline-health
 description: "Detect anomalies, stale data, and silent failures in ETL and data pipelines before they impact downstream consumers."
-skills: [data-analysis, coding-agent, n8n-workflow]
+skills: [data-analysis, coding-agent, n8n]
 category: data-ai
 tags: [data-pipeline, monitoring, etl, anomaly-detection, data-quality]
 ---
@@ -19,7 +19,7 @@ That's the pattern with data pipelines: a source API returns stale data, a schem
 
 ## The Solution
 
-Using the **coding-agent**, **data-analysis**, and **n8n-workflow** skills, the approach is: audit the pipeline graph to find critical paths, write validation queries that check freshness, volume, and schema consistency, calibrate alert thresholds from historical baselines, and wire everything into an automated monitoring workflow that runs after each pipeline stage.
+Using the **coding-agent**, **data-analysis**, and **n8n** skills, the approach is: audit the pipeline graph to find critical paths, write validation queries that check freshness, volume, and schema consistency, calibrate alert thresholds from historical baselines, and wire everything into an automated monitoring workflow that runs after each pipeline stage.
 
 ## Step-by-Step Walkthrough
 

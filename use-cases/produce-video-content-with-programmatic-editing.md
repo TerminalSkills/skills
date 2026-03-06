@@ -5,8 +5,7 @@ description: "Automate video editing with MoviePy, generate audio waveform visua
 skills:
   - moviepy
   - audiowaveform
-  - ffmpeg-video-editing
-category: content
+  - ffmpegcategory: content
 tags:
   - video-editing
   - moviepy
@@ -23,7 +22,7 @@ A podcast network produces 8 weekly shows, each needing a video version for YouT
 
 ## The Solution
 
-Use **MoviePy** for programmatic video composition (overlaying elements, trimming, concatenating clips), **audiowaveform** to generate animated waveform data from audio files, and **ffmpeg-video-editing** for final rendering and format optimization. A Python script takes a raw audio file and metadata, then outputs a complete YouTube-ready video in minutes.
+Use **MoviePy** for programmatic video composition (overlaying elements, trimming, concatenating clips), **audiowaveform** to generate animated waveform data from audio files, and **ffmpeg** for final rendering and format optimization. A Python script takes a raw audio file and metadata, then outputs a complete YouTube-ready video in minutes.
 
 ## Step-by-Step Walkthrough
 

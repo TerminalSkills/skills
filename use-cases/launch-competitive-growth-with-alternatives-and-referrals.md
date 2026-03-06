@@ -4,8 +4,7 @@ slug: launch-competitive-growth-with-alternatives-and-referrals
 description: "Capture competitor search traffic with targeted alternatives pages and amplify growth through a structured referral program with tiered incentives."
 skills:
   - competitor-alternatives
-  - referral-program
-category: marketing
+  - referral-programcategory: marketing
 tags:
   - competitive-marketing
   - referral

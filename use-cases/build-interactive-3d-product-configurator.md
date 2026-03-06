@@ -6,8 +6,7 @@ skills:
   - threejs
   - framer-motion
   - nextjs
-  - tailwindcss
-category: development
+  - tailwindcsscategory: development
 tags:
   - 3d
   - ecommerce

@@ -4,7 +4,7 @@ description: "When the user needs marketing ideas, inspiration, or strategies fo
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - ideas
     - strategy

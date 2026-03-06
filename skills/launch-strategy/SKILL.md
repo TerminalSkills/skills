@@ -4,7 +4,7 @@ description: "When the user wants to plan a product launch, feature announcement
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - launch
     - product-hunt

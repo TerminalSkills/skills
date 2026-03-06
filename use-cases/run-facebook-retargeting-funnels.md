@@ -5,8 +5,7 @@ description: "Build multi-stage Facebook ad funnels that retarget website visito
 skills:
   - facebook-marketing
   - marketing-psychology
-  - analytics-tracking
-category: marketing
+  - analytics-trackingcategory: marketing
 tags:
   - Facebook-Ads
   - retargeting

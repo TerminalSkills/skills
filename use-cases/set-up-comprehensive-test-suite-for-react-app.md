@@ -6,8 +6,7 @@ skills:
   - testing-library
   - happy-dom
   - fast-check
-  - vitest
-category: development
+  - vitestcategory: development
 tags:
   - testing
   - react

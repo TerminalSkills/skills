@@ -6,11 +6,10 @@ description: >-
   GitHub Actions, Docker multi-stage builds, Terraform for infrastructure,
   and blue-green deployments with automated rollback.
 skills:
-  - github-actions-advanced
+  - github-actions
   - docker-multi-stage
-  - terraform-modules
-  - sentry
-category: devops
+  - terraform-iac
+  - sentrycategory: devops
 tags:
   - deployment
   - zero-downtime

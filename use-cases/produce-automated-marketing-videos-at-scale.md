@@ -5,8 +5,7 @@ description: "Generate hundreds of personalized product videos with dynamic subt
 skills:
   - remotion-video-toolkit
   - video-subtitles
-  - video-frames
-category: automation
+  - video-framescategory: automation
 tags:
   - video-production
   - marketing

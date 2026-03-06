@@ -4,8 +4,7 @@ slug: define-cloud-infrastructure-with-pulumi
 description: "Use Pulumi for type-safe infrastructure provisioning and Ansible for configuration management to build reproducible, testable cloud environments."
 skills:
   - pulumi
-  - ansible-automation
-category: devops
+  - ansiblecategory: devops
 tags:
   - infrastructure-as-code
   - pulumi
@@ -22,7 +21,7 @@ A platform team manages 15 microservices across three AWS environments. Their Te
 
 ## The Solution
 
-Using the **pulumi** skill to define infrastructure in TypeScript with compile-time type checking and real programming constructs, paired with the **ansible-automation** skill to handle post-provisioning configuration management with idempotent playbooks that guarantee consistent server state.
+Using the **pulumi** skill to define infrastructure in TypeScript with compile-time type checking and real programming constructs, paired with the **ansible** skill to handle post-provisioning configuration management with idempotent playbooks that guarantee consistent server state.
 
 ## Step-by-Step Walkthrough
 

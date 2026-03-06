@@ -4,8 +4,7 @@ slug: generate-business-proposals-and-ndas
 description: "Draft professional project proposals with scope, timeline, and pricing alongside tailored NDAs for new client engagements using structured templates and client context."
 skills:
   - proposal-writer
-  - nda-generator
-category: business
+  - nda-generatorcategory: business
 tags:
   - proposals
   - legal-documents

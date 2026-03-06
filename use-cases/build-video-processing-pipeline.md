@@ -2,7 +2,7 @@
 title: "Build a Video Processing Pipeline"
 slug: build-video-processing-pipeline
 description: "Create an automated pipeline that handles video uploads, transcodes them into multiple formats and resolutions, and stores the results in S3-compatible storage using a job queue."
-skills: [ffmpeg-video-editing, media-transcoder, s3-storage, job-queue]
+skills: [ffmpeg, media-transcoder, s3-storage, job-queue]
 category: development
 tags: [video, transcoding, ffmpeg, s3, pipeline, media]
 ---
@@ -17,7 +17,7 @@ The naive approach — running ffmpeg inline in the request handler — works fo
 
 ## The Solution
 
-Using the **job-queue**, **ffmpeg-video-editing**, **media-transcoder**, and **s3-storage** skills, the agent builds an async pipeline that accepts uploads instantly, processes them through a multi-step worker with retries, and stores the results in S3 with proper organization and lifecycle rules.
+Using the **job-queue**, **ffmpeg**, **media-transcoder**, and **s3-storage** skills, the agent builds an async pipeline that accepts uploads instantly, processes them through a multi-step worker with retries, and stores the results in S3 with proper organization and lifecycle rules.
 
 ## Step-by-Step Walkthrough
 

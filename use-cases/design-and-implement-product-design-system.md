@@ -4,8 +4,7 @@ slug: design-and-implement-product-design-system
 description: "Build a complete design system from brand guidelines through UI component specifications, ensuring visual consistency across a SaaS product."
 skills:
   - ui-ux-pro-max
-  - brand-guidelines
-category: design
+  - brand-guidelinescategory: design
 tags:
   - design-system
   - ui-ux

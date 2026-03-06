@@ -4,8 +4,7 @@ slug: automate-microsoft-office-document-workflows
 description: "Generate formatted Word documents from database records and build Access databases for tracking structured data without a custom application."
 skills:
   - microsoft-word
-  - ms-access
-category: development
+  - ms-accesscategory: development
 tags:
   - microsoft-word
   - ms-access

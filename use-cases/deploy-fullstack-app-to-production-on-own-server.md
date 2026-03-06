@@ -3,9 +3,8 @@ title: Deploy a Full-Stack App to Production on Your Own Server
 slug: deploy-fullstack-app-to-production-on-own-server
 description: Deploy a Next.js application with PostgreSQL, Redis, and background workers on a VPS using Dokploy for self-hosted PaaS management and Nixpacks for zero-config builds.
 skills:
-- dokploy
-- nixpacks
-category: devops
+  - dokploy
+  - nixpackscategory: devops
 tags:
 - self-hosted
 - deployment
@@ -160,7 +159,7 @@ The SaaS needs a background worker for email sending, webhook processing, and sc
 
 ```typescript
 // src/worker.ts — Background job processor
-import { Worker } from "bullmq";
+import { Worker } from "job-queue";
 import { redis } from "./lib/redis";
 
 const worker = new Worker(

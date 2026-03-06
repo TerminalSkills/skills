@@ -6,11 +6,10 @@ description: >-
   n8n workflows from code. Version-controlled workflow definitions, CI validation,
   environment-based deployment, and a library of reusable workflow templates.
 skills:
-  - n8n-workflow-sdk
-  - n8n-workflow
+  - n8n-sdk
+  - n8n
   - zod
-  - vitest
-category: automation
+  - vitestcategory: automation
 tags:
   - n8n
   - workflow

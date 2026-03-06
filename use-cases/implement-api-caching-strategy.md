@@ -54,7 +54,7 @@ Set up Redis caching for our top 3 API endpoints. Use different cache strategies
 The Redis infrastructure uses a primary-replica setup for read availability:
 
 ```yaml
-# docker-compose.yml
+# docker-helper.yml
 services:
   redis-primary:
     image: redis:7-alpine

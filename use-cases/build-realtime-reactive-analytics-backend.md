@@ -5,8 +5,7 @@ description: "Combine a reactive database with an event ingestion pipeline to po
 skills:
   - convex
   - realtime-analytics
-  - mongodb
-category: data-ai
+  - mongodbcategory: data-ai
 tags:
   - real-time
   - analytics

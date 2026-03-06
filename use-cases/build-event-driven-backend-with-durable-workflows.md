@@ -6,8 +6,7 @@ skills:
   - restate
   - hatchet
   - tinybird
-  - d1-database
-category: development
+  - d1-databasecategory: development
 tags:
   - event-driven
   - durable-execution

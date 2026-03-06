@@ -2,7 +2,7 @@
 title: "Build a Customer Health Scoring System"
 slug: build-customer-health-scoring
 description: "Combine product usage, support tickets, and billing data to score customer health and predict churn before it happens."
-skills: [data-analysis, excel-processor, data-analysis]
+skills: [data-analysis, excel-processor]
 category: data-ai
 tags: [customer-success, churn-prediction, analytics, scoring, retention]
 ---

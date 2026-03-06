@@ -4,7 +4,7 @@ description: When the user wants to plan, design, or implement an A/B test or ex
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - testing
     - experimentation

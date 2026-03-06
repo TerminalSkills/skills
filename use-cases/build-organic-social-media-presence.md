@@ -5,8 +5,7 @@ description: "Create a consistent posting strategy across Instagram and TikTok t
 skills:
   - instagram-marketing
   - tiktok-marketing
-  - social-content
-category: marketing
+  - social-contentcategory: marketing
 tags:
   - social-media
   - organic-growth

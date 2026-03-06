@@ -113,10 +113,10 @@ The `mode: one` setting is critical -- it ensures only a single pod gets the fau
 Running chaos experiments directly against staging is risky when you don't know how the system will react. A local environment with controlled fault injection is safer for the first round:
 
 ```text
-Create a docker-compose setup that mimics our payment-service -> PostgreSQL flow so we can run the chaos experiment locally before touching staging.
+Create a docker-helper setup that mimics our payment-service -> PostgreSQL flow so we can run the chaos experiment locally before touching staging.
 ```
 
-The docker-compose file spins up the payment service, a PostgreSQL instance, and toxiproxy sitting between them. Toxiproxy lets Marta inject the same latency fault locally:
+The docker-helper file spins up the payment service, a PostgreSQL instance, and toxiproxy sitting between them. Toxiproxy lets Marta inject the same latency fault locally:
 
 ```bash
 # Add 30-second latency to the PostgreSQL connection

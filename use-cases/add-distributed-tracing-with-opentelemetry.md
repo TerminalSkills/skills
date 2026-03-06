@@ -5,8 +5,7 @@ description: Instrument a microservices architecture with OpenTelemetry to trace
 skills:
   - opentelemetry
   - error-monitoring
-  - docker-helper
-category: devops
+  - docker-helpercategory: devops
 tags:
   - tracing
   - monitoring
@@ -306,7 +305,7 @@ export const logger = pino({
 ## Step 4 — Deploy the Observability Stack
 
 ```yaml
-# docker-compose.observability.yml — Full observability stack.
+# docker-helper.observability.yml — Full observability stack.
 # Jaeger for traces, Prometheus for metrics, Loki for logs, Grafana for dashboards.
 
 services:

@@ -4,8 +4,7 @@ slug: run-web-quality-audit
 description: "Audit your web application for both WCAG accessibility violations and Core Web Vitals failures in a single pass to prioritize fixes that improve quality across the board."
 skills:
   - accessibility-auditor
-  - web-vitals-analyzer
-category: development
+  - web-vitals-analyzercategory: development
 tags:
   - accessibility
   - web-vitals

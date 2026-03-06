@@ -3,11 +3,10 @@ title: Build a Collaborative Design Tool with Real-Time Sync
 slug: build-collaborative-design-tool-with-realtime-sync
 description: Build a multiplayer whiteboard application using Liveblocks for presence and cursors, Yjs for conflict-free document sync, tldraw for the infinite canvas, and Arcjet for rate limiting and bot protection.
 skills:
-- liveblocks
-- yjs
-- tldraw
-- arcjet
-category: development
+  - liveblocks
+  - yjs
+  - tldraw
+  - arcjetcategory: development
 tags:
 - collaboration
 - real-time

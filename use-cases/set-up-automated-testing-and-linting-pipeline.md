@@ -10,8 +10,7 @@ skills:
   - jest
   - eslint
   - prettier
-  - github-actions
-category: devops
+  - github-actionscategory: devops
 tags:
   - testing
   - linting

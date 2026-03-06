@@ -10,8 +10,7 @@ skills:
   - api-versioning
   - webhook-security
   - cors
-  - api-rate-limiting
-category: development
+  - rate-limitercategory: development
 tags:
   - api-design
   - rest

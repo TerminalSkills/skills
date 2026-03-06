@@ -5,8 +5,7 @@ description: Add semantic search to a knowledge base using Pinecone for vector s
 skills:
   - pinecone
   - openai-sdk
-  - nextjs
-category: data-ai
+  - nextjscategory: data-ai
 tags:
   - semantic-search
   - rag

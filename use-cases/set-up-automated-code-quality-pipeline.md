@@ -6,8 +6,7 @@ skills:
   - biome
   - changesets
   - renovate
-  - github-actions
-category: development
+  - github-actionscategory: development
 tags:
   - devops
   - monorepo

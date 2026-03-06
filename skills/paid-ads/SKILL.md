@@ -4,7 +4,7 @@ description: "When the user wants help with paid advertising campaigns on Google
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - ppc
     - advertising

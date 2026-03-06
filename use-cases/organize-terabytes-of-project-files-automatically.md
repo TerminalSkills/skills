@@ -4,8 +4,7 @@ slug: organize-terabytes-of-project-files-automatically
 description: "Sort, rename, and structure thousands of disorganized project files across directories using rule-based automation and batch processing."
 skills:
   - file-organizer
-  - batch-processor
-category: automation
+  - batch-processorcategory: automation
 tags:
   - file-management
   - organization

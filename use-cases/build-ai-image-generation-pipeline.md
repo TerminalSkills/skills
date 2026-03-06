@@ -7,8 +7,7 @@ description: |
 skills:
   - comfyui
   - replicate
-  - gradio
-category: data-ai
+  - gradiocategory: data-ai
 tags:
   - image-generation
   - stable-diffusion

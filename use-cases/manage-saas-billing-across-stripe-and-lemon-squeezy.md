@@ -4,8 +4,7 @@ slug: manage-saas-billing-across-stripe-and-lemon-squeezy
 description: "Set up dual billing infrastructure using Stripe for B2B subscriptions and Lemon Squeezy for individual purchases, with unified revenue reporting and tax compliance."
 skills:
   - stripe-billing
-  - lemon-squeezy
-category: business
+  - lemon-squeezycategory: business
 tags:
   - billing
   - saas

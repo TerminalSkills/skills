@@ -2,7 +2,7 @@
 title: "Automate Server Setup and App Deployment with Ansible"
 slug: automate-server-setup-with-ansible
 description: "Replace manual SSH server configuration with Ansible playbooks and roles that provision, harden, and deploy applications across any number of servers reproducibly."
-skills: [ansible-automation, security-audit, coding-agent]
+skills: [ansible, security-audit, coding-agent]
 category: devops
 tags: [ansible, configuration-management, server-setup, deployment, automation]
 ---
@@ -17,7 +17,7 @@ Servers drift over time. Someone installs a package on one server and forgets th
 
 ## The Solution
 
-Using **ansible-automation** to write playbooks and roles that automate the entire server lifecycle, **security-audit** to define hardening standards as code, and **coding-agent** to build custom Ansible modules for app-specific deployment logic, the entire 47-step wiki page becomes executable code that runs in 8 minutes and produces identical results every time.
+Using **ansible** to write playbooks and roles that automate the entire server lifecycle, **security-audit** to define hardening standards as code, and **coding-agent** to build custom Ansible modules for app-specific deployment logic, the entire 47-step wiki page becomes executable code that runs in 8 minutes and produces identical results every time.
 
 ## Step-by-Step Walkthrough
 

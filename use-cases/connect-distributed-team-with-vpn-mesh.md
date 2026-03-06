@@ -5,8 +5,7 @@ description: "Build a multi-layer VPN infrastructure using WireGuard for site-to
 skills:
   - wireguard
   - tailscale
-  - openvpn
-category: devops
+  - openvpncategory: devops
 tags:
   - vpn
   - wireguard

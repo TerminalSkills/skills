@@ -4,8 +4,7 @@ slug: build-connected-knowledge-system-with-notion-and-obsidian
 description: "Design a hybrid knowledge management system using Obsidian for personal research and Notion for team collaboration, with bidirectional sync for shared insights."
 skills:
   - notion
-  - obsidian
-category: productivity
+  - obsidiancategory: productivity
 tags:
   - knowledge-management
   - notion

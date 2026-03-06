@@ -51,7 +51,7 @@
       "name": "ab-test-setup",
       "slug": "ab-test-setup",
       "description": "When the user wants to plan, design, or implement an A/B test or experiment. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test this change,\" \"variant copy,\" \"multivariate test,\" or \"hypothesis.\" For tracking implementation, see analytics-tracking.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -247,7 +247,7 @@
       "name": "analytics-tracking",
       "slug": "analytics-tracking",
       "description": "When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions \"set up tracking,\" \"GA4,\" \"Google Analytics,\" \"conversion tracking,\" \"event tracking,\" \"UTM parameters,\" \"tag manager,\" \"GTM,\" \"analytics implementation,\" or \"tracking plan.\" For A/B test measurement, see ab-test-setup.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -261,25 +261,6 @@
       "name": "ansible",
       "slug": "ansible",
       "description": "Configuration management and automation with Ansible. Use when the user needs to write playbooks, manage inventory, create roles, use Ansible Vault for secrets, or orchestrate multi-server deployments across environments.",
-      "category": "devops",
-      "tags": []
-    },
-    {
-      "name": "ansible-automation",
-      "slug": "ansible-automation",
-      "description": "Automates server configuration and application deployment with Ansible. Use when the user wants to write Ansible playbooks, create roles, manage inventory, configure servers, deploy applications, set up infrastructure, manage users and permissions, handle secrets with Ansible Vault, or orchestrate multi-server deployments. Trigger words: ansible, playbook, ansible role, ansible galaxy, inventory, ansible vault, ansible task, ansible handler, ansible template, jinja2, ansible collection, ansible tower, awx, ansible lint, configuration management, server provisioning.",
-      "category": "devops",
-      "tags": [
-        "ansible",
-        "configuration-management",
-        "automation",
-        "devops"
-      ]
-    },
-    {
-      "name": "ansible-roles",
-      "slug": "ansible-roles",
-      "description": "Organize server configuration with Ansible roles. Use when a user asks to structure Ansible playbooks, create reusable configuration modules, set up server provisioning, or build a library of infrastructure configurations.",
       "category": "devops",
       "tags": []
     },
@@ -328,13 +309,6 @@
         "k6",
         "benchmarking"
       ]
-    },
-    {
-      "name": "api-rate-limiting",
-      "slug": "api-rate-limiting",
-      "description": "Implement API rate limiting. Use when a user asks to throttle API requests, prevent abuse, implement sliding window rate limiting, add per-user quotas, or protect APIs from DDoS and scraping.",
-      "category": "devops",
-      "tags": []
     },
     {
       "name": "api-tester",
@@ -885,13 +859,6 @@
       ]
     },
     {
-      "name": "bullmq",
-      "slug": "bullmq",
-      "description": "Build job queues and background workers with BullMQ. Use when a user asks to set up a job queue, process tasks in the background, build a worker system, handle async processing, schedule recurring jobs, rate-limit API calls, process webhooks in a queue, or add reliable background processing to a Node.js app. Covers queues, workers, job scheduling, retries, rate limiting, priorities, events, and dashboard monitoring with Bull Board.",
-      "category": "development",
-      "tags": []
-    },
-    {
       "name": "bun",
       "slug": "bun",
       "description": "Assists with using Bun as an all-in-one JavaScript/TypeScript runtime, package manager, bundler, and test runner. Use when building HTTP servers, managing packages, running tests, or migrating from Node.js. Trigger words: bun, bun serve, bun install, bun test, bun build, javascript runtime, bun runtime.",
@@ -1067,19 +1034,6 @@
         "changelog",
         "monorepo",
         "npm"
-      ]
-    },
-    {
-      "name": "chat-with-pdf",
-      "slug": "chat-with-pdf",
-      "description": "Answer questions about PDF content, summarize documents, and extract key information from any PDF file. Use when a user asks to chat with a PDF, ask questions about a document, find specific information in a PDF, get a summary of a PDF, or understand what a PDF document says. Works with reports, papers, manuals, and any text-based PDF.",
-      "category": "documents",
-      "tags": [
-        "pdf",
-        "qa",
-        "summarization",
-        "document",
-        "search"
       ]
     },
     {
@@ -1376,7 +1330,7 @@
       "name": "competitor-alternatives",
       "slug": "competitor-alternatives",
       "description": "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -1423,7 +1377,7 @@
       "name": "content-strategy",
       "slug": "content-strategy",
       "description": "When the user wants to plan a content strategy, decide what content to create, or figure out what topics to cover. Also use when the user mentions \"content strategy,\" \"what should I write about,\" \"content ideas,\" \"blog strategy,\" \"topic clusters,\" or \"content planning.\" For writing individual pieces, see copywriting. For SEO-specific audits, see seo-audit.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -1482,14 +1436,14 @@
       "name": "copy-editing",
       "slug": "copy-editing",
       "description": "When the user wants to edit, review, or improve existing marketing copy. Also use when the user mentions 'edit this copy,' 'review my copy,' 'copy feedback,' 'proofread,' 'polish this,' 'make this better,' or 'copy sweep.' This skill provides a systematic approach to editing marketing copy through multiple focused passes.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
       "name": "copywriting",
       "slug": "copywriting",
       "description": "When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user says \"write copy for,\" \"improve this copy,\" \"rewrite this page,\" \"marketing copy,\" \"headline help,\" or \"CTA copy.\" For email copy, see email-sequence. For popup copy, see popup-cro.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -1778,13 +1732,6 @@
       "tags": []
     },
     {
-      "name": "dbt-advanced",
-      "slug": "dbt-advanced",
-      "description": "Build data transformation pipelines with dbt (advanced patterns). Use when a user asks to implement incremental models, build data marts, add data quality tests, manage dbt projects at scale, or optimize dbt performance.",
-      "category": "data-ai",
-      "tags": []
-    },
-    {
       "name": "deepeval",
       "slug": "deepeval",
       "description": "Expert guidance for DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.",
@@ -1904,19 +1851,6 @@
       ]
     },
     {
-      "name": "docker-compose",
-      "slug": "docker-compose",
-      "description": "Assists with defining and running multi-container applications using Docker Compose. Use when configuring services, networking, volumes, health checks, development environments with hot-reload, or production-ready compose files with resource limits. Trigger words: docker compose, docker-compose, multi-container, services, compose file, depends_on.",
-      "category": "devops",
-      "tags": [
-        "docker-compose",
-        "docker",
-        "containers",
-        "orchestration",
-        "devops"
-      ]
-    },
-    {
       "name": "docker-helper",
       "slug": "docker-helper",
       "description": "Build, debug, and optimize Docker configurations. Use when a user asks to create a Dockerfile, fix Docker build errors, optimize image size, write docker-compose files, debug container issues, set up multi-stage builds, or troubleshoot networking between containers. Covers Dockerfile best practices and compose orchestration.",
@@ -1974,19 +1908,6 @@
         "environment-variables",
         "devops",
         "security"
-      ]
-    },
-    {
-      "name": "drizzle-kit",
-      "slug": "drizzle-kit",
-      "description": "Manage database migrations and schema with Drizzle Kit. Use when someone asks to \"run database migrations\", \"generate migration files\", \"push schema to database\", \"introspect existing database\", \"set up Drizzle migrations\", \"manage database schema changes\", or \"use drizzle-kit\". Covers drizzle-kit push, generate, migrate, introspect, studio, and schema-first workflows for Postgres, MySQL, and SQLite.",
-      "category": "development",
-      "tags": [
-        "database",
-        "migrations",
-        "schema",
-        "drizzle",
-        "postgres"
       ]
     },
     {
@@ -2165,7 +2086,7 @@
       "name": "email-sequence",
       "slug": "email-sequence",
       "description": "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions \"email sequence,\" \"drip campaign,\" \"nurture sequence,\" \"onboarding emails,\" \"welcome sequence,\" \"re-engagement emails,\" \"email automation,\" or \"lifecycle emails.\" For in-app onboarding, see onboarding-cro.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -2311,7 +2232,7 @@
       "name": "facebook-marketing",
       "slug": "facebook-marketing",
       "description": "Create, optimize, and automate Facebook content for Pages, Groups, and Ads. Use when someone asks to \"grow Facebook page\", \"create Facebook ads\", \"manage Facebook group\", \"Facebook API integration\", \"automate Facebook posting\", \"Facebook analytics\", or \"Facebook marketing strategy\". Covers Pages, Groups, Graph API publishing, Ads Manager API, Messenger bots, and growth strategies.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -2352,13 +2273,6 @@
       "name": "fastapi",
       "slug": "fastapi",
       "description": "FastAPI is a modern, high-performance Python web framework for building APIs. It leverages Python type hints and Pydantic for automatic validation, serialization, and OpenAPI documentation generation with async/await support out of the box.",
-      "category": "development",
-      "tags": []
-    },
-    {
-      "name": "fastapi-advanced",
-      "slug": "fastapi-advanced",
-      "description": "Build production APIs with FastAPI advanced patterns. Use when a user asks to implement dependency injection, background tasks, WebSockets, middleware, database sessions, or structured error handling in FastAPI.",
       "category": "development",
       "tags": []
     },
@@ -2407,19 +2321,6 @@
       "description": "Transcode, convert, edit, and process audio and video with FFmpeg. Use when a user asks to convert video formats (webm to mp4, mkv to mp4), extract audio from video, compress video files, trim or cut clips, concatenate videos, add subtitles, create thumbnails, apply filters, change resolution or bitrate, re-encode media, create GIFs from video, add watermarks, normalize audio, stream media, or build automated media processing pipelines.",
       "category": "content",
       "tags": []
-    },
-    {
-      "name": "ffmpeg-video-editing",
-      "slug": "ffmpeg-video-editing",
-      "description": "Edit, convert, trim, merge, and process video files using ffmpeg. Use when the user wants to cut video clips, change format, resize, add watermarks, create GIFs, extract audio, adjust speed, concatenate videos, or compress video files from the command line.",
-      "category": "content",
-      "tags": [
-        "video",
-        "audio",
-        "ffmpeg",
-        "multimedia",
-        "conversion"
-      ]
     },
     {
       "name": "ffuf",
@@ -2571,7 +2472,7 @@
       "name": "form-cro",
       "slug": "form-cro",
       "description": "When the user wants to optimize any form that is NOT signup/registration — including lead capture forms, contact forms, demo request forms, application forms, survey forms, or checkout forms. Also use when the user mentions \"form optimization,\" \"lead form conversions,\" \"form friction,\" \"form fields,\" \"form completion rate,\" or \"contact form.\" For signup/registration forms, see signup-flow-cro. For popups containing forms, see popup-cro.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -2617,7 +2518,7 @@
       "name": "free-tool-strategy",
       "slug": "free-tool-strategy",
       "description": "When the user wants to plan, evaluate, or build a free tool for marketing purposes — lead generation, SEO value, or brand awareness. Also use when the user mentions \"engineering as marketing,\" \"free tool,\" \"marketing tool,\" \"calculator,\" \"generator,\" \"interactive tool,\" \"lead gen tool,\" \"build a tool for leads,\" or \"free resource.\" This skill bridges engineering and marketing — useful for founders and technical marketers.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -2746,13 +2647,6 @@
         "deployment",
         "github"
       ]
-    },
-    {
-      "name": "github-actions-advanced",
-      "slug": "github-actions-advanced",
-      "description": "Build advanced CI/CD pipelines with GitHub Actions. Use when a user asks to create reusable workflows, build matrix strategies, implement conditional deployments, cache dependencies, or optimize CI pipeline speed.",
-      "category": "devops",
-      "tags": []
     },
     {
       "name": "github-copilot",
@@ -3060,19 +2954,6 @@
       ]
     },
     {
-      "name": "infra-rate-limiting",
-      "slug": "infra-rate-limiting",
-      "description": "Assists with configuring infrastructure-level rate limiting at the reverse proxy, API gateway, CDN, and WAF layers. Use when setting up Nginx rate limiting, Cloudflare rate rules, AWS API Gateway throttling, Kong rate limiting plugins, or CDN-level DDoS protection. Trigger words: nginx rate limit, api gateway throttling, cloudflare rate limiting, waf, cdn rate limit, infrastructure throttling.",
-      "category": "devops",
-      "tags": [
-        "rate-limiting",
-        "nginx",
-        "api-gateway",
-        "cdn",
-        "waf"
-      ]
-    },
-    {
       "name": "inngest",
       "slug": "inngest",
       "description": "Build reliable background jobs and workflows with Inngest. Use when a user asks to run background tasks, create event-driven workflows, build reliable job queues, set up step functions for long-running processes, schedule recurring jobs, handle webhook processing, build multi-step async workflows, add retries and error handling to background jobs, or replace BullMQ/Celery with a serverless-friendly alternative. Covers event sending, function definition, step orchestration, retries, scheduling, and fan-out patterns.",
@@ -3096,7 +2977,7 @@
       "name": "instagram-marketing",
       "slug": "instagram-marketing",
       "description": "Create, optimize, and automate Instagram content including Reels, Stories, carousels, and feed posts. Use when someone asks to \"grow on Instagram\", \"create Instagram Reels\", \"Instagram content strategy\", \"Instagram API integration\", \"automate Instagram posting\", \"Instagram analytics\", or \"Instagram marketing\". Covers Reels-first strategy, visual content guidelines, Instagram Graph API, and growth tactics.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -3482,7 +3363,7 @@
       "name": "launch-strategy",
       "slug": "launch-strategy",
       "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' or 'product update.' This skill covers phased launches, channel strategy, and ongoing launch momentum.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -3570,7 +3451,7 @@
       "name": "linkedin-marketing",
       "slug": "linkedin-marketing",
       "description": "Create, optimize, and automate LinkedIn content for personal branding, lead generation, and B2B marketing. Use when someone asks to \"write a LinkedIn post\", \"grow on LinkedIn\", \"LinkedIn content strategy\", \"LinkedIn API integration\", \"automate LinkedIn posting\", \"LinkedIn carousel\", \"LinkedIn analytics\", or \"LinkedIn outreach\". Covers content creation with platform-specific formatting, API integration, analytics, and growth strategies.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -3830,14 +3711,14 @@
       "name": "marketing-ideas",
       "slug": "marketing-ideas",
       "description": "When the user needs marketing ideas, inspiration, or strategies for their SaaS or software product. Also use when the user asks for 'marketing ideas,' 'growth ideas,' 'how to market,' 'marketing strategies,' 'marketing tactics,' 'ways to promote,' or 'ideas to grow.' This skill provides 139 proven marketing approaches organized by category.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
       "name": "marketing-psychology",
       "slug": "marketing-psychology",
       "description": "When the user wants to apply psychological principles, mental models, or behavioral science to marketing. Also use when the user mentions 'psychology,' 'mental models,' 'cognitive bias,' 'persuasion,' 'behavioral science,' 'why people buy,' 'decision-making,' or 'consumer behavior.' This skill provides 70+ mental models organized for marketing application.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -4024,19 +3905,6 @@
       "tags": []
     },
     {
-      "name": "model-router",
-      "slug": "model-router",
-      "description": "Smart routing between multiple LLMs based on task complexity, cost, and capabilities. Use when a user asks to route between models, optimize LLM costs, select the best model for a task, build a model gateway, create a multi-model pipeline, or balance cost vs quality across LLM providers. Covers routing strategies, fallback chains, and cost optimization.",
-      "category": "data-ai",
-      "tags": [
-        "routing",
-        "llm",
-        "multi-model",
-        "cost-optimization",
-        "gateway"
-      ]
-    },
-    {
       "name": "mojo",
       "slug": "mojo",
       "description": "Expert guidance for Mojo, the programming language by Modular that combines Python's usability with C-level performance. Helps developers write high-performance AI/ML code, optimize numerical computations with SIMD and parallelism, and gradually port Python code to Mojo for orders-of-magnitude speedups.",
@@ -4143,19 +4011,6 @@
       ]
     },
     {
-      "name": "n8n-workflow",
-      "slug": "n8n-workflow",
-      "description": "Automate document workflows with n8n. Use when a user asks to create an n8n workflow, automate a process, connect services, build an integration pipeline, set up webhook triggers, or access n8n workflow templates. Covers workflow design, node configuration, and accessing 7800+ community templates.",
-      "category": "automation",
-      "tags": [
-        "n8n",
-        "workflow",
-        "automation",
-        "integration",
-        "no-code"
-      ]
-    },
-    {
       "name": "n8n-workflow-sdk",
       "slug": "n8n-workflow-sdk",
       "description": "Build n8n workflows programmatically with the official TypeScript SDK. Use when a user asks to create n8n workflows from code, generate workflow JSON, build automation pipelines programmatically, convert between n8n JSON and TypeScript, or integrate n8n workflow creation into applications.",
@@ -4254,13 +4109,6 @@
         "browser-monitoring",
         "alerts"
       ]
-    },
-    {
-      "name": "next-auth",
-      "slug": "next-auth",
-      "description": "Add authentication to Next.js with NextAuth.js (Auth.js). Use when a user asks to add login to Next.js, implement OAuth, set up session management, protect routes, or integrate social login providers.",
-      "category": "development",
-      "tags": []
     },
     {
       "name": "next-intl",
@@ -4521,23 +4369,10 @@
       "tags": []
     },
     {
-      "name": "ollama-local",
-      "slug": "ollama-local",
-      "description": "Run open-source LLMs locally with Ollama. Use when a user asks to run a local language model, install Ollama, use Llama locally, run Mistral or DeepSeek on their machine, set up local AI inference, create a custom Modelfile, or serve models via a local API. Covers installation, model management, API usage, and custom model creation.",
-      "category": "data-ai",
-      "tags": [
-        "ollama",
-        "local-llm",
-        "llama",
-        "inference",
-        "self-hosted"
-      ]
-    },
-    {
       "name": "onboarding-cro",
       "slug": "onboarding-cro",
       "description": "When the user wants to optimize post-signup onboarding, user activation, first-run experience, or time-to-value. Also use when the user mentions \"onboarding flow,\" \"activation rate,\" \"user activation,\" \"first-run experience,\" \"empty states,\" \"onboarding checklist,\" \"aha moment,\" or \"new user experience.\" For signup/registration optimization, see signup-flow-cro. For ongoing email sequences, see email-sequence.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -4752,7 +4587,7 @@
       "name": "page-cro",
       "slug": "page-cro",
       "description": "When the user wants to optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. Also use when the user says \"CRO,\" \"conversion rate optimization,\" \"this page isn't converting,\" \"improve conversions,\" or \"why isn't this page working.\" For signup/registration flows, see signup-flow-cro. For post-signup activation, see onboarding-cro. For forms outside of signup, see form-cro. For popups/modals, see popup-cro.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -4772,7 +4607,7 @@
       "name": "paid-ads",
       "slug": "paid-ads",
       "description": "When the user wants help with paid advertising campaigns on Google Ads, Meta (Facebook/Instagram), LinkedIn, Twitter/X, or other ad platforms. Also use when the user mentions 'PPC,' 'paid media,' 'ad copy,' 'ad creative,' 'ROAS,' 'CPA,' 'ad campaign,' 'retargeting,' or 'audience targeting.' This skill covers campaign strategy, ad creation, audience targeting, and optimization.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -4839,7 +4674,7 @@
       "name": "paywall-upgrade-cro",
       "slug": "paywall-upgrade-cro",
       "description": "When the user wants to create or optimize in-app paywalls, upgrade screens, upsell modals, or feature gates. Also use when the user mentions \"paywall,\" \"upgrade screen,\" \"upgrade modal,\" \"upsell,\" \"feature gate,\" \"convert free to paid,\" \"freemium conversion,\" \"trial expiration screen,\" \"limit reached screen,\" \"plan upgrade prompt,\" or \"in-app pricing.\" Distinct from public pricing pages (see page-cro) — this skill focuses on in-product upgrade moments where the user has already experienced value.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -5079,7 +4914,7 @@
       "name": "popup-cro",
       "slug": "popup-cro",
       "description": "When the user wants to create or optimize popups, modals, overlays, slide-ins, or banners for conversion purposes. Also use when the user mentions \"exit intent,\" \"popup conversions,\" \"modal optimization,\" \"lead capture popup,\" \"email popup,\" \"announcement banner,\" or \"overlay.\" For forms outside of popups, see form-cro. For general page conversion optimization, see page-cro.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -5175,7 +5010,7 @@
       "name": "pricing-strategy",
       "slug": "pricing-strategy",
       "description": "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' or 'monetization.' This skill covers pricing research, tier structure, and packaging strategy.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -5209,7 +5044,7 @@
       "name": "product-marketing-context",
       "slug": "product-marketing-context",
       "description": "When the user wants to create or update their product marketing context document. Also use when the user mentions 'product context,' 'marketing context,' 'set up context,' 'positioning,' or wants to avoid repeating foundational information across marketing tasks. Creates `.claude/product-marketing-context.md` that other marketing skills reference.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -5223,7 +5058,7 @@
       "name": "programmatic-seo",
       "slug": "programmatic-seo",
       "description": "When the user wants to create SEO-driven pages at scale using templates and data. Also use when the user mentions \"programmatic SEO,\" \"template pages,\" \"pages at scale,\" \"directory pages,\" \"location pages,\" \"[keyword] + [city] pages,\" \"comparison pages,\" \"integration pages,\" or \"building many pages for SEO.\" For auditing existing SEO issues, see seo-audit.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -5457,13 +5292,6 @@
       ]
     },
     {
-      "name": "react-email-advanced",
-      "slug": "react-email-advanced",
-      "description": "Build email templates with React Email. Use when a user asks to create responsive HTML emails with React components, build a transactional email system, design email templates with TypeScript, or preview emails locally.",
-      "category": "business",
-      "tags": []
-    },
-    {
       "name": "react-hook-form",
       "slug": "react-hook-form",
       "description": "Build performant forms in React with React Hook Form. Use when a user asks to handle form validation, build complex multi-step forms, integrate forms with Zod schemas, or reduce form re-renders in React.",
@@ -5495,13 +5323,6 @@
         "gestures",
         "ui"
       ]
-    },
-    {
-      "name": "react-query",
-      "slug": "react-query",
-      "description": "Manage server state in React with TanStack Query. Use when a user asks to fetch data in React, cache API responses, handle loading/error states, implement optimistic updates, or manage server state efficiently.",
-      "category": "development",
-      "tags": []
     },
     {
       "name": "realtime-analytics",
@@ -5583,7 +5404,7 @@
       "name": "referral-program",
       "slug": "referral-program",
       "description": "When the user wants to create, optimize, or analyze a referral program, affiliate program, or word-of-mouth strategy. Also use when the user mentions 'referral,' 'affiliate,' 'ambassador,' 'word of mouth,' 'viral loop,' 'refer a friend,' or 'partner program.' This skill covers program design, incentive structure, and growth optimization.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -5851,7 +5672,7 @@
       "name": "schema-markup",
       "slug": "schema-markup",
       "description": "When the user wants to add, fix, or optimize schema markup and structured data on their site. Also use when the user mentions \"schema markup,\" \"structured data,\" \"JSON-LD,\" \"rich snippets,\" \"schema.org,\" \"FAQ schema,\" \"product schema,\" \"review schema,\" or \"breadcrumb schema.\" For broader SEO issues, see seo-audit.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -5982,7 +5803,7 @@
       "name": "seo-audit",
       "slug": "seo-audit",
       "description": "When the user wants to audit, review, or diagnose SEO issues on their site. Also use when the user mentions \"SEO audit,\" \"technical SEO,\" \"why am I not ranking,\" \"SEO issues,\" \"on-page SEO,\" \"meta tags review,\" or \"SEO health check.\" For building pages at scale to target keywords, see programmatic-seo. For adding structured data, see schema-markup.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -6026,23 +5847,10 @@
       "tags": []
     },
     {
-      "name": "sharp-image",
-      "slug": "sharp-image",
-      "description": "Process images at high speed with sharp — resize, crop, convert formats, add watermarks, extract metadata, and generate thumbnails. Built on libvips for performance far exceeding Canvas or ImageMagick. Use when tasks involve image processing pipelines, thumbnail generation, format conversion, or building image upload APIs.",
-      "category": "design",
-      "tags": [
-        "sharp",
-        "image-processing",
-        "resize",
-        "thumbnails",
-        "webp"
-      ]
-    },
-    {
       "name": "shopify",
       "slug": "shopify",
       "description": "Build and customize Shopify stores — themes with Liquid, Storefront API, custom apps, and headless commerce with Hydrogen. Use when someone asks to \"build a Shopify store\", \"Shopify theme\", \"Liquid templates\", \"Shopify API\", \"Shopify app\", \"headless Shopify\", \"Hydrogen storefront\", \"customize Shopify\", \"Shopify product management\", or \"e-commerce with Shopify\". Covers Liquid templating, theme development, Storefront/Admin APIs, custom apps, checkout extensions, and Hydrogen (React-based headless).",
-      "category": "ecommerce",
+      "category": "business",
       "tags": [
         "shopify",
         "ecommerce",
@@ -6063,7 +5871,7 @@
       "name": "signup-flow-cro",
       "slug": "signup-flow-cro",
       "description": "When the user wants to optimize signup, registration, account creation, or trial activation flows. Also use when the user mentions \"signup conversions,\" \"registration friction,\" \"signup form optimization,\" \"free trial signup,\" \"reduce signup dropoff,\" or \"account creation flow.\" For post-signup onboarding, see onboarding-cro. For lead capture forms (not account creation), see form-cro.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -6096,7 +5904,7 @@
       "name": "social-content",
       "slug": "social-content",
       "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -6591,13 +6399,6 @@
       ]
     },
     {
-      "name": "terraform-modules",
-      "slug": "terraform-modules",
-      "description": "Build reusable Terraform modules. Use when a user asks to create reusable infrastructure components, organize Terraform code, build a module registry, or standardize infrastructure across teams and environments.",
-      "category": "devops",
-      "tags": []
-    },
-    {
       "name": "test-generator",
       "slug": "test-generator",
       "description": "Generate unit, integration, and end-to-end tests for existing code. Use when a user asks to write tests, add test coverage, create unit tests, generate integration tests, build e2e tests, improve code coverage, write specs, or add testing to a project. Supports Jest, Vitest, Pytest, Playwright, React Testing Library, and Cypress. Analyzes code to produce meaningful assertions, edge cases, and mock setups.",
@@ -6660,14 +6461,14 @@
       "name": "tiktok-marketing",
       "slug": "tiktok-marketing",
       "description": "Create, optimize, and automate TikTok content for brand awareness, audience growth, and conversions. Use when someone asks to \"grow on TikTok\", \"create TikTok content\", \"TikTok marketing strategy\", \"TikTok API integration\", \"automate TikTok posting\", \"TikTok analytics\", or \"TikTok for business\". Covers short-form video strategy, trending sounds, TikTok Content Posting API, analytics, and growth tactics.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
       "name": "tilda",
       "slug": "tilda",
       "description": "Build and customize websites with Tilda — zero-code website builder with advanced customization. Use when someone asks to \"build a website with Tilda\", \"Tilda Publishing\", \"customize Tilda site\", \"Tilda API\", \"landing page builder\", \"no-code website\", \"Tilda custom code\", or \"integrate Tilda with external services\". Covers block-based building, custom HTML/CSS/JS, Tilda API, form handling, e-commerce, and integrations.",
-      "category": "frontend",
+      "category": "development",
       "tags": [
         "tilda",
         "website-builder",
@@ -6829,7 +6630,7 @@
       "name": "twitter-x-marketing",
       "slug": "twitter-x-marketing",
       "description": "Create, optimize, and automate content for Twitter/X including tweets, threads, Spaces, and API automation. Use when someone asks to \"write a tweet\", \"create a Twitter thread\", \"grow on X\", \"Twitter API integration\", \"automate tweeting\", \"Twitter analytics\", \"Twitter bot\", or \"X content strategy\". Covers platform-specific formatting, X API v2 integration, thread creation, analytics, and growth tactics.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -6891,19 +6692,6 @@
       "description": "Handle file uploads in TypeScript apps with UploadThing. Use when a user asks to implement file uploads, handle image uploads in Next.js, add drag and drop file upload, or integrate S3-backed file storage without managing infrastructure.",
       "category": "development",
       "tags": []
-    },
-    {
-      "name": "uploadthing-advanced",
-      "slug": "uploadthing-advanced",
-      "description": "Handle file uploads in Next.js with UploadThing. Use when adding file uploads, implementing image upload with preview, building drag-and-drop upload UI, or handling large file uploads with progress.",
-      "category": "content",
-      "tags": [
-        "uploadthing",
-        "file-upload",
-        "nextjs",
-        "s3",
-        "drag-drop"
-      ]
     },
     {
       "name": "upstash",
@@ -6990,20 +6778,6 @@
         "proxy",
         "store"
       ]
-    },
-    {
-      "name": "vault",
-      "slug": "vault",
-      "description": "HashiCorp Vault for secrets management and data protection. Use when the user needs to store and access secrets, manage encryption keys, configure dynamic credentials, handle PKI certificates, or integrate secrets into applications.",
-      "category": "devops",
-      "tags": []
-    },
-    {
-      "name": "vault-secrets",
-      "slug": "vault-secrets",
-      "description": "Manage application secrets with HashiCorp Vault. Use when a user asks to store API keys securely, rotate database credentials, manage certificates, inject secrets into applications, or implement dynamic secrets.",
-      "category": "devops",
-      "tags": []
     },
     {
       "name": "vector",
@@ -7379,7 +7153,7 @@
       "name": "youtube-marketing",
       "slug": "youtube-marketing",
       "description": "Create, optimize, and manage YouTube content for channel growth, audience building, and monetization. Use when someone asks to \"grow on YouTube\", \"optimize YouTube videos\", \"YouTube SEO\", \"YouTube Shorts strategy\", \"YouTube API integration\", \"automate YouTube uploads\", \"YouTube analytics\", \"YouTube thumbnail\", or \"YouTube content strategy\". Covers long-form video, Shorts, SEO, thumbnail design, YouTube Data API, analytics, monetization, and growth strategies.",
-      "category": "marketing",
+      "category": "business",
       "tags": []
     },
     {
@@ -7506,11 +7280,8 @@
     "development",
     "devops",
     "documents",
-    "ecommerce",
-    "frontend",
-    "marketing",
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-03-06T21:59:53.345Z"
+  "updatedAt": "2026-03-06T22:35:37.697Z"
 }

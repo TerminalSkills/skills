@@ -6,8 +6,7 @@ skills:
   - nextjs
   - tanstack
   - zod
-  - neon
-category: development
+  - neoncategory: development
 tags:
   - dashboard
   - react
@@ -33,7 +32,7 @@ import { db } from "@/lib/db";
 import { deliveries } from "@/lib/schema";
 import { desc, sql } from "drizzle-orm";
 import { DeliveryDashboard } from "./delivery-dashboard";
-import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { HydrationBoundary, dehydrate } from "@tanstack/tanstack";
 import { getQueryClient } from "@/lib/query-client";
 
 export const metadata = {
@@ -204,7 +203,7 @@ import {
   type ColumnFiltersState,
   type PaginationState,
 } from "@tanstack/react-table";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/tanstack";
 import { columns } from "./columns";
 import { StatsCards } from "./stats-cards";
 

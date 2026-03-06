@@ -4,7 +4,7 @@ description: When the user wants to write, rewrite, or improve marketing copy fo
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - copywriting
     - conversion

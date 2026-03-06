@@ -5,8 +5,7 @@ description: "Combine structured logging, metrics collection, and intelligent al
 skills:
   - observability-setup
   - log-analyzer
-  - alert-optimizer
-category: devops
+  - alert-optimizercategory: devops
 tags:
   - observability
   - logging

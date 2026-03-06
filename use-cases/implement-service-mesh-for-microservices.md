@@ -8,8 +8,7 @@ description: >-
 skills:
   - istio
   - kubernetes-helm
-  - docker-compose
-category: devops
+  - docker-helpercategory: devops
 tags:
   - istio
   - service-mesh
@@ -27,7 +26,7 @@ You have an existing Kubernetes cluster running a microservices application — 
 Before deploying to Kubernetes with Istio, verify the microservices work together locally.
 
 ```yaml
-# docker-compose.yml — Local development stack for the microservices
+# docker-helper.yml — Local development stack for the microservices
 version: "3.8"
 services:
   frontend:

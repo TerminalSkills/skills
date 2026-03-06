@@ -7,8 +7,7 @@ skills:
   - llamaindex
   - chromadb
   - instructor
-  - nextjs
-category: data-ai
+  - nextjscategory: data-ai
 tags:
   - rag
   - chatbot

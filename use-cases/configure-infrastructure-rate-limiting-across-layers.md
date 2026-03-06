@@ -3,10 +3,8 @@ title: "Configure Infrastructure Rate Limiting Across Proxy, Gateway, and CDN"
 slug: configure-infrastructure-rate-limiting-across-layers
 description: "Set up layered rate limiting at Nginx, API gateway, and CDN levels to protect APIs from abuse without touching application code."
 skills:
-  - infra-rate-limiting
   - rate-limiter
-  - load-balancer
-category: devops
+  - load-balancercategory: devops
 tags:
   - rate-limiting
   - nginx
@@ -23,7 +21,7 @@ Your API is getting hammered by scrapers and misbehaving clients. The applicatio
 
 ## The Solution
 
-Use **infra-rate-limiting** to configure Nginx rate zones, API gateway throttling policies, and CDN-level rules, **rate-limiter** for application-layer per-user limits that complement the infrastructure rules, and **load-balancer** to distribute surviving traffic across healthy backends. Together these create a defense-in-depth setup where each layer catches what the one above missed.
+Use **rate-limiter** to configure Nginx rate zones, API gateway throttling policies, and CDN-level rules, **rate-limiter** for application-layer per-user limits that complement the infrastructure rules, and **load-balancer** to distribute surviving traffic across healthy backends. Together these create a defense-in-depth setup where each layer catches what the one above missed.
 
 ## Step-by-Step Walkthrough
 
@@ -91,7 +89,7 @@ The agent runs graduated load tests and reports which layer caught each type of 
 
 ## Real-World Example
 
-A fintech startup's public API was being scraped by competitors, causing response times to spike to 3 seconds during business hours. They used the infra-rate-limiting skill to add Nginx rate zones (dropping 80% of scraper traffic before it hit the app), Kong throttling per API key tier, and Cloudflare rules for volumetric attacks. After deploying the three-layer setup, p99 latency dropped from 3.1 seconds to 180ms and their monthly bandwidth bill decreased by 35%. The application-level rate limiter now only handles per-user fairness logic, not abuse prevention.
+A fintech startup's public API was being scraped by competitors, causing response times to spike to 3 seconds during business hours. They used the rate-limiter skill to add Nginx rate zones (dropping 80% of scraper traffic before it hit the app), Kong throttling per API key tier, and Cloudflare rules for volumetric attacks. After deploying the three-layer setup, p99 latency dropped from 3.1 seconds to 180ms and their monthly bandwidth bill decreased by 35%. The application-level rate limiter now only handles per-user fairness logic, not abuse prevention.
 
 ## Tips
 

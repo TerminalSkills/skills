@@ -104,7 +104,7 @@ The generated service includes:
 - **Elasticsearch client configuration** extracted from the Rails codebase, with connection pooling and retry logic
 - **Event consumer** for catalog sync, replacing the ActiveRecord callbacks with a message queue consumer that processes catalog changes asynchronously
 - **Multi-stage Dockerfile** — build stage compiles TypeScript, runtime stage contains only production dependencies (final image: 85MB)
-- **docker-compose** for local development with Elasticsearch, Redis, and RabbitMQ
+- **docker-helper** for local development with Elasticsearch, Redis, and RabbitMQ
 - **Health check endpoints** for Kubernetes readiness and liveness probes
 
 This is deliberately boring — and that's the point. The goal is identical behavior in a separate process, not a better search engine. No rewriting the ranking algorithm. No adding new features. No "while we're at it, let's also fix the pagination." Improvements come later, after the extraction is proven in production and the team has confidence in the service boundary.

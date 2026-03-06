@@ -4,7 +4,7 @@ description: When the user wants to plan a content strategy, decide what content
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - content
     - strategy

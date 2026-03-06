@@ -15,7 +15,7 @@ Every morning at Raj's 42-person e-commerce startup, the development team waits.
 
 CI/CD is a nightmare. 47 builds daily across 6 services. Each failed build wastes the full build time plus developer context-switching. Monthly Docker Hub costs: $340 for bandwidth overages from massive image pulls. AWS ECS deployments take 8-12 minutes just downloading images. The math is devastating: 23 engineers multiplied by 2.3 context switches daily multiplied by 15 minutes equals 79 lost engineering hours weekly.
 
-Local development is broken too. `docker-compose up` takes 11 minutes on fresh checkout. New team members spend their first day watching progress bars. The development database fails to start due to port conflicts, volume mount issues, or race conditions between services. Six different engineers have their own "docker fixes" in local setup scripts.
+Local development is broken too. `docker-helper up` takes 11 minutes on fresh checkout. New team members spend their first day watching progress bars. The development database fails to start due to port conflicts, volume mount issues, or race conditions between services. Six different engineers have their own "docker fixes" in local setup scripts.
 
 ## The Solution
 
@@ -98,7 +98,7 @@ The Go image deserves special attention: `scratch` means literally nothing in th
 ### Step 3: Fix Orchestration with Proper Health Checks
 
 ```text
-Create production-ready docker-compose configuration with health checks, proper networking, and development optimizations.
+Create production-ready docker-helper configuration with health checks, proper networking, and development optimizations.
 ```
 
 The root cause of "it works on my machine" is almost always race conditions during startup. Services start in parallel, the API tries to connect to Postgres before it's ready, and everything falls over.
@@ -202,6 +202,6 @@ New developer setup time drops from 47 minutes to 8 minutes. Docker-related supp
 
 The DevOps engineer at a 50-person SaaS company was spending 15 hours weekly troubleshooting Docker issues. Builds took forever, images were massive, and deployments failed randomly. The team was considering abandoning containers entirely.
 
-Monday, the docker-optimizer audit uncovered the waste: 3.2 GB images for apps that needed 200 MB, build dependencies shipped to production, zero layer caching, dependencies recompiled from scratch every build. Tuesday, multi-stage builds went in for all 8 services. Frontend image: 3.2 GB to 180 MB. Backend API: 2.1 GB to 95 MB. ML service: 4.7 GB to 340 MB. Total registry storage dropped 91%. Wednesday, docker-compose got proper health checks and service dependencies, and the CI/CD pipeline got parallel builds. Full pipeline time: 52 minutes to 11 minutes.
+Monday, the docker-optimizer audit uncovered the waste: 3.2 GB images for apps that needed 200 MB, build dependencies shipped to production, zero layer caching, dependencies recompiled from scratch every build. Tuesday, multi-stage builds went in for all 8 services. Frontend image: 3.2 GB to 180 MB. Backend API: 2.1 GB to 95 MB. ML service: 4.7 GB to 340 MB. Total registry storage dropped 91%. Wednesday, docker-helper got proper health checks and service dependencies, and the CI/CD pipeline got parallel builds. Full pipeline time: 52 minutes to 11 minutes.
 
 One month later: feature deployment frequency up 40% from faster feedback loops, AWS costs down $1,100/month, and zero developer hours lost to Docker issues. The team that almost abandoned containers now considers them a competitive advantage.

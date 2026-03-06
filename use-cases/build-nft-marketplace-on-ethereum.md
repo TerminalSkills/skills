@@ -10,8 +10,7 @@ skills:
   - hardhat
   - wagmi
   - ipfs
-  - ethers-js
-category: development
+  - ethers-jscategory: development
 tags:
   - nft
   - marketplace

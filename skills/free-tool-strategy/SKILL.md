@@ -4,7 +4,7 @@ description: When the user wants to plan, evaluate, or build a free tool for mar
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - growth
     - lead-generation

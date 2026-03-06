@@ -4,7 +4,7 @@ description: When the user wants to optimize post-signup onboarding, user activa
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: marketing
+  category: business
   tags:
     - onboarding
     - activation

@@ -3,12 +3,11 @@ title: Build an Internal Analytics Platform for a SaaS Product
 slug: build-internal-analytics-platform-for-saas
 description: Build a self-serve analytics platform using DuckDB via MotherDuck for the data warehouse, Ibis for portable Python analytics, Cube as the semantic layer, Evidence for SQL-driven dashboards, and Pandera for data quality validation.
 skills:
-- motherduck
-- ibis
-- cube
-- evidence
-- pandera
-category: data-ai
+  - motherduck
+  - ibis
+  - cube
+  - evidence
+  - panderacategory: data-ai
 tags:
 - analytics
 - dashboards

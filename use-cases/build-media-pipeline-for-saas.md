@@ -6,12 +6,11 @@ description: >-
   responsive delivery, and CDN caching — for a SaaS application using
   UploadThing, Cloudinary, and imgix.
 skills:
-  - uploadthing-advanced
+  - uploadthing
   - cloudinary
   - imgix
-  - sharp-image
-  - s3-storage
-category: content
+  - sharp
+  - s3-storagecategory: content
 tags:
   - images
   - uploads

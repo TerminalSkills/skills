@@ -50,7 +50,7 @@ The architecture:
 The Docker Compose file gets all three components running on a single server:
 
 ```yaml
-# docker-compose.logging.yml
+# docker-helper.logging.yml
 services:
   loki:
     image: grafana/loki:2.9.4

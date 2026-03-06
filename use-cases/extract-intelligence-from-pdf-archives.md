@@ -4,9 +4,7 @@ slug: extract-intelligence-from-pdf-archives
 description: "Process large collections of scanned and digital PDFs to extract structured data, answer questions across documents, and build searchable knowledge bases."
 skills:
   - pdf-analyzer
-  - pdf-ocr
-  - chat-with-pdf
-category: documents
+  - pdf-ocrcategory: documents
 tags:
   - pdf
   - ocr
@@ -24,7 +22,7 @@ When an analyst needs to compare cap rates across 15 properties or find every le
 
 ## The Solution
 
-Use the **pdf-ocr** skill to convert scanned documents into searchable text, the **pdf-analyzer** skill to extract structured data fields from each document type, and the **chat-with-pdf** skill to query across the processed archive for specific answers.
+Use the **pdf-ocr** skill to convert scanned documents into searchable text, the **pdf-analyzer** skill to extract structured data fields from each document type, and the **pdf-analyzer** skill to query across the processed archive for specific answers.
 
 ## Step-by-Step Walkthrough
 

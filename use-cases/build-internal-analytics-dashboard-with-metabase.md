@@ -5,8 +5,7 @@ description: Deploy Metabase with Docker Compose, connect it to PostgreSQL, and 
 skills:
   - metabase
   - postgresql
-  - docker-compose
-category: data-ai
+  - docker-helpercategory: data-ai
 tags:
   - business-intelligence
   - dashboards
@@ -24,7 +23,7 @@ Every growing team needs visibility into key metrics. Instead of building custom
 Metabase needs its own database for storing dashboards and settings, separate from your application database. This Docker Compose setup runs both.
 
 ```yaml
-# docker-compose.yml: Metabase with its own PostgreSQL and your app database
+# docker-helper.yml: Metabase with its own PostgreSQL and your app database
 services:
   metabase:
     image: metabase/metabase:v0.50.0

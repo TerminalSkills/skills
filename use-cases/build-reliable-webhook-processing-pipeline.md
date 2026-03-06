@@ -8,10 +8,9 @@ description: >-
   pipeline with Redis, add Bull Board for observability, and document the
   system with Docusaurus.
 skills:
-  - bullmq
+  - job-queue
   - redis
-  - docusaurus
-category: development
+  - docusauruscategory: development
 tags:
   - webhooks
   - queues
@@ -36,7 +35,7 @@ The webhook endpoint does the minimum: verify the Stripe signature and push the 
 // This endpoint must respond within 5 seconds to avoid Stripe retries
 
 import { NextRequest, NextResponse } from 'next/server'
-import { Queue } from 'bullmq'
+import { Queue } from 'job-queue'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
@@ -84,7 +83,7 @@ Using the Stripe event ID as the BullMQ job ID is the key to deduplication. If S
 // workers/stripe-worker.ts — Process different webhook event types
 // Each event type has its own handler function for clean separation
 
-import { Worker, Job } from 'bullmq'
+import { Worker, Job } from 'job-queue'
 
 const connection = { host: process.env.REDIS_HOST, port: 6379 }
 
@@ -205,7 +204,7 @@ import express from 'express'
 import { createBullBoard } from '@bull-board/api'
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { ExpressAdapter } from '@bull-board/express'
-import { Queue } from 'bullmq'
+import { Queue } from 'job-queue'
 
 const connection = { host: process.env.REDIS_HOST, port: 6379 }
 
@@ -241,7 +240,7 @@ Bull Board shows job counts by status (waiting, active, completed, failed, delay
 
 ```typescript
 // lib/queue-health.ts — Health check endpoint for monitoring
-import { Queue } from 'bullmq'
+import { Queue } from 'job-queue'
 
 const webhookQueue = new Queue('stripe-webhooks', { connection })
 

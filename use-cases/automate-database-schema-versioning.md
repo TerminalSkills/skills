@@ -39,7 +39,7 @@ Running `pg_dump --schema-only` against the existing database captures everythin
 
 Alongside it, three supporting files:
 
-- **`docker-compose.shadow-db.yml`** — spins up a disposable PostgreSQL instance for testing migrations. It starts in 2 seconds and can be torn down without affecting any real data.
+- **`docker-helper.shadow-db.yml`** — spins up a disposable PostgreSQL instance for testing migrations. It starts in 2 seconds and can be torn down without affecting any real data.
 - **`knexfile.ts`** — configurations for four environments: development (local Postgres), shadow (Docker container), staging, and production. Each has its own connection string and migration table name.
 - **`seeds/development.ts`** — sample data so new developers can start with a populated database instead of staring at empty tables.
 

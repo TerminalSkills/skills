@@ -4,7 +4,7 @@ slug: build-job-queue-worker-system
 description: "Set up a production-grade background job processing system with priorities, retries, scheduled tasks, and progress tracking to handle async workloads at scale."
 skills: [job-queue, docker-helper, batch-processor]
 category: development
-tags: [job-queue, background-workers, async, redis, backend, bullmq, scaling]
+tags: [job-queue, background-workers, async, redis, backend, job-queue, scaling]
 ---
 
 # Build a Job Queue and Background Worker System
@@ -32,7 +32,7 @@ Create a BullMQ job queue system for my Node.js Express API. I need to handle 4 
 The infrastructure starts with Redis for job persistence and four typed queues, each configured for its workload:
 
 ```yaml
-# docker-compose.yml
+# docker-helper.yml
 services:
   redis:
     image: redis:7-alpine
