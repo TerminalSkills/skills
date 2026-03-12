@@ -1,206 +1,134 @@
 ---
 name: unkey
-description: >-
-  Add API key management and rate limiting to your API with Unkey — open-source
-  API authentication infrastructure. Use when someone asks to "add API keys to
-  my API", "rate limit my API", "API key management", "Unkey", "usage-based
-  API billing", "issue API keys to customers", or "per-customer rate limits".
-  Covers key creation, verification, rate limiting, usage tracking, and
-  analytics.
-license: Apache-2.0
-compatibility: "Any HTTP API. TypeScript SDK. Self-hostable or managed cloud."
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["api", "auth", "rate-limiting", "api-keys", "unkey"]
+category: Backend Development
+tags: [api-keys, authentication, rate-limiting, usage, developer-platform]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Unkey
+# Unkey — API Key Management
 
-## Overview
+You are an expert in Unkey, the open-source API key management platform. You help developers create, validate, and manage API keys with built-in rate limiting, usage tracking, temporary keys, key rotation, and per-key permissions — providing the complete API authentication layer for developer platforms, SaaS APIs, and internal services without building custom key infrastructure.
 
-Unkey is open-source API key management infrastructure. Create, verify, and rate-limit API keys with sub-millisecond latency at the edge. Instead of building your own key storage, rate limiter, and usage tracker, Unkey provides it as a service (or self-hosted). Issue keys to customers, set per-key rate limits, track usage for billing, and revoke keys — all through an API.
+## Core Capabilities
 
-## When to Use
-
-- Building a public API that needs API key authentication
-- Per-customer rate limiting (free tier: 100 req/min, pro: 10K req/min)
-- Usage-based billing (track API calls per key for invoicing)
-- Temporary/expiring API keys (trial access, time-limited tokens)
-- Replacing hand-rolled API key systems with a managed solution
-
-## Instructions
-
-### Setup
-
-```bash
-npm install @unkey/api
-# Or for framework integrations:
-npm install @unkey/nextjs  # Next.js middleware
-npm install @unkey/hono    # Hono middleware
-```
-
-### Create an API and Issue Keys
+### Key Management
 
 ```typescript
-// admin/create-key.ts — Issue API keys to customers
 import { Unkey } from "@unkey/api";
 
 const unkey = new Unkey({ rootKey: process.env.UNKEY_ROOT_KEY! });
 
-async function createCustomerKey(customerId: string, plan: "free" | "pro") {
-  const limits = {
-    free: { limit: 100, duration: 60000 },     // 100 req/min
-    pro: { limit: 10000, duration: 60000 },     // 10K req/min
-  };
+// Create API key for a customer
+const { result } = await unkey.keys.create({
+  apiId: process.env.UNKEY_API_ID!,
+  prefix: "sk_live",                       // Key prefix for identification
+  name: "Acme Corp Production Key",
+  ownerId: "customer-42",                  // Link to your user
+  meta: {                                  // Custom metadata
+    plan: "pro",
+    team: "engineering",
+  },
+  roles: ["api.read", "api.write"],        // RBAC permissions
+  ratelimit: {
+    type: "fast",
+    limit: 100,                            // 100 requests
+    duration: 60000,                       // Per minute
+  },
+  remaining: 10000,                        // Total usage limit (optional)
+  expires: Date.now() + 30 * 24 * 60 * 60 * 1000,  // 30 days (optional)
+});
 
-  const { result, error } = await unkey.keys.create({
-    apiId: process.env.UNKEY_API_ID!,
-    prefix: "sk",                    // Key looks like: sk_1a2b3c...
-    ownerId: customerId,             // Link to your customer
-    name: `${customerId}-${plan}`,
-    meta: { plan, createdBy: "admin" },
-    ratelimit: {
-      type: "fast",
-      ...limits[plan],
-    },
-    expires: plan === "free"
-      ? Date.now() + 30 * 24 * 60 * 60 * 1000  // 30-day trial
-      : undefined,
-  });
-
-  if (error) throw new Error(error.message);
-  return result;  // { key: "sk_1a2b3c...", keyId: "key_xxx" }
-}
+console.log(result.key);                   // sk_live_abc123... (show once!)
+console.log(result.keyId);                 // key_xxx (for management)
 ```
 
-### Verify Keys in Your API
+### Key Verification (in your API)
 
 ```typescript
-// middleware/auth.ts — Verify API key on every request
 import { verifyKey } from "@unkey/api";
 
-async function authenticateRequest(req: Request): Promise<{
-  valid: boolean;
-  ownerId?: string;
-  meta?: Record<string, unknown>;
-  remaining?: number;
-}> {
-  const apiKey = req.headers.get("Authorization")?.replace("Bearer ", "");
-
-  if (!apiKey) {
-    return { valid: false };
-  }
+// Middleware — verify API key on every request
+async function authMiddleware(req: Request) {
+  const key = req.headers.get("Authorization")?.replace("Bearer ", "");
+  if (!key) return new Response("Missing API key", { status: 401 });
 
   const { result, error } = await verifyKey({
-    key: apiKey,
+    key,
     apiId: process.env.UNKEY_API_ID!,
   });
 
   if (error || !result.valid) {
-    return { valid: false };
+    return new Response(JSON.stringify({
+      error: "Invalid API key",
+      code: result?.code,                  // "NOT_FOUND" | "RATE_LIMITED" | "USAGE_EXCEEDED" | "EXPIRED"
+    }), { status: result?.code === "RATE_LIMITED" ? 429 : 403 });
   }
 
-  // result includes: valid, ownerId, meta, ratelimit.remaining, ratelimit.limit
+  // Key is valid — access metadata
+  const { ownerId, meta, roles, remaining, ratelimit } = result;
+  console.log(`Customer: ${ownerId}, Plan: ${meta.plan}, Remaining: ${remaining}`);
+
+  // Check permissions
+  if (!roles.includes("api.write") && req.method !== "GET") {
+    return new Response("Insufficient permissions", { status: 403 });
+  }
+
+  // Rate limit info in response headers
   return {
-    valid: true,
-    ownerId: result.ownerId,
-    meta: result.meta,
-    remaining: result.ratelimit?.remaining,
+    ownerId,
+    meta,
+    headers: {
+      "X-RateLimit-Limit": String(ratelimit?.limit),
+      "X-RateLimit-Remaining": String(ratelimit?.remaining),
+      "X-RateLimit-Reset": String(ratelimit?.reset),
+    },
   };
 }
 ```
 
-### Next.js Integration
+### Key Lifecycle
 
 ```typescript
-// middleware.ts — Next.js API route protection with Unkey
-import { withUnkey } from "@unkey/nextjs";
+// Update key (change limits, roles)
+await unkey.keys.update({
+  keyId: "key_xxx",
+  ratelimit: { type: "fast", limit: 500, duration: 60000 },  // Upgrade limit
+  roles: ["api.read", "api.write", "api.admin"],
+  meta: { plan: "enterprise" },
+});
 
-export default withUnkey(
-  async (req, res) => {
-    // req.unkey contains verified key data
-    const { ownerId, meta } = req.unkey!;
+// Revoke key
+await unkey.keys.delete({ keyId: "key_xxx" });
 
-    return res.json({
-      message: "Authenticated!",
-      customer: ownerId,
-      plan: meta?.plan,
-    });
-  },
-  {
-    apiId: process.env.UNKEY_API_ID!,
-    onError: (req, res) => res.status(500).json({ error: "Internal error" }),
-    onUnauthorized: (req, res) => res.status(401).json({ error: "Invalid API key" }),
-  }
-);
-```
-
-### Hono Integration
-
-```typescript
-// src/index.ts — Hono API with Unkey middleware
-import { Hono } from "hono";
-import { unkey } from "@unkey/hono";
-
-const app = new Hono();
-
-// Protect all /api/* routes
-app.use("/api/*", unkey({
+// List keys for a customer
+const { result: keys } = await unkey.apis.listKeys({
   apiId: process.env.UNKEY_API_ID!,
-}));
+  ownerId: "customer-42",
+});
 
-app.get("/api/data", (c) => {
-  const { ownerId, meta } = c.get("unkey")!;
-  return c.json({ data: "secret stuff", customer: ownerId });
+// Usage analytics
+const { result: verifications } = await unkey.keys.getVerifications({
+  keyId: "key_xxx",
+  start: Date.now() - 7 * 24 * 60 * 60 * 1000,  // Last 7 days
+  end: Date.now(),
+  granularity: "day",
 });
 ```
 
-### Usage Tracking for Billing
+## Installation
 
-```typescript
-// billing/usage.ts — Track and bill API usage per customer
-import { Unkey } from "@unkey/api";
-
-const unkey = new Unkey({ rootKey: process.env.UNKEY_ROOT_KEY! });
-
-async function getCustomerUsage(keyId: string) {
-  const { result } = await unkey.keys.getVerifications({
-    keyId,
-    granularity: "day",
-  });
-
-  // result.verifications = [{ time: "2026-02-26", success: 1234, rateLimited: 12 }]
-  const totalCalls = result!.verifications.reduce((sum, v) => sum + v.success, 0);
-  const rateLimited = result!.verifications.reduce((sum, v) => sum + v.rateLimited, 0);
-
-  return { totalCalls, rateLimited, daily: result!.verifications };
-}
+```bash
+npm install @unkey/api
 ```
 
-## Examples
+## Best Practices
 
-### Example 1: Add API keys to an existing API
-
-**User prompt:** "I have a REST API. Add API key authentication with rate limiting."
-
-The agent will set up Unkey, create a key issuance endpoint, add verification middleware, and configure per-plan rate limits.
-
-### Example 2: Usage-based billing for API
-
-**User prompt:** "I need to charge customers based on how many API calls they make each month."
-
-The agent will use Unkey's verification analytics to track calls per key, aggregate monthly usage, and generate invoices via Stripe.
-
-## Guidelines
-
-- **`verifyKey` on every request** — sub-millisecond at the edge
-- **`ownerId` links keys to your customers** — map to your user IDs
-- **`meta` for custom data** — plan, team, permissions stored with the key
-- **Rate limits are per-key** — different keys can have different limits
-- **Expiring keys for trials** — set `expires` timestamp on key creation
-- **Revoke instantly** — deleted keys fail verification immediately
-- **Prefix your keys** — `sk_` for secret keys, `pk_` for publishable
-- **Self-hostable** — run Unkey yourself or use the managed cloud
-- **Don't log full keys** — only the key ID for audit trails
+1. **Prefix keys** — Use `sk_live_`, `sk_test_` prefixes; identifies key type at a glance
+2. **Rate limiting built-in** — Set per-key rate limits at creation; Unkey enforces at verify time
+3. **Usage limits** — Set `remaining` for prepaid/quota models; key auto-invalidates when exhausted
+4. **RBAC roles** — Assign roles to keys; check in your middleware; scope access per endpoint
+5. **Key rotation** — Create new key, update client, revoke old; zero-downtime rotation
+6. **Metadata** — Store plan, team, environment in `meta`; use for analytics and feature flags
+7. **Expiring keys** — Set `expires` for trial keys, temporary access; auto-expire without cron
+8. **Self-hostable** — Run Unkey on your own infrastructure for data sovereignty; open-source
