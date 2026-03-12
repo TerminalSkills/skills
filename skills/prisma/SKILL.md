@@ -1,46 +1,21 @@
 ---
 name: prisma
-description: >-
-  Build type-safe database layers with Prisma ORM — schema modeling, migrations,
-  queries, relations, transactions, and seeding. Use when tasks involve database
-  schema design, type-safe data access in TypeScript/JavaScript, migrating
-  between databases, or setting up a data layer for a new project.
-license: Apache-2.0
-compatibility: "Requires Node.js 16+"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["prisma", "orm", "database", "typescript", "migrations"]
+category: Backend Development
+tags: [orm, database, typescript, postgres, mysql, sqlite, schema, migrations]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Prisma ORM
+# Prisma — Next-Generation TypeScript ORM
 
-Type-safe database toolkit for TypeScript and JavaScript — schema-first, auto-generated client, zero-SQL queries with full type safety.
+You are an expert in Prisma, the TypeScript ORM with a declarative schema, auto-generated type-safe client, migrations, and studio GUI. You help developers model databases with Prisma Schema Language, generate a fully typed client that catches query errors at compile time, run zero-downtime migrations, and integrate with Postgres, MySQL, SQLite, MongoDB, CockroachDB, and PlanetScale.
 
-## Setup
+## Core Capabilities
 
-```bash
-npm install prisma --save-dev
-npm install @prisma/client
-npx prisma init  # Creates prisma/schema.prisma and .env
-```
-
-Set the database URL in `.env`:
-
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"
-```
-
-Supported databases: PostgreSQL, MySQL, SQLite, MongoDB, CockroachDB, SQL Server.
-
-## Schema Design
-
-The schema file (`prisma/schema.prisma`) defines your data model. Prisma generates TypeScript types and a query client from it.
+### Schema
 
 ```prisma
-// prisma/schema.prisma — SaaS application data model
-
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -53,236 +28,136 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  name      String?
-  role      Role     @default(MEMBER)
+  name      String
+  role      Role     @default(USER)
+  posts     Post[]
+  profile   Profile?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  @@index([organizationId])
   @@index([email])
+  @@map("users")
 }
 
-model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  plan      Plan     @default(FREE)
-  createdAt DateTime @default(now())
+model Post {
+  id          String     @id @default(cuid())
+  title       String
+  content     String?
+  published   Boolean    @default(false)
+  author      User       @relation(fields: [authorId], references: [id])
+  authorId    String
+  categories  Category[]
+  createdAt   DateTime   @default(now())
+  
+  @@index([authorId])
+  @@index([published, createdAt])
+}
 
-  users User[]
+model Profile {
+  id     String @id @default(cuid())
+  bio    String?
+  avatar String?
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
 
-  @@index([slug])
+model Category {
+  id    String @id @default(cuid())
+  name  String @unique
+  posts Post[]
 }
 
 enum Role {
+  USER
   ADMIN
-  MEMBER
-  VIEWER
-}
-
-enum Plan {
-  FREE
-  PRO
-  ENTERPRISE
+  MODERATOR
 }
 ```
 
-## Migrations
+### Queries
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+// Create with relations
+const user = await prisma.user.create({
+  data: {
+    name: "Alice",
+    email: "alice@example.com",
+    profile: { create: { bio: "Developer" } },
+    posts: {
+      create: [
+        { title: "First Post", content: "Hello world", published: true },
+        { title: "Draft", content: "Work in progress" },
+      ],
+    },
+  },
+  include: { posts: true, profile: true },
+});
+
+// Complex queries — fully typed
+const publishedPosts = await prisma.post.findMany({
+  where: {
+    published: true,
+    author: { role: "ADMIN" },
+    createdAt: { gte: new Date("2026-01-01") },
+  },
+  include: {
+    author: { select: { name: true, email: true } },
+    categories: true,
+  },
+  orderBy: { createdAt: "desc" },
+  take: 20,
+  skip: 0,
+});
+
+// Aggregate
+const stats = await prisma.post.aggregate({
+  _count: true,
+  _avg: { createdAt: true },
+  where: { published: true },
+});
+
+// Transaction
+const [updatedPost, newNotification] = await prisma.$transaction([
+  prisma.post.update({ where: { id: "..." }, data: { published: true } }),
+  prisma.notification.create({ data: { userId: "...", message: "Post published!" } }),
+]);
+
+// Raw SQL when needed
+const result = await prisma.$queryRaw`
+  SELECT u.name, COUNT(p.id) as post_count
+  FROM users u LEFT JOIN posts p ON p."authorId" = u.id
+  GROUP BY u.name ORDER BY post_count DESC LIMIT 10
+`;
+```
+
+### Migrations
 
 ```bash
-# Create and apply a migration
-npx prisma migrate dev --name init
-
-# Apply in production (no interactive prompts)
-npx prisma migrate deploy
-
-# Reset database (drop + recreate + seed)
-npx prisma migrate reset
-
-# Generate client without migrating (schema-only change)
-npx prisma generate
+npx prisma migrate dev --name add-categories    # Create + apply migration
+npx prisma migrate deploy                       # Apply in production
+npx prisma db push                              # Push schema without migration (prototyping)
+npx prisma studio                               # GUI for browsing data
+npx prisma generate                             # Regenerate client after schema change
 ```
 
-## Query Patterns
+## Installation
 
-### CRUD Operations
-
-```typescript
-// db.ts — Prisma client singleton (prevents connection leaks in dev)
-import { PrismaClient } from '@prisma/client';
-
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-export const prisma = globalForPrisma.prisma || new PrismaClient();
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+```bash
+npm install prisma @prisma/client
+npx prisma init                            # Creates schema.prisma + .env
 ```
 
-```typescript
-// user-service.ts — Type-safe user operations
+## Best Practices
 
-import { prisma } from './db';
-import type { User, Prisma } from '@prisma/client';
-
-/** Create a user with organization membership. */
-async function createUser(data: {
-  email: string;
-  name: string;
-  organizationId: string;
-}): Promise<User> {
-  return prisma.user.create({
-    data: {
-      email: data.email,
-      name: data.name,
-      organization: { connect: { id: data.organizationId } },
-    },
-  });
-}
-
-/** Find users with filtering, sorting, and pagination. */
-async function listUsers(params: {
-  orgId: string;
-  role?: 'ADMIN' | 'MEMBER' | 'VIEWER';
-  search?: string;
-  page?: number;
-  pageSize?: number;
-}) {
-  const { orgId, role, search, page = 1, pageSize = 20 } = params;
-
-  const where: Prisma.UserWhereInput = {
-    organizationId: orgId,
-    ...(role && { role }),
-    ...(search && {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ],
-    }),
-  };
-
-  const [users, total] = await prisma.$transaction([
-    prisma.user.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      include: { organization: true },
-    }),
-    prisma.user.count({ where }),
-  ]);
-
-  return { users, total, pages: Math.ceil(total / pageSize) };
-}
-```
-
-### Relations and Nested Queries
-
-```typescript
-// project-service.ts — Working with relations
-
-/** Create a project with initial tasks in one query. */
-async function createProjectWithTasks(orgId: string, data: {
-  name: string;
-  tasks: Array<{ title: string; priority: number }>;
-}) {
-  return prisma.project.create({
-    data: {
-      name: data.name,
-      organization: { connect: { id: orgId } },
-      tasks: {
-        createMany: {
-          data: data.tasks.map(t => ({
-            title: t.title,
-            priority: t.priority,
-          })),
-        },
-      },
-    },
-    include: {
-      tasks: true,           // Return created tasks in response
-      organization: true,
-    },
-  });
-}
-
-/** Get project dashboard: task counts by status. */
-async function getProjectStats(projectId: string) {
-  const stats = await prisma.task.groupBy({
-    by: ['status'],
-    where: { projectId },
-    _count: { status: true },
-  });
-
-  return Object.fromEntries(
-    stats.map(s => [s.status, s._count.status])
-  );
-  // Returns: { TODO: 5, IN_PROGRESS: 3, DONE: 12 }
-}
-```
-
-### Transactions
-
-```typescript
-// billing.ts — Atomic operations with transactions
-
-/** Transfer credits between organizations atomically. */
-async function transferCredits(fromOrgId: string, toOrgId: string, amount: number) {
-  return prisma.$transaction(async (tx) => {
-    // Deduct from sender
-    const sender = await tx.organization.update({
-      where: { id: fromOrgId },
-      data: { credits: { decrement: amount } },
-    });
-
-    if (sender.credits < 0) {
-      throw new Error('Insufficient credits');  // Rolls back entire transaction
-    }
-
-    // Add to receiver
-    await tx.organization.update({
-      where: { id: toOrgId },
-      data: { credits: { increment: amount } },
-    });
-
-    // Log the transfer
-    return tx.creditTransfer.create({
-      data: { fromOrgId, toOrgId, amount },
-    });
-  });
-}
-```
-
-### Raw SQL (escape hatch)
-
-```typescript
-// When Prisma's query builder isn't enough
-
-/** Full-text search with PostgreSQL ts_rank. */
-async function searchPosts(query: string) {
-  return prisma.$queryRaw`
-    SELECT id, title, ts_rank(to_tsvector('english', content), plainto_tsquery(${query})) as rank
-    FROM "Post"
-    WHERE to_tsvector('english', content) @@ plainto_tsquery(${query})
-    ORDER BY rank DESC
-    LIMIT 20
-  `;
-}
-```
-
-## Seeding
-
-Run `npx prisma db seed` with a seed script configured in `package.json` (`"prisma": { "seed": "npx tsx prisma/seed.ts" }`). Use `prisma.model.create` with nested `create` to seed related data in one call.
-
-## Guidelines
-
-- Use a singleton pattern for `PrismaClient` in development to prevent connection pool exhaustion during hot reload
-- Always add `@@index` for fields used in `where` clauses and foreign keys
-- Use `include` and `select` deliberately -- include only the relations you need to avoid N+1-like over-fetching
-- Prefer `createMany` over loops of `create` for bulk inserts (single SQL statement)
-- Use `$transaction` for operations that must succeed or fail together
-- Run `prisma migrate deploy` (not `migrate dev`) in CI/CD and production
-- Schema changes that drop columns or tables require careful migration planning -- Prisma warns about destructive changes
-- Use `prisma studio` (`npx prisma studio`) for a visual database browser during development
-- Add `@updatedAt` to models you want automatic timestamp tracking on
+1. **Type-safe queries** — Every query is fully typed; wrong field names or types caught at compile time
+2. **Relations** — Define in schema with `@relation`; query with `include` or `select` for eager loading
+3. **Migrations** — Use `prisma migrate dev` in development; `migrate deploy` in CI/production
+4. **Indexes** — Add `@@index` for fields you filter/sort by; Prisma warns about missing indexes
+5. **Select vs Include** — Use `select` to pick specific fields (smaller payloads); `include` for full relations
+6. **Transactions** — Use `$transaction` for atomic multi-table operations; auto-rollback on failure
+7. **Connection pooling** — Use `prisma-accelerate` or pgbouncer for serverless; Lambda needs pooling
+8. **Prisma Studio** — `npx prisma studio` for visual data browser; great for debugging and manual edits

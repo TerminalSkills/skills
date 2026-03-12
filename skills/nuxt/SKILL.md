@@ -1,259 +1,142 @@
 ---
 name: nuxt
-description: |
-  Nuxt is a Vue.js meta-framework for building full-stack web applications with
-  server-side rendering, static generation, and file-based routing. It includes
-  Nitro server engine, auto-imports, and a powerful module ecosystem.
-license: Apache-2.0
-compatibility:
-  - node >= 18
-  - npm or yarn or pnpm
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: development
-  tags:
-    - vue
-    - ssr
-    - fullstack
-    - typescript
-    - node
-    - jamstack
+category: Frontend Development
+tags: [vue, framework, ssr, ssg, fullstack, nitro, auto-imports]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Nuxt
+# Nuxt — The Vue Framework
 
-Nuxt 3 is built on Vue 3, Vite, and the Nitro server engine. It provides SSR, SSG, file-based routing, auto-imports, and a rich module ecosystem for building modern web apps.
+You are an expert in Nuxt 3, the full-stack Vue framework with server-side rendering, auto-imports, file-based routing, API routes powered by Nitro, and 200+ modules. You help developers build production Vue applications with hybrid rendering (SSR/SSG/SPA per route), server components, middleware, state management with useState, data fetching with useFetch/useAsyncData, and deployment to 20+ platforms.
 
-## Installation
+## Core Capabilities
 
-```bash
-# Create new Nuxt project
-npx nuxi@latest init my-app
-cd my-app
-npm install
-npm run dev
-```
-
-## Project Structure
-
-```
-# Nuxt 3 project layout (file-based conventions)
-app/
-├── pages/              # File-based routing
-│   ├── index.vue       # /
-│   ├── about.vue       # /about
-│   └── articles/
-│       ├── index.vue   # /articles
-│       └── [slug].vue  # /articles/:slug
-├── components/         # Auto-imported components
-├── composables/        # Auto-imported composables
-├── layouts/            # Page layouts
-├── middleware/          # Route middleware
-└── plugins/            # Nuxt plugins
-server/
-├── api/                # Server API routes
-│   └── articles.get.ts # GET /api/articles
-├── middleware/          # Server middleware
-└── utils/              # Server utilities
-nuxt.config.ts          # Nuxt configuration
-```
-
-## Pages and Routing
+### Pages and Routing
 
 ```vue
-<!-- pages/articles/index.vue — article list page with data fetching -->
+<!-- pages/index.vue — Auto-routed to / -->
 <script setup lang="ts">
-const { data: articles } = await useFetch('/api/articles')
+const { data: posts } = await useFetch('/api/posts')
 </script>
 
 <template>
   <div>
-    <h1>Articles</h1>
-    <div v-for="article in articles" :key="article.id">
-      <NuxtLink :to="`/articles/${article.slug}`">
-        <h2>{{ article.title }}</h2>
+    <h1>Blog</h1>
+    <div v-for="post in posts" :key="post.id" class="post-card">
+      <NuxtLink :to="`/posts/${post.slug}`">
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.excerpt }}</p>
       </NuxtLink>
-      <p>{{ article.excerpt }}</p>
     </div>
   </div>
 </template>
 ```
 
 ```vue
-<!-- pages/articles/[slug].vue — dynamic route page -->
+<!-- pages/posts/[slug].vue — Dynamic route -->
 <script setup lang="ts">
 const route = useRoute()
-const { data: article } = await useFetch(`/api/articles/${route.params.slug}`)
+const { data: post, error } = await useAsyncData(
+  `post-${route.params.slug}`,
+  () => $fetch(`/api/posts/${route.params.slug}`)
+)
 
-if (!article.value) {
-  throw createError({ statusCode: 404, message: 'Article not found' })
+if (error.value) {
+  throw createError({ statusCode: 404, message: 'Post not found' })
 }
 
-useHead({ title: article.value.title })
+// SEO
+useHead({
+  title: post.value?.title,
+  meta: [{ name: 'description', content: post.value?.excerpt }],
+})
+
+useSeoMeta({
+  ogTitle: post.value?.title,
+  ogImage: post.value?.coverImage,
+})
 </script>
 
 <template>
-  <article>
-    <h1>{{ article.title }}</h1>
-    <div v-html="article.body" />
+  <article v-if="post">
+    <h1>{{ post.title }}</h1>
+    <div v-html="post.content" />
   </article>
 </template>
 ```
 
-## Server API Routes
+### Server API Routes
 
 ```typescript
-// server/api/articles.get.ts — GET /api/articles
-export default defineEventHandler(async (event) => {
-  const query = getQuery(event)
-  const page = Number(query.page) || 1
-  const limit = Math.min(Number(query.limit) || 20, 100)
-
-  const articles = await useDB()
-    .select('*')
-    .from('articles')
-    .where('published', true)
-    .orderBy('created_at', 'desc')
-    .limit(limit)
-    .offset((page - 1) * limit)
-
-  return articles
+// server/api/posts/index.get.ts
+export default defineEventHandler(async () => {
+  const posts = await db.posts.findMany({ orderBy: { createdAt: 'desc' } })
+  return posts
 })
-```
 
-```typescript
-// server/api/articles.post.ts — POST /api/articles
+// server/api/posts/[slug].get.ts
 export default defineEventHandler(async (event) => {
-  const session = await requireUserSession(event)
+  const slug = getRouterParam(event, 'slug')
+  const post = await db.posts.findUnique({ where: { slug } })
+  if (!post) throw createError({ statusCode: 404, message: 'Not found' })
+  return post
+})
+
+// server/api/posts/index.post.ts
+export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+  const session = await requireAuth(event)
+  return db.posts.create({ data: { ...body, authorId: session.userId } })
+})
 
-  if (!body.title || !body.body) {
-    throw createError({ statusCode: 400, message: 'Title and body required' })
-  }
-
-  const article = await useDB()
-    .insert({ title: body.title, body: body.body, author_id: session.user.id })
-    .into('articles')
-    .returning('*')
-
-  setResponseStatus(event, 201)
-  return article[0]
+// server/middleware/auth.ts
+export default defineEventHandler(async (event) => {
+  const path = getRequestURL(event).pathname
+  if (!path.startsWith('/api/admin')) return
+  const session = await getSession(event)
+  if (!session) throw createError({ statusCode: 401 })
+  event.context.user = session.user
 })
 ```
 
-## Composables
+### Composables and State
 
 ```typescript
-// composables/useArticles.ts — reusable data composable
-export function useArticles() {
-  const articles = useState<Article[]>('articles', () => [])
+// composables/useAuth.ts — Auto-imported everywhere
+export function useAuth() {
+  const user = useState<User | null>('user', () => null)
+  const isLoggedIn = computed(() => !!user.value)
 
-  async function fetchArticles(page = 1) {
-    const { data } = await useFetch('/api/articles', { query: { page } })
-    if (data.value) articles.value = data.value
+  async function login(email: string, password: string) {
+    user.value = await $fetch('/api/auth/login', { method: 'POST', body: { email, password } })
   }
 
-  return { articles: readonly(articles), fetchArticles }
+  async function logout() {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    user.value = null
+    navigateTo('/login')
+  }
+
+  return { user, isLoggedIn, login, logout }
 }
 ```
 
-## Components
+## Installation
 
-```vue
-<!-- components/ArticleCard.vue — auto-imported component -->
-<script setup lang="ts">
-interface Props {
-  title: string
-  slug: string
-  excerpt: string
-  date: string
-}
-defineProps<Props>()
-</script>
-
-<template>
-  <article class="card">
-    <NuxtLink :to="`/articles/${slug}`">
-      <h3>{{ title }}</h3>
-    </NuxtLink>
-    <p>{{ excerpt }}</p>
-    <time>{{ date }}</time>
-  </article>
-</template>
+```bash
+npx nuxi@latest init my-app
+cd my-app && npm install
+npm run dev
 ```
 
-## Layouts and Middleware
+## Best Practices
 
-```vue
-<!-- layouts/default.vue — default layout -->
-<template>
-  <div>
-    <header>
-      <nav>
-        <NuxtLink to="/">Home</NuxtLink>
-        <NuxtLink to="/articles">Articles</NuxtLink>
-      </nav>
-    </header>
-    <main><slot /></main>
-  </div>
-</template>
-```
-
-```typescript
-// middleware/auth.ts — route middleware
-export default defineNuxtRouteMiddleware((to) => {
-  const { loggedIn } = useUserSession()
-  if (!loggedIn.value) {
-    return navigateTo('/login')
-  }
-})
-```
-
-## Configuration
-
-```typescript
-// nuxt.config.ts — Nuxt configuration
-export default defineNuxtConfig({
-  devtools: { enabled: true },
-  modules: [
-    '@nuxtjs/supabase',
-    '@nuxt/ui',
-  ],
-  runtimeConfig: {
-    dbUrl: process.env.DATABASE_URL,
-    public: {
-      appName: 'My App',
-    },
-  },
-  routeRules: {
-    '/articles/**': { swr: 3600 },  // stale-while-revalidate
-    '/admin/**': { ssr: false },      // SPA mode
-  },
-})
-```
-
-## Data Fetching
-
-```vue
-<!-- pages/dashboard.vue — multiple data fetching strategies -->
-<script setup lang="ts">
-// SSR fetch — runs on server, cached on client
-const { data: stats } = await useFetch('/api/stats')
-
-// Lazy fetch — doesn't block navigation
-const { data: notifications, pending } = await useLazyFetch('/api/notifications')
-
-// Client-only fetch
-const { data: live } = await useFetch('/api/live', { server: false })
-</script>
-```
-
-## Key Patterns
-
-- Use `useFetch` for SSR-compatible data fetching — it deduplicates and transfers state
-- File-based routing: `pages/users/[id].vue` becomes `/users/:id`
-- Server routes in `server/api/` are auto-registered with method suffixes (`.get.ts`, `.post.ts`)
-- Use `useState` for SSR-safe shared state instead of `ref` at module level
-- Use `runtimeConfig` for environment variables — public config is exposed to client
-- Use `routeRules` for per-route rendering strategies (SSR, SPA, ISR, prerender)
+1. **Auto-imports** — Components, composables, utils auto-imported; no import statements needed
+2. **useFetch for data** — SSR-safe data fetching; deduplicates requests, caches across navigation
+3. **Hybrid rendering** — Set per-route rendering in `nuxt.config.ts`: SSR, SSG, SPA, or ISR
+4. **useState** — SSR-safe reactive state; shared across components, serialized server→client
+5. **Server routes** — `server/api/` directory; powered by Nitro; deploy to any platform
+6. **SEO** — `useHead()` and `useSeoMeta()` for per-page meta tags; SSR-rendered for crawlers
+7. **Modules** — 200+ modules: `@nuxtjs/tailwindcss`, `@sidebase/nuxt-auth`, `@nuxt/image`, etc.
+8. **Nitro engine** — Universal server deploys to Node, Vercel, Netlify, Cloudflare, Deno, Bun

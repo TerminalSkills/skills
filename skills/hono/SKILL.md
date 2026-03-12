@@ -1,67 +1,142 @@
 ---
 name: hono
-description: >-
-  Assists with building APIs and web applications using Hono, an ultrafast web framework
-  that runs on Cloudflare Workers, Deno, Bun, Vercel, AWS Lambda, and Node.js. Use when
-  creating edge-first APIs, configuring middleware, or setting up type-safe RPC clients.
-  Trigger words: hono, edge framework, web framework, hono routing, hono middleware.
-license: Apache-2.0
-compatibility: "Runs on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda, Vercel"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["hono", "web-framework", "edge", "api", "typescript"]
+category: Backend Development
+tags: [web-framework, edge, cloudflare, bun, deno, fast, typescript]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Hono
+# Hono — Ultrafast Web Framework
 
-## Overview
+You are an expert in Hono, the ultrafast web framework for the edge. You help developers build APIs and web applications that run on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web Standards API compatibility that makes code truly portable across runtimes.
 
-Hono is a lightweight, ultrafast web framework built on Web Standards that runs across multiple runtimes including Cloudflare Workers, Deno, Bun, and Node.js. It provides expressive routing, a rich middleware ecosystem, and type-safe RPC capabilities for building performant APIs and web applications.
+## Core Capabilities
 
-## Instructions
+### API Routes
 
-- When creating a new API, set up routing with `app.get()`, `app.post()`, etc., and organize routes into modular sub-routers using `app.route()`.
-- When adding middleware, use built-in options like `cors()`, `logger()`, `secureHeaders()` globally with `app.use("*", ...)` and scope auth middleware to protected paths.
-- When handling requests, use the Context API: `c.req.param()` for path params, `c.req.query()` for query strings, `c.req.json()` for body parsing, and `c.json()` for responses.
-- When validating input, integrate `@hono/zod-validator` with `zValidator("json", schema)` for request body, query, and param validation with type inference.
-- When building type-safe clients, use Hono's RPC mode with `hc<AppType>(baseUrl)` to generate a typed HTTP client from route definitions without code generation.
-- When deploying to Cloudflare Workers, type environment bindings with `new Hono<{ Bindings: Env }>()` and use `c.executionCtx.waitUntil()` for background tasks.
-- When rendering HTML, use Hono's built-in JSX runtime (`hono/jsx`) for lightweight server-side rendering without React.
-- When writing tests, call `app.request("/path")` directly to test routes as pure functions without an HTTP server.
+```typescript
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+import { jwt } from "hono/jwt";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
-## Examples
+const app = new Hono();
 
-### Example 1: Build a REST API with validation
+// Middleware
+app.use("*", logger());
+app.use("/api/*", cors({ origin: ["https://myapp.com"], credentials: true }));
+app.use("/api/protected/*", jwt({ secret: process.env.JWT_SECRET! }));
 
-**User request:** "Create a Hono API with user CRUD endpoints and Zod validation"
+// Typed routes with Zod validation
+const createUserSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(["user", "admin"]).default("user"),
+});
 
-**Actions:**
-1. Initialize Hono app with typed environment bindings
-2. Define Zod schemas for user creation and update payloads
-3. Create route handlers with `zValidator("json", schema)` middleware
-4. Group routes with `app.route("/api/users", userRouter)`
+app.get("/api/users", async (c) => {
+  const { page, limit } = c.req.query();
+  const users = await db.users.findMany({
+    skip: ((+page || 1) - 1) * (+limit || 20),
+    take: +limit || 20,
+  });
+  return c.json({ data: users });
+});
 
-**Output:** A type-safe REST API with validated inputs and proper HTTP status codes.
+app.post("/api/users", zValidator("json", createUserSchema), async (c) => {
+  const body = c.req.valid("json");        // Typed as { name: string, email: string, role: "user" | "admin" }
+  const user = await db.users.create({ data: body });
+  return c.json(user, 201);
+});
 
-### Example 2: Deploy a multi-runtime API
+app.get("/api/users/:id", async (c) => {
+  const id = c.req.param("id");
+  const user = await db.users.findUnique({ where: { id } });
+  if (!user) return c.json({ error: "Not found" }, 404);
+  return c.json(user);
+});
 
-**User request:** "Set up a Hono API that works on both Cloudflare Workers and Node.js"
+// Protected route
+app.get("/api/protected/me", (c) => {
+  const payload = c.get("jwtPayload");
+  return c.json({ userId: payload.sub });
+});
 
-**Actions:**
-1. Create shared Hono app with routes and middleware
-2. Configure Cloudflare Workers entry with `export default app`
-3. Add Node.js entry using `@hono/node-server` adapter
-4. Set up environment-specific binding types
+export default app;
+```
 
-**Output:** A portable API deployable to multiple runtimes with shared route logic.
+### RPC Client (Type-Safe)
 
-## Guidelines
+```typescript
+// server.ts — Export typed routes
+const routes = app
+  .get("/api/users", ...)
+  .post("/api/users", ...);
 
-- Use `new Hono<{ Bindings: Env }>()` to type environment bindings on Cloudflare.
-- Group related routes into separate files and merge with `app.route()`.
-- Apply global middleware with `app.use("*", middleware)` and scope auth to protected paths.
-- Use `@hono/zod-validator` for all user input; never trust raw request data.
-- Return proper HTTP status codes: 201 for creation, 204 for deletion, 4xx for client errors.
-- Prefer Hono's RPC mode over manual fetch calls for internal service communication.
+export type AppType = typeof routes;
+
+// client.ts — Type-safe client (like tRPC but for REST)
+import { hc } from "hono/client";
+import type { AppType } from "./server";
+
+const client = hc<AppType>("https://api.myapp.com");
+
+const users = await client.api.users.$get();
+const json = await users.json();           // Typed as User[]
+
+const newUser = await client.api.users.$post({
+  json: { name: "Alice", email: "alice@example.com" },  // Type-checked!
+});
+```
+
+### JSX and HTML
+
+```tsx
+import { Hono } from "hono";
+import { html } from "hono/html";
+
+const app = new Hono();
+
+app.get("/", (c) => {
+  return c.html(
+    <html>
+      <body>
+        <h1>Hello from Hono!</h1>
+        <p>Running on {c.runtime}</p>
+      </body>
+    </html>
+  );
+});
+
+// Streaming
+app.get("/stream", (c) => {
+  return c.streamText(async (stream) => {
+    for (const word of "Hello World from Hono!".split(" ")) {
+      await stream.write(word + " ");
+      await stream.sleep(100);
+    }
+  });
+});
+```
+
+## Installation
+
+```bash
+npm create hono@latest my-app
+# Choose: cloudflare-workers | nodejs | bun | deno | vercel | aws-lambda
+cd my-app && npm install
+npm run dev
+```
+
+## Best Practices
+
+1. **Web Standards** — Uses `Request`/`Response` API; code runs on any runtime without changes
+2. **Zod validation** — Use `@hono/zod-validator` for type-safe request validation; compile + runtime safety
+3. **RPC client** — Use `hc<AppType>()` for type-safe client; catches API contract mismatches at compile time
+4. **Middleware** — Rich ecosystem: cors, jwt, logger, compress, cache, rate-limit, OpenAPI
+5. **Edge-first** — 14KB bundle; runs on Cloudflare Workers with <1ms cold start
+6. **Multi-runtime** — Same code deploys to Workers, Bun, Deno, Node, Lambda; switch with one config change
+7. **JSX support** — Built-in JSX for server-rendered HTML; no React needed for simple pages
+8. **Streaming** — `c.streamText()` and `c.stream()` for SSE, chunked responses, AI streaming

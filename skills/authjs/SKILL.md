@@ -1,66 +1,146 @@
 ---
 name: authjs
-description: >-
-  Assists with adding authentication to web applications using Auth.js (formerly NextAuth.js).
-  Use when configuring OAuth providers, database sessions, JWT strategies, role-based access,
-  or multi-tenant auth in Next.js, SvelteKit, Express, or other frameworks. Trigger words:
-  authjs, nextauth, oauth, authentication, login, session, providers.
-license: Apache-2.0
-compatibility: "Requires Node.js 18+"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["authjs", "nextauth", "oauth", "authentication", "session"]
+category: Backend Development
+tags: [authentication, oauth, nextjs, session, providers, jwt]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Auth.js
+# Auth.js (NextAuth) — Authentication for the Web
 
-## Overview
+You are an expert in Auth.js (formerly NextAuth.js), the authentication library for web frameworks. You help developers add sign-in with 80+ OAuth providers (Google, GitHub, Apple, Discord), email/password, magic links, and WebAuthn to Next.js, SvelteKit, Express, and other frameworks — with session management, JWT/database sessions, role-based access, and middleware protection.
 
-Auth.js is a universal authentication library for web applications, supporting 80+ OAuth providers, credentials-based login, magic links, and WebAuthn passkeys. It integrates with Next.js, SvelteKit, Express, and other frameworks, offering both JWT and database-backed session strategies with customizable callbacks for role-based access and multi-tenant architectures.
+## Core Capabilities
 
-## Instructions
+### Next.js Setup
 
-- When setting up authentication, create an `auth.ts` config file with providers, adapter, and callbacks, then wire it into the framework's route handler or middleware.
-- When choosing a session strategy, use JWT for stateless apps (marketing sites, public APIs) and database sessions for apps requiring session revocation (admin panels, banking).
-- When configuring OAuth providers, add the desired providers (Google, GitHub, Discord, etc.) and handle the `signIn` callback to control access and account linking.
-- When customizing sessions, always add `user.id` to the `session` callback since it is not included by default, and add any custom fields like `role` or `tenantId` in the JWT callback.
-- When protecting routes, use `auth()` in Server Components, Route Handlers, and Server Actions; do not rely solely on middleware for authorization.
-- When building custom login pages, set `pages: { signIn: "/login" }` in the config to replace the default Auth.js page with a branded UI.
-- When integrating a database, use the appropriate adapter (`@auth/prisma-adapter`, `@auth/drizzle-adapter`, `@auth/mongodb-adapter`) or implement the `Adapter` interface for custom databases.
+```typescript
+// auth.ts — Auth.js configuration
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import Credentials from "next-auth/providers/credentials";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { db } from "./db";
+import { verifyPassword } from "./lib/password";
 
-## Examples
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: DrizzleAdapter(db),
+  providers: [
+    Google({ clientId: process.env.GOOGLE_ID!, clientSecret: process.env.GOOGLE_SECRET! }),
+    GitHub({ clientId: process.env.GITHUB_ID!, clientSecret: process.env.GITHUB_SECRET! }),
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const user = await db.query.users.findFirst({
+          where: eq(users.email, credentials.email as string),
+        });
+        if (!user || !await verifyPassword(credentials.password as string, user.hashedPassword)) {
+          return null;
+        }
+        return { id: user.id, email: user.email, name: user.name, role: user.role };
+      },
+    }),
+  ],
+  callbacks: {
+    session: ({ session, token }) => ({
+      ...session,
+      user: { ...session.user, id: token.sub, role: token.role },
+    }),
+    jwt: ({ token, user }) => {
+      if (user) token.role = (user as any).role;
+      return token;
+    },
+  },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
+});
 
-### Example 1: Add Google and GitHub OAuth to a Next.js app
+// app/api/auth/[...nextauth]/route.ts
+export { handlers as GET, handlers as POST } from "@/auth";
+```
 
-**User request:** "Set up Auth.js with Google and GitHub login in my Next.js app"
+### Protected Routes
 
-**Actions:**
-1. Install `next-auth` and configure `auth.ts` with Google and GitHub providers
-2. Set up the session callback to include `user.id` and `user.role`
-3. Add `middleware.ts` to protect authenticated routes
-4. Create a custom login page with provider sign-in buttons
+```typescript
+// middleware.ts — Protect routes
+import { auth } from "./auth";
 
-**Output:** A Next.js app with OAuth login via Google and GitHub, protected routes, and a custom sign-in page.
+export default auth((req) => {
+  const isLoggedIn = !!req.auth;
+  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
+  const isOnAdmin = req.nextUrl.pathname.startsWith("/admin");
 
-### Example 2: Add role-based access control with database sessions
+  if (isOnAdmin && req.auth?.user?.role !== "admin") {
+    return Response.redirect(new URL("/unauthorized", req.nextUrl));
+  }
+  if (isOnDashboard && !isLoggedIn) {
+    return Response.redirect(new URL("/auth/signin", req.nextUrl));
+  }
+});
 
-**User request:** "Implement admin and user roles with database sessions"
+export const config = { matcher: ["/dashboard/:path*", "/admin/:path*"] };
+```
 
-**Actions:**
-1. Set up Prisma adapter with a User model that includes a `role` field
-2. Configure database session strategy in `auth.ts`
-3. Add the `role` to the JWT and session callbacks
-4. Create middleware that checks `session.user.role` before granting access to admin routes
+### React Components
 
-**Output:** A role-based auth system where admins and users see different content, backed by database sessions for revocability.
+```tsx
+import { auth, signIn, signOut } from "@/auth";
 
-## Guidelines
+// Server component
+async function UserNav() {
+  const session = await auth();
 
-- Always customize the `session` callback to include `user.id` since it is not included by default.
-- Protect API routes and Server Actions with `auth()` rather than relying only on middleware.
-- Store provider tokens in the JWT callback if you need to call provider APIs (GitHub, Google Calendar).
-- Keep `AUTH_SECRET` in environment variables and rotate periodically; never expose session secrets.
-- Use `Scrypt` or `Argon2id` for password hashing in credentials-based flows.
-- Handle errors gracefully: implement error pages for `OAuthCallbackError` and `AccessDenied` scenarios.
+  if (!session?.user) {
+    return (
+      <form action={async () => { "use server"; await signIn("google"); }}>
+        <button>Sign in with Google</button>
+      </form>
+    );
+  }
+
+  return (
+    <div>
+      <img src={session.user.image!} alt="" className="w-8 h-8 rounded-full" />
+      <span>{session.user.name}</span>
+      <form action={async () => { "use server"; await signOut(); }}>
+        <button>Sign out</button>
+      </form>
+    </div>
+  );
+}
+
+// Client component
+"use client";
+import { useSession } from "next-auth/react";
+
+function ClientProfile() {
+  const { data: session, status } = useSession();
+  if (status === "loading") return <Spinner />;
+  if (!session) return <p>Not signed in</p>;
+  return <p>Welcome, {session.user.name}!</p>;
+}
+```
+
+## Installation
+
+```bash
+npm install next-auth@beta                 # Auth.js v5 for Next.js
+npm install @auth/drizzle-adapter          # Database adapter
+```
+
+## Best Practices
+
+1. **80+ providers** — Google, GitHub, Apple, Discord, Slack, etc.; add by importing and configuring
+2. **Database adapters** — Drizzle, Prisma, MongoDB, Supabase, Turso; stores users and sessions
+3. **Middleware protection** — Auth check at the edge; fast, runs before page renders
+4. **Callbacks** — Use `jwt` and `session` callbacks to add custom fields (role, plan, org)
+5. **Server actions** — `signIn()` and `signOut()` work as Next.js server actions; no client-side SDK needed
+6. **Edge compatible** — Runs on Vercel Edge, Cloudflare Workers; JWT sessions for stateless auth
+7. **CSRF protection** — Built-in CSRF token validation; no additional setup needed
+8. **Multi-framework** — Works with Next.js, SvelteKit, Express, Qwik; same config pattern
