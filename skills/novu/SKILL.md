@@ -1,230 +1,138 @@
 ---
 name: novu
-description: >-
-  Build notification infrastructure with Novu. Use when a user asks to add
-  notifications to an app, send emails and push notifications, build a
-  notification center, manage notification preferences, set up multi-channel
-  notifications (email, SMS, push, in-app, chat), create notification workflows,
-  or build a notification system with templates and subscriber management.
-  Covers providers (SendGrid, Twilio, FCM), workflows, templates, subscriber
-  preferences, and the in-app notification center component.
-license: Apache-2.0
-compatibility: 'Node.js 16+, Docker (self-hosted), or Novu Cloud'
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: development
-  tags:
-    - novu
-    - notifications
-    - email
-    - push
-    - sms
-    - in-app
+category: Backend Development
+tags: [notifications, multi-channel, email, sms, push, in-app, typescript]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Novu
+# Novu — Open-Source Notification Infrastructure
 
-## Overview
+You are an expert in Novu, the open-source notification infrastructure platform. You help developers build multi-channel notification systems supporting email, SMS, push, in-app, and chat (Slack/Discord) — with workflow orchestration, digest/batching, user preferences, template management, and a pre-built notification center component for React.
 
-Novu is an open-source notification infrastructure platform for managing multi-channel notifications — email, SMS, push, in-app, and chat (Slack, Discord, Teams). Instead of building notification logic from scratch, Novu provides a unified API, workflow engine, template management, subscriber preferences, and a drop-in notification center UI component. Think of it as Twilio + SendGrid + FCM unified under one API with subscriber preference management.
+## Core Capabilities
 
-## Instructions
+### Workflow Definition
 
-### Step 1: Setup
+```typescript
+// novu/workflows/order-updates.ts
+import { workflow, CronExpression } from "@novu/framework";
+import { z } from "zod";
+import { renderOrderEmail } from "../emails/order-status";
+
+export const orderStatusWorkflow = workflow(
+  "order-status-update",
+  async ({ step, payload }) => {
+    // Step 1: In-app notification (always)
+    await step.inApp("in-app-notification", async () => ({
+      subject: `Order ${payload.orderId} — ${payload.status}`,
+      body: `Your order is now ${payload.status.toLowerCase()}`,
+      avatar: "https://app.example.com/icons/order.png",
+      redirect: { url: `/orders/${payload.orderId}` },
+    }));
+
+    // Step 2: Email (respects user preferences)
+    await step.email("email-notification", async () => ({
+      subject: `Order Update: ${payload.status}`,
+      body: renderOrderEmail({
+        orderId: payload.orderId,
+        status: payload.status,
+        trackingUrl: payload.trackingUrl,
+      }),
+    }));
+
+    // Step 3: SMS for shipped orders only
+    if (payload.status === "shipped") {
+      await step.sms("sms-shipped", async () => ({
+        body: `Your order ${payload.orderId} has shipped! Track: ${payload.trackingUrl}`,
+      }));
+    }
+
+    // Step 4: Delay + follow-up
+    await step.delay("wait-for-delivery", () => ({
+      amount: 3, unit: "days",
+    }));
+
+    await step.email("feedback-request", async () => ({
+      subject: "How was your order?",
+      body: renderFeedbackEmail({ orderId: payload.orderId }),
+    }));
+  },
+  {
+    payloadSchema: z.object({
+      orderId: z.string(),
+      status: z.enum(["confirmed", "shipped", "delivered"]),
+      trackingUrl: z.string().url().optional(),
+    }),
+  },
+);
+
+// Digest workflow — batch notifications
+export const activityDigest = workflow(
+  "activity-digest",
+  async ({ step }) => {
+    // Collect events over 30 minutes
+    const digestedEvents = await step.digest("batch-activity", () => ({
+      amount: 30, unit: "minutes",
+    }));
+
+    await step.email("digest-email", async () => ({
+      subject: `${digestedEvents.events.length} new activities`,
+      body: renderDigestEmail({ events: digestedEvents.events }),
+    }));
+  },
+);
+```
+
+### Triggering Notifications
+
+```typescript
+import { Novu } from "@novu/node";
+
+const novu = new Novu(process.env.NOVU_API_KEY);
+
+// Trigger notification
+await novu.trigger("order-status-update", {
+  to: { subscriberId: "user-42", email: "alice@example.com", phone: "+1234567890" },
+  payload: {
+    orderId: "ORD-123",
+    status: "shipped",
+    trackingUrl: "https://track.example.com/abc",
+  },
+});
+
+// Trigger to multiple subscribers
+await novu.trigger("weekly-digest", {
+  to: [
+    { subscriberId: "user-1" },
+    { subscriberId: "user-2" },
+    { subscriberId: "user-3" },
+  ],
+  payload: { weekNumber: 11 },
+});
+
+// Bulk trigger
+await novu.bulkTrigger([
+  { name: "order-status-update", to: { subscriberId: "user-1" }, payload: { orderId: "1", status: "shipped" } },
+  { name: "order-status-update", to: { subscriberId: "user-2" }, payload: { orderId: "2", status: "delivered" } },
+]);
+```
+
+## Installation
 
 ```bash
-# Cloud (quickest)
-# Sign up at https://web.novu.co and get your API key
-
-# Self-hosted with Docker
-git clone https://github.com/novuhq/novu.git
-cd novu
-docker compose up -d
-
-# Install SDK
-npm install @novu/node        # Server SDK
-npm install @novu/react       # React notification center
+npm install @novu/node                    # Server SDK
+npm install @novu/framework               # Workflow definitions
+npx novu@latest dev                       # Local dev studio
 ```
 
-### Step 2: Configure Providers
+## Best Practices
 
-```typescript
-// Providers are configured in the Novu dashboard or via API
-// Each channel type (email, SMS, push) can have multiple providers
-
-// Example: Configure SendGrid for email, Twilio for SMS
-import { Novu } from '@novu/node'
-
-const novu = new Novu(process.env.NOVU_API_KEY)
-
-// Providers are typically configured via the dashboard UI:
-// Email: SendGrid, Mailgun, Amazon SES, Postmark, Resend
-// SMS: Twilio, Vonage, Plivo, MessageBird
-// Push: FCM, APNs, Expo, OneSignal
-// Chat: Slack, Discord, Microsoft Teams
-```
-
-### Step 3: Create Notification Workflows
-
-```typescript
-// workflows/welcome.ts — Define a multi-channel notification workflow
-// Novu Framework (code-first approach)
-import { workflow } from '@novu/framework'
-
-export const welcomeWorkflow = workflow('welcome-onboarding', async ({ step, payload }) => {
-  // Step 1: Send in-app notification immediately
-  await step.inApp('welcome-inbox', async () => ({
-    subject: `Welcome, ${payload.name}! 🎉`,
-    body: 'Check out our getting started guide to make the most of your account.',
-    avatar: 'https://example.com/logo.png',
-    redirect: { url: '/getting-started' },
-  }))
-
-  // Step 2: Send email
-  await step.email('welcome-email', async () => ({
-    subject: `Welcome to Our Platform, ${payload.name}!`,
-    body: `
-      <h1>Welcome aboard!</h1>
-      <p>Hi ${payload.name}, thanks for signing up.</p>
-      <p>Here are 3 things to try first:</p>
-      <ol>
-        <li>Complete your profile</li>
-        <li>Create your first project</li>
-        <li>Invite your team</li>
-      </ol>
-      <a href="https://app.example.com/getting-started">Get Started →</a>
-    `,
-  }))
-
-  // Step 3: Wait 3 days, then send SMS if they haven't been active
-  await step.delay('wait-for-activation', { amount: 3, unit: 'days' })
-
-  await step.sms('activation-reminder', async () => ({
-    body: `Hi ${payload.name}! Your account is ready. Log in to get started: https://app.example.com`,
-  }))
-}, {
-  payloadSchema: {
-    type: 'object',
-    properties: {
-      name: { type: 'string' },
-      email: { type: 'string' },
-    },
-    required: ['name', 'email'],
-  },
-})
-```
-
-### Step 4: Trigger Notifications
-
-```typescript
-// lib/notifications.ts — Trigger notification workflows
-import { Novu } from '@novu/node'
-
-const novu = new Novu(process.env.NOVU_API_KEY)
-
-// Trigger welcome workflow for a new user
-export async function notifyNewUser(user) {
-  await novu.trigger('welcome-onboarding', {
-    to: {
-      subscriberId: user.id,
-      email: user.email,
-      phone: user.phone,
-      firstName: user.name,
-    },
-    payload: {
-      name: user.name,
-      email: user.email,
-    },
-  })
-}
-
-// Trigger for multiple subscribers (batch)
-export async function notifyTeam(teamMemberIds, message) {
-  await novu.bulkTrigger(teamMemberIds.map(id => ({
-    name: 'team-notification',
-    to: { subscriberId: id },
-    payload: { message },
-  })))
-}
-
-// Override channel for specific trigger
-export async function sendUrgentAlert(userId, message) {
-  await novu.trigger('urgent-alert', {
-    to: { subscriberId: userId },
-    payload: { message },
-    overrides: {
-      sms: { content: `URGENT: ${message}` },
-    },
-  })
-}
-```
-
-### Step 5: In-App Notification Center (React)
-
-```tsx
-// components/NotificationBell.tsx — Drop-in notification center
-import { Inbox } from '@novu/react'
-
-export function NotificationBell() {
-  return (
-    <Inbox
-      applicationIdentifier={process.env.NEXT_PUBLIC_NOVU_APP_ID!}
-      subscriberId={currentUser.id}
-      appearance={{
-        elements: {
-          bellContainer: { width: '40px', height: '40px' },
-        },
-      }}
-      onNotificationClick={(notification) => {
-        if (notification.redirect?.url) {
-          window.location.href = notification.redirect.url
-        }
-      }}
-    />
-  )
-}
-```
-
-### Step 6: Subscriber Preferences
-
-```typescript
-// Subscribers can control which channels they receive notifications on
-// This is built into Novu's notification center UI
-
-// Programmatically update preferences
-await novu.subscribers.updatePreference(subscriberId, templateId, {
-  channel: { type: 'email', enabled: false },    // user opts out of email
-})
-
-// Get subscriber preferences
-const prefs = await novu.subscribers.getPreference(subscriberId)
-```
-
-## Examples
-
-### Example 1: Build a notification system for a SaaS app
-**User prompt:** "Add notifications to our SaaS app: welcome email on signup, in-app notifications for team activity, and SMS for billing alerts. Users should be able to control their preferences."
-
-The agent will:
-1. Set up Novu with SendGrid (email), Twilio (SMS), and the in-app channel.
-2. Create workflows: welcome, team-activity, billing-alert.
-3. Add the `<Inbox>` React component to the app header.
-4. Implement subscriber preference management so users can opt out per channel.
-
-### Example 2: Set up transactional notifications with digest
-**User prompt:** "Our users get too many individual notifications. Batch similar ones together and send a digest every 4 hours instead of one per event."
-
-The agent will:
-1. Create a workflow with Novu's digest step that batches events over 4 hours.
-2. The digest step collects all events, then the email step renders them as a single summary.
-3. Individual in-app notifications still fire immediately for real-time awareness.
-
-## Guidelines
-
-- Use Novu's code-first Framework for version-controlled, reviewable notification workflows. Define workflows in TypeScript alongside your application code.
-- Configure subscriber preferences from the start — users expect notification controls, and retrofitting them is painful.
-- Use the in-app channel for non-urgent updates (team activity, comments, mentions). Reserve email and SMS for important or actionable notifications.
-- Novu deduplicates notifications by subscriber + workflow + payload. If you trigger the same notification twice, it won't be sent twice.
-- Self-host for data sovereignty, or use Novu Cloud for zero infrastructure management. The API is identical.
-- Use digest steps to prevent notification fatigue — batch similar events (like "5 new comments") instead of sending individually.
+1. **Multi-channel workflows** — Define email + SMS + push + in-app in one workflow; Novu routes per user preference
+2. **Digest for batching** — Use `step.digest()` to batch frequent events into a single notification
+3. **Delay for follow-ups** — Use `step.delay()` for drip sequences, feedback requests, reminders
+4. **User preferences** — Novu UI lets users control which channels they receive; respect opt-outs automatically
+5. **Subscriber management** — Create subscribers with `subscriberId`; attach email, phone, push tokens
+6. **React notification center** — Use `@novu/notification-center-react` for a drop-in in-app notification bell
+7. **Template management** — Use Novu dashboard for non-technical team members to edit notification copy
+8. **Self-hosted option** — Deploy Novu on your infra with Docker; full control over notification data
