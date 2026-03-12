@@ -1,258 +1,148 @@
 ---
 name: langfuse
-description: |
-  Open-source LLM observability and analytics platform. Trace LLM calls, score outputs,
-  manage prompts, and monitor cost/latency across your AI application. Integrates with
-  OpenAI, LangChain, LlamaIndex, and other LLM frameworks.
-license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - typescript/node 18+
-  - langfuse-python 2.0+
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: data-ai
-  tags:
-    - llm-observability
-    - tracing
-    - prompt-management
-    - monitoring
-    - analytics
+category: AI & Machine Learning
+tags: [observability, llm, tracing, evaluation, prompt-management, analytics]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Langfuse
+# Langfuse — Open-Source LLM Observability
 
-## Installation
+You are an expert in Langfuse, the open-source LLM engineering platform. You help developers trace LLM calls, evaluate output quality, manage prompts, track costs and latency, run experiments, and build evaluation datasets — providing full observability into AI applications from development through production.
 
-```bash
-# Install Python SDK
-pip install langfuse
+## Core Capabilities
 
-# Or for Node.js
-npm install langfuse
-```
-
-```bash
-# Set environment variables
-export LANGFUSE_PUBLIC_KEY="pk-lf-xxxx"
-export LANGFUSE_SECRET_KEY="sk-lf-xxxx"
-export LANGFUSE_HOST="https://cloud.langfuse.com"  # or self-hosted URL
-```
-
-## Basic Tracing with Decorator
+### Tracing
 
 ```python
-# trace_decorator.py — Trace LLM calls automatically with the @observe decorator
+# Decorator-based tracing (Python)
 from langfuse.decorators import observe, langfuse_context
-from openai import OpenAI
-
-client = OpenAI()
 
 @observe()
-def answer_question(question: str) -> str:
-    # Add metadata to the current trace
+def answer_question(question: str, context: str) -> str:
+    """Trace the entire RAG pipeline as a single trace."""
+
+    # Step 1: Retrieve relevant docs
+    docs = retrieve_docs(question)
+
+    # Step 2: Generate answer
+    answer = generate_answer(question, docs)
+
+    # Add metadata to trace
     langfuse_context.update_current_trace(
-        user_id="user-123",
+        user_id="user-42",
         session_id="session-abc",
-        tags=["production", "support"],
+        tags=["production", "rag"],
+        metadata={"model": "gpt-4o", "doc_count": len(docs)},
     )
 
-    response = client.chat.completions.create(
-        model="gpt-4",
+    return answer
+
+@observe()
+def retrieve_docs(question: str) -> list[str]:
+    """Traced as a span within the parent trace."""
+    embeddings = openai.embeddings.create(model="text-embedding-3-small", input=question)
+    results = vector_store.search(embeddings.data[0].embedding, top_k=5)
+    return [r.text for r in results]
+
+@observe(as_type="generation")
+def generate_answer(question: str, docs: list[str]) -> str:
+    """Traced as an LLM generation with token usage and cost."""
+    response = openai.chat.completions.create(
+        model="gpt-4o",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "system", "content": f"Context:\n{chr(10).join(docs)}"},
             {"role": "user", "content": question},
         ],
     )
     return response.choices[0].message.content
-
-@observe()
-def process_request(question: str):
-    # Nested observations create parent-child spans automatically
-    answer = answer_question(question)
-    langfuse_context.score_current_trace(name="user-feedback", value=1)
-    return answer
-
-result = process_request("What is Langfuse?")
-langfuse_context.flush()
 ```
 
-## OpenAI Integration
+```typescript
+// TypeScript / Vercel AI SDK integration
+import { Langfuse } from "langfuse";
+import { AISDKExporter } from "langfuse-vercel";
+
+const langfuse = new Langfuse();
+
+// Wrap AI SDK calls
+const result = await generateText({
+  model: openai("gpt-4o"),
+  prompt: question,
+  experimental_telemetry: {
+    isEnabled: true,
+    functionId: "answer-question",
+    metadata: { userId: "user-42" },
+  },
+});
+```
+
+### Prompt Management
 
 ```python
-# openai_tracing.py — Drop-in OpenAI wrapper that traces all calls automatically
-from langfuse.openai import openai
+from langfuse import Langfuse
 
-# Use exactly like the OpenAI SDK — all calls are traced
+langfuse = Langfuse()
+
+# Fetch versioned prompt from Langfuse
+prompt = langfuse.get_prompt("rag-system-prompt", version=3)
+
+# Use in generation
 response = openai.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Hello!"}],
-    metadata={"feature": "chat"},  # Extra metadata for Langfuse
-    trace_id="custom-trace-id",    # Optional custom trace ID
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": prompt.compile(company_name="Acme", tone="professional")},
+        {"role": "user", "content": user_question},
+    ],
 )
-print(response.choices[0].message.content)
+
+# Prompts managed via Langfuse UI — non-engineers can edit, version, A/B test
 ```
 
-## LangChain Integration
+### Evaluation
 
 ```python
-# langchain_tracing.py — Trace LangChain chains and agents with CallbackHandler
-from langfuse.callback import CallbackHandler
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-
-langfuse_handler = CallbackHandler(
-    user_id="user-456",
-    session_id="session-xyz",
-    tags=["langchain", "rag"],
-)
-
-llm = ChatOpenAI(model="gpt-4")
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "Answer concisely."),
-    ("user", "{question}"),
-])
-
-chain = prompt | llm
-result = chain.invoke(
-    {"question": "What is RAG?"},
-    config={"callbacks": [langfuse_handler]},
-)
-```
-
-## Manual Tracing with Low-Level SDK
-
-```python
-# manual_trace.py — Fine-grained control over traces, spans, and generations
-from langfuse import Langfuse
-
-langfuse = Langfuse()
-
-# Create a trace
-trace = langfuse.trace(
-    name="support-ticket",
-    user_id="user-789",
-    metadata={"ticket_id": "T-1234"},
-)
-
-# Add a retrieval span
-retrieval = trace.span(
-    name="knowledge-retrieval",
-    input={"query": "refund policy"},
-)
-retrieval.end(output={"documents": ["Doc 1", "Doc 2"], "count": 2})
-
-# Add an LLM generation
-generation = trace.generation(
-    name="answer-generation",
-    model="gpt-4",
-    input=[{"role": "user", "content": "What is the refund policy?"}],
-    model_parameters={"temperature": 0.7, "max_tokens": 500},
-)
-generation.end(
-    output="Our refund policy allows returns within 30 days...",
-    usage={"input": 150, "output": 45},
-)
-
-# Score the trace
-trace.score(name="helpfulness", value=0.9, comment="Accurate response")
-
-langfuse.flush()
-```
-
-## Prompt Management
-
-```python
-# prompt_management.py — Version and manage prompts through Langfuse
-from langfuse import Langfuse
-
-langfuse = Langfuse()
-
-# Fetch a managed prompt (versioned in Langfuse UI)
-prompt = langfuse.get_prompt("support-answer", version=2)
-
-# Use the prompt template
-compiled = prompt.compile(
-    customer_name="Alice",
-    question="How do I reset my password?",
-)
-
-# Link prompt to a generation for tracking which prompt version produced what
-trace = langfuse.trace(name="prompt-test")
-generation = trace.generation(
-    name="answer",
-    model="gpt-4",
-    prompt=prompt,  # Links this generation to the prompt version
-    input=[{"role": "user", "content": compiled}],
-)
-```
-
-## Scoring and Evaluation
-
-```python
-# scoring.py — Score traces for quality evaluation and monitoring
-from langfuse import Langfuse
-
-langfuse = Langfuse()
-
-# Score an existing trace by ID
+# Score traces for quality
 langfuse.score(
-    trace_id="trace-id-from-production",
-    name="accuracy",
-    value=1,  # Numeric score
-    comment="Correct answer provided",
+    trace_id=trace.id,
+    name="relevance",
+    value=0.9,                            # 0-1 scale
+    comment="Answer directly addressed the question",
 )
 
-# Categorical scoring
+# LLM-as-judge evaluation
 langfuse.score(
-    trace_id="trace-id-from-production",
-    name="toxicity",
-    value="none",  # String categories
-)
-
-# Boolean scoring
-langfuse.score(
-    trace_id="trace-id-from-production",
+    trace_id=trace.id,
     name="hallucination",
-    value=0,  # 0 = no hallucination, 1 = hallucination
+    value=0.0,                            # 0 = no hallucination
+    data_type="NUMERIC",
 )
+
+# Create evaluation datasets
+dataset = langfuse.create_dataset("rag-eval-v1")
+for item in test_cases:
+    langfuse.create_dataset_item(
+        dataset_name="rag-eval-v1",
+        input={"question": item["question"]},
+        expected_output=item["expected_answer"],
+    )
 ```
 
-## Self-Hosting with Docker
+## Installation
 
-```yaml
-# docker-compose.yml — Self-host Langfuse with PostgreSQL
-version: "3.9"
-services:
-  langfuse:
-    image: langfuse/langfuse:2
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://langfuse:langfuse@db:5432/langfuse
-      NEXTAUTH_SECRET: mysecret
-      SALT: mysalt
-      NEXTAUTH_URL: http://localhost:3000
-    depends_on:
-      - db
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: langfuse
-      POSTGRES_PASSWORD: langfuse
-      POSTGRES_DB: langfuse
-    volumes:
-      - langfuse_data:/var/lib/postgresql/data
-volumes:
-  langfuse_data:
+```bash
+pip install langfuse                      # Python
+npm install langfuse                      # TypeScript
+# Self-hosted: docker-compose up (Langfuse is open-source)
 ```
 
-## Key Concepts
+## Best Practices
 
-- **Traces**: Top-level unit representing one request/interaction through your system
-- **Spans**: Sub-units within a trace for non-LLM operations (retrieval, processing)
-- **Generations**: LLM-specific spans with model, token usage, and cost tracking
-- **Scores**: Numeric, boolean, or categorical quality metrics attached to traces
-- **Sessions**: Group multiple traces from the same user conversation
-- **Prompt Management**: Version prompts in the UI, fetch them in code, track which version produced which output
+1. **Trace everything** — Wrap all LLM calls with tracing; understand latency, cost, and quality per request
+2. **Structured traces** — Use nested spans (retrieve → generate → format); identify bottlenecks in pipeline
+3. **Cost tracking** — Langfuse auto-calculates token costs per model; track spending by user, feature, prompt version
+4. **Prompt versioning** — Manage prompts in Langfuse UI; A/B test versions, rollback safely
+5. **Evaluation datasets** — Create test sets from production traces; run regression tests on prompt changes
+6. **LLM-as-judge** — Use automated scoring for hallucination, relevance, helpfulness at scale
+7. **Session tracking** — Group traces by session for conversational AI; see full conversation flow
+8. **Self-hosted** — Deploy with Docker for data sovereignty; same features as cloud, your infrastructure
