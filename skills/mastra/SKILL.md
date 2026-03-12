@@ -1,340 +1,154 @@
 ---
 name: mastra
-description: Expert guidance for Mastra, the TypeScript-first framework for building AI agents, workflows, and RAG pipelines. Helps developers create production-ready AI applications with tool use, memory, and multi-step reasoning.
-license: Apache-2.0
-compatibility: No special requirements
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: data-ai
-  tags:
-  - ai-agents
-  - typescript
-  - workflows
-  - rag
-  - tool-use
+category: AI & Machine Learning
+tags: [agent, framework, typescript, tools, rag, workflow, production]
+version: 1.0.0
+author: terminal-skills
 ---
 
 # Mastra — TypeScript AI Agent Framework
 
+You are an expert in Mastra, the TypeScript framework for building AI agents, RAG pipelines, and workflows. You help developers create production AI applications with type-safe agent definitions, tool integration, vector-based knowledge retrieval, multi-step workflows with branching and error handling, and integration with 50+ third-party services — designed for TypeScript teams who want agent capabilities without Python dependencies.
 
-## Overview
+## Core Capabilities
 
-
-Mastra, the TypeScript-first framework for building AI agents, workflows, and RAG pipelines. Helps developers create production-ready AI applications with tool use, memory, and multi-step reasoning.
-
-
-## Instructions
-
-### Agent Creation
-
-Build agents with system prompts, tools, and model configuration:
+### Agent Definition
 
 ```typescript
-// src/agents/researcher.ts — Research agent with web search tools
-import { Agent } from '@mastra/core';
-import { openai } from '@mastra/openai';
+import { Agent } from "@mastra/core";
+import { openai } from "@mastra/openai";
+import { z } from "zod";
 
-const researcher = new Agent({
-  name: 'researcher',
-  model: openai('gpt-4o'),
-  instructions: `You are a research assistant. Use the provided tools
-    to find accurate, up-to-date information. Always cite sources.
-    Prefer primary sources over secondary ones.`,
+const supportAgent = new Agent({
+  name: "Customer Support",
+  model: openai("gpt-4o"),
+  instructions: `You are a customer support agent for a SaaS product.
+    Use the knowledge base to answer questions.
+    Create tickets for issues you can't resolve.
+    Always check the customer's subscription status before offering features.`,
+
   tools: {
-    webSearch,      // Search the web for information
-    readWebpage,    // Extract content from URLs
-    saveNote,       // Persist findings to memory
+    searchKnowledgeBase: {
+      description: "Search the product knowledge base",
+      parameters: z.object({ query: z.string() }),
+      execute: async ({ query }) => {
+        const results = await vectorStore.search(query, { topK: 5 });
+        return results.map(r => ({ title: r.metadata.title, content: r.content }));
+      },
+    },
+    getCustomerInfo: {
+      description: "Get customer subscription and account details",
+      parameters: z.object({ email: z.string().email() }),
+      execute: async ({ email }) => {
+        const customer = await db.customers.findByEmail(email);
+        return { plan: customer.plan, since: customer.createdAt, tickets: customer.openTickets };
+      },
+    },
+    createTicket: {
+      description: "Create a support ticket for the engineering team",
+      parameters: z.object({
+        title: z.string(),
+        description: z.string(),
+        priority: z.enum(["low", "medium", "high", "critical"]),
+        customerEmail: z.string().email(),
+      }),
+      execute: async (params) => {
+        const ticket = await db.tickets.create(params);
+        return { ticketId: ticket.id, message: `Ticket ${ticket.id} created` };
+      },
+    },
   },
 });
 
-// Execute the agent with a user query
-const result = await researcher.generate(
-  'What are the latest trends in AI agent frameworks?'
+// Use the agent
+const response = await supportAgent.generate(
+  "I'm having issues with the API rate limiter. My email is alice@acme.com",
 );
-```
+console.log(response.text);
 
-### Tool Definition
-
-Create type-safe tools that agents can invoke:
-
-```typescript
-// src/tools/web-search.ts — Tool for searching the web
-import { createTool } from '@mastra/core';
-import { z } from 'zod';
-
-export const webSearch = createTool({
-  id: 'web-search',
-  description: 'Search the web for current information on any topic',
-  inputSchema: z.object({
-    query: z.string().describe('Search query'),
-    maxResults: z.number().default(5).describe('Number of results to return'),
-  }),
-  outputSchema: z.object({
-    results: z.array(z.object({
-      title: z.string(),
-      url: z.string(),
-      snippet: z.string(),
-    })),
-  }),
-  execute: async ({ context }) => {
-    // context.query and context.maxResults are type-safe
-    const response = await fetch(
-      `https://api.search.example/v1?q=${encodeURIComponent(context.query)}&limit=${context.maxResults}`
-    );
-    const data = await response.json();
-    return {
-      results: data.items.map((item: any) => ({
-        title: item.title,
-        url: item.link,
-        snippet: item.snippet,
-      })),
-    };
-  },
-});
-```
-
-### Workflow Orchestration
-
-Define multi-step workflows with branching, parallel execution, and error handling:
-
-```typescript
-// src/workflows/content-pipeline.ts — Multi-step content creation workflow
-import { Workflow, Step } from '@mastra/core';
-import { z } from 'zod';
-
-const contentPipeline = new Workflow({
-  name: 'content-pipeline',
-  triggerSchema: z.object({
-    topic: z.string(),
-    targetAudience: z.string(),
-    format: z.enum(['blog', 'thread', 'newsletter']),
-  }),
-});
-
-// Step 1: Research the topic
-const research = new Step({
-  id: 'research',
-  execute: async ({ context }) => {
-    const findings = await researcher.generate(
-      `Research "${context.triggerData.topic}" for ${context.triggerData.targetAudience}`
-    );
-    return { findings: findings.text };
-  },
-});
-
-// Step 2: Generate outline based on research
-const outline = new Step({
-  id: 'outline',
-  execute: async ({ context }) => {
-    const researchData = context.getStepResult('research');
-    const draft = await writer.generate(
-      `Create a ${context.triggerData.format} outline about: ${researchData.findings}`
-    );
-    return { outline: draft.text };
-  },
-});
-
-// Step 3: Write final content
-const write = new Step({
-  id: 'write',
-  execute: async ({ context }) => {
-    const outlineData = context.getStepResult('outline');
-    const content = await writer.generate(
-      `Write the full content following this outline: ${outlineData.outline}`
-    );
-    return { content: content.text };
-  },
-});
-
-// Chain steps: research → outline → write
-contentPipeline
-  .step(research)
-  .then(outline)
-  .then(write)
-  .commit();
-```
-
-### RAG (Retrieval-Augmented Generation)
-
-Set up document ingestion, embedding, and retrieval:
-
-```typescript
-// src/rag/knowledge-base.ts — RAG pipeline with vector storage
-import { Mastra } from '@mastra/core';
-import { PgVector } from '@mastra/pg';
-import { openai } from '@mastra/openai';
-
-const mastra = new Mastra({
-  vectors: {
-    pgVector: new PgVector(process.env.DATABASE_URL!),
-  },
-});
-
-// Ingest documents into the vector store
-async function ingestDocuments(docs: { content: string; metadata: Record<string, any> }[]) {
-  const chunks = await mastra.rag.chunk(docs, {
-    strategy: 'recursive',     // Split by paragraphs, then sentences
-    chunkSize: 512,            // ~512 tokens per chunk
-    chunkOverlap: 50,          // 50-token overlap for context continuity
-  });
-
-  const embeddings = await mastra.rag.embed(chunks, {
-    provider: 'OPEN_AI',
-    model: 'text-embedding-3-small',
-  });
-
-  await mastra.vectors.pgVector.upsert('knowledge-base', embeddings);
-}
-
-// Query the knowledge base with semantic search
-async function queryKnowledge(question: string) {
-  const queryEmbedding = await mastra.rag.embed([{ content: question }], {
-    provider: 'OPEN_AI',
-    model: 'text-embedding-3-small',
-  });
-
-  const results = await mastra.vectors.pgVector.query('knowledge-base', {
-    vector: queryEmbedding[0].embedding,
-    topK: 5,                   // Return top 5 most relevant chunks
-    filter: {},                // Optional metadata filters
-  });
-
-  return results;
+// Streaming
+const stream = await supportAgent.stream("Help me set up webhooks");
+for await (const chunk of stream) {
+  process.stdout.write(chunk);
 }
 ```
 
-### Memory and Context
-
-Persist conversation history and agent state:
+### RAG Pipeline
 
 ```typescript
-// src/memory/setup.ts — Configure agent memory with LibSQL
-import { Agent } from '@mastra/core';
-import { LibSQLStore } from '@mastra/libsql';
+import { createVectorStore } from "@mastra/rag";
+import { openai } from "@mastra/openai";
 
-const agent = new Agent({
-  name: 'assistant',
-  model: openai('gpt-4o'),
-  instructions: 'You are a helpful assistant with persistent memory.',
-  memory: {
-    store: new LibSQLStore({
-      url: process.env.TURSO_URL!,
-      authToken: process.env.TURSO_AUTH_TOKEN!,
-    }),
-    // Memory configuration
-    contextWindow: {
-      maxTokens: 4000,         // Max tokens to include from history
-      strategy: 'recent',      // Use most recent messages
-    },
-    semanticRecall: {
-      topK: 3,                 // Include 3 semantically relevant past messages
-      messageRange: {
-        before: 2,             // Include 2 messages before each match for context
-        after: 1,              // Include 1 message after each match
-      },
-    },
-  },
+const vectorStore = createVectorStore({
+  provider: "pgvector",                    // Or pinecone, qdrant, chroma
+  connectionString: process.env.DATABASE_URL,
+  embeddingModel: openai.embedding("text-embedding-3-small"),
 });
 
-// Conversations automatically persist across sessions
-const response = await agent.generate('Remember that my name is Alex', {
-  threadId: 'user-123',       // Thread ID groups related messages
-  resourceId: 'user-123',     // Resource ID identifies the user
+// Index documents
+await vectorStore.upsert([
+  { id: "doc-1", content: "How to set up webhooks: ...", metadata: { title: "Webhooks Guide", category: "api" } },
+  { id: "doc-2", content: "Rate limiting policy: ...", metadata: { title: "Rate Limits", category: "api" } },
+]);
+
+// Search
+const results = await vectorStore.search("webhook configuration", {
+  topK: 5,
+  filter: { category: "api" },
 });
 ```
 
-### Integration with External Services
-
-Connect agents to APIs and third-party services:
+### Workflows
 
 ```typescript
-// src/integrations/setup.ts — Connect Mastra to external services
-import { Mastra } from '@mastra/core';
-import { GithubIntegration } from '@mastra/github';
-import { SlackIntegration } from '@mastra/slack';
+import { Workflow, Step } from "@mastra/core";
 
-const mastra = new Mastra({
-  integrations: [
-    new GithubIntegration({
-      config: {
-        PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN!,
+const onboardingWorkflow = new Workflow({
+  name: "customer-onboarding",
+  steps: [
+    new Step({
+      id: "validate",
+      execute: async ({ input }) => {
+        const customer = await validateCustomer(input.email);
+        return { customer, isNewCustomer: !customer.hasCompletedOnboarding };
       },
     }),
-    new SlackIntegration({
-      config: {
-        SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN!,
+    new Step({
+      id: "setup-account",
+      when: ({ previous }) => previous.validate.isNewCustomer,
+      execute: async ({ previous }) => {
+        await createDefaultProject(previous.validate.customer.id);
+        await seedSampleData(previous.validate.customer.id);
+        return { projectCreated: true };
+      },
+    }),
+    new Step({
+      id: "send-welcome",
+      execute: async ({ previous, input }) => {
+        const template = previous.setup_account?.projectCreated ? "new-user" : "returning-user";
+        await sendEmail(input.email, template);
+        return { emailSent: true };
       },
     }),
   ],
 });
 
-// Integrations automatically provide tools to agents
-// e.g., github_create_issue, slack_post_message
-const devAgent = new Agent({
-  name: 'dev-assistant',
-  model: openai('gpt-4o'),
-  instructions: 'Help developers manage their GitHub repos and Slack notifications.',
-  tools: {
-    ...mastra.getIntegration('github').getTools(),
-    ...mastra.getIntegration('slack').getTools(),
-  },
-});
+await onboardingWorkflow.execute({ email: "new@customer.com" });
 ```
 
-## Project Setup
-
-Initialize a new Mastra project:
+## Installation
 
 ```bash
-# Create new Mastra project with CLI
-npx create-mastra@latest my-ai-app
-
-# Or add to existing project
-npm install @mastra/core @mastra/openai
-
-# Start development server with hot reload
-npx mastra dev
+npm install @mastra/core @mastra/openai @mastra/rag
 ```
 
-Mastra dev server provides:
-- Agent playground UI at `localhost:4111`
-- REST API endpoints for all agents and workflows
-- Real-time logs and debugging tools
-- Swagger documentation auto-generated
+## Best Practices
 
-
-## Examples
-
-
-### Example 1: Integrating Mastra into an existing application
-
-**User request:**
-
-```
-Add Mastra to my Next.js app for the AI chat feature. I want streaming responses.
-```
-
-The agent installs the SDK, creates an API route that initializes the Mastra client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
-
-### Example 2: Optimizing tool definition performance
-
-**User request:**
-
-```
-My Mastra calls are slow and expensive. Help me optimize the setup.
-```
-
-The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Mastra's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
-
-
-## Guidelines
-
-1. **Type everything** — Use Zod schemas for all tool inputs/outputs; Mastra infers types automatically
-2. **Small, focused agents** — One agent per domain; compose them via workflows rather than building monoliths
-3. **Tool descriptions matter** — LLMs choose tools based on descriptions; be specific and include examples
-4. **Test with evals** — Use `@mastra/evals` to measure agent quality (faithfulness, relevance, completeness)
-5. **Structured output** — Use `generate({ schema })` to get typed JSON responses instead of raw text
-6. **Error boundaries** — Wrap tool executions in try/catch; return meaningful error messages the agent can reason about
-7. **Observe everything** — Enable telemetry with OpenTelemetry for production debugging
-8. **Version your prompts** — Store system instructions in separate files; track changes in git
+1. **TypeScript-native** — Full type safety for agents, tools, workflows; no Python required
+2. **Tool definitions** — Use Zod schemas for tool parameters; type-safe at compile AND runtime
+3. **RAG built-in** — Vector store abstraction with pgvector, Pinecone, Qdrant; no separate RAG library
+4. **Workflows** — Multi-step with conditional branching (`when`), error handling, and retries
+5. **Streaming** — Use `.stream()` for real-time responses; works with any frontend
+6. **50+ integrations** — Pre-built connectors for Slack, GitHub, Linear, Notion, etc.
+7. **Agent memory** — Built-in conversation memory; configurable per agent
+8. **Evaluation** — Built-in eval framework; test agent quality before deployment
