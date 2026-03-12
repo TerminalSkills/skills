@@ -1,209 +1,112 @@
 ---
 name: atuin
-description: Expert guidance for Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. Helps developers install, configure, and get the most out of Atuin for shell history management and productivity.
-license: Apache-2.0
-compatibility: No special requirements
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: development
-  tags:
-  - shell-history
-  - terminal
-  - sync
-  - search
-  - productivity
+category: Developer Tools
+tags: [shell, history, sync, search, terminal, productivity, rust]
+version: 1.0.0
+author: terminal-skills
 ---
 
 # Atuin — Magical Shell History
 
+You are an expert in Atuin, the Rust-based shell history tool that replaces your shell's built-in history with a searchable, syncable, context-aware database. You help developers set up fuzzy search across shell history, sync history across machines, filter by directory/host/session, and analyze command usage — turning shell history from a flat text file into a powerful productivity tool.
 
-## Overview
+## Core Capabilities
 
-
-Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. Helps developers install, configure, and get the most out of Atuin for shell history management and productivity.
-
-
-## Instructions
-
-### Installation and Setup
+### Setup and Usage
 
 ```bash
-# Install Atuin
+# Install
 curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
 
-# Add to shell (bash/zsh/fish)
-# For zsh:
-echo 'eval "$(atuin init zsh)"' >> ~/.zshrc
+# Import existing history
+atuin import auto                         # Detects bash/zsh/fish
 
-# For bash:
-echo 'eval "$(atuin init bash)"' >> ~/.bashrc
+# Interactive search (Ctrl+R replacement)
+# Press Ctrl+R → fuzzy search across all history
+# Filter modes:
+#   - Global: all history across all machines
+#   - Host: only current machine
+#   - Session: only current terminal session
+#   - Directory: only commands run in current directory
 
-# For fish:
-echo 'atuin init fish | source' >> ~/.config/fish/config.fish
+# Sync across machines
+atuin register -u username -e email -p password
+atuin sync                                # E2E encrypted sync
+atuin login -u username -p password       # On another machine
+atuin sync                                # History from all machines!
 
-# Register for cross-machine sync (optional)
-atuin register -u your-username -e your@email.com
-atuin login -u your-username
-atuin sync
+# Search
+atuin search "docker"                     # Full-text search
+atuin search --after "2026-03-01" "deploy"
+atuin search --cwd /project "git"         # Only in this directory
+atuin search --exit 0 "make"              # Only successful commands
+
+# Stats
+atuin stats                               # Most used commands, frequency
+atuin stats --count 20                    # Top 20 commands
 ```
 
 ### Configuration
 
 ```toml
-# ~/.config/atuin/config.toml — Full configuration
+# ~/.config/atuin/config.toml
 [settings]
-## Search settings
-search_mode = "fuzzy"            # "prefix" | "fulltext" | "fuzzy" | "skim"
-filter_mode = "global"           # "global" | "host" | "session" | "directory"
-filter_mode_shell_up_key_binding = "host"  # Up arrow searches current host only
+dialect = "us"
+auto_sync = true
+update_check = true
+sync_frequency = "5m"
+search_mode = "fuzzy"                     # fuzzy | prefix | fulltext | skim
+filter_mode = "global"                    # global | host | session | directory
+style = "compact"                         # compact | full
+inline_height = 40
+show_preview = true
+show_help = true
+exit_mode = "return-original"
 
-## Display
-style = "compact"                # "auto" | "compact" | "full"
-inline_height = 20               # Number of results to show
-show_preview = true              # Show command preview
-show_help = true                 # Show keybinding help
+# Key bindings
+[keys]
+scroll_exits = false
 
-## History settings
-history_filter = [
-  "^echo \\$\\(",               # Filter out variable echoes
-  "^(export|set) .*=.*[Kk][Ee][Yy]",  # Filter commands containing keys
-  "^(export|set) .*TOKEN",      # Filter token exports
-]
-secrets_filter = true            # Auto-detect and filter secrets
-
-## Sync settings
-auto_sync = true                 # Sync after every command
-sync_frequency = "5m"            # Sync interval when idle
-sync_address = "https://api.atuin.sh"  # Atuin server (or self-hosted)
-
-## Storage
-db_path = "~/.local/share/atuin/history.db"
-
-## Key bindings
-# Ctrl+R → Atuin search (default)
-# Up arrow → filtered history (default)
+# Sync settings
+[sync]
+records = true                            # Sync all history records
 ```
 
-### Search and Filtering
+### ZSH/Bash/Fish Integration
 
 ```bash
-# Interactive search (Ctrl+R)
-# Type to fuzzy search through all history
+# Add to ~/.zshrc
+eval "$(atuin init zsh)"
 
-# Search with filters
-atuin search "docker"                          # Full-text search
-atuin search --after "2026-01-01" "deploy"     # After a date
-atuin search --before "yesterday" "npm"        # Before a date
-atuin search --cwd /home/user/project "git"    # In specific directory
-atuin search --host "prod-server" "systemctl"  # On specific host
-atuin search --exit 0 "make build"             # Only successful commands
-atuin search --exit 1 "pytest"                 # Only failed commands
+# Or ~/.bashrc
+eval "$(atuin init bash)"
 
-# Statistics
-atuin stats                                    # Most used commands
-atuin stats --count 20                         # Top 20 commands
+# Or ~/.config/fish/config.fish
+atuin init fish | source
 
-# History management
-atuin history list --cmd-only                  # Just commands, no metadata
-atuin history list --format "{time} {command}" # Custom format
-atuin history last                             # Show last command
-atuin history last --cmd-only                  # Just the last command string
+# Now Ctrl+R opens Atuin's interactive search instead of default
 ```
 
-### Self-Hosted Server
-
-Run your own Atuin sync server:
+## Installation
 
 ```bash
-# Docker Compose for self-hosted Atuin server
-# docker-compose.yml
+# macOS
+brew install atuin
+
+# Linux
+curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+
+# Cargo
+cargo install atuin
 ```
 
-```yaml
-version: "3"
-services:
-  atuin:
-    image: ghcr.io/atuinsh/atuin:latest
-    command: server start
-    ports:
-      - "8888:8888"
-    environment:
-      ATUIN_HOST: "0.0.0.0"
-      ATUIN_PORT: "8888"
-      ATUIN_OPEN_REGISTRATION: "true"
-      ATUIN_DB_URI: "postgres://atuin:password@db/atuin"
-    depends_on:
-      - db
+## Best Practices
 
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: atuin
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: atuin
-    volumes:
-      - atuin-db:/var/lib/postgresql/data
-
-volumes:
-  atuin-db:
-```
-
-```bash
-# Point client to self-hosted server
-# In ~/.config/atuin/config.toml:
-# sync_address = "https://atuin.yourdomain.com"
-
-# Register on self-hosted server
-atuin register -u admin -e admin@yourdomain.com
-```
-
-### Import Existing History
-
-```bash
-# Import from existing shell history
-atuin import auto                 # Auto-detect shell and import
-atuin import zsh                  # Import zsh history
-atuin import bash                 # Import bash history
-atuin import fish                 # Import fish history
-
-# Check import results
-atuin stats
-atuin history list --limit 5
-```
-
-
-## Examples
-
-
-### Example 1: Setting up Atuin with a custom configuration
-
-**User request:**
-
-```
-I just installed Atuin. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Atuin with custom functionality
-
-**User request:**
-
-```
-I want to add a custom configuration to Atuin. How do I build one?
-```
-
-The agent scaffolds the extension/plugin project, implements the core functionality following Atuin's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
-
-
-## Guidelines
-
-1. **Use fuzzy search mode** — `search_mode = "fuzzy"` is most flexible; finds commands even with typos
-2. **Filter sensitive data** — Configure `history_filter` to exclude commands containing tokens, passwords, or API keys
-3. **Enable `secrets_filter`** — Auto-detects and filters potential secrets from history
-4. **Directory-aware history** — Set `filter_mode_shell_up_key_binding = "directory"` so Up arrow shows commands run in the current directory
-5. **Self-host for teams** — Run a private Atuin server for team-wide command sharing without sending data to the cloud
-6. **Import early** — Run `atuin import auto` right after installation to preserve existing history
-7. **Use exit code filtering** — `atuin search --exit 0` finds only commands that succeeded; great for finding the right command syntax
-8. **Sync across machines** — Register an account and enable `auto_sync` to have your history available on every machine
+1. **Fuzzy search** — Set `search_mode = "fuzzy"`; find commands even with typos or partial recall
+2. **Directory filtering** — Use `filter_mode = "directory"` to see only commands relevant to current project
+3. **Sync across machines** — Register for E2E encrypted sync; history follows you to any machine
+4. **Exit code filtering** — Search `--exit 0` for successful commands; avoid repeating failed attempts
+5. **Stats for optimization** — Run `atuin stats` to identify frequent commands worth aliasing
+6. **Import history** — Run `atuin import auto` immediately after install; don't lose existing history
+7. **Session mode** — Use session filter when debugging; see exactly what you ran in this terminal
+8. **Self-hosted** — Deploy your own Atuin server for teams; `docker run ghcr.io/atuinsh/atuin`
