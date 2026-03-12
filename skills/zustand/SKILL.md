@@ -1,178 +1,110 @@
 ---
 name: zustand
-description: >-
-  Manage React state with Zustand. Use when a user asks to set up global state
-  in React, replace Redux with something simpler, share state between components,
-  persist state to localStorage, or implement a lightweight store.
-license: Apache-2.0
-compatibility: 'React 18+'
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: development
-  tags:
-    - zustand
-    - react
-    - state
-    - store
-    - frontend
+category: Frontend Development
+tags: [react, state-management, lightweight, hooks, typescript, store]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Zustand
+# Zustand — Minimal React State Management
 
-## Overview
+You are an expert in Zustand, the small, fast, and scalable state management library for React. You help developers manage global state without boilerplate using Zustand's hook-based stores, selectors for performance, middleware (persist, devtools, immer), computed values, and async actions — replacing Redux complexity with a simple, un-opinionated API in under 1KB.
 
-Zustand is a minimal state management library for React. No providers, no boilerplate, no context — just a hook. It's 1KB, works outside React components, supports middleware (persist, devtools, immer), and handles async operations natively.
+## Core Capabilities
 
-## Instructions
-
-### Step 1: Create Store
+### Store
 
 ```typescript
-// stores/useAuthStore.ts — Authentication state
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist, devtools } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
-interface User {
-  id: string
-  name: string
-  email: string
-  role: 'admin' | 'member'
+interface Todo { id: string; text: string; done: boolean }
+
+interface TodoStore {
+  todos: Todo[];
+  filter: "all" | "active" | "done";
+  addTodo: (text: string) => void;
+  toggleTodo: (id: string) => void;
+  removeTodo: (id: string) => void;
+  setFilter: (filter: "all" | "active" | "done") => void;
+  fetchTodos: () => Promise<void>;
 }
 
-interface AuthState {
-  user: User | null
-  token: string | null
-  isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
-  updateProfile: (updates: Partial<User>) => void
-}
+const useTodoStore = create<TodoStore>()(
+  devtools(
+    persist(
+      immer((set) => ({
+        todos: [],
+        filter: "all",
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      token: null,
-      isLoading: false,
+        addTodo: (text) => set((state) => {
+          state.todos.push({ id: crypto.randomUUID(), text, done: false });
+        }),
 
-      login: async (email, password) => {
-        set({ isLoading: true })
-        try {
-          const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-          })
-          const { user, token } = await res.json()
-          set({ user, token, isLoading: false })
-        } catch {
-          set({ isLoading: false })
-          throw new Error('Login failed')
-        }
-      },
+        toggleTodo: (id) => set((state) => {
+          const todo = state.todos.find(t => t.id === id);
+          if (todo) todo.done = !todo.done;
+        }),
 
-      logout: () => set({ user: null, token: null }),
+        removeTodo: (id) => set((state) => {
+          state.todos = state.todos.filter(t => t.id !== id);
+        }),
 
-      updateProfile: (updates) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, ...updates } : null,
-        })),
-    }),
-    { name: 'auth-storage' }   // persists to localStorage
-  )
-)
-```
+        setFilter: (filter) => set({ filter }),
 
-### Step 2: Use in Components
+        fetchTodos: async () => {
+          const response = await fetch("/api/todos");
+          const todos = await response.json();
+          set({ todos });
+        },
+      })),
+      { name: "todo-storage" },           // localStorage persistence
+    ),
+    { name: "TodoStore" },                // Redux DevTools label
+  ),
+);
 
-```tsx
-// components/Header.tsx — Consume state with a hook
-import { useAuthStore } from '../stores/useAuthStore'
+// Usage in components — automatic re-render only when selected state changes
+function TodoList() {
+  const todos = useTodoStore((s) => s.todos);
+  const filter = useTodoStore((s) => s.filter);
+  const toggleTodo = useTodoStore((s) => s.toggleTodo);
 
-export function Header() {
-  // Only re-renders when these specific values change
-  const user = useAuthStore((state) => state.user)
-  const logout = useAuthStore((state) => state.logout)
+  const filtered = todos.filter(t =>
+    filter === "all" ? true : filter === "done" ? t.done : !t.done
+  );
 
   return (
-    <header>
-      {user ? (
-        <>
-          <span>Welcome, {user.name}</span>
-          <button onClick={logout}>Sign Out</button>
-        </>
-      ) : (
-        <a href="/login">Sign In</a>
-      )}
-    </header>
-  )
-}
-```
-
-### Step 3: Complex Store with Slices
-
-```typescript
-// stores/useAppStore.ts — Combined store with slices
-import { create } from 'zustand'
-import { devtools, immer } from 'zustand/middleware'
-
-interface AppState {
-  // UI slice
-  sidebarOpen: boolean
-  theme: 'light' | 'dark'
-  toggleSidebar: () => void
-  setTheme: (theme: 'light' | 'dark') => void
-
-  // Notifications slice
-  notifications: Array<{ id: string; message: string; type: 'info' | 'error' }>
-  addNotification: (message: string, type: 'info' | 'error') => void
-  removeNotification: (id: string) => void
+    <ul>
+      {filtered.map(t => (
+        <li key={t.id} onClick={() => toggleTodo(t.id)}
+          style={{ textDecoration: t.done ? "line-through" : "none" }}>
+          {t.text}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
-export const useAppStore = create<AppState>()(
-  devtools(
-    immer((set) => ({
-      sidebarOpen: true,
-      theme: 'light',
-      notifications: [],
-
-      toggleSidebar: () => set((state) => { state.sidebarOpen = !state.sidebarOpen }),
-      setTheme: (theme) => set((state) => { state.theme = theme }),
-
-      addNotification: (message, type) => set((state) => {
-        state.notifications.push({ id: crypto.randomUUID(), message, type })
-      }),
-      removeNotification: (id) => set((state) => {
-        state.notifications = state.notifications.filter(n => n.id !== id)
-      }),
-    })),
-    { name: 'app-store' }    // shows in Redux DevTools
-  )
-)
+// Access outside React
+const { addTodo, todos } = useTodoStore.getState();
+useTodoStore.subscribe((state) => console.log("State changed:", state.todos.length));
 ```
 
-### Step 4: Use Outside React
+## Installation
 
-```typescript
-// lib/api.ts — Access store from non-React code
-import { useAuthStore } from '../stores/useAuthStore'
-
-export async function fetchWithAuth(url: string) {
-  const token = useAuthStore.getState().token
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (res.status === 401) {
-    useAuthStore.getState().logout()
-  }
-  return res
-}
+```bash
+npm install zustand
 ```
 
-## Guidelines
+## Best Practices
 
-- Use selectors `useStore(s => s.field)` to avoid unnecessary re-renders.
-- `persist` middleware saves to localStorage automatically — great for auth, preferences.
-- `immer` middleware allows mutable-style updates (Zustand handles immutability).
-- Zustand works with Redux DevTools via the `devtools` middleware.
-- For server-side state (API data), use TanStack Query instead — Zustand is for client state.
+1. **Selectors** — Always select specific fields: `useStore(s => s.count)`; prevents unnecessary re-renders
+2. **Immer middleware** — Use immer for nested state updates; mutate draft instead of spreading
+3. **Persist** — Use `persist` middleware for localStorage/sessionStorage; automatic hydration on page load
+4. **DevTools** — Wrap with `devtools()` in development; inspect state changes in Redux DevTools extension
+5. **Async actions** — Define async actions directly in the store; `set()` works inside async functions
+6. **Outside React** — Use `getState()` and `subscribe()` for non-React code (API clients, WebSocket handlers)
+7. **Multiple stores** — Create separate stores per domain (auth, cart, ui); keeps each store focused
+8. **No providers** — Zustand doesn't need Context providers; stores are global singletons, import and use anywhere
