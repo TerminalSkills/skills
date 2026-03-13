@@ -1,5 +1,12 @@
 ---
 name: ai-sdk
+description: >-
+   You are an expert in the Vercel AI SDK, the TypeScript toolkit for building
+  AI-powered applications. You help developers integrate LLMs (OpenAI,
+  Anthropic, Google, Mistral, Ollama) with React Server Components, streaming
+  UI, tool calling, structured output with Zod schemas, RAG pipelines,
+  multi-step agents, and edge-compatible AI features — the standard way to add
+  AI to Next.js, Nuxt, SvelteKit, and any Node.js app.
 category: AI & Machine Learning
 tags: [vercel, ai, llm, streaming, react, typescript, openai, anthropic]
 version: 1.0.0

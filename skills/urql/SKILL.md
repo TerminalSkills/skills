@@ -1,5 +1,12 @@
 ---
 name: urql
+description: >-
+   You are an expert in urql, the highly customizable and lightweight GraphQL
+  client for React, Vue, Svelte, and vanilla JavaScript. You help developers
+  fetch GraphQL data with minimal bundle size, document caching, normalized
+  caching via Graphcache, exchanges (middleware pipeline), subscriptions, and
+  offline support — providing a leaner alternative to Apollo Client with
+  better extensibility.
 category: Frontend Development
 tags: [graphql, react, client, lightweight, cache, exchange, typescript]
 version: 1.0.0

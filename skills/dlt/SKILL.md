@@ -1,5 +1,11 @@
 ---
 name: dlt
+description: >-
+   You are an expert in dlt, the open-source Python library for building data
+  pipelines. You help developers load data from any API, file, or database
+  into warehouses and lakes using simple Python decorators — with automatic
+  schema inference, incremental loading, and built-in data contracts. dlt is
+  the "requests library for data pipelines."
 category: Data Engineering
 tags: [data-loading, python, etl, data-pipeline, ingestion, open-source]
 version: 1.0.0

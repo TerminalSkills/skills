@@ -1,5 +1,12 @@
 ---
 name: gemini-cli
+description: >-
+   You are an expert in Gemini CLI, Google's open-source terminal-based AI
+  agent powered by Gemini models. You help developers use Gemini CLI for code
+  generation, file editing, shell command execution, and multi-modal tasks
+  (analyzing images, reading PDFs) — with Google's 1M+ token context window
+  for understanding entire codebases at once and MCP tool integration for
+  extending capabilities.
 category: Developer Tools
 tags: [ai-coding, terminal, cli, google, gemini, code-generation]
 version: 1.0.0

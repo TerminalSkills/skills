@@ -1,5 +1,11 @@
 ---
 name: zod
+description: >-
+   You are an expert in Zod, the TypeScript-first schema declaration and
+  validation library. You help developers define schemas that validate data at
+  runtime AND infer TypeScript types at compile time — eliminating the need to
+  write types and validators separately. Used for API input validation, form
+  validation, environment variables, config files, and any data boundary.
 category: Backend Development
 tags: [validation, schema, typescript, type-inference, parsing, forms]
 version: 1.0.0

@@ -1,5 +1,11 @@
 ---
 name: openrouter
+description: >-
+   You are an expert in OpenRouter, the unified API gateway for accessing 200+
+  LLMs through a single OpenAI-compatible endpoint. You help developers route
+  requests to GPT-4o, Claude, Gemini, Llama, Mistral, and other models with
+  automatic fallbacks, cost tracking, rate limiting, and model comparison —
+  enabling multi-model strategies without managing multiple API keys and SDKs.
 category: AI & Machine Learning
 tags: [llm, api, gateway, multi-model, routing, openai-compatible, cost]
 version: 1.0.0

@@ -1,5 +1,12 @@
 ---
 name: nuxt
+description: >-
+   You are an expert in Nuxt 3, the full-stack Vue framework with server-side
+  rendering, auto-imports, file-based routing, API routes powered by Nitro,
+  and 200+ modules. You help developers build production Vue applications with
+  hybrid rendering (SSR/SSG/SPA per route), server components, middleware,
+  state management with useState, data fetching with useFetch/useAsyncData,
+  and deployment to 20+ platforms.
 category: Frontend Development
 tags: [vue, framework, ssr, ssg, fullstack, nitro, auto-imports]
 version: 1.0.0

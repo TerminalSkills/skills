@@ -1,5 +1,12 @@
 ---
 name: turso
+description: >-
+   You are an expert in Turso, the SQLite-based database platform for
+  production workloads. You help developers use libSQL (Turso's SQLite fork)
+  as a primary database with features like embedded replicas (SQLite file
+  synced from cloud), multi-region replication, vector search, branching, and
+  edge deployment — providing sub-millisecond reads with the simplicity of
+  SQLite and the durability of a cloud database.
 category: Backend Development
 tags: [database, sqlite, edge, serverless, libsql, embedded, sync]
 version: 1.0.0

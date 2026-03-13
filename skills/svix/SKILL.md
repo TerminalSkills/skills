@@ -1,5 +1,11 @@
 ---
 name: svix
+description: >-
+   You are an expert in Svix, the enterprise webhook delivery platform. You
+  help developers send reliable webhooks to customers with automatic retries,
+  signature verification, delivery monitoring, endpoint management, and event
+  type filtering — replacing custom webhook infrastructure with a
+  purpose-built service used by companies like Clerk, Resend, and Liveblocks.
 category: Backend Development
 tags: [webhooks, api, delivery, retry, typescript, infrastructure]
 version: 1.0.0

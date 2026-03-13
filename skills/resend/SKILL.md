@@ -1,5 +1,11 @@
 ---
 name: resend
+description: >-
+   You are an expert in Resend, the developer-first email API. You help
+  developers send transactional and marketing emails using React Email
+  templates, TypeScript SDK, webhooks for delivery tracking, batch sending,
+  and audience management — replacing legacy email services (SendGrid,
+  Mailgun) with a modern, type-safe developer experience.
 category: Backend Development
 tags: [email, api, transactional, react-email, typescript, developer-first]
 version: 1.0.0

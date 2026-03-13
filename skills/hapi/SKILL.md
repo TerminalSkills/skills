@@ -1,5 +1,12 @@
 ---
 name: hapi
+description: >-
+   You are an expert in Hapi.js, the configuration-centric enterprise
+  framework for Node.js. You help developers build production APIs with
+  built-in input validation (Joi), authentication strategies, plugin
+  architecture, caching, rate limiting, and comprehensive request lifecycle
+  hooks — designed for teams that need structure, security, and testability
+  without third-party middleware sprawl.
 category: Backend Development
 tags: [node, web-framework, enterprise, validation, auth, api, plugins]
 version: 1.0.0

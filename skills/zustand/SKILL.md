@@ -1,5 +1,12 @@
 ---
 name: zustand
+description: >-
+   You are an expert in Zustand, the small, fast, and scalable state
+  management library for React. You help developers manage global state
+  without boilerplate using Zustand's hook-based stores, selectors for
+  performance, middleware (persist, devtools, immer), computed values, and
+  async actions — replacing Redux complexity with a simple, un-opinionated API
+  in under 1KB.
 category: Frontend Development
 tags: [react, state-management, lightweight, hooks, typescript, store]
 version: 1.0.0

@@ -1,5 +1,12 @@
 ---
 name: stagehand
+description: >-
+   You are an expert in Stagehand by BrowserBase, the AI-powered browser
+  automation framework that lets you control web pages using natural language
+  instructions. You help developers build web automations that act, extract
+  data, and observe pages using plain English commands instead of brittle CSS
+  selectors — powered by GPT-4o or Claude for visual understanding of page
+  layouts.
 category: AI & Machine Learning
 tags: [browser-automation, ai-agent, computer-use, web-automation, natural-language, playwright]
 version: 1.0.0

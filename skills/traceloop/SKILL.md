@@ -1,5 +1,12 @@
 ---
 name: traceloop
+description: >-
+   You are an expert in Traceloop and its OpenLLMetry SDK, the open-source
+  observability framework that extends OpenTelemetry for LLM applications. You
+  help developers instrument AI pipelines with automatic tracing for OpenAI,
+  Anthropic, Cohere, LangChain, LlamaIndex, vector databases, and frameworks —
+  exporting to any OpenTelemetry-compatible backend (Grafana Tempo, Jaeger,
+  Datadog, Honeycomb, Traceloop Cloud).
 category: AI & Machine Learning
 tags: [observability, opentelemetry, llm, tracing, openllmetry, monitoring]
 version: 1.0.0

@@ -1,5 +1,12 @@
 ---
 name: protobuf
+description: >-
+   You are an expert in Protocol Buffers (protobuf), Google's language-neutral
+  binary serialization format. You help developers define data schemas with
+  `.proto` files, generate typed code for multiple languages, build efficient
+  APIs with gRPC, and handle schema evolution with backward/forward
+  compatibility — achieving 3-10x smaller payloads and 20-100x faster
+  serialization than JSON.
 category: Developer Tools
 tags: [serialization, grpc, schema, binary, cross-language, performance]
 version: 1.0.0

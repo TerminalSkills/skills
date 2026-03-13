@@ -1,5 +1,11 @@
 ---
 name: vinxi
+description: >-
+   You are an expert in Vinxi, the full-stack JavaScript SDK for building
+  meta-frameworks. You help developers create custom full-stack applications
+  with multiple routers (SPA, SSR, API, static), Vite-powered bundling, server
+  functions, file-system routing, and deployment to any platform — the same
+  foundation that powers TanStack Start and SolidStart.
 category: Developer Tools
 tags: [meta-framework, vite, full-stack, server, ssr, sdk, router]
 version: 1.0.0

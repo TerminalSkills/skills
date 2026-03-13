@@ -1,5 +1,12 @@
 ---
 name: hotwire
+description: >-
+   You are an expert in Hotwire (HTML Over The Wire), the collection of
+  techniques for building modern web applications by sending HTML instead of
+  JSON. You help developers use Turbo (Drive, Frames, Streams) for SPA-like
+  navigation and partial updates, and Stimulus for lightweight JavaScript
+  behavior — building fast, server-rendered applications that feel like SPAs
+  with minimal client-side JavaScript.
 category: Web Frameworks
 tags: [html-over-the-wire, turbo, stimulus, server-rendered, rails, django, low-javascript]
 version: 1.0.0

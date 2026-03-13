@@ -1,5 +1,12 @@
 ---
 name: pglite
+description: >-
+   You are an expert in PGlite, the lightweight WASM Postgres build that runs
+  in the browser, Node.js, and Deno. You help developers embed a full Postgres
+  instance (with extensions like pgvector, PostGIS) in client-side apps,
+  Electron, React Native, and serverless functions — providing real SQL with
+  JSONB, full-text search, and vector similarity search at ~3MB compressed,
+  without a server.
 category: Backend Development
 tags: [postgres, wasm, browser, embedded, local-first, database, lightweight]
 version: 1.0.0

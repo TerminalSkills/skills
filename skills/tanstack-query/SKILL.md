@@ -1,5 +1,12 @@
 ---
 name: tanstack-query
+description: >-
+   You are an expert in TanStack Query (formerly React Query), the
+  data-fetching and server state management library. You help developers build
+  React applications with automatic caching, background refetching, optimistic
+  updates, pagination, infinite scroll, and offline support — replacing manual
+  `useEffect` + `useState` patterns with declarative, type-safe data fetching
+  hooks.
 category: Frontend Development
 tags: [react, data-fetching, cache, state-management, async, typescript]
 version: 1.0.0

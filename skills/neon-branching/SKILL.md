@@ -1,5 +1,12 @@
 ---
 name: neon-branching
+description: >-
+   You are an expert in Neon's database branching, the feature that creates
+  instant copy-on-write branches of your Postgres database. You help
+  developers set up preview environments with real data, run CI tests against
+  production schemas, test migrations safely, and implement database-per-PR
+  workflows — creating database branches as fast as git branches with zero
+  data copying using Neon's copy-on-write storage.
 category: Backend Development
 tags: [database, postgres, branching, preview, ci-cd, testing, serverless]
 version: 1.0.0

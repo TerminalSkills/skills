@@ -1,5 +1,12 @@
 ---
 name: centrifugo
+description: >-
+   You are an expert in Centrifugo, the scalable real-time messaging server.
+  You help developers add WebSocket-based real-time features (chat,
+  notifications, live updates, presence) to any application with a
+  language-agnostic server that handles millions of concurrent connections —
+  publishing from your backend via HTTP/gRPC API while clients subscribe via
+  WebSocket, SSE, or HTTP streaming.
 category: Backend Development
 tags: [websocket, realtime, pubsub, messaging, scalable, go]
 version: 1.0.0

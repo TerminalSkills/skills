@@ -1,5 +1,12 @@
 ---
 name: aider
+description: >-
+   You are an expert in Aider, the terminal-based AI coding assistant that
+  reads your codebase, makes changes across multiple files, and creates proper
+  git commits. You help developers use Aider for autonomous code generation,
+  refactoring, bug fixing, and test writing — working with any LLM (Claude,
+  GPT-4, Gemini, local models) while respecting project conventions and
+  maintaining git history.
 category: Developer Tools
 tags: [ai-coding, terminal, code-generation, pair-programming, autonomous, git]
 version: 1.0.0

@@ -1,5 +1,12 @@
 ---
 name: deno-deploy
+description: >-
+   You are an expert in Deno Deploy, the globally distributed serverless
+  platform by Deno. You help developers deploy TypeScript/JavaScript
+  applications to 35+ edge locations with zero cold starts, built-in KV
+  storage, BroadcastChannel for real-time, cron scheduling, and npm
+  compatibility — running code within milliseconds of users worldwide without
+  managing infrastructure.
 category: Cloud & Serverless
 tags: [deno, edge, serverless, typescript, v8, deploy, global]
 version: 1.0.0

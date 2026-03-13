@@ -1,5 +1,11 @@
 ---
 name: tinybase
+description: >-
+   You are an expert in TinyBase, the reactive data store for local-first
+  applications. You help developers build offline-capable apps with structured
+  tables, automatic reactivity, CRDT-based sync, persistence to
+  IndexedDB/SQLite/Postgres, and relationship modeling — providing a complete
+  client-side database that syncs across devices without a custom backend.
 category: Frontend Development
 tags: [state-management, reactive, local-first, sync, crdt, offline, database]
 version: 1.0.0

@@ -1,5 +1,11 @@
 ---
 name: novu
+description: >-
+   You are an expert in Novu, the open-source notification infrastructure
+  platform. You help developers build multi-channel notification systems
+  supporting email, SMS, push, in-app, and chat (Slack/Discord) — with
+  workflow orchestration, digest/batching, user preferences, template
+  management, and a pre-built notification center component for React.
 category: Backend Development
 tags: [notifications, multi-channel, email, sms, push, in-app, typescript]
 version: 1.0.0

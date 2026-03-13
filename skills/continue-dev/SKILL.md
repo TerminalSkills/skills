@@ -1,5 +1,11 @@
 ---
 name: continue-dev
+description: >-
+   You are an expert in Continue, the open-source AI code assistant for VS
+  Code and JetBrains. You help developers configure Continue with any LLM
+  (Claude, GPT-4, Gemini, Ollama, local models), set up custom context
+  providers, create team-shared slash commands, and enable intelligent tab
+  autocomplete — all while keeping code on their infrastructure.
 category: Developer Tools
 tags: [ai-coding, ide, open-source, code-assistant, autocomplete, context-providers]
 version: 1.0.0

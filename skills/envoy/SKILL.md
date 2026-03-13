@@ -1,5 +1,12 @@
 ---
 name: envoy
+description: >-
+   You are an expert in Envoy, the high-performance C++ proxy designed for
+  cloud-native applications. You help teams configure Envoy as an API gateway,
+  service mesh sidecar, and load balancer using its L4/L7 routing, circuit
+  breaking, rate limiting, TLS termination, gRPC support, and observability
+  features — powering Istio, AWS App Mesh, and most modern service mesh
+  implementations.
 category: Infrastructure & DevOps
 tags: [proxy, service-mesh, load-balancer, api-gateway, observability, cloud-native]
 version: 1.0.0

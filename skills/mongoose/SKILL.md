@@ -1,5 +1,11 @@
 ---
 name: mongoose
+description: >-
+   You are an expert in Mongoose, the elegant MongoDB object modeling library
+  for Node.js. You help developers define schemas with validation, build
+  queries with a fluent API, use middleware hooks, populate references, create
+  virtual fields, and handle transactions — providing structure and type
+  safety on top of MongoDB's flexible document model.
 category: Backend Development
 tags: [mongodb, odm, schema, validation, typescript, node, database]
 version: 1.0.0

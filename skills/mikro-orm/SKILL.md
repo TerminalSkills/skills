@@ -1,5 +1,11 @@
 ---
 name: mikro-orm
+description: >-
+   You are an expert in MikroORM, the TypeScript ORM built on Unit of Work and
+  Identity Map patterns. You help developers build data layers with
+  decorator-based entities, automatic change tracking, lazy/eager loading,
+  embeddables, query builder, migrations, and seeding — supporting PostgreSQL,
+  MySQL, SQLite, and MongoDB with a DDD-friendly architecture.
 category: Backend Development
 tags: [orm, typescript, database, unit-of-work, identity-map, sql, mongodb]
 version: 1.0.0

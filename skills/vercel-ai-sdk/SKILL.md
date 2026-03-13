@@ -1,5 +1,12 @@
 ---
 name: vercel-ai-sdk
+description: >-
+   You are an expert in the Vercel AI SDK, the TypeScript toolkit for building
+  AI-powered applications. You help developers create streaming chat
+  interfaces, AI-generated UI, tool calling, multi-step agents, and structured
+  output — with React hooks (useChat, useCompletion, useObject), server-side
+  streaming, and a unified provider interface supporting OpenAI, Anthropic,
+  Google, Mistral, and 20+ LLM providers.
 category: AI & Machine Learning
 tags: [ai, streaming, react, nextjs, chat, llm, vercel, typescript]
 version: 1.0.0

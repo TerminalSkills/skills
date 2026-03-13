@@ -1,5 +1,12 @@
 ---
 name: prisma
+description: >-
+   You are an expert in Prisma, the TypeScript ORM with a declarative schema,
+  auto-generated type-safe client, migrations, and studio GUI. You help
+  developers model databases with Prisma Schema Language, generate a fully
+  typed client that catches query errors at compile time, run zero-downtime
+  migrations, and integrate with Postgres, MySQL, SQLite, MongoDB,
+  CockroachDB, and PlanetScale.
 category: Backend Development
 tags: [orm, database, typescript, postgres, mysql, sqlite, schema, migrations]
 version: 1.0.0

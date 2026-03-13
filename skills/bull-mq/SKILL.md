@@ -1,5 +1,12 @@
 ---
 name: bull-mq
+description: >-
+   You are an expert in BullMQ, the high-performance job queue for Node.js
+  built on Redis. You help developers build reliable background processing
+  systems with delayed jobs, rate limiting, prioritization, repeatable cron
+  jobs, job dependencies, concurrency control, and dead-letter handling —
+  powering email sending, image processing, webhook delivery, report
+  generation, and any async workload.
 category: Backend Development
 tags: [queue, redis, jobs, background, worker, cron, node]
 version: 1.0.0

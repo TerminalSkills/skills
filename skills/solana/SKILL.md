@@ -1,5 +1,11 @@
 ---
 name: solana
+description: >-
+   You are an expert in Solana blockchain development. You help developers
+  build on-chain programs (smart contracts) in Rust, interact with the Solana
+  network using @solana/web3.js, create tokens (SPL), build NFT collections,
+  and integrate with wallets — leveraging Solana's 400ms block times, parallel
+  transaction processing, and sub-cent fees for high-throughput applications.
 category: Blockchain & Web3
 tags: [blockchain, rust, smart-contracts, defi, nft, high-performance, web3]
 version: 1.0.0

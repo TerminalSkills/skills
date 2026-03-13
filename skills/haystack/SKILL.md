@@ -1,5 +1,11 @@
 ---
 name: haystack
+description: >-
+   You are an expert in Haystack, the open-source framework by deepset for
+  building production RAG pipelines and LLM applications. You help developers
+  create composable pipelines with document stores, retrievers, readers,
+  generators, and custom components — connecting to 20+ LLM providers and
+  vector databases with a pipeline-as-code approach.
 category: AI & Machine Learning
 tags: [rag, pipeline, nlp, search, retrieval, deepset, python]
 version: 1.0.0

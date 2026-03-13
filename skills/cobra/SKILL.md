@@ -1,5 +1,10 @@
 ---
 name: cobra
+description: >-
+   You are an expert in Cobra, the most popular Go library for building modern
+  CLI applications. You help developers create command-line tools with
+  subcommands, flags, argument validation, shell completions, and help
+  generation — powering CLIs like kubectl, Hugo, GitHub CLI, and Docker.
 category: Developer Tools
 tags: [go, cli, command-line, framework, flags, subcommands]
 version: 1.0.0

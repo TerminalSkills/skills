@@ -1,5 +1,11 @@
 ---
 name: swc
+description: >-
+   You are an expert in SWC, the Rust-based JavaScript/TypeScript compiler.
+  You help developers replace Babel and Terser with SWC for 20-70x faster
+  compilation, minification, and bundling — used by Next.js, Vite, Parcel, and
+  Deno as their default compiler, handling TypeScript stripping, JSX
+  transformation, polyfill injection, and code minification at native speed.
 category: Developer Tools
 tags: [compiler, rust, fast, babel-alternative, typescript, minifier]
 version: 1.0.0

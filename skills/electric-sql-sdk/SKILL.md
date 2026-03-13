@@ -1,5 +1,12 @@
 ---
 name: electric-sql-sdk
+description: >-
+   You are an expert in Electric SQL, the sync engine that streams Postgres
+  data to local apps in real-time. You help developers build local-first
+  applications where data syncs from Postgres to client-side SQLite/PGlite
+  automatically — enabling instant reads, offline support, and real-time
+  multi-user collaboration using Postgres as the single source of truth with
+  Shape-based partial replication.
 category: Backend Development
 tags: [local-first, sync, postgres, realtime, offline, crdt]
 version: 1.0.0

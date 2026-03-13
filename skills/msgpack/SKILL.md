@@ -1,5 +1,11 @@
 ---
 name: msgpack
+description: >-
+   You are an expert in MessagePack, the efficient binary serialization
+  format. You help developers replace JSON with a compact binary format that's
+  30-50% smaller and 2-10x faster to parse — supporting all JSON types plus
+  binary data, timestamps, and custom extensions, with libraries available for
+  50+ programming languages.
 category: Developer Tools
 tags: [serialization, binary, json-alternative, performance, compact, cross-language]
 version: 1.0.0

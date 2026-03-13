@@ -1,5 +1,12 @@
 ---
 name: trpc
+description: >-
+   You are an expert in tRPC, the framework for building type-safe APIs
+  without schemas or code generation. You help developers create full-stack
+  TypeScript applications where the server defines procedures and the client
+  calls them with full type inference — no REST routes, no GraphQL schemas, no
+  OpenAPI specs, just TypeScript functions that are type-safe from database to
+  UI.
 category: Backend Development
 tags: [api, typescript, rpc, type-safe, react, nextjs, end-to-end]
 version: 1.0.0

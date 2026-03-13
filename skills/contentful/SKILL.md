@@ -1,5 +1,12 @@
 ---
 name: contentful
+description: >-
+   You are an expert in Contentful, the API-first content platform for
+  enterprise teams. You help developers integrate Contentful's Content
+  Delivery API (CDN-backed, read), Content Management API (write), and Content
+  Preview API (draft content) into websites and apps — using typed content
+  models, localization, rich text rendering, image transformations, and
+  webhooks for build triggers.
 category: Content Management
 tags: [headless-cms, saas, content-api, cdn, enterprise, graphql]
 version: 1.0.0

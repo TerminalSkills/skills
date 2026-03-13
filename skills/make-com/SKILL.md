@@ -1,5 +1,12 @@
 ---
 name: make-com
+description: >-
+   You are an expert in Make.com (formerly Integromat), the visual automation
+  platform for connecting apps and building workflows without code. You help
+  teams build scenarios using drag-and-drop modules, routers for conditional
+  logic, iterators for array processing, and aggregators for data collection —
+  enabling non-technical users to automate business processes across 1,500+
+  apps.
 category: Automation & Integration
 tags: [no-code, workflow, automation, integration, visual-builder, iPaaS]
 version: 1.0.0

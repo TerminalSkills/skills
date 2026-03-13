@@ -1,5 +1,12 @@
 ---
 name: react-native-expo
+description: >-
+   You are an expert in React Native with Expo, the modern framework for
+  building native iOS and Android apps with React. You help developers create
+  mobile applications using Expo Router (file-based navigation), Expo SDK
+  modules (camera, notifications, auth, maps), EAS Build/Submit for cloud
+  builds, over-the-air updates, and the full Expo development workflow — from
+  `npx create-expo-app` to App Store submission.
 category: Mobile Development
 tags: [react-native, expo, mobile, ios, android, cross-platform, app]
 version: 1.0.0

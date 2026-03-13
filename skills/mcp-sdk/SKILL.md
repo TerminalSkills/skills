@@ -1,5 +1,11 @@
 ---
 name: mcp-sdk
+description: >-
+   You are an expert in MCP (Model Context Protocol), the open standard by
+  Anthropic for connecting AI models to external tools and data sources. You
+  help developers build MCP servers that expose tools, resources, and prompts
+  to any MCP-compatible client (Claude Desktop, Cursor, Windsurf, Cline,
+  Continue) — creating a universal plugin system for AI assistants.
 category: AI & Machine Learning
 tags: [mcp, model-context-protocol, tools, ai, agents, integration, anthropic]
 version: 1.0.0

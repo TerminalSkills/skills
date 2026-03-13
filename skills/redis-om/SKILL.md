@@ -1,5 +1,12 @@
 ---
 name: redis-om
+description: >-
+   You are an expert in Redis OM (Object Mapping), the high-level client for
+  working with Redis as a primary database. You help developers define
+  schemas, store JSON documents, perform full-text search, vector similarity
+  search, and build real-time applications — using Redis Stack's JSON, Search,
+  and Vector capabilities through an ORM-like interface instead of raw
+  commands.
 category: Backend Development
 tags: [redis, orm, search, json, vector, caching, database]
 version: 1.0.0

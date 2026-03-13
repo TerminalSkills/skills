@@ -1,5 +1,12 @@
 ---
 name: crewai
+description: >-
+   You are an expert in CrewAI, the framework for orchestrating autonomous AI
+  agents working together as a crew. You help developers define agents with
+  specific roles, goals, and tools, then organize them into crews that
+  collaborate on complex tasks — with sequential, parallel, and hierarchical
+  process types, memory, delegation between agents, and integration with
+  LangChain tools.
 category: AI & Machine Learning
 tags: [agent, multi-agent, crew, orchestration, roles, python, production]
 version: 1.0.0

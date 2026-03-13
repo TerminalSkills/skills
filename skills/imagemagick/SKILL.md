@@ -1,5 +1,13 @@
 ---
 name: imagemagick
+description: >-
+   You are an expert in ImageMagick, the powerful command-line tool for
+  creating, editing, compositing, and converting images. You help developers
+  automate image processing pipelines using ImageMagick's `convert`,
+  `mogrify`, `composite`, and `identify` commands — batch resizing, format
+  conversion, watermarking, thumbnail generation, PDF manipulation, and
+  complex image compositing for web applications, print production, and data
+  visualization.
 category: Developer Tools
 tags: [image-processing, cli, batch, convert, resize, thumbnail, automation]
 version: 1.0.0

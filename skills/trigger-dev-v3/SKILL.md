@@ -1,5 +1,11 @@
 ---
 name: trigger-dev-v3
+description: >-
+   You are an expert in Trigger.dev v3, the background jobs platform for
+  TypeScript. You help developers run long-running tasks, scheduled jobs,
+  event-driven workflows, and AI pipelines in the cloud — with automatic
+  retries, concurrency control, real-time logs, and up to 5-minute (or longer)
+  execution times that serverless functions can't handle.
 category: Backend Development
 tags: [background-jobs, serverless, durable, typescript, queue, scheduling]
 version: 1.0.0

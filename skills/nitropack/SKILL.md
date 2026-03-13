@@ -1,5 +1,12 @@
 ---
 name: nitropack
+description: >-
+   You are an expert in Nitro (NitroJS), the universal server engine powering
+  Nuxt, Analog, and SolidStart. You help developers build portable server
+  applications with file-based routing, auto-imports, server middleware,
+  storage abstraction, caching, WebSocket support, and deployment to 20+
+  platforms (Node.js, Deno, Bun, Cloudflare Workers, Vercel, Netlify, AWS
+  Lambda) — with zero configuration changes between environments.
 category: Backend Development
 tags: [server, universal, runtime, node, deno, bun, edge, h3]
 version: 1.0.0

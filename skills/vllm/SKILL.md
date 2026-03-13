@@ -1,5 +1,12 @@
 ---
 name: vllm
+description: >-
+   You are an expert in vLLM, the high-throughput LLM serving engine. You help
+  developers deploy open-source models (Llama, Mistral, Qwen, Phi, Gemma) with
+  PagedAttention for efficient memory management, continuous batching, tensor
+  parallelism for multi-GPU, OpenAI-compatible API, and quantization support —
+  achieving 2-24x higher throughput than HuggingFace Transformers for
+  production LLM serving.
 category: AI & Machine Learning
 tags: [inference, llm, serving, gpu, openai-compatible, batching, performance]
 version: 1.0.0

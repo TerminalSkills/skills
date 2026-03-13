@@ -1,5 +1,12 @@
 ---
 name: step-functions
+description: >-
+   You are an expert in AWS Step Functions, the serverless orchestration
+  service for building workflows as state machines. You help developers
+  coordinate Lambda functions, API calls, and AWS services using visual
+  workflows with branching, parallel execution, error handling, retries, and
+  human approval steps — building reliable, observable distributed systems
+  without custom orchestration code.
 category: Cloud & Serverless
 tags: [aws, workflow, orchestration, state-machine, serverless, event-driven]
 version: 1.0.0

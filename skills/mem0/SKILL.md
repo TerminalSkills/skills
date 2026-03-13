@@ -1,5 +1,11 @@
 ---
 name: mem0
+description: >-
+   You are an expert in Mem0, the memory infrastructure for AI applications.
+  You help developers add persistent, personalized memory to LLM-powered apps
+  and agents — storing user preferences, conversation history, facts, and
+  context that persists across sessions, enabling AI that remembers users,
+  learns from interactions, and provides increasingly personalized responses.
 category: AI & Machine Learning
 tags: [memory, ai, agents, personalization, rag, context, long-term]
 version: 1.0.0

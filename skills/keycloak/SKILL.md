@@ -1,5 +1,12 @@
 ---
 name: keycloak
+description: >-
+   You are an expert in Keycloak, the open-source identity and access
+  management solution by Red Hat. You help teams implement single sign-on
+  (SSO), OAuth 2.0, OpenID Connect, SAML 2.0, user federation (LDAP/Active
+  Directory), social login, multi-factor authentication, and fine-grained
+  authorization — providing enterprise-grade identity management that can be
+  self-hosted and customized.
 category: Security & Auth
 tags: [identity, authentication, sso, oauth2, oidc, saml, self-hosted, open-source]
 version: 1.0.0

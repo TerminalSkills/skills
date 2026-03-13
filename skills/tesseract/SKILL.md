@@ -1,5 +1,11 @@
 ---
 name: tesseract
+description: >-
+   You are an expert in Tesseract OCR, the most popular open-source optical
+  character recognition engine. You help developers extract text from images,
+  PDFs, and scanned documents using Tesseract's LSTM neural network engine,
+  multi-language support (100+ languages), page segmentation modes, and
+  integration with image preprocessing for maximum accuracy.
 category: AI & Machine Learning
 tags: [ocr, text-recognition, document-processing, image-to-text, open-source]
 version: 1.0.0

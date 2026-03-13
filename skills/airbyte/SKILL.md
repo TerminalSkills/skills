@@ -1,5 +1,11 @@
 ---
 name: airbyte
+description: >-
+   You are an expert in Airbyte, the open-source data integration platform
+  with 300+ pre-built connectors. You help developers sync data from SaaS
+  tools, databases, and APIs into data warehouses and lakes — handling
+  incremental syncs, CDC (Change Data Capture), schema evolution, and error
+  recovery for production data pipelines.
 category: Data Engineering
 tags: [etl, data-integration, connectors, sync, data-pipeline, open-source]
 version: 1.0.0

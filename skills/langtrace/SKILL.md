@@ -1,5 +1,12 @@
 ---
 name: langtrace
+description: >-
+   You are an expert in Langtrace, the open-source observability platform for
+  LLM applications built on OpenTelemetry. You help developers trace LLM
+  calls, RAG pipelines, agent tool use, and chain executions with automatic
+  instrumentation for OpenAI, Anthropic, LangChain, LlamaIndex, and 20+
+  providers — providing cost tracking, latency analysis, token usage, and
+  quality evaluation in a self-hostable dashboard.
 category: AI & Machine Learning
 tags: [observability, tracing, llm, opentelemetry, monitoring, evaluation]
 version: 1.0.0

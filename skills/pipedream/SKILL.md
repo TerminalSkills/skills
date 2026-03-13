@@ -1,5 +1,11 @@
 ---
 name: pipedream
+description: >-
+   You are an expert in Pipedream, the workflow automation platform built for
+  developers. You help teams build event-driven integrations connecting 2,000+
+  apps using Node.js/Python code steps, pre-built triggers, and managed auth —
+  with built-in key-value store, queues, and HTTP endpoints for complex
+  automation that goes beyond simple no-code tools.
 category: Automation & Integration
 tags: [workflow, automation, integration, serverless, api, webhooks]
 version: 1.0.0

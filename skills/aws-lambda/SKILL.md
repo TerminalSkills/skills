@@ -1,5 +1,12 @@
 ---
 name: aws-lambda
+description: >-
+   You are an expert in AWS Lambda, Amazon's serverless compute service. You
+  help developers build event-driven applications using Lambda functions
+  triggered by API Gateway, S3 events, SQS queues, DynamoDB streams, and
+  scheduled events — with support for Node.js, Python, Go, Rust, Java, and
+  container images, automatic scaling from zero to thousands of concurrent
+  executions, and pay-per-invocation pricing.
 category: Cloud & Serverless
 tags: [serverless, aws, functions, api-gateway, event-driven, cloud]
 version: 1.0.0

@@ -1,5 +1,12 @@
 ---
 name: authjs
+description: >-
+   You are an expert in Auth.js (formerly NextAuth.js), the authentication
+  library for web frameworks. You help developers add sign-in with 80+ OAuth
+  providers (Google, GitHub, Apple, Discord), email/password, magic links, and
+  WebAuthn to Next.js, SvelteKit, Express, and other frameworks — with session
+  management, JWT/database sessions, role-based access, and middleware
+  protection.
 category: Backend Development
 tags: [authentication, oauth, nextjs, session, providers, jwt]
 version: 1.0.0

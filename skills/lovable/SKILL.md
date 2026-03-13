@@ -1,5 +1,11 @@
 ---
 name: lovable
+description: >-
+   You are an expert in Lovable (formerly GPT Engineer), the AI app builder
+  that generates production-ready full-stack applications from natural
+  language descriptions. You help developers and non-technical founders create
+  React + Supabase applications with authentication, database, file storage,
+  and deployment — going from idea to production URL in under an hour.
 category: Developer Tools
 tags: [ai-coding, full-stack, prototyping, supabase, vibe-coding, no-code]
 version: 1.0.0

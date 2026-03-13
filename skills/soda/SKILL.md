@@ -1,5 +1,11 @@
 ---
 name: soda
+description: >-
+   You are an expert in Soda, the data quality platform for testing,
+  monitoring, and profiling data. You help developers write data quality
+  checks in YAML that validate freshness, completeness, uniqueness, validity,
+  and business rules — catching data issues before they reach dashboards and
+  ML models.
 category: Data Engineering
 tags: [data-quality, testing, monitoring, data-observability, validation, open-source]
 version: 1.0.0

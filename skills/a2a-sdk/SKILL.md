@@ -1,5 +1,12 @@
 ---
 name: a2a-sdk
+description: >-
+   You are an expert in the A2A (Agent-to-Agent) Protocol, Google's open
+  standard for inter-agent communication. You help developers build agents
+  that discover, communicate, and delegate tasks to other agents across
+  organizations and platforms — with agent cards for capability discovery,
+  task lifecycle management, streaming updates, and push notifications,
+  enabling a web of interoperable AI agents.
 category: AI & Machine Learning
 tags: [agent-to-agent, protocol, google, interoperability, multi-agent, api]
 version: 1.0.0

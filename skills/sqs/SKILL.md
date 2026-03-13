@@ -1,5 +1,12 @@
 ---
 name: sqs
+description: >-
+   You are an expert in Amazon SQS (Simple Queue Service), the fully managed
+  message queuing service. You help developers build decoupled, event-driven
+  architectures using standard queues (at-least-once, best-effort ordering)
+  and FIFO queues (exactly-once, ordered), dead-letter queues for failed
+  messages, and Lambda triggers for serverless processing — scaling from zero
+  to millions of messages per second.
 category: Cloud & Serverless
 tags: [aws, queue, messaging, async, decoupling, serverless, event-driven]
 version: 1.0.0

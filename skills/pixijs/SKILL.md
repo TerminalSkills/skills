@@ -1,5 +1,12 @@
 ---
 name: pixijs
+description: >-
+   You are an expert in PixiJS, the fastest 2D rendering engine for the web.
+  You help developers build games, interactive visualizations, animated ads,
+  creative coding projects, and rich UI effects using PixiJS's WebGL-first
+  renderer with automatic Canvas fallback — handling sprites, text, filters,
+  masks, blend modes, and custom shaders at 60fps with hundreds of thousands
+  of objects.
 category: Game Development
 tags: [2d-rendering, webgl, canvas, graphics, animation, interactive, creative-coding]
 version: 1.0.0

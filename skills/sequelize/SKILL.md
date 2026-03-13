@@ -1,5 +1,12 @@
 ---
 name: sequelize
+description: >-
+   You are an expert in Sequelize, the promise-based ORM for Node.js
+  supporting PostgreSQL, MySQL, MariaDB, SQLite, and MS SQL. You help
+  developers define models, build queries, manage migrations, handle
+  associations, use transactions, and configure connection pooling — providing
+  a mature, battle-tested data access layer for production Node.js
+  applications.
 category: Backend Development
 tags: [orm, javascript, database, sql, postgres, mysql, migrations, node]
 version: 1.0.0

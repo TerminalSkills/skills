@@ -1,5 +1,12 @@
 ---
 name: dspy
+description: >-
+   You are an expert in DSPy, the Stanford framework that replaces prompt
+  engineering with programming. You help developers define LLM tasks as typed
+  signatures, compose them into modules, and automatically optimize
+  prompts/few-shot examples using teleprompters — so instead of manually
+  crafting prompts, you write Python code and DSPy finds the best prompts for
+  your task.
 category: AI & Machine Learning
 tags: [llm, programming, prompts, optimization, stanford, python]
 version: 1.0.0

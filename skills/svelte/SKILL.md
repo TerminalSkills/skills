@@ -1,5 +1,12 @@
 ---
 name: svelte
+description: >-
+   You are an expert in Svelte, the UI framework that shifts work from runtime
+  to compile time. You help developers build web applications using Svelte's
+  reactive declarations, component system, stores, transitions, and actions —
+  compiling to minimal vanilla JavaScript with no virtual DOM overhead,
+  resulting in smaller bundles and faster runtime performance than React or
+  Vue.
 category: Web Frameworks
 tags: [frontend, javascript, compiler, reactive, lightweight, no-virtual-dom]
 version: 1.0.0

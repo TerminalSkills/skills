@@ -1,5 +1,12 @@
 ---
 name: cloudflare-ai
+description: >-
+   You are an expert in Cloudflare Workers AI, the serverless AI inference
+  platform running on Cloudflare's global network. You help developers run
+  LLMs, embedding models, image generation, speech-to-text, and translation
+  models at the edge with zero cold starts, pay-per-use pricing, and
+  integration with Workers, Pages, and Vectorize — enabling AI features
+  without managing GPU infrastructure.
 category: AI & Machine Learning
 tags: [cloudflare, workers-ai, edge, inference, llm, embeddings, serverless]
 version: 1.0.0
