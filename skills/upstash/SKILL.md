@@ -1,67 +1,139 @@
 ---
 name: upstash
-description: >-
-  Assists with building serverless applications using Upstash Redis, QStash, Workflow, and Vector.
-  Use when adding caching, rate limiting, message queues, durable workflows, or vector search
-  to edge and serverless applications. Trigger words: upstash, serverless redis, rate limiting,
-  qstash, upstash workflow, upstash vector.
-license: Apache-2.0
-compatibility: "Works in all serverless and edge runtimes via HTTP-based APIs"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: data-ai
-  tags: ["upstash", "redis", "serverless", "rate-limiting", "message-queue"]
+category: Cloud & Serverless
+tags: [redis, kafka, qstash, serverless, edge, rate-limiting, caching]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Upstash
+# Upstash — Serverless Redis, Kafka & QStash
 
-## Overview
+You are an expert in Upstash, the serverless data platform for Redis, Kafka, and QStash. You help developers add caching, rate limiting, session storage, message queuing, and scheduled jobs to serverless and edge applications — with HTTP-based APIs that work on Vercel Edge, Cloudflare Workers, and AWS Lambda without persistent connections.
 
-Upstash provides serverless Redis, message queues (QStash), durable workflows, and vector databases via HTTP-based APIs that work in edge runtimes where TCP connections are unavailable. It offers pay-per-request pricing with scale-to-zero, making it ideal for Cloudflare Workers, Vercel Edge Functions, and Deno Deploy.
+## Core Capabilities
 
-## Instructions
+### Serverless Redis
 
-- When setting up Redis, use `Redis.fromEnv()` to read connection credentials from environment variables, and use `pipeline()` for batching 3+ commands into a single HTTP request.
-- When implementing rate limiting, use `@upstash/ratelimit` with the appropriate algorithm (fixed window, sliding window, or token bucket) and custom identifiers (IP, API key, user ID).
-- When adding caching, use `@upstash/cache` with stale-while-revalidate patterns and set explicit TTLs on all cached data to prevent unbounded growth.
-- When building async task processing, use QStash (`@upstash/qstash`) to publish messages to URL endpoints with automatic retries, exponential backoff, and dead letter queues.
-- When creating multi-step workflows, use `@upstash/workflow` to break long tasks into resumable steps that can span multiple serverless invocations, with `context.sleep()` for delays.
-- When adding AI/RAG features, use `@upstash/vector` for serverless vector storage with metadata filtering and namespace support for multi-tenant applications.
-- When configuring for global read performance, enable Redis read replicas in multiple regions; writes always go to the primary region.
+```typescript
+import { Redis } from "@upstash/redis";
 
-## Examples
+const redis = Redis.fromEnv();            // Uses UPSTASH_REDIS_REST_URL + TOKEN
 
-### Example 1: Add rate limiting to an API
+// Caching
+async function getCachedUser(userId: string): Promise<User> {
+  const cached = await redis.get<User>(`user:${userId}`);
+  if (cached) return cached;
 
-**User request:** "Implement rate limiting for my API endpoints on Vercel Edge"
+  const user = await db.users.findById(userId);
+  await redis.set(`user:${userId}`, user, { ex: 3600 });  // 1 hour TTL
+  return user;
+}
 
-**Actions:**
-1. Install `@upstash/ratelimit` and `@upstash/redis`
-2. Create a rate limiter with sliding window algorithm (e.g., 10 requests per 10 seconds)
-3. Identify requests by IP address or API key
-4. Return 429 status with retry-after header when limit is exceeded
+// Rate limiting
+import { Ratelimit } from "@upstash/ratelimit";
 
-**Output:** Production-ready rate limiting that works across edge locations with consistent enforcement.
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, "10 s"),  // 10 requests per 10 seconds
+  analytics: true,
+});
 
-### Example 2: Build a durable email workflow
+// In API route / middleware
+const { success, limit, remaining, reset } = await ratelimit.limit(userId);
+if (!success) {
+  return new Response("Too Many Requests", {
+    status: 429,
+    headers: {
+      "X-RateLimit-Limit": limit.toString(),
+      "X-RateLimit-Remaining": remaining.toString(),
+      "X-RateLimit-Reset": reset.toString(),
+    },
+  });
+}
 
-**User request:** "Create a multi-step onboarding email sequence using serverless functions"
+// Session storage
+await redis.hset(`session:${sessionId}`, { userId: "42", role: "admin", cart: JSON.stringify(items) });
+const session = await redis.hgetall(`session:${sessionId}`);
+await redis.expire(`session:${sessionId}`, 86400);  // 24h TTL
+```
 
-**Actions:**
-1. Define workflow steps with `@upstash/workflow` for each email in the sequence
-2. Use `context.sleep("wait-24h", 86400)` between emails without holding compute
-3. Add conditional logic for user engagement tracking between steps
-4. Configure automatic retries on step failure
+### QStash (Serverless Message Queue)
 
-**Output:** A durable workflow that sends timed emails across days, surviving serverless timeouts and restarts.
+```typescript
+import { Client } from "@upstash/qstash";
 
-## Guidelines
+const qstash = new Client({ token: process.env.QSTASH_TOKEN! });
 
-- Always use `Redis.fromEnv()`; never hardcode connection URLs in source code.
-- Use `pipeline()` when executing 3+ Redis commands to reduce HTTP round trips.
-- Set explicit TTLs on all cached data; unbounded caches grow until they hit memory limits.
-- Use `@upstash/ratelimit` over hand-rolled rate limiting; it handles race conditions and multi-region consistency.
-- Prefer QStash over direct HTTP calls for async tasks; it handles retries, timeouts, and dead letters.
-- Use `@upstash/workflow` for multi-step tasks that exceed serverless time limits.
-- Enable read replicas for read-heavy workloads; writes go to the primary region.
+// Publish message to endpoint
+await qstash.publishJSON({
+  url: "https://myapp.vercel.app/api/process-order",
+  body: { orderId: "ord-123", action: "fulfill" },
+  retries: 3,
+  delay: "30s",                           // Delay delivery by 30s
+});
+
+// Schedule recurring
+await qstash.publishJSON({
+  url: "https://myapp.vercel.app/api/daily-report",
+  cron: "0 9 * * *",                     // Daily at 9 AM
+});
+
+// Batch
+await qstash.batchJSON([
+  { url: "https://myapp.vercel.app/api/send-email", body: { to: "user1@example.com" } },
+  { url: "https://myapp.vercel.app/api/send-email", body: { to: "user2@example.com" } },
+]);
+
+// Callback URL (webhook when processing completes)
+await qstash.publishJSON({
+  url: "https://myapp.vercel.app/api/long-task",
+  body: { taskId: "task-1" },
+  callback: "https://myapp.vercel.app/api/task-complete",
+  failureCallback: "https://myapp.vercel.app/api/task-failed",
+});
+```
+
+### Upstash Workflow
+
+```typescript
+import { serve } from "@upstash/workflow/nextjs";
+
+export const { POST } = serve(async (context) => {
+  const { orderId } = context.requestPayload;
+
+  // Step 1 (durable)
+  const order = await context.run("fetch-order", async () => {
+    return await db.orders.findById(orderId);
+  });
+
+  // Step 2
+  await context.run("charge-payment", async () => {
+    await stripe.charges.create({ amount: order.total * 100, customer: order.customerId });
+  });
+
+  // Sleep (durable)
+  await context.sleep("wait-for-fulfillment", 60 * 60);  // 1 hour
+
+  // Step 3
+  await context.run("send-shipping-notification", async () => {
+    await resend.emails.send({ to: order.email, subject: "Order Shipped" });
+  });
+});
+```
+
+## Installation
+
+```bash
+npm install @upstash/redis @upstash/ratelimit @upstash/qstash
+```
+
+## Best Practices
+
+1. **HTTP-based** — Upstash Redis uses HTTP, not TCP; works on edge/serverless without connection pooling
+2. **Rate limiting** — Use `@upstash/ratelimit` with sliding window; built for API protection on edge
+3. **QStash for async** — Use QStash instead of SQS/BullMQ on serverless; delivers to any HTTP endpoint
+4. **Edge-compatible** — All Upstash SDKs work on Vercel Edge, CF Workers, Deno Deploy; no Node.js APIs needed
+5. **TTL on everything** — Set expiration on cache keys; prevent stale data and control costs
+6. **Pipeline for batch** — Use `redis.pipeline()` for multiple operations; single HTTP round-trip
+7. **Workflow for durable** — Use Upstash Workflow for multi-step processes; survives serverless timeouts
+8. **Free tier** — 10K commands/day free; great for prototyping and small projects

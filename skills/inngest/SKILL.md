@@ -1,263 +1,165 @@
 ---
 name: inngest
-description: >-
-  Build reliable background jobs and workflows with Inngest. Use when a user
-  asks to run background tasks, create event-driven workflows, build reliable
-  job queues, set up step functions for long-running processes, schedule
-  recurring jobs, handle webhook processing, build multi-step async workflows,
-  add retries and error handling to background jobs, or replace BullMQ/Celery
-  with a serverless-friendly alternative. Covers event sending, function
-  definition, step orchestration, retries, scheduling, and fan-out patterns.
-license: Apache-2.0
-compatibility: 'Node.js 18+, Python 3.8+ (any deployment platform)'
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: development
-  tags:
-    - inngest
-    - background-jobs
-    - workflows
-    - events
-    - queues
-    - serverless
+category: Backend Development
+tags: [workflow, event-driven, durable, serverless, typescript, step-functions]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Inngest
+# Inngest — Durable Workflow Engine for TypeScript
 
-## Overview
+You are an expert in Inngest, the event-driven durable workflow engine for TypeScript. You help developers build reliable multi-step workflows, scheduled jobs, and event-driven functions with automatic retries, step-level caching, fan-out/fan-in patterns, rate limiting, and debouncing — running on any serverless platform (Vercel, Netlify, AWS Lambda, Cloudflare) with zero infrastructure to manage.
 
-Inngest is a developer platform for building reliable background jobs, workflows, and event-driven functions. Unlike traditional job queues (BullMQ, Celery), Inngest doesn't require infrastructure — no Redis, no workers, no queue management. You define functions as code, Inngest handles execution, retries, rate limiting, and orchestration. Functions run in your existing serverless deployment (Vercel, Netlify, AWS Lambda) or any Node.js/Python server.
+## Core Capabilities
 
-## Instructions
+### Functions and Steps
 
-### Step 1: Installation
+```typescript
+// inngest/functions/onboarding.ts
+import { inngest } from "./client";
+
+export const onboardUser = inngest.createFunction(
+  {
+    id: "onboard-user",
+    retries: 3,
+    concurrency: [{ limit: 10 }],         // Max 10 concurrent executions
+  },
+  { event: "user/signed-up" },
+  async ({ event, step }) => {
+    // Step 1: Create account (cached — won't re-run on retry)
+    const user = await step.run("create-account", async () => {
+      return await db.users.create({
+        email: event.data.email,
+        name: event.data.name,
+      });
+    });
+
+    // Step 2: Send welcome email
+    await step.run("send-welcome", async () => {
+      await resend.emails.send({
+        to: user.email,
+        subject: "Welcome!",
+        react: WelcomeEmail({ name: user.name }),
+      });
+    });
+
+    // Step 3: Wait 24 hours (durable — survives deployments)
+    await step.sleep("wait-for-activation", "24 hours");
+
+    // Step 4: Check if user activated
+    const activated = await step.run("check-activation", async () => {
+      const u = await db.users.findById(user.id);
+      return u.activatedAt !== null;
+    });
+
+    if (!activated) {
+      // Step 5: Send reminder
+      await step.run("send-reminder", async () => {
+        await resend.emails.send({
+          to: user.email,
+          subject: "Complete your setup",
+          react: ReminderEmail({ name: user.name }),
+        });
+      });
+    }
+
+    return { userId: user.id, activated };
+  },
+);
+
+// Fan-out: process items in parallel
+export const processBatch = inngest.createFunction(
+  { id: "process-batch" },
+  { event: "batch/uploaded" },
+  async ({ event, step }) => {
+    const items = event.data.items;
+
+    // Fan-out — run up to 10 items in parallel
+    const results = await Promise.all(
+      items.map((item, i) =>
+        step.run(`process-item-${i}`, () => processItem(item))
+      ),
+    );
+
+    // Fan-in — aggregate results
+    const summary = await step.run("summarize", () => ({
+      total: results.length,
+      success: results.filter(r => r.status === "ok").length,
+      failed: results.filter(r => r.status === "error").length,
+    }));
+
+    return summary;
+  },
+);
+
+// Scheduled (cron)
+export const dailyCleanup = inngest.createFunction(
+  { id: "daily-cleanup" },
+  { cron: "0 3 * * *" },                 // 3 AM daily
+  async ({ step }) => {
+    const deleted = await step.run("cleanup-expired", async () => {
+      return await db.sessions.deleteWhere({ expiresAt: { lt: new Date() } });
+    });
+    return { deletedSessions: deleted };
+  },
+);
+```
+
+### Event-Driven
+
+```typescript
+// Send events from anywhere
+import { inngest } from "./client";
+
+// From API route
+app.post("/api/signup", async (req, res) => {
+  const user = await createUser(req.body);
+
+  await inngest.send({
+    name: "user/signed-up",
+    data: { email: user.email, name: user.name, userId: user.id },
+  });
+
+  res.json(user);
+});
+
+// Batch events
+await inngest.send([
+  { name: "order/created", data: { orderId: "1" } },
+  { name: "order/created", data: { orderId: "2" } },
+]);
+```
+
+### Debounce and Rate Limit
+
+```typescript
+export const syncCRM = inngest.createFunction(
+  {
+    id: "sync-crm",
+    debounce: { period: "5m", key: "event.data.userId" },  // Wait 5min, take latest
+    rateLimit: { limit: 100, period: "1h" },                // Max 100/hour
+  },
+  { event: "user/updated" },
+  async ({ event, step }) => {
+    await step.run("sync", () => crm.upsertContact(event.data));
+  },
+);
+```
+
+## Installation
 
 ```bash
-# Node.js
-npm install inngest
-
-# Python
-pip install inngest
-
-# Dev server (local development)
-npx inngest-cli@latest dev
-# Opens dashboard at http://localhost:8288
+npx inngest-cli@latest init
+npx inngest-cli@latest dev                 # Local dev server with UI
 ```
 
-### Step 2: Define Functions
+## Best Practices
 
-```typescript
-// inngest/functions.ts — Define background functions triggered by events
-import { inngest } from './client'
-
-// Simple event-triggered function
-export const sendWelcomeEmail = inngest.createFunction(
-  { id: 'send-welcome-email', retries: 3 },
-  { event: 'user/signed.up' },
-  async ({ event, step }) => {
-    /**
-     * Triggered when a new user signs up.
-     * Sends welcome email, then waits 3 days and sends onboarding tips.
-     */
-    // Step 1: Send welcome email immediately
-    await step.run('send-welcome', async () => {
-      await sendEmail({
-        to: event.data.email,
-        subject: 'Welcome!',
-        template: 'welcome',
-        data: { name: event.data.name },
-      })
-    })
-
-    // Step 2: Wait 3 days
-    await step.sleep('wait-for-onboarding', '3 days')
-
-    // Step 3: Send onboarding tips
-    await step.run('send-onboarding', async () => {
-      await sendEmail({
-        to: event.data.email,
-        subject: 'Getting started tips',
-        template: 'onboarding-tips',
-      })
-    })
-  }
-)
-
-// Scheduled function (cron)
-export const dailyReport = inngest.createFunction(
-  { id: 'daily-report' },
-  { cron: '0 9 * * 1-5' },    // 9 AM weekdays
-  async ({ step }) => {
-    const stats = await step.run('fetch-stats', async () => {
-      return await db.query('SELECT count(*) as signups FROM users WHERE created_at > now() - interval 1 day')
-    })
-
-    await step.run('send-report', async () => {
-      await slack.post('#metrics', `Yesterday: ${stats.signups} new signups`)
-    })
-  }
-)
-```
-
-### Step 3: Send Events
-
-```typescript
-// lib/inngest-client.ts — Inngest client and event sending
-import { Inngest } from 'inngest'
-
-export const inngest = new Inngest({ id: 'my-app' })
-
-// Send event from your API routes, webhooks, or anywhere
-await inngest.send({
-  name: 'user/signed.up',
-  data: {
-    userId: 'usr_123',
-    email: 'new@user.com',
-    name: 'Alex',
-    plan: 'pro',
-  },
-})
-
-// Send multiple events
-await inngest.send([
-  { name: 'order/placed', data: { orderId: 'ord_456', total: 99.99 } },
-  { name: 'inventory/check', data: { productId: 'prod_789' } },
-])
-```
-
-### Step 4: Multi-Step Workflows
-
-```typescript
-// inngest/order-workflow.ts — Complex multi-step order processing
-export const processOrder = inngest.createFunction(
-  { id: 'process-order', retries: 5 },
-  { event: 'order/placed' },
-  async ({ event, step }) => {
-    /**
-     * Multi-step order processing:
-     * 1. Validate payment
-     * 2. Reserve inventory
-     * 3. Send confirmation
-     * 4. Wait for shipping
-     * If any step fails, Inngest retries that specific step.
-     */
-    const payment = await step.run('validate-payment', async () => {
-      return await stripe.paymentIntents.confirm(event.data.paymentIntentId)
-    })
-
-    const inventory = await step.run('reserve-inventory', async () => {
-      return await warehouse.reserve(event.data.items)
-    })
-
-    await step.run('send-confirmation', async () => {
-      await sendEmail({
-        to: event.data.customerEmail,
-        template: 'order-confirmed',
-        data: { orderId: event.data.orderId, items: event.data.items },
-      })
-    })
-
-    // Wait for external event (shipping label created)
-    const shipment = await step.waitForEvent('wait-for-shipment', {
-      event: 'shipment/label.created',
-      match: 'data.orderId',         // match on orderId field
-      timeout: '7 days',
-    })
-
-    if (shipment) {
-      await step.run('notify-shipped', async () => {
-        await sendEmail({
-          to: event.data.customerEmail,
-          template: 'order-shipped',
-          data: { trackingNumber: shipment.data.trackingNumber },
-        })
-      })
-    }
-  }
-)
-```
-
-### Step 5: Fan-Out and Parallel Execution
-
-```typescript
-// inngest/batch-processor.ts — Process items in parallel
-export const processBatch = inngest.createFunction(
-  { id: 'process-batch' },
-  { event: 'batch/started' },
-  async ({ event, step }) => {
-    const items = event.data.items    // array of items to process
-
-    // Fan-out: send an event for each item (processed in parallel)
-    await step.run('fan-out', async () => {
-      const events = items.map(item => ({
-        name: 'batch/item.process',
-        data: { batchId: event.data.batchId, item },
-      }))
-      await inngest.send(events)
-    })
-  }
-)
-
-export const processItem = inngest.createFunction(
-  { id: 'process-batch-item', concurrency: { limit: 10 } },    // max 10 concurrent
-  { event: 'batch/item.process' },
-  async ({ event, step }) => {
-    await step.run('process', async () => {
-      return await heavyComputation(event.data.item)
-    })
-  }
-)
-```
-
-### Step 6: Serve with Next.js / Express
-
-```typescript
-// app/api/inngest/route.ts — Next.js App Router integration
-import { serve } from 'inngest/next'
-import { inngest } from '@/inngest/client'
-import { sendWelcomeEmail, processOrder, dailyReport } from '@/inngest/functions'
-
-export const { GET, POST, PUT } = serve({
-  client: inngest,
-  functions: [sendWelcomeEmail, processOrder, dailyReport],
-})
-```
-
-```typescript
-// Express integration
-import express from 'express'
-import { serve } from 'inngest/express'
-
-const app = express()
-app.use('/api/inngest', serve({ client: inngest, functions: [/* ... */] }))
-```
-
-## Examples
-
-### Example 1: Build an onboarding drip email sequence
-**User prompt:** "When a user signs up, send them a welcome email immediately, then tips on day 3, a check-in on day 7, and an upgrade offer on day 14."
-
-The agent will:
-1. Create an Inngest function triggered by `user/signed.up`.
-2. Use `step.run` for each email and `step.sleep` for delays between them.
-3. Each step is independently retriable — if the day 7 email fails, it retries without re-sending previous emails.
-4. Add a step to check if the user has already upgraded before sending the offer.
-
-### Example 2: Process webhook events reliably
-**User prompt:** "We receive Stripe webhooks but sometimes our server is slow and Stripe retries cause duplicate processing. Make webhook handling idempotent and reliable."
-
-The agent will:
-1. Receive webhooks in an API route, verify the Stripe signature, then send an Inngest event.
-2. Inngest deduplicates events using the event ID.
-3. Create functions for each webhook type (payment_succeeded, subscription_updated, etc.).
-4. Each function uses steps so partial failures don't reprocess completed work.
-
-## Guidelines
-
-- Inngest functions are durable — each `step.run()` result is persisted. If a function fails at step 3, it resumes from step 3 on retry, not from the beginning. Structure your code around steps.
-- Use `step.sleep()` for delays instead of setTimeout — Inngest handles the scheduling and your function doesn't consume resources while waiting.
-- Set `concurrency` limits on functions that call external APIs with rate limits. This prevents overwhelming third-party services during traffic spikes.
-- For local development, always run `npx inngest-cli dev` alongside your app. It provides a dashboard for monitoring events, function runs, and debugging failures.
-- Inngest Cloud handles execution; self-hosting is also available. Start with Cloud for simplicity, self-host when you need data residency.
-- Events are the integration point — any service can send events, any function can react. Use this for decoupling: your API route sends an event, background functions handle the rest.
+1. **Steps are checkpoints** — Each `step.run()` is cached; if the function retries, completed steps are skipped
+2. **step.sleep for delays** — Durable sleep survives deployments and restarts; use for drip campaigns, reminders
+3. **Fan-out with step.run** — Use `Promise.all` with indexed step names for parallel processing
+4. **Debounce for noisy events** — Use debounce for events that fire rapidly (user edits, webhook storms)
+5. **Rate limiting** — Protect downstream APIs with built-in rate limits; no external tools needed
+6. **Event-first architecture** — Send events from your app; Inngest triggers functions automatically
+7. **Local dev UI** — Run `inngest dev` for a visual dashboard showing function runs, events, and step details
+8. **Zero infrastructure** — Works on any serverless platform; Inngest handles queuing, retries, scheduling
