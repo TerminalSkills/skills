@@ -1,66 +1,142 @@
 ---
 name: lucia-auth
-description: >-
-  Assists with building custom session-based authentication systems using Lucia. Use when
-  implementing password auth, OAuth flows, two-factor authentication, or session management
-  with full control over the auth logic in Next.js, SvelteKit, Express, or other Node.js
-  frameworks. Trigger words: lucia, session auth, custom auth, password hashing, 2fa, totp.
-license: Apache-2.0
-compatibility: "Requires Node.js 18+"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["lucia", "authentication", "session", "oauth", "two-factor"]
+category: Backend Development
+tags: [authentication, sessions, oauth, typescript, auth, security]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Lucia Auth
+# Lucia Auth — Simple Authentication
 
-## Overview
+You are an expert in Lucia, the lightweight authentication library for TypeScript. You help developers implement session-based authentication with email/password, OAuth (Google, GitHub, Discord), magic links, and two-factor authentication — providing a simple, database-agnostic auth layer that you understand and control, without the complexity of full auth platforms.
 
-Lucia is a lightweight, un-opinionated authentication library for Node.js that provides session management while giving developers full control over login, registration, and logout logic. It supports any database via adapters (Drizzle, Prisma, MongoDB) and any framework (Next.js, SvelteKit, Express, Astro), with built-in support for password hashing, OAuth via the Arctic library, and two-factor authentication.
+## Core Capabilities
 
-## Instructions
+### Session Management
 
-- When setting up authentication, initialize Lucia with a database adapter and configure session cookie options (`httpOnly`, `secure`, `sameSite: "lax"`), then implement login and registration routes that create sessions via `lucia.createSession()`.
-- When implementing password auth, use `Argon2id` (via `@node-rs/argon2`) for new projects or the built-in `Scrypt` for hashing, and validate password strength in your own code before hashing.
-- When adding OAuth login, use the `arctic` library to generate authorization URLs, handle callbacks, create or link user accounts, and establish sessions.
-- When implementing two-factor authentication, use `@oslojs/otp` for TOTP codes (Google Authenticator), generate and hash recovery codes on setup, and add a verification step between login and session creation.
-- When managing sessions, validate with `lucia.validateSession(sessionId)` on every request, invalidate single sessions on logout, and invalidate all user sessions on password change or security events.
-- When integrating with frameworks, validate sessions in Next.js Server Components via `cookies()`, in SvelteKit via `hooks.server.ts`, in Express via middleware, or in Astro via `Astro.locals`.
+```typescript
+// lib/auth.ts
+import { Lucia } from "lucia";
+import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
+import { db } from "./db";
+import { users, sessions } from "./db/schema";
 
-## Examples
+const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
 
-### Example 1: Build email/password auth with session management
+export const lucia = new Lucia(adapter, {
+  sessionCookie: {
+    expires: false,                        // Session cookie (cleared on browser close)
+    attributes: { secure: process.env.NODE_ENV === "production" },
+  },
+  getUserAttributes: (attributes) => ({
+    email: attributes.email,
+    name: attributes.name,
+    avatarUrl: attributes.avatar_url,
+  }),
+});
 
-**User request:** "Add email and password login to my SvelteKit app using Lucia"
+// Email/password signup
+async function signup(email: string, password: string, name: string) {
+  const hashedPassword = await new Argon2id().hash(password);
+  const userId = generateIdFromEntropySize(10);
 
-**Actions:**
-1. Set up Lucia with Drizzle adapter and define user/session database schema
-2. Create registration endpoint that hashes password with Argon2id and creates a session
-3. Create login endpoint that verifies password and creates a session cookie
-4. Add `hooks.server.ts` to validate sessions on every request and attach user to `event.locals`
+  await db.insert(users).values({
+    id: userId,
+    email,
+    name,
+    hashedPassword,
+  });
 
-**Output:** A SvelteKit app with secure email/password authentication and session-based access control.
+  const session = await lucia.createSession(userId, {});
+  const sessionCookie = lucia.createSessionCookie(session.id);
+  return sessionCookie;                    // Set as response cookie
+}
 
-### Example 2: Add TOTP two-factor authentication
+// Login
+async function login(email: string, password: string) {
+  const user = await db.query.users.findFirst({ where: eq(users.email, email) });
+  if (!user) throw new Error("Invalid credentials");
 
-**User request:** "Add Google Authenticator 2FA to the existing login flow"
+  const valid = await new Argon2id().verify(user.hashedPassword, password);
+  if (!valid) throw new Error("Invalid credentials");
 
-**Actions:**
-1. Add a TOTP secret field to the user model and a 2FA setup page that generates a QR code
-2. Generate and hash recovery codes, store them in the database
-3. Modify the login flow to check if 2FA is enabled and prompt for a TOTP code before creating a session
-4. Add a recovery code fallback for users who lose access to their authenticator app
+  const session = await lucia.createSession(user.id, {});
+  return lucia.createSessionCookie(session.id);
+}
 
-**Output:** A login flow with optional TOTP-based two-factor authentication and recovery codes.
+// Validate session (middleware)
+async function validateRequest(request: Request) {
+  const cookieHeader = request.headers.get("Cookie");
+  const sessionId = lucia.readSessionCookie(cookieHeader ?? "");
+  if (!sessionId) return { user: null, session: null };
 
-## Guidelines
+  const result = await lucia.validateSession(sessionId);
+  return result;                           // { user, session } or { user: null, session: null }
+}
 
-- Always hash session IDs with SHA-256 before storing in the database to prevent session theft from database leaks.
-- Set `httpOnly`, `secure`, and `sameSite: "lax"` on session cookies to prevent XSS and CSRF attacks.
-- Invalidate all user sessions on password change or any security-critical event.
-- Use Argon2id for new projects over Scrypt for better side-channel resistance.
-- Implement rate limiting on login endpoints: 5 attempts per 15 minutes per IP address.
-- Store OAuth access tokens encrypted, not in plain text, since they grant API access to user accounts.
-- Set session expiry to 30 days with sliding window renewal on each validated request.
+// Logout
+async function logout(sessionId: string) {
+  await lucia.invalidateSession(sessionId);
+  return lucia.createBlankSessionCookie();
+}
+```
+
+### OAuth (Google)
+
+```typescript
+import { Google } from "arctic";
+
+const google = new Google(
+  process.env.GOOGLE_CLIENT_ID!,
+  process.env.GOOGLE_CLIENT_SECRET!,
+  "https://myapp.com/auth/google/callback",
+);
+
+// Redirect to Google
+app.get("/auth/google", async (c) => {
+  const [url, codeVerifier, state] = await google.createAuthorizationURL();
+  // Store codeVerifier and state in cookie
+  return c.redirect(url.toString());
+});
+
+// Handle callback
+app.get("/auth/google/callback", async (c) => {
+  const { code, state } = c.req.query();
+  const tokens = await google.validateAuthorizationCode(code, codeVerifier);
+  const googleUser = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${tokens.accessToken()}` },
+  }).then(r => r.json());
+
+  // Find or create user
+  let user = await db.query.users.findFirst({ where: eq(users.email, googleUser.email) });
+  if (!user) {
+    const userId = generateIdFromEntropySize(10);
+    [user] = await db.insert(users).values({
+      id: userId, email: googleUser.email, name: googleUser.name, avatar_url: googleUser.picture,
+    }).returning();
+  }
+
+  const session = await lucia.createSession(user.id, {});
+  const cookie = lucia.createSessionCookie(session.id);
+  return c.redirect("/dashboard", { headers: { "Set-Cookie": cookie.serialize() } });
+});
+```
+
+## Installation
+
+```bash
+npm install lucia arctic                   # Lucia + OAuth helpers
+npm install @lucia-auth/adapter-drizzle    # Or adapter-prisma, adapter-mongoose, etc.
+npm install @node-rs/argon2                # Password hashing
+```
+
+## Best Practices
+
+1. **Session-based** — Lucia uses server-side sessions + cookies; more secure than JWT for web apps
+2. **Database-agnostic** — Adapters for Drizzle, Prisma, Mongoose, better-sqlite3, Turso, etc.
+3. **Arctic for OAuth** — Use `arctic` library for OAuth providers; handles PKCE, state, tokens
+4. **Argon2 for passwords** — Use `@node-rs/argon2` for hashing; industry standard, timing-safe
+5. **Cookie security** — Set `secure: true` in production; `httpOnly` is automatic
+6. **Session validation** — Call `validateSession()` on every request; auto-extends session expiry
+7. **Invalidation** — `invalidateSession` for logout; `invalidateUserSessions` for security reset
+8. **No magic** — Lucia is explicit; you write the signup/login/oauth flows; you understand every line

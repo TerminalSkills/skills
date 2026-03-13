@@ -1,66 +1,148 @@
 ---
 name: vitest
-description: >-
-  Assists with unit and integration testing using Vitest, a Vite-native test runner. Use when
-  writing tests, configuring mocks, setting up coverage, or migrating from Jest. Trigger words:
-  vitest, unit testing, test runner, vi.fn, vi.mock, test coverage, jest replacement.
-license: Apache-2.0
-compatibility: "Requires Vite or standalone Vitest configuration"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["vitest", "testing", "unit-testing", "vite", "jest-alternative"]
+category: Developer Tools
+tags: [testing, vite, typescript, unit-test, mocking, coverage, fast]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Vitest
+# Vitest — Blazing Fast Unit Testing
 
-## Overview
+You are an expert in Vitest, the Vite-native testing framework. You help developers write and run unit tests, integration tests, and component tests with native TypeScript support, Jest-compatible API, built-in mocking, code coverage, snapshot testing, and watch mode — leveraging Vite's transform pipeline for instant test execution without separate compilation.
 
-Vitest is a Vite-native test runner that provides a Jest-compatible API with native ESM support, instant watch mode via Vite's HMR, and shared Vite configuration for aliases, plugins, and transforms. It serves as a drop-in Jest replacement with significantly faster startup and execution.
+## Core Capabilities
 
-## Instructions
+### Tests
 
-- When writing tests, use `describe()` blocks to group related tests, `it()` or `test()` for individual cases, and follow the pattern of naming tests as behavior descriptions (e.g., "should return 404 when user not found").
-- When mocking, use `vi.fn()` for function mocks, `vi.mock("./module")` for module mocks, `vi.useFakeTimers()` for timer control, and `vi.setSystemTime()` for date mocking.
-- When setting up assertions, use `toBe()` for primitives, `toEqual()` for objects/arrays, and `toMatchInlineSnapshot()` for small expected outputs.
-- When configuring, define test settings in `vite.config.ts` under the `test` property or in a separate `vitest.config.ts`, choosing the appropriate environment (`jsdom`, `happy-dom`, `node`).
-- When measuring coverage, use `@vitest/coverage-v8` with `vitest --coverage` and set minimum thresholds in CI with `--coverage.thresholds.lines=80`.
-- When testing in browsers, use `@vitest/browser` with Playwright or WebDriverIO providers for real DOM testing instead of jsdom simulation.
-- When working in monorepos, use `vitest.workspace.ts` for multi-project configuration that shares common settings.
+```typescript
+// math.test.ts
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { calculateDiscount, formatPrice, processOrder } from "./math";
 
-## Examples
+describe("calculateDiscount", () => {
+  it("applies percentage discount", () => {
+    expect(calculateDiscount(100, 20)).toBe(80);
+  });
 
-### Example 1: Test a service with API mocking
+  it("never goes below zero", () => {
+    expect(calculateDiscount(10, 200)).toBe(0);
+  });
 
-**User request:** "Write Vitest tests for a user service that calls an external API"
+  it.each([
+    { price: 100, discount: 10, expected: 90 },
+    { price: 50, discount: 50, expected: 25 },
+    { price: 200, discount: 0, expected: 200 },
+  ])("$price with $discount% = $expected", ({ price, discount, expected }) => {
+    expect(calculateDiscount(price, discount)).toBe(expected);
+  });
+});
 
-**Actions:**
-1. Mock the HTTP module with `vi.mock()` to intercept API calls
-2. Write tests for success, error, and edge cases using `describe` and `it`
-3. Assert responses with `toEqual()` and error handling with `toThrow()`
-4. Use `beforeEach` with `vi.clearAllMocks()` for test isolation
+describe("formatPrice", () => {
+  it("formats with currency symbol", () => {
+    expect(formatPrice(29.99, "USD")).toBe("$29.99");
+    expect(formatPrice(29.99, "EUR")).toBe("€29.99");
+  });
+});
+```
 
-**Output:** Isolated unit tests for the user service with mocked external dependencies.
+### Mocking
 
-### Example 2: Migrate from Jest to Vitest
+```typescript
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { processOrder } from "./orders";
+import { sendEmail } from "./email";
+import { chargeCard } from "./payments";
 
-**User request:** "Switch our test suite from Jest to Vitest"
+// Mock modules
+vi.mock("./email", () => ({
+  sendEmail: vi.fn().mockResolvedValue({ success: true }),
+}));
 
-**Actions:**
-1. Install `vitest` and add test config to `vite.config.ts`
-2. Replace `jest.fn()` with `vi.fn()` and `jest.mock()` with `vi.mock()`
-3. Update `package.json` scripts to use `vitest` and `vitest --coverage`
-4. Remove `ts-jest`, `babel-jest`, and Jest config files
+vi.mock("./payments", () => ({
+  chargeCard: vi.fn().mockResolvedValue({ chargeId: "ch_123" }),
+}));
 
-**Output:** A Vitest-powered test suite with the same tests running faster with native ESM support.
+describe("processOrder", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-## Guidelines
+  it("charges card and sends confirmation email", async () => {
+    const order = { userId: "u1", items: [{ id: "p1", qty: 2 }], total: 59.98 };
+    const result = await processOrder(order);
 
-- Use `describe` blocks to group related tests; keep individual tests focused on one behavior.
-- Prefer `toEqual()` for objects/arrays and `toBe()` for primitives.
-- Mock external dependencies (HTTP, database), not internal modules; test real integration where possible.
-- Use `beforeEach` for test isolation, not `beforeAll`; shared state between tests causes flaky results.
-- Name tests as behavior descriptions: "should return 404 when user not found", not "test getUserById".
-- Use inline snapshots for small expected outputs; file snapshots for large/complex structures.
-- Run `vitest --coverage` in CI with a minimum threshold: `--coverage.thresholds.lines=80`.
+    expect(chargeCard).toHaveBeenCalledWith({ amount: 59.98, userId: "u1" });
+    expect(sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "order_confirmation", userId: "u1" }),
+    );
+    expect(result.status).toBe("completed");
+  });
+
+  it("rolls back on payment failure", async () => {
+    vi.mocked(chargeCard).mockRejectedValueOnce(new Error("Card declined"));
+    
+    await expect(processOrder({ userId: "u1", items: [], total: 0 }))
+      .rejects.toThrow("Card declined");
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+});
+
+// Spy on methods
+const spy = vi.spyOn(console, "log");
+doSomething();
+expect(spy).toHaveBeenCalledWith("expected output");
+
+// Fake timers
+vi.useFakeTimers();
+setTimeout(() => callback(), 5000);
+vi.advanceTimersByTime(5000);
+expect(callback).toHaveBeenCalled();
+vi.useRealTimers();
+```
+
+### Configuration
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    globals: true,                         // No need to import describe/it/expect
+    environment: "node",                   // Or "jsdom" for browser APIs
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      thresholds: { lines: 80, branches: 75, functions: 80 },
+    },
+    include: ["**/*.{test,spec}.{ts,tsx}"],
+    setupFiles: ["./test/setup.ts"],
+  },
+});
+```
+
+```bash
+npx vitest                                 # Watch mode
+npx vitest run                             # Single run (CI)
+npx vitest --coverage                      # With coverage
+npx vitest --ui                            # Browser UI
+```
+
+## Installation
+
+```bash
+npm install -D vitest
+npm install -D @vitest/coverage-v8         # Coverage
+npm install -D @vitest/ui                  # Browser UI
+```
+
+## Best Practices
+
+1. **Vite-powered** — Uses Vite's transform; TypeScript, JSX, ESM work without config; instant HMR in watch mode
+2. **Jest-compatible** — Same `describe`/`it`/`expect` API; easy migration from Jest
+3. **Native TypeScript** — No ts-jest, no babel; Vite handles transforms; tests run as-is
+4. **vi.mock()** — Mock modules at the top level; automatic hoisting like Jest
+5. **In-source testing** — Define tests alongside code with `if (import.meta.vitest)`; tree-shaken in production
+6. **Workspace support** — `vitest.workspace.ts` for monorepo testing; run tests across packages
+7. **Coverage thresholds** — Set in config; CI fails if coverage drops below threshold
+8. **Watch mode** — Only re-runs affected tests on file change; instant feedback loop
