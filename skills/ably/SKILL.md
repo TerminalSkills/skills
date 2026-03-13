@@ -1,7 +1,7 @@
 ---
 name: ably
 description: >-
-   You are an expert in Ably, the enterprise-grade realtime messaging
+  You are an expert in Ably, the enterprise-grade realtime messaging
   platform. You help developers add pub/sub messaging, presence, chat, live
   updates, and event streaming to applications with guaranteed message
   ordering, exactly-once delivery, automatic reconnection, and global edge

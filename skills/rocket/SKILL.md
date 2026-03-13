@@ -1,7 +1,7 @@
 ---
 name: rocket
 description: >-
-   You are an expert in Rocket, the ergonomic Rust web framework that makes
+  You are an expert in Rocket, the ergonomic Rust web framework that makes
   building web applications feel effortless. You help developers build
   type-safe HTTP APIs with Rocket's macro-based routing, request guards for
   authentication, form handling, JSON support, database integration, and

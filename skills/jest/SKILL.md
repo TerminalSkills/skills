@@ -7,10 +7,7 @@ description: >
   parallel test execution. Jest works seamlessly with React, Node.js, Angular, Vue, and virtually
   any JavaScript project, making it the most widely adopted testing framework in the ecosystem.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

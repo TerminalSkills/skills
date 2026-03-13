@@ -1,7 +1,7 @@
 ---
 name: tailwindcss
 description: >-
-   You are an expert in Tailwind CSS v4, the utility-first CSS framework. You
+  You are an expert in Tailwind CSS v4, the utility-first CSS framework. You
   help developers build custom designs directly in HTML/JSX with utility
   classes for layout, spacing, typography, colors, animations, and responsive
   design — without writing custom CSS, producing smaller bundles via automatic

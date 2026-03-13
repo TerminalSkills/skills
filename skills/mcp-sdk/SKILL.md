@@ -1,7 +1,7 @@
 ---
 name: mcp-sdk
 description: >-
-   You are an expert in MCP (Model Context Protocol), the open standard by
+  You are an expert in MCP (Model Context Protocol), the open standard by
   Anthropic for connecting AI models to external tools and data sources. You
   help developers build MCP servers that expose tools, resources, and prompts
   to any MCP-compatible client (Claude Desktop, Cursor, Windsurf, Cline,

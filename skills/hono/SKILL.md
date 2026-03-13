@@ -1,7 +1,7 @@
 ---
 name: hono
 description: >-
-   You are an expert in Hono, the ultrafast web framework for the edge. You
+  You are an expert in Hono, the ultrafast web framework for the edge. You
   help developers build APIs and web applications that run on Cloudflare
   Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny
   footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web

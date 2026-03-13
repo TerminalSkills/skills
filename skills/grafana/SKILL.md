@@ -6,10 +6,7 @@ description: >
   dashboards with panels, set up alerting rules, and manage everything as code through JSON dashboard
   definitions and provisioning configuration.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -1,7 +1,7 @@
 ---
 name: llamaindex-ts
 description: >-
-   You are an expert in LlamaIndex.TS, the TypeScript data framework for
+  You are an expert in LlamaIndex.TS, the TypeScript data framework for
   building RAG (Retrieval-Augmented Generation) applications. You help
   developers ingest, index, and query data from any source — documents, APIs,
   databases — and connect it to LLMs with vector indexes, knowledge graphs,

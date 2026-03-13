@@ -1,7 +1,7 @@
 ---
 name: instructor
 description: >-
-   You are an expert in Instructor, the library for getting structured,
+  You are an expert in Instructor, the library for getting structured,
   validated output from LLMs. You help developers extract typed data from
   unstructured text using Pydantic models (Python) or Zod schemas
   (TypeScript), with automatic retries on validation failures, streaming

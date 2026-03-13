@@ -5,9 +5,7 @@ description: |
   single-page applications. It provides components, dependency injection, RxJS-based
   reactivity, routing, forms, HTTP client, and a powerful CLI for development.
 license: Apache-2.0
-compatibility:
-  - node >= 18
-  - npm
+compatibility: 'node >= 18, npm'
 metadata:
   author: terminal-skills
   version: 1.0.0

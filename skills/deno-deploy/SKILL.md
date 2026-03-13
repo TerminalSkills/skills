@@ -1,7 +1,7 @@
 ---
 name: deno-deploy
 description: >-
-   You are an expert in Deno Deploy, the globally distributed serverless
+  You are an expert in Deno Deploy, the globally distributed serverless
   platform by Deno. You help developers deploy TypeScript/JavaScript
   applications to 35+ edge locations with zero cold starts, built-in KV
   storage, BroadcastChannel for real-time, cron scheduling, and npm

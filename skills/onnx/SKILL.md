@@ -5,10 +5,7 @@ description: |
   models from PyTorch, TensorFlow, and other frameworks to ONNX, optimize with ONNX Runtime,
   and deploy for cross-platform inference on CPU, GPU, and edge devices.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - onnxruntime 1.16+
-  - Linux/macOS/Windows
+compatibility: 'python 3.8+, onnxruntime 1.16+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

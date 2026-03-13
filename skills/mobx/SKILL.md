@@ -1,7 +1,7 @@
 ---
 name: mobx
 description: >-
-   You are an expert in MobX, the simple and scalable state management library
+  You are an expert in MobX, the simple and scalable state management library
   based on transparent reactive programming. You help developers build React
   applications with observable state, automatic tracking of dependencies,
   computed values, actions for state mutations, and reactions for side effects

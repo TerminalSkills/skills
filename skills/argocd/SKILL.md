@@ -6,10 +6,7 @@ description: >-
   repositories, manage sync policies, and implement progressive delivery
   workflows.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

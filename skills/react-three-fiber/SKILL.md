@@ -1,7 +1,7 @@
 ---
 name: react-three-fiber
 description: >-
-   You are an expert in React Three Fiber (R3F), the React renderer for
+  You are an expert in React Three Fiber (R3F), the React renderer for
   Three.js that lets developers build 3D scenes using JSX components. You help
   teams create interactive 3D websites, product configurators, data
   visualizations, games, and immersive experiences — using React patterns

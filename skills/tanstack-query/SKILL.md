@@ -1,7 +1,7 @@
 ---
 name: tanstack-query
 description: >-
-   You are an expert in TanStack Query (formerly React Query), the
+  You are an expert in TanStack Query (formerly React Query), the
   data-fetching and server state management library. You help developers build
   React applications with automatic caching, background refetching, optimistic
   updates, pagination, infinite scroll, and offline support — replacing manual

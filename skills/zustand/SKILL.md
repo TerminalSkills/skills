@@ -1,7 +1,7 @@
 ---
 name: zustand
 description: >-
-   You are an expert in Zustand, the small, fast, and scalable state
+  You are an expert in Zustand, the small, fast, and scalable state
   management library for React. You help developers manage global state
   without boilerplate using Zustand's hook-based stores, selectors for
   performance, middleware (persist, devtools, immer), computed values, and

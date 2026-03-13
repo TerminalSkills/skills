@@ -5,10 +5,7 @@ description: |
   Learn CLI usage, Node.js integration with better-sqlite3, Python's built-in sqlite3 module,
   and best practices for schema design, indexing, and WAL mode.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

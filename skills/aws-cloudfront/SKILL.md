@@ -5,10 +5,7 @@ description: |
   with S3 and ALB origins, define cache behaviors and TTLs, invalidate cached
   content, and use Lambda@Edge for request/response manipulation at the edge.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - terraform
+compatibility: 'aws-cli, boto3, terraform'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -5,10 +5,7 @@ description: |
   for image generation, language, audio, and video. Fine-tune models on custom data and
   deploy custom models with Cog packaging format.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - typescript/node 18+
-  - curl/HTTP
+compatibility: 'python 3.8+, typescript/node 18+, curl/HTTP'
 metadata:
   author: terminal-skills
   version: 1.0.0

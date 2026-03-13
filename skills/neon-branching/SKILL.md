@@ -1,7 +1,7 @@
 ---
 name: neon-branching
 description: >-
-   You are an expert in Neon's database branching, the feature that creates
+  You are an expert in Neon's database branching, the feature that creates
   instant copy-on-write branches of your Postgres database. You help
   developers set up preview environments with real data, run CI tests against
   production schemas, test migrations safely, and implement database-per-PR

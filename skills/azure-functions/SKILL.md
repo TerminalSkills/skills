@@ -5,10 +5,7 @@ description: |
   functions with input/output bindings, configure triggers for queues, timers,
   and blob storage. Use Durable Functions for stateful orchestration workflows.
 license: Apache-2.0
-compatibility:
-  - azure-cli
-  - func-cli
-  - terraform
+compatibility: 'azure-cli, func-cli, terraform'
 metadata:
   author: terminal-skills
   version: 1.0.0

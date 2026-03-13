@@ -1,7 +1,7 @@
 ---
 name: portkey
 description: >-
-   You are an expert in Portkey, the AI gateway that sits between your app and
+  You are an expert in Portkey, the AI gateway that sits between your app and
   LLM providers. You help developers add caching, fallbacks, load balancing,
   request retries, guardrails, semantic caching, budget limits, and
   observability to LLM calls — using a single unified API that works with 200+

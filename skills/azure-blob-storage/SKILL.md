@@ -6,10 +6,7 @@ description: |
   optimization, generate SAS tokens for secure temporary access, and set lifecycle
   management policies.
 license: Apache-2.0
-compatibility:
-  - azure-cli
-  - python
-  - azcopy
+compatibility: 'azure-cli, python, azcopy'
 metadata:
   author: terminal-skills
   version: 1.0.0

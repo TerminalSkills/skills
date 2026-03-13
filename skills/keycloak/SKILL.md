@@ -1,7 +1,7 @@
 ---
 name: keycloak
 description: >-
-   You are an expert in Keycloak, the open-source identity and access
+  You are an expert in Keycloak, the open-source identity and access
   management solution by Red Hat. You help teams implement single sign-on
   (SSO), OAuth 2.0, OpenID Connect, SAML 2.0, user federation (LDAP/Active
   Directory), social login, multi-factor authentication, and fine-grained

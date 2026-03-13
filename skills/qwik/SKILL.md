@@ -5,9 +5,7 @@ description: |
   eliminating hydration. It serializes application state on the server and lazily
   loads JavaScript on interaction, making it ideal for edge deployment.
 license: Apache-2.0
-compatibility:
-  - node >= 18
-  - npm or yarn or pnpm
+compatibility: 'node >= 18, npm or yarn or pnpm'
 metadata:
   author: terminal-skills
   version: 1.0.0

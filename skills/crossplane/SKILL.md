@@ -5,9 +5,7 @@ description: >-
   needs to provision and manage cloud resources declaratively through Kubernetes
   APIs, compose custom infrastructure abstractions, or build internal platforms.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
+compatibility: 'linux, macos'
 metadata:
   author: terminal-skills
   version: 1.0.0

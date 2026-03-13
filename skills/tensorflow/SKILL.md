@@ -1,7 +1,7 @@
 ---
 name: tensorflow
 description: >-
-   You are an expert in TensorFlow, Google's open-source machine learning
+  You are an expert in TensorFlow, Google's open-source machine learning
   framework. You help developers build, train, and deploy neural networks
   using Keras (TensorFlow's high-level API), custom training loops, TensorFlow
   Serving for production inference, TFLite for mobile/edge deployment, and

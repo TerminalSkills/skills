@@ -5,10 +5,7 @@ description: |
   node and relationship modeling, graph algorithms, and integration with Node.js
   using the official neo4j-driver.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

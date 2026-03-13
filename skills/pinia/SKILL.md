@@ -1,7 +1,7 @@
 ---
 name: pinia
 description: >-
-   You are an expert in Pinia, the official state management library for
+  You are an expert in Pinia, the official state management library for
   Vue.js. You help developers build Vue applications with type-safe stores,
   Composition API support, getters (computed), actions (sync and async),
   plugins, SSR compatibility, and Vue DevTools integration — replacing Vuex

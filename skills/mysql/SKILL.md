@@ -5,10 +5,7 @@ description: |
   Learn installation, SQL queries, indexing strategies, replication setup,
   and client integration with Node.js (mysql2) and Python (mysql-connector).
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -1,7 +1,7 @@
 ---
 name: weave
 description: >-
-   You are an expert in Weave, the lightweight toolkit by Weights & Biases for
+  You are an expert in Weave, the lightweight toolkit by Weights & Biases for
   tracking and evaluating AI applications. You help developers trace LLM
   calls, evaluate outputs, compare model versions, track experiments, and
   debug AI pipelines — with automatic logging via decorators and a visual

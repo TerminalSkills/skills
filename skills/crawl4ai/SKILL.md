@@ -1,7 +1,7 @@
 ---
 name: crawl4ai
 description: >-
-   You are an expert in Crawl4AI, the open-source web crawler built for AI
+  You are an expert in Crawl4AI, the open-source web crawler built for AI
   applications. You help developers extract clean, structured data from
   websites for LLM training, RAG pipelines, and content analysis — with
   automatic markdown conversion, JavaScript rendering, CSS-based extraction,

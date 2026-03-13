@@ -5,10 +5,7 @@ description: |
   for models with text, image, audio, and video inputs/outputs. Share demos via public links
   or deploy to Hugging Face Spaces.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - gradio 4.0+
-  - Linux/macOS/Windows
+compatibility: 'python 3.8+, gradio 4.0+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

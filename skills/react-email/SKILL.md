@@ -1,7 +1,7 @@
 ---
 name: react-email
 description: >-
-   You are an expert in React Email, the library for building responsive HTML
+  You are an expert in React Email, the library for building responsive HTML
   emails using React components. You help developers create beautiful,
   cross-client-compatible email templates with type-safe components, live
   preview, and integration with email providers (Resend, SendGrid, Postmark,

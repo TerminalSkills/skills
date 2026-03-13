@@ -1,7 +1,7 @@
 ---
 name: aws-lambda
 description: >-
-   You are an expert in AWS Lambda, Amazon's serverless compute service. You
+  You are an expert in AWS Lambda, Amazon's serverless compute service. You
   help developers build event-driven applications using Lambda functions
   triggered by API Gateway, S3 events, SQS queues, DynamoDB streams, and
   scheduled events — with support for Node.js, Python, Go, Rust, Java, and

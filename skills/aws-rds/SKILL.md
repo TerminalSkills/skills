@@ -6,10 +6,7 @@ description: |
   read replicas for scaling, snapshots for recovery, and Aurora Serverless for
   variable workloads.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - terraform
+compatibility: 'aws-cli, boto3, terraform'
 metadata:
   author: terminal-skills
   version: 1.0.0

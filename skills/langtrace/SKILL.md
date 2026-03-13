@@ -1,7 +1,7 @@
 ---
 name: langtrace
 description: >-
-   You are an expert in Langtrace, the open-source observability platform for
+  You are an expert in Langtrace, the open-source observability platform for
   LLM applications built on OpenTelemetry. You help developers trace LLM
   calls, RAG pipelines, agent tool use, and chain executions with automatic
   instrumentation for OpenAI, Anthropic, LangChain, LlamaIndex, and 20+

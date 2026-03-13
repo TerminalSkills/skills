@@ -6,10 +6,7 @@ description: >-
   configuration in the KV store, or set up Connect for secure service-to-service
   communication.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

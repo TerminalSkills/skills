@@ -1,7 +1,7 @@
 ---
 name: trigger-dev-v3
 description: >-
-   You are an expert in Trigger.dev v3, the background jobs platform for
+  You are an expert in Trigger.dev v3, the background jobs platform for
   TypeScript. You help developers run long-running tasks, scheduled jobs,
   event-driven workflows, and AI pipelines in the cloud — with automatic
   retries, concurrency control, real-time logs, and up to 5-minute (or longer)

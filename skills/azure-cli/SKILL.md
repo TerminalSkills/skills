@@ -5,10 +5,7 @@ description: >-
   the user needs to create VMs, manage storage accounts, deploy functions,
   configure resource groups, and automate Azure operations from the terminal.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

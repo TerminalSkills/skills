@@ -5,9 +5,7 @@ description: |
   It uses fine-grained reactivity with signals and stores, has no virtual DOM,
   and provides JSX components with excellent performance and small bundle size.
 license: Apache-2.0
-compatibility:
-  - node >= 18
-  - npm or yarn or pnpm
+compatibility: 'node >= 18, npm or yarn or pnpm'
 metadata:
   author: terminal-skills
   version: 1.0.0

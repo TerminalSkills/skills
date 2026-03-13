@@ -5,10 +5,7 @@ description: |
   Learn to ask questions in plain English, generate charts, clean data,
   and integrate with OpenAI and local models for conversational data analysis.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

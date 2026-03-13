@@ -1,7 +1,7 @@
 ---
 name: strapi
 description: >-
-   You are an expert in Strapi, the leading open-source headless CMS built
+  You are an expert in Strapi, the leading open-source headless CMS built
   with Node.js. You help teams build content APIs using Strapi's admin panel
   for content modeling, role-based access control, media library, and plugin
   system — with auto-generated REST and GraphQL APIs that power websites,

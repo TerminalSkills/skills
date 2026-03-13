@@ -1,7 +1,7 @@
 ---
 name: electric-sql-sdk
 description: >-
-   You are an expert in Electric SQL, the sync engine that streams Postgres
+  You are an expert in Electric SQL, the sync engine that streams Postgres
   data to local apps in real-time. You help developers build local-first
   applications where data syncs from Postgres to client-side SQLite/PGlite
   automatically — enabling instant reads, offline support, and real-time

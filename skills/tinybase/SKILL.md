@@ -1,7 +1,7 @@
 ---
 name: tinybase
 description: >-
-   You are an expert in TinyBase, the reactive data store for local-first
+  You are an expert in TinyBase, the reactive data store for local-first
   applications. You help developers build offline-capable apps with structured
   tables, automatic reactivity, CRDT-based sync, persistence to
   IndexedDB/SQLite/Postgres, and relationship modeling — providing a complete

@@ -1,7 +1,7 @@
 ---
 name: motion
 description: >-
-   You are an expert in Motion, the production-ready animation library for
+  You are an expert in Motion, the production-ready animation library for
   React (formerly Framer Motion). You help developers create fluid animations,
   layout transitions, scroll-linked effects, gesture interactions, shared
   layout animations, and exit animations — using a declarative API where

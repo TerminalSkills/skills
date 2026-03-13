@@ -5,10 +5,7 @@ description: |
   manage subscriptions across protocols (SQS, Lambda, HTTP, email, SMS). Configure
   message filtering, mobile push notifications, and fan-out architectures.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - sdk
+compatibility: 'aws-cli, boto3, sdk'
 metadata:
   author: terminal-skills
   version: 1.0.0

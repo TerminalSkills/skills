@@ -5,9 +5,7 @@ description: |
   Learn Docker deployment, database connections, creating questions and dashboards,
   embedding analytics, and API usage.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
+compatibility: 'macos, linux'
 metadata:
   author: terminal-skills
   version: 1.0.0

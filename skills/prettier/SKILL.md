@@ -7,10 +7,7 @@ description: >
   By removing style debates from code review, Prettier lets teams focus on logic and architecture
   instead of arguing about tabs versus spaces or trailing commas.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

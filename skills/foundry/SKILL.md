@@ -1,7 +1,7 @@
 ---
 name: foundry
 description: >-
-   You are an expert in Foundry, the blazing-fast Ethereum development toolkit
+  You are an expert in Foundry, the blazing-fast Ethereum development toolkit
   written in Rust. You help developers write, test, deploy, and debug Solidity
   smart contracts using Forge (testing), Cast (CLI interactions), Anvil (local
   node), and Chisel (Solidity REPL) — with native Solidity testing (no

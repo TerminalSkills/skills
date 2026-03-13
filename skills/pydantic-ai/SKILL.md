@@ -1,7 +1,7 @@
 ---
 name: pydantic-ai
 description: >-
-   You are an expert in PydanticAI, the Python agent framework built by the
+  You are an expert in PydanticAI, the Python agent framework built by the
   Pydantic team. You help developers create type-safe AI agents with
   structured outputs, dependency injection, tool definitions, streaming, and
   model-agnostic design — leveraging Pydantic for validation and type safety

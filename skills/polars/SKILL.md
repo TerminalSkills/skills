@@ -5,10 +5,7 @@ description: |
   Learn eager and lazy evaluation, expressions, groupby, joins, and how Polars
   outperforms pandas for large datasets through parallel execution.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -5,9 +5,7 @@ description: >-
   to back up cluster resources and persistent volumes, restore workloads,
   migrate between clusters, or schedule automated backups.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
+compatibility: 'linux, macos'
 metadata:
   author: terminal-skills
   version: 1.0.0

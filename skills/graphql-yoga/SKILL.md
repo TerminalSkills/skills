@@ -1,7 +1,7 @@
 ---
 name: graphql-yoga
 description: >-
-   You are an expert in GraphQL Yoga, the batteries-included GraphQL server by
+  You are an expert in GraphQL Yoga, the batteries-included GraphQL server by
   The Guild. You help developers build production GraphQL APIs with
   schema-first or code-first approaches, file uploads, subscriptions, Envelop
   plugin system, response caching, error masking, and deployment to any JS

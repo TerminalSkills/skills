@@ -5,10 +5,7 @@ description: |
   Learn project setup, models, tests, documentation, incremental materializations,
   and integration with data warehouses like PostgreSQL, BigQuery, and Snowflake.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

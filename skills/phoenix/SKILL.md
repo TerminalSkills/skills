@@ -5,10 +5,7 @@ description: |
   applications. It features LiveView for interactive UIs without JavaScript, channels
   for WebSockets, and Ecto for database access with compile-time query validation.
 license: Apache-2.0
-compatibility:
-  - elixir >= 1.14
-  - erlang >= 25
-  - mix
+compatibility: 'elixir >= 1.14, erlang >= 25, mix'
 metadata:
   author: terminal-skills
   version: 1.0.0

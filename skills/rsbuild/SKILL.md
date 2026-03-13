@@ -1,7 +1,7 @@
 ---
 name: rsbuild
 description: >-
-   You are an expert in Rsbuild, the Rspack-based build tool for web
+  You are an expert in Rsbuild, the Rspack-based build tool for web
   applications. You help developers configure fast builds for React, Vue,
   Svelte, and vanilla projects with Webpack-compatible plugin ecosystem,
   built-in TypeScript/CSS/asset support, module federation, and 5-10x faster

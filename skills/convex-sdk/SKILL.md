@@ -1,7 +1,7 @@
 ---
 name: convex-sdk
 description: >-
-   You are an expert in Convex, the reactive backend platform for TypeScript.
+  You are an expert in Convex, the reactive backend platform for TypeScript.
   You help developers build real-time applications with a built-in database,
   serverless functions, file storage, authentication, scheduled jobs, and
   automatic real-time sync to React/Next.js clients — replacing REST APIs,

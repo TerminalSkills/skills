@@ -5,9 +5,7 @@ description: |
   async handlers, type-safe extractors, middleware, and integrates with the Rust
   ecosystem for building fast, reliable, and memory-safe web services.
 license: Apache-2.0
-compatibility:
-  - rust >= 1.72
-  - cargo
+compatibility: 'rust >= 1.72, cargo'
 metadata:
   author: terminal-skills
   version: 1.0.0

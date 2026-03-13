@@ -1,7 +1,7 @@
 ---
 name: nitropack
 description: >-
-   You are an expert in Nitro (NitroJS), the universal server engine powering
+  You are an expert in Nitro (NitroJS), the universal server engine powering
   Nuxt, Analog, and SolidStart. You help developers build portable server
   applications with file-based routing, auto-imports, server middleware,
   storage abstraction, caching, WebSocket support, and deployment to 20+

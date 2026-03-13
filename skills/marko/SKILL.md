@@ -1,7 +1,7 @@
 ---
 name: marko
 description: >-
-   You are an expert in Marko, the HTML-first UI framework by eBay that powers
+  You are an expert in Marko, the HTML-first UI framework by eBay that powers
   ebay.com. You help developers build high-performance web applications with
   streaming server rendering, automatic partial hydration, a concise tag-based
   syntax, and reactive state — optimized for fast first-paint and minimal

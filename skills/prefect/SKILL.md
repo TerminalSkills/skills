@@ -5,10 +5,7 @@ description: |
   Learn to define flows and tasks with decorators, handle retries and scheduling,
   create deployments, and monitor via the Prefect UI.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

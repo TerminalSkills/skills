@@ -6,10 +6,7 @@ description: >-
   manage deployments, configure scaling, or run batch and service workloads
   across a cluster.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

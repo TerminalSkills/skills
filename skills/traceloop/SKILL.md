@@ -1,7 +1,7 @@
 ---
 name: traceloop
 description: >-
-   You are an expert in Traceloop and its OpenLLMetry SDK, the open-source
+  You are an expert in Traceloop and its OpenLLMetry SDK, the open-source
   observability framework that extends OpenTelemetry for LLM applications. You
   help developers instrument AI pipelines with automatic tracing for OpenAI,
   Anthropic, Cohere, LangChain, LlamaIndex, vector databases, and frameworks —

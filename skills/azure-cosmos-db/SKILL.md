@@ -5,10 +5,7 @@ description: |
   models (document, key-value, graph), configure global replication with tunable
   consistency levels, manage throughput with RU/s, and query with SQL API.
 license: Apache-2.0
-compatibility:
-  - azure-cli
-  - python
-  - nodejs
+compatibility: 'azure-cli, python, nodejs'
 metadata:
   author: terminal-skills
   version: 1.0.0

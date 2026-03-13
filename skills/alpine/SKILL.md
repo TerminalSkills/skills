@@ -5,9 +5,7 @@ description: |
   markup. It provides reactive data, event handling, and DOM manipulation through
   HTML attributes — like a modern jQuery replacement with declarative syntax.
 license: Apache-2.0
-compatibility:
-  - any web server
-  - html
+compatibility: 'any web server, html'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -5,10 +5,7 @@ description: |
   inpainting, outpainting, LoRA, extensions, upscaling, and batch processing. Widely used
   desktop interface with an extensive extension ecosystem and API access.
 license: Apache-2.0
-compatibility:
-  - python 3.10+
-  - CUDA 11.8+ / ROCm / CPU
-  - Linux/Windows/macOS
+compatibility: 'python 3.10+, CUDA 11.8+ / ROCm / CPU, Linux/Windows/macOS'
 metadata:
   author: terminal-skills
   version: 1.0.0

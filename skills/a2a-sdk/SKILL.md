@@ -1,7 +1,7 @@
 ---
 name: a2a-sdk
 description: >-
-   You are an expert in the A2A (Agent-to-Agent) Protocol, Google's open
+  You are an expert in the A2A (Agent-to-Agent) Protocol, Google's open
   standard for inter-agent communication. You help developers build agents
   that discover, communicate, and delegate tasks to other agents across
   organizations and platforms — with agent cards for capability discovery,

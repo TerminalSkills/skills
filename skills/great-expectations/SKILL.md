@@ -5,10 +5,7 @@ description: |
   Learn to define expectations, create validation suites, build data docs,
   and integrate with data pipelines for automated quality checks.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

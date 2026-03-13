@@ -1,7 +1,7 @@
 ---
 name: apollo-client
 description: >-
-   You are an expert in Apollo Client, the comprehensive GraphQL client for
+  You are an expert in Apollo Client, the comprehensive GraphQL client for
   React applications. You help developers fetch data with GraphQL queries and
   mutations, manage local and remote state with Apollo's normalized cache,
   implement optimistic UI updates, handle pagination, and configure

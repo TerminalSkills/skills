@@ -5,9 +5,7 @@ description: |
   Learn CQL (Cassandra Query Language), data modeling with partition keys, replication strategies,
   and integration with Node.js using the DataStax driver.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
+compatibility: 'macos, linux'
 metadata:
   author: terminal-skills
   version: 1.0.0

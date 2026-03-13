@@ -5,9 +5,7 @@ description: |
   Learn to write DAGs, use operators, set up connections, configure scheduling,
   and deploy with Docker Compose.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
+compatibility: 'macos, linux'
 metadata:
   author: terminal-skills
   version: 1.0.0

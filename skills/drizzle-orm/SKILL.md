@@ -1,7 +1,7 @@
 ---
 name: drizzle-orm
 description: >-
-   You are an expert in Drizzle ORM, the lightweight TypeScript ORM that maps
+  You are an expert in Drizzle ORM, the lightweight TypeScript ORM that maps
   directly to SQL. You help developers write type-safe database queries that
   look like SQL (not a new query language), generate migrations from schema
   changes, and deploy to serverless environments with zero overhead —

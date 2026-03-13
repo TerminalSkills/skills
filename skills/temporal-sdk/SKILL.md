@@ -1,7 +1,7 @@
 ---
 name: temporal-sdk
 description: >-
-   You are an expert in Temporal, the open-source durable execution platform
+  You are an expert in Temporal, the open-source durable execution platform
   for building reliable distributed applications. You help developers write
   workflows that survive process crashes, network failures, and deployments —
   with automatic retries, timeouts, cancellation, signals, queries, and

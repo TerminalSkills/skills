@@ -5,10 +5,7 @@ description: |
   queues, configure dead-letter queues for failed messages, send and receive
   messages in batches, and build decoupled event-driven architectures.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - sdk
+compatibility: 'aws-cli, boto3, sdk'
 metadata:
   author: terminal-skills
   version: 1.0.0

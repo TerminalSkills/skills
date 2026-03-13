@@ -13,10 +13,7 @@ description: >-
 author: terminal-skills
 tags: [posthog, analytics, product-analytics, session-replay, feature-flags, funnels]
 license: Apache-2.0
-compatibility:
-  - platform: linux
-  - platform: macos
-  - platform: windows
+compatibility: 'platform: linux, platform: macos, platform: windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

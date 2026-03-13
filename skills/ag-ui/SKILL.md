@@ -1,7 +1,7 @@
 ---
 name: ag-ui
 description: >-
-   You are an expert in AG-UI (Agent-User Interaction Protocol), the open
+  You are an expert in AG-UI (Agent-User Interaction Protocol), the open
   standard by CopilotKit for connecting AI agents to frontend UIs. You help
   developers stream agent actions, tool calls, state updates, and text
   generation to React components in real-time — enabling rich agent UIs where

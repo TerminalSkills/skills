@@ -5,9 +5,7 @@ description: |
   functions triggered by Pub/Sub, Cloud Storage, and Firestore. Configure runtime
   settings, manage dependencies, and connect to other GCP services.
 license: Apache-2.0
-compatibility:
-  - gcloud-cli
-  - terraform
+compatibility: 'gcloud-cli, terraform'
 metadata:
   author: terminal-skills
   version: 1.0.0

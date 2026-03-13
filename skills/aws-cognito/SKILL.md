@@ -6,10 +6,7 @@ description: |
   set up social federation with Google and Facebook, and secure APIs with
   Cognito authorizers.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - sdk
+compatibility: 'aws-cli, boto3, sdk'
 metadata:
   author: terminal-skills
   version: 1.0.0

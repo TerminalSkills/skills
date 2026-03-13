@@ -5,10 +5,7 @@ description: |
   parameters, register and version models, deploy models to various targets, and build
   reproducible ML pipelines. Integrates with all major ML frameworks.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - mlflow 2.0+
-  - Linux/macOS/Windows
+compatibility: 'python 3.8+, mlflow 2.0+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

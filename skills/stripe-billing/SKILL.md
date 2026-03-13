@@ -1,7 +1,7 @@
 ---
 name: stripe-billing
 description: >-
-   You are an expert in Stripe Billing, the complete billing platform for SaaS
+  You are an expert in Stripe Billing, the complete billing platform for SaaS
   businesses. You help developers implement subscription management,
   usage-based billing, metered pricing, free trials, proration, invoicing,
   customer portal, and webhook-driven lifecycle management — building

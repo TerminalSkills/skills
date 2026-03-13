@@ -1,7 +1,7 @@
 ---
 name: mem0
 description: >-
-   You are an expert in Mem0, the memory infrastructure for AI applications.
+  You are an expert in Mem0, the memory infrastructure for AI applications.
   You help developers add persistent, personalized memory to LLM-powered apps
   and agents — storing user preferences, conversation history, facts, and
   context that persists across sessions, enabling AI that remembers users,

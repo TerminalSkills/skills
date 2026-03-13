@@ -5,9 +5,7 @@ description: |
   It provides ActiveRecord ORM, Action Controller, Action View templates, Action Cable
   for WebSockets, and generators for rapid application development.
 license: Apache-2.0
-compatibility:
-  - ruby >= 3.1
-  - bundler
+compatibility: 'ruby >= 3.1, bundler'
 metadata:
   author: terminal-skills
   version: 1.0.0

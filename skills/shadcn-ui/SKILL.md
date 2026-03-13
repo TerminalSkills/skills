@@ -1,7 +1,7 @@
 ---
 name: shadcn-ui
 description: >-
-   You are an expert in shadcn/ui, the collection of reusable React components
+  You are an expert in shadcn/ui, the collection of reusable React components
   built with Radix UI and Tailwind CSS. You help developers build beautiful,
   accessible interfaces by copying components directly into their project (not
   installed as a dependency) — providing full ownership and customization of

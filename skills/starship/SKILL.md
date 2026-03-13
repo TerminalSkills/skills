@@ -1,7 +1,7 @@
 ---
 name: starship
 description: >-
-   You are an expert in Starship, the minimal, blazing-fast, cross-shell
+  You are an expert in Starship, the minimal, blazing-fast, cross-shell
   prompt written in Rust. You help developers customize their terminal prompt
   with git status, language versions, cloud context, battery level, time, and
   custom modules — working identically across Bash, Zsh, Fish, PowerShell, and

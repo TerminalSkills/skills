@@ -5,10 +5,7 @@ description: |
   audio, video, and time-series data. Features configurable labeling interfaces, ML-assisted
   labeling, team collaboration, and API integration for automated workflows.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - label-studio 1.10+
-  - Linux/macOS/Windows
+compatibility: 'python 3.8+, label-studio 1.10+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

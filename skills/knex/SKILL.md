@@ -1,7 +1,7 @@
 ---
 name: knex
 description: >-
-   You are an expert in Knex.js, the flexible SQL query builder for Node.js
+  You are an expert in Knex.js, the flexible SQL query builder for Node.js
   that supports PostgreSQL, MySQL, SQLite, and MSSQL. You help developers
   write type-safe queries with a chainable API, manage database migrations and
   seeds, build complex joins and subqueries, and use transactions — providing

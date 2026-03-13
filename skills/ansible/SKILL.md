@@ -5,9 +5,7 @@ description: >-
   to write playbooks, manage inventory, create roles, use Ansible Vault for
   secrets, or orchestrate multi-server deployments across environments.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
+compatibility: 'linux, macos'
 metadata:
   author: terminal-skills
   version: 1.0.0

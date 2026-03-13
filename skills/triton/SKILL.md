@@ -5,10 +5,7 @@ description: |
   frameworks (ONNX, TensorRT, PyTorch, TensorFlow), model ensembles, dynamic batching,
   model versioning, and GPU/CPU inference with high throughput and low latency.
 license: Apache-2.0
-compatibility:
-  - NVIDIA GPU (recommended)
-  - Docker/Kubernetes
-  - Linux
+compatibility: 'NVIDIA GPU (recommended), Docker/Kubernetes, Linux'
 metadata:
   author: terminal-skills
   version: 1.0.0

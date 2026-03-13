@@ -5,10 +5,7 @@ description: |
   and artifact management. Log metrics, visualize training runs, run sweeps for
   hyperparameter tuning, and version datasets and models.
 license: Apache-2.0
-compatibility:
-  - python 3.7+
-  - wandb 0.15+
-  - Linux/macOS/Windows
+compatibility: 'python 3.7+, wandb 0.15+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

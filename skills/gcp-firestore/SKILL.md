@@ -6,11 +6,7 @@ description: |
   real-time listeners for live updates, enable offline persistence, and write
   security rules for client-side access control.
 license: Apache-2.0
-compatibility:
-  - gcloud-cli
-  - firebase-cli
-  - python
-  - nodejs
+compatibility: 'gcloud-cli, firebase-cli, python, nodejs'
 metadata:
   author: terminal-skills
   version: 1.0.0

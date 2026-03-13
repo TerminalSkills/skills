@@ -5,10 +5,7 @@ description: |
   security groups, key pairs, and EBS volumes. Set up auto-scaling groups for
   high availability and cost optimization across availability zones.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - terraform
+compatibility: 'aws-cli, boto3, terraform'
 metadata:
   author: terminal-skills
   version: 1.0.0

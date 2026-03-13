@@ -1,7 +1,7 @@
 ---
 name: nanostores
 description: >-
-   You are an expert in Nanostores, the tiny (< 1KB) state manager for
+  You are an expert in Nanostores, the tiny (< 1KB) state manager for
   framework-agnostic JavaScript. You help developers manage application state
   with atoms, maps, computed stores, and async data fetching — working
   identically across React, Vue, Svelte, Solid, Angular, and vanilla JS with

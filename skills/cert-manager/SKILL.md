@@ -5,9 +5,7 @@ description: >-
   the user needs to issue, renew, and manage TLS certificates from Let's Encrypt
   or other CAs, configure ClusterIssuers, and secure Ingress resources.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
+compatibility: 'linux, macos'
 metadata:
   author: terminal-skills
   version: 1.0.0

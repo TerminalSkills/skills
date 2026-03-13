@@ -1,7 +1,7 @@
 ---
 name: go-echo
 description: >-
-   You are an expert in Echo, the high-performance, minimalist Go web
+  You are an expert in Echo, the high-performance, minimalist Go web
   framework. You help developers build REST APIs and web applications using
   Echo's optimized router, middleware chain, data binding, validation,
   template rendering, and WebSocket support — providing a clean API surface

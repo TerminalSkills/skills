@@ -5,10 +5,7 @@ description: |
   enables caching, rate limiting, and provides cost analytics. Works with OpenAI, Anthropic,
   and other providers with a one-line integration change.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - typescript/node 18+
-  - any HTTP client
+compatibility: 'python 3.8+, typescript/node 18+, any HTTP client'
 metadata:
   author: terminal-skills
   version: 1.0.0

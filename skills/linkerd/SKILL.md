@@ -5,9 +5,7 @@ description: >-
   automatic mTLS, traffic splitting, retries, and observability with minimal
   resource overhead and operational complexity.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
+compatibility: 'linux, macos'
 metadata:
   author: terminal-skills
   version: 1.0.0

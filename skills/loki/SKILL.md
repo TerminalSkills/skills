@@ -6,10 +6,7 @@ description: >
   significantly cheaper to operate. It integrates natively with Grafana for querying and visualization,
   and uses LogQL — a query language inspired by PromQL — to filter, parse, and aggregate log streams.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

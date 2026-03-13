@@ -1,7 +1,7 @@
 ---
 name: webflow
 description: >-
-   You are an expert in Webflow, the visual web development platform that
+  You are an expert in Webflow, the visual web development platform that
   combines a design tool with a CMS and hosting. You help teams build
   responsive websites, landing pages, and content-driven sites using Webflow's
   visual builder, CMS collections, Ecommerce, form handling, and Webflow APIs

@@ -1,7 +1,7 @@
 ---
 name: polar
 description: >-
-   You are an expert in Polar, the monetization platform built for developers
+  You are an expert in Polar, the monetization platform built for developers
   and open-source maintainers. You help developers add payments,
   subscriptions, product sales, license keys, and sponsorships to their
   projects with a developer-first API, webhooks, and embeddable components —

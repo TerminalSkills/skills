@@ -5,10 +5,7 @@ description: |
   for distributed computing, Ray Serve for model serving, Ray Tune for hyperparameter
   optimization, and Ray Data for distributed data processing.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - ray 2.9+
-  - Linux/macOS/Windows
+compatibility: 'python 3.8+, ray 2.9+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

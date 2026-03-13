@@ -1,7 +1,7 @@
 ---
 name: biome
 description: >-
-   You are an expert in Biome, the Rust-based toolchain that replaces ESLint
+  You are an expert in Biome, the Rust-based toolchain that replaces ESLint
   and Prettier with a single, fast tool. You help developers configure
   linting, formatting, and import sorting for JavaScript, TypeScript, JSX,
   JSON, and CSS — achieving 100x faster execution than ESLint+Prettier with

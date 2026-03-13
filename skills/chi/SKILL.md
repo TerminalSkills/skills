@@ -1,7 +1,7 @@
 ---
 name: chi
 description: >-
-   You are an expert in Chi, the lightweight, idiomatic Go HTTP router built
+  You are an expert in Chi, the lightweight, idiomatic Go HTTP router built
   on `net/http`. You help developers build composable HTTP services using
   Chi's middleware stack, route groups, URL parameters, sub-routers, and
   context-based request scoping — providing Express-like ergonomics while

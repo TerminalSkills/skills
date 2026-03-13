@@ -5,9 +5,7 @@ description: |
   Learn to deploy with Docker, define collections, index documents, and build search UIs
   as a modern alternative to Algolia.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
+compatibility: 'macos, linux'
 metadata:
   author: terminal-skills
   version: 1.0.0

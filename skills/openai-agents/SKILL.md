@@ -1,7 +1,7 @@
 ---
 name: openai-agents
 description: >-
-   You are an expert in the OpenAI Agents SDK (formerly Swarm), the official
+  You are an expert in the OpenAI Agents SDK (formerly Swarm), the official
   framework for building multi-agent systems. You help developers create
   agents with tool calling, guardrails, agent handoffs, streaming, tracing,
   and MCP integration — building production-grade AI agents that coordinate,

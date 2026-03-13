@@ -6,10 +6,7 @@ description: |
   for change data capture, and apply single-table design patterns for efficient
   data modeling.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - sdk
+compatibility: 'aws-cli, boto3, sdk'
 metadata:
   author: terminal-skills
   version: 1.0.0

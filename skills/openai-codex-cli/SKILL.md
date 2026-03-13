@@ -1,7 +1,7 @@
 ---
 name: openai-codex-cli
 description: >-
-   You are an expert in OpenAI's Codex CLI, the open-source terminal-based
+  You are an expert in OpenAI's Codex CLI, the open-source terminal-based
   coding agent that reads your codebase, generates and edits code, runs shell
   commands, and applies changes — all within your terminal. You help
   developers use Codex CLI for code generation, refactoring, debugging, and

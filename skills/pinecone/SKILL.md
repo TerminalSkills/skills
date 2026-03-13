@@ -5,10 +5,7 @@ description: |
   Learn to create indexes, upsert embeddings, query by similarity, use namespaces
   and metadata filtering for semantic search and RAG pipelines.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

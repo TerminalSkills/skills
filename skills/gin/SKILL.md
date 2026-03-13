@@ -1,7 +1,7 @@
 ---
 name: gin
 description: >-
-   You are an expert in Gin, the fastest Go web framework with a martini-like
+  You are an expert in Gin, the fastest Go web framework with a martini-like
   API. You help developers build high-performance HTTP APIs with routing,
   middleware, request validation, JSON serialization, error handling, and
   graceful shutdown — delivering 100K+ requests/second on modest hardware with

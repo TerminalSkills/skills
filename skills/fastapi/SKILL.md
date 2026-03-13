@@ -5,9 +5,7 @@ description: |
   It leverages Python type hints and Pydantic for automatic validation, serialization,
   and OpenAPI documentation generation with async/await support out of the box.
 license: Apache-2.0
-compatibility:
-  - python >= 3.8
-  - pip
+compatibility: 'python >= 3.8, pip'
 metadata:
   author: terminal-skills
   version: 1.0.0

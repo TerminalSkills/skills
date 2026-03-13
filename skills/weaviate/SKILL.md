@@ -5,9 +5,7 @@ description: |
   Learn schema definition, GraphQL and REST APIs, hybrid search combining BM25 and vectors,
   and self-hosted deployment with Docker.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
+compatibility: 'macos, linux'
 metadata:
   author: terminal-skills
   version: 1.0.0

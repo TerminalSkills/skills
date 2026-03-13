@@ -1,7 +1,7 @@
 ---
 name: resend
 description: >-
-   You are an expert in Resend, the developer-first email API. You help
+  You are an expert in Resend, the developer-first email API. You help
   developers send transactional and marketing emails using React Email
   templates, TypeScript SDK, webhooks for delivery tracking, batch sending,
   and audience management — replacing legacy email services (SendGrid,

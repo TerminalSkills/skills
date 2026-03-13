@@ -1,7 +1,7 @@
 ---
 name: amqplib
 description: >-
-   You are an expert in amqplib, the Node.js client for RabbitMQ and AMQP
+  You are an expert in amqplib, the Node.js client for RabbitMQ and AMQP
   0-9-1 protocol. You help developers implement reliable message queuing with
   work queues, pub/sub fanout, topic routing, RPC patterns, dead letter
   queues, and message acknowledgment — building decoupled microservices that

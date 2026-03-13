@@ -6,10 +6,7 @@ description: >
   pre-computed rollups, and high-throughput inserts that make it ideal for event tracking, time-series
   analytics, and ad-hoc exploration of billions of rows.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

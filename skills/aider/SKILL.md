@@ -1,7 +1,7 @@
 ---
 name: aider
 description: >-
-   You are an expert in Aider, the terminal-based AI coding assistant that
+  You are an expert in Aider, the terminal-based AI coding assistant that
   reads your codebase, makes changes across multiple files, and creates proper
   git commits. You help developers use Aider for autonomous code generation,
   refactoring, bug fixing, and test writing — working with any LLM (Claude,

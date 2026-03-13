@@ -12,10 +12,7 @@ description: >-
 author: terminal-skills
 tags: [plausible, analytics, privacy, web-analytics, gdpr, self-hosted]
 license: Apache-2.0
-compatibility:
-  - platform: linux
-  - platform: macos
-  - platform: windows
+compatibility: 'platform: linux, platform: macos, platform: windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

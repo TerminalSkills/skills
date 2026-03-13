@@ -5,10 +5,7 @@ description: |
   pipelines by connecting nodes visually. Supports custom nodes, ControlNet, LoRA, upscaling,
   and advanced workflows with full control over the diffusion process.
 license: Apache-2.0
-compatibility:
-  - python 3.10+
-  - CUDA 11.8+ / ROCm
-  - Linux/Windows (macOS experimental)
+compatibility: 'python 3.10+, CUDA 11.8+ / ROCm, Linux/Windows (macOS experimental)'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -5,10 +5,7 @@ description: |
   buckets, upload and organize objects, generate signed URLs for secure temporary
   access, set lifecycle rules for cost optimization, and configure access control.
 license: Apache-2.0
-compatibility:
-  - gcloud-cli
-  - gsutil
-  - python
+compatibility: 'gcloud-cli, gsutil, python'
 metadata:
   author: terminal-skills
   version: 1.0.0

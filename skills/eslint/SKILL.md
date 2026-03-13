@@ -7,10 +7,7 @@ description: >
   more composable `eslint.config.js` file. With a rich plugin ecosystem covering React, TypeScript,
   accessibility, and import ordering, ESLint is the backbone of code quality in modern web development.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

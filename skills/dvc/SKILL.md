@@ -5,10 +5,7 @@ description: |
   build reproducible ML pipelines, and run experiments with metric comparison. Works with
   any storage backend including S3, GCS, Azure, and local filesystems.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - dvc 3.0+
-  - Linux/macOS/Windows
+compatibility: 'python 3.8+, dvc 3.0+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -1,7 +1,7 @@
 ---
 name: sst-ion
 description: >-
-   You are an expert in SST (Ion), the framework for building full-stack
+  You are an expert in SST (Ion), the framework for building full-stack
   serverless applications on AWS. You help developers deploy Next.js, Remix,
   Astro, and API services with infrastructure-as-code defined in TypeScript,
   automatic IAM permissions, live Lambda debugging, secrets management, and

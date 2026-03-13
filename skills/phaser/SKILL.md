@@ -1,7 +1,7 @@
 ---
 name: phaser
 description: >-
-   You are an expert in Phaser, the fast and feature-rich HTML5 game framework
+  You are an expert in Phaser, the fast and feature-rich HTML5 game framework
   for making 2D games that run in web browsers and mobile devices. You help
   developers build arcade games, puzzle games, RPGs, platformers, and
   roguelikes using Phaser's scene system, physics engines (Arcade and

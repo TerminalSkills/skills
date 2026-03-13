@@ -7,10 +7,7 @@ description: >
   reason across your entire codebase. Copilot accelerates development by turning intent into
   working code, reducing boilerplate, and helping developers navigate unfamiliar APIs and patterns.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

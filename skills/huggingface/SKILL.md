@@ -5,10 +5,7 @@ description: |
   tokenizers, inference pipelines, and fine-tuning. Covers downloading pre-trained models,
   running inference, training custom models, and publishing to the Hub.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - transformers 4.30+
-  - Linux/macOS/Windows
+compatibility: 'python 3.8+, transformers 4.30+, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

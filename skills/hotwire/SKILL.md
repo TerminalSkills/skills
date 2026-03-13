@@ -1,7 +1,7 @@
 ---
 name: hotwire
 description: >-
-   You are an expert in Hotwire (HTML Over The Wire), the collection of
+  You are an expert in Hotwire (HTML Over The Wire), the collection of
   techniques for building modern web applications by sending HTML instead of
   JSON. You help developers use Turbo (Drive, Frames, Streams) for SPA-like
   navigation and partial updates, and Stimulus for lightweight JavaScript

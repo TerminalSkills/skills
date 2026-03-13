@@ -5,9 +5,7 @@ description: |
   directly in HTML using attributes. It enables dynamic web UIs without writing JavaScript
   by letting any element issue HTTP requests and swap content into the DOM.
 license: Apache-2.0
-compatibility:
-  - any web server
-  - html
+compatibility: 'any web server, html'
 metadata:
   author: terminal-skills
   version: 1.0.0

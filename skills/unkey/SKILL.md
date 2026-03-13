@@ -1,7 +1,7 @@
 ---
 name: unkey
 description: >-
-   You are an expert in Unkey, the open-source API key management platform.
+  You are an expert in Unkey, the open-source API key management platform.
   You help developers create, validate, and manage API keys with built-in rate
   limiting, usage tracking, temporary keys, key rotation, and per-key
   permissions — providing the complete API authentication layer for developer

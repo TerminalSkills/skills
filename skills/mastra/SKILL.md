@@ -1,7 +1,7 @@
 ---
 name: mastra
 description: >-
-   You are an expert in Mastra, the TypeScript framework for building AI
+  You are an expert in Mastra, the TypeScript framework for building AI
   agents, RAG pipelines, and workflows. You help developers create production
   AI applications with type-safe agent definitions, tool integration,
   vector-based knowledge retrieval, multi-step workflows with branching and

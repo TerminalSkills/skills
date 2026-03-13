@@ -6,10 +6,7 @@ description: >
   tables first, making it ideal for local data exploration, ETL pipelines, and analytical workloads
   where spinning up a server is overkill.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

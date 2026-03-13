@@ -1,7 +1,7 @@
 ---
 name: guidance
 description: >-
-   You are an expert in Guidance, Microsoft's library for controlling LLM
+  You are an expert in Guidance, Microsoft's library for controlling LLM
   output with constrained generation. You help developers write programs that
   interleave text generation with control flow (loops, conditionals, regex
   constraints, JSON schemas, function calls) — ensuring LLM output always

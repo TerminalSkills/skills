@@ -1,7 +1,7 @@
 ---
 name: langfuse
 description: >-
-   You are an expert in Langfuse, the open-source LLM engineering platform.
+  You are an expert in Langfuse, the open-source LLM engineering platform.
   You help developers trace LLM calls, evaluate output quality, manage
   prompts, track costs and latency, run experiments, and build evaluation
   datasets — providing full observability into AI applications from

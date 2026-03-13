@@ -5,10 +5,7 @@ description: |
   image models, and embedding models. Supports fine-tuning on custom data, OpenAI-compatible
   API format, and competitive pricing for open-source model hosting.
 license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - typescript/node 18+
-  - any OpenAI-compatible client
+compatibility: 'python 3.8+, typescript/node 18+, any OpenAI-compatible client'
 metadata:
   author: terminal-skills
   version: 1.0.0

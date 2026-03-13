@@ -5,9 +5,7 @@ description: |
   applications on Node.js. It uses decorators, modules, dependency injection, and
   an opinionated architecture inspired by Angular.
 license: Apache-2.0
-compatibility:
-  - node >= 18
-  - npm or yarn or pnpm
+compatibility: 'node >= 18, npm or yarn or pnpm'
 metadata:
   author: terminal-skills
   version: 1.0.0

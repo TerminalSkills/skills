@@ -5,10 +5,7 @@ description: >-
   to create AMIs, Docker images, or GCP images using HCL templates with
   provisioners for consistent, reproducible infrastructure images.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

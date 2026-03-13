@@ -5,10 +5,7 @@ description: |
   identities, create reusable email templates, configure receipt rules for
   incoming mail, and handle bounces and complaints with SNS notifications.
 license: Apache-2.0
-compatibility:
-  - aws-cli
-  - boto3
-  - sdk
+compatibility: 'aws-cli, boto3, sdk'
 metadata:
   author: terminal-skills
   version: 1.0.0

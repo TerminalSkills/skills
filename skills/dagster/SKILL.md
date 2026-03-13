@@ -5,10 +5,7 @@ description: |
   Learn to define assets, ops, jobs, schedules, sensors, and resources for
   building maintainable data platforms.
 license: Apache-2.0
-compatibility:
-  - macos
-  - linux
-  - windows
+compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

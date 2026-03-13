@@ -1,7 +1,7 @@
 ---
 name: lemon-squeezy
 description: >-
-   You are an expert in Lemon Squeezy, the all-in-one payments platform that
+  You are an expert in Lemon Squeezy, the all-in-one payments platform that
   acts as your Merchant of Record. You help developers sell software,
   subscriptions, and digital products with automatic global tax handling (VAT,
   sales tax), invoicing, license keys, customer portal, and fraud protection —

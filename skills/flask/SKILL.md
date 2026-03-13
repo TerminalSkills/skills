@@ -5,9 +5,7 @@ description: |
   for web development without imposing structure. It uses Jinja2 templates and
   Werkzeug WSGI toolkit, with a rich ecosystem of extensions for databases, auth, and more.
 license: Apache-2.0
-compatibility:
-  - python >= 3.8
-  - pip
+compatibility: 'python >= 3.8, pip'
 metadata:
   author: terminal-skills
   version: 1.0.0

@@ -5,10 +5,7 @@ description: |
   data, load and stream data in real-time, create materialized views, and use
   BigQuery ML for machine learning models directly in SQL.
 license: Apache-2.0
-compatibility:
-  - gcloud-cli
-  - bq-cli
-  - python
+compatibility: 'gcloud-cli, bq-cli, python'
 metadata:
   author: terminal-skills
   version: 1.0.0

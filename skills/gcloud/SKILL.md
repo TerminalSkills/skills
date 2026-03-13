@@ -5,10 +5,7 @@ description: >-
   with Compute Engine, Cloud Storage, Cloud Functions, IAM, GKE, and other
   Google Cloud services from the terminal.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

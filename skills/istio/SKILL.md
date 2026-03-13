@@ -5,9 +5,7 @@ description: >-
   observability. Use when the user needs to configure traffic routing, mTLS,
   circuit breaking, fault injection, or observability for microservices.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
+compatibility: 'linux, macos'
 metadata:
   author: terminal-skills
   version: 1.0.0

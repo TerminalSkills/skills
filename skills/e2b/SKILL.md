@@ -1,7 +1,7 @@
 ---
 name: e2b
 description: >-
-   You are an expert in E2B, the cloud platform for running AI-generated code
+  You are an expert in E2B, the cloud platform for running AI-generated code
   in secure sandboxes. You help developers give AI agents the ability to
   execute code, install packages, read/write files, and run long processes in
   isolated cloud environments — each sandbox is a lightweight VM that boots in

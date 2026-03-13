@@ -5,9 +5,7 @@ description: |
   pattern. It provides an ORM, admin interface, authentication, and everything needed to
   build full-featured web applications rapidly and securely.
 license: Apache-2.0
-compatibility:
-  - python >= 3.10
-  - pip
+compatibility: 'python >= 3.10, pip'
 metadata:
   author: terminal-skills
   version: 1.0.0

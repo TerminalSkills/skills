@@ -5,10 +5,7 @@ description: >-
   needs to interact with S3, EC2, Lambda, CloudWatch, IAM, and other AWS services
   directly from the terminal for operations, scripting, and automation.
 license: Apache-2.0
-compatibility:
-  - linux
-  - macos
-  - windows
+compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
   version: 1.0.0

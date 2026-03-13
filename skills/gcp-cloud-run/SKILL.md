@@ -5,9 +5,7 @@ description: |
   images, configure auto-scaling from zero, split traffic between revisions
   for canary deployments, and set up custom domains with managed TLS.
 license: Apache-2.0
-compatibility:
-  - gcloud-cli
-  - terraform
+compatibility: 'gcloud-cli, terraform'
 metadata:
   author: terminal-skills
   version: 1.0.0

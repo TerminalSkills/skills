@@ -1,7 +1,7 @@
 ---
 name: vitest
 description: >-
-   You are an expert in Vitest, the Vite-native testing framework. You help
+  You are an expert in Vitest, the Vite-native testing framework. You help
   developers write and run unit tests, integration tests, and component tests
   with native TypeScript support, Jest-compatible API, built-in mocking, code
   coverage, snapshot testing, and watch mode — leveraging Vite's transform

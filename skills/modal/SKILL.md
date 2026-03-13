@@ -5,10 +5,7 @@ description: |
   run training jobs, and serve inference endpoints without managing infrastructure. Supports
   A100/H100 GPUs, custom container images, and scales to zero automatically.
 license: Apache-2.0
-compatibility:
-  - python 3.9+
-  - modal-client 0.50+
-  - Linux/macOS
+compatibility: 'python 3.9+, modal-client 0.50+, Linux/macOS'
 metadata:
   author: terminal-skills
   version: 1.0.0

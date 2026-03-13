@@ -1,7 +1,7 @@
 ---
 name: prisma
 description: >-
-   You are an expert in Prisma, the TypeScript ORM with a declarative schema,
+  You are an expert in Prisma, the TypeScript ORM with a declarative schema,
   auto-generated type-safe client, migrations, and studio GUI. You help
   developers model databases with Prisma Schema Language, generate a fully
   typed client that catches query errors at compile time, run zero-downtime

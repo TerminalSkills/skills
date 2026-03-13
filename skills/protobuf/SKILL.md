@@ -1,7 +1,7 @@
 ---
 name: protobuf
 description: >-
-   You are an expert in Protocol Buffers (protobuf), Google's language-neutral
+  You are an expert in Protocol Buffers (protobuf), Google's language-neutral
   binary serialization format. You help developers define data schemas with
   `.proto` files, generate typed code for multiple languages, build efficient
   APIs with gRPC, and handle schema evolution with backward/forward

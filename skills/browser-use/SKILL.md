@@ -1,7 +1,7 @@
 ---
 name: browser-use
 description: >-
-   You are an expert in Browser Use, the Python library that lets AI agents
+  You are an expert in Browser Use, the Python library that lets AI agents
   control a web browser. You help developers build agents that can navigate
   websites, fill forms, click buttons, extract data, and complete multi-step
   web tasks — using vision and DOM understanding to interact with any website
