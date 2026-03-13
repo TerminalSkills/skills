@@ -7,10 +7,21 @@ description: >-
   changes, and deploy to serverless environments with zero overhead —
   supporting Postgres, MySQL, SQLite, Turso, Neon, PlanetScale, and Cloudflare
   D1.
-category: Backend Development
-tags: [orm, database, typescript, sql, postgres, mysql, sqlite, serverless]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - orm
+    - database
+    - typescript
+    - sql
+    - postgres
+    - mysql
+    - sqlite
+    - serverless
 ---
 
 # Drizzle ORM — TypeScript SQL That Feels Like SQL

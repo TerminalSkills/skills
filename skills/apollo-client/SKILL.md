@@ -7,10 +7,19 @@ description: >-
   implement optimistic UI updates, handle pagination, and configure
   authentication — providing a complete data management solution for
   GraphQL-powered apps.
-category: Frontend Development
-tags: [graphql, react, cache, state-management, typescript, data-fetching]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - graphql
+    - react
+    - cache
+    - state-management
+    - typescript
+    - data-fetching
 ---
 
 # Apollo Client — GraphQL Client for React

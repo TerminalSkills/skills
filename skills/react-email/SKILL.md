@@ -7,10 +7,19 @@ description: >-
   preview, and integration with email providers (Resend, SendGrid, Postmark,
   AWS SES) — replacing fragile HTML table layouts with a modern
   component-based workflow.
-category: Frontend Development
-tags: [email, react, components, templates, html, responsive]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - email
+    - react
+    - components
+    - templates
+    - html
+    - responsive
 ---
 
 # React Email — Build Emails with React Components

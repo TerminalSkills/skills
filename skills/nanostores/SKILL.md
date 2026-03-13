@@ -7,10 +7,20 @@ description: >-
   identically across React, Vue, Svelte, Solid, Angular, and vanilla JS with
   lazy subscriptions that only activate when the store is actually used in a
   component.
-category: Frontend Development
-tags: [state-management, tiny, framework-agnostic, react, vue, svelte, atoms]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - state-management
+    - tiny
+    - framework-agnostic
+    - react
+    - vue
+    - svelte
+    - atoms
 ---
 
 # Nanostores — Tiny State Manager

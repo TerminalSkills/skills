@@ -6,10 +6,19 @@ description: >-
   into warehouses and lakes using simple Python decorators — with automatic
   schema inference, incremental loading, and built-in data contracts. dlt is
   the "requests library for data pipelines."
-category: Data Engineering
-tags: [data-loading, python, etl, data-pipeline, ingestion, open-source]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Data Engineering
+  tags:
+    - data-loading
+    - python
+    - etl
+    - data-pipeline
+    - ingestion
+    - open-source
 ---
 
 # dlt (Data Load Tool) — Python-First Data Ingestion

@@ -6,10 +6,20 @@ description: >-
   middleware, request validation, JSON serialization, error handling, and
   graceful shutdown — delivering 100K+ requests/second on modest hardware with
   Go's type safety and concurrency model.
-category: Backend Development
-tags: [go, web-framework, http, rest, api, performance, middleware]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - go
+    - web-framework
+    - http
+    - rest
+    - api
+    - performance
+    - middleware
 ---
 
 # Gin — High-Performance Go Web Framework

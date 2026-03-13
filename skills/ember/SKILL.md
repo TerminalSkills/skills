@@ -7,10 +7,19 @@ description: >-
   properties, Ember Data for data management, routing with nested layouts,
   services for shared state, and ember-cli for scaffolding — providing
   Rails-like productivity for frontend development.
-category: Frontend Development
-tags: [javascript, framework, convention, spa, typescript, productivity]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - javascript
+    - framework
+    - convention
+    - spa
+    - typescript
+    - productivity
 ---
 
 # Ember.js — Convention-Over-Configuration Frontend Framework

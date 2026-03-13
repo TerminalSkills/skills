@@ -6,10 +6,19 @@ description: >-
   event-driven workflows, and AI pipelines in the cloud — with automatic
   retries, concurrency control, real-time logs, and up to 5-minute (or longer)
   execution times that serverless functions can't handle.
-category: Backend Development
-tags: [background-jobs, serverless, durable, typescript, queue, scheduling]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - background-jobs
+    - serverless
+    - durable
+    - typescript
+    - queue
+    - scheduling
 ---
 
 # Trigger.dev v3 — Background Jobs for TypeScript

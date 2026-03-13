@@ -6,10 +6,19 @@ description: >-
   Actor system, Scene management, Tiled integration, physics, animation,
   sound, and input handling — with first-class TypeScript support, excellent
   documentation, and a focus on developer experience over raw performance.
-category: Game Development
-tags: [game-engine, typescript, 2d, ecs, browser-game, webgl]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Game Development
+  tags:
+    - game-engine
+    - typescript
+    - 2d
+    - ecs
+    - browser-game
+    - webgl
 ---
 
 # Excalibur.js — TypeScript-First 2D Game Engine

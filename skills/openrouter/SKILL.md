@@ -6,10 +6,20 @@ description: >-
   requests to GPT-4o, Claude, Gemini, Llama, Mistral, and other models with
   automatic fallbacks, cost tracking, rate limiting, and model comparison —
   enabling multi-model strategies without managing multiple API keys and SDKs.
-category: AI & Machine Learning
-tags: [llm, api, gateway, multi-model, routing, openai-compatible, cost]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - llm
+    - api
+    - gateway
+    - multi-model
+    - routing
+    - openai-compatible
+    - cost
 ---
 
 # OpenRouter — Unified LLM API Gateway

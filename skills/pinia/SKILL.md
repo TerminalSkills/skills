@@ -6,10 +6,19 @@ description: >-
   Composition API support, getters (computed), actions (sync and async),
   plugins, SSR compatibility, and Vue DevTools integration — replacing Vuex
   with a simpler, fully typed, modular store system.
-category: Frontend Development
-tags: [vue, state-management, typescript, composition-api, store, devtools]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - vue
+    - state-management
+    - typescript
+    - composition-api
+    - store
+    - devtools
 ---
 
 # Pinia — Official Vue.js State Management

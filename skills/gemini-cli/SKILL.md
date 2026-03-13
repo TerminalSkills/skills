@@ -7,10 +7,19 @@ description: >-
   (analyzing images, reading PDFs) — with Google's 1M+ token context window
   for understanding entire codebases at once and MCP tool integration for
   extending capabilities.
-category: Developer Tools
-tags: [ai-coding, terminal, cli, google, gemini, code-generation]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - ai-coding
+    - terminal
+    - cli
+    - google
+    - gemini
+    - code-generation
 ---
 
 # Gemini CLI — Google's AI Coding Agent for the Terminal

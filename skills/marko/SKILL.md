@@ -7,10 +7,20 @@ description: >-
   syntax, and reactive state — optimized for fast first-paint and minimal
   client-side JavaScript through fine-grained reactivity and compiler
   optimizations.
-category: Frontend Development
-tags: [framework, streaming, ssr, performance, ebay, ui, components]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - framework
+    - streaming
+    - ssr
+    - performance
+    - ebay
+    - ui
+    - components
 ---
 
 # Marko — HTML-First UI Framework

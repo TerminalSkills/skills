@@ -7,10 +7,21 @@ description: >-
   associations, use transactions, and configure connection pooling — providing
   a mature, battle-tested data access layer for production Node.js
   applications.
-category: Backend Development
-tags: [orm, javascript, database, sql, postgres, mysql, migrations, node]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - orm
+    - javascript
+    - database
+    - sql
+    - postgres
+    - mysql
+    - migrations
+    - node
 ---
 
 # Sequelize — Node.js SQL ORM

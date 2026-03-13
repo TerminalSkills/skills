@@ -6,10 +6,19 @@ description: >-
   work queues, pub/sub fanout, topic routing, RPC patterns, dead letter
   queues, and message acknowledgment — building decoupled microservices that
   communicate asynchronously through RabbitMQ.
-category: Backend Development
-tags: [rabbitmq, amqp, messaging, queue, microservices, async]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - rabbitmq
+    - amqp
+    - messaging
+    - queue
+    - microservices
+    - async
 ---
 
 # amqplib — RabbitMQ Client for Node.js

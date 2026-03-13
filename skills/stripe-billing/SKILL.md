@@ -7,10 +7,19 @@ description: >-
   customer portal, and webhook-driven lifecycle management — building
   everything from simple monthly plans to complex per-seat + usage hybrid
   pricing.
-category: Backend Development
-tags: [payments, subscriptions, saas, billing, metered, usage-based]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - payments
+    - subscriptions
+    - saas
+    - billing
+    - metered
+    - usage-based
 ---
 
 # Stripe Billing — SaaS Subscription & Usage-Based Billing

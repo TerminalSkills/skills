@@ -6,10 +6,20 @@ description: >-
   developers ingest, index, and query data from any source — documents, APIs,
   databases — and connect it to LLMs with vector indexes, knowledge graphs,
   structured extraction, agents, and multi-document synthesis.
-category: AI & Machine Learning
-tags: [rag, llm, indexing, retrieval, vector, typescript, ai]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - rag
+    - llm
+    - indexing
+    - retrieval
+    - vector
+    - typescript
+    - ai
 ---
 
 # LlamaIndex.TS — RAG Framework for TypeScript

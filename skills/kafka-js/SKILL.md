@@ -7,10 +7,19 @@ description: >-
   authentication, and admin operations — processing millions of events per
   second for real-time analytics, event sourcing, log aggregation, and
   microservices communication.
-category: Backend Development
-tags: [kafka, streaming, event-driven, messaging, node, microservices]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - kafka
+    - streaming
+    - event-driven
+    - messaging
+    - node
+    - microservices
 ---
 
 # KafkaJS — Apache Kafka Client for Node.js

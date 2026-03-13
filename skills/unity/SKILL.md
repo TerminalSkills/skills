@@ -7,10 +7,21 @@ description: >-
   Render Pipeline (URP), UI Toolkit, Addressables for asset management, and
   export to 20+ platforms including iOS, Android, PC, consoles, WebGL, and VR
   headsets.
-category: Game Development
-tags: [game-engine, c-sharp, 2d, 3d, mobile, cross-platform, indie, ar-vr]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Game Development
+  tags:
+    - game-engine
+    - c-sharp
+    - 2d
+    - 3d
+    - mobile
+    - cross-platform
+    - indie
+    - ar-vr
 ---
 
 # Unity — Cross-Platform Game Engine

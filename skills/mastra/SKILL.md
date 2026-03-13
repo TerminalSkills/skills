@@ -7,10 +7,20 @@ description: >-
   vector-based knowledge retrieval, multi-step workflows with branching and
   error handling, and integration with 50+ third-party services — designed for
   TypeScript teams who want agent capabilities without Python dependencies.
-category: AI & Machine Learning
-tags: [agent, framework, typescript, tools, rag, workflow, production]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - agent
+    - framework
+    - typescript
+    - tools
+    - rag
+    - workflow
+    - production
 ---
 
 # Mastra — TypeScript AI Agent Framework

@@ -6,10 +6,19 @@ description: >-
   30-50% smaller and 2-10x faster to parse — supporting all JSON types plus
   binary data, timestamps, and custom extensions, with libraries available for
   50+ programming languages.
-category: Developer Tools
-tags: [serialization, binary, json-alternative, performance, compact, cross-language]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - serialization
+    - binary
+    - json-alternative
+    - performance
+    - compact
+    - cross-language
 ---
 
 # MessagePack — Efficient Binary Serialization

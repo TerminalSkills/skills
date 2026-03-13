@@ -7,10 +7,19 @@ description: >-
   authentication, form handling, JSON support, database integration, and
   fairings (middleware) — providing Rails-like productivity with Rust's
   compile-time safety guarantees.
-category: Backend Development
-tags: [rust, web-framework, type-safe, async, macros, api]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - rust
+    - web-framework
+    - type-safe
+    - async
+    - macros
+    - api
 ---
 
 # Rocket — Type-Safe Rust Web Framework

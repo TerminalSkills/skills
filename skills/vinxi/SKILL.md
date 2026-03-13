@@ -6,10 +6,20 @@ description: >-
   with multiple routers (SPA, SSR, API, static), Vite-powered bundling, server
   functions, file-system routing, and deployment to any platform — the same
   foundation that powers TanStack Start and SolidStart.
-category: Developer Tools
-tags: [meta-framework, vite, full-stack, server, ssr, sdk, router]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - meta-framework
+    - vite
+    - full-stack
+    - server
+    - ssr
+    - sdk
+    - router
 ---
 
 # Vinxi — Full-Stack JavaScript SDK

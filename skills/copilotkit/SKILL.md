@@ -6,10 +6,21 @@ description: >-
   applications — chat sidebars, AI-assisted text editing, contextual
   suggestions, and autonomous agents that can read app state, call actions,
   and modify the UI — turning any React app into an AI-native experience.
-category: AI & Machine Learning
-tags: [ai, react, copilot, agent, ui, chat, suggestions, in-app-ai]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - ai
+    - react
+    - copilot
+    - agent
+    - ui
+    - chat
+    - suggestions
+    - in-app-ai
 ---
 
 # CopilotKit — In-App AI Copilots for React

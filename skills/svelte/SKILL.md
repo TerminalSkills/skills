@@ -7,10 +7,19 @@ description: >-
   compiling to minimal vanilla JavaScript with no virtual DOM overhead,
   resulting in smaller bundles and faster runtime performance than React or
   Vue.
-category: Web Frameworks
-tags: [frontend, javascript, compiler, reactive, lightweight, no-virtual-dom]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Web Frameworks
+  tags:
+    - frontend
+    - javascript
+    - compiler
+    - reactive
+    - lightweight
+    - no-virtual-dom
 ---
 
 # Svelte — Compile-Time Reactive UI Framework

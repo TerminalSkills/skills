@@ -8,10 +8,20 @@ description: >-
   LiveView for real-time UI, and Ecto for database interactions — achieving
   massive concurrency with lightweight processes and "let it crash"
   reliability.
-category: Backend Development
-tags: [functional, erlang, beam, concurrent, fault-tolerant, phoenix, distributed]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - functional
+    - erlang
+    - beam
+    - concurrent
+    - fault-tolerant
+    - phoenix
+    - distributed
 ---
 
 # Elixir — Functional Language for Scalable Applications

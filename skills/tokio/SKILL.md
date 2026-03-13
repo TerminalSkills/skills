@@ -7,10 +7,19 @@ description: >-
   Tokio's task scheduler, async I/O primitives, channels, timers, and
   synchronization utilities — handling millions of concurrent connections with
   minimal memory overhead.
-category: Backend Development
-tags: [rust, async, runtime, concurrency, networking, performance]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - rust
+    - async
+    - runtime
+    - concurrency
+    - networking
+    - performance
 ---
 
 # Tokio — Async Runtime for Rust

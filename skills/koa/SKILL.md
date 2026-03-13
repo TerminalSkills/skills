@@ -6,10 +6,19 @@ description: >-
   async/await middleware stack, context object, and composable architecture —
   providing a lightweight foundation where you add only what you need through
   middleware, without bundled routing or templating.
-category: Backend Development
-tags: [node, web-framework, middleware, async, minimalist, express-alternative]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - node
+    - web-framework
+    - middleware
+    - async
+    - minimalist
+    - express-alternative
 ---
 
 # Koa — Next-Generation Node.js Web Framework

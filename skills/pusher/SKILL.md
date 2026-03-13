@@ -7,10 +7,19 @@ description: >-
   auth, client events for peer-to-peer, webhooks, and batch triggers —
   enabling real-time notifications, live dashboards, chat, and collaborative
   features without managing WebSocket infrastructure.
-category: Backend Development
-tags: [realtime, websocket, channels, pub-sub, notifications, presence]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - realtime
+    - websocket
+    - channels
+    - pub-sub
+    - notifications
+    - presence
 ---
 
 # Pusher — Real-Time Communication Platform

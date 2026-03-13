@@ -7,10 +7,19 @@ description: >-
   prompts/few-shot examples using teleprompters — so instead of manually
   crafting prompts, you write Python code and DSPy finds the best prompts for
   your task.
-category: AI & Machine Learning
-tags: [llm, programming, prompts, optimization, stanford, python]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - llm
+    - programming
+    - prompts
+    - optimization
+    - stanford
+    - python
 ---
 
 # DSPy — Programming (Not Prompting) LLMs

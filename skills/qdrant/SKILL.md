@@ -7,10 +7,19 @@ description: >-
   collections, advanced filtering, multi-vector support, and hybrid search —
   providing sub-millisecond query latency with rich payload filtering that
   other vector DBs can't match.
-category: AI & Machine Learning
-tags: [vector-database, embeddings, search, similarity, rag, rust]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - vector-database
+    - embeddings
+    - search
+    - similarity
+    - rag
+    - rust
 ---
 
 # Qdrant — Vector Search Engine

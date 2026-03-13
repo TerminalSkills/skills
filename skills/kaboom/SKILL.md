@@ -7,10 +7,19 @@ description: >-
   built-in physics, sprite loading, scene management, and event system — where
   games can be built in under 100 lines of code while still supporting complex
   gameplay through composable components.
-category: Game Development
-tags: [game-engine, browser-game, 2d, beginner-friendly, javascript, creative-coding]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Game Development
+  tags:
+    - game-engine
+    - browser-game
+    - 2d
+    - beginner-friendly
+    - javascript
+    - creative-coding
 ---
 
 # Kaboom (Kaplay) — Fun and Simple Browser Game Library

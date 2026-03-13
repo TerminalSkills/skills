@@ -7,10 +7,20 @@ description: >-
   search, and build real-time applications — using Redis Stack's JSON, Search,
   and Vector capabilities through an ORM-like interface instead of raw
   commands.
-category: Backend Development
-tags: [redis, orm, search, json, vector, caching, database]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - redis
+    - orm
+    - search
+    - json
+    - vector
+    - caching
+    - database
 ---
 
 # Redis OM — Object Mapping for Redis

@@ -6,10 +6,18 @@ description: >-
   PDFs, and scanned documents using Tesseract's LSTM neural network engine,
   multi-language support (100+ languages), page segmentation modes, and
   integration with image preprocessing for maximum accuracy.
-category: AI & Machine Learning
-tags: [ocr, text-recognition, document-processing, image-to-text, open-source]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - ocr
+    - text-recognition
+    - document-processing
+    - image-to-text
+    - open-source
 ---
 
 # Tesseract — Open-Source OCR Engine

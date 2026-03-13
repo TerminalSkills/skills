@@ -7,10 +7,20 @@ description: >-
   calls them with full type inference — no REST routes, no GraphQL schemas, no
   OpenAPI specs, just TypeScript functions that are type-safe from database to
   UI.
-category: Backend Development
-tags: [api, typescript, rpc, type-safe, react, nextjs, end-to-end]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - api
+    - typescript
+    - rpc
+    - type-safe
+    - react
+    - nextjs
+    - end-to-end
 ---
 
 # tRPC — End-to-End Type-Safe APIs

@@ -7,10 +7,19 @@ description: >-
   workflows with branching, parallel execution, error handling, retries, and
   human approval steps — building reliable, observable distributed systems
   without custom orchestration code.
-category: Cloud & Serverless
-tags: [aws, workflow, orchestration, state-machine, serverless, event-driven]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - aws
+    - workflow
+    - orchestration
+    - state-machine
+    - serverless
+    - event-driven
 ---
 
 # AWS Step Functions — Serverless Workflow Orchestration

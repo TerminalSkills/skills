@@ -7,10 +7,20 @@ description: >-
   collaborate on complex tasks — with sequential, parallel, and hierarchical
   process types, memory, delegation between agents, and integration with
   LangChain tools.
-category: AI & Machine Learning
-tags: [agent, multi-agent, crew, orchestration, roles, python, production]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - agent
+    - multi-agent
+    - crew
+    - orchestration
+    - roles
+    - python
+    - production
 ---
 
 # CrewAI — Multi-Agent Orchestration

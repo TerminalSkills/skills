@@ -6,10 +6,20 @@ description: >-
   decorator-based entities, automatic change tracking, lazy/eager loading,
   embeddables, query builder, migrations, and seeding — supporting PostgreSQL,
   MySQL, SQLite, and MongoDB with a DDD-friendly architecture.
-category: Backend Development
-tags: [orm, typescript, database, unit-of-work, identity-map, sql, mongodb]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - orm
+    - typescript
+    - database
+    - unit-of-work
+    - identity-map
+    - sql
+    - mongodb
 ---
 
 # MikroORM — TypeScript ORM with Unit of Work

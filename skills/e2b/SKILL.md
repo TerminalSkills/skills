@@ -6,10 +6,20 @@ description: >-
   execute code, install packages, read/write files, and run long processes in
   isolated cloud environments — each sandbox is a lightweight VM that boots in
   ~150ms with full Linux, filesystem, and networking.
-category: AI & Machine Learning
-tags: [sandbox, code-execution, agent, cloud, secure, python, javascript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - sandbox
+    - code-execution
+    - agent
+    - cloud
+    - secure
+    - python
+    - javascript
 ---
 
 # E2B — Sandboxed Code Execution for AI

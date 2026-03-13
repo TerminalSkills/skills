@@ -7,10 +7,20 @@ description: >-
   system — with auto-generated REST and GraphQL APIs that power websites,
   mobile apps, and any frontend through a clean content management interface
   that non-technical editors can use.
-category: Content Management
-tags: [headless-cms, api, content, self-hosted, open-source, rest, graphql]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Content Management
+  tags:
+    - headless-cms
+    - api
+    - content
+    - self-hosted
+    - open-source
+    - rest
+    - graphql
 ---
 
 # Strapi — Open-Source Headless CMS

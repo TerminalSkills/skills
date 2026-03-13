@@ -6,10 +6,19 @@ description: >-
   signature verification, delivery monitoring, endpoint management, and event
   type filtering — replacing custom webhook infrastructure with a
   purpose-built service used by companies like Clerk, Resend, and Liveblocks.
-category: Backend Development
-tags: [webhooks, api, delivery, retry, typescript, infrastructure]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - webhooks
+    - api
+    - delivery
+    - retry
+    - typescript
+    - infrastructure
 ---
 
 # Svix — Webhook Delivery Infrastructure

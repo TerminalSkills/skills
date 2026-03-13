@@ -6,10 +6,19 @@ description: >-
   templates, TypeScript SDK, webhooks for delivery tracking, batch sending,
   and audience management — replacing legacy email services (SendGrid,
   Mailgun) with a modern, type-safe developer experience.
-category: Backend Development
-tags: [email, api, transactional, react-email, typescript, developer-first]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - email
+    - api
+    - transactional
+    - react-email
+    - typescript
+    - developer-first
 ---
 
 # Resend — Modern Email API for Developers

@@ -6,10 +6,19 @@ description: >-
   apps using Node.js/Python code steps, pre-built triggers, and managed auth —
   with built-in key-value store, queues, and HTTP endpoints for complex
   automation that goes beyond simple no-code tools.
-category: Automation & Integration
-tags: [workflow, automation, integration, serverless, api, webhooks]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Automation & Integration
+  tags:
+    - workflow
+    - automation
+    - integration
+    - serverless
+    - api
+    - webhooks
 ---
 
 # Pipedream — Developer-First Workflow Automation

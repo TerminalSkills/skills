@@ -1,15 +1,24 @@
 ---
 name: 3dsmax-scripting
-category: design
-version: 1.0.0
 description: >-
   Automate 3ds Max with MAXScript and Python — scene manipulation, object
   creation, material assignment, camera setup, batch operations, UI tools,
   and file I/O. Use when tasks involve automating repetitive 3ds Max workflows,
   batch processing scenes, creating custom tools, or scripting scene setup
   for archviz, product visualization, or VFX.
-author: terminal-skills
-tags: [3dsmax, maxscript, python, automation, scripting, 3d]
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: design
+  tags:
+    - 3dsmax
+    - maxscript
+    - python
+    - automation
+    - scripting
+    - 3d
 ---
 
 # 3ds Max Scripting

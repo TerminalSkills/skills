@@ -6,10 +6,19 @@ description: >-
   calls, evaluate outputs, compare model versions, track experiments, and
   debug AI pipelines — with automatic logging via decorators and a visual
   dashboard for exploring traces, costs, and quality metrics.
-category: AI & Machine Learning
-tags: [observability, evaluation, tracing, llm, weights-biases, wandb]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - observability
+    - evaluation
+    - tracing
+    - llm
+    - weights-biases
+    - wandb
 ---
 
 # Weave — AI Application Tracking by Weights & Biases

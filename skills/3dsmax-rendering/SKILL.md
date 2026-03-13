@@ -1,15 +1,24 @@
 ---
 name: 3dsmax-rendering
-category: design
-version: 1.0.0
 description: >-
   Configure and optimize rendering in 3ds Max — V-Ray and Corona render settings,
   render elements, light mix, batch rendering, network rendering, denoising,
   and post-production workflows. Use when tasks involve setting up production
   renders, optimizing render times, batch rendering multiple views, or
   configuring render farms for archviz and product visualization.
-author: terminal-skills
-tags: [3dsmax, vray, corona, rendering, archviz, optimization]
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: design
+  tags:
+    - 3dsmax
+    - vray
+    - corona
+    - rendering
+    - archviz
+    - optimization
 ---
 
 # 3ds Max Rendering

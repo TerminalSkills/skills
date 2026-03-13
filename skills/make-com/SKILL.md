@@ -7,10 +7,19 @@ description: >-
   logic, iterators for array processing, and aggregators for data collection —
   enabling non-technical users to automate business processes across 1,500+
   apps.
-category: Automation & Integration
-tags: [no-code, workflow, automation, integration, visual-builder, iPaaS]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Automation & Integration
+  tags:
+    - no-code
+    - workflow
+    - automation
+    - integration
+    - visual-builder
+    - iPaaS
 ---
 
 # Make.com — Visual Workflow Automation Platform

@@ -7,10 +7,19 @@ description: >-
   developers use Codex CLI for code generation, refactoring, debugging, and
   automation with configurable approval modes (suggest, auto-edit, full-auto)
   and sandboxed execution for safety.
-category: Developer Tools
-tags: [ai-coding, terminal, cli, autonomous-agent, openai, code-generation]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - ai-coding
+    - terminal
+    - cli
+    - autonomous-agent
+    - openai
+    - code-generation
 ---
 
 # OpenAI Codex CLI — AI Coding Agent in Your Terminal

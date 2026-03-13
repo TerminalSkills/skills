@@ -7,10 +7,21 @@ description: >-
   experiences using Blueprints (visual scripting), C++, Nanite (virtualized
   geometry), Lumen (global illumination), MetaHuman, World Partition (open
   worlds), and Unreal's networking, animation, and UI systems.
-category: Game Development
-tags: [game-engine, 3d, aaa, c++, blueprints, rendering, cross-platform, epic]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Game Development
+  tags:
+    - game-engine
+    - 3d
+    - aaa
+    - c++
+    - blueprints
+    - rendering
+    - cross-platform
+    - epic
 ---
 
 # Unreal Engine — AAA Game Engine

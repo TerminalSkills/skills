@@ -7,10 +7,19 @@ description: >-
   scheduled events — with support for Node.js, Python, Go, Rust, Java, and
   container images, automatic scaling from zero to thousands of concurrent
   executions, and pay-per-invocation pricing.
-category: Cloud & Serverless
-tags: [serverless, aws, functions, api-gateway, event-driven, cloud]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - serverless
+    - aws
+    - functions
+    - api-gateway
+    - event-driven
+    - cloud
 ---
 
 # AWS Lambda — Serverless Functions

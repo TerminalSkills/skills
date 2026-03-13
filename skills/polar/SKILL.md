@@ -7,10 +7,19 @@ description: >-
   projects with a developer-first API, webhooks, and embeddable components —
   replacing Stripe integration complexity with purpose-built tools for
   software monetization.
-category: Backend Development
-tags: [monetization, open-source, payments, subscriptions, sponsorship, api]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - monetization
+    - open-source
+    - payments
+    - subscriptions
+    - sponsorship
+    - api
 ---
 
 # Polar — Monetization for Developers

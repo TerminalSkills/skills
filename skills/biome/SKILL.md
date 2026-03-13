@@ -6,10 +6,19 @@ description: >-
   linting, formatting, and import sorting for JavaScript, TypeScript, JSX,
   JSON, and CSS — achieving 100x faster execution than ESLint+Prettier with
   zero configuration, unified diagnostics, and IDE integration.
-category: Developer Tools
-tags: [linter, formatter, rust, fast, eslint-alternative, prettier-alternative]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - linter
+    - formatter
+    - rust
+    - fast
+    - eslint-alternative
+    - prettier-alternative
 ---
 
 # Biome — Fast Linter and Formatter (ESLint + Prettier Replacement)

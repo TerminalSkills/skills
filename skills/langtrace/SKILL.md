@@ -7,10 +7,19 @@ description: >-
   instrumentation for OpenAI, Anthropic, LangChain, LlamaIndex, and 20+
   providers — providing cost tracking, latency analysis, token usage, and
   quality evaluation in a self-hostable dashboard.
-category: AI & Machine Learning
-tags: [observability, tracing, llm, opentelemetry, monitoring, evaluation]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - observability
+    - tracing
+    - llm
+    - opentelemetry
+    - monitoring
+    - evaluation
 ---
 
 # Langtrace — Open-Source LLM Observability

@@ -7,10 +7,19 @@ description: >-
   Preview API (draft content) into websites and apps — using typed content
   models, localization, rich text rendering, image transformations, and
   webhooks for build triggers.
-category: Content Management
-tags: [headless-cms, saas, content-api, cdn, enterprise, graphql]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Content Management
+  tags:
+    - headless-cms
+    - saas
+    - content-api
+    - cdn
+    - enterprise
+    - graphql
 ---
 
 # Contentful — Enterprise Headless CMS

@@ -7,10 +7,19 @@ description: >-
   APIs with gRPC, and handle schema evolution with backward/forward
   compatibility — achieving 3-10x smaller payloads and 20-100x faster
   serialization than JSON.
-category: Developer Tools
-tags: [serialization, grpc, schema, binary, cross-language, performance]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - serialization
+    - grpc
+    - schema
+    - binary
+    - cross-language
+    - performance
 ---
 
 # Protocol Buffers — Efficient Binary Serialization

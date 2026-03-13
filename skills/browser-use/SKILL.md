@@ -6,10 +6,20 @@ description: >-
   websites, fill forms, click buttons, extract data, and complete multi-step
   web tasks — using vision and DOM understanding to interact with any website
   like a human would.
-category: AI & Machine Learning
-tags: [browser, automation, agent, web, scraping, ai, playwright]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - browser
+    - automation
+    - agent
+    - web
+    - scraping
+    - ai
+    - playwright
 ---
 
 # Browser Use — AI Browser Automation Agent

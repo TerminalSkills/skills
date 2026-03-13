@@ -7,10 +7,20 @@ description: >-
   providing a graph-based state model that integrates naturally with React's
   concurrent features, avoids unnecessary re-renders, and handles async data
   fetching as first-class state.
-category: Frontend Development
-tags: [state-management, react, atoms, selectors, meta, async, graph]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - state-management
+    - react
+    - atoms
+    - selectors
+    - meta
+    - async
+    - graph
 ---
 
 # Recoil — State Management for React

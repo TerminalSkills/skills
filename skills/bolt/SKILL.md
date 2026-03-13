@@ -6,10 +6,19 @@ description: >-
   developers go from idea to deployed app in minutes using natural language
   prompts — Bolt generates complete applications with frontend, backend,
   database, and deployment, all running in a WebContainer without local setup.
-category: Developer Tools
-tags: [ai-coding, full-stack, prototyping, web-app, browser-ide, vibe-coding]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - ai-coding
+    - full-stack
+    - prototyping
+    - web-app
+    - browser-ide
+    - vibe-coding
 ---
 
 # Bolt.new — AI Full-Stack App Builder in the Browser

@@ -6,10 +6,19 @@ description: >-
   agents, and web scraping pipelines using managed Chromium instances with
   residential proxies, session recording, stealth mode, and parallel execution
   — without managing browser infrastructure.
-category: Developer Tools
-tags: [browser-automation, cloud-browser, headless, scraping, testing, infrastructure]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - browser-automation
+    - cloud-browser
+    - headless
+    - scraping
+    - testing
+    - infrastructure
 ---
 
 # BrowserBase — Cloud Browser Infrastructure for AI Agents

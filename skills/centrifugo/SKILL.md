@@ -7,10 +7,19 @@ description: >-
   language-agnostic server that handles millions of concurrent connections —
   publishing from your backend via HTTP/gRPC API while clients subscribe via
   WebSocket, SSE, or HTTP streaming.
-category: Backend Development
-tags: [websocket, realtime, pubsub, messaging, scalable, go]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - websocket
+    - realtime
+    - pubsub
+    - messaging
+    - scalable
+    - go
 ---
 
 # Centrifugo — Scalable Real-Time Messaging Server

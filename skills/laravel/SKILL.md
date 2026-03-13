@@ -7,10 +7,20 @@ description: >-
   authentication (Sanctum/Breeze), Livewire for reactive UI, and a rich
   ecosystem of first-party packages — enabling rapid development without
   sacrificing code quality.
-category: Backend Development
-tags: [php, framework, eloquent, blade, artisan, api, fullstack]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - php
+    - framework
+    - eloquent
+    - blade
+    - artisan
+    - api
+    - fullstack
 ---
 
 # Laravel — The PHP Framework for Web Artisans

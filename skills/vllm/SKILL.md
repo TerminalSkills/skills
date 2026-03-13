@@ -7,10 +7,20 @@ description: >-
   parallelism for multi-GPU, OpenAI-compatible API, and quantization support —
   achieving 2-24x higher throughput than HuggingFace Transformers for
   production LLM serving.
-category: AI & Machine Learning
-tags: [inference, llm, serving, gpu, openai-compatible, batching, performance]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - inference
+    - llm
+    - serving
+    - gpu
+    - openai-compatible
+    - batching
+    - performance
 ---
 
 # vLLM — High-Throughput LLM Inference Engine

@@ -7,10 +7,19 @@ description: >-
   step-level caching, fan-out/fan-in patterns, rate limiting, and debouncing —
   running on any serverless platform (Vercel, Netlify, AWS Lambda, Cloudflare)
   with zero infrastructure to manage.
-category: Backend Development
-tags: [workflow, event-driven, durable, serverless, typescript, step-functions]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - workflow
+    - event-driven
+    - durable
+    - serverless
+    - typescript
+    - step-functions
 ---
 
 # Inngest — Durable Workflow Engine for TypeScript

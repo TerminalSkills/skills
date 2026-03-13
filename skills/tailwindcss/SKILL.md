@@ -6,10 +6,19 @@ description: >-
   classes for layout, spacing, typography, colors, animations, and responsive
   design — without writing custom CSS, producing smaller bundles via automatic
   tree-shaking, and maintaining consistency through a design token system.
-category: Frontend Development
-tags: [css, utility-first, styling, responsive, design-system, performance]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - css
+    - utility-first
+    - styling
+    - responsive
+    - design-system
+    - performance
 ---
 
 # Tailwind CSS — Utility-First CSS Framework

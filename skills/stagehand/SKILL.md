@@ -7,10 +7,19 @@ description: >-
   data, and observe pages using plain English commands instead of brittle CSS
   selectors — powered by GPT-4o or Claude for visual understanding of page
   layouts.
-category: AI & Machine Learning
-tags: [browser-automation, ai-agent, computer-use, web-automation, natural-language, playwright]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - browser-automation
+    - ai-agent
+    - computer-use
+    - web-automation
+    - natural-language
+    - playwright
 ---
 
 # Stagehand — AI Browser Automation in Natural Language

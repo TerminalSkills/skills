@@ -7,10 +7,20 @@ description: >-
   plugin system, response caching, error masking, and deployment to any JS
   runtime (Node.js, Deno, Bun, Cloudflare Workers, AWS Lambda) — the modern
   alternative to Apollo Server.
-category: Backend Development
-tags: [graphql, server, api, typescript, envelop, schema, node]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - graphql
+    - server
+    - api
+    - typescript
+    - envelop
+    - schema
+    - node
 ---
 
 # GraphQL Yoga — Modern GraphQL Server

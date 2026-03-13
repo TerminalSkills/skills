@@ -6,10 +6,19 @@ description: >-
   Echo's optimized router, middleware chain, data binding, validation,
   template rendering, and WebSocket support — providing a clean API surface
   with excellent performance and comprehensive built-in middleware.
-category: Backend Development
-tags: [go, web-framework, api, middleware, rest, high-performance]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - go
+    - web-framework
+    - api
+    - middleware
+    - rest
+    - high-performance
 ---
 
 # Echo — High-Performance Go Web Framework

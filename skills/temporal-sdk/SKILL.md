@@ -7,10 +7,19 @@ description: >-
   with automatic retries, timeouts, cancellation, signals, queries, and
   versioning — replacing fragile state machines, manual retry logic, and
   error-prone queue-based orchestration with simple, testable code.
-category: Backend Development
-tags: [workflow, orchestration, durable, distributed, microservices, reliability]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - workflow
+    - orchestration
+    - durable
+    - distributed
+    - microservices
+    - reliability
 ---
 
 # Temporal — Durable Workflow Orchestration

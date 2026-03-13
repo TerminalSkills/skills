@@ -7,10 +7,20 @@ description: >-
   middleware via Tower layers, WebSocket support, and compile-time route
   validation — achieving C-level performance with Rust's memory safety
   guarantees.
-category: Backend Development
-tags: [rust, web-framework, async, tokio, tower, api, type-safe]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - rust
+    - web-framework
+    - async
+    - tokio
+    - tower
+    - api
+    - type-safe
 ---
 
 # Axum — Ergonomic Rust Web Framework

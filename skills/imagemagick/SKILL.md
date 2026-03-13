@@ -8,10 +8,20 @@ description: >-
   conversion, watermarking, thumbnail generation, PDF manipulation, and
   complex image compositing for web applications, print production, and data
   visualization.
-category: Developer Tools
-tags: [image-processing, cli, batch, convert, resize, thumbnail, automation]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - image-processing
+    - cli
+    - batch
+    - convert
+    - resize
+    - thumbnail
+    - automation
 ---
 
 # ImageMagick — Command-Line Image Processing

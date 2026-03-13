@@ -6,10 +6,19 @@ description: >-
   model versions, track experiments, log production traces, and measure
   quality metrics — with a focus on making AI development as rigorous as
   traditional software testing.
-category: AI & Machine Learning
-tags: [evaluation, llm, testing, observability, experiments, logging]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - evaluation
+    - llm
+    - testing
+    - observability
+    - experiments
+    - logging
 ---
 
 # Braintrust — AI Evaluation and Observability

@@ -7,10 +7,19 @@ description: >-
   retries, concurrency control, real-time logs, and deployment to serverless
   infrastructure — replacing BullMQ/Redis setups with a fully managed or
   self-hosted solution purpose-built for modern TypeScript apps.
-category: Backend Development
-tags: [background-jobs, serverless, durable, typescript, cron, event-driven]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - background-jobs
+    - serverless
+    - durable
+    - typescript
+    - cron
+    - event-driven
 ---
 
 # Trigger.dev — Background Jobs for TypeScript

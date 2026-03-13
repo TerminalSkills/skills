@@ -7,10 +7,19 @@ description: >-
   (TypeScript), with automatic retries on validation failures, streaming
   partial objects, and support for OpenAI, Anthropic, Google, and local models
   — turning LLMs into reliable data extraction engines.
-category: AI & Machine Learning
-tags: [structured-output, llm, pydantic, validation, extraction, typescript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - structured-output
+    - llm
+    - pydantic
+    - validation
+    - extraction
+    - typescript
 ---
 
 # Instructor — Structured LLM Output with Validation

@@ -7,10 +7,19 @@ description: >-
   derived atoms (computed values), async atoms (data fetching), and atom
   families — providing bottom-up state management where only components
   subscribing to changed atoms re-render.
-category: Frontend Development
-tags: [react, state-management, atomic, typescript, minimal, bottom-up]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - react
+    - state-management
+    - atomic
+    - typescript
+    - minimal
+    - bottom-up
 ---
 
 # Jotai — Atomic State Management for React

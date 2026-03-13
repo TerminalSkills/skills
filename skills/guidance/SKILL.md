@@ -7,10 +7,18 @@ description: >-
   constraints, JSON schemas, function calls) — ensuring LLM output always
   matches the expected format by constraining the token generation process
   itself, not just prompting.
-category: AI & Machine Learning
-tags: [llm, constrained-generation, grammar, structured-output, microsoft]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - llm
+    - constrained-generation
+    - grammar
+    - structured-output
+    - microsoft
 ---
 
 # Guidance — Constrained LLM Generation

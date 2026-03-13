@@ -7,10 +7,19 @@ description: >-
   technographic data, score leads against ICP criteria, and trigger
   personalized outreach sequences — replacing manual research with automated,
   data-driven prospecting.
-category: Marketing & Growth
-tags: [lead-enrichment, data-enrichment, outbound-sales, prospecting, b2b, crm]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Marketing & Growth
+  tags:
+    - lead-enrichment
+    - data-enrichment
+    - outbound-sales
+    - prospecting
+    - b2b
+    - crm
 ---
 
 # Clay — AI-Powered Lead Enrichment and Outbound Automation

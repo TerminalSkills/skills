@@ -7,10 +7,20 @@ description: >-
   renderer with automatic Canvas fallback — handling sprites, text, filters,
   masks, blend modes, and custom shaders at 60fps with hundreds of thousands
   of objects.
-category: Game Development
-tags: [2d-rendering, webgl, canvas, graphics, animation, interactive, creative-coding]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Game Development
+  tags:
+    - 2d-rendering
+    - webgl
+    - canvas
+    - graphics
+    - animation
+    - interactive
+    - creative-coding
 ---
 
 # PixiJS — High-Performance 2D WebGL Renderer

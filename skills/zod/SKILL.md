@@ -6,10 +6,19 @@ description: >-
   runtime AND infer TypeScript types at compile time — eliminating the need to
   write types and validators separately. Used for API input validation, form
   validation, environment variables, config files, and any data boundary.
-category: Backend Development
-tags: [validation, schema, typescript, type-inference, parsing, forms]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - validation
+    - schema
+    - typescript
+    - type-inference
+    - parsing
+    - forms
 ---
 
 # Zod — TypeScript-First Schema Validation

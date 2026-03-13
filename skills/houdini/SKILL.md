@@ -9,10 +9,21 @@ description: >-
   for task automation, and HDA (Houdini Digital Assets) for reusable tools —
   enabling non-destructive, art-directable pipelines that scale from indie
   projects to AAA and feature film production.
-category: 3D & VFX
-tags: [procedural, vfx, simulation, 3d, motion-graphics, game-dev, pipeline, sidefx]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: 3D & VFX
+  tags:
+    - procedural
+    - vfx
+    - simulation
+    - 3d
+    - motion-graphics
+    - game-dev
+    - pipeline
+    - sidefx
 ---
 
 # SideFX Houdini — Procedural 3D & VFX

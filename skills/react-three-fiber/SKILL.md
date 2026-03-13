@@ -7,10 +7,20 @@ description: >-
   visualizations, games, and immersive experiences — using React patterns
   (hooks, state, props, suspense) instead of imperative Three.js code, with
   full access to the Three.js ecosystem.
-category: 3D & Creative
-tags: [3d, webgl, react, threejs, declarative, interactive, r3f]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: 3D & Creative
+  tags:
+    - 3d
+    - webgl
+    - react
+    - threejs
+    - declarative
+    - interactive
+    - r3f
 ---
 
 # React Three Fiber — Declarative Three.js for React

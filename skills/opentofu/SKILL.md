@@ -7,10 +7,19 @@ description: >-
   compatibility with existing Terraform modules, state files, and providers —
   plus new features like client-side state encryption, OCI registry support,
   and removed BSL license restrictions.
-category: Infrastructure & DevOps
-tags: [iac, infrastructure, open-source, terraform-alternative, cloud, provisioning]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Infrastructure & DevOps
+  tags:
+    - iac
+    - infrastructure
+    - open-source
+    - terraform-alternative
+    - cloud
+    - provisioning
 ---
 
 # OpenTofu — Open-Source Terraform Alternative

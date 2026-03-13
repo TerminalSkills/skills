@@ -7,10 +7,20 @@ description: >-
   and triggers, terrain brushes for auto-tiling, animated tiles, and custom
   properties — exporting to JSON or TMX for use in Phaser, Godot, Unity,
   PixiJS, and other engines.
-category: Game Development
-tags: [level-editor, tilemap, game-design, 2d, map-editor, phaser, godot]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Game Development
+  tags:
+    - level-editor
+    - tilemap
+    - game-design
+    - 2d
+    - map-editor
+    - phaser
+    - godot
 ---
 
 # Tiled — 2D Level Editor for Game Maps

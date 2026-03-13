@@ -7,10 +7,19 @@ description: >-
   event rules, patterns, transformations, dead-letter queues, and scheduling —
   decoupling producers from consumers with content-based routing that scales
   automatically.
-category: Cloud & Serverless
-tags: [aws, events, serverless, event-driven, integration, bus]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - aws
+    - events
+    - serverless
+    - event-driven
+    - integration
+    - bus
 ---
 
 # Amazon EventBridge — Serverless Event Bus

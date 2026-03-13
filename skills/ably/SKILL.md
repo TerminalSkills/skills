@@ -7,10 +7,19 @@ description: >-
   ordering, exactly-once delivery, automatic reconnection, and global edge
   infrastructure — handling millions of messages per second with 99.999%
   uptime SLA.
-category: Backend Development
-tags: [realtime, pubsub, websocket, messaging, serverless, presence]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - realtime
+    - pubsub
+    - websocket
+    - messaging
+    - serverless
+    - presence
 ---
 
 # Ably — Realtime Infrastructure as a Service

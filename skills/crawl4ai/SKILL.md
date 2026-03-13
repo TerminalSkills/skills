@@ -7,10 +7,20 @@ description: >-
   automatic markdown conversion, JavaScript rendering, CSS-based extraction,
   LLM-powered structured extraction, and session management for multi-page
   crawling.
-category: AI & Machine Learning
-tags: [web-scraping, crawling, llm, markdown, extraction, ai, python]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - web-scraping
+    - crawling
+    - llm
+    - markdown
+    - extraction
+    - ai
+    - python
 ---
 
 # Crawl4AI — LLM-Friendly Web Crawler

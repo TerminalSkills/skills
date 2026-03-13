@@ -7,10 +7,19 @@ description: >-
   animated illustrations, and interactive experiences — with Spline's visual
   editor for modeling, materials, animations, physics, and mouse/scroll
   interactions, plus export to React, vanilla JS, or embeddable iframe.
-category: 3D & Creative
-tags: [3d, design-tool, no-code, interactive, web, collaboration]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: 3D & Creative
+  tags:
+    - 3d
+    - design-tool
+    - no-code
+    - interactive
+    - web
+    - collaboration
 ---
 
 # Spline — 3D Design Tool for the Web

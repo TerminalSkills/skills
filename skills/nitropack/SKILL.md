@@ -7,10 +7,21 @@ description: >-
   storage abstraction, caching, WebSocket support, and deployment to 20+
   platforms (Node.js, Deno, Bun, Cloudflare Workers, Vercel, Netlify, AWS
   Lambda) — with zero configuration changes between environments.
-category: Backend Development
-tags: [server, universal, runtime, node, deno, bun, edge, h3]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - server
+    - universal
+    - runtime
+    - node
+    - deno
+    - bun
+    - edge
+    - h3
 ---
 
 # Nitro — Universal Server Engine

@@ -7,10 +7,20 @@ description: >-
   rendering, HTML overlays, loaders, performance utilities, shaders, and
   abstractions — eliminating boilerplate and letting teams focus on creative
   work instead of Three.js plumbing.
-category: 3D & Creative
-tags: [3d, react, threejs, helpers, controls, abstractions, r3f]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: 3D & Creative
+  tags:
+    - 3d
+    - react
+    - threejs
+    - helpers
+    - controls
+    - abstractions
+    - r3f
 ---
 
 # Drei — Essential Helpers for React Three Fiber

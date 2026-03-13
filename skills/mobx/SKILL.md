@@ -7,10 +7,19 @@ description: >-
   computed values, actions for state mutations, and reactions for side effects
   — providing a natural, class-based or functional approach where the UI
   automatically updates when state changes without manual subscriptions.
-category: Frontend Development
-tags: [react, state-management, observable, reactive, proxy, automatic]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - react
+    - state-management
+    - observable
+    - reactive
+    - proxy
+    - automatic
 ---
 
 # MobX — Reactive State Management

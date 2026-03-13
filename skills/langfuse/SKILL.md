@@ -6,10 +6,19 @@ description: >-
   prompts, track costs and latency, run experiments, and build evaluation
   datasets — providing full observability into AI applications from
   development through production.
-category: AI & Machine Learning
-tags: [observability, llm, tracing, evaluation, prompt-management, analytics]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - observability
+    - llm
+    - tracing
+    - evaluation
+    - prompt-management
+    - analytics
 ---
 
 # Langfuse — Open-Source LLM Observability

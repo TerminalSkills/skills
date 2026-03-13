@@ -7,10 +7,21 @@ description: >-
   typed client that catches query errors at compile time, run zero-downtime
   migrations, and integrate with Postgres, MySQL, SQLite, MongoDB,
   CockroachDB, and PlanetScale.
-category: Backend Development
-tags: [orm, database, typescript, postgres, mysql, sqlite, schema, migrations]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - orm
+    - database
+    - typescript
+    - postgres
+    - mysql
+    - sqlite
+    - schema
+    - migrations
 ---
 
 # Prisma — Next-Generation TypeScript ORM

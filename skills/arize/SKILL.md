@@ -6,10 +6,20 @@ description: >-
   evaluation, embedding analysis, drift detection, and retrieval quality
   metrics — using Phoenix for local development (open-source, self-hosted) and
   Arize platform for production monitoring at scale.
-category: AI & Machine Learning
-tags: [observability, monitoring, evaluation, llm, phoenix, ml-ops, tracing]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - observability
+    - monitoring
+    - evaluation
+    - llm
+    - phoenix
+    - ml-ops
+    - tracing
 ---
 
 # Arize (Phoenix) — AI Observability Platform

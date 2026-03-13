@@ -7,10 +7,19 @@ description: >-
   for complex multi-file refactoring, feature implementation, debugging, and
   codebase exploration where the AI plans and executes while the developer
   reviews and approves.
-category: Developer Tools
-tags: [ai-coding, autonomous-agent, vs-code, refactoring, multi-file, human-in-the-loop]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - ai-coding
+    - autonomous-agent
+    - vs-code
+    - refactoring
+    - multi-file
+    - human-in-the-loop
 ---
 
 # Cline — Autonomous AI Coding Agent for VS Code

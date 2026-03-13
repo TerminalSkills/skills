@@ -7,10 +7,19 @@ description: >-
   cloud with zero infrastructure — each function (val) gets an instant URL,
   can be forked/remixed, and uses built-in SQLite, blob storage, and email
   sending.
-category: Cloud & Serverless
-tags: [serverless, functions, api, hosting, typescript, social-coding]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - serverless
+    - functions
+    - api
+    - hosting
+    - typescript
+    - social-coding
 ---
 
 # Val Town — Social Serverless Functions

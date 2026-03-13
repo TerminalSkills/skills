@@ -7,10 +7,19 @@ description: >-
   refactoring, bug fixing, and test writing — working with any LLM (Claude,
   GPT-4, Gemini, local models) while respecting project conventions and
   maintaining git history.
-category: Developer Tools
-tags: [ai-coding, terminal, code-generation, pair-programming, autonomous, git]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - ai-coding
+    - terminal
+    - code-generation
+    - pair-programming
+    - autonomous
+    - git
 ---
 
 # Aider — AI Pair Programming in Your Terminal

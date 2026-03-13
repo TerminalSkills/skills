@@ -7,10 +7,20 @@ description: >-
   history across machines, filter by directory/host/session, and analyze
   command usage — turning shell history from a flat text file into a powerful
   productivity tool.
-category: Developer Tools
-tags: [shell, history, sync, search, terminal, productivity, rust]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - shell
+    - history
+    - sync
+    - search
+    - terminal
+    - productivity
+    - rust
 ---
 
 # Atuin — Magical Shell History

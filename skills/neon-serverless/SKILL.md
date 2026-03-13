@@ -6,10 +6,19 @@ description: >-
   autoscaling to zero, edge-compatible HTTP driver, connection pooling, and
   point-in-time recovery — enabling development workflows where each PR gets
   its own database branch and production scales automatically based on load.
-category: Cloud & Serverless
-tags: [postgres, serverless, database, branching, edge, autoscaling]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - postgres
+    - serverless
+    - database
+    - branching
+    - edge
+    - autoscaling
 ---
 
 # Neon — Serverless Postgres

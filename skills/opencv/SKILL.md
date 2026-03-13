@@ -7,10 +7,19 @@ description: >-
   augmented reality, and document processing using OpenCV's 2,500+ algorithms
   for image manipulation, feature detection, camera calibration, 3D
   reconstruction, and DNN inference — in Python, C++, or JavaScript.
-category: AI & Machine Learning
-tags: [computer-vision, image-processing, video, python, real-time, detection]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - computer-vision
+    - image-processing
+    - video
+    - python
+    - real-time
+    - detection
 ---
 
 # OpenCV — Computer Vision Library

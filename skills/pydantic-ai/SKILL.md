@@ -6,10 +6,19 @@ description: >-
   structured outputs, dependency injection, tool definitions, streaming, and
   model-agnostic design — leveraging Pydantic for validation and type safety
   throughout the agent lifecycle.
-category: AI & Machine Learning
-tags: [agent, pydantic, python, type-safe, tools, structured-output]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - agent
+    - pydantic
+    - python
+    - type-safe
+    - tools
+    - structured-output
 ---
 
 # PydanticAI — Agent Framework by Pydantic Team

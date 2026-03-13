@@ -7,10 +7,20 @@ description: >-
   caching via Graphcache, exchanges (middleware pipeline), subscriptions, and
   offline support — providing a leaner alternative to Apollo Client with
   better extensibility.
-category: Frontend Development
-tags: [graphql, react, client, lightweight, cache, exchange, typescript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - graphql
+    - react
+    - client
+    - lightweight
+    - cache
+    - exchange
+    - typescript
 ---
 
 # urql — Lightweight GraphQL Client

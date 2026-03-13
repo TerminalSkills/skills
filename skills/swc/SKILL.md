@@ -6,10 +6,19 @@ description: >-
   compilation, minification, and bundling — used by Next.js, Vite, Parcel, and
   Deno as their default compiler, handling TypeScript stripping, JSX
   transformation, polyfill injection, and code minification at native speed.
-category: Developer Tools
-tags: [compiler, rust, fast, babel-alternative, typescript, minifier]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - compiler
+    - rust
+    - fast
+    - babel-alternative
+    - typescript
+    - minifier
 ---
 
 # SWC — Super-Fast Rust Compiler

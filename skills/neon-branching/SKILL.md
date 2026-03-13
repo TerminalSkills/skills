@@ -7,10 +7,20 @@ description: >-
   production schemas, test migrations safely, and implement database-per-PR
   workflows — creating database branches as fast as git branches with zero
   data copying using Neon's copy-on-write storage.
-category: Backend Development
-tags: [database, postgres, branching, preview, ci-cd, testing, serverless]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - database
+    - postgres
+    - branching
+    - preview
+    - ci-cd
+    - testing
+    - serverless
 ---
 
 # Neon Branching — Database Branching for Development

@@ -7,10 +7,19 @@ description: >-
   organizations and platforms — with agent cards for capability discovery,
   task lifecycle management, streaming updates, and push notifications,
   enabling a web of interoperable AI agents.
-category: AI & Machine Learning
-tags: [agent-to-agent, protocol, google, interoperability, multi-agent, api]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - agent-to-agent
+    - protocol
+    - google
+    - interoperability
+    - multi-agent
+    - api
 ---
 
 # A2A SDK — Agent-to-Agent Protocol

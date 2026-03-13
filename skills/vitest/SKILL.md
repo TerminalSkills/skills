@@ -6,10 +6,20 @@ description: >-
   with native TypeScript support, Jest-compatible API, built-in mocking, code
   coverage, snapshot testing, and watch mode — leveraging Vite's transform
   pipeline for instant test execution without separate compilation.
-category: Developer Tools
-tags: [testing, vite, typescript, unit-test, mocking, coverage, fast]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - testing
+    - vite
+    - typescript
+    - unit-test
+    - mocking
+    - coverage
+    - fast
 ---
 
 # Vitest — Blazing Fast Unit Testing

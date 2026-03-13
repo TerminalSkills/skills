@@ -6,10 +6,19 @@ description: >-
   email/password, OAuth (Google, GitHub, Discord), magic links, and two-factor
   authentication — providing a simple, database-agnostic auth layer that you
   understand and control, without the complexity of full auth platforms.
-category: Backend Development
-tags: [authentication, sessions, oauth, typescript, auth, security]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - authentication
+    - sessions
+    - oauth
+    - typescript
+    - auth
+    - security
 ---
 
 # Lucia Auth — Simple Authentication

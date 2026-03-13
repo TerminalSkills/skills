@@ -6,10 +6,19 @@ description: >-
   language descriptions. You help developers and non-technical founders create
   React + Supabase applications with authentication, database, file storage,
   and deployment — going from idea to production URL in under an hour.
-category: Developer Tools
-tags: [ai-coding, full-stack, prototyping, supabase, vibe-coding, no-code]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - ai-coding
+    - full-stack
+    - prototyping
+    - supabase
+    - vibe-coding
+    - no-code
 ---
 
 # Lovable — AI Full-Stack App Generator with Supabase Backend

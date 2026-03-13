@@ -7,10 +7,20 @@ description: >-
   blockchain data, send transactions, interact with smart contracts, and
   handle wallet connections — with full type inference from ABIs,
   tree-shakeable modules, and zero dependencies beyond noble cryptography.
-category: Blockchain & Web3
-tags: [ethereum, typescript, web3, rpc, smart-contracts, type-safe, wagmi]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Blockchain & Web3
+  tags:
+    - ethereum
+    - typescript
+    - web3
+    - rpc
+    - smart-contracts
+    - type-safe
+    - wagmi
 ---
 
 # Viem — Type-Safe Ethereum Interactions for TypeScript

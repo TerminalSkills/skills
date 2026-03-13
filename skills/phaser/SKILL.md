@@ -7,10 +7,20 @@ description: >-
   roguelikes using Phaser's scene system, physics engines (Arcade and
   Matter.js), sprite animations, tilemaps, tweens, particle effects, and input
   handling — with TypeScript support and Vite for modern development workflow.
-category: Game Development
-tags: [game-engine, html5, browser-game, 2d, arcade-physics, webgl, canvas]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Game Development
+  tags:
+    - game-engine
+    - html5
+    - browser-game
+    - 2d
+    - arcade-physics
+    - webgl
+    - canvas
 ---
 
 # Phaser — HTML5 Game Framework for Browser Games

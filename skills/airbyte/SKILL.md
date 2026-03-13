@@ -6,10 +6,19 @@ description: >-
   tools, databases, and APIs into data warehouses and lakes — handling
   incremental syncs, CDC (Change Data Capture), schema evolution, and error
   recovery for production data pipelines.
-category: Data Engineering
-tags: [etl, data-integration, connectors, sync, data-pipeline, open-source]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Data Engineering
+  tags:
+    - etl
+    - data-integration
+    - connectors
+    - sync
+    - data-pipeline
+    - open-source
 ---
 
 # Airbyte — Open-Source Data Integration Platform

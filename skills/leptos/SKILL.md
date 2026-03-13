@@ -7,10 +7,20 @@ description: >-
   Leptos's fine-grained signal system, server functions, islands architecture,
   and compile-time optimizations — getting React-like DX with Rust's
   performance and type safety.
-category: Web Frameworks
-tags: [rust, wasm, full-stack, reactive, ssr, signals, isomorphic]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Web Frameworks
+  tags:
+    - rust
+    - wasm
+    - full-stack
+    - reactive
+    - ssr
+    - signals
+    - isomorphic
 ---
 
 # Leptos — Full-Stack Rust Web Framework

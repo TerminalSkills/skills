@@ -5,10 +5,19 @@ description: >-
   CLI applications. You help developers create command-line tools with
   subcommands, flags, argument validation, shell completions, and help
   generation — powering CLIs like kubectl, Hugo, GitHub CLI, and Docker.
-category: Developer Tools
-tags: [go, cli, command-line, framework, flags, subcommands]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - go
+    - cli
+    - command-line
+    - framework
+    - flags
+    - subcommands
 ---
 
 # Cobra — Go CLI Framework

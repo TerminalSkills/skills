@@ -7,10 +7,21 @@ description: >-
   output — with React hooks (useChat, useCompletion, useObject), server-side
   streaming, and a unified provider interface supporting OpenAI, Anthropic,
   Google, Mistral, and 20+ LLM providers.
-category: AI & Machine Learning
-tags: [ai, streaming, react, nextjs, chat, llm, vercel, typescript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - ai
+    - streaming
+    - react
+    - nextjs
+    - chat
+    - llm
+    - vercel
+    - typescript
 ---
 
 # Vercel AI SDK — Build AI Apps with React

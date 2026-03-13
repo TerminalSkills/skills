@@ -7,10 +7,19 @@ description: >-
   human-in-the-loop, code execution, group chat orchestration, and nested
   conversations — for complex tasks like software development, research, and
   data analysis.
-category: AI & Machine Learning
-tags: [multi-agent, conversation, autogen, microsoft, orchestration, python]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - multi-agent
+    - conversation
+    - autogen
+    - microsoft
+    - orchestration
+    - python
 ---
 
 # AG2 (AutoGen) — Multi-Agent Conversation Framework

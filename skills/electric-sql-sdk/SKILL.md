@@ -7,10 +7,19 @@ description: >-
   automatically — enabling instant reads, offline support, and real-time
   multi-user collaboration using Postgres as the single source of truth with
   Shape-based partial replication.
-category: Backend Development
-tags: [local-first, sync, postgres, realtime, offline, crdt]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - local-first
+    - sync
+    - postgres
+    - realtime
+    - offline
+    - crdt
 ---
 
 # Electric SQL — Sync Engine for Postgres

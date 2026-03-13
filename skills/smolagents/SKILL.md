@@ -6,10 +6,19 @@ description: >-
   solve tasks, use tools from the Hugging Face Hub, chain multiple agents
   together, and run on any LLM (OpenAI, Anthropic, local models) — providing a
   simple, code-first approach to building agents without complex abstractions.
-category: AI & Machine Learning
-tags: [huggingface, agents, tools, code-generation, multi-agent, python]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - huggingface
+    - agents
+    - tools
+    - code-generation
+    - multi-agent
+    - python
 ---
 
 # smolagents — Hugging Face Lightweight Agent Framework

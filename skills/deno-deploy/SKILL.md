@@ -7,10 +7,20 @@ description: >-
   storage, BroadcastChannel for real-time, cron scheduling, and npm
   compatibility — running code within milliseconds of users worldwide without
   managing infrastructure.
-category: Cloud & Serverless
-tags: [deno, edge, serverless, typescript, v8, deploy, global]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - deno
+    - edge
+    - serverless
+    - typescript
+    - v8
+    - deploy
+    - global
 ---
 
 # Deno Deploy — Global Edge Serverless Platform

@@ -6,10 +6,19 @@ description: >-
   JSON, regex-matching text, and grammar-constrained output from open-source
   models — using finite state machine guided generation that constrains the
   token sampling process to produce only valid output on the first try.
-category: AI & Machine Learning
-tags: [llm, structured-generation, json, grammar, regex, constrained]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - llm
+    - structured-generation
+    - json
+    - grammar
+    - regex
+    - constrained
 ---
 
 # Outlines — Structured Text Generation

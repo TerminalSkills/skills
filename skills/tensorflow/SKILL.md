@@ -7,10 +7,20 @@ description: >-
   Serving for production inference, TFLite for mobile/edge deployment, and
   TensorFlow.js for browser ML — from prototyping to production-scale
   distributed training.
-category: AI & Machine Learning
-tags: [deep-learning, neural-network, ml, training, inference, keras, python]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - deep-learning
+    - neural-network
+    - ml
+    - training
+    - inference
+    - keras
+    - python
 ---
 
 # TensorFlow — Deep Learning Framework

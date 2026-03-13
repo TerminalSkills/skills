@@ -6,10 +6,20 @@ description: >-
   applications, achieving 10x faster cold starts and near-instant Hot Module
   Replacement (HMR) — replacing Webpack's JavaScript-based bundling with a
   parallelized, incremental Rust engine that scales to massive codebases.
-category: Developer Tools
-tags: [bundler, rust, next, fast, vite-alternative, vercel, hmr]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - bundler
+    - rust
+    - next
+    - fast
+    - vite-alternative
+    - vercel
+    - hmr
 ---
 
 # Turbopack — Rust-Powered Bundler for Next.js

@@ -7,10 +7,20 @@ description: >-
   the Members/Subscriptions system for paid newsletters, and build custom
   themes — turning Ghost into a full publishing business with built-in
   payments, email newsletters, and SEO.
-category: Content Management
-tags: [cms, blog, publishing, newsletter, membership, self-hosted, open-source]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Content Management
+  tags:
+    - cms
+    - blog
+    - publishing
+    - newsletter
+    - membership
+    - self-hosted
+    - open-source
 ---
 
 # Ghost — Professional Publishing Platform

@@ -7,10 +7,20 @@ description: >-
   and FIFO queues (exactly-once, ordered), dead-letter queues for failed
   messages, and Lambda triggers for serverless processing — scaling from zero
   to millions of messages per second.
-category: Cloud & Serverless
-tags: [aws, queue, messaging, async, decoupling, serverless, event-driven]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - aws
+    - queue
+    - messaging
+    - async
+    - decoupling
+    - serverless
+    - event-driven
 ---
 
 # Amazon SQS — Managed Message Queue

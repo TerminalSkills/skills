@@ -6,10 +6,19 @@ description: >-
   checks in YAML that validate freshness, completeness, uniqueness, validity,
   and business rules — catching data issues before they reach dashboards and
   ML models.
-category: Data Engineering
-tags: [data-quality, testing, monitoring, data-observability, validation, open-source]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Data Engineering
+  tags:
+    - data-quality
+    - testing
+    - monitoring
+    - data-observability
+    - validation
+    - open-source
 ---
 
 # Soda — Data Quality Testing and Monitoring

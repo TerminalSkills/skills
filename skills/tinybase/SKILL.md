@@ -6,10 +6,20 @@ description: >-
   tables, automatic reactivity, CRDT-based sync, persistence to
   IndexedDB/SQLite/Postgres, and relationship modeling — providing a complete
   client-side database that syncs across devices without a custom backend.
-category: Frontend Development
-tags: [state-management, reactive, local-first, sync, crdt, offline, database]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - state-management
+    - reactive
+    - local-first
+    - sync
+    - crdt
+    - offline
+    - database
 ---
 
 # TinyBase — Reactive Data Store for Local-First Apps

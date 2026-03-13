@@ -7,10 +7,19 @@ description: >-
   visual builder, CMS collections, Ecommerce, form handling, and Webflow APIs
   — enabling designers to build production websites without writing code while
   giving developers API access for custom integrations and dynamic content.
-category: Web Development
-tags: [no-code, website-builder, cms, design, visual-development, hosting]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Web Development
+  tags:
+    - no-code
+    - website-builder
+    - cms
+    - design
+    - visual-development
+    - hosting
 ---
 
 # Webflow — Visual Web Development Platform

@@ -6,10 +6,20 @@ description: >-
   logging, distributed tracing (X-Ray), custom metrics (CloudWatch EMF),
   idempotency, feature flags, parameter management, and event parsing to
   Lambda functions — with zero boilerplate using decorators and middleware.
-category: Cloud & Serverless
-tags: [aws, lambda, observability, logging, tracing, metrics, middleware]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - aws
+    - lambda
+    - observability
+    - logging
+    - tracing
+    - metrics
+    - middleware
 ---
 
 # AWS Lambda Powertools — Serverless Best Practices

@@ -7,10 +7,18 @@ description: >-
   permissions — providing the complete API authentication layer for developer
   platforms, SaaS APIs, and internal services without building custom key
   infrastructure.
-category: Backend Development
-tags: [api-keys, authentication, rate-limiting, usage, developer-platform]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - api-keys
+    - authentication
+    - rate-limiting
+    - usage
+    - developer-platform
 ---
 
 # Unkey — API Key Management

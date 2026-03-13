@@ -7,10 +7,19 @@ description: >-
   state, and compat layer for React ecosystem compatibility — ideal for
   performance-critical apps, embedded widgets, and mobile web where bundle
   size matters.
-category: Frontend Development
-tags: [react-alternative, lightweight, fast, jsx, signals, 3kb]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - react-alternative
+    - lightweight
+    - fast
+    - jsx
+    - signals
+    - 3kb
 ---
 
 # Preact — Fast 3kB Alternative to React

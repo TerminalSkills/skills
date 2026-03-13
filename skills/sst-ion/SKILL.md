@@ -7,10 +7,20 @@ description: >-
   automatic IAM permissions, live Lambda debugging, secrets management, and
   zero-config deployments — replacing CDK/Terraform complexity with a
   developer-friendly abstraction over AWS services.
-category: Cloud & Serverless
-tags: [aws, infrastructure, iac, serverless, typescript, next, deployment]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - aws
+    - infrastructure
+    - iac
+    - serverless
+    - typescript
+    - next
+    - deployment
 ---
 
 # SST (Ion) — Full-Stack Serverless Framework

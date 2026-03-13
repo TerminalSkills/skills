@@ -6,10 +6,20 @@ description: >-
   and agents — storing user preferences, conversation history, facts, and
   context that persists across sessions, enabling AI that remembers users,
   learns from interactions, and provides increasingly personalized responses.
-category: AI & Machine Learning
-tags: [memory, ai, agents, personalization, rag, context, long-term]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - memory
+    - ai
+    - agents
+    - personalization
+    - rag
+    - context
+    - long-term
 ---
 
 # Mem0 — Memory Layer for AI Agents

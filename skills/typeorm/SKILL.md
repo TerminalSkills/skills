@@ -6,10 +6,20 @@ description: >-
   define entities with decorators, build type-safe queries with QueryBuilder,
   manage database migrations, handle relations (one-to-one, one-to-many,
   many-to-many), and use repository patterns for clean data access layers.
-category: Backend Development
-tags: [orm, typescript, database, sql, postgres, mysql, migrations]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - orm
+    - typescript
+    - database
+    - sql
+    - postgres
+    - mysql
+    - migrations
 ---
 
 # TypeORM — TypeScript ORM for SQL Databases

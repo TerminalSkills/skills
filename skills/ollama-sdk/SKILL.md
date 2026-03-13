@@ -6,10 +6,19 @@ description: >-
   models on their machine with a simple CLI and REST API — enabling private AI
   development, offline inference, fine-tuning experiments, and cost-free
   prototyping without sending data to cloud APIs.
-category: AI & Machine Learning
-tags: [local-llm, inference, privacy, self-hosted, open-source, embedding]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - local-llm
+    - inference
+    - privacy
+    - self-hosted
+    - open-source
+    - embedding
 ---
 
 # Ollama — Run LLMs Locally

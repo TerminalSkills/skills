@@ -7,10 +7,20 @@ description: >-
   functions, and serverless environments — building image/video processing,
   games, crypto, AI inference, and compute-intensive tools that run 10-100x
   faster than JavaScript.
-category: Developer Tools
-tags: [webassembly, performance, browser, rust, c++, portable, edge]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - webassembly
+    - performance
+    - browser
+    - rust
+    - c++
+    - portable
+    - edge
 ---
 
 # WebAssembly (WASM) — Near-Native Performance in the Browser

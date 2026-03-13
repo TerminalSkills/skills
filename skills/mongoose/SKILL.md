@@ -6,10 +6,20 @@ description: >-
   queries with a fluent API, use middleware hooks, populate references, create
   virtual fields, and handle transactions — providing structure and type
   safety on top of MongoDB's flexible document model.
-category: Backend Development
-tags: [mongodb, odm, schema, validation, typescript, node, database]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - mongodb
+    - odm
+    - schema
+    - validation
+    - typescript
+    - node
+    - database
 ---
 
 # Mongoose — MongoDB ODM for Node.js

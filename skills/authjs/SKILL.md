@@ -7,10 +7,19 @@ description: >-
   WebAuthn to Next.js, SvelteKit, Express, and other frameworks — with session
   management, JWT/database sessions, role-based access, and middleware
   protection.
-category: Backend Development
-tags: [authentication, oauth, nextjs, session, providers, jwt]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - authentication
+    - oauth
+    - nextjs
+    - session
+    - providers
+    - jwt
 ---
 
 # Auth.js (NextAuth) — Authentication for the Web

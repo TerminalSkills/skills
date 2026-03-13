@@ -7,10 +7,21 @@ description: >-
   UI, tool calling, structured output with Zod schemas, RAG pipelines,
   multi-step agents, and edge-compatible AI features — the standard way to add
   AI to Next.js, Nuxt, SvelteKit, and any Node.js app.
-category: AI & Machine Learning
-tags: [vercel, ai, llm, streaming, react, typescript, openai, anthropic]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - vercel
+    - ai
+    - llm
+    - streaming
+    - react
+    - typescript
+    - openai
+    - anthropic
 ---
 
 # Vercel AI SDK — Build AI-Powered Apps in TypeScript

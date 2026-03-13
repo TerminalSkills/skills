@@ -6,10 +6,20 @@ description: >-
   layout transitions, scroll-linked effects, gesture interactions, shared
   layout animations, and exit animations — using a declarative API where
   animations are defined as props rather than imperative code.
-category: Frontend Development
-tags: [animation, react, motion, transitions, gestures, scroll, layout]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - animation
+    - react
+    - motion
+    - transitions
+    - gestures
+    - scroll
+    - layout
 ---
 
 # Motion (formerly Framer Motion) — Animation for React

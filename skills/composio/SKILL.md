@@ -6,10 +6,20 @@ description: >-
   developers connect agents to GitHub, Slack, Gmail, Jira, Notion, Salesforce,
   and 200+ more services — handling OAuth flows, API key management, and rate
   limiting so agents can take real-world actions.
-category: AI & Machine Learning
-tags: [agent, tools, integrations, api, oauth, actions, 250-apps]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - agent
+    - tools
+    - integrations
+    - api
+    - oauth
+    - actions
+    - 250-apps
 ---
 
 # Composio — Tool Platform for AI Agents

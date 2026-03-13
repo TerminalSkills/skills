@@ -7,10 +7,19 @@ description: >-
   system, security component, API Platform for REST/GraphQL, and Messenger for
   async processing — the backbone of enterprise PHP used by companies
   processing billions of requests.
-category: Backend Development
-tags: [php, framework, enterprise, api, doctrine, dependency-injection]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - php
+    - framework
+    - enterprise
+    - api
+    - doctrine
+    - dependency-injection
 ---
 
 # Symfony — Enterprise PHP Framework

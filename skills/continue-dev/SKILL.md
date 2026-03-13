@@ -6,10 +6,19 @@ description: >-
   (Claude, GPT-4, Gemini, Ollama, local models), set up custom context
   providers, create team-shared slash commands, and enable intelligent tab
   autocomplete — all while keeping code on their infrastructure.
-category: Developer Tools
-tags: [ai-coding, ide, open-source, code-assistant, autocomplete, context-providers]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - ai-coding
+    - ide
+    - open-source
+    - code-assistant
+    - autocomplete
+    - context-providers
 ---
 
 # Continue — Open-Source AI Code Assistant for IDEs

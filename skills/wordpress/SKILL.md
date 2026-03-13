@@ -6,10 +6,20 @@ description: >-
   applications using WordPress block editor (Gutenberg), custom themes,
   plugins, REST API, WP-CLI, and headless WordPress — from simple blogs to
   complex multi-site enterprise platforms.
-category: Web Development
-tags: [cms, php, blog, ecommerce, plugins, themes, self-hosted]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Web Development
+  tags:
+    - cms
+    - php
+    - blog
+    - ecommerce
+    - plugins
+    - themes
+    - self-hosted
 ---
 
 # WordPress — The World's Most Popular CMS

@@ -8,10 +8,19 @@ description: >-
   scheduling, streaming, schema validation, and built-in observability —
   replacing scattered libraries (zod, retry, pino, awilix) with a single
   coherent platform.
-category: Backend Development
-tags: [typescript, functional, error-handling, concurrency, observability, schema]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - typescript
+    - functional
+    - error-handling
+    - concurrency
+    - observability
+    - schema
 ---
 
 # Effect Platform — Production TypeScript Framework

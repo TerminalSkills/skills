@@ -7,10 +7,20 @@ description: >-
   navigation and partial updates, and Stimulus for lightweight JavaScript
   behavior — building fast, server-rendered applications that feel like SPAs
   with minimal client-side JavaScript.
-category: Web Frameworks
-tags: [html-over-the-wire, turbo, stimulus, server-rendered, rails, django, low-javascript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Web Frameworks
+  tags:
+    - html-over-the-wire
+    - turbo
+    - stimulus
+    - server-rendered
+    - rails
+    - django
+    - low-javascript
 ---
 
 # Hotwire — HTML Over the Wire

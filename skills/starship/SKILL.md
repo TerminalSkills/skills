@@ -6,10 +6,20 @@ description: >-
   with git status, language versions, cloud context, battery level, time, and
   custom modules — working identically across Bash, Zsh, Fish, PowerShell, and
   any shell with a single TOML config file.
-category: Developer Tools
-tags: [terminal, prompt, shell, customization, rust, fast, cross-shell]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - terminal
+    - prompt
+    - shell
+    - customization
+    - rust
+    - fast
+    - cross-shell
 ---
 
 # Starship — Cross-Shell Prompt

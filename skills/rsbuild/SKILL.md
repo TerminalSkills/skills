@@ -7,10 +7,19 @@ description: >-
   built-in TypeScript/CSS/asset support, module federation, and 5-10x faster
   builds than Webpack — providing a drop-in replacement that reuses existing
   Webpack loaders and plugins.
-category: Developer Tools
-tags: [bundler, rust, rspack, fast, webpack-compatible, build-tool]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Developer Tools
+  tags:
+    - bundler
+    - rust
+    - rspack
+    - fast
+    - webpack-compatible
+    - build-tool
 ---
 
 # Rsbuild — Rust-Powered Build Tool

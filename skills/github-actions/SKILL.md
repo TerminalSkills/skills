@@ -1,14 +1,23 @@
 ---
 name: github-actions
-category: devops
-version: 1.0.0
 description: >-
   Build CI/CD pipelines with GitHub Actions — workflows, jobs, steps, triggers,
   caching, artifacts, matrix builds, secrets, environments, reusable workflows,
   and custom actions. Use when tasks involve automating tests, builds, deployments,
   code quality checks, or any GitHub-triggered automation.
-author: terminal-skills
-tags: [github-actions, cicd, automation, testing, deployment, github]
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: devops
+  tags:
+    - github-actions
+    - cicd
+    - automation
+    - testing
+    - deployment
+    - github
 ---
 
 # GitHub Actions

@@ -7,10 +7,19 @@ description: >-
   Anthropic, Cohere, LangChain, LlamaIndex, vector databases, and frameworks —
   exporting to any OpenTelemetry-compatible backend (Grafana Tempo, Jaeger,
   Datadog, Honeycomb, Traceloop Cloud).
-category: AI & Machine Learning
-tags: [observability, opentelemetry, llm, tracing, openllmetry, monitoring]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - observability
+    - opentelemetry
+    - llm
+    - tracing
+    - openllmetry
+    - monitoring
 ---
 
 # Traceloop (OpenLLMetry) — LLM Observability via OpenTelemetry

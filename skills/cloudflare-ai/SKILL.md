@@ -7,10 +7,20 @@ description: >-
   models at the edge with zero cold starts, pay-per-use pricing, and
   integration with Workers, Pages, and Vectorize — enabling AI features
   without managing GPU infrastructure.
-category: AI & Machine Learning
-tags: [cloudflare, workers-ai, edge, inference, llm, embeddings, serverless]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - cloudflare
+    - workers-ai
+    - edge
+    - inference
+    - llm
+    - embeddings
+    - serverless
 ---
 
 # Cloudflare Workers AI — AI Inference at the Edge

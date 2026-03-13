@@ -7,10 +7,20 @@ description: >-
   synced from cloud), multi-region replication, vector search, branching, and
   edge deployment — providing sub-millisecond reads with the simplicity of
   SQLite and the durability of a cloud database.
-category: Backend Development
-tags: [database, sqlite, edge, serverless, libsql, embedded, sync]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - database
+    - sqlite
+    - edge
+    - serverless
+    - libsql
+    - embedded
+    - sync
 ---
 
 # Turso — SQLite for Production

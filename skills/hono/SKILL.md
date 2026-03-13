@@ -6,10 +6,20 @@ description: >-
   Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny
   footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web
   Standards API compatibility that makes code truly portable across runtimes.
-category: Backend Development
-tags: [web-framework, edge, cloudflare, bun, deno, fast, typescript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - web-framework
+    - edge
+    - cloudflare
+    - bun
+    - deno
+    - fast
+    - typescript
 ---
 
 # Hono — Ultrafast Web Framework

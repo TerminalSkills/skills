@@ -7,10 +7,19 @@ description: >-
   sales tax), invoicing, license keys, customer portal, and fraud protection —
   without needing to register for tax IDs or handle payment compliance
   yourself.
-category: Backend Development
-tags: [payments, subscriptions, saas, digital-products, licensing, tax]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - payments
+    - subscriptions
+    - saas
+    - digital-products
+    - licensing
+    - tax
 ---
 
 # Lemon Squeezy — Merchant of Record for SaaS

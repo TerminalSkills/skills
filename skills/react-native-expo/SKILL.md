@@ -7,10 +7,20 @@ description: >-
   modules (camera, notifications, auth, maps), EAS Build/Submit for cloud
   builds, over-the-air updates, and the full Expo development workflow — from
   `npx create-expo-app` to App Store submission.
-category: Mobile Development
-tags: [react-native, expo, mobile, ios, android, cross-platform, app]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Mobile Development
+  tags:
+    - react-native
+    - expo
+    - mobile
+    - ios
+    - android
+    - cross-platform
+    - app
 ---
 
 # React Native with Expo — Modern Mobile Development

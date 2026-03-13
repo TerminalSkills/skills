@@ -6,10 +6,20 @@ description: >-
   network using @solana/web3.js, create tokens (SPL), build NFT collections,
   and integrate with wallets — leveraging Solana's 400ms block times, parallel
   transaction processing, and sub-cent fees for high-throughput applications.
-category: Blockchain & Web3
-tags: [blockchain, rust, smart-contracts, defi, nft, high-performance, web3]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Blockchain & Web3
+  tags:
+    - blockchain
+    - rust
+    - smart-contracts
+    - defi
+    - nft
+    - high-performance
+    - web3
 ---
 
 # Solana — High-Performance Blockchain Development

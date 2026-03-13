@@ -7,10 +7,19 @@ description: >-
   breaking, rate limiting, TLS termination, gRPC support, and observability
   features — powering Istio, AWS App Mesh, and most modern service mesh
   implementations.
-category: Infrastructure & DevOps
-tags: [proxy, service-mesh, load-balancer, api-gateway, observability, cloud-native]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Infrastructure & DevOps
+  tags:
+    - proxy
+    - service-mesh
+    - load-balancer
+    - api-gateway
+    - observability
+    - cloud-native
 ---
 
 # Envoy Proxy — Cloud-Native Edge and Service Proxy

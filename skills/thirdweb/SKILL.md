@@ -7,10 +7,20 @@ description: >-
   contract deployment (ERC-20, ERC-721, ERC-1155, marketplace), embedded
   wallets, fiat-to-crypto onramps, and multi-chain support — from prototype to
   production without deep blockchain expertise.
-category: Blockchain & Web3
-tags: [web3, sdk, smart-contracts, nft, wallet, multi-chain, typescript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Blockchain & Web3
+  tags:
+    - web3
+    - sdk
+    - smart-contracts
+    - nft
+    - wallet
+    - multi-chain
+    - typescript
 ---
 
 # thirdweb — Full-Stack Web3 Development Platform

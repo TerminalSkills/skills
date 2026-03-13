@@ -6,10 +6,20 @@ description: >-
   request retries, guardrails, semantic caching, budget limits, and
   observability to LLM calls — using a single unified API that works with 200+
   models from OpenAI, Anthropic, Google, and open-source providers.
-category: AI & Machine Learning
-tags: [llm, gateway, observability, routing, caching, guardrails, production]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - llm
+    - gateway
+    - observability
+    - routing
+    - caching
+    - guardrails
+    - production
 ---
 
 # Portkey — AI Gateway for Production LLM Apps

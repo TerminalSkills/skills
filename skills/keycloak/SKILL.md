@@ -7,10 +7,21 @@ description: >-
   Directory), social login, multi-factor authentication, and fine-grained
   authorization — providing enterprise-grade identity management that can be
   self-hosted and customized.
-category: Security & Auth
-tags: [identity, authentication, sso, oauth2, oidc, saml, self-hosted, open-source]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Security & Auth
+  tags:
+    - identity
+    - authentication
+    - sso
+    - oauth2
+    - oidc
+    - saml
+    - self-hosted
+    - open-source
 ---
 
 # Keycloak — Open-Source Identity and Access Management

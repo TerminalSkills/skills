@@ -7,10 +7,20 @@ description: >-
   hybrid rendering (SSR/SSG/SPA per route), server components, middleware,
   state management with useState, data fetching with useFetch/useAsyncData,
   and deployment to 20+ platforms.
-category: Frontend Development
-tags: [vue, framework, ssr, ssg, fullstack, nitro, auto-imports]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - vue
+    - framework
+    - ssr
+    - ssg
+    - fullstack
+    - nitro
+    - auto-imports
 ---
 
 # Nuxt — The Vue Framework

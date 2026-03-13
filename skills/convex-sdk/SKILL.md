@@ -7,10 +7,20 @@ description: >-
   automatic real-time sync to React/Next.js clients — replacing REST APIs,
   WebSocket servers, and database management with a single reactive backend
   that pushes updates to clients automatically.
-category: Cloud & Serverless
-tags: [backend, database, realtime, typescript, serverless, reactive, baas]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - backend
+    - database
+    - realtime
+    - typescript
+    - serverless
+    - reactive
+    - baas
 ---
 
 # Convex — Reactive Backend-as-a-Service

@@ -6,10 +6,20 @@ description: >-
   developers stream agent actions, tool calls, state updates, and text
   generation to React components in real-time — enabling rich agent UIs where
   users see what the agent is thinking, doing, and can intervene at any step.
-category: AI & Machine Learning
-tags: [agent, ui, protocol, streaming, react, frontend, copilotkit]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - agent
+    - ui
+    - protocol
+    - streaming
+    - react
+    - frontend
+    - copilotkit
 ---
 
 # AG-UI — Agent-User Interaction Protocol

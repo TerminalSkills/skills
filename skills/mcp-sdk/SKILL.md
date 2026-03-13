@@ -6,10 +6,20 @@ description: >-
   help developers build MCP servers that expose tools, resources, and prompts
   to any MCP-compatible client (Claude Desktop, Cursor, Windsurf, Cline,
   Continue) — creating a universal plugin system for AI assistants.
-category: AI & Machine Learning
-tags: [mcp, model-context-protocol, tools, ai, agents, integration, anthropic]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: AI & Machine Learning
+  tags:
+    - mcp
+    - model-context-protocol
+    - tools
+    - ai
+    - agents
+    - integration
+    - anthropic
 ---
 
 # MCP SDK — Model Context Protocol for AI Tools

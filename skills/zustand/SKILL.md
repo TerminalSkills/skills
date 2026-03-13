@@ -7,10 +7,19 @@ description: >-
   performance, middleware (persist, devtools, immer), computed values, and
   async actions — replacing Redux complexity with a simple, un-opinionated API
   in under 1KB.
-category: Frontend Development
-tags: [react, state-management, lightweight, hooks, typescript, store]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - react
+    - state-management
+    - lightweight
+    - hooks
+    - typescript
+    - store
 ---
 
 # Zustand — Minimal React State Management

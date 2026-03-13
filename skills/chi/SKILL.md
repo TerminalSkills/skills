@@ -6,10 +6,19 @@ description: >-
   Chi's middleware stack, route groups, URL parameters, sub-routers, and
   context-based request scoping — providing Express-like ergonomics while
   staying 100% compatible with Go's standard library.
-category: Backend Development
-tags: [go, router, http, middleware, lightweight, stdlib-compatible]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - go
+    - router
+    - http
+    - middleware
+    - lightweight
+    - stdlib-compatible
 ---
 
 # Chi — Lightweight Go HTTP Router

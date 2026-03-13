@@ -6,10 +6,20 @@ description: >-
   supporting email, SMS, push, in-app, and chat (Slack/Discord) — with
   workflow orchestration, digest/batching, user preferences, template
   management, and a pre-built notification center component for React.
-category: Backend Development
-tags: [notifications, multi-channel, email, sms, push, in-app, typescript]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - notifications
+    - multi-channel
+    - email
+    - sms
+    - push
+    - in-app
+    - typescript
 ---
 
 # Novu — Open-Source Notification Infrastructure

@@ -7,10 +7,20 @@ description: >-
   node), and Chisel (Solidity REPL) — with native Solidity testing (no
   JavaScript), fuzz testing, gas optimization, and fork testing against
   mainnet state.
-category: Blockchain & Web3
-tags: [solidity, ethereum, smart-contracts, testing, deployment, forge, cast]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Blockchain & Web3
+  tags:
+    - solidity
+    - ethereum
+    - smart-contracts
+    - testing
+    - deployment
+    - forge
+    - cast
 ---
 
 # Foundry — Blazing Fast Ethereum Development Toolkit

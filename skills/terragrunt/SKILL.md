@@ -7,10 +7,19 @@ description: >-
   teams manage large-scale infrastructure across multiple environments and AWS
   accounts using Terragrunt's hierarchical configuration, dependency
   management, and before/after hooks.
-category: Infrastructure & DevOps
-tags: [iac, terraform, dry, infrastructure, multi-environment, orchestration]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Infrastructure & DevOps
+  tags:
+    - iac
+    - terraform
+    - dry
+    - infrastructure
+    - multi-environment
+    - orchestration
 ---
 
 # Terragrunt — DRY Terraform/OpenTofu Wrapper

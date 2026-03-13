@@ -6,10 +6,20 @@ description: >-
   storage, message queuing, and scheduled jobs to serverless and edge
   applications — with HTTP-based APIs that work on Vercel Edge, Cloudflare
   Workers, and AWS Lambda without persistent connections.
-category: Cloud & Serverless
-tags: [redis, kafka, qstash, serverless, edge, rate-limiting, caching]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Cloud & Serverless
+  tags:
+    - redis
+    - kafka
+    - qstash
+    - serverless
+    - edge
+    - rate-limiting
+    - caching
 ---
 
 # Upstash — Serverless Redis, Kafka & QStash

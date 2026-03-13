@@ -7,10 +7,20 @@ description: >-
   installed as a dependency) — providing full ownership and customization of
   every component including buttons, dialogs, forms, tables, command palettes,
   toasts, and 40+ primitives.
-category: Frontend Development
-tags: [ui, components, react, tailwind, radix, accessible, copy-paste]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Frontend Development
+  tags:
+    - ui
+    - components
+    - react
+    - tailwind
+    - radix
+    - accessible
+    - copy-paste
 ---
 
 # shadcn/ui — Copy-Paste Component Library

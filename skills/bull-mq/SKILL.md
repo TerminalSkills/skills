@@ -7,10 +7,20 @@ description: >-
   jobs, job dependencies, concurrency control, and dead-letter handling —
   powering email sending, image processing, webhook delivery, report
   generation, and any async workload.
-category: Backend Development
-tags: [queue, redis, jobs, background, worker, cron, node]
-version: 1.0.0
-author: terminal-skills
+license: Apache-2.0
+compatibility: ''
+metadata:
+  author: terminal-skills
+  version: 1.0.0
+  category: Backend Development
+  tags:
+    - queue
+    - redis
+    - jobs
+    - background
+    - worker
+    - cron
+    - node
 ---
 
 # BullMQ — Redis-Based Job Queue for Node.js
