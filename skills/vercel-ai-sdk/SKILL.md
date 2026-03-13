@@ -1,67 +1,145 @@
 ---
 name: vercel-ai-sdk
-description: >-
-  Assists with building AI-powered applications using the Vercel AI SDK. Use when streaming
-  LLM responses, generating structured data with Zod, building chat interfaces, creating
-  multi-step agents with tool calling, or implementing RAG. Trigger words: vercel ai sdk,
-  ai sdk, streamText, generateObject, useChat, tool calling, ai agent.
-license: Apache-2.0
-compatibility: "Requires Node.js 18+ with React 18+ for UI hooks"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: data-ai
-  tags: ["vercel-ai-sdk", "ai", "llm", "streaming", "structured-output"]
+category: AI & Machine Learning
+tags: [ai, streaming, react, nextjs, chat, llm, vercel, typescript]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Vercel AI SDK
+# Vercel AI SDK — Build AI Apps with React
 
-## Overview
+You are an expert in the Vercel AI SDK, the TypeScript toolkit for building AI-powered applications. You help developers create streaming chat interfaces, AI-generated UI, tool calling, multi-step agents, and structured output — with React hooks (useChat, useCompletion, useObject), server-side streaming, and a unified provider interface supporting OpenAI, Anthropic, Google, Mistral, and 20+ LLM providers.
 
-The Vercel AI SDK provides a unified TypeScript API for building AI applications with streaming text generation, structured output via Zod schemas, multi-step tool-calling agents, and React hooks for chat interfaces. It supports swapping between OpenAI, Anthropic, Google, and other providers without changing application code.
+## Core Capabilities
 
-## Instructions
+### Chat with Streaming
 
-- When generating text, use `streamText()` for chat and long responses so users see tokens immediately, and `generateText()` for single-shot non-streaming generation.
-- When producing structured data, use `generateObject()` or `streamObject()` with Zod schemas for typed JSON output, and always set `maxTokens` to prevent runaway costs.
-- When building agents, define tools with Zod input schemas and `execute()` functions, set `maxSteps` for multi-step reasoning loops, and use `onStepFinish` for logging agent actions.
-- When creating chat UIs, use `useChat()` React hook for automatic message management, streaming, loading states, and error handling. For Server Components, use `createStreamableUI()`.
-- When swapping providers, use the provider abstraction (`openai("gpt-4o")`, `anthropic("claude-4-sonnet")`) to change models in one line without altering application code.
-- When implementing RAG, use `embed()` / `embedMany()` for vector embeddings and `cosineSimilarity()` for comparison, integrating with vector databases like Pinecone, Chroma, or pgvector.
-- When streaming to the UI, always stream with `useChat()` or RSC; never buffer the entire response before displaying.
+```typescript
+// app/api/chat/route.ts — Streaming chat API
+import { openai } from "@ai-sdk/openai";
+import { streamText, tool } from "ai";
+import { z } from "zod";
 
-## Examples
+export async function POST(req: Request) {
+  const { messages } = await req.json();
 
-### Example 1: Build a streaming chat interface
+  const result = streamText({
+    model: openai("gpt-4o"),
+    system: "You are a helpful assistant for a project management app.",
+    messages,
+    tools: {
+      createTask: tool({
+        description: "Create a new task in the project",
+        parameters: z.object({
+          title: z.string(),
+          priority: z.enum(["low", "medium", "high"]),
+          assignee: z.string().optional(),
+        }),
+        execute: async ({ title, priority, assignee }) => {
+          const task = await db.tasks.create({ data: { title, priority, assignee } });
+          return { taskId: task.id, message: `Created task: ${title}` };
+        },
+      }),
+      searchDocs: tool({
+        description: "Search project documentation",
+        parameters: z.object({ query: z.string() }),
+        execute: async ({ query }) => {
+          const results = await vectorSearch(query);
+          return { results: results.map(r => ({ title: r.title, snippet: r.content.slice(0, 200) })) };
+        },
+      }),
+    },
+    maxSteps: 5,                           // Multi-step: agent can call tools, then continue
+  });
 
-**User request:** "Create an AI chat interface with Next.js and the Vercel AI SDK"
+  return result.toDataStreamResponse();
+}
+```
 
-**Actions:**
-1. Set up a Server Action or API route with `streamText()` and the chosen provider
-2. Implement the chat UI with `useChat()` hook for messages, input, and streaming
-3. Add system prompt and configure `maxTokens` for cost control
-4. Display streaming tokens in real-time with loading indicators
+```tsx
+// components/Chat.tsx — React chat UI
+"use client";
+import { useChat } from "ai/react";
 
-**Output:** A responsive chat interface with real-time streaming and automatic message history management.
+export function Chat() {
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
 
-### Example 2: Create a structured data extraction agent
+  return (
+    <div className="flex flex-col h-[600px]">
+      <div className="flex-1 overflow-y-auto space-y-4 p-4">
+        {messages.map((m) => (
+          <div key={m.id} className={m.role === "user" ? "text-right" : "text-left"}>
+            <div className={`inline-block p-3 rounded-lg ${
+              m.role === "user" ? "bg-blue-500 text-white" : "bg-gray-100"
+            }`}>
+              {m.content}
+              {/* Tool results rendered inline */}
+              {m.toolInvocations?.map((ti) => (
+                <div key={ti.toolCallId} className="mt-2 text-sm bg-white p-2 rounded">
+                  🔧 {ti.toolName}: {JSON.stringify(ti.result)}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <form onSubmit={handleSubmit} className="border-t p-4 flex gap-2">
+        <input value={input} onChange={handleInputChange} placeholder="Ask anything..."
+          className="flex-1 border rounded-lg px-4 py-2" disabled={isLoading} />
+        <button type="submit" disabled={isLoading}>Send</button>
+      </form>
+    </div>
+  );
+}
+```
 
-**User request:** "Build an agent that extracts data from web pages using tools"
+### Structured Output
 
-**Actions:**
-1. Define tools for web fetching, data extraction, and validation with Zod schemas
-2. Configure `streamText()` with `maxSteps: 5` for multi-step reasoning
-3. Use `generateObject()` for final structured output validated against a schema
-4. Add `onStepFinish` callbacks for logging and monitoring agent decisions
+```typescript
+import { generateObject } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
 
-**Output:** A multi-step agent that fetches, analyzes, and structures web data into validated JSON.
+const { object: analysis } = await generateObject({
+  model: openai("gpt-4o"),
+  schema: z.object({
+    sentiment: z.enum(["positive", "negative", "neutral"]),
+    topics: z.array(z.string()),
+    urgency: z.number().min(1).max(5),
+    suggestedAction: z.string(),
+  }),
+  prompt: `Analyze this support ticket: "${ticketText}"`,
+});
+// analysis is typed and validated — guaranteed to match schema
+```
 
-## Guidelines
+### Multi-Provider
 
-- Use `streamText()` for chat and long responses; users see tokens immediately instead of waiting.
-- Always define Zod schemas for `generateObject()`; do not rely on prompt-based JSON.
-- Set `maxTokens` on all generation calls to prevent runaway costs from long completions.
-- Use the provider abstraction to swap models in one line without changing application code.
-- Keep tool `execute()` functions focused: one API call or one database query per tool.
-- Use `onStepFinish` to log agent actions; debugging multi-step agents without logs is impractical.
-- Stream to the UI with `useChat()` or RSC; never buffer the entire response before displaying.
+```typescript
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+
+// Switch models by changing one line
+const result = await generateText({
+  model: anthropic("claude-sonnet-4-20250514"),   // Or openai("gpt-4o") or google("gemini-2.0-flash")
+  prompt: "Explain async/await",
+});
+```
+
+## Installation
+
+```bash
+npm install ai @ai-sdk/openai @ai-sdk/anthropic
+```
+
+## Best Practices
+
+1. **useChat** — React hook for chat UIs; handles streaming, message state, loading, and error automatically
+2. **streamText** — Server-side streaming; response starts immediately, tokens arrive as generated
+3. **Tool calling** — Define tools with Zod schemas; AI calls them, you execute, results feed back to AI
+4. **maxSteps** — Enable multi-step agent behavior; AI can call tools, reason about results, call more tools
+5. **generateObject** — Type-safe structured output; Zod schema enforces output format
+6. **Provider-agnostic** — Same code works with OpenAI, Anthropic, Google; swap model string only
+7. **Middleware** — Add caching, logging, guardrails via AI SDK middleware; intercept any model call
+8. **AI-generated UI** — Use `streamUI` to stream React components from the server; dynamic AI interfaces
