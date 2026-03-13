@@ -1,217 +1,120 @@
 ---
 name: openrouter
-description: |
-  Unified API gateway for accessing multiple LLM providers through a single endpoint.
-  Supports OpenAI, Anthropic, Google, Meta, Mistral and dozens more. Provides automatic
-  fallbacks, model routing, cost tracking, and OpenAI-compatible API format.
-license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - typescript/node 18+
-  - any OpenAI-compatible client
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: data-ai
-  tags:
-    - llm-gateway
-    - multi-provider
-    - model-routing
-    - openai-compatible
-    - fallbacks
+category: AI & Machine Learning
+tags: [llm, api, gateway, multi-model, routing, openai-compatible, cost]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# OpenRouter
+# OpenRouter — Unified LLM API Gateway
 
-## Basic Usage (OpenAI SDK)
+You are an expert in OpenRouter, the unified API gateway for accessing 200+ LLMs through a single OpenAI-compatible endpoint. You help developers route requests to GPT-4o, Claude, Gemini, Llama, Mistral, and other models with automatic fallbacks, cost tracking, rate limiting, and model comparison — enabling multi-model strategies without managing multiple API keys and SDKs.
 
-```python
-# basic_usage.py — Use OpenRouter as a drop-in replacement for OpenAI
-from openai import OpenAI
+## Core Capabilities
 
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="sk-or-v1-xxxxxxxxxxxx",
-)
-
-response = client.chat.completions.create(
-    model="anthropic/claude-3.5-sonnet",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Explain quantum computing briefly."},
-    ],
-    max_tokens=500,
-    temperature=0.7,
-)
-
-print(response.choices[0].message.content)
-print(f"Cost: ${response.usage.prompt_tokens * 0.000003 + response.usage.completion_tokens * 0.000015:.6f}")
-```
-
-## Model Selection and Routing
-
-```python
-# model_routing.py — Access different providers through the same API
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="sk-or-v1-xxxxxxxxxxxx",
-)
-
-models = [
-    "openai/gpt-4o",
-    "anthropic/claude-3.5-sonnet",
-    "google/gemini-pro-1.5",
-    "meta-llama/llama-3.1-405b-instruct",
-    "mistralai/mistral-large",
-]
-
-for model in models:
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": "Say hello in one word."}],
-        max_tokens=10,
-    )
-    print(f"{model}: {response.choices[0].message.content}")
-```
-
-## Automatic Fallbacks
-
-```python
-# fallbacks.py — Configure model fallbacks for reliability
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="sk-or-v1-xxxxxxxxxxxx",
-)
-
-# Use route parameter for fallback behavior
-response = client.chat.completions.create(
-    model="openai/gpt-4o",
-    messages=[{"role": "user", "content": "Hello!"}],
-    extra_body={
-        "route": "fallback",  # Auto-fallback to other providers if primary fails
-        "models": [
-            "openai/gpt-4o",
-            "anthropic/claude-3.5-sonnet",
-            "google/gemini-pro-1.5",
-        ],
-    },
-)
-print(f"Used model: {response.model}")
-```
-
-## Streaming
-
-```python
-# streaming.py — Stream responses for real-time output
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="sk-or-v1-xxxxxxxxxxxx",
-)
-
-stream = client.chat.completions.create(
-    model="anthropic/claude-3.5-sonnet",
-    messages=[{"role": "user", "content": "Write a short poem about APIs."}],
-    stream=True,
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
-print()
-```
-
-## Provider Preferences
-
-```python
-# provider_prefs.py — Control which providers and parameters are used
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="sk-or-v1-xxxxxxxxxxxx",
-)
-
-response = client.chat.completions.create(
-    model="openai/gpt-4o",
-    messages=[{"role": "user", "content": "Hello"}],
-    extra_body={
-        "provider": {
-            "order": ["Azure", "OpenAI"],  # Prefer Azure, fallback to OpenAI
-            "allow_fallbacks": True,
-            "require_parameters": True,
-        },
-        "transforms": ["middle-out"],  # Context compression for long inputs
-    },
-)
-```
-
-## Node.js / TypeScript
+### OpenAI-Compatible API
 
 ```typescript
-// openrouter_node.ts — Use OpenRouter with the Node.js OpenAI SDK
 import OpenAI from "openai";
 
-const client = new OpenAI({
+const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY,
   defaultHeaders: {
-    "HTTP-Referer": "https://myapp.com",
-    "X-Title": "My App",
+    "HTTP-Referer": "https://myapp.com",  // Required for ranking
+    "X-Title": "My App",                  // Shows in OpenRouter dashboard
   },
 });
 
-const response = await client.chat.completions.create({
-  model: "anthropic/claude-3.5-sonnet",
-  messages: [{ role: "user", content: "Hello from Node!" }],
+// Use any model with OpenAI SDK
+const response = await openai.chat.completions.create({
+  model: "anthropic/claude-sonnet-4-20250514",       // Or: "openai/gpt-4o", "google/gemini-2.0-flash"
+  messages: [{ role: "user", content: "Hello!" }],
 });
 
-console.log(response.choices[0].message.content);
+// Streaming
+const stream = await openai.chat.completions.create({
+  model: "openai/gpt-4o",
+  messages: [{ role: "user", content: "Write a poem" }],
+  stream: true,
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || "");
+}
+
+// Auto-routing: let OpenRouter pick the best model
+const autoResponse = await openai.chat.completions.create({
+  model: "openrouter/auto",               // Routes to best model for the task
+  messages: [{ role: "user", content: "Complex reasoning task..." }],
+});
+
+// Cost-optimized routing
+const cheapResponse = await openai.chat.completions.create({
+  model: "openrouter/auto",
+  route: "fallback",                      // Try cheapest first, fall back to better
+  models: ["openai/gpt-4o-mini", "anthropic/claude-sonnet-4-20250514", "openai/gpt-4o"],
+  messages: [{ role: "user", content: "Simple task" }],
+});
 ```
 
-## List Available Models
+### Model Comparison
 
-```python
-# list_models.py — Query available models and their pricing
-import requests
+```typescript
+// Compare models side-by-side
+const models = [
+  "openai/gpt-4o",
+  "anthropic/claude-sonnet-4-20250514",
+  "google/gemini-2.0-flash",
+  "meta-llama/llama-3.1-70b-instruct",
+];
 
-response = requests.get("https://openrouter.ai/api/v1/models")
-models = response.json()["data"]
-
-# Sort by price (prompt cost per token)
-for model in sorted(models, key=lambda m: float(m.get("pricing", {}).get("prompt", "999")))[:10]:
-    pricing = model.get("pricing", {})
-    print(f"{model['id']}: ${float(pricing.get('prompt', 0))*1_000_000:.2f}/M input, "
-          f"${float(pricing.get('completion', 0))*1_000_000:.2f}/M output, "
-          f"context: {model.get('context_length', 'N/A')}")
+const results = await Promise.all(
+  models.map(async (model) => {
+    const start = Date.now();
+    const response = await openai.chat.completions.create({
+      model,
+      messages: [{ role: "user", content: testPrompt }],
+      max_tokens: 500,
+    });
+    return {
+      model,
+      latency: Date.now() - start,
+      tokens: response.usage,
+      cost: response.usage?.total_tokens,   // OpenRouter returns cost info
+      output: response.choices[0].message.content,
+    };
+  }),
+);
 ```
 
-## Check Usage and Credits
+### With Vercel AI SDK
 
-```python
-# check_credits.py — Monitor your API usage and remaining balance
-import requests
+```typescript
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { generateText } from "ai";
 
-response = requests.get(
-    "https://openrouter.ai/api/v1/auth/key",
-    headers={"Authorization": "Bearer sk-or-v1-xxxxxxxxxxxx"},
-)
-data = response.json()["data"]
-print(f"Label: {data.get('label')}")
-print(f"Usage: ${data.get('usage', 0):.4f}")
-print(f"Limit: ${data.get('limit', 'unlimited')}")
+const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+
+const { text } = await generateText({
+  model: openrouter("anthropic/claude-sonnet-4-20250514"),
+  prompt: "Explain quantum computing",
+});
 ```
 
-## Key Concepts
+## Installation
 
-- **OpenAI-compatible**: Use any OpenAI SDK by changing `base_url` — zero code changes needed
-- **Multi-provider**: Access 200+ models from OpenAI, Anthropic, Google, Meta, Mistral, etc.
-- **Fallbacks**: Automatic provider failover for high availability
-- **Route modes**: `fallback` for reliability, `lowest-cost` for cheapest available provider
-- **Transforms**: `middle-out` compresses long contexts to fit smaller context windows
-- **Credits**: Pay-as-you-go with per-model pricing; no provider accounts needed
+```bash
+npm install openai                        # Use OpenAI SDK
+# Or: npm install @openrouter/ai-sdk-provider  # For Vercel AI SDK
+```
+
+## Best Practices
+
+1. **One API, all models** — Single API key for GPT-4o, Claude, Gemini, Llama, Mistral; no vendor lock-in
+2. **Fallback routing** — Configure model fallbacks; if primary is down or overloaded, auto-switch to backup
+3. **Cost tracking** — OpenRouter dashboard shows per-model costs; optimize spend by routing simple tasks to cheap models
+4. **OpenAI SDK compatible** — Just change `baseURL` and `apiKey`; all OpenAI SDK features work (tools, streaming, JSON mode)
+5. **Free models** — Some models available for free (rate-limited); great for prototyping
+6. **Auto routing** — Use `openrouter/auto` to let the system pick the best model based on task complexity
+7. **Provider preferences** — Set model priorities and fallbacks; optimize for cost, speed, or quality
+8. **Usage limits** — Set per-key spending limits in dashboard; prevent runaway costs in production

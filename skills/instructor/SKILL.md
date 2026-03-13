@@ -1,68 +1,148 @@
 ---
 name: instructor
-description: >-
-  Assists with extracting structured, validated data from LLM responses using Instructor.
-  Use when converting unstructured text into typed objects, classifying content, extracting
-  entities, or building reliable data extraction pipelines with automatic retries.
-  Trigger words: instructor, structured output, pydantic, llm extraction, entity extraction,
-  structured data, response model.
-license: Apache-2.0
-compatibility: "Python 3.9+ or TypeScript/Node.js 18+"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: data-ai
-  tags: ["instructor", "structured-output", "llm", "extraction", "validation"]
+category: AI & Machine Learning
+tags: [structured-output, llm, pydantic, validation, extraction, typescript]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Instructor
+# Instructor — Structured LLM Output with Validation
 
-## Overview
+You are an expert in Instructor, the library for getting structured, validated output from LLMs. You help developers extract typed data from unstructured text using Pydantic models (Python) or Zod schemas (TypeScript), with automatic retries on validation failures, streaming partial objects, and support for OpenAI, Anthropic, Google, and local models — turning LLMs into reliable data extraction engines.
 
-Instructor extracts structured, validated data from LLM responses using Pydantic models (Python) or Zod schemas (TypeScript). It handles prompt engineering, retries, and validation automatically, turning unreliable LLM text into reliable typed data with support for OpenAI, Anthropic, Google, and other providers.
+## Core Capabilities
 
-## Instructions
+### Python (Pydantic)
 
-- When defining output schemas, use Pydantic models (Python) or Zod schemas (TypeScript) with descriptive field descriptions that guide the LLM, and include `Optional` fields for data that may not be present in the input.
-- When extracting data, use `client.chat.completions.create(response_model=Schema, ...)` and set `max_retries=3` for production since most validation failures self-correct on the first retry.
-- When improving accuracy, include a `reasoning` or `chain_of_thought` field in the schema to force the model to think before outputting structured fields.
-- When validating business rules, add field validators and model validators for cross-field constraints (e.g., "end_date must be after start_date", "amount must be positive").
-- When extracting multiple objects, use `create_iterable()` for variable-length extractions instead of `List[Item]` for better streaming and pagination support.
-- When streaming results, use `create_partial()` (Python) or `{ stream: true }` (TypeScript) to display incomplete results as the model generates them.
-- When monitoring quality, log extraction attempts and retry counts; high retry rates indicate schema or prompt issues that need refinement.
+```python
+# extraction.py — Type-safe LLM extraction
+import instructor
+from openai import OpenAI
+from pydantic import BaseModel, Field
+from typing import Literal
 
-## Examples
+client = instructor.from_openai(OpenAI())
 
-### Example 1: Extract structured entities from text
+class ContactInfo(BaseModel):
+    name: str = Field(description="Full name of the person")
+    email: str | None = Field(default=None, description="Email address if mentioned")
+    phone: str | None = Field(default=None, description="Phone number if mentioned")
+    company: str | None = Field(default=None)
+    role: str | None = Field(default=None)
 
-**User request:** "Parse customer support emails into structured tickets"
+class ExtractedContacts(BaseModel):
+    contacts: list[ContactInfo]
+    confidence: float = Field(ge=0, le=1, description="Overall extraction confidence")
 
-**Actions:**
-1. Define a Pydantic model with fields: subject, category, urgency, customer_name, issue_description
-2. Add a `reasoning` field for the model to analyze the email before structuring
-3. Patch the OpenAI client with Instructor and call with `response_model=SupportTicket`
-4. Add field validators for category and urgency enums with descriptive error messages
+# Extract structured data — guaranteed to match schema
+result = client.chat.completions.create(
+    model="gpt-4o-mini",
+    response_model=ExtractedContacts,
+    messages=[{
+        "role": "user",
+        "content": """Extract contacts from this email:
 
-**Output:** Structured support tickets with consistent categorization and validated fields.
+Hi, I'm reaching out on behalf of Sarah Chen (sarah@techcorp.io),
+VP of Engineering at TechCorp. She'd like to schedule a call.
+You can also reach her at (415) 555-0123.
 
-### Example 2: Classify documents with confidence scores
+CC: Mike Johnson, mike.j@techcorp.io, Head of DevOps""",
+    }],
+    max_retries=3,                        # Auto-retry on validation failure
+)
 
-**User request:** "Classify legal documents by type with confidence scoring"
+# result.contacts[0].name → "Sarah Chen"
+# result.contacts[0].email → "sarah@techcorp.io"
+# result.contacts[0].role → "VP of Engineering"
+# Fully typed, validated by Pydantic
 
-**Actions:**
-1. Define classification schema with `document_type`, `confidence`, and `key_indicators` fields
-2. Add validation that confidence is between 0 and 1
-3. Use `create_iterable()` to process a batch of documents
-4. Log retry counts to monitor classification quality over time
+# Sentiment analysis with enum
+class SentimentAnalysis(BaseModel):
+    sentiment: Literal["positive", "negative", "neutral", "mixed"]
+    emotions: list[Literal["joy", "anger", "sadness", "fear", "surprise", "disgust"]]
+    key_phrases: list[str]
+    summary: str
 
-**Output:** Typed classification results with confidence scores and supporting evidence.
+analysis = client.chat.completions.create(
+    model="gpt-4o-mini",
+    response_model=SentimentAnalysis,
+    messages=[{"role": "user", "content": f"Analyze sentiment: {review_text}"}],
+)
 
-## Guidelines
+# Streaming partial objects
+from instructor import Partial
 
-- Define output models with descriptive field descriptions; the LLM reads them as schema guidance.
-- Include a `reasoning` field for complex extractions to improve accuracy.
-- Set `max_retries=3` for production; most validation failures self-correct on the first retry.
-- Use `Optional` types for fields that may not be present in the input.
-- Validate business logic in model validators, not just type checks.
-- Use `create_iterable()` for variable-length extractions instead of `List[Item]`.
-- Log extraction attempts and retry counts for monitoring; high retry rates indicate schema or prompt issues.
+for partial in client.chat.completions.create_partial(
+    model="gpt-4o",
+    response_model=ExtractedContacts,
+    messages=[{"role": "user", "content": email_text}],
+):
+    # partial.contacts may be incomplete — render progressively
+    print(f"Found {len(partial.contacts)} contacts so far...")
+```
+
+### TypeScript (Zod)
+
+```typescript
+import Instructor from "@instructor-ai/instructor";
+import OpenAI from "openai";
+import { z } from "zod";
+
+const client = Instructor({ client: new OpenAI(), mode: "TOOLS" });
+
+const ContactSchema = z.object({
+  contacts: z.array(z.object({
+    name: z.string(),
+    email: z.string().email().nullable(),
+    role: z.string().nullable(),
+  })),
+  confidence: z.number().min(0).max(1),
+});
+
+const result = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  response_model: { schema: ContactSchema, name: "ContactExtraction" },
+  messages: [{ role: "user", content: emailText }],
+  max_retries: 3,
+});
+// result is fully typed as z.infer<typeof ContactSchema>
+```
+
+### Multi-Provider
+
+```python
+# Works with any provider
+from anthropic import Anthropic
+import instructor
+
+# Anthropic
+client = instructor.from_anthropic(Anthropic())
+result = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    response_model=ExtractedContacts,
+    messages=[{"role": "user", "content": text}],
+    max_tokens=1024,
+)
+
+# Local models (Ollama)
+from openai import OpenAI
+client = instructor.from_openai(OpenAI(base_url="http://localhost:11434/v1", api_key="ollama"), mode=instructor.Mode.JSON)
+```
+
+## Installation
+
+```bash
+pip install instructor                    # Python
+npm install @instructor-ai/instructor zod  # TypeScript
+```
+
+## Best Practices
+
+1. **Pydantic/Zod for schema** — Define exact output shape; LLM output is validated and typed automatically
+2. **Field descriptions** — Add `description` to fields; helps the LLM understand what to extract
+3. **max_retries** — Set to 2-3; Instructor auto-retries with validation error feedback when output doesn't match
+4. **Literals for enums** — Use `Literal["a", "b"]` instead of `str` for categorical fields; constrains LLM output
+5. **Nested models** — Use nested Pydantic models for complex structures; LLM handles hierarchical extraction
+6. **Streaming** — Use `create_partial` for progressive rendering; show partial results as they arrive
+7. **GPT-4o-mini for extraction** — Structured extraction doesn't need the smartest model; mini is 10x cheaper and fast
+8. **Validation as feedback** — When validation fails, Instructor sends the error back to the LLM for self-correction
