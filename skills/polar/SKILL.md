@@ -1,47 +1,20 @@
 ---
 name: polar
-description: >-
-  Monetize open-source and digital products with Polar — payment and billing
-  platform for developers. Use when someone asks to "monetize open source",
-  "Polar", "sell API access", "developer billing", "GitHub Sponsors alternative",
-  "sell digital products as a developer", or "subscription billing for SaaS".
-  Covers products, subscriptions, checkout, license keys, webhooks, and
-  usage-based billing.
-license: Apache-2.0
-compatibility: "REST API. TypeScript/Python SDKs. Stripe-powered payments."
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: business
-  tags: ["monetization", "payments", "polar", "billing", "subscriptions"]
+category: Backend Development
+tags: [monetization, open-source, payments, subscriptions, sponsorship, api]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Polar
+# Polar — Monetization for Developers
 
-## Overview
+You are an expert in Polar, the monetization platform built for developers and open-source maintainers. You help developers add payments, subscriptions, product sales, license keys, and sponsorships to their projects with a developer-first API, webhooks, and embeddable components — replacing Stripe integration complexity with purpose-built tools for software monetization.
 
-Polar is a payment and billing platform built for developers — monetize APIs, SaaS products, digital downloads, and open-source projects. Unlike Stripe (which is a payment primitive), Polar handles the full billing stack: product catalog, checkout, subscriptions, license keys, usage metering, and customer portal. Designed specifically for indie hackers and developer-focused businesses.
+## Core Capabilities
 
-## When to Use
-
-- Selling API access with usage-based billing
-- Monetizing an open-source project (paid features, support tiers)
-- Selling digital products (courses, templates, ebooks)
-- Subscription billing for a SaaS product
-- Need a merchant of record (Polar handles tax/VAT)
-
-## Instructions
-
-### Setup
-
-```bash
-npm install @polar-sh/sdk
-```
-
-### Create Products and Checkout
+### Products and Checkout
 
 ```typescript
-// billing.ts — Set up products and generate checkout links
 import { Polar } from "@polar-sh/sdk";
 
 const polar = new Polar({ accessToken: process.env.POLAR_ACCESS_TOKEN });
@@ -49,116 +22,125 @@ const polar = new Polar({ accessToken: process.env.POLAR_ACCESS_TOKEN });
 // Create a product
 const product = await polar.products.create({
   name: "Pro Plan",
-  description: "Unlimited API calls, priority support",
-  prices: [
-    { type: "recurring", amount: 2900, currency: "usd", interval: "month" },
-    { type: "recurring", amount: 29000, currency: "usd", interval: "year" },
+  description: "Full access to all features",
+  prices: [{
+    type: "recurring",
+    recurringInterval: "month",
+    priceAmount: 2900,                    // $29.00
+    priceCurrency: "usd",
+  }],
+  benefits: [
+    { type: "license_keys", description: "License key for desktop app" },
+    { type: "discord", description: "Access to Pro Discord channel" },
+    { type: "custom", description: "Priority support" },
   ],
 });
 
-// Generate checkout URL
+// Create checkout session
 const checkout = await polar.checkouts.create({
   productId: product.id,
-  successUrl: "https://myapp.com/success?session_id={CHECKOUT_SESSION_ID}",
-  customerEmail: "customer@example.com",
-  metadata: { userId: "user_123" },
+  successUrl: "https://myapp.com/success?session={CHECKOUT_ID}",
+  customerEmail: "user@example.com",
+  metadata: { userId: "usr-42" },
 });
+// Redirect user to checkout.url
 
-console.log(checkout.url); // Send customer here to pay
+// Verify checkout
+const session = await polar.checkouts.get(checkoutId);
+if (session.status === "confirmed") {
+  await activateUserPro(session.metadata.userId);
+}
 ```
 
 ### Webhooks
 
 ```typescript
-// webhooks.ts — Handle billing events
+// Handle Polar webhooks
 import { validateEvent } from "@polar-sh/sdk/webhooks";
 
-export async function handleWebhook(req: Request) {
-  const body = await req.text();
-  const signature = req.headers.get("webhook-signature")!;
-
-  const event = validateEvent(body, signature, process.env.POLAR_WEBHOOK_SECRET!);
+app.post("/api/webhooks/polar", async (req, res) => {
+  const event = validateEvent(req.body, req.headers, process.env.POLAR_WEBHOOK_SECRET!);
 
   switch (event.type) {
     case "subscription.created":
-      await activateSubscription(event.data.customer.email, event.data.product.id);
+      await db.users.update(event.data.customer.metadata.userId, { plan: "pro", polarSubId: event.data.id });
       break;
-
     case "subscription.canceled":
-      await deactivateSubscription(event.data.customer.email);
+      await db.users.update(event.data.customer.metadata.userId, { plan: "free", cancelAt: event.data.currentPeriodEnd });
       break;
-
     case "order.created":
-      // One-time purchase
-      await deliverProduct(event.data.customer.email, event.data.product.id);
+      await fulfillOrder(event.data);
       break;
   }
 
-  return new Response("OK");
-}
+  res.json({ received: true });
+});
 ```
 
 ### License Keys
 
 ```typescript
-// license.ts — Generate and validate license keys
-const license = await polar.licenseKeys.create({
-  productId: product.id,
-  customerId: "cust_xxx",
-  activations: { limit: 3 },  // Max 3 devices
-  expiresAt: new Date("2027-01-01"),
-});
-
-// Validate in your app
+// Validate license key (in your desktop/CLI app)
 const validation = await polar.licenseKeys.validate({
-  key: "POLAR-XXXX-XXXX-XXXX",
-  organizationId: "org_xxx",
+  key: userProvidedKey,
+  organizationId: process.env.POLAR_ORG_ID!,
 });
 
 if (validation.valid) {
-  console.log(`License active until ${validation.expiresAt}`);
+  console.log(`License valid for: ${validation.customer.email}`);
+  console.log(`Activations: ${validation.activations}/${validation.limit}`);
+  // Activate features
+} else {
+  console.log(`Invalid: ${validation.error}`);
+}
+
+// Activate (track device)
+await polar.licenseKeys.activate({
+  key: userProvidedKey,
+  label: `${os.hostname()}-${os.platform()}`,
+  organizationId: process.env.POLAR_ORG_ID!,
+});
+```
+
+### Embeddable Components
+
+```tsx
+// React component for checkout button
+import { PolarCheckout } from "@polar-sh/react";
+
+function PricingPage() {
+  return (
+    <div className="pricing-grid">
+      <div className="plan">
+        <h3>Pro</h3>
+        <p className="price">$29/mo</p>
+        <PolarCheckout
+          productId="prod_abc123"
+          successUrl="/success"
+          className="buy-button"
+        >
+          Get Pro
+        </PolarCheckout>
+      </div>
+    </div>
+  );
 }
 ```
 
-### Usage-Based Billing
+## Installation
 
-```typescript
-// usage.ts — Meter API usage for billing
-// Report usage events
-await polar.meters.record({
-  customerId: "cust_xxx",
-  meterId: "api-calls",
-  value: 1,
-  timestamp: new Date(),
-});
-
-// Customer sees usage on their portal
-// Billing happens automatically based on usage tiers
+```bash
+npm install @polar-sh/sdk
+npm install @polar-sh/react                # React components
 ```
 
-## Examples
+## Best Practices
 
-### Example 1: Monetize an API
-
-**User prompt:** "I built a public API and want to charge for it — free tier (100 calls/day) and paid tier ($29/mo unlimited)."
-
-The agent will set up Polar products with free/paid tiers, integrate API key validation, meter usage, and handle subscription lifecycle.
-
-### Example 2: Sell a developer tool
-
-**User prompt:** "I have a CLI tool. Sell it with license keys and a 14-day trial."
-
-The agent will create a Polar product, generate checkout, issue license keys on purchase, and add license validation to the CLI.
-
-## Guidelines
-
-- **Merchant of record** — Polar handles VAT/tax, you get payouts
-- **Checkout links** — generate and redirect, Polar handles the payment UI
-- **Webhooks for events** — subscription created/canceled, order completed
-- **License keys for software** — activation limits, expiry, validation API
-- **Usage metering** — record events, Polar calculates billing
-- **Customer portal** — customers manage their own subscriptions
-- **GitHub integration** — issue-based rewards, sponsor tiers
-- **No Stripe dashboard needed** — Polar wraps Stripe with developer UX
-- **Multi-currency** — USD, EUR, GBP supported
-- **Free tier: 0% fees for first $1K/mo** — then 5%
+1. **Benefits system** — Attach benefits (license keys, Discord access, downloads) to products; Polar auto-provisions
+2. **Webhooks for fulfillment** — Use webhooks for subscription lifecycle; don't rely solely on checkout redirect
+3. **License keys** — Use for desktop apps, CLI tools, self-hosted software; activation limits prevent sharing
+4. **Metadata** — Pass `userId` in checkout metadata; link Polar customers to your user system
+5. **Customer portal** — Polar provides a hosted portal for subscription management; no custom billing UI needed
+6. **Open-source funding** — Use Polar for issue funding and sponsorships; backers fund specific features
+7. **Usage-based** — Create metered products for API access; track usage and bill accordingly
+8. **Multi-currency** — Support USD, EUR, GBP; Polar handles currency conversion and tax calculation

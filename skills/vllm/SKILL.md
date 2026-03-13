@@ -1,201 +1,129 @@
 ---
 name: vllm
-description: |
-  High-throughput LLM serving engine with PagedAttention for efficient memory management.
-  Serves open-source models with OpenAI-compatible API, continuous batching, tensor parallelism,
-  and quantization support. Optimized for production inference workloads.
-license: Apache-2.0
-compatibility:
-  - python 3.8+
-  - CUDA 11.8+
-  - Linux (GPU required)
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: data-ai
-  tags:
-    - llm-serving
-    - inference
-    - high-throughput
-    - paged-attention
-    - openai-compatible
+category: AI & Machine Learning
+tags: [inference, llm, serving, gpu, openai-compatible, batching, performance]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# vLLM
+# vLLM — High-Throughput LLM Inference Engine
 
-## Installation
+You are an expert in vLLM, the high-throughput LLM serving engine. You help developers deploy open-source models (Llama, Mistral, Qwen, Phi, Gemma) with PagedAttention for efficient memory management, continuous batching, tensor parallelism for multi-GPU, OpenAI-compatible API, and quantization support — achieving 2-24x higher throughput than HuggingFace Transformers for production LLM serving.
 
-```bash
-# Install vLLM
-pip install vllm
-```
+## Core Capabilities
 
-## Start OpenAI-Compatible Server
+### Server Deployment
 
 ```bash
-# serve.sh — Launch vLLM as an OpenAI-compatible API server
-python -m vllm.entrypoints.openai.api_server \
-    --model mistralai/Mistral-7B-Instruct-v0.2 \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --max-model-len 8192 \
-    --dtype auto \
-    --gpu-memory-utilization 0.9
+# Start OpenAI-compatible API server
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --tensor-parallel-size 1 \
+  --max-model-len 8192 \
+  --gpu-memory-utilization 0.9 \
+  --quantization awq \
+  --api-key my-secret-key
+
+# Multi-GPU (tensor parallelism)
+vllm serve meta-llama/Llama-3.1-70B-Instruct \
+  --tensor-parallel-size 4 \
+  --pipeline-parallel-size 1 \
+  --max-num-seqs 256
+
+# With Docker
+docker run --runtime nvidia --gpus all \
+  -v ~/.cache/huggingface:/root/.cache/huggingface \
+  -p 8000:8000 \
+  vllm/vllm-openai:latest \
+  --model meta-llama/Llama-3.1-8B-Instruct
 ```
 
-```bash
-# Test with curl
-curl http://localhost:8000/v1/chat/completions \
-    -H "Content-Type: application/json" \
-    -d '{
-        "model": "mistralai/Mistral-7B-Instruct-v0.2",
-        "messages": [{"role": "user", "content": "Hello!"}],
-        "max_tokens": 100
-    }'
+### OpenAI-Compatible Client
+
+```typescript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "http://localhost:8000/v1",
+  apiKey: "my-secret-key",
+});
+
+// Chat completion
+const response = await client.chat.completions.create({
+  model: "meta-llama/Llama-3.1-8B-Instruct",
+  messages: [
+    { role: "system", content: "You are a helpful coding assistant." },
+    { role: "user", content: "Write a Python fibonacci function" },
+  ],
+  temperature: 0.7,
+  max_tokens: 1024,
+});
+
+// Streaming
+const stream = await client.chat.completions.create({
+  model: "meta-llama/Llama-3.1-8B-Instruct",
+  messages: [{ role: "user", content: "Explain quantum computing" }],
+  stream: true,
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || "");
+}
+
+// Embeddings
+const embeddings = await client.embeddings.create({
+  model: "BAAI/bge-large-en-v1.5",
+  input: ["Your text here"],
+});
 ```
 
-## Use with OpenAI SDK
+### Python Offline Inference
 
 ```python
-# client.py — Connect to vLLM server using OpenAI Python SDK
-from openai import OpenAI
-
-client = OpenAI(base_url="http://localhost:8000/v1", api_key="unused")
-
-response = client.chat.completions.create(
-    model="mistralai/Mistral-7B-Instruct-v0.2",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Explain PagedAttention in simple terms."},
-    ],
-    max_tokens=300,
-    temperature=0.7,
-)
-print(response.choices[0].message.content)
-
-# Streaming
-stream = client.chat.completions.create(
-    model="mistralai/Mistral-7B-Instruct-v0.2",
-    messages=[{"role": "user", "content": "Write a poem"}],
-    stream=True,
-)
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="")
-```
-
-## Offline Batch Inference
-
-```python
-# batch_inference.py — Run batch inference without starting a server
 from vllm import LLM, SamplingParams
 
 llm = LLM(
-    model="mistralai/Mistral-7B-Instruct-v0.2",
-    dtype="auto",
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    quantization="awq",
     gpu_memory_utilization=0.9,
+    max_model_len=8192,
 )
 
 sampling_params = SamplingParams(
     temperature=0.7,
-    top_p=0.95,
-    max_tokens=200,
+    top_p=0.9,
+    max_tokens=512,
 )
 
+# Batch inference (processes all prompts efficiently)
 prompts = [
-    "Explain quantum computing:",
-    "Write a Python quicksort:",
-    "What is the meaning of life?",
+    "Explain machine learning in simple terms",
+    "Write a haiku about programming",
+    "What is the capital of France?",
 ]
 
 outputs = llm.generate(prompts, sampling_params)
-
 for output in outputs:
     print(f"Prompt: {output.prompt[:50]}...")
-    print(f"Output: {output.outputs[0].text}\n")
+    print(f"Output: {output.outputs[0].text}")
+    print(f"Tokens/sec: {len(output.outputs[0].token_ids) / output.metrics.finished_time:.1f}")
 ```
 
-## Multi-GPU / Tensor Parallelism
+## Installation
 
 ```bash
-# multi_gpu.sh — Serve a large model across multiple GPUs
-python -m vllm.entrypoints.openai.api_server \
-    --model meta-llama/Llama-2-70b-chat-hf \
-    --tensor-parallel-size 4 \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --max-model-len 4096
+pip install vllm
+# Requires: CUDA 12.1+, PyTorch 2.4+
+# GPU: NVIDIA A100, H100, L40S, RTX 4090 recommended
 ```
 
-## Quantization (AWQ / GPTQ)
+## Best Practices
 
-```bash
-# quantized.sh — Serve a quantized model for reduced VRAM usage
-python -m vllm.entrypoints.openai.api_server \
-    --model TheBloke/Mistral-7B-Instruct-v0.2-AWQ \
-    --quantization awq \
-    --dtype auto \
-    --max-model-len 8192
-```
-
-## LoRA Adapters
-
-```bash
-# lora_serve.sh — Serve a base model with LoRA adapters
-python -m vllm.entrypoints.openai.api_server \
-    --model meta-llama/Llama-2-7b-hf \
-    --enable-lora \
-    --lora-modules my-adapter=./path/to/lora/adapter \
-    --max-lora-rank 16
-```
-
-```python
-# lora_client.py — Request inference using a specific LoRA adapter
-from openai import OpenAI
-
-client = OpenAI(base_url="http://localhost:8000/v1", api_key="unused")
-
-response = client.chat.completions.create(
-    model="my-adapter",  # Use the LoRA adapter name as the model
-    messages=[{"role": "user", "content": "Hello!"}],
-)
-```
-
-## Docker Deployment
-
-```yaml
-# docker-compose.yml — Deploy vLLM with Docker
-version: "3.8"
-services:
-  vllm:
-    image: vllm/vllm-openai:latest
-    runtime: nvidia
-    ports:
-      - "8000:8000"
-    environment:
-      - HUGGING_FACE_HUB_TOKEN=hf_xxxx
-    volumes:
-      - model-cache:/root/.cache/huggingface
-    command: >
-      --model mistralai/Mistral-7B-Instruct-v0.2
-      --host 0.0.0.0
-      --port 8000
-      --max-model-len 8192
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-volumes:
-  model-cache:
-```
-
-## Key Concepts
-
-- **PagedAttention**: Manages KV cache like virtual memory pages — eliminates memory waste
-- **Continuous batching**: Dynamically batches incoming requests for maximum throughput
-- **Tensor parallelism**: Split large models across multiple GPUs with `--tensor-parallel-size`
-- **OpenAI-compatible**: Drop-in replacement for OpenAI API — use any existing client
-- **Quantization**: AWQ and GPTQ support for running larger models on less VRAM
-- **LoRA serving**: Serve multiple fine-tuned adapters from a single base model
-- **GPU memory utilization**: `--gpu-memory-utilization 0.9` uses 90% of VRAM for KV cache
+1. **PagedAttention** — vLLM's core innovation; manages KV cache like OS virtual memory, eliminates waste
+2. **Continuous batching** — Processes new requests immediately without waiting; maximizes GPU utilization
+3. **Quantization** — Use AWQ or GPTQ for 4-bit inference; 2-3x more throughput, minimal quality loss
+4. **Tensor parallelism** — Split model across GPUs with `--tensor-parallel-size`; serve 70B+ models
+5. **OpenAI compatibility** — Drop-in replacement for OpenAI API; any OpenAI SDK client works unchanged
+6. **GPU memory** — Set `--gpu-memory-utilization 0.9` for max throughput; leave 10% for overhead
+7. **Max sequences** — Tune `--max-num-seqs` based on your workload; higher = more concurrent requests
+8. **Prefix caching** — Enable for shared system prompts; reuses KV cache across requests with same prefix

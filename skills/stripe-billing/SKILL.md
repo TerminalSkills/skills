@@ -1,355 +1,162 @@
 ---
 name: stripe-billing
-description: >-
-  Build subscription billing with Stripe — products, prices, checkout sessions,
-  subscriptions, invoices, usage-based metering, customer portal, coupons,
-  webhooks, and dunning. Use when tasks involve SaaS billing, recurring payments,
-  free trials, plan upgrades/downgrades, or usage-based pricing.
-license: Apache-2.0
-compatibility: "No special requirements"
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: business
-  tags: ["stripe", "billing", "subscriptions", "payments", "saas"]
+category: Backend Development
+tags: [payments, subscriptions, saas, billing, metered, usage-based]
+version: 1.0.0
+author: terminal-skills
 ---
 
-# Stripe Billing
+# Stripe Billing — SaaS Subscription & Usage-Based Billing
 
-Build complete subscription billing for SaaS applications — from checkout to cancellation.
+You are an expert in Stripe Billing, the complete billing platform for SaaS businesses. You help developers implement subscription management, usage-based billing, metered pricing, free trials, proration, invoicing, customer portal, and webhook-driven lifecycle management — building everything from simple monthly plans to complex per-seat + usage hybrid pricing.
 
-## Setup
+## Core Capabilities
+
+### Subscription Setup
+
+```typescript
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+// Create product + price
+const product = await stripe.products.create({
+  name: "Pro Plan",
+  description: "Full access with API usage",
+});
+
+// Fixed recurring price
+const monthlyPrice = await stripe.prices.create({
+  product: product.id,
+  unit_amount: 2900,                      // $29.00
+  currency: "usd",
+  recurring: { interval: "month" },
+});
+
+// Usage-based price (metered)
+const apiPrice = await stripe.prices.create({
+  product: product.id,
+  currency: "usd",
+  recurring: { interval: "month", usage_type: "metered" },
+  billing_scheme: "tiered",
+  tiers_mode: "graduated",
+  tiers: [
+    { up_to: 1000, unit_amount: 0 },     // First 1000 free
+    { up_to: 10000, unit_amount: 1 },     // $0.01 per call (1K-10K)
+    { up_to: "inf", unit_amount: 0.5 },   // $0.005 per call (10K+)
+  ],
+});
+
+// Create checkout session
+const session = await stripe.checkout.sessions.create({
+  mode: "subscription",
+  customer_email: user.email,
+  line_items: [
+    { price: monthlyPrice.id, quantity: 1 },
+    { price: apiPrice.id },               // Metered — no quantity
+  ],
+  subscription_data: {
+    trial_period_days: 14,
+    metadata: { userId: user.id },
+  },
+  success_url: "https://app.example.com/billing/success?session_id={CHECKOUT_SESSION_ID}",
+  cancel_url: "https://app.example.com/billing/cancel",
+});
+// Redirect to session.url
+```
+
+### Usage Reporting
+
+```typescript
+// Report API usage for metered billing
+async function reportUsage(subscriptionItemId: string, quantity: number) {
+  await stripe.subscriptionItems.createUsageRecord(subscriptionItemId, {
+    quantity,
+    timestamp: Math.floor(Date.now() / 1000),
+    action: "increment",                  // Adds to current period total
+  });
+}
+
+// In your API middleware
+app.use(async (req, res, next) => {
+  next();
+  // After response, report usage
+  const user = req.user;
+  if (user.stripeSubscriptionItemId) {
+    await reportUsage(user.stripeSubscriptionItemId, 1);
+  }
+});
+```
+
+### Webhook Handler
+
+```typescript
+app.post("/api/webhooks/stripe", async (req, res) => {
+  const event = stripe.webhooks.constructEvent(
+    req.body, req.headers["stripe-signature"]!, process.env.STRIPE_WEBHOOK_SECRET!,
+  );
+
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await db.users.update(session.metadata!.userId, {
+        plan: "pro",
+        stripeCustomerId: session.customer as string,
+        stripeSubscriptionId: session.subscription as string,
+      });
+      break;
+    }
+    case "invoice.paid": {
+      const invoice = event.data.object as Stripe.Invoice;
+      await db.invoices.create({
+        userId: await getUserByStripeCustomer(invoice.customer as string),
+        amount: invoice.amount_paid,
+        pdfUrl: invoice.invoice_pdf,
+      });
+      break;
+    }
+    case "customer.subscription.deleted": {
+      const sub = event.data.object as Stripe.Subscription;
+      await db.users.update({ stripeSubscriptionId: sub.id }, { plan: "free" });
+      break;
+    }
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      await sendPaymentFailedEmail(invoice.customer as string);
+      break;
+    }
+  }
+
+  res.json({ received: true });
+});
+```
+
+### Customer Portal
+
+```typescript
+// Let customers manage their own subscription
+app.post("/api/billing/portal", async (req, res) => {
+  const session = await stripe.billingPortal.sessions.create({
+    customer: req.user.stripeCustomerId,
+    return_url: "https://app.example.com/settings",
+  });
+  res.json({ url: session.url });
+});
+// Customer can: change plan, update payment method, cancel, view invoices
+```
+
+## Installation
 
 ```bash
 npm install stripe
 ```
 
-```typescript
-// stripe.ts — Client initialization
-import Stripe from 'stripe';
+## Best Practices
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
-```
-
-## Products and Prices
-
-Products represent what you sell. Prices represent how much and how often.
-
-```typescript
-// Create a product with monthly and annual pricing
-const product = await stripe.products.create({
-  name: 'Pro Plan',
-  description: 'Full access with priority support',
-  metadata: { tier: 'pro' },
-});
-
-// Monthly price
-const monthly = await stripe.prices.create({
-  product: product.id,
-  unit_amount: 4900,        // $49.00 in cents
-  currency: 'usd',
-  recurring: { interval: 'month' },
-});
-
-// Annual price (20% discount)
-const annual = await stripe.prices.create({
-  product: product.id,
-  unit_amount: 47040,       // $470.40/year ($39.20/mo)
-  currency: 'usd',
-  recurring: { interval: 'year' },
-});
-
-// Usage-based (metered) price
-const metered = await stripe.prices.create({
-  product: product.id,
-  currency: 'usd',
-  recurring: {
-    interval: 'month',
-    usage_type: 'metered',
-    aggregate_usage: 'sum',  // Sum all usage records in the period
-  },
-  unit_amount_decimal: '0.5', // $0.005 per unit
-});
-```
-
-## Checkout Sessions
-
-Stripe Checkout handles the entire payment UI:
-
-```typescript
-/** Create a Checkout Session for a new subscription.
- *
- * @param priceId - Stripe price ID for the selected plan.
- * @param customerId - Existing Stripe customer (optional).
- * @param trialDays - Free trial period in days.
- * @param metadata - Custom metadata stored on the subscription.
- */
-async function createCheckout(
-  priceId: string,
-  customerId?: string,
-  trialDays?: number,
-  metadata?: Record<string, string>,
-): Promise<string> {
-  const params: Stripe.Checkout.SessionCreateParams = {
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${APP_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${APP_URL}/pricing`,
-    allow_promotion_codes: true,
-    billing_address_collection: 'required',
-    tax_id_collection: { enabled: true },
-    subscription_data: { metadata: metadata || {} },
-  };
-
-  if (customerId) {
-    params.customer = customerId;
-  }
-  if (trialDays) {
-    params.subscription_data!.trial_period_days = trialDays;
-  }
-
-  const session = await stripe.checkout.sessions.create(params);
-  return session.url!;
-}
-```
-
-## Subscription Management
-
-### Retrieve and Update
-
-```typescript
-/** Get subscription with expanded price and product info. */
-async function getSubscription(subId: string) {
-  return stripe.subscriptions.retrieve(subId, {
-    expand: ['items.data.price.product', 'latest_invoice'],
-  });
-}
-
-/** Switch plan (upgrade or downgrade).
- *
- * @param subId - Current subscription ID.
- * @param newPriceId - Price ID of the target plan.
- * @param prorate - Whether to charge/credit the difference immediately.
- */
-async function changePlan(subId: string, newPriceId: string, prorate = true) {
-  const subscription = await stripe.subscriptions.retrieve(subId);
-  const currentItem = subscription.items.data[0];
-
-  return stripe.subscriptions.update(subId, {
-    items: [{
-      id: currentItem.id,
-      price: newPriceId,
-    }],
-    proration_behavior: prorate ? 'create_prorations' : 'none',
-  });
-}
-```
-
-### Cancel
-
-```typescript
-/** Cancel at end of current period (customer keeps access until then). */
-async function cancelAtPeriodEnd(subId: string) {
-  return stripe.subscriptions.update(subId, {
-    cancel_at_period_end: true,
-  });
-}
-
-/** Cancel immediately with optional proration refund. */
-async function cancelImmediately(subId: string) {
-  return stripe.subscriptions.cancel(subId, {
-    prorate: true,  // Refund unused time
-  });
-}
-
-/** Reactivate a subscription that was set to cancel at period end. */
-async function reactivate(subId: string) {
-  return stripe.subscriptions.update(subId, {
-    cancel_at_period_end: false,
-  });
-}
-```
-
-### Pause and Resume
-
-```typescript
-/** Pause a subscription (stop billing, optionally revoke access). */
-async function pause(subId: string) {
-  return stripe.subscriptions.update(subId, {
-    pause_collection: {
-      behavior: 'void',  // 'void' = skip invoices, 'keep_as_draft' = generate drafts
-    },
-  });
-}
-
-async function resume(subId: string) {
-  return stripe.subscriptions.update(subId, {
-    pause_collection: '',  // Empty string clears the pause
-  });
-}
-```
-
-## Usage-Based Metering
-
-Report usage to Stripe for metered billing:
-
-```typescript
-/** Report usage for a metered subscription item.
- *
- * @param subscriptionItemId - The subscription item with metered pricing.
- * @param quantity - Number of units consumed.
- */
-async function reportUsage(subscriptionItemId: string, quantity: number) {
-  return stripe.subscriptionItems.createUsageRecord(subscriptionItemId, {
-    quantity,
-    timestamp: Math.floor(Date.now() / 1000),
-    action: 'increment',  // 'increment' adds to total; 'set' replaces it
-  });
-}
-
-/** Get current period's usage summary. */
-async function getUsageSummary(subscriptionItemId: string) {
-  const records = await stripe.subscriptionItems.listUsageRecordSummaries(
-    subscriptionItemId,
-    { limit: 1 },
-  );
-  return records.data[0];  // { total_usage, period: { start, end } }
-}
-```
-
-## Webhooks
-
-Essential events to handle:
-
-```typescript
-/** Verify and parse a Stripe webhook event. */
-function parseWebhook(body: Buffer, signature: string): Stripe.Event {
-  return stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
-}
-
-// Critical events:
-// checkout.session.completed     — New subscription created
-// invoice.payment_succeeded      — Recurring payment succeeded
-// invoice.payment_failed         — Payment failed (dunning starts)
-// customer.subscription.updated  — Plan change, status change, trial ending
-// customer.subscription.deleted  — Subscription fully cancelled
-// customer.subscription.trial_will_end — 3 days before trial ends (send conversion email)
-```
-
-## Customer Portal
-
-Stripe-hosted UI for self-service billing management:
-
-```typescript
-/** Create a portal session for a customer.
- *
- * @param customerId - Stripe customer ID.
- * @param returnUrl - Where to redirect after portal session.
- */
-async function createPortalSession(customerId: string, returnUrl: string) {
-  const session = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: returnUrl,
-  });
-  return session.url;
-}
-```
-
-Configure allowed actions at https://dashboard.stripe.com/settings/billing/portal.
-
-## Coupons and Promotions
-
-```typescript
-// Percentage discount
-const coupon = await stripe.coupons.create({
-  percent_off: 25,
-  duration: 'repeating',
-  duration_in_months: 3,  // 25% off for first 3 months
-  max_redemptions: 100,
-});
-
-// Fixed amount discount
-await stripe.coupons.create({
-  amount_off: 1000,       // $10 off
-  currency: 'usd',
-  duration: 'once',       // First invoice only
-});
-
-// Promotion code (customer-facing code string)
-await stripe.promotionCodes.create({
-  coupon: coupon.id,
-  code: 'LAUNCH25',
-  max_redemptions: 50,
-  expires_at: Math.floor(Date.now() / 1000) + 30 * 86400, // 30 days
-});
-```
-
-## Invoices
-
-```typescript
-/** Get all invoices for a customer. */
-async function getInvoices(customerId: string) {
-  return stripe.invoices.list({
-    customer: customerId,
-    limit: 12,
-    expand: ['data.subscription'],
-  });
-}
-
-/** Send a one-off invoice (not tied to a subscription). */
-async function sendOneOffInvoice(customerId: string, amount: number, description: string) {
-  const invoiceItem = await stripe.invoiceItems.create({
-    customer: customerId,
-    amount: amount * 100,  // Convert dollars to cents
-    currency: 'usd',
-    description,
-  });
-
-  const invoice = await stripe.invoices.create({
-    customer: customerId,
-    auto_advance: true,  // Auto-finalize and send
-  });
-
-  return stripe.invoices.finalizeInvoice(invoice.id);
-}
-```
-
-## Testing
-
-```typescript
-// Test card numbers
-// 4242424242424242 — Succeeds
-// 4000000000000341 — Attaching fails (card declined)
-// 4000000000009995 — Charge fails (insufficient funds)
-// 4000002500003155 — Requires 3D Secure authentication
-
-// Test clock for simulating time progression (trials, renewals)
-const clock = await stripe.testHelpers.testClocks.create({
-  frozen_time: Math.floor(Date.now() / 1000),
-});
-
-// Create customer on the test clock
-const customer = await stripe.customers.create({
-  test_clock: clock.id,
-  email: 'test@example.com',
-});
-
-// Advance time to end of trial
-await stripe.testHelpers.testClocks.advance(clock.id, {
-  frozen_time: Math.floor(Date.now() / 1000) + 14 * 86400,
-});
-```
-
-## Guidelines
-
-- **Webhook signature verification is mandatory** — without it, anyone can fake events to your endpoint
-- **Handle webhooks idempotently** — Stripe may send the same event multiple times. Use `event.id` for deduplication.
-- **Use metadata extensively** — store your user ID, plan name, and any app-specific data in subscription/customer metadata. It's the bridge between Stripe and your database.
-- **Don't store card details** — let Stripe handle all payment information. Your server should never see raw card numbers.
-- **Use Checkout for new subscriptions** — it handles PCI compliance, 3D Secure, and alternate payment methods with zero custom UI.
-- **Customer Portal for self-service** — let Stripe host the payment method update form. Reduces your PCI scope.
-- **Test with test clocks** — simulate trial endings, payment failures, and renewals without waiting days.
-- **Webhooks are the source of truth** — don't assume a subscription is active because checkout succeeded. Wait for the webhook confirmation.
-- **Dunning is automatic** — Stripe retries failed payments on a configurable schedule. Configure it at Settings → Billing → Subscriptions and emails.
+1. **Webhooks are truth** — Don't rely on checkout redirects alone; webhooks handle edge cases (failed payments, renewals)
+2. **Customer portal** — Use Stripe's hosted portal for plan changes, cancellation, invoices; saves weeks of development
+3. **Metered billing** — Report usage incrementally via `createUsageRecord`; Stripe aggregates and invoices at period end
+4. **Trial periods** — Set `trial_period_days` on subscription; no payment collected until trial ends
+5. **Proration** — Stripe auto-prorates when customers upgrade/downgrade mid-cycle; no manual calculations
+6. **Idempotency keys** — Pass `idempotencyKey` on creates to prevent duplicate charges on retries
+7. **Test mode** — Use `sk_test_` key for development; Stripe provides test card numbers for all scenarios
+8. **Tax automation** — Enable Stripe Tax for automatic tax calculation and collection; handles global tax compliance
