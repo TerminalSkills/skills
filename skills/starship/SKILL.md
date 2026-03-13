@@ -1,261 +1,131 @@
 ---
 name: starship
-description: Expert guidance for Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. Helps developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.
-license: Apache-2.0
-compatibility: No special requirements
-metadata:
-  author: terminal-skills
-  version: 1.0.0
-  category: development
-  tags:
-  - shell-prompt
-  - terminal
-  - customization
-  - cross-shell
-  - rust
+category: Developer Tools
+tags: [terminal, prompt, shell, customization, rust, fast, cross-shell]
+version: 1.0.0
+author: terminal-skills
 ---
 
 # Starship — Cross-Shell Prompt
 
+You are an expert in Starship, the minimal, blazing-fast, cross-shell prompt written in Rust. You help developers customize their terminal prompt with git status, language versions, cloud context, battery level, time, and custom modules — working identically across Bash, Zsh, Fish, PowerShell, and any shell with a single TOML config file.
 
-## Overview
-
-
-Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. Helps developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.
-
-
-## Instructions
-
-### Installation and Setup
-
-```bash
-# Install Starship
-curl -sS https://starship.rs/install.sh | sh
-
-# Add to shell
-# Zsh:
-echo 'eval "$(starship init zsh)"' >> ~/.zshrc
-# Bash:
-echo 'eval "$(starship init bash)"' >> ~/.bashrc
-# Fish:
-echo 'starship init fish | source' >> ~/.config/fish/config.fish
-```
+## Core Capabilities
 
 ### Configuration
 
 ```toml
-# ~/.config/starship.toml — Full prompt configuration
-
-# General settings
+# ~/.config/starship.toml
 format = """
-$username$hostname$directory$git_branch$git_status$git_metrics\
-$nodejs$python$rust$golang$docker_context$kubernetes\
-$cmd_duration$line_break$character"""
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$python\
+$rust\
+$golang\
+$docker_context\
+$kubernetes\
+$aws\
+$terraform\
+$cmd_duration\
+$line_break\
+$character"""
 
-# Don't add a blank line between prompts
-add_newline = false
-
-# Prompt character (shows error status)
 [character]
 success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"
-vimcmd_symbol = "[❮](bold purple)"    # Vim normal mode indicator
 
-# Directory — show truncated path
 [directory]
 truncation_length = 3
-truncation_symbol = "…/"
-home_symbol = "~"
+truncate_to_repo = true
 style = "bold cyan"
-# Repo root gets special treatment
-repo_root_style = "bold cyan"
-repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style) "
 
-# Git branch
 [git_branch]
-format = "[$symbol$branch(:$remote_branch)]($style) "
-symbol = " "
+symbol = "🌿 "
 style = "bold purple"
-truncation_length = 20
 
-# Git status — show changed/staged/untracked counts
 [git_status]
-format = '([\[$all_status$ahead_behind\]]($style) )'
-style = "bold red"
-conflicted = "⚡${count}"
-ahead = "⬆${count}"
-behind = "⬇${count}"
-diverged = "⬆${ahead_count}⬇${behind_count}"
-untracked = "?${count}"
-stashed = "📦${count}"
-modified = "!${count}"
-staged = "+${count}"
-deleted = "✘${count}"
+conflicted = "⚔️ "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "⇕⇡${ahead_count}⇣${behind_count} "
+untracked = "?${count} "
+stashed = "📦 "
+modified = "!${count} "
+staged = "+${count} "
+deleted = "✘${count} "
 
-# Git metrics — lines added/removed
-[git_metrics]
-disabled = false
-format = "([+$added]($added_style) )([-$deleted]($deleted_style) )"
-added_style = "bold green"
-deleted_style = "bold red"
-
-# Node.js version
 [nodejs]
-format = "[$symbol($version)]($style) "
-symbol = " "
-style = "bold green"
+symbol = "⬢ "
 detect_files = ["package.json", ".nvmrc"]
+style = "bold green"
 
-# Python version and virtualenv
 [python]
-format = '[$symbol${pyenv_prefix}(${version})(\($virtualenv\))]($style) '
 symbol = "🐍 "
+detect_extensions = ["py"]
 style = "bold yellow"
 
-# Rust version
 [rust]
-format = "[$symbol($version)]($style) "
 symbol = "🦀 "
 style = "bold red"
 
-# Go version
-[golang]
-format = "[$symbol($version)]($style) "
-symbol = " "
-style = "bold cyan"
-
-# Docker context
 [docker_context]
-format = "[$symbol$context]($style) "
 symbol = "🐳 "
-style = "bold blue"
 only_with_files = true
-detect_files = ["docker-compose.yml", "Dockerfile"]
 
-# Kubernetes context
 [kubernetes]
 disabled = false
-format = '[$symbol$context(\($namespace\))]($style) '
 symbol = "☸ "
-style = "bold blue"
-# Only show for specific contexts
-[kubernetes.context_aliases]
-"arn:aws:eks:*:*:cluster/prod-*" = "PROD"
-"arn:aws:eks:*:*:cluster/staging-*" = "staging"
+detect_files = ["k8s", "kubernetes"]
 
-# Command execution time (show if > 2 seconds)
-[cmd_duration]
-min_time = 2_000                # Show for commands > 2s
-format = "[$duration]($style) "
-style = "bold yellow"
-show_notifications = true       # Desktop notification for long commands
-min_time_to_notify = 30_000     # Notify if > 30 seconds
-
-# Cloud context
 [aws]
-format = '[$symbol($profile)(\($region\))]($style) '
 symbol = "☁️ "
-style = "bold orange"
-[aws.profile_aliases]
-prod = "⚠️ PROD"
+format = '[$symbol($profile )(\($region\))]($style)'
 
-[gcloud]
-format = '[$symbol$account(@$domain)(\($project\))]($style) '
-symbol = "☁️ "
+[cmd_duration]
+min_time = 2000                           # Show if command took >2s
+format = "took [$duration]($style) "
+style = "bold yellow"
 
-# Username and hostname (for SSH sessions)
-[username]
-show_always = false             # Only show in SSH sessions
-format = "[$user]($style)@"
-style_user = "bold blue"
+[time]
+disabled = false
+format = "🕐 [$time]($style) "
+time_format = "%H:%M"
 
-[hostname]
-ssh_only = true
-format = "[$hostname]($style) "
-style = "bold green"
-
-# Custom module — show when in a specific directory
-[custom.project]
-command = "cat .project-name 2>/dev/null"
-when = "test -f .project-name"
-format = "[🏗 $output]($style) "
-style = "bold white"
-
-# Package version from package.json
-[package]
-format = "[$symbol$version]($style) "
-symbol = "📦 "
-style = "bold 208"              # Orange
+# Custom module
+[custom.docker_running]
+command = "docker ps -q | wc -l | tr -d ' '"
+when = "docker ps -q"
+symbol = "🐳 "
+format = "[$symbol$output containers]($style) "
+style = "blue"
 ```
 
-### Preset Configurations
+## Installation
 
 ```bash
-# Apply a built-in preset
-starship preset nerd-font-symbols -o ~/.config/starship.toml
-starship preset tokyo-night -o ~/.config/starship.toml
-starship preset gruvbox-rainbow -o ~/.config/starship.toml
-starship preset pastel-powerline -o ~/.config/starship.toml
+# macOS
+brew install starship
 
-# List all presets
-starship preset --list
+# Linux
+curl -sS https://starship.rs/install.sh | sh
+
+# Add to shell:
+# Bash: eval "$(starship init bash)" >> ~/.bashrc
+# Zsh: eval "$(starship init zsh)" >> ~/.zshrc
+# Fish: starship init fish | source >> ~/.config/fish/config.fish
 ```
 
-### Minimal Configuration for Speed
+## Best Practices
 
-```toml
-# ~/.config/starship.toml — Minimal, fast prompt
-format = "$directory$git_branch$git_status$character"
-add_newline = false
-
-[character]
-success_symbol = "[❯](green)"
-error_symbol = "[❯](red)"
-
-[directory]
-truncation_length = 2
-
-[git_branch]
-format = "[$branch]($style) "
-style = "purple"
-
-[git_status]
-format = '[$all_status]($style)'
-style = "red"
-```
-
-
-## Examples
-
-
-### Example 1: Setting up Starship with a custom configuration
-
-**User request:**
-
-```
-I just installed Starship. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Starship with custom functionality
-
-**User request:**
-
-```
-I want to add a custom configuration to Starship. How do I build one?
-```
-
-The agent scaffolds the extension/plugin project, implements the core functionality following Starship's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
-
-
-## Guidelines
-
-1. **Start minimal, add modules** — Begin with a minimal config; add modules as you need context (don't show everything)
-2. **Disable unused modules** — Starship scans for language files by default; disable modules you don't use with `disabled = true`
-3. **Use Nerd Fonts** — Install a Nerd Font for proper icons; without it, use text fallbacks
-4. **Truncate directory paths** — `truncation_length = 3` keeps the prompt short; show the full path in your terminal title instead
-5. **Notification for long commands** — `show_notifications = true` with `min_time_to_notify = 30_000` alerts you when builds finish
-6. **Cloud context aliases** — Alias long AWS/GCP profile names to short labels; highlight prod with ⚠️
-7. **Git metrics for awareness** — Seeing +/- line counts helps gauge how big your uncommitted changes are
-8. **Custom modules for projects** — Use `[custom.*]` modules to show project-specific context (sprint, environment, feature flag)
+1. **Cross-shell** — Same config works in Bash, Zsh, Fish, PowerShell; switch shells without reconfiguring
+2. **Lazy detection** — Modules only show when relevant (Node.js only in JS projects); clean prompt by default
+3. **Git status at a glance** — Shows ahead/behind, modified, staged, untracked counts inline
+4. **Command duration** — Set `min_time = 2000` to show timing for slow commands; helps identify bottlenecks
+5. **Cloud context** — Show AWS profile, K8s context, Terraform workspace; never deploy to wrong environment
+6. **Custom modules** — Use `[custom.name]` for any shell command output; docker containers, VPN status, etc.
+7. **Presets** — Start with a preset: `starship preset nerd-font-symbols -o ~/.config/starship.toml`
+8. **Performance** — Written in Rust; renders in <10ms; never slows down your terminal
