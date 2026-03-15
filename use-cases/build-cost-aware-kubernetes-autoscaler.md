@@ -12,7 +12,7 @@ skills:
   - zod
   - hono
   - vitest
-category: DevOps & Infrastructure
+category: devops
 tags:
   - kubernetes
   - autoscaling

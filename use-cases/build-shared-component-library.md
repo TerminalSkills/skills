@@ -6,7 +6,7 @@ skills:
   - typescript
   - hono
   - zod
-category: Frontend Development
+category: development
 tags:
   - component-library
   - design-system

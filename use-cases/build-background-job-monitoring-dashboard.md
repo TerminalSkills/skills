@@ -8,7 +8,7 @@ skills:
   - hono
   - nextjs
   - tailwindcss
-category: Full-Stack Development
+category: development
 tags:
   - job-queue
   - monitoring

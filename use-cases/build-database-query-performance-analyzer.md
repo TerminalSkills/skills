@@ -8,7 +8,7 @@ skills:
   - redis
   - hono
   - nextjs
-category: DevOps & Infrastructure
+category: devops
 tags:
   - database
   - performance

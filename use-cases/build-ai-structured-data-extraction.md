@@ -8,7 +8,7 @@ skills:
   - zod
   - postgresql
   - hono
-category: AI & Machine Learning
+category: data-ai
 tags:
   - data-extraction
   - llm

@@ -7,7 +7,7 @@ skills:
   - zod
   - redis
   - hono
-category: DevOps & Infrastructure
+category: devops
 tags:
   - configuration
   - environment

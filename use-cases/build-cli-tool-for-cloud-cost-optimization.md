@@ -9,7 +9,7 @@ skills:
   - typescript
   - commander-cli
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - cloud-cost
   - aws

@@ -12,7 +12,7 @@ skills:
   - github-actions
   - vitest
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - database-migration
   - testing

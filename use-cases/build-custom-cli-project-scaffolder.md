@@ -6,7 +6,7 @@ skills:
   - typescript
   - zod
   - vitest
-category: Developer Experience
+category: development
 tags:
   - cli
   - scaffolding

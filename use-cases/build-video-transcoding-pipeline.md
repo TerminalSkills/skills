@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - s3-storage
-category: Backend Development
+category: development
 tags:
   - video
   - transcoding

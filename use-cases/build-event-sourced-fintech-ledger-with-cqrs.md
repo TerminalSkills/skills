@@ -14,7 +14,7 @@ skills:
   - drizzle-orm
   - zod
   - vitest
-category: Backend Architecture
+category: development
 tags:
   - event-sourcing
   - cqrs

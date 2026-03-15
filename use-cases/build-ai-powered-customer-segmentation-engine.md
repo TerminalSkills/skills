@@ -8,7 +8,7 @@ skills:
   - postgresql
   - redis
   - hono
-category: AI & Machine Learning
+category: data-ai
 tags:
   - segmentation
   - clustering

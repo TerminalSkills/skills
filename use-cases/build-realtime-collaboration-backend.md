@@ -3,7 +3,7 @@ title: Build a Real-Time Collaboration Backend with Message Queues and WebSocket
 slug: build-realtime-collaboration-backend
 description: Build a real-time collaborative document editor backend using Centrifugo for WebSocket connections, RabbitMQ (amqplib) for reliable event processing, Redis OM for fast document storage and search, and Effect for type-safe business logic — creating a system where multiple users edit simultaneously with presence awareness, conflict-free sync, and reliable event delivery.
 skills: [centrifugo, amqplib, redis-om, effect-platform]
-category: Backend Development
+category: development
 tags: [realtime, collaboration, websocket, messaging, redis, typescript]
 ---
 

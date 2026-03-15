@@ -6,7 +6,7 @@ skills:
   - typescript
   - postgresql
   - redis
-category: Backend Development
+category: development
 tags:
   - multi-region
   - replication

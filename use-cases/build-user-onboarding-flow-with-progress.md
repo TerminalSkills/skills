@@ -9,7 +9,7 @@ skills:
   - nextjs
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - onboarding
   - user-experience

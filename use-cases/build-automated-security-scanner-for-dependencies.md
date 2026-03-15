@@ -8,7 +8,7 @@ skills:
   - redis
   - hono
   - zod
-category: Security
+category: development
 tags:
   - security
   - dependencies

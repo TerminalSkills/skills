@@ -7,7 +7,7 @@ skills:
   - postgresql
   - docker
   - github-actions
-category: DevOps & Infrastructure
+category: devops
 tags:
   - database
   - backup

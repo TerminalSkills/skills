@@ -13,7 +13,7 @@ skills:
   - kafka-js
   - zod
   - hono
-category: Full-Stack Development
+category: development
 tags:
   - push-notifications
   - mobile

@@ -13,7 +13,7 @@ skills:
   - docker
   - e2b
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - collaborative-editing
   - code-editor

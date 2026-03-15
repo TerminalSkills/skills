@@ -3,7 +3,7 @@ title: Build Usage-Based Billing for an AI SaaS Product
 slug: build-usage-based-billing-for-ai-saas
 description: An AI SaaS startup implements usage-based billing where customers pay per API call, per token processed, and per compute minute — using Stripe metered subscriptions for billing, real-time usage tracking with Redis, cost attribution per customer, prepaid credit systems, and rate limiting that ties to billing tiers — solving the hardest problem in AI SaaS pricing.
 skills: [stripe-billing, upstash, hono, prisma, zod, opentelemetry-js]
-category: Backend Development
+category: development
 tags: [billing, usage-based, saas, ai, pricing, metered, stripe, credits]
 ---
 

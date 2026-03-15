@@ -7,7 +7,7 @@ skills:
   - postgresql
   - zod
   - hono
-category: DevOps & Infrastructure
+category: devops
 tags:
   - database
   - migrations

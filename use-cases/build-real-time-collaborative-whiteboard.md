@@ -8,7 +8,7 @@ skills:
   - postgresql
   - nextjs
   - tailwindcss
-category: Full-Stack Development
+category: development
 tags:
   - collaboration
   - real-time

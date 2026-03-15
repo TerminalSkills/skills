@@ -13,7 +13,7 @@ skills:
   - redis
   - zod
   - tailwindcss
-category: AI & Machine Learning
+category: data-ai
 tags:
   - onboarding
   - conversational-ui

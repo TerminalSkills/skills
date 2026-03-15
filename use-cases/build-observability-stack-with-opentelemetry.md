@@ -7,7 +7,7 @@ skills:
   - redis
   - postgresql
   - hono
-category: DevOps & Infrastructure
+category: devops
 tags:
   - observability
   - opentelemetry

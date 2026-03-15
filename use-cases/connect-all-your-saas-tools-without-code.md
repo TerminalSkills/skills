@@ -3,7 +3,7 @@ title: Connect All Your SaaS Tools Without Writing Code
 slug: connect-all-your-saas-tools-without-code
 description: Build automated workflows connecting Stripe, Slack, HubSpot, Notion, and Google Sheets using Pipedream for developer-friendly integrations with code steps, Make.com for visual no-code flows, and Activepieces for self-hosted automation — eliminating 25 hours per week of manual data entry for a 15-person operations team.
 skills: [pipedream, make-com, activepieces]
-category: Automation & Integration
+category: automation
 tags: [automation, integration, no-code, workflow, saas-integration, iPaaS]
 ---
 

@@ -6,7 +6,7 @@ skills:
   - typescript
   - hono
   - zod
-category: Architecture
+category: development
 tags:
   - validation
   - api

@@ -3,7 +3,7 @@ title: Build a Production LLM App with Guardrails and Full Observability
 slug: build-llm-app-with-guardrails-and-observability
 description: Build a customer support AI that routes queries across multiple LLM providers via OpenRouter, enforces structured output with Outlines, tracks every call with Langtrace and Weave evaluations, and deploys on AWS Lambda with Powertools — creating a production-grade AI pipeline with cost optimization, quality monitoring, and automatic fallbacks.
 skills: [openrouter, outlines, langtrace, weave, powertools-lambda]
-category: AI & Machine Learning
+category: data-ai
 tags: [llm, observability, guardrails, multi-model, production, monitoring]
 ---
 

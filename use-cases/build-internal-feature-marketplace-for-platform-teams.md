@@ -12,7 +12,7 @@ skills:
   - redis
   - zod
   - authjs
-category: Full-Stack Development
+category: development
 tags:
   - internal-developer-platform
   - self-service

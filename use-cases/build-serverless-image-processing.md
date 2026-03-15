@@ -6,7 +6,7 @@ skills:
   - typescript
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - image-processing
   - serverless

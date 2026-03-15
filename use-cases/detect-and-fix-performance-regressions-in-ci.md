@@ -3,7 +3,7 @@ title: Detect and Fix Performance Regressions Before They Hit Production
 slug: detect-and-fix-performance-regressions-in-ci
 description: An e-commerce team builds an automated performance regression detection system — running Lighthouse and custom load tests in CI for every PR, comparing against baselines, blocking merges that degrade Core Web Vitals, and alerting when API latency exceeds budgets — catching performance problems in code review instead of production incidents.
 skills: [vitest, docker-helper, opentelemetry-js, checkly]
-category: Developer Tools
+category: development
 tags: [performance, ci-cd, testing, web-vitals, lighthouse, regression, monitoring]
 ---
 

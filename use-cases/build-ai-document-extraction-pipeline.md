@@ -13,7 +13,7 @@ skills:
   - postgresql
   - zod
   - hono
-category: AI & Machine Learning
+category: data-ai
 tags:
   - document-extraction
   - ocr

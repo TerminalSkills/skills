@@ -5,7 +5,7 @@ description: Build a globally distributed API using Deno Deploy edge functions â
 skills:
   - typescript
   - zod
-category: Backend Development
+category: development
 tags:
   - edge-computing
   - deno

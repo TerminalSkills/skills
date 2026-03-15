@@ -3,7 +3,7 @@ title: Ship a SaaS MVP in a Weekend with AI Coding Tools
 slug: ship-saas-mvp-in-a-weekend-with-ai
 description: Build and launch a complete SaaS product in 48 hours using Bolt.new for rapid prototyping, Lovable for Supabase-backed features, Cursor for production refinement, and Vercel for deployment — going from idea to paying customers for an AI-powered meeting notes tool.
 skills: [bolt, lovable, cursor, vercel]
-category: Developer Tools
+category: development
 tags: [mvp, rapid-prototyping, vibe-coding, saas, weekend-project, ai-coding]
 ---
 

@@ -13,7 +13,7 @@ skills:
   - postgresql
   - zod
   - hono
-category: Backend Architecture
+category: development
 tags:
   - notifications
   - config-driven

@@ -3,7 +3,7 @@ title: Build a Modern Data Stack for SaaS Analytics
 slug: build-modern-data-stack-for-saas-analytics
 description: Build a production data pipeline using Airbyte to sync data from Stripe, HubSpot, and PostgreSQL into a warehouse, dlt for custom Python-based data ingestion, Soda for automated data quality checks, and Metabase for self-serve dashboards — giving a 40-person SaaS company real-time visibility into MRR, churn, and product usage without engineering bottleneck.
 skills: [airbyte, dlt, soda, metabase, dbt]
-category: Data Engineering
+category: data-ai
 tags: [data-pipeline, etl, data-quality, analytics, data-warehouse, modern-data-stack]
 ---
 

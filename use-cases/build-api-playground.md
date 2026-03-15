@@ -9,7 +9,7 @@ skills:
   - hono
   - zod
   - nextjs
-category: Developer Tools
+category: development
 tags:
   - api
   - playground

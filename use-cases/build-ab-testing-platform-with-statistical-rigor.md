@@ -13,7 +13,7 @@ skills:
   - hono
   - zod
   - vercel-ai-sdk
-category: Full-Stack Development
+category: development
 tags:
   - ab-testing
   - experimentation

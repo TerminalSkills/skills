@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: SEO & Marketing
+category: business
 tags:
   - sitemap
   - seo

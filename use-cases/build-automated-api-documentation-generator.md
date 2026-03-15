@@ -6,7 +6,7 @@ skills:
   - typescript
   - hono
   - zod
-category: Developer Experience
+category: development
 tags:
   - api-docs
   - openapi

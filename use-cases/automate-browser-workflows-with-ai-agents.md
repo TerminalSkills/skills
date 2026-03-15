@@ -3,7 +3,7 @@ title: Automate Browser Workflows with AI Agents
 slug: automate-browser-workflows-with-ai-agents
 description: Build AI-powered browser automation that navigates web apps, fills forms, extracts data, and completes multi-step workflows using Stagehand for natural language browser control, BrowserBase for cloud browser infrastructure, and Playwright for reliable fallback — replacing 40 hours per week of manual data entry for a logistics company processing 200 shipment orders daily.
 skills: [stagehand, browserbase, playwright-testing]
-category: AI & Machine Learning
+category: data-ai
 tags: [browser-automation, ai-agent, computer-use, rpa, web-automation, scraping]
 ---
 

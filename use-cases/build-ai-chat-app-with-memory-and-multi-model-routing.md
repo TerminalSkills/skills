@@ -3,7 +3,7 @@ title: Build an AI Chat App with Persistent Memory and Multi-Model Routing
 slug: build-ai-chat-app-with-memory-and-multi-model-routing
 description: Build a production AI chat application using Mem0 for persistent user memory across sessions, OpenRouter for multi-model routing and fallbacks, Langfuse for LLM observability and cost tracking, and Convex for a reactive real-time backend — creating a personalized AI assistant that remembers users and optimizes model costs.
 skills: [mem0, openrouter, langfuse, convex-sdk]
-category: AI & Machine Learning
+category: data-ai
 tags: [ai, chat, memory, personalization, multi-model, observability]
 ---
 

@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Security
+category: development
 tags:
   - secrets
   - security

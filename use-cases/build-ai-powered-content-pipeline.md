@@ -3,7 +3,7 @@ title: Build an AI-Powered Content Pipeline with Agents and Evaluation
 slug: build-ai-powered-content-pipeline
 description: Build an automated content production pipeline where CrewAI agents research topics and write articles, Haystack indexes content for RAG-based Q&A, Braintrust evaluates quality, Trigger.dev orchestrates the workflow as background jobs, and Crawl4AI feeds the system with fresh web data — creating a self-improving content engine that produces, evaluates, and publishes articles autonomously.
 skills: [crewai, haystack, braintrust, trigger-dev-v3, crawl4ai, qdrant]
-category: AI & Machine Learning
+category: data-ai
 tags: [content, agents, rag, evaluation, pipeline, automation]
 ---
 

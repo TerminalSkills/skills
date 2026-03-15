@@ -12,7 +12,7 @@ skills:
   - kafka-js
   - zod
   - vitest
-category: DevOps & Infrastructure
+category: devops
 tags:
   - database-migration
   - zero-downtime

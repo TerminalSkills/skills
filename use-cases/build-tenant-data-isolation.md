@@ -8,7 +8,7 @@ skills:
   - hono
   - zod
   - redis
-category: Security
+category: development
 tags:
   - multi-tenant
   - rls

@@ -12,7 +12,7 @@ skills:
   - zod
   - hono
   - docker
-category: Full-Stack Development
+category: development
 tags:
   - image-processing
   - serverless

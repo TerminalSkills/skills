@@ -6,7 +6,7 @@ skills:
   - typescript
   - hono
   - zod
-category: Developer Tools
+category: development
 tags:
   - monorepo
   - npm

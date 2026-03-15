@@ -7,7 +7,7 @@ skills:
   - nextjs
   - redis
   - zod
-category: Frontend Development
+category: development
 tags:
   - forms
   - wizard

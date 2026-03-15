@@ -14,7 +14,7 @@ skills:
   - bull-mq
   - zod
   - hono
-category: AI & Machine Learning
+category: data-ai
 tags:
   - customer-support
   - ai-triage

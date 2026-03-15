@@ -8,7 +8,7 @@ skills:
   - redis
   - postgresql
   - hono
-category: Frontend Development
+category: development
 tags:
   - rich-text
   - editor

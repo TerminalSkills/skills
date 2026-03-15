@@ -3,7 +3,7 @@ title: Build a Procedural Game Assets Pipeline with Houdini
 slug: build-procedural-game-assets-pipeline-with-houdini
 description: Create a procedural pipeline using Houdini HDAs for generating infinite variations of game-ready environments — terrain, vegetation, buildings, and props — that export directly to Unreal Engine via Houdini Engine plugin, replacing 3 months of manual environment art with a parameterized system that generates production-quality assets on demand.
 skills: [houdini]
-category: 3D & VFX
+category: design
 tags: [procedural, game-dev, pipeline, hda, unreal, environment-art, automation]
 ---
 

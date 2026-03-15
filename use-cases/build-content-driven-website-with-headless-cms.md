@@ -3,7 +3,7 @@ title: Build a Content-Driven Website with a Headless CMS
 slug: build-content-driven-website-with-headless-cms
 description: Build a high-performance marketing website using Strapi as the headless CMS for content management, Next.js for the frontend with ISR, and Contentful's Image API for optimized media delivery — enabling a marketing team of 5 to publish landing pages, blog posts, and case studies without developer involvement.
 skills: [strapi, contentful, ghost]
-category: Content Management
+category: content
 tags: [headless-cms, jamstack, content, marketing, blog, isr, seo]
 ---
 

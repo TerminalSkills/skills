@@ -3,7 +3,7 @@ title: Build an Interactive 3D Website with React Three Fiber
 slug: build-interactive-3d-website-with-react-three-fiber
 description: Create an immersive 3D product landing page using React Three Fiber for declarative Three.js scenes, Drei for pre-built helpers, and Spline for designer-friendly 3D editing — building a sneaker configurator where users rotate, zoom, and customize colors in real-time with 60fps performance on mobile.
 skills: [react-three-fiber, drei, spline]
-category: 3D & Creative
+category: design
 tags: [3d, webgl, react, threejs, product-configurator, interactive, creative-coding]
 ---
 

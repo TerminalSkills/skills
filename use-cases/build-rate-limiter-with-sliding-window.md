@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: Backend Development
+category: development
 tags:
   - rate-limiting
   - security

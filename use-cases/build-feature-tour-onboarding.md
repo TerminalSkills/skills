@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Frontend Development
+category: development
 tags:
   - onboarding
   - tour

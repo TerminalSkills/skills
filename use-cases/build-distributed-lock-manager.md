@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: Architecture
+category: development
 tags:
   - distributed-lock
   - concurrency

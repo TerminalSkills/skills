@@ -12,7 +12,7 @@ skills:
   - bull-mq
   - zod
   - hono
-category: Backend Architecture
+category: development
 tags:
   - task-scheduler
   - distributed-systems

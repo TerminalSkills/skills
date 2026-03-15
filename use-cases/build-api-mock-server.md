@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: Developer Tools
+category: development
 tags:
   - mocking
   - api

@@ -12,7 +12,7 @@ skills:
   - hono
   - zod
   - postgresql
-category: Full-Stack Development
+category: development
 tags:
   - crdt
   - real-time

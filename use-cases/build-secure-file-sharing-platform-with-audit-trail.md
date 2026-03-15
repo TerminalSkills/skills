@@ -13,7 +13,7 @@ skills:
   - zod
   - tailwindcss
   - vitest
-category: Full-Stack Development
+category: development
 tags:
   - file-sharing
   - encryption

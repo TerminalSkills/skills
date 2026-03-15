@@ -3,7 +3,7 @@ title: Replace Fragile Cron Jobs with Event-Driven Durable Workflows
 slug: replace-cron-jobs-with-event-driven-workflows
 description: A fintech team replaces 30+ fragile cron jobs with durable event-driven workflows — using Inngest for event routing and step functions, Temporal for long-running financial processes, and dead letter queues for failure handling — eliminating silent failures, duplicate processing, and the 3 AM PagerDuty alerts that come from cron jobs that nobody understands.
 skills: [inngest, temporal-sdk, amqplib, trigger-dev-v3, opentelemetry-js]
-category: Backend Development
+category: development
 tags: [cron, event-driven, durable-execution, workflows, reliability, fintech]
 ---
 

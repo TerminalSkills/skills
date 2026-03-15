@@ -13,7 +13,7 @@ skills:
   - bull-mq
   - zod
   - hono
-category: Security
+category: development
 tags:
   - gdpr
   - data-deletion

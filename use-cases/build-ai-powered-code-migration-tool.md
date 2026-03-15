@@ -7,7 +7,7 @@ skills:
   - openai
   - vitest
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - code-migration
   - ai

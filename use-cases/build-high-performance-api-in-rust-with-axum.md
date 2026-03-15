@@ -3,7 +3,7 @@ title: Build a High-Performance API in Rust with Axum
 slug: build-high-performance-api-in-rust-with-axum
 description: Build a production REST API using Axum for the web framework, Tokio for async runtime, and SQLx for compile-time checked database queries — handling 100K concurrent connections on a single $20/month server with sub-millisecond response times and zero garbage collection pauses.
 skills: [axum, tokio]
-category: Backend Development
+category: development
 tags: [rust, api, high-performance, async, production, backend]
 ---
 

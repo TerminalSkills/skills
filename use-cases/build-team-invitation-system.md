@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: SaaS
+category: business
 tags:
   - invitations
   - team

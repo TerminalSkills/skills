@@ -9,7 +9,7 @@ skills:
   - hono
   - zod
   - s3-storage
-category: Full-Stack Development
+category: development
 tags:
   - file-management
   - s3

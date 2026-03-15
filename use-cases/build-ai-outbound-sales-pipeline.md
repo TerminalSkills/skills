@@ -3,7 +3,7 @@ title: Build an AI Outbound Sales Pipeline That Books Meetings on Autopilot
 slug: build-ai-outbound-sales-pipeline
 description: Build an automated outbound sales system using Clay for lead enrichment, Resend for personalized cold email sequences, and OpenAI for generating hyper-personalized messages — turning a solo founder's manual prospecting into an AI pipeline that sends 500 personalized emails per week and books 12 qualified meetings per month.
 skills: [clay, resend, openai-realtime, n8n-workflow-sdk]
-category: Marketing & Growth
+category: business
 tags: [outbound-sales, lead-generation, cold-email, personalization, automation, b2b]
 ---
 

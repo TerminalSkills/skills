@@ -7,7 +7,7 @@ skills:
   - hono
   - zod
   - nextjs
-category: Developer Experience
+category: development
 tags:
   - api-documentation
   - openapi

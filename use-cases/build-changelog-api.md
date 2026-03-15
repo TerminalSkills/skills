@@ -9,7 +9,7 @@ skills:
   - hono
   - zod
   - nextjs
-category: Full-Stack Development
+category: development
 tags:
   - changelog
   - announcements

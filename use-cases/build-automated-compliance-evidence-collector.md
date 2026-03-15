@@ -12,7 +12,7 @@ skills:
   - hono
   - zod
   - github-actions
-category: Security
+category: development
 tags:
   - compliance
   - soc2

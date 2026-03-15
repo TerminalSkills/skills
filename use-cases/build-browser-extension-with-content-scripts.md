@@ -6,7 +6,7 @@ skills:
   - typescript
   - zod
   - tailwindcss
-category: Full-Stack Development
+category: development
 tags:
   - browser-extension
   - chrome

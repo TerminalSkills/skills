@@ -9,7 +9,7 @@ skills:
   - docker-multi-stage
   - docker-helper
   - github-actions
-category: infrastructure
+category: devops
 tags:
   - docker
   - optimization

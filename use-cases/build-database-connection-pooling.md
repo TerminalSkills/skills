@@ -7,7 +7,7 @@ skills:
   - postgresql
   - redis
   - hono
-category: Backend Development
+category: development
 tags:
   - database
   - connection-pool

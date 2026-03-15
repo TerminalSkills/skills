@@ -9,7 +9,7 @@ skills:
   - hono
   - nextjs
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - survey
   - forms

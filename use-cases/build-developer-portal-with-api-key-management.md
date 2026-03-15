@@ -9,7 +9,7 @@ skills:
   - redis
   - zod
   - nextjs
-category: Full-Stack Development
+category: development
 tags:
   - api-keys
   - developer-portal

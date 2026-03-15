@@ -3,7 +3,7 @@ title: Automate SOC 2 Compliance for a Growing Startup
 slug: automate-soc2-compliance-for-startup
 description: A 25-person SaaS startup automates SOC 2 Type II compliance — using infrastructure-as-code for audit trails, automated vulnerability scanning in CI, access control policies enforced via code, encrypted secrets management, and continuous monitoring — turning a 6-month manual audit nightmare into a self-documenting, always-compliant system.
 skills: [semgrep, checkov, infisical, opentelemetry-js, docker-helper]
-category: DevSecOps
+category: devops
 tags: [compliance, soc2, security, automation, audit, infrastructure, devsecops]
 ---
 

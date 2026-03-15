@@ -13,7 +13,7 @@ skills:
   - hono
   - zod
   - vercel-ai-sdk
-category: Security
+category: development
 tags:
   - fraud-detection
   - risk-scoring

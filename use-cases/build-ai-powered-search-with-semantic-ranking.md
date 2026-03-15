@@ -13,7 +13,7 @@ skills:
   - vercel-ai-sdk
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - semantic-search
   - vector-search

@@ -7,7 +7,7 @@ skills:
   - tailwindcss
   - vitest
   - nextjs
-category: Full-Stack Development
+category: development
 tags:
   - design-system
   - component-library

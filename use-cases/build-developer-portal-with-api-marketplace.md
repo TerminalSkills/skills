@@ -15,7 +15,7 @@ skills:
   - stripe-billing
   - zod
   - tailwindcss
-category: Full-Stack Development
+category: development
 tags:
   - developer-portal
   - api-marketplace

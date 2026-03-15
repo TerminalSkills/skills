@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - webhooks
   - integrations

@@ -13,7 +13,7 @@ skills:
   - zod
   - hono
   - bull-mq
-category: Data Engineering
+category: data-ai
 tags:
   - data-quality
   - data-observability

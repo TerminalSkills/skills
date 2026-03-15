@@ -7,7 +7,7 @@ skills:
   - hono
   - postgresql
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - pdf
   - reports

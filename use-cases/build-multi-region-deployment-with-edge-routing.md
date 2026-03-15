@@ -13,7 +13,7 @@ skills:
   - docker
   - terraform-iac
   - cloudflare-workers
-category: DevOps & Infrastructure
+category: devops
 tags:
   - multi-region
   - edge-computing

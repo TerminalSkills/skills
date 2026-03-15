@@ -12,7 +12,7 @@ skills:
   - docker
   - vitest
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - infrastructure-testing
   - terraform

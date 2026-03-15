@@ -8,7 +8,7 @@ skills:
   - postgresql
   - redis
   - tailwindcss
-category: Full-Stack Development
+category: development
 tags:
   - kanban
   - drag-and-drop

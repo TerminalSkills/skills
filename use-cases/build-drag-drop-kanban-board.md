@@ -9,7 +9,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - kanban
   - drag-drop

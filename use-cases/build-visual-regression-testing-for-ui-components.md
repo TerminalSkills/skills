@@ -12,7 +12,7 @@ skills:
   - github-actions
   - docker
   - storybook
-category: Full-Stack Development
+category: development
 tags:
   - visual-testing
   - regression

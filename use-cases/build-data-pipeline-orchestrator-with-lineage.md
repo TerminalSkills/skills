@@ -13,7 +13,7 @@ skills:
   - kafka-js
   - zod
   - hono
-category: Data Engineering
+category: data-ai
 tags:
   - data-pipeline
   - etl

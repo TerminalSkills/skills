@@ -3,7 +3,7 @@ title: Ship a Mobile App to Both App Stores in Two Weeks
 slug: ship-mobile-app-to-both-stores-in-two-weeks
 description: A solo developer ships a cross-platform mobile app to iOS App Store and Google Play in 14 days — using Expo for development without Xcode knowledge, EAS Build for cloud builds, expo-router for navigation, push notifications for engagement, and over-the-air updates for instant bug fixes — going from idea to live apps with real users paying through in-app purchases.
 skills: [react-native-expo, expo-router, nativewind, stripe-billing, vitest]
-category: Mobile Development
+category: development
 tags: [mobile, ios, android, expo, react-native, app-store, cross-platform, startup]
 ---
 

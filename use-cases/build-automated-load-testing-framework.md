@@ -13,7 +13,7 @@ skills:
   - postgresql
   - zod
   - hono
-category: DevOps & Infrastructure
+category: devops
 tags:
   - load-testing
   - performance

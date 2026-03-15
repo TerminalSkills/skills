@@ -12,7 +12,7 @@ skills:
   - zod
   - vitest
   - bull-mq
-category: Backend Architecture
+category: development
 tags:
   - rate-limiting
   - api-gateway

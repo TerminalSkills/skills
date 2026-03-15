@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: Frontend Development
+category: development
 tags:
   - pwa
   - service-worker

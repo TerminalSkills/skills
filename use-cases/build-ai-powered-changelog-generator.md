@@ -11,7 +11,7 @@ skills:
   - github-actions
   - zod
   - hono
-category: Developer Experience
+category: development
 tags:
   - changelog
   - release-notes

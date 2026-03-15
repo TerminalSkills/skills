@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: Architecture
+category: development
 tags:
   - idempotency
   - api

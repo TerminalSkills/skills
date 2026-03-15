@@ -12,7 +12,7 @@ skills:
   - github-actions
   - postgresql
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - policy-as-code
   - compliance

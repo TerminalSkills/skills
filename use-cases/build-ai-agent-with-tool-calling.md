@@ -8,7 +8,7 @@ skills:
   - redis
   - postgresql
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - ai-agents
   - tool-calling

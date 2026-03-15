@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - disaster-recovery
   - failover

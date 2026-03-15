@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Architecture
+category: development
 tags:
   - state-machine
   - workflow

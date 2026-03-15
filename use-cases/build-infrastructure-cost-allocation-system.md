@@ -8,7 +8,7 @@ skills:
   - redis
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - cost-allocation
   - finops

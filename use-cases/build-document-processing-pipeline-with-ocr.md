@@ -3,7 +3,7 @@ title: Build a Document Processing Pipeline with OCR
 slug: build-document-processing-pipeline-with-ocr
 description: Build an automated document processing system using Tesseract for OCR text extraction, OpenCV for image preprocessing, and AWS Lambda for serverless scaling — processing invoices, receipts, and contracts uploaded by users, extracting structured data, and routing to the appropriate business system.
 skills: [tesseract, opencv, aws-lambda]
-category: AI & Machine Learning
+category: data-ai
 tags: [ocr, document-processing, automation, serverless, data-extraction]
 ---
 

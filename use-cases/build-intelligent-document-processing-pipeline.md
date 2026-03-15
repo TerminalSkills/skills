@@ -14,7 +14,7 @@ skills:
   - zod
   - hono
   - vercel-ai-sdk
-category: AI & Machine Learning
+category: data-ai
 tags:
   - document-processing
   - ocr

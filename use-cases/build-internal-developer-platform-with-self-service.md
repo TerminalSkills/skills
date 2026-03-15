@@ -3,7 +3,7 @@ title: Build an Internal Developer Platform with Self-Service Deployment
 slug: build-internal-developer-platform-with-self-service
 description: A 50-person engineering org builds an internal developer platform where teams deploy services through a self-service portal — standardized templates, automated environment provisioning, preview environments per PR, production deployment with approval gates, and cost attribution per team — reducing the platform team from bottleneck to enabler.
 skills: [docker-helper, kubernetes-helm, neon-branching, trigger-dev-v3, hono]
-category: Cloud & Serverless
+category: devops
 tags: [platform-engineering, developer-experience, self-service, deployment, infrastructure, internal-tools]
 ---
 

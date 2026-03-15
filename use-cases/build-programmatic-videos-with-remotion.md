@@ -9,7 +9,7 @@ skills:
   - remotion-video-toolkit
   - tailwindcss
   - ffmpeg
-category: media
+category: content
 tags:
   - video
   - remotion

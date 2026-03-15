@@ -12,7 +12,7 @@ skills:
   - hono
   - zod
   - vercel-ai-sdk
-category: AI & Machine Learning
+category: data-ai
 tags:
   - llm-gateway
   - ai-cost

@@ -8,7 +8,7 @@ skills:
   - nextjs
   - postgresql
   - redis
-category: Security
+category: development
 tags:
   - oauth
   - sso

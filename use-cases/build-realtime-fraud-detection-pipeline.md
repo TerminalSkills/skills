@@ -13,7 +13,7 @@ skills:
   - zod
   - hono
   - bull-mq
-category: Data Engineering
+category: data-ai
 tags:
   - fraud-detection
   - streaming

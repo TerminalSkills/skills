@@ -9,7 +9,7 @@ skills:
   - bull-mq
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - cron
   - distributed-systems

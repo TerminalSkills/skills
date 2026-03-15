@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Backend Development
+category: development
 tags:
   - tax
   - e-commerce

@@ -7,7 +7,7 @@ skills:
   - postgresql
   - redis
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - mcp
   - ai-agents

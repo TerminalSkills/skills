@@ -12,7 +12,7 @@ skills:
   - postgresql
   - zod
   - vitest
-category: Backend Architecture
+category: development
 tags:
   - api-versioning
   - deprecation

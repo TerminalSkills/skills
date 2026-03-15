@@ -8,7 +8,7 @@ skills:
   - redis
   - postgresql
   - nextjs
-category: Full-Stack Development
+category: development
 tags:
   - graphql
   - real-time

@@ -11,7 +11,7 @@ skills:
   - docker
   - zod
   - github-actions
-category: Developer Experience
+category: development
 tags:
   - developer-experience
   - cli

@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Content Management
+category: content
 tags:
   - content-calendar
   - editorial

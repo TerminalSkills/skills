@@ -9,7 +9,7 @@ skills:
   - hono
   - nextjs
   - zod
-category: Frontend Development
+category: development
 tags:
   - cookies
   - gdpr

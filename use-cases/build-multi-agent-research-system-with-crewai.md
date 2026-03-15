@@ -3,7 +3,7 @@ title: Build a Multi-Agent Research System with CrewAI
 slug: build-multi-agent-research-system-with-crewai
 description: Build an automated market research pipeline using CrewAI for multi-agent orchestration, PydanticAI for type-safe data extraction, and Haystack for RAG-based document analysis — where a crew of AI agents collaborates to research competitors, analyze market trends, and produce investor-ready reports in 10 minutes instead of 2 weeks.
 skills: [crewai, pydantic-ai, haystack]
-category: AI & Machine Learning
+category: data-ai
 tags: [ai-agents, multi-agent, research, rag, automation, market-analysis]
 ---
 

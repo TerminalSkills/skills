@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Product Engineering
+category: development
 tags:
   - changelog
   - release-notes

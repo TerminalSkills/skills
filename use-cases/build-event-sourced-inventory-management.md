@@ -8,7 +8,7 @@ skills:
   - redis
   - kafka-js
   - hono
-category: Full-Stack Development
+category: development
 tags:
   - event-sourcing
   - inventory

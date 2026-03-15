@@ -6,7 +6,7 @@ skills:
   - typescript
   - zod
   - postgresql
-category: DevOps & Infrastructure
+category: devops
 tags:
   - preview-deployments
   - ci-cd

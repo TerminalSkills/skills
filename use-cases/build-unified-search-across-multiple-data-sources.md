@@ -13,7 +13,7 @@ skills:
   - hono
   - zod
   - postgresql
-category: AI & Machine Learning
+category: data-ai
 tags:
   - search
   - hybrid-search

@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Data Engineering
+category: data-ai
 tags:
   - streaming
   - data-pipeline

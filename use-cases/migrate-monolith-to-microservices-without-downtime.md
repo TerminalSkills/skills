@@ -3,7 +3,7 @@ title: Migrate a Monolith to Microservices Without Downtime
 slug: migrate-monolith-to-microservices-without-downtime
 description: A 15-person fintech team strangling a Django monolith into microservices over 6 months — using feature flags for gradual traffic shifting, event-driven communication via RabbitMQ, a shared Postgres with per-service schemas, and OpenTelemetry tracing to catch regressions — without a single minute of planned downtime.
 skills: [amqplib, opentelemetry-js, prisma, docker-helper, load-balancer]
-category: Backend Development
+category: development
 tags: [microservices, migration, monolith, strangler-fig, zero-downtime, event-driven]
 ---
 

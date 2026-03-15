@@ -13,7 +13,7 @@ skills:
   - zod
   - hono
   - redis
-category: Data Engineering
+category: data-ai
 tags:
   - data-mesh
   - data-products

@@ -3,7 +3,7 @@ title: Build a Real-Time Dashboard with Elixir Phoenix LiveView
 slug: build-fullstack-app-with-elixir-phoenix-liveview
 description: Build a real-time analytics dashboard using Elixir Phoenix LiveView for server-rendered reactive UI, Ecto for database access, and Phoenix PubSub for live updates — handling 10,000 concurrent WebSocket connections on a single server with no JavaScript framework.
 skills: [elixir]
-category: Backend Development
+category: development
 tags: [elixir, phoenix, liveview, real-time, websocket, dashboard]
 ---
 

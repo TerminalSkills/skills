@@ -9,7 +9,7 @@ skills:
   - postgresql
   - hono
   - nextjs
-category: AI & Machine Learning
+category: data-ai
 tags:
   - search
   - autocomplete

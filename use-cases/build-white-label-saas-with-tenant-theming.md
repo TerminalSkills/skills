@@ -14,7 +14,7 @@ skills:
   - shadcn-ui
   - zod
   - authjs
-category: Full-Stack Development
+category: development
 tags:
   - white-label
   - multi-tenant

@@ -8,7 +8,7 @@ skills:
   - redis
   - postgresql
   - zod
-category: Frontend Development
+category: development
 tags:
   - dark-mode
   - theming

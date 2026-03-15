@@ -3,7 +3,7 @@ title: Build an AI Code Review Bot That Actually Catches Bugs
 slug: build-ai-code-review-bot-for-github
 description: A platform team builds a GitHub bot that reviews every PR with AI — analyzing diffs for bugs, security issues, performance problems, and style violations, posting inline comments on the exact lines that need attention, learning from team patterns, and escalating only when confidence is high — reducing review turnaround from 2 days to 20 minutes while catching bugs that humans miss.
 skills: [openai-agents, langfuse, semgrep, hono, trigger-dev-v3]
-category: AI & Machine Learning
+category: data-ai
 tags: [code-review, github, automation, ai, developer-tools, ci-cd, quality]
 ---
 

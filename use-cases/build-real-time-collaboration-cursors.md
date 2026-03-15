@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: Real-Time
+category: development
 tags:
   - collaboration
   - real-time

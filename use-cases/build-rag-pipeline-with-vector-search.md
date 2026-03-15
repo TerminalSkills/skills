@@ -9,7 +9,7 @@ skills:
   - redis
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - rag
   - vector-search

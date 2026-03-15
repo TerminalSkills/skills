@@ -8,7 +8,7 @@ skills:
   - zod
   - redis
   - postgresql
-category: Full-Stack Development
+category: development
 tags:
   - file-upload
   - s3

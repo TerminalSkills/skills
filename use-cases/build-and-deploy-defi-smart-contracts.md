@@ -3,7 +3,7 @@ title: Build and Deploy DeFi Smart Contracts with Foundry
 slug: build-and-deploy-defi-smart-contracts
 description: Build a DeFi yield vault using Foundry for development and testing, Viem for frontend integration, and OpenZeppelin for battle-tested contract primitives — with fuzz testing, fork testing against mainnet, and gas-optimized deployment to Ethereum.
 skills: [foundry, viem, hardhat]
-category: Blockchain & Web3
+category: development
 tags: [defi, smart-contracts, ethereum, solidity, testing, web3]
 ---
 

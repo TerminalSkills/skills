@@ -3,7 +3,7 @@ title: Build an AI-Powered SaaS with Vercel AI SDK and Modern Stack
 slug: build-ai-powered-saas-with-vercel-ai-sdk
 description: Build a production AI SaaS application using Vercel AI SDK for LLM integration with streaming and tool calling, Trigger.dev for background AI jobs, Resend for transactional emails, Upstash for rate limiting, and SST for deployment — a complete modern stack for launching AI-powered products.
 skills: [ai-sdk, trigger-dev, resend, upstash, sst-ion]
-category: AI & Machine Learning
+category: data-ai
 tags: [ai, saas, streaming, vercel, llm, modern-stack, production]
 ---
 

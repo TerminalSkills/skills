@@ -9,7 +9,7 @@ skills:
   - hono
   - zod
   - nextjs
-category: Security
+category: development
 tags:
   - privacy
   - gdpr

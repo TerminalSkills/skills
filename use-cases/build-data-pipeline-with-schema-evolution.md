@@ -8,7 +8,7 @@ skills:
   - redis
   - zod
   - hono
-category: Data Engineering
+category: data-ai
 tags:
   - data-pipeline
   - schema-evolution

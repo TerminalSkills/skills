@@ -9,7 +9,7 @@ skills:
   - redis
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - data-export
   - csv

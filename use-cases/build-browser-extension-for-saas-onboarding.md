@@ -7,7 +7,7 @@ skills:
   - tailwindcss
   - vitest
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - browser-extension
   - onboarding

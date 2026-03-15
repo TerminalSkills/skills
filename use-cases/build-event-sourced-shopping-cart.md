@@ -12,7 +12,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Backend Architecture
+category: development
 tags:
   - event-sourcing
   - shopping-cart

@@ -12,7 +12,7 @@ skills:
   - hono
   - zod
   - kafka-js
-category: Backend Architecture
+category: development
 tags:
   - websocket
   - real-time

@@ -14,7 +14,7 @@ skills:
   - zod
   - hono
   - bull-mq
-category: DevOps & Infrastructure
+category: devops
 tags:
   - incident-response
   - sre

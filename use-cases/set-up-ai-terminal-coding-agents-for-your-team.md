@@ -3,7 +3,7 @@ title: Set Up AI Terminal Coding Agents for Your Team
 slug: set-up-ai-terminal-coding-agents-for-your-team
 description: Configure a team-wide AI coding workflow using Claude Code for complex architecture tasks, OpenAI Codex CLI for autonomous issue resolution in CI, and Gemini CLI for codebase-wide analysis — standardizing how a 6-person engineering team delegates work to AI agents while maintaining code quality and security.
 skills: [claude-code, openai-codex-cli, gemini-cli]
-category: Developer Tools
+category: development
 tags: [ai-coding, terminal, cli, team-workflow, autonomous-agent, developer-productivity]
 ---
 

@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Media & Video
+category: content
 tags:
   - video
   - transcoding

@@ -3,7 +3,7 @@ title: Launch a Full-Stack SaaS MVP in a Weekend
 slug: launch-fullstack-saas-mvp-in-a-weekend
 description: Build and ship a complete SaaS MVP using the modern TypeScript stack — Next.js with shadcn/ui for the frontend, tRPC for type-safe APIs, Prisma + Neon for the database, Auth.js for authentication, Lemon Squeezy for payments, Tailwind CSS for styling, Vitest for testing, and Zod for validation — going from zero to deployed product with auth, billing, and tests in 48 hours.
 skills: [shadcn-ui, trpc, prisma, authjs, lemon-squeezy, tailwindcss, vitest, zod, hono]
-category: Frontend Development
+category: development
 tags: [saas, fullstack, typescript, nextjs, mvp, startup, payments, auth]
 ---
 

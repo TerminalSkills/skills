@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - browser-automation
   - web-scraping

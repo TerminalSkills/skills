@@ -10,7 +10,7 @@ skills:
   - redis
   - hono
   - zod
-category: Backend Architecture
+category: development
 tags:
   - resilience
   - circuit-breaker

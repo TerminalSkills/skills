@@ -7,7 +7,7 @@ skills:
   - docker
   - kubernetes-helm
   - prometheus
-category: DevOps & Infrastructure
+category: devops
 tags:
   - service-mesh
   - istio

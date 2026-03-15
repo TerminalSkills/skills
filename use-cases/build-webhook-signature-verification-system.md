@@ -8,7 +8,7 @@ skills:
   - redis
   - postgresql
   - zod
-category: Security
+category: development
 tags:
   - webhooks
   - security

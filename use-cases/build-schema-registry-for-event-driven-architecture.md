@@ -12,7 +12,7 @@ skills:
   - zod
   - hono
   - vitest
-category: Backend Architecture
+category: development
 tags:
   - schema-registry
   - event-driven

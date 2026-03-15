@@ -7,7 +7,7 @@ skills:
   - hono
   - zod
   - tailwindcss
-category: Full-Stack Development
+category: development
 tags:
   - sdk
   - widget

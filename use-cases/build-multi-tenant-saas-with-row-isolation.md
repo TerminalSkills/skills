@@ -8,7 +8,7 @@ skills:
   - hono
   - zod
   - prisma
-category: Full-Stack Development
+category: development
 tags:
   - multi-tenant
   - rls

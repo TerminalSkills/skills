@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Developer Tools
+category: development
 tags:
   - dependencies
   - security

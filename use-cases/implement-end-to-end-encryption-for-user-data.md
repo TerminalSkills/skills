@@ -12,7 +12,7 @@ skills:
   - redis
   - zod
   - vitest
-category: Security
+category: development
 tags:
   - e2ee
   - encryption

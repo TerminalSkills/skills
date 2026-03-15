@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: Security
+category: development
 tags:
   - firewall
   - ip-blocking

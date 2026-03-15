@@ -13,7 +13,7 @@ skills:
   - redis
   - zod
   - nextjs
-category: Full-Stack Development
+category: development
 tags:
   - headless-cms
   - live-preview

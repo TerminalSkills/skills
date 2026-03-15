@@ -8,7 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Business Logic
+category: business
 tags:
   - reports
   - scheduling

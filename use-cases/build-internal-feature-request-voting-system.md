@@ -9,7 +9,7 @@ skills:
   - redis
   - tailwindcss
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - product-management
   - voting

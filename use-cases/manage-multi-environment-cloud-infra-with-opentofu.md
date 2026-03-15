@@ -3,7 +3,7 @@ title: Manage Multi-Environment Cloud Infrastructure with OpenTofu and Terragrun
 slug: manage-multi-environment-cloud-infra-with-opentofu
 description: Set up a production-grade infrastructure pipeline using OpenTofu for provisioning with client-side state encryption, and Terragrunt for DRY multi-environment management — deploying identical stacks across dev, staging, and production AWS accounts with dependency ordering, automated drift detection, and infrastructure cost estimation.
 skills: [opentofu, terragrunt, terraform-aws]
-category: Infrastructure & DevOps
+category: devops
 tags: [iac, cloud, aws, multi-environment, infrastructure, devops, automation]
 ---
 

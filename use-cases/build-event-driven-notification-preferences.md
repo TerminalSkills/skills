@@ -9,7 +9,7 @@ skills:
   - bull-mq
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - notifications
   - user-preferences

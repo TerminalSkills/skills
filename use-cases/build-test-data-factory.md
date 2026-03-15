@@ -7,7 +7,7 @@ skills:
   - postgresql
   - hono
   - zod
-category: Developer Tools
+category: development
 tags:
   - testing
   - fixtures

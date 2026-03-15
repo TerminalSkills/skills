@@ -7,7 +7,7 @@ skills:
   - openai
   - postgresql
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - llm
   - evaluation

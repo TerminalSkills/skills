@@ -13,7 +13,7 @@ skills:
   - zod
   - hono
   - redis
-category: AI & Machine Learning
+category: data-ai
 tags:
   - code-review
   - ai-automation

@@ -13,7 +13,7 @@ skills:
   - zod
   - hono
   - vitest
-category: Data Engineering
+category: data-ai
 tags:
   - feature-store
   - ml-ops

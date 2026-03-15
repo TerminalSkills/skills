@@ -8,7 +8,7 @@ skills:
   - hono
   - zod
   - postgresql
-category: Backend Development
+category: development
 tags:
   - geolocation
   - routing

@@ -7,7 +7,7 @@ skills:
   - redis
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - cdn
   - geo-routing

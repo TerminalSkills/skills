@@ -3,7 +3,7 @@ title: Build a Local-First Collaborative App with Real-Time Sync
 slug: build-local-first-app-with-sync
 description: Build a local-first project management app using TinyBase for reactive client-side storage with CRDT sync, Convex for the backend, Polar for monetization, and React Email for transactional notifications — creating an app that works offline, syncs across devices, and monetizes through subscriptions with license keys.
 skills: [tinybase, convex-sdk, polar, react-email]
-category: Frontend Development
+category: development
 tags: [local-first, crdt, sync, offline, monetization, collaborative]
 ---
 

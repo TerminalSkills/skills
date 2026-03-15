@@ -3,7 +3,7 @@ title: Build a Browser Game with AI and Deploy to the Web
 slug: build-browser-game-with-ai-and-deploy-to-web
 description: Build a complete browser-based game using Phaser for the game engine, PixiJS for high-performance 2D rendering, and Tiled for level design — creating a roguelike dungeon crawler with procedural generation, combat system, and leaderboard that runs at 60fps on mobile browsers.
 skills: [phaser, pixijs, tiled]
-category: Game Development
+category: development
 tags: [game-dev, browser-game, html5, 2d, roguelike, creative-coding]
 ---
 

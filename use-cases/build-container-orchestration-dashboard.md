@@ -8,7 +8,7 @@ skills:
   - redis
   - docker
   - tailwindcss
-category: DevOps & Infrastructure
+category: devops
 tags:
   - docker
   - containers

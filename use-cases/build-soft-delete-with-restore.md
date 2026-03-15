@@ -7,7 +7,7 @@ skills:
   - postgresql
   - hono
   - redis
-category: Backend Development
+category: development
 tags:
   - soft-delete
   - data-recovery

@@ -8,7 +8,7 @@ skills:
   - redis
   - hono
   - zod
-category: Backend Development
+category: development
 tags:
   - full-text-search
   - postgresql

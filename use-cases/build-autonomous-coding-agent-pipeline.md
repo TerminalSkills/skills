@@ -3,7 +3,7 @@ title: Build an Autonomous Coding Agent Pipeline for Your Team
 slug: build-autonomous-coding-agent-pipeline
 description: Set up a team coding pipeline using Aider for autonomous code generation from GitHub issues, Continue for in-IDE AI assistance with custom context, and Cline for complex multi-file refactoring — enabling a 4-person engineering team to ship 3x faster by delegating boilerplate, tests, and documentation to AI agents while focusing on architecture decisions.
 skills: [aider, continue-dev, cline]
-category: Developer Tools
+category: development
 tags: [ai-coding, autonomous-agent, code-generation, developer-productivity, vibe-coding]
 ---
 
