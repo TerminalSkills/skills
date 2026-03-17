@@ -3,11 +3,10 @@ title: Build a Real-Time Multiplayer Game Server
 slug: build-real-time-multiplayer-game-server
 description: Build a real-time multiplayer game server with room management, state synchronization, latency compensation, matchmaking, and anti-cheat validation for browser-based multiplayer games.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - multiplayer
   - game-server

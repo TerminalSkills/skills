@@ -3,11 +3,10 @@ title: Build Web3 Wallet Integration
 slug: build-web3-wallet-integration
 description: Build a Web3 wallet integration with MetaMask connection, transaction signing, token balance tracking, NFT display, and multi-chain support for decentralized applications.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - web3
   - wallet
