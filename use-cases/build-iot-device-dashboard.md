@@ -3,12 +3,11 @@ title: Build an IoT Device Dashboard
 slug: build-iot-device-dashboard
 description: Build an IoT device management dashboard with real-time telemetry, device provisioning, OTA firmware updates, alerting, and fleet management for connected device deployments.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: Full-Stack Development
+category: development
 tags:
   - iot
   - dashboard

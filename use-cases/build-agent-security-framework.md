@@ -3,12 +3,11 @@ title: Build an Agent Security Framework
 slug: build-agent-security-framework
 description: Build a security framework for AI agents with prompt injection detection, tool call validation, output sanitization, permission boundaries, and audit logging for safe autonomous agent operation.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: Security
+category: development
 tags:
   - agent-security
   - prompt-injection
