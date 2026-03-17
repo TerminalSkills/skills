@@ -3,12 +3,11 @@ title: Build an SEO Audit Tool
 slug: build-seo-audit-tool
 description: Build an SEO audit tool with page crawling, meta tag analysis, performance scoring, broken link detection, structured data validation, and prioritized fix recommendations.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: SEO & Marketing
+category: content
 tags:
   - seo
   - audit

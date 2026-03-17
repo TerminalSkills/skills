@@ -3,9 +3,8 @@ title: Build a CLI Framework
 slug: build-cli-framework
 description: Build a CLI framework with command parsing, argument validation, interactive prompts, progress indicators, colorized output, and plugin system for building developer tools.
 skills:
-  - typescript
   - zod
-category: Developer Tools
+category: development
 tags:
   - cli
   - framework
