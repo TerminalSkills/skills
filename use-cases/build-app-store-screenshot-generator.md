@@ -3,11 +3,10 @@ title: Build an App Store Screenshot Generator
 slug: build-app-store-screenshot-generator
 description: Build an app store screenshot generator with device frame overlays, text badges, multi-locale support, batch rendering, and A/B variant generation for iOS and Android app listings.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: Mobile Development
+category: development
 tags:
   - app-store
   - screenshots

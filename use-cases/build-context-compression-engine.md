@@ -3,11 +3,10 @@ title: Build a Context Compression Engine
 slug: build-context-compression-engine
 description: Build a context compression engine for LLM applications with semantic deduplication, importance ranking, token budget management, and lossless key information preservation.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - context
   - compression
