@@ -3,12 +3,11 @@ title: Build an Email Deliverability Monitor
 slug: build-email-deliverability-monitor
 description: Build an email deliverability monitor with SPF/DKIM/DMARC validation, inbox placement testing, bounce rate tracking, sender reputation scoring, and blacklist checking for email infrastructure.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - email
   - deliverability
