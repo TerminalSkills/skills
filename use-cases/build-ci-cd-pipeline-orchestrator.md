@@ -3,12 +3,11 @@ title: Build a CI/CD Pipeline Orchestrator
 slug: build-ci-cd-pipeline-orchestrator
 description: Build a CI/CD pipeline orchestrator with DAG-based step execution, parallel jobs, artifact passing, conditional stages, caching, and deployment gates for automated software delivery.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - ci-cd
   - pipeline
