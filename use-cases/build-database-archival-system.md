@@ -3,12 +3,11 @@ title: Build a Database Archival System
 slug: build-database-archival-system
 description: Build a database archival system with configurable policies, partitioned storage, compressed cold storage, query routing, and restore capabilities for managing data lifecycle at scale.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: Data Engineering
+category: data-ai
 tags:
   - archival
   - database

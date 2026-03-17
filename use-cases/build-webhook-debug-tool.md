@@ -3,11 +3,10 @@ title: Build a Webhook Debug Tool
 slug: build-webhook-debug-tool
 description: Build a webhook debug tool with temporary URL generation, request inspection, response mocking, replay functionality, and sharing for debugging webhook integrations.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: Developer Tools
+category: development
 tags:
   - webhooks
   - debugging
