@@ -3,12 +3,11 @@ title: Build a Customer Feedback Analyzer
 slug: build-customer-feedback-analyzer
 description: Build a customer feedback analyzer with multi-source aggregation, sentiment classification, topic extraction, trend detection, and prioritized actionable insights for product teams.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: Product Engineering
+category: development
 tags:
   - feedback
   - analytics
