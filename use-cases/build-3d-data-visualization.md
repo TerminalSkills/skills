@@ -3,10 +3,9 @@ title: Build 3D Data Visualization
 slug: build-3d-data-visualization
 description: Build a 3D data visualization engine with WebGL rendering, interactive camera controls, animated transitions, data mapping, and responsive layout for immersive data dashboards.
 skills:
-  - typescript
   - hono
   - zod
-category: Frontend Development
+category: development
 tags:
   - 3d
   - visualization
