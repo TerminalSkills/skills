@@ -3,12 +3,11 @@ title: Build an AI Voice Transcription Service
 slug: build-ai-voice-transcription
 description: Build a voice transcription service with real-time streaming, speaker diarization, punctuation restoration, multi-language support, and searchable transcript storage for audio content.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - transcription
   - voice
