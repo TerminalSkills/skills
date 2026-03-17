@@ -3,12 +3,11 @@ title: Build a Knowledge Graph Builder
 slug: build-knowledge-graph-builder
 description: Build a knowledge graph builder with entity extraction, relationship mapping, graph queries, visualization, and incremental updates for connecting organizational knowledge.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - knowledge-graph
   - entities
