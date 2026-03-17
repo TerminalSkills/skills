@@ -3,12 +3,11 @@ title: Build an AI Image Alt Text Generator
 slug: build-ai-image-alt-text-generator
 description: Build an AI-powered alt text generator that analyzes images, generates descriptive accessibility text, supports batch processing, integrates with CMS, and tracks compliance for WCAG accessibility.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - accessibility
   - ai
