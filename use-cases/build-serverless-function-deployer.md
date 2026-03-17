@@ -3,12 +3,11 @@ title: Build a Serverless Function Deployer
 slug: build-serverless-function-deployer
 description: Build a serverless function deployer with instant deployment, version management, environment variables, custom domains, log streaming, and cold start optimization.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - serverless
   - deployment
