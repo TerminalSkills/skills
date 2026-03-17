@@ -3,12 +3,11 @@ title: Build a Customer Onboarding Checklist
 slug: build-customer-onboarding-checklist
 description: Build a customer onboarding checklist with configurable steps, progress tracking, automated reminders, milestone celebrations, and drop-off analytics for improving time-to-value.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: Product Engineering
+category: development
 tags:
   - onboarding
   - checklist
