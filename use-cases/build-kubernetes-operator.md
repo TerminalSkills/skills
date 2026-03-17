@@ -3,11 +3,10 @@ title: Build a Kubernetes Operator
 slug: build-kubernetes-operator
 description: Build a Kubernetes operator with custom resource definitions, reconciliation loops, status management, event handling, and health checks for automating application lifecycle on Kubernetes.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - kubernetes
   - operator

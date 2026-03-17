@@ -3,12 +3,11 @@ title: Build a Social Media Scheduler
 slug: build-social-media-scheduler
 description: Build a social media scheduler with multi-platform posting, optimal timing, content calendar, media handling, analytics tracking, and team approval workflow for consistent social presence.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: SEO & Marketing
+category: content
 tags:
   - social-media
   - scheduler
