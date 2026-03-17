@@ -3,12 +3,11 @@ title: Build GEO-SEO Optimization
 slug: build-geo-seo-optimization
 description: Build a GEO-SEO optimization system for AI search engines with citability scoring, structured content formatting, knowledge graph alignment, and AI crawler optimization for appearing in AI-generated answers.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: SEO & Marketing
+category: content
 tags:
   - geo-seo
   - ai-search

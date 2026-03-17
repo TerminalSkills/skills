@@ -3,11 +3,10 @@ title: Build a Design Editor Canvas
 slug: build-design-editor-canvas
 description: Build a browser-based design editor canvas with drag-and-drop elements, layers, snap-to-grid, undo/redo, real-time collaboration, and export for creating visual designs programmatically.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: Frontend Development
+category: development
 tags:
   - design-editor
   - canvas
