@@ -3,11 +3,10 @@ title: Build Browser Stealth Automation
 slug: build-browser-stealth-automation
 description: Build browser stealth automation with anti-detection fingerprinting, proxy rotation, session management, human-like interaction patterns, and CAPTCHA handling for web scraping and testing.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: Developer Tools
+category: development
 tags:
   - browser-automation
   - stealth

@@ -3,11 +3,10 @@ title: Build a GraphQL Federation Gateway
 slug: build-graphql-federation-gateway
 description: Build a GraphQL federation gateway that composes schemas from multiple services, resolves cross-service queries, handles authentication, caching, and monitoring for microservice APIs.
 skills:
-  - typescript
   - redis
   - hono
   - zod
-category: Architecture
+category: development
 tags:
   - graphql
   - federation
