@@ -1,219 +1,137 @@
+---
+name: nemoclaw
+description: >-
+  Set up, configure, and manage NemoClaw — NVIDIA's open-source sandbox for
+  running OpenClaw agents securely with policy-enforced network, filesystem,
+  and inference controls. Use when the user mentions "nemoclaw," "openclaw
+  sandbox," "openshell," "sandboxed agent," "agent security sandbox,"
+  "nemotron sandbox," or wants to deploy an AI agent inside an isolated
+  environment with egress control and inference routing.
+license: Apache-2.0
+compatibility: "Requires Linux Ubuntu 22.04+, Node.js 20+, Docker, and NVIDIA OpenShell"
+metadata:
+  author: terminal-skills
+  version: "1.0.0"
+  category: devops
+  tags: ["nemoclaw", "sandbox", "agent-security", "nvidia", "openclaw"]
+---
+
 # NemoClaw
 
-> NVIDIA's open-source sandbox for running OpenClaw agents securely with policy-enforced network, filesystem, and inference controls.
+## Overview
 
-You are an expert in NemoClaw, NVIDIA OpenShell, sandboxed agent environments, and secure AI agent deployment.
+NemoClaw is an open-source stack by NVIDIA that installs and runs OpenClaw inside a sandboxed environment (OpenShell) with policy-enforced security controls. OpenShell provides Landlock, seccomp, and network namespace isolation. Sandboxes enforce strict egress control — all inference requests route through the OpenShell gateway, not directly to the internet. Network and inference policies are hot-reloadable; filesystem and process policies are locked at creation.
 
-## Core Concepts
+## Instructions
 
-- **NemoClaw** is an open-source stack by NVIDIA that installs and runs OpenClaw inside a sandboxed environment (OpenShell) with policy-enforced security controls
-- **OpenShell** is the NVIDIA runtime that provides Landlock, seccomp, and network namespace isolation for agent containers
-- **Blueprint** is a versioned Python artifact that orchestrates sandbox creation, security policy, and inference setup
-- **Nemotron** is NVIDIA's inference model (nemotron-3-super-120b-a12b) served via NVIDIA cloud API
-- Sandboxes enforce strict egress control — all inference requests route through the OpenShell gateway, not directly to the internet
-- Network, filesystem, process, and inference layers each have separate security policies
-- Policies are hot-reloadable for network and inference; locked at creation for filesystem and process
+### 1. Install NemoClaw
 
-## Architecture
-
-```
-Host Machine
-├── nemoclaw CLI (TypeScript)
-│   ├── onboard — interactive setup wizard
-│   ├── deploy — remote GPU instance via Brev
-│   ├── <name> connect — shell into sandbox
-│   └── start / stop / status — manage services
-├── Blueprint (Python)
-│   ├── resolve artifact → verify digest → plan → apply
-│   └── orchestrates sandbox lifecycle
-├── OpenShell Runtime
-│   ├── Landlock filesystem isolation
-│   ├── seccomp syscall filtering
-│   ├── Network namespace (netns)
-│   └── Inference gateway (intercepts model API calls)
-└── Sandbox
-    ├── OpenClaw agent (always-on)
-    ├── /sandbox and /tmp only writable
-    ├── Egress: blocked by default, allowlist-based
-    └── Inference: routed through NVIDIA cloud
-```
-
-## Prerequisites
-
-- Linux Ubuntu 22.04+ (required — no macOS/Windows support yet)
-- Node.js 20+ and npm 10+ (Node.js 22 recommended)
-- Docker installed and running
-- NVIDIA OpenShell installed: https://github.com/NVIDIA/OpenShell
-- NVIDIA API key from https://build.nvidia.com
-
-## Installation
+Prerequisites: Linux Ubuntu 22.04+, Node.js 20+, Docker running, NVIDIA OpenShell installed, NVIDIA API key from build.nvidia.com.
 
 ```bash
-# Download and run the installer
 curl -fsSL https://nvidia.com/nemoclaw.sh | bash
 ```
 
-The installer:
-1. Installs Node.js if not present
-2. Runs the guided onboard wizard
-3. Creates a sandbox
-4. Configures inference (NVIDIA cloud)
-5. Applies security policies
+The installer runs the guided onboard wizard, creates a sandbox, configures inference (NVIDIA cloud), and applies security policies. After install you see:
 
-After install:
 ```
 ──────────────────────────────────────────────────
 Sandbox my-assistant (Landlock + seccomp + netns)
 Model nvidia/nemotron-3-super-120b-a12b (NVIDIA Cloud API)
 ──────────────────────────────────────────────────
-Run: nemoclaw my-assistant connect
-Status: nemoclaw my-assistant status
-Logs: nemoclaw my-assistant logs --follow
-──────────────────────────────────────────────────
 ```
 
-## CLI Commands — Host
+### 2. Manage sandboxes from the host
 
 ```bash
-# Setup
 nemoclaw onboard                      # Interactive setup wizard
-
-# Sandbox management
 nemoclaw my-assistant connect         # Shell into sandbox
 nemoclaw my-assistant status          # Sandbox health check
 nemoclaw my-assistant logs --follow   # Stream logs
-
-# Service management
 nemoclaw start                        # Start auxiliary services
 nemoclaw stop                         # Stop services
-nemoclaw status                       # Service health
-
-# Deploy to remote GPU
 nemoclaw deploy my-assistant          # Deploy via Brev to remote GPU instance
 ```
 
-## CLI Commands — Inside Sandbox
+### 3. Work inside the sandbox
 
 ```bash
-# OpenClaw agent interaction
 openclaw tui                          # Interactive chat TUI
 openclaw agent --agent main --local -m "hello" --session-id test
-
-# NemoClaw plugin (under active development)
-openclaw nemoclaw launch [--profile ...]   # Bootstrap OpenClaw in sandbox
-openclaw nemoclaw status                    # Show sandbox health
-openclaw nemoclaw logs [-f]                 # Stream logs
+openclaw nemoclaw launch              # Bootstrap OpenClaw in sandbox
+openclaw nemoclaw status              # Show sandbox health
+openclaw nemoclaw logs [-f]           # Stream logs
 ```
 
-## Security Policies
+### 4. Security policies
 
-### Network Policy
-- All outbound connections blocked by default
-- Allowlist-based egress: only approved hosts reachable
-- When agent requests unlisted host → blocked + surfaced in TUI for operator approval
-- Hot-reloadable at runtime (no sandbox restart needed)
+- **Network**: All outbound blocked by default, allowlist-based egress, hot-reloadable. When agent requests unlisted host → blocked + surfaced in TUI for operator approval.
+- **Filesystem**: Only `/sandbox` and `/tmp` writable, locked at creation.
+- **Process**: Privilege escalation blocked, seccomp syscall filtering, locked at creation.
+- **Inference**: All model API calls intercepted by OpenShell gateway, routed to NVIDIA cloud. Default model: `nvidia/nemotron-3-super-120b-a12b`.
 
-### Filesystem Policy
-- Only `/sandbox` and `/tmp` are writable
-- All other filesystem paths read-only or blocked
-- Locked at sandbox creation (cannot be changed at runtime)
-
-### Process Policy
-- Privilege escalation blocked
-- Dangerous syscalls filtered via seccomp
-- Locked at sandbox creation
-
-### Inference Policy
-- All model API calls intercepted by OpenShell gateway
-- Routed to NVIDIA cloud backend (never direct internet access from sandbox)
-- Hot-reloadable at runtime
-- Default model: `nvidia/nemotron-3-super-120b-a12b`
-
-## Inference Configuration
-
-```yaml
-# Inference is configured during onboard
-provider: nvidia-cloud
-model: nvidia/nemotron-3-super-120b-a12b
-api_key: <NVIDIA_API_KEY>  # from build.nvidia.com
-```
-
-- Agent code calls LLM API normally — OpenShell transparently intercepts and routes
-- No code changes needed in the agent
-- Model can be changed via inference profiles
-
-## Blueprint Lifecycle
-
-1. **Resolve** — download the versioned blueprint artifact
-2. **Verify** — check artifact digest for integrity
-3. **Plan** — determine resources needed (sandbox, network, inference)
-4. **Apply** — execute through OpenShell CLI
-
-## Troubleshooting
+### 5. Troubleshoot
 
 ```bash
-# NemoClaw-level health
-nemoclaw my-assistant status
-
-# OpenShell sandbox state
-openshell sandbox list
-
-# Check inference connectivity
-nemoclaw my-assistant logs --follow | grep inference
-
-# Common issues:
-# - Docker not running → start Docker daemon
-# - API key invalid → re-run nemoclaw onboard
-# - Sandbox won't start → check openshell sandbox list for conflicts
-# - Network blocked → check egress allowlist in policy
+nemoclaw my-assistant status                        # NemoClaw health
+openshell sandbox list                              # OpenShell sandbox state
+nemoclaw my-assistant logs --follow | grep inference # Check inference connectivity
 ```
 
-## Key Patterns
+Common issues: Docker not running → start daemon. API key invalid → re-run `nemoclaw onboard`. Sandbox conflicts → check `openshell sandbox list`. Network blocked → check egress allowlist.
 
-### Fresh Installation Required
-NemoClaw currently requires a fresh OpenClaw installation. Don't install on existing OpenClaw setups.
+## Examples
 
-### Operator Approval for Network Access
-When the agent tries to reach a host not in the allowlist:
-1. OpenShell blocks the request
-2. Request appears in TUI for operator review
-3. Operator approves or denies
-4. If approved, host is added to allowlist
+### Example 1: Set up a new sandboxed coding agent
 
-### Remote Deployment
-```bash
-# Deploy to a GPU instance through Brev
-nemoclaw deploy my-assistant
-# This provisions a remote instance, installs NemoClaw, and connects
-```
+**User request:** "I want to run an OpenClaw agent in a secure sandbox with NemoClaw on my Ubuntu server"
 
-### Monitoring
-```bash
-# Health check
-nemoclaw my-assistant status
+**Actions taken:**
+1. Verify prerequisites: confirm Ubuntu 22.04+, Node.js 20+, Docker running
+2. Install OpenShell from https://github.com/NVIDIA/OpenShell
+3. Run the NemoClaw installer:
+   ```bash
+   curl -fsSL https://nvidia.com/nemoclaw.sh | bash
+   ```
+4. Follow onboard wizard — enter sandbox name `code-agent`, select Nemotron model, provide NVIDIA API key
+5. Connect to sandbox:
+   ```bash
+   nemoclaw code-agent connect
+   ```
+6. Inside sandbox, start the agent TUI:
+   ```bash
+   openclaw tui
+   ```
 
-# Real-time logs
-nemoclaw my-assistant logs --follow
+**Expected output:** Agent running inside isolated sandbox with Landlock filesystem protection, seccomp syscall filtering, network namespace isolation, and all inference routed through OpenShell gateway.
 
-# OpenShell TUI (monitoring + approvals)
-openshell term
-```
+### Example 2: Deploy a sandboxed agent to a remote GPU instance
 
-## Important Notes
+**User request:** "Deploy my NemoClaw sandbox to a remote GPU so I can run larger models"
 
-- **Alpha software** — expect rough edges; APIs may change without notice
-- **Linux only** — Ubuntu 22.04+ required; no macOS/Windows support
-- **Fresh install** — don't install on existing OpenClaw
-- **NVIDIA API key required** — get from build.nvidia.com
-- **Not production-ready yet** — for experimentation and feedback
+**Actions taken:**
+1. Confirm local sandbox `research-agent` is working:
+   ```bash
+   nemoclaw research-agent status
+   ```
+   Output: `research-agent: running (Landlock + seccomp + netns)`
+2. Deploy to remote GPU via Brev:
+   ```bash
+   nemoclaw deploy research-agent
+   ```
+3. Monitor remote deployment:
+   ```bash
+   nemoclaw research-agent logs --follow
+   ```
 
-## References
+**Expected output:** Remote GPU instance provisioned, NemoClaw installed, sandbox `research-agent` running on remote with same security policies applied. All inference routed through NVIDIA cloud API.
 
-- Repository: https://github.com/NVIDIA/NemoClaw
-- NVIDIA Agent Toolkit: https://docs.nvidia.com/nemo/agent-toolkit/latest
-- OpenShell: https://github.com/NVIDIA/OpenShell
-- NVIDIA Build: https://build.nvidia.com
-- Documentation: https://docs.nvidia.com/nemoclaw/latest
-- License: Apache 2.0
+## Guidelines
 
-author: terminal-skills
+- NemoClaw requires a **fresh OpenClaw installation** — do not install on existing OpenClaw setups.
+- **Alpha software** — APIs may change without notice; not production-ready yet.
+- **Linux only** — Ubuntu 22.04+ required, no macOS or Windows support.
+- The `curl | bash` installer is from nvidia.com (official NVIDIA source). For manual installation, clone the repo and follow the README at https://github.com/NVIDIA/NemoClaw.
+- When the agent tries to reach a host not in the egress allowlist, the request is blocked and surfaced in the OpenShell TUI for operator approval. If approved, the host is added to the allowlist.
+- Blueprint lifecycle: Resolve artifact → Verify digest → Plan resources → Apply through OpenShell CLI.
+- Architecture: Host runs nemoclaw CLI (TypeScript) + Blueprint (Python) + OpenShell Runtime → Sandbox contains the OpenClaw agent with strict isolation.
