@@ -3,12 +3,11 @@ title: Build an API Monetization Platform
 slug: build-api-monetization-platform
 description: Build an API monetization platform with pricing plans, usage metering, billing integration, developer portal, free tier management, and revenue analytics for API-as-a-product businesses.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: SaaS
+category: business
 tags:
   - api-monetization
   - billing
