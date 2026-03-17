@@ -3,12 +3,11 @@ title: Build an API Health Dashboard
 slug: build-api-health-dashboard
 description: Build a real-time API health dashboard with endpoint monitoring, latency tracking, error rate visualization, dependency health, SLA reporting, and incident timeline.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - monitoring
   - dashboard
