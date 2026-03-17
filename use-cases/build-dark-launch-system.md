@@ -3,12 +3,11 @@ title: Build a Dark Launch System
 slug: build-dark-launch-system
 description: Build a dark launch system with shadow traffic mirroring, feature comparison testing, performance benchmarking, gradual rollout, and rollback capabilities for risk-free production deployments.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: DevOps & Infrastructure
+category: devops
 tags:
   - dark-launch
   - shadow-traffic

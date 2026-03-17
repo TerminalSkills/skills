@@ -3,12 +3,11 @@ title: Build an AI Prompt Chain Executor
 slug: build-ai-prompt-chain-executor
 description: Build a prompt chain executor that composes multi-step LLM workflows with data passing, conditional branching, parallel execution, error handling, and cost tracking for complex AI tasks.
 skills:
-  - typescript
   - redis
   - postgresql
   - hono
   - zod
-category: AI & Machine Learning
+category: data-ai
 tags:
   - prompts
   - llm
