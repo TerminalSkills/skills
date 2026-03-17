@@ -5,28 +5,14 @@
       "slug": "3dsmax-rendering",
       "description": "Configure and optimize rendering in 3ds Max — V-Ray and Corona render settings, render elements, light mix, batch rendering, network rendering, denoising, and post-production workflows. Use when tasks involve setting up production renders, optimizing render times, batch rendering multiple views, or configuring render farms for archviz and product visualization.",
       "category": "design",
-      "tags": [
-        "3dsmax",
-        "vray",
-        "corona",
-        "rendering",
-        "archviz",
-        "optimization"
-      ]
+      "tags": []
     },
     {
       "name": "3dsmax-scripting",
       "slug": "3dsmax-scripting",
       "description": "Automate 3ds Max with MAXScript and Python — scene manipulation, object creation, material assignment, camera setup, batch operations, UI tools, and file I/O. Use when tasks involve automating repetitive 3ds Max workflows, batch processing scenes, creating custom tools, or scripting scene setup for archviz, product visualization, or VFX.",
       "category": "design",
-      "tags": [
-        "3dsmax",
-        "maxscript",
-        "python",
-        "automation",
-        "scripting",
-        "3d"
-      ]
+      "tags": []
     },
     {
       "name": "3proxy",
@@ -48,10 +34,24 @@
       ]
     },
     {
+      "name": "a2a-sdk",
+      "slug": "a2a-sdk",
+      "description": "You are an expert in the A2A (Agent-to-Agent) Protocol, Google's open standard for inter-agent communication. You help developers build agents that discover, communicate, and delegate tasks to other agents across organizations and platforms — with agent cards for capability discovery, task lifecycle management, streaming updates, and push notifications, enabling a web of interoperable AI agents.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "ab-test-setup",
       "slug": "ab-test-setup",
       "description": "When the user wants to plan, design, or implement an A/B test or experiment. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test this change,\" \"variant copy,\" \"multivariate test,\" or \"hypothesis.\" For tracking implementation, see analytics-tracking.",
       "category": "business",
+      "tags": []
+    },
+    {
+      "name": "ably",
+      "slug": "ably",
+      "description": "You are an expert in Ably, the enterprise-grade realtime messaging platform. You help developers add pub/sub messaging, presence, chat, live updates, and event streaming to applications with guaranteed message ordering, exactly-once delivery, automatic reconnection, and global edge infrastructure — handling millions of messages per second with 99.999% uptime SLA.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -116,6 +116,20 @@
       "tags": []
     },
     {
+      "name": "ag-ui",
+      "slug": "ag-ui",
+      "description": "You are an expert in AG-UI (Agent-User Interaction Protocol), the open standard by CopilotKit for connecting AI agents to frontend UIs. You help developers stream agent actions, tool calls, state updates, and text generation to React components in real-time — enabling rich agent UIs where users see what the agent is thinking, doing, and can intervene at any step.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
+      "name": "ag2",
+      "slug": "ag2",
+      "description": "You are an expert in AG2 (formerly AutoGen), the open-source multi-agent conversation framework. You help developers build systems where multiple AI agents collaborate through structured conversations — with tool use, human-in-the-loop, code execution, group chat orchestration, and nested conversations — for complex tasks like software development, research, and data analysis.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "agent-memory",
       "slug": "agent-memory",
       "description": "Add persistent memory to AI coding agents — file-based, vector, and semantic search memory systems that survive between sessions. Use when a user asks to \"remember this\", \"add memory to my agent\", \"persist context between sessions\", \"build a knowledge base for my agent\", \"set up agent memory\", or \"make my AI remember things\". Covers file-based memory (MEMORY.md), SQLite with embeddings, vector databases (ChromaDB, Pinecone), semantic search, memory consolidation, and automatic context injection.",
@@ -177,6 +191,13 @@
       "tags": []
     },
     {
+      "name": "ai-sdk",
+      "slug": "ai-sdk",
+      "description": "You are an expert in the Vercel AI SDK, the TypeScript toolkit for building AI-powered applications. You help developers integrate LLMs (OpenAI, Anthropic, Google, Mistral, Ollama) with React Server Components, streaming UI, tool calling, structured output with Zod schemas, RAG pipelines, multi-step agents, and edge-compatible AI features — the standard way to add AI to Next.js, Nuxt, SvelteKit, and any Node.js app.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "ai-slides",
       "slug": "ai-slides",
       "description": "Generate complete presentations with AI — from outline to polished slides. Use when a user asks to create a presentation, build slides, make a pitch deck, generate a slide deck, create a keynote, prepare a talk, build a demo presentation, or produce any slide-based content.",
@@ -188,6 +209,20 @@
         "keynote",
         "storytelling"
       ]
+    },
+    {
+      "name": "aider",
+      "slug": "aider",
+      "description": "You are an expert in Aider, the terminal-based AI coding assistant that reads your codebase, makes changes across multiple files, and creates proper git commits. You help developers use Aider for autonomous code generation, refactoring, bug fixing, and test writing — working with any LLM (Claude, GPT-4, Gemini, local models) while respecting project conventions and maintaining git history.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
+      "name": "airbyte",
+      "slug": "airbyte",
+      "description": "You are an expert in Airbyte, the open-source data integration platform with 300+ pre-built connectors. You help developers sync data from SaaS tools, databases, and APIs into data warehouses and lakes — handling incremental syncs, CDC (Change Data Capture), schema evolution, and error recovery for production data pipelines.",
+      "category": "Data Engineering",
+      "tags": []
     },
     {
       "name": "airflow",
@@ -244,6 +279,13 @@
       "tags": []
     },
     {
+      "name": "amqplib",
+      "slug": "amqplib",
+      "description": "You are an expert in amqplib, the Node.js client for RabbitMQ and AMQP 0-9-1 protocol. You help developers implement reliable message queuing with work queues, pub/sub fanout, topic routing, RPC patterns, dead letter queues, and message acknowledgment — building decoupled microservices that communicate asynchronously through RabbitMQ.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "analytics-tracking",
       "slug": "analytics-tracking",
       "description": "When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions \"set up tracking,\" \"GA4,\" \"Google Analytics,\" \"conversion tracking,\" \"event tracking,\" \"UTM parameters,\" \"tag manager,\" \"GTM,\" \"analytics implementation,\" or \"tracking plan.\" For A/B test measurement, see ab-test-setup.",
@@ -286,18 +328,6 @@
       "tags": []
     },
     {
-      "name": "api-doc-generator",
-      "slug": "api-doc-generator",
-      "description": "Generate and validate API documentation from source code, route definitions, and existing endpoints. Use when a user asks to generate API docs, create OpenAPI specs, document endpoints, sync docs with code, detect documentation drift, or produce Swagger files from a codebase.",
-      "category": "development",
-      "tags": [
-        "api",
-        "documentation",
-        "openapi",
-        "swagger"
-      ]
-    },
-    {
       "name": "api-load-tester",
       "slug": "api-load-tester",
       "description": "Generates and executes load test scripts for APIs using k6, wrk, or autocannon. Creates realistic test scenarios from OpenAPI specs, route files, or endpoint descriptions. Use when someone needs to load test, stress test, benchmark, or find the breaking point of their API. Trigger words: load test, stress test, benchmark, RPS, concurrent users, breaking point, performance test, k6, wrk.",
@@ -328,6 +358,13 @@
       "slug": "api-versioning",
       "description": "Version REST and GraphQL APIs. Use when a user asks to version an API, handle breaking changes, implement API deprecation, manage multiple API versions, or design an API evolution strategy.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "apollo-client",
+      "slug": "apollo-client",
+      "description": "You are an expert in Apollo Client, the comprehensive GraphQL client for React applications. You help developers fetch data with GraphQL queries and mutations, manage local and remote state with Apollo's normalized cache, implement optimistic UI updates, handle pagination, and configure authentication — providing a complete data management solution for GraphQL-powered apps.",
+      "category": "Frontend Development",
       "tags": []
     },
     {
@@ -405,6 +442,13 @@
       "tags": []
     },
     {
+      "name": "arize",
+      "slug": "arize",
+      "description": "You are an expert in Arize and its open-source Phoenix library for AI observability. You help developers monitor LLM applications with tracing, evaluation, embedding analysis, drift detection, and retrieval quality metrics — using Phoenix for local development (open-source, self-hosted) and Arize platform for production monitoring at scale.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "arktype",
       "slug": "arktype",
       "description": "Define runtime-validated types with ArkType — TypeScript's 1:1 validator. Use when someone asks to \"validate data in TypeScript\", \"runtime type checking\", \"ArkType\", \"type-safe validation\", \"alternative to Zod\", \"faster validation library\", or \"validate with TypeScript syntax\". Covers type definitions, validation, morphs (transforms), scopes, and comparison with Zod.",
@@ -440,8 +484,8 @@
     {
       "name": "atuin",
       "slug": "atuin",
-      "description": "Expert guidance for Atuin, the tool that replaces your shell history with a SQLite database providing encrypted sync across machines, full-text search, and contextual history filtering. Helps developers install, configure, and get the most out of Atuin for shell history management and productivity.",
-      "category": "development",
+      "description": "You are an expert in Atuin, the Rust-based shell history tool that replaces your shell's built-in history with a searchable, syncable, context-aware database. You help developers set up fuzzy search across shell history, sync history across machines, filter by directory/host/session, and analyze command usage — turning shell history from a flat text file into a powerful productivity tool.",
+      "category": "Developer Tools",
       "tags": []
     },
     {
@@ -467,21 +511,8 @@
     {
       "name": "authjs",
       "slug": "authjs",
-      "description": "Assists with adding authentication to web applications using Auth.js (formerly NextAuth.js). Use when configuring OAuth providers, database sessions, JWT strategies, role-based access, or multi-tenant auth in Next.js, SvelteKit, Express, or other frameworks. Trigger words: authjs, nextauth, oauth, authentication, login, session, providers.",
-      "category": "development",
-      "tags": [
-        "authjs",
-        "nextauth",
-        "oauth",
-        "authentication",
-        "session"
-      ]
-    },
-    {
-      "name": "autocannon",
-      "slug": "autocannon",
-      "description": "Benchmark HTTP APIs with Autocannon. Use when a user asks to load test an API, measure request throughput, find performance bottlenecks, benchmark API endpoints, or compare server configurations.",
-      "category": "development",
+      "description": "You are an expert in Auth.js (formerly NextAuth.js), the authentication library for web frameworks. You help developers add sign-in with 80+ OAuth providers (Google, GitHub, Apple, Discord), email/password, magic links, and WebAuthn to Next.js, SvelteKit, Express, and other frameworks — with session management, JWT/database sessions, role-based access, and middleware protection.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -534,16 +565,16 @@
       "tags": []
     },
     {
-      "name": "aws-rds",
-      "slug": "aws-rds",
-      "description": "Manage Amazon RDS for fully managed relational databases. Provision MySQL, PostgreSQL, and Aurora instances with automated backups and patching. Configure read replicas for scaling, snapshots for recovery, and Aurora Serverless for variable workloads.",
-      "category": "devops",
+      "name": "aws-lambda",
+      "slug": "aws-lambda",
+      "description": "You are an expert in AWS Lambda, Amazon's serverless compute service. You help developers build event-driven applications using Lambda functions triggered by API Gateway, S3 events, SQS queues, DynamoDB streams, and scheduled events — with support for Node.js, Python, Go, Rust, Java, and container images, automatic scaling from zero to thousands of concurrent executions, and pay-per-invocation pricing.",
+      "category": "Cloud & Serverless",
       "tags": []
     },
     {
-      "name": "aws-s3",
-      "slug": "aws-s3",
-      "description": "Master Amazon S3 for scalable object storage. Create and configure buckets, upload and manage objects, generate presigned URLs for secure temporary access, set up lifecycle policies for cost optimization, and enable versioning for data protection and compliance.",
+      "name": "aws-rds",
+      "slug": "aws-rds",
+      "description": "Manage Amazon RDS for fully managed relational databases. Provision MySQL, PostgreSQL, and Aurora instances with automated backups and patching. Configure read replicas for scaling, snapshots for recovery, and Aurora Serverless for variable workloads.",
       "category": "devops",
       "tags": []
     },
@@ -576,6 +607,13 @@
       "tags": []
     },
     {
+      "name": "axum",
+      "slug": "axum",
+      "description": "You are an expert in Axum, the web framework built on top of Tokio and Tower by the Tokio team. You help developers build high-performance, type-safe APIs and web services using Axum's extractor-based handler system, middleware via Tower layers, WebSocket support, and compile-time route validation — achieving C-level performance with Rust's memory safety guarantees.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "azure-blob-storage",
       "slug": "azure-blob-storage",
       "description": "Store and manage unstructured data with Azure Blob Storage. Create containers, upload and organize blobs, configure access tiers (Hot, Cool, Archive) for cost optimization, generate SAS tokens for secure temporary access, and set lifecycle management policies.",
@@ -601,6 +639,13 @@
       "slug": "azure-functions",
       "description": "Build serverless applications with Azure Functions. Create HTTP and event-driven functions with input/output bindings, configure triggers for queues, timers, and blob storage. Use Durable Functions for stateful orchestration workflows.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "babylonjs",
+      "slug": "babylonjs",
+      "description": "You are an expert in Babylon.js, the powerful open-source 3D engine for web browsers with WebGL and WebGPU support. You help developers build games, product configurators, architectural visualizations, VR/AR experiences, and interactive 3D applications — using Babylon's scene graph, PBR materials, Havok physics, particle systems, GUI, animation, and XR support for production-grade 3D on the web.",
+      "category": "3D & Creative",
       "tags": []
     },
     {
@@ -665,15 +710,9 @@
     {
       "name": "biome",
       "slug": "biome",
-      "description": "Assists with formatting and linting JavaScript, TypeScript, JSX, JSON, and CSS using Biome. Use when replacing ESLint and Prettier with a single fast tool, configuring lint rules, setting up CI checks, or migrating from existing linter configurations. Trigger words: biome, linter, formatter, code quality, lint, eslint replacement.",
-      "category": "development",
-      "tags": [
-        "biome",
-        "linter",
-        "formatter",
-        "code-quality",
-        "typescript"
-      ]
+      "description": "You are an expert in Biome, the Rust-based toolchain that replaces ESLint and Prettier with a single, fast tool. You help developers configure linting, formatting, and import sorting for JavaScript, TypeScript, JSX, JSON, and CSS — achieving 100x faster execution than ESLint+Prettier with zero configuration, unified diagnostics, and IDE integration.",
+      "category": "Developer Tools",
+      "tags": []
     },
     {
       "name": "bitbucket",
@@ -813,10 +852,17 @@
       ]
     },
     {
+      "name": "bolt",
+      "slug": "bolt",
+      "description": "You are an expert in Bolt.new by StackBlitz, the AI-powered full-stack development environment that runs entirely in the browser. You help developers go from idea to deployed app in minutes using natural language prompts — Bolt generates complete applications with frontend, backend, database, and deployment, all running in a WebContainer without local setup.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
       "name": "braintrust",
       "slug": "braintrust",
-      "description": "Expert guidance for Braintrust, the platform for evaluating, monitoring, and improving AI applications. Helps developers set up experiments, track prompt performance, compare models, and debug production LLM issues with detailed tracing.",
-      "category": "data-ai",
+      "description": "You are an expert in Braintrust, the evaluation and observability platform for AI applications. You help developers run systematic evaluations, compare model versions, track experiments, log production traces, and measure quality metrics — with a focus on making AI development as rigorous as traditional software testing.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -835,15 +881,16 @@
     {
       "name": "browser-use",
       "slug": "browser-use",
-      "description": "Give AI agents browser control with Browser Use — autonomous web browsing for LLM agents. Use when someone asks to \"AI browse the web\", \"browser automation with AI\", \"Browser Use\", \"LLM web agent\", \"autonomous browsing\", \"AI fill out forms\", or \"agent that can navigate websites\". Covers autonomous browsing, task completion, data extraction, and form filling.",
-      "category": "data-ai",
-      "tags": [
-        "ai-agent",
-        "browser",
-        "automation",
-        "browser-use",
-        "web-agent"
-      ]
+      "description": "You are an expert in Browser Use, the Python library that lets AI agents control a web browser. You help developers build agents that can navigate websites, fill forms, click buttons, extract data, and complete multi-step web tasks — using vision and DOM understanding to interact with any website like a human would.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
+      "name": "browserbase",
+      "slug": "browserbase",
+      "description": "You are an expert in BrowserBase, the cloud platform for running headless browsers at scale. You help developers deploy browser-based automations, AI agents, and web scraping pipelines using managed Chromium instances with residential proxies, session recording, stealth mode, and parallel execution — without managing browser infrastructure.",
+      "category": "Developer Tools",
+      "tags": []
     },
     {
       "name": "bruno",
@@ -857,6 +904,13 @@
         "git-friendly",
         "open-source"
       ]
+    },
+    {
+      "name": "bull-mq",
+      "slug": "bull-mq",
+      "description": "You are an expert in BullMQ, the high-performance job queue for Node.js built on Redis. You help developers build reliable background processing systems with delayed jobs, rate limiting, prioritization, repeatable cron jobs, job dependencies, concurrency control, and dead-letter handling — powering email sending, image processing, webhook delivery, report generation, and any async workload.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "bun",
@@ -984,6 +1038,13 @@
       "tags": []
     },
     {
+      "name": "centrifugo",
+      "slug": "centrifugo",
+      "description": "You are an expert in Centrifugo, the scalable real-time messaging server. You help developers add WebSocket-based real-time features (chat, notifications, live updates, presence) to any application with a language-agnostic server that handles millions of concurrent connections — publishing from your backend via HTTP/gRPC API while clients subscribe via WebSocket, SSE, or HTTP streaming.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "cerebras",
       "slug": "cerebras",
       "description": "Expert guidance for Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). Helps developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.",
@@ -1065,6 +1126,13 @@
       "tags": []
     },
     {
+      "name": "chi",
+      "slug": "chi",
+      "description": "You are an expert in Chi, the lightweight, idiomatic Go HTTP router built on `net/http`. You help developers build composable HTTP services using Chi's middleware stack, route groups, URL parameters, sub-routers, and context-based request scoping — providing Express-like ergonomics while staying 100% compatible with Go's standard library.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "chromadb",
       "slug": "chromadb",
       "description": "Assists with storing, searching, and managing vector embeddings using ChromaDB. Use when building RAG pipelines, semantic search engines, or recommendation systems. Trigger words: chromadb, chroma, vector database, embeddings, semantic search, similarity search, vector store, rag.",
@@ -1137,6 +1205,13 @@
       ]
     },
     {
+      "name": "clay",
+      "slug": "clay",
+      "description": "You are an expert in Clay, the data enrichment and outbound sales platform that pulls from 75+ data providers to build rich prospect profiles. You help teams automate lead discovery, enrich contacts with firmographic and technographic data, score leads against ICP criteria, and trigger personalized outreach sequences — replacing manual research with automated, data-driven prospecting.",
+      "category": "Marketing & Growth",
+      "tags": []
+    },
+    {
       "name": "clearml",
       "slug": "clearml",
       "description": "Expert guidance for ClearML, the open-source MLOps platform for experiment tracking, pipeline orchestration, data management, and model deployment. Helps developers set up ML experiment tracking with minimal code, build reproducible pipelines, and manage the full ML lifecycle from training to serving.",
@@ -1171,6 +1246,13 @@
       "tags": []
     },
     {
+      "name": "cline",
+      "slug": "cline",
+      "description": "You are an expert in Cline, the autonomous AI coding agent for VS Code that can read files, write code, run terminal commands, and use the browser — with human-in-the-loop approval at each step. You help developers use Cline for complex multi-file refactoring, feature implementation, debugging, and codebase exploration where the AI plans and executes while the developer reviews and approves.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
       "name": "cloud-resource-analyzer",
       "slug": "cloud-resource-analyzer",
       "description": "Finds orphaned, idle, and underutilized cloud resources across AWS, GCP, or Azure accounts. Use when someone needs to audit cloud spending, find unused EBS volumes, stale snapshots, unattached IPs, idle load balancers, or oversized RDS instances. Trigger words: cloud waste, orphaned resources, unused volumes, cloud audit, infrastructure cleanup, cloud bill analysis.",
@@ -1187,6 +1269,13 @@
       "slug": "cloudflare",
       "description": "Protect and accelerate websites with Cloudflare. Use when a user asks to add CDN, DDoS protection, DNS management, SSL, WAF, or edge computing to a website or API.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "cloudflare-ai",
+      "slug": "cloudflare-ai",
+      "description": "You are an expert in Cloudflare Workers AI, the serverless AI inference platform running on Cloudflare's global network. You help developers run LLMs, embedding models, image generation, speech-to-text, and translation models at the edge with zero cold starts, pay-per-use pricing, and integration with Workers, Pages, and Vectorize — enabling AI features without managing GPU infrastructure.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -1214,6 +1303,13 @@
         "cdn",
         "optimization"
       ]
+    },
+    {
+      "name": "cobra",
+      "slug": "cobra",
+      "description": "You are an expert in Cobra, the most popular Go library for building modern CLI applications. You help developers create command-line tools with subcommands, flags, argument validation, shell completions, and help generation — powering CLIs like kubectl, Hugo, GitHub CLI, and Docker.",
+      "category": "Developer Tools",
+      "tags": []
     },
     {
       "name": "code-complexity-scanner",
@@ -1336,15 +1432,9 @@
     {
       "name": "composio",
       "slug": "composio",
-      "description": "Connect AI agents to 250+ tools and APIs with Composio — managed integrations for LLM agents. Use when someone asks to \"connect AI to tools\", \"Composio\", \"AI agent integrations\", \"give my agent access to GitHub/Slack/Gmail\", \"tool use for AI agents\", or \"managed OAuth for AI apps\". Covers tool connections, auth management, action execution, and framework integrations.",
-      "category": "data-ai",
-      "tags": [
-        "ai-agent",
-        "integrations",
-        "composio",
-        "tools",
-        "oauth"
-      ]
+      "description": "You are an expert in Composio, the platform that gives AI agents access to 250+ external tools and APIs with managed authentication. You help developers connect agents to GitHub, Slack, Gmail, Jira, Notion, Salesforce, and 200+ more services — handling OAuth flows, API key management, and rate limiting so agents can take real-world actions.",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "confluence",
@@ -1394,6 +1484,20 @@
       ]
     },
     {
+      "name": "contentful",
+      "slug": "contentful",
+      "description": "You are an expert in Contentful, the API-first content platform for enterprise teams. You help developers integrate Contentful's Content Delivery API (CDN-backed, read), Content Management API (write), and Content Preview API (draft content) into websites and apps — using typed content models, localization, rich text rendering, image transformations, and webhooks for build triggers.",
+      "category": "Content Management",
+      "tags": []
+    },
+    {
+      "name": "continue-dev",
+      "slug": "continue-dev",
+      "description": "You are an expert in Continue, the open-source AI code assistant for VS Code and JetBrains. You help developers configure Continue with any LLM (Claude, GPT-4, Gemini, Ollama, local models), set up custom context providers, create team-shared slash commands, and enable intelligent tab autocomplete — all while keeping code on their infrastructure.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
       "name": "contract-review",
       "slug": "contract-review",
       "description": "Analyze contracts for risks, check completeness, and provide actionable recommendations. Use when a user asks to review a contract, check an agreement for red flags, analyze contract terms, find risky clauses, review an NDA, evaluate a service agreement, or audit employment contract terms. Supports employment contracts, NDAs, service agreements, and vendor contracts.",
@@ -1420,6 +1524,13 @@
       ]
     },
     {
+      "name": "convex-sdk",
+      "slug": "convex-sdk",
+      "description": "You are an expert in Convex, the reactive backend platform for TypeScript. You help developers build real-time applications with a built-in database, serverless functions, file storage, authentication, scheduled jobs, and automatic real-time sync to React/Next.js clients — replacing REST APIs, WebSocket servers, and database management with a single reactive backend that pushes updates to clients automatically.",
+      "category": "Cloud & Serverless",
+      "tags": []
+    },
+    {
       "name": "coolify",
       "slug": "coolify",
       "description": "Deploy and manage applications, databases, and services on Coolify. Use when a user asks to deploy an app to Coolify, manage Coolify deployments, check deployment logs, sync environment variables, create or manage databases on Coolify, trigger a deployment, manage Coolify servers, or troubleshoot Coolify issues. Covers the Coolify CLI and REST API. For infrastructure provisioning on Hetzner, see hetzner-cloud.",
@@ -1431,6 +1542,13 @@
         "self-hosting",
         "docker"
       ]
+    },
+    {
+      "name": "copilotkit",
+      "slug": "copilotkit",
+      "description": "You are an expert in CopilotKit, the open-source framework for building in-app AI copilots. You help developers add AI-powered features to React applications — chat sidebars, AI-assisted text editing, contextual suggestions, and autonomous agents that can read app state, call actions, and modify the UI — turning any React app into an AI-native experience.",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "copy-editing",
@@ -1474,6 +1592,13 @@
       ]
     },
     {
+      "name": "crawl4ai",
+      "slug": "crawl4ai",
+      "description": "You are an expert in Crawl4AI, the open-source web crawler built for AI applications. You help developers extract clean, structured data from websites for LLM training, RAG pipelines, and content analysis — with automatic markdown conversion, JavaScript rendering, CSS-based extraction, LLM-powered structured extraction, and session management for multi-page crawling.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "crawlee",
       "slug": "crawlee",
       "description": "Build reliable web scrapers and crawlers with Crawlee — Apify's open-source framework for structured web scraping. Use when someone asks to \"scrape a website\", \"build a crawler\", \"Crawlee\", \"web scraping at scale\", \"scrape JavaScript-rendered pages\", \"crawl with Playwright/Puppeteer\", or \"extract data from websites reliably\". Covers HTTP crawling, browser crawling, request queues, proxy rotation, and data export.",
@@ -1485,6 +1610,13 @@
         "apify",
         "playwright"
       ]
+    },
+    {
+      "name": "crewai",
+      "slug": "crewai",
+      "description": "You are an expert in CrewAI, the framework for orchestrating autonomous AI agents working together as a crew. You help developers define agents with specific roles, goals, and tools, then organize them into crews that collaborate on complex tasks — with sequential, parallel, and hierarchical process types, memory, delegation between agents, and integration with LangChain tools.",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "crisp",
@@ -1765,6 +1897,13 @@
       ]
     },
     {
+      "name": "deno-deploy",
+      "slug": "deno-deploy",
+      "description": "You are an expert in Deno Deploy, the globally distributed serverless platform by Deno. You help developers deploy TypeScript/JavaScript applications to 35+ edge locations with zero cold starts, built-in KV storage, BroadcastChannel for real-time, cron scheduling, and npm compatibility — running code within milliseconds of users worldwide without managing infrastructure.",
+      "category": "Cloud & Serverless",
+      "tags": []
+    },
+    {
       "name": "dependency-updater",
       "slug": "dependency-updater",
       "description": "Audit project dependencies for outdated packages, security vulnerabilities, and breaking changes. Use when someone asks to \"check for outdated packages\", \"audit dependencies\", \"find vulnerable dependencies\", \"plan dependency upgrades\", \"detect breaking changes\", or \"update npm packages safely\". Analyzes package.json/lock files, cross-references changelogs, and produces ordered upgrade plans.",
@@ -1826,6 +1965,13 @@
       "tags": []
     },
     {
+      "name": "dlt",
+      "slug": "dlt",
+      "description": "You are an expert in dlt, the open-source Python library for building data pipelines. You help developers load data from any API, file, or database into warehouses and lakes using simple Python decorators — with automatic schema inference, incremental loading, and built-in data contracts. dlt is the \"requests library for data pipelines.\"",
+      "category": "Data Engineering",
+      "tags": []
+    },
+    {
       "name": "dns-record-analyzer",
       "slug": "dns-record-analyzer",
       "description": "Audits and troubleshoots DNS records for domains including A, AAAA, CNAME, MX, TXT, SPF, DKIM, DMARC, CAA, and NS records. Use when someone needs to verify DNS configuration, debug DNS propagation issues, check email authentication records, or audit domain security. Trigger words: DNS records, dig, nslookup, SPF, DKIM, DMARC, MX records, DNS propagation, nameservers, CAA, domain configuration.",
@@ -1862,13 +2008,6 @@
         "compose",
         "devops"
       ]
-    },
-    {
-      "name": "docker-multi-stage",
-      "slug": "docker-multi-stage",
-      "description": "Build optimized Docker images with multi-stage builds. Use when a user asks to reduce Docker image size, optimize build times, separate build and runtime dependencies, or create production Docker images.",
-      "category": "devops",
-      "tags": []
     },
     {
       "name": "docusaurus",
@@ -1911,17 +2050,18 @@
       ]
     },
     {
+      "name": "drei",
+      "slug": "drei",
+      "description": "You are an expert in @react-three/drei, the companion library for React Three Fiber that provides 100+ ready-made components and hooks for common 3D patterns. You help developers add orbit controls, environment maps, text rendering, HTML overlays, loaders, performance utilities, shaders, and abstractions — eliminating boilerplate and letting teams focus on creative work instead of Three.js plumbing.",
+      "category": "3D & Creative",
+      "tags": []
+    },
+    {
       "name": "drizzle-orm",
       "slug": "drizzle-orm",
-      "description": "Build type-safe database layers with Drizzle ORM — schema definition in TypeScript, SQL-like query builder, migrations, relations, and prepared statements. Use when tasks need a lightweight, SQL-first ORM for TypeScript with zero code generation, edge runtime support, or migration from raw SQL.",
-      "category": "development",
-      "tags": [
-        "drizzle",
-        "orm",
-        "database",
-        "typescript",
-        "sql"
-      ]
+      "description": "You are an expert in Drizzle ORM, the lightweight TypeScript ORM that maps directly to SQL. You help developers write type-safe database queries that look like SQL (not a new query language), generate migrations from schema changes, and deploy to serverless environments with zero overhead — supporting Postgres, MySQL, SQLite, Turso, Neon, PlanetScale, and Cloudflare D1.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "drizzle-studio",
@@ -1933,8 +2073,8 @@
     {
       "name": "dspy",
       "slug": "dspy",
-      "description": "Build self-optimizing LLM pipelines with DSPy — declarative prompt programming, automatic prompt optimization, and modular AI workflows. Use when tasks involve building LLM pipelines that self-improve, optimizing prompts systematically instead of manually, chaining LLM calls with typed signatures, evaluating and comparing prompt strategies, or building retrieval-augmented generation (RAG) systems with automatic tuning. Covers DSPy modules, optimizers, and evaluation.",
-      "category": "data-ai",
+      "description": "You are an expert in DSPy, the Stanford framework that replaces prompt engineering with programming. You help developers define LLM tasks as typed signatures, compose them into modules, and automatically optimize prompts/few-shot examples using teleprompters — so instead of manually crafting prompts, you write Python code and DSPy finds the best prompts for your task.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -1949,6 +2089,13 @@
       "slug": "dvc",
       "description": "Data Version Control for ML projects. Track large datasets and models alongside Git, build reproducible ML pipelines, and run experiments with metric comparison. Works with any storage backend including S3, GCS, Azure, and local filesystems.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "e2b",
+      "slug": "e2b",
+      "description": "You are an expert in E2B, the cloud platform for running AI-generated code in secure sandboxes. You help developers give AI agents the ability to execute code, install packages, read/write files, and run long processes in isolated cloud environments — each sandbox is a lightweight VM that boots in ~150ms with full Linux, filesystem, and networking.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -1976,6 +2123,13 @@
         "dashboard",
         "analytics"
       ]
+    },
+    {
+      "name": "effect-platform",
+      "slug": "effect-platform",
+      "description": "You are an expert in Effect (Effect-TS), the production-grade TypeScript framework for building reliable, composable applications. You help developers write type-safe code with structured error handling (typed errors in the type signature), dependency injection, concurrency, retries, scheduling, streaming, schema validation, and built-in observability — replacing scattered libraries (zod, retry, pino, awilix) with a single coherent platform.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "effect-ts",
@@ -2018,6 +2172,13 @@
       ]
     },
     {
+      "name": "electric-sql-sdk",
+      "slug": "electric-sql-sdk",
+      "description": "You are an expert in Electric SQL, the sync engine that streams Postgres data to local apps in real-time. You help developers build local-first applications where data syncs from Postgres to client-side SQLite/PGlite automatically — enabling instant reads, offline support, and real-time multi-user collaboration using Postgres as the single source of truth with Shape-based partial replication.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "electron",
       "slug": "electron",
       "description": "Assists with building cross-platform desktop applications using Electron. Use when architecting main/renderer process communication, configuring secure contexts, implementing auto-updates, or packaging apps for Windows, macOS, and Linux. Trigger words: electron, desktop app, browserwindow, ipc, auto-update, electron-builder.",
@@ -2042,6 +2203,13 @@
         "audio",
         "realtime"
       ]
+    },
+    {
+      "name": "elixir",
+      "slug": "elixir",
+      "description": "You are an expert in Elixir, the functional programming language built on the Erlang VM (BEAM). You help developers build highly concurrent, fault-tolerant, and distributed systems using Elixir's process model, pattern matching, GenServer, supervision trees, Phoenix web framework, LiveView for real-time UI, and Ecto for database interactions — achieving massive concurrency with lightweight processes and \"let it crash\" reliability.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "elysia",
@@ -2090,6 +2258,13 @@
       "tags": []
     },
     {
+      "name": "ember",
+      "slug": "ember",
+      "description": "You are an expert in Ember.js, the opinionated frontend framework for ambitious web applications. You help developers build large-scale SPAs with Ember's convention-over-configuration approach, Glimmer components, tracked properties, Ember Data for data management, routing with nested layouts, services for shared state, and ember-cli for scaffolding — providing Rails-like productivity for frontend development.",
+      "category": "Frontend Development",
+      "tags": []
+    },
+    {
       "name": "encore",
       "slug": "encore",
       "description": "Build cloud backend applications with Encore — type-safe backend framework with built-in infrastructure. Use when someone asks to \"build a backend\", \"Encore\", \"type-safe API framework\", \"backend with built-in infra\", \"auto-provision cloud resources\", or \"backend framework with databases built-in\". Covers API definition, databases, pub/sub, cron, and auto-provisioned infrastructure.",
@@ -2114,6 +2289,13 @@
         "devops",
         "security"
       ]
+    },
+    {
+      "name": "envoy",
+      "slug": "envoy",
+      "description": "You are an expert in Envoy, the high-performance C++ proxy designed for cloud-native applications. You help teams configure Envoy as an API gateway, service mesh sidecar, and load balancer using its L4/L7 routing, circuit breaking, rate limiting, TLS termination, gRPC support, and observability features — powering Istio, AWS App Mesh, and most modern service mesh implementations.",
+      "category": "Infrastructure & DevOps",
+      "tags": []
     },
     {
       "name": "error-monitoring",
@@ -2143,10 +2325,24 @@
       "tags": []
     },
     {
+      "name": "eventbridge",
+      "slug": "eventbridge",
+      "description": "You are an expert in Amazon EventBridge, the serverless event bus for building event-driven architectures. You help developers route events between AWS services, SaaS applications, and custom microservices using event rules, patterns, transformations, dead-letter queues, and scheduling — decoupling producers from consumers with content-based routing that scales automatically.",
+      "category": "Cloud & Serverless",
+      "tags": []
+    },
+    {
       "name": "evidence",
       "slug": "evidence",
       "description": "Expert guidance for Evidence, the open-source BI framework that generates beautiful, interactive dashboards from SQL queries and Markdown. Helps developers build data reports as code, deploy them as static sites, and create self-service analytics without heavy BI tools.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "excalibur",
+      "slug": "excalibur",
+      "description": "You are an expert in Excalibur.js, the TypeScript-first 2D game engine built for the web. You help developers build browser games using Excalibur's Actor system, Scene management, Tiled integration, physics, animation, sound, and input handling — with first-class TypeScript support, excellent documentation, and a focus on developer experience over raw performance.",
+      "category": "Game Development",
       "tags": []
     },
     {
@@ -2502,6 +2698,13 @@
       ]
     },
     {
+      "name": "foundry",
+      "slug": "foundry",
+      "description": "You are an expert in Foundry, the blazing-fast Ethereum development toolkit written in Rust. You help developers write, test, deploy, and debug Solidity smart contracts using Forge (testing), Cast (CLI interactions), Anvil (local node), and Chisel (Solidity REPL) — with native Solidity testing (no JavaScript), fuzz testing, gas optimization, and fork testing against mainnet state.",
+      "category": "Blockchain & Web3",
+      "tags": []
+    },
+    {
       "name": "framer-motion",
       "slug": "framer-motion",
       "description": "Animate React components with Framer Motion. Use when adding page transitions, gesture animations, layout animations, scroll-triggered effects, or building interactive UI with spring physics.",
@@ -2603,10 +2806,24 @@
       ]
     },
     {
+      "name": "gemini-cli",
+      "slug": "gemini-cli",
+      "description": "You are an expert in Gemini CLI, Google's open-source terminal-based AI agent powered by Gemini models. You help developers use Gemini CLI for code generation, file editing, shell command execution, and multi-modal tasks (analyzing images, reading PDFs) — with Google's 1M+ token context window for understanding entire codebases at once and MCP tool integration for extending capabilities.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
+      "name": "ghost",
+      "slug": "ghost",
+      "description": "You are an expert in Ghost, the open-source publishing platform for blogs, newsletters, and membership sites. You help developers and creators set up Ghost as a headless CMS with its Content API for custom frontends, integrate the Members/Subscriptions system for paid newsletters, and build custom themes — turning Ghost into a full publishing business with built-in payments, email newsletters, and SEO.",
+      "category": "Content Management",
+      "tags": []
+    },
+    {
       "name": "gin",
       "slug": "gin",
-      "description": "Gin is a high-performance HTTP web framework for Go with a martini-like API. It features fast routing with radix trees, middleware support, JSON binding and validation, and structured error handling for building REST APIs.",
-      "category": "development",
+      "description": "You are an expert in Gin, the fastest Go web framework with a martini-like API. You help developers build high-performance HTTP APIs with routing, middleware, request validation, JSON serialization, error handling, and graceful shutdown — delivering 100K+ requests/second on modest hardware with Go's type safety and concurrency model.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -2639,14 +2856,7 @@
       "slug": "github-actions",
       "description": "Build CI/CD pipelines with GitHub Actions — workflows, jobs, steps, triggers, caching, artifacts, matrix builds, secrets, environments, reusable workflows, and custom actions. Use when tasks involve automating tests, builds, deployments, code quality checks, or any GitHub-triggered automation.",
       "category": "devops",
-      "tags": [
-        "github-actions",
-        "cicd",
-        "automation",
-        "testing",
-        "deployment",
-        "github"
-      ]
+      "tags": []
     },
     {
       "name": "github-copilot",
@@ -2663,6 +2873,20 @@
       "tags": []
     },
     {
+      "name": "go-echo",
+      "slug": "go-echo",
+      "description": "You are an expert in Echo, the high-performance, minimalist Go web framework. You help developers build REST APIs and web applications using Echo's optimized router, middleware chain, data binding, validation, template rendering, and WebSocket support — providing a clean API surface with excellent performance and comprehensive built-in middleware.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
+      "name": "go-fiber",
+      "slug": "go-fiber",
+      "description": "You are an expert in Fiber, the Express.js-inspired web framework for Go built on top of Fasthttp. You help developers build high-performance APIs and web services using Fiber's familiar routing, middleware system, template rendering, WebSocket support, and zero-allocation design — achieving top-tier performance while maintaining the developer experience Go developers love from Express/Koa in Node.js.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "go-to-market",
       "slug": "go-to-market",
       "description": "Expert guidance for go-to-market strategy, helping product teams plan launches, choose distribution channels, design growth loops, define ideal customer profiles, and execute GTM motions. Applies frameworks for product-led growth (PLG), sales-led growth, community-led growth, and viral loops.",
@@ -2674,6 +2898,13 @@
       "slug": "gobuster",
       "description": "Brute force directories, files, DNS subdomains, and virtual hosts with Gobuster. Use when a user asks to discover hidden endpoints, enumerate subdomains, find backup files, or perform web content discovery during penetration testing.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "godot",
+      "slug": "godot",
+      "description": "You are an expert in Godot Engine, the free and open-source game engine for 2D and 3D games. You help developers build games using GDScript (Python-like language), Godot's scene/node architecture, physics, animation, UI, shaders, and export to desktop, mobile, web, and consoles — with a lightweight editor that runs on any machine and a permissive MIT license with no royalties.",
+      "category": "Game Development",
       "tags": []
     },
     {
@@ -2708,6 +2939,13 @@
       "slug": "graphql",
       "description": "Build and consume GraphQL APIs. Use when a user asks to create a GraphQL server, write GraphQL schemas, implement resolvers, set up subscriptions, build a GraphQL API, add authentication to GraphQL, optimize queries with DataLoader, implement pagination, handle file uploads, generate types from schema, consume a GraphQL endpoint, or migrate from REST to GraphQL. Covers Apollo Server, Apollo Client, schema design, resolvers, subscriptions, federation, and production patterns.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "graphql-yoga",
+      "slug": "graphql-yoga",
+      "description": "You are an expert in GraphQL Yoga, the batteries-included GraphQL server by The Guild. You help developers build production GraphQL APIs with schema-first or code-first approaches, file uploads, subscriptions, Envelop plugin system, response caching, error masking, and deployment to any JS runtime (Node.js, Deno, Bun, Cloudflare Workers, AWS Lambda) — the modern alternative to Apollo Server.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -2757,6 +2995,20 @@
         "timeline",
         "svg"
       ]
+    },
+    {
+      "name": "guidance",
+      "slug": "guidance",
+      "description": "You are an expert in Guidance, Microsoft's library for controlling LLM output with constrained generation. You help developers write programs that interleave text generation with control flow (loops, conditionals, regex constraints, JSON schemas, function calls) — ensuring LLM output always matches the expected format by constraining the token generation process itself, not just prompting.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
+      "name": "hapi",
+      "slug": "hapi",
+      "description": "You are an expert in Hapi.js, the configuration-centric enterprise framework for Node.js. You help developers build production APIs with built-in input validation (Joi), authentication strategies, plugin architecture, caching, rate limiting, and comprehensive request lifecycle hooks — designed for teams that need structure, security, and testability without third-party middleware sprawl.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "happy-dom",
@@ -2812,6 +3064,13 @@
       ]
     },
     {
+      "name": "haystack",
+      "slug": "haystack",
+      "description": "You are an expert in Haystack, the open-source framework by deepset for building production RAG pipelines and LLM applications. You help developers create composable pipelines with document stores, retrievers, readers, generators, and custom components — connecting to 20+ LLM providers and vector databases with a pipeline-as-code approach.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "helicone",
       "slug": "helicone",
       "description": "LLM observability proxy that sits between your app and LLM providers. Logs every request, enables caching, rate limiting, and provides cost analytics. Works with OpenAI, Anthropic, and other providers with a one-line integration change.",
@@ -2834,15 +3093,9 @@
     {
       "name": "hono",
       "slug": "hono",
-      "description": "Assists with building APIs and web applications using Hono, an ultrafast web framework that runs on Cloudflare Workers, Deno, Bun, Vercel, AWS Lambda, and Node.js. Use when creating edge-first APIs, configuring middleware, or setting up type-safe RPC clients. Trigger words: hono, edge framework, web framework, hono routing, hono middleware.",
-      "category": "development",
-      "tags": [
-        "hono",
-        "web-framework",
-        "edge",
-        "api",
-        "typescript"
-      ]
+      "description": "You are an expert in Hono, the ultrafast web framework for the edge. You help developers build APIs and web applications that run on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web Standards API compatibility that makes code truly portable across runtimes.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "hoppscotch",
@@ -2864,6 +3117,20 @@
         "surveys",
         "ux"
       ]
+    },
+    {
+      "name": "hotwire",
+      "slug": "hotwire",
+      "description": "You are an expert in Hotwire (HTML Over The Wire), the collection of techniques for building modern web applications by sending HTML instead of JSON. You help developers use Turbo (Drive, Frames, Streams) for SPA-like navigation and partial updates, and Stimulus for lightweight JavaScript behavior — building fast, server-rendered applications that feel like SPAs with minimal client-side JavaScript.",
+      "category": "Web Frameworks",
+      "tags": []
+    },
+    {
+      "name": "houdini",
+      "slug": "houdini",
+      "description": "You are an expert in SideFX Houdini, the industry-standard procedural 3D software used for VFX, simulations, motion graphics, game asset creation, and procedural modeling. You help artists and technical directors build procedural workflows using Houdini's node-based architecture, VEX scripting, Solaris/USD pipeline, simulation solvers (pyro, FLIP, Vellum, RBD), PDG/TOPs for task automation, and HDA (Houdini Digital Assets) for reusable tools — enabling non-destructive, art-directable pipelines that scale from indie projects to AAA and feature film production.",
+      "category": "3D & VFX",
+      "tags": []
     },
     {
       "name": "htmx",
@@ -2914,6 +3181,13 @@
       "tags": []
     },
     {
+      "name": "imagemagick",
+      "slug": "imagemagick",
+      "description": "You are an expert in ImageMagick, the powerful command-line tool for creating, editing, compositing, and converting images. You help developers automate image processing pipelines using ImageMagick's `convert`, `mogrify`, `composite`, and `identify` commands — batch resizing, format conversion, watermarking, thumbnail generation, PDF manipulation, and complex image compositing for web applications, print production, and data visualization.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
       "name": "imgix",
       "slug": "imgix",
       "description": "Optimize and transform images with imgix. Use when serving responsive images, implementing image CDN, adding real-time transformations, or optimizing Core Web Vitals with image delivery.",
@@ -2956,8 +3230,8 @@
     {
       "name": "inngest",
       "slug": "inngest",
-      "description": "Build reliable background jobs and workflows with Inngest. Use when a user asks to run background tasks, create event-driven workflows, build reliable job queues, set up step functions for long-running processes, schedule recurring jobs, handle webhook processing, build multi-step async workflows, add retries and error handling to background jobs, or replace BullMQ/Celery with a serverless-friendly alternative. Covers event sending, function definition, step orchestration, retries, scheduling, and fan-out patterns.",
-      "category": "development",
+      "description": "You are an expert in Inngest, the event-driven durable workflow engine for TypeScript. You help developers build reliable multi-step workflows, scheduled jobs, and event-driven functions with automatic retries, step-level caching, fan-out/fan-in patterns, rate limiting, and debouncing — running on any serverless platform (Vercel, Netlify, AWS Lambda, Cloudflare) with zero infrastructure to manage.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -2983,15 +3257,9 @@
     {
       "name": "instructor",
       "slug": "instructor",
-      "description": "Assists with extracting structured, validated data from LLM responses using Instructor. Use when converting unstructured text into typed objects, classifying content, extracting entities, or building reliable data extraction pipelines with automatic retries. Trigger words: instructor, structured output, pydantic, llm extraction, entity extraction, structured data, response model.",
-      "category": "data-ai",
-      "tags": [
-        "instructor",
-        "structured-output",
-        "llm",
-        "extraction",
-        "validation"
-      ]
+      "description": "You are an expert in Instructor, the library for getting structured, validated output from LLMs. You help developers extract typed data from unstructured text using Pydantic models (Python) or Zod schemas (TypeScript), with automatic retries on validation failures, streaming partial objects, and support for OpenAI, Anthropic, Google, and local models — turning LLMs into reliable data extraction engines.",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "intercom",
@@ -3120,23 +3388,10 @@
       ]
     },
     {
-      "name": "jose-jwt",
-      "slug": "jose-jwt",
-      "description": "Work with JWTs using jose. Use when implementing JWT auth, token signing/ verification, refresh tokens, or stateless API auth.",
-      "category": "development",
-      "tags": [
-        "jwt",
-        "jose",
-        "authentication",
-        "tokens",
-        "api-auth"
-      ]
-    },
-    {
       "name": "jotai",
       "slug": "jotai",
-      "description": "Manage React state with Jotai atoms. Use when a user asks to manage granular React state, replace Context with something performant, create derived state, or build bottom-up state management with atomic primitives.",
-      "category": "development",
+      "description": "You are an expert in Jotai, the primitive and flexible state management library for React based on atomic state. You help developers build React applications with fine-grained reactivity using atoms (state primitives), derived atoms (computed values), async atoms (data fetching), and atom families — providing bottom-up state management where only components subscribing to changed atoms re-render.",
+      "category": "Frontend Development",
       "tags": []
     },
     {
@@ -3191,10 +3446,24 @@
       ]
     },
     {
+      "name": "kaboom",
+      "slug": "kaboom",
+      "description": "You are an expert in Kaboom.js (now maintained as Kaplay), the beginner-friendly game library for making browser games quickly. You help developers build games using Kaboom's component-based entity system, built-in physics, sprite loading, scene management, and event system — where games can be built in under 100 lines of code while still supporting complex gameplay through composable components.",
+      "category": "Game Development",
+      "tags": []
+    },
+    {
       "name": "kafka",
       "slug": "kafka",
       "description": "Build event-driven systems with Apache Kafka. Use when a user asks to set up message streaming, implement event sourcing, build pub/sub systems, process real-time data streams, or connect microservices with async messaging.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "kafka-js",
+      "slug": "kafka-js",
+      "description": "You are an expert in KafkaJS, the pure JavaScript Apache Kafka client for Node.js. You help developers build event-driven architectures with producers, consumers, consumer groups, exactly-once semantics, SASL authentication, and admin operations — processing millions of events per second for real-time analytics, event sourcing, log aggregation, and microservices communication.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -3218,6 +3487,13 @@
       ]
     },
     {
+      "name": "keycloak",
+      "slug": "keycloak",
+      "description": "You are an expert in Keycloak, the open-source identity and access management solution by Red Hat. You help teams implement single sign-on (SSO), OAuth 2.0, OpenID Connect, SAML 2.0, user federation (LDAP/Active Directory), social login, multi-factor authentication, and fine-grained authorization — providing enterprise-grade identity management that can be self-hosted and customized.",
+      "category": "Security & Auth",
+      "tags": []
+    },
+    {
       "name": "keystonejs",
       "slug": "keystonejs",
       "description": "Expert guidance for KeystoneJS, the open-source headless CMS and application platform built on Node.js, GraphQL, and Prisma. Helps developers define content schemas, build admin interfaces, implement access control, and create custom GraphQL APIs for content-driven applications.",
@@ -3239,6 +3515,13 @@
       ]
     },
     {
+      "name": "knex",
+      "slug": "knex",
+      "description": "You are an expert in Knex.js, the flexible SQL query builder for Node.js that supports PostgreSQL, MySQL, SQLite, and MSSQL. You help developers write type-safe queries with a chainable API, manage database migrations and seeds, build complex joins and subqueries, and use transactions — providing direct SQL control without the overhead of a full ORM.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "knip",
       "slug": "knip",
       "description": "Find and remove unused files, dependencies, and exports in JavaScript/TypeScript projects with Knip. Use when someone asks to \"find unused code\", \"clean up dependencies\", \"remove dead code\", \"find unused exports\", \"Knip\", \"reduce bundle size by removing unused files\", or \"audit npm dependencies\". Covers unused files, dependencies, exports, types, and CI integration.",
@@ -3250,6 +3533,13 @@
         "cleanup",
         "dead-code"
       ]
+    },
+    {
+      "name": "koa",
+      "slug": "koa",
+      "description": "You are an expert in Koa, the minimalist web framework created by the Express team. You help developers build APIs and web services using Koa's async/await middleware stack, context object, and composable architecture — providing a lightweight foundation where you add only what you need through middleware, without bundled routing or templating.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "konva",
@@ -3334,8 +3624,8 @@
     {
       "name": "langfuse",
       "slug": "langfuse",
-      "description": "Open-source LLM observability and analytics platform. Trace LLM calls, score outputs, manage prompts, and monitor cost/latency across your AI application. Integrates with OpenAI, LangChain, LlamaIndex, and other LLM frameworks.",
-      "category": "data-ai",
+      "description": "You are an expert in Langfuse, the open-source LLM engineering platform. You help developers trace LLM calls, evaluate output quality, manage prompts, track costs and latency, run experiments, and build evaluation datasets — providing full observability into AI applications from development through production.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -3353,10 +3643,17 @@
       "tags": []
     },
     {
+      "name": "langtrace",
+      "slug": "langtrace",
+      "description": "You are an expert in Langtrace, the open-source observability platform for LLM applications built on OpenTelemetry. You help developers trace LLM calls, RAG pipelines, agent tool use, and chain executions with automatic instrumentation for OpenAI, Anthropic, LangChain, LlamaIndex, and 20+ providers — providing cost tracking, latency analysis, token usage, and quality evaluation in a self-hostable dashboard.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "laravel",
       "slug": "laravel",
-      "description": "Laravel is a PHP web framework with expressive syntax and a rich ecosystem. It provides Eloquent ORM, Blade templates, queues, task scheduling, Sanctum for API auth, and tools for building modern full-stack or API applications.",
-      "category": "development",
+      "description": "You are an expert in Laravel, the most popular PHP framework for building web applications and APIs. You help developers build production systems with Eloquent ORM, Blade templating, Artisan CLI, queues, events, middleware, authentication (Sanctum/Breeze), Livewire for reactive UI, and a rich ecosystem of first-party packages — enabling rapid development without sacrificing code quality.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -3416,15 +3713,16 @@
     {
       "name": "lemon-squeezy",
       "slug": "lemon-squeezy",
-      "description": "Assists with selling digital products, SaaS subscriptions, and software licenses using Lemon Squeezy as a Merchant of Record. Use when setting up checkout flows, webhook handling, license key validation, or subscription management with automatic global tax compliance. Trigger words: lemon squeezy, merchant of record, digital sales, license keys, subscriptions.",
-      "category": "business",
-      "tags": [
-        "lemon-squeezy",
-        "payments",
-        "subscriptions",
-        "merchant-of-record",
-        "licensing"
-      ]
+      "description": "You are an expert in Lemon Squeezy, the all-in-one payments platform that acts as your Merchant of Record. You help developers sell software, subscriptions, and digital products with automatic global tax handling (VAT, sales tax), invoicing, license keys, customer portal, and fraud protection — without needing to register for tax IDs or handle payment compliance yourself.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
+      "name": "leptos",
+      "slug": "leptos",
+      "description": "You are an expert in Leptos, the full-stack Rust web framework that combines server-side rendering with client-side interactivity via WebAssembly. You help developers build reactive web applications using Leptos's fine-grained signal system, server functions, islands architecture, and compile-time optimizations — getting React-like DX with Rust's performance and type safety.",
+      "category": "Web Frameworks",
+      "tags": []
     },
     {
       "name": "letsencrypt",
@@ -3513,6 +3811,13 @@
         "retrieval",
         "knowledge-base"
       ]
+    },
+    {
+      "name": "llamaindex-ts",
+      "slug": "llamaindex-ts",
+      "description": "You are an expert in LlamaIndex.TS, the TypeScript data framework for building RAG (Retrieval-Augmented Generation) applications. You help developers ingest, index, and query data from any source — documents, APIs, databases — and connect it to LLMs with vector indexes, knowledge graphs, structured extraction, agents, and multi-document synthesis.",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "llm-cost-optimizer",
@@ -3615,17 +3920,18 @@
       ]
     },
     {
+      "name": "lovable",
+      "slug": "lovable",
+      "description": "You are an expert in Lovable (formerly GPT Engineer), the AI app builder that generates production-ready full-stack applications from natural language descriptions. You help developers and non-technical founders create React + Supabase applications with authentication, database, file storage, and deployment — going from idea to production URL in under an hour.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
       "name": "lucia-auth",
       "slug": "lucia-auth",
-      "description": "Assists with building custom session-based authentication systems using Lucia. Use when implementing password auth, OAuth flows, two-factor authentication, or session management with full control over the auth logic in Next.js, SvelteKit, Express, or other Node.js frameworks. Trigger words: lucia, session auth, custom auth, password hashing, 2fa, totp.",
-      "category": "development",
-      "tags": [
-        "lucia",
-        "authentication",
-        "session",
-        "oauth",
-        "two-factor"
-      ]
+      "description": "You are an expert in Lucia, the lightweight authentication library for TypeScript. You help developers implement session-based authentication with email/password, OAuth (Google, GitHub, Discord), magic links, and two-factor authentication — providing a simple, database-agnostic auth layer that you understand and control, without the complexity of full auth platforms.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "maestro",
@@ -3639,6 +3945,13 @@
       "slug": "mailgun",
       "description": "Send and receive emails with Mailgun. Use when a user asks to send bulk emails, set up email routing, validate email addresses, track email engagement, or handle both transactional and marketing emails.",
       "category": "business",
+      "tags": []
+    },
+    {
+      "name": "make-com",
+      "slug": "make-com",
+      "description": "You are an expert in Make.com (formerly Integromat), the visual automation platform for connecting apps and building workflows without code. You help teams build scenarios using drag-and-drop modules, routers for conditional logic, iterators for array processing, and aggregators for data collection — enabling non-technical users to automate business processes across 1,500+ apps.",
+      "category": "Automation & Integration",
       "tags": []
     },
     {
@@ -3722,10 +4035,24 @@
       "tags": []
     },
     {
+      "name": "marko",
+      "slug": "marko",
+      "description": "You are an expert in Marko, the HTML-first UI framework by eBay that powers ebay.com. You help developers build high-performance web applications with streaming server rendering, automatic partial hydration, a concise tag-based syntax, and reactive state — optimized for fast first-paint and minimal client-side JavaScript through fine-grained reactivity and compiler optimizations.",
+      "category": "Frontend Development",
+      "tags": []
+    },
+    {
       "name": "mastra",
       "slug": "mastra",
-      "description": "Expert guidance for Mastra, the TypeScript-first framework for building AI agents, workflows, and RAG pipelines. Helps developers create production-ready AI applications with tool use, memory, and multi-step reasoning.",
-      "category": "data-ai",
+      "description": "You are an expert in Mastra, the TypeScript framework for building AI agents, RAG pipelines, and workflows. You help developers create production AI applications with type-safe agent definitions, tool integration, vector-based knowledge retrieval, multi-step workflows with branching and error handling, and integration with 50+ third-party services — designed for TypeScript teams who want agent capabilities without Python dependencies.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
+      "name": "mcp-sdk",
+      "slug": "mcp-sdk",
+      "description": "You are an expert in MCP (Model Context Protocol), the open standard by Anthropic for connecting AI models to external tools and data sources. You help developers build MCP servers that expose tools, resources, and prompts to any MCP-compatible client (Claude Desktop, Cursor, Windsurf, Cline, Continue) — creating a universal plugin system for AI assistants.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -3747,19 +4074,6 @@
       "description": "Plan and execute media buying across digital and traditional channels — programmatic advertising, DSP platforms, direct buys, and budget allocation. Use when tasks involve programmatic ad buying, real-time bidding (RTB), demand-side platform setup, media plan creation, CPM/CPC/CPA optimization, cross-channel budget allocation, audience segmentation for paid media, or negotiating direct ad placements.",
       "category": "business",
       "tags": []
-    },
-    {
-      "name": "media-transcoder",
-      "slug": "media-transcoder",
-      "description": "When the user needs to process, resize, convert, or transcode images and videos programmatically. Use when the user mentions \"image resize,\" \"thumbnail generation,\" \"video transcode,\" \"image optimization,\" \"video compression,\" \"format conversion,\" \"strip EXIF,\" \"webp conversion,\" \"FFmpeg,\" or \"Sharp.\" Generates processing pipelines for images (Sharp) and videos (FFmpeg) with variant generation. For upload handling, see file-upload-processor. For manual video editing, see ffmpeg-video-editing.",
-      "category": "development",
-      "tags": [
-        "image-processing",
-        "video-transcoding",
-        "ffmpeg",
-        "sharp",
-        "media"
-      ]
     },
     {
       "name": "medusa",
@@ -3786,6 +4100,13 @@
       "slug": "meilisearch",
       "description": "Add fast, typo-tolerant full-text search with Meilisearch. Use when a user asks to add search to an app, implement full-text search, set up a search engine, replace Elasticsearch with something simpler, add autocomplete or instant search, build a product catalog search, index documents for search, configure search relevancy, add faceted filtering, or deploy a self-hosted search engine. Covers indexing, querying, facets, filtering, sorting, multi-tenancy, and integration with Node.js, Python, and REST API.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "mem0",
+      "slug": "mem0",
+      "description": "You are an expert in Mem0, the memory infrastructure for AI applications. You help developers add persistent, personalized memory to LLM-powered apps and agents — storing user preferences, conversation history, facts, and context that persists across sessions, enabling AI that remembers users, learns from interactions, and provides increasingly personalized responses.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -3827,6 +4148,13 @@
       "slug": "microsoft-word",
       "description": "Create, edit, and manipulate Word documents (.docx) programmatically. Use when someone asks to \"generate a Word document\", \"create a report in docx\", \"mail merge\", \"fill Word template\", \"extract text from Word\", \"convert markdown to Word\", \"add tables to Word\", or \"automate document generation\". Covers python-docx for file manipulation, docxtpl for templates, and Microsoft Graph API for cloud documents.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "mikro-orm",
+      "slug": "mikro-orm",
+      "description": "You are an expert in MikroORM, the TypeScript ORM built on Unit of Work and Identity Map patterns. You help developers build data layers with decorator-based entities, automatic change tracking, lazy/eager loading, embeddables, query builder, migrations, and seeding — supporting PostgreSQL, MySQL, SQLite, and MongoDB with a DDD-friendly architecture.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -3891,6 +4219,13 @@
       "tags": []
     },
     {
+      "name": "mobx",
+      "slug": "mobx",
+      "description": "You are an expert in MobX, the simple and scalable state management library based on transparent reactive programming. You help developers build React applications with observable state, automatic tracking of dependencies, computed values, actions for state mutations, and reactions for side effects — providing a natural, class-based or functional approach where the UI automatically updates when state changes without manual subscriptions.",
+      "category": "Frontend Development",
+      "tags": []
+    },
+    {
       "name": "mockoon",
       "slug": "mockoon",
       "description": "When the user wants to create mock API servers locally using Mockoon with its GUI or CLI. Also use when the user mentions \"mockoon,\" \"API mocking,\" \"mock server,\" \"mock API,\" \"OpenAPI mock,\" or \"local API simulation.\" For programmatic HTTP mocking, see wiremock.",
@@ -3925,6 +4260,13 @@
       ]
     },
     {
+      "name": "mongoose",
+      "slug": "mongoose",
+      "description": "You are an expert in Mongoose, the elegant MongoDB object modeling library for Node.js. You help developers define schemas with validation, build queries with a fluent API, use middleware hooks, populate references, create virtual fields, and handle transactions — providing structure and type safety on top of MongoDB's flexible document model.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "monorepo-manager",
       "slug": "monorepo-manager",
       "description": "Manage dependencies, workspace configurations, and cross-package relationships in monorepos using npm workspaces, pnpm, Yarn, Turborepo, or Nx. Use when syncing dependency versions across packages, resolving version conflicts, analyzing the dependency graph, or setting up build orchestration. Trigger words: monorepo, workspace, dependency sync, version conflict, turborepo, nx, pnpm workspace, cross-package, internal dependency.",
@@ -3957,6 +4299,13 @@
       "tags": []
     },
     {
+      "name": "motion",
+      "slug": "motion",
+      "description": "You are an expert in Motion, the production-ready animation library for React (formerly Framer Motion). You help developers create fluid animations, layout transitions, scroll-linked effects, gesture interactions, shared layout animations, and exit animations — using a declarative API where animations are defined as props rather than imperative code.",
+      "category": "Frontend Development",
+      "tags": []
+    },
+    {
       "name": "moviepy",
       "slug": "moviepy",
       "description": "Edit and compose video with Python using MoviePy. Use when a user asks to programmatically edit videos, create video montages, add text overlays, build automated video pipelines, composite multiple clips, apply video effects, generate social media videos from templates, concatenate clips, extract audio, create GIFs, build slideshows, add transitions, resize and crop videos, or integrate video editing into Python applications. Covers MoviePy 2.x for compositing, effects, text, and rendering.",
@@ -3968,6 +4317,13 @@
       "slug": "ms-access",
       "description": "Build and manage Microsoft Access databases, queries, forms, reports, and VBA automation. Use when someone asks to \"create Access database\", \"write Access queries\", \"build Access forms\", \"Access VBA macro\", \"migrate from Access\", \"Access report\", \"link Access to SQL Server\", or \"convert Access to web app\". Covers table design, relationships, SQL queries, forms, reports, VBA automation, and migration strategies to modern platforms.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "msgpack",
+      "slug": "msgpack",
+      "description": "You are an expert in MessagePack, the efficient binary serialization format. You help developers replace JSON with a compact binary format that's 30-50% smaller and 2-10x faster to parse — supporting all JSON types plus binary data, timestamps, and custom extensions, with libraries available for 50+ programming languages.",
+      "category": "Developer Tools",
       "tags": []
     },
     {
@@ -4031,6 +4387,13 @@
       ]
     },
     {
+      "name": "nanostores",
+      "slug": "nanostores",
+      "description": "You are an expert in Nanostores, the tiny (< 1KB) state manager for framework-agnostic JavaScript. You help developers manage application state with atoms, maps, computed stores, and async data fetching — working identically across React, Vue, Svelte, Solid, Angular, and vanilla JS with lazy subscriptions that only activate when the store is actually used in a component.",
+      "category": "Frontend Development",
+      "tags": []
+    },
+    {
       "name": "nativewind",
       "slug": "nativewind",
       "description": "Use Tailwind CSS in React Native with NativeWind — write className instead of StyleSheet. Use when someone asks to \"use Tailwind in React Native\", \"NativeWind\", \"style React Native with Tailwind\", \"className in React Native\", or \"utility-first styling for mobile\". Covers setup, responsive design, dark mode, animations, and platform-specific styles.",
@@ -4070,6 +4433,19 @@
       ]
     },
     {
+      "name": "nemoclaw",
+      "slug": "nemoclaw",
+      "description": "Set up, configure, and manage NemoClaw — NVIDIA's open-source sandbox for running OpenClaw agents securely with policy-enforced network, filesystem, and inference controls. Use when the user mentions \"nemoclaw,\" \"openclaw sandbox,\" \"openshell,\" \"sandboxed agent,\" \"agent security sandbox,\" \"nemotron sandbox,\" or wants to deploy an AI agent inside an isolated environment with egress control and inference routing.",
+      "category": "devops",
+      "tags": [
+        "nemoclaw",
+        "sandbox",
+        "agent-security",
+        "nvidia",
+        "openclaw"
+      ]
+    },
+    {
       "name": "neo4j",
       "slug": "neo4j",
       "description": "Neo4j is the leading graph database for connected data. Learn Cypher query language, node and relationship modeling, graph algorithms, and integration with Node.js using the official neo4j-driver.",
@@ -4088,6 +4464,20 @@
         "database",
         "branching"
       ]
+    },
+    {
+      "name": "neon-branching",
+      "slug": "neon-branching",
+      "description": "You are an expert in Neon's database branching, the feature that creates instant copy-on-write branches of your Postgres database. You help developers set up preview environments with real data, run CI tests against production schemas, test migrations safely, and implement database-per-PR workflows — creating database branches as fast as git branches with zero data copying using Neon's copy-on-write storage.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
+      "name": "neon-serverless",
+      "slug": "neon-serverless",
+      "description": "You are an expert in Neon, the serverless Postgres platform. You help developers use fully managed PostgreSQL with instant database branching, autoscaling to zero, edge-compatible HTTP driver, connection pooling, and point-in-time recovery — enabling development workflows where each PR gets its own database branch and production scales automatically based on load.",
+      "category": "Cloud & Serverless",
+      "tags": []
     },
     {
       "name": "nestjs",
@@ -4210,6 +4600,13 @@
       ]
     },
     {
+      "name": "nitropack",
+      "slug": "nitropack",
+      "description": "You are an expert in Nitro (NitroJS), the universal server engine powering Nuxt, Analog, and SolidStart. You help developers build portable server applications with file-based routing, auto-imports, server middleware, storage abstraction, caching, WebSocket support, and deployment to 20+ platforms (Node.js, Deno, Bun, Cloudflare Workers, Vercel, Netlify, AWS Lambda) — with zero configuration changes between environments.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "nixpacks",
       "slug": "nixpacks",
       "description": "Expert guidance for Nixpacks, the build system created by Railway that automatically detects your application's language and framework, installs dependencies, and produces optimized Docker images — all without writing a Dockerfile. Helps developers configure Nixpacks for custom build steps, multi-language projects, and CI/CD integration.",
@@ -4277,8 +4674,8 @@
     {
       "name": "novu",
       "slug": "novu",
-      "description": "Build notification infrastructure with Novu. Use when a user asks to add notifications to an app, send emails and push notifications, build a notification center, manage notification preferences, set up multi-channel notifications (email, SMS, push, in-app, chat), create notification workflows, or build a notification system with templates and subscriber management. Covers providers (SendGrid, Twilio, FCM), workflows, templates, subscriber preferences, and the in-app notification center component.",
-      "category": "development",
+      "description": "You are an expert in Novu, the open-source notification infrastructure platform. You help developers build multi-channel notification systems supporting email, SMS, push, in-app, and chat (Slack/Discord) — with workflow orchestration, digest/batching, user preferences, template management, and a pre-built notification center component for React.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -4297,8 +4694,8 @@
     {
       "name": "nuxt",
       "slug": "nuxt",
-      "description": "Nuxt is a Vue.js meta-framework for building full-stack web applications with server-side rendering, static generation, and file-based routing. It includes Nitro server engine, auto-imports, and a powerful module ecosystem.",
-      "category": "development",
+      "description": "You are an expert in Nuxt 3, the full-stack Vue framework with server-side rendering, auto-imports, file-based routing, API routes powered by Nitro, and 200+ modules. You help developers build production Vue applications with hybrid rendering (SSR/SSG/SPA per route), server components, middleware, state management with useState, data fetching with useFetch/useAsyncData, and deployment to 20+ platforms.",
+      "category": "Frontend Development",
       "tags": []
     },
     {
@@ -4369,6 +4766,13 @@
       "tags": []
     },
     {
+      "name": "ollama-sdk",
+      "slug": "ollama-sdk",
+      "description": "You are an expert in Ollama, the tool for running open-source LLMs locally. You help developers run Llama, Mistral, Gemma, Phi, CodeLlama, and other models on their machine with a simple CLI and REST API — enabling private AI development, offline inference, fine-tuning experiments, and cost-free prototyping without sending data to cloud APIs.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "onboarding-cro",
       "slug": "onboarding-cro",
       "description": "When the user wants to optimize post-signup onboarding, user activation, first-run experience, or time-to-value. Also use when the user mentions \"onboarding flow,\" \"activation rate,\" \"user activation,\" \"first-run experience,\" \"empty states,\" \"onboarding checklist,\" \"aha moment,\" or \"new user experience.\" For signup/registration optimization, see signup-flow-cro. For ongoing email sequences, see email-sequence.",
@@ -4407,6 +4811,20 @@
       "slug": "opa",
       "description": "Expert guidance for OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "openai-agents",
+      "slug": "openai-agents",
+      "description": "You are an expert in the OpenAI Agents SDK (formerly Swarm), the official framework for building multi-agent systems. You help developers create agents with tool calling, guardrails, agent handoffs, streaming, tracing, and MCP integration — building production-grade AI agents that coordinate, delegate tasks, and execute tools with built-in safety controls.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
+      "name": "openai-codex-cli",
+      "slug": "openai-codex-cli",
+      "description": "You are an expert in OpenAI's Codex CLI, the open-source terminal-based coding agent that reads your codebase, generates and edits code, runs shell commands, and applies changes — all within your terminal. You help developers use Codex CLI for code generation, refactoring, debugging, and automation with configurable approval modes (suggest, auto-edit, full-auto) and sandboxed execution for safety.",
+      "category": "Developer Tools",
       "tags": []
     },
     {
@@ -4450,10 +4868,17 @@
       ]
     },
     {
+      "name": "opencv",
+      "slug": "opencv",
+      "description": "You are an expert in OpenCV (Open Source Computer Vision Library), the most popular library for real-time computer vision. You help developers build image processing pipelines, object detection systems, video analysis tools, augmented reality, and document processing using OpenCV's 2,500+ algorithms for image manipulation, feature detection, camera calibration, 3D reconstruction, and DNN inference — in Python, C++, or JavaScript.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "openrouter",
       "slug": "openrouter",
-      "description": "Unified API gateway for accessing multiple LLM providers through a single endpoint. Supports OpenAI, Anthropic, Google, Meta, Mistral and dozens more. Provides automatic fallbacks, model routing, cost tracking, and OpenAI-compatible API format.",
-      "category": "data-ai",
+      "description": "You are an expert in OpenRouter, the unified API gateway for accessing 200+ LLMs through a single OpenAI-compatible endpoint. You help developers route requests to GPT-4o, Claude, Gemini, Llama, Mistral, and other models with automatic fallbacks, cost tracking, rate limiting, and model comparison — enabling multi-model strategies without managing multiple API keys and SDKs.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -4468,6 +4893,13 @@
         "metrics",
         "monitoring"
       ]
+    },
+    {
+      "name": "opentofu",
+      "slug": "opentofu",
+      "description": "You are an expert in OpenTofu, the open-source fork of Terraform maintained by the Linux Foundation. You help developers and platform teams provision cloud infrastructure using HCL (HashiCorp Configuration Language), with full compatibility with existing Terraform modules, state files, and providers — plus new features like client-side state encryption, OCI registry support, and removed BSL license restrictions.",
+      "category": "Infrastructure & DevOps",
+      "tags": []
     },
     {
       "name": "opentype-js",
@@ -4527,6 +4959,13 @@
       "slug": "otel-js",
       "description": "Instrument Node.js apps with OpenTelemetry. Use when a user asks to add distributed tracing, collect metrics, instrument HTTP requests, trace database queries, or set up observability for microservices.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "outlines",
+      "slug": "outlines",
+      "description": "You are an expert in Outlines, the Python library for reliable structured text generation with LLMs. You help developers generate guaranteed-valid JSON, regex-matching text, and grammar-constrained output from open-source models — using finite state machine guided generation that constrains the token sampling process to produce only valid output on the first try.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -4769,6 +5208,13 @@
       ]
     },
     {
+      "name": "pglite",
+      "slug": "pglite",
+      "description": "You are an expert in PGlite, the lightweight WASM Postgres build that runs in the browser, Node.js, and Deno. You help developers embed a full Postgres instance (with extensions like pgvector, PostGIS) in client-side apps, Electron, React Native, and serverless functions — providing real SQL with JSONB, full-text search, and vector similarity search at ~3MB compressed, without a server.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "pgvector",
       "slug": "pgvector",
       "description": "Store and search vector embeddings in PostgreSQL with pgvector — no separate vector database needed. Use when someone asks to \"vector search in Postgres\", \"store embeddings\", \"pgvector\", \"similarity search\", \"RAG with Postgres\", \"semantic search in existing database\", or \"add AI search to my app without a separate vector DB\". Covers vector columns, indexing (IVFFlat, HNSW), similarity search, and integration with ORMs.",
@@ -4780,6 +5226,13 @@
         "pgvector",
         "rag"
       ]
+    },
+    {
+      "name": "phaser",
+      "slug": "phaser",
+      "description": "You are an expert in Phaser, the fast and feature-rich HTML5 game framework for making 2D games that run in web browsers and mobile devices. You help developers build arcade games, puzzle games, RPGs, platformers, and roguelikes using Phaser's scene system, physics engines (Arcade and Matter.js), sprite animations, tilemaps, tweens, particle effects, and input handling — with TypeScript support and Vite for modern development workflow.",
+      "category": "Game Development",
+      "tags": []
     },
     {
       "name": "phoenix",
@@ -4809,10 +5262,31 @@
       "tags": []
     },
     {
+      "name": "pinia",
+      "slug": "pinia",
+      "description": "You are an expert in Pinia, the official state management library for Vue.js. You help developers build Vue applications with type-safe stores, Composition API support, getters (computed), actions (sync and async), plugins, SSR compatibility, and Vue DevTools integration — replacing Vuex with a simpler, fully typed, modular store system.",
+      "category": "Frontend Development",
+      "tags": []
+    },
+    {
       "name": "pino",
       "slug": "pino",
       "description": "Log in Node.js with Pino. Use when a user asks to add structured logging, improve logging performance, configure log levels, format logs for production, or replace console.log with proper logging.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "pipedream",
+      "slug": "pipedream",
+      "description": "You are an expert in Pipedream, the workflow automation platform built for developers. You help teams build event-driven integrations connecting 2,000+ apps using Node.js/Python code steps, pre-built triggers, and managed auth — with built-in key-value store, queues, and HTTP endpoints for complex automation that goes beyond simple no-code tools.",
+      "category": "Automation & Integration",
+      "tags": []
+    },
+    {
+      "name": "pixijs",
+      "slug": "pixijs",
+      "description": "You are an expert in PixiJS, the fastest 2D rendering engine for the web. You help developers build games, interactive visualizations, animated ads, creative coding projects, and rich UI effects using PixiJS's WebGL-first renderer with automatic Canvas fallback — handling sprites, text, filters, masks, blend modes, and custom shaders at 60fps with hundreds of thousands of objects.",
+      "category": "Game Development",
       "tags": []
     },
     {
@@ -4893,15 +5367,9 @@
     {
       "name": "polar",
       "slug": "polar",
-      "description": "Monetize open-source and digital products with Polar — payment and billing platform for developers. Use when someone asks to \"monetize open source\", \"Polar\", \"sell API access\", \"developer billing\", \"GitHub Sponsors alternative\", \"sell digital products as a developer\", or \"subscription billing for SaaS\". Covers products, subscriptions, checkout, license keys, webhooks, and usage-based billing.",
-      "category": "business",
-      "tags": [
-        "monetization",
-        "payments",
-        "polar",
-        "billing",
-        "subscriptions"
-      ]
+      "description": "You are an expert in Polar, the monetization platform built for developers and open-source maintainers. You help developers add payments, subscriptions, product sales, license keys, and sponsorships to their projects with a developer-first API, webhooks, and embeddable components — replacing Stripe integration complexity with purpose-built tools for software monetization.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "polars",
@@ -4927,8 +5395,8 @@
     {
       "name": "portkey",
       "slug": "portkey",
-      "description": "Expert guidance for Portkey, the AI gateway that provides a unified interface for routing, caching, monitoring, and managing LLM API calls across multiple providers. Helps developers build reliable, cost-efficient AI applications with automatic failover, semantic caching, and detailed analytics.",
-      "category": "data-ai",
+      "description": "You are an expert in Portkey, the AI gateway that sits between your app and LLM providers. You help developers add caching, fallbacks, load balancing, request retries, guardrails, semantic caching, budget limits, and observability to LLM calls — using a single unified API that works with 200+ models from OpenAI, Anthropic, Google, and open-source providers.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -4979,10 +5447,24 @@
       ]
     },
     {
+      "name": "powertools-lambda",
+      "slug": "powertools-lambda",
+      "description": "You are an expert in AWS Lambda Powertools, the developer toolkit for implementing serverless best practices. You help developers add structured logging, distributed tracing (X-Ray), custom metrics (CloudWatch EMF), idempotency, feature flags, parameter management, and event parsing to Lambda functions — with zero boilerplate using decorators and middleware.",
+      "category": "Cloud & Serverless",
+      "tags": []
+    },
+    {
       "name": "prd-writing",
       "slug": "prd-writing",
       "description": "Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. Produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.",
       "category": "business",
+      "tags": []
+    },
+    {
+      "name": "preact",
+      "slug": "preact",
+      "description": "You are an expert in Preact, the lightweight React alternative with the same modern API in just 3kB. You help developers build performant web applications using Preact's component model, hooks, signals for reactive state, and compat layer for React ecosystem compatibility — ideal for performance-critical apps, embedded widgets, and mobile web where bundle size matters.",
+      "category": "Frontend Development",
       "tags": []
     },
     {
@@ -5016,15 +5498,9 @@
     {
       "name": "prisma",
       "slug": "prisma",
-      "description": "Build type-safe database layers with Prisma ORM — schema modeling, migrations, queries, relations, transactions, and seeding. Use when tasks involve database schema design, type-safe data access in TypeScript/JavaScript, migrating between databases, or setting up a data layer for a new project.",
-      "category": "development",
-      "tags": [
-        "prisma",
-        "orm",
-        "database",
-        "typescript",
-        "migrations"
-      ]
+      "description": "You are an expert in Prisma, the TypeScript ORM with a declarative schema, auto-generated type-safe client, migrations, and studio GUI. You help developers model databases with Prisma Schema Language, generate a fully typed client that catches query errors at compile time, run zero-downtime migrations, and integrate with Postgres, MySQL, SQLite, MongoDB, CockroachDB, and PlanetScale.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "product-analytics",
@@ -5114,6 +5590,13 @@
       ]
     },
     {
+      "name": "protobuf",
+      "slug": "protobuf",
+      "description": "You are an expert in Protocol Buffers (protobuf), Google's language-neutral binary serialization format. You help developers define data schemas with `.proto` files, generate typed code for multiple languages, build efficient APIs with gRPC, and handle schema evolution with backward/forward compatibility — achieving 3-10x smaller payloads and 20-100x faster serialization than JSON.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
       "name": "pulumi",
       "slug": "pulumi",
       "description": "Assists with defining and managing cloud infrastructure using Pulumi with TypeScript, Python, Go, or C#. Use when provisioning AWS, GCP, Azure, or Kubernetes resources with real programming languages instead of HCL. Trigger words: pulumi, infrastructure as code, iac, pulumi up, pulumi stack, cloud infrastructure, component resource.",
@@ -5147,10 +5630,24 @@
       ]
     },
     {
+      "name": "pusher",
+      "slug": "pusher",
+      "description": "You are an expert in Pusher Channels, the hosted real-time messaging platform. You help developers add live features to applications using pub/sub channels, presence channels for online status, private channels with auth, client events for peer-to-peer, webhooks, and batch triggers — enabling real-time notifications, live dashboards, chat, and collaborative features without managing WebSocket infrastructure.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "pydantic",
       "slug": "pydantic",
       "description": "Validate and serialize data with Pydantic. Use when a user asks to validate API inputs, parse JSON/env config, define data models in Python, serialize objects, or implement data validation with type hints.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "pydantic-ai",
+      "slug": "pydantic-ai",
+      "description": "You are an expert in PydanticAI, the Python agent framework built by the Pydantic team. You help developers create type-safe AI agents with structured outputs, dependency injection, tool definitions, streaming, and model-agnostic design — leveraging Pydantic for validation and type safety throughout the agent lifecycle.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -5176,8 +5673,8 @@
     {
       "name": "qdrant",
       "slug": "qdrant",
-      "description": "Qdrant is an open-source vector similarity search engine with advanced filtering. Learn to create collections, upsert points with payloads, query with filters, and deploy with Docker for AI and semantic search applications.",
-      "category": "data-ai",
+      "description": "You are an expert in Qdrant, the high-performance vector search engine written in Rust. You help developers build semantic search, RAG retrieval, recommendation systems, and anomaly detection with billion-scale vector collections, advanced filtering, multi-vector support, and hybrid search — providing sub-millisecond query latency with rich payload filtering that other vector DBs can't match.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -5281,15 +5778,9 @@
     {
       "name": "react-email",
       "slug": "react-email",
-      "description": "Assists with building responsive, cross-client email templates using React Email components. Use when creating transactional emails (welcome, receipts, password reset) that render correctly in Gmail, Outlook, Apple Mail, and mobile clients. Trigger words: react email, email template, transactional email, email components, email rendering.",
-      "category": "automation",
-      "tags": [
-        "react-email",
-        "email",
-        "transactional",
-        "templates",
-        "rendering"
-      ]
+      "description": "You are an expert in React Email, the library for building responsive HTML emails using React components. You help developers create beautiful, cross-client-compatible email templates with type-safe components, live preview, and integration with email providers (Resend, SendGrid, Postmark, AWS SES) — replacing fragile HTML table layouts with a modern component-based workflow.",
+      "category": "Frontend Development",
+      "tags": []
     },
     {
       "name": "react-hook-form",
@@ -5312,6 +5803,13 @@
       ]
     },
     {
+      "name": "react-native-expo",
+      "slug": "react-native-expo",
+      "description": "You are an expert in React Native with Expo, the modern framework for building native iOS and Android apps with React. You help developers create mobile applications using Expo Router (file-based navigation), Expo SDK modules (camera, notifications, auth, maps), EAS Build/Submit for cloud builds, over-the-air updates, and the full Expo development workflow — from `npx create-expo-app` to App Store submission.",
+      "category": "Mobile Development",
+      "tags": []
+    },
+    {
       "name": "react-native-reanimated",
       "slug": "react-native-reanimated",
       "description": "Build smooth 60fps animations in React Native with Reanimated — run animations on the UI thread without JS bridge delays. Use when someone asks to \"animate in React Native\", \"Reanimated\", \"smooth mobile animations\", \"gesture animations\", \"shared element transitions\", or \"60fps React Native animations\". Covers worklets, shared values, layout animations, gestures, and scroll-driven animations.",
@@ -5323,6 +5821,13 @@
         "gestures",
         "ui"
       ]
+    },
+    {
+      "name": "react-three-fiber",
+      "slug": "react-three-fiber",
+      "description": "You are an expert in React Three Fiber (R3F), the React renderer for Three.js that lets developers build 3D scenes using JSX components. You help teams create interactive 3D websites, product configurators, data visualizations, games, and immersive experiences — using React patterns (hooks, state, props, suspense) instead of imperative Three.js code, with full access to the Three.js ecosystem.",
+      "category": "3D & Creative",
+      "tags": []
     },
     {
       "name": "realtime-analytics",
@@ -5362,6 +5867,13 @@
       ]
     },
     {
+      "name": "recoil",
+      "slug": "recoil",
+      "description": "You are an expert in Recoil, the state management library by Meta for React applications. You help developers manage application state with atoms (shared state units), selectors (derived/async state), and atom families — providing a graph-based state model that integrates naturally with React's concurrent features, avoids unnecessary re-renders, and handles async data fetching as first-class state.",
+      "category": "Frontend Development",
+      "tags": []
+    },
+    {
       "name": "reddit-insights",
       "slug": "reddit-insights",
       "description": "Semantic search across Reddit to find pain points, validate ideas, discover niches, and analyze sentiment. Use when a user asks to research Reddit, find Reddit discussions about a topic, analyze Reddit sentiment, discover what people complain about on Reddit, validate a business idea on Reddit, find pain points in a subreddit, or mine Reddit for product insights.",
@@ -5399,6 +5911,13 @@
         "pub-sub",
         "queues"
       ]
+    },
+    {
+      "name": "redis-om",
+      "slug": "redis-om",
+      "description": "You are an expert in Redis OM (Object Mapping), the high-level client for working with Redis as a primary database. You help developers define schemas, store JSON documents, perform full-text search, vector similarity search, and build real-time applications — using Redis Stack's JSON, Search, and Vector capabilities through an ORM-like interface instead of raw commands.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "referral-program",
@@ -5501,15 +6020,9 @@
     {
       "name": "resend",
       "slug": "resend",
-      "description": "Send transactional and marketing emails with Resend — API sending, React email templates, domain verification, delivery tracking, batch sending, audiences, and webhooks. Use when tasks involve sending emails from an application, building email templates, tracking delivery, or migrating from SMTP.",
-      "category": "automation",
-      "tags": [
-        "resend",
-        "email",
-        "transactional",
-        "react-email",
-        "templates"
-      ]
+      "description": "You are an expert in Resend, the developer-first email API. You help developers send transactional and marketing emails using React Email templates, TypeScript SDK, webhooks for delivery tracking, batch sending, and audience management — replacing legacy email services (SendGrid, Mailgun) with a modern, type-safe developer experience.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "rest-api",
@@ -5578,6 +6091,13 @@
       ]
     },
     {
+      "name": "rocket",
+      "slug": "rocket",
+      "description": "You are an expert in Rocket, the ergonomic Rust web framework that makes building web applications feel effortless. You help developers build type-safe HTTP APIs with Rocket's macro-based routing, request guards for authentication, form handling, JSON support, database integration, and fairings (middleware) — providing Rails-like productivity with Rust's compile-time safety guarantees.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "rolldown",
       "slug": "rolldown",
       "description": "Bundle JavaScript with Rolldown — Rust-based Rollup replacement, future Vite bundler. Use when someone asks to \"Rolldown\", \"Rust Rollup\", \"fast Rollup alternative\", \"future Vite bundler\", \"Rolldown bundler\", or \"OXC bundler\". Covers Rollup-compatible config, Vite integration roadmap, performance comparison, and migration from Rollup.",
@@ -5589,6 +6109,13 @@
         "rust",
         "vite"
       ]
+    },
+    {
+      "name": "rsbuild",
+      "slug": "rsbuild",
+      "description": "You are an expert in Rsbuild, the Rspack-based build tool for web applications. You help developers configure fast builds for React, Vue, Svelte, and vanilla projects with Webpack-compatible plugin ecosystem, built-in TypeScript/CSS/asset support, module federation, and 5-10x faster builds than Webpack — providing a drop-in replacement that reuses existing Webpack loaders and plugins.",
+      "category": "Developer Tools",
+      "tags": []
     },
     {
       "name": "rspack",
@@ -5807,6 +6334,13 @@
       "tags": []
     },
     {
+      "name": "sequelize",
+      "slug": "sequelize",
+      "description": "You are an expert in Sequelize, the promise-based ORM for Node.js supporting PostgreSQL, MySQL, MariaDB, SQLite, and MS SQL. You help developers define models, build queries, manage migrations, handle associations, use transactions, and configure connection pooling — providing a mature, battle-tested data access layer for production Node.js applications.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "serverless-debugger",
       "slug": "serverless-debugger",
       "description": "Debug and optimize serverless functions (AWS Lambda, Vercel Functions, Cloudflare Workers). Use when someone asks to \"debug Lambda\", \"trace serverless request\", \"fix cold starts\", \"analyze CloudWatch logs\", \"optimize Lambda performance\", \"reduce init duration\", or \"troubleshoot function timeout\". Correlates logs across invocations and generates fixes.",
@@ -5822,15 +6356,9 @@
     {
       "name": "shadcn-ui",
       "slug": "shadcn-ui",
-      "description": "Build UIs with shadcn/ui components. Use when adding accessible, styled React components, building a design system with Tailwind, customizing component libraries, or scaffolding UI for Next.js apps.",
-      "category": "development",
-      "tags": [
-        "shadcn-ui",
-        "components",
-        "tailwind",
-        "react",
-        "design-system"
-      ]
+      "description": "You are an expert in shadcn/ui, the collection of reusable React components built with Radix UI and Tailwind CSS. You help developers build beautiful, accessible interfaces by copying components directly into their project (not installed as a dependency) — providing full ownership and customization of every component including buttons, dialogs, forms, tables, command palettes, toasts, and 40+ primitives.",
+      "category": "Frontend Development",
+      "tags": []
     },
     {
       "name": "sharepoint",
@@ -5887,6 +6415,13 @@
       ]
     },
     {
+      "name": "smolagents",
+      "slug": "smolagents",
+      "description": "You are an expert in smolagents, Hugging Face's minimalist agent framework. You help developers build AI agents that write and execute Python code to solve tasks, use tools from the Hugging Face Hub, chain multiple agents together, and run on any LLM (OpenAI, Anthropic, local models) — providing a simple, code-first approach to building agents without complex abstractions.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "snipcart",
       "slug": "snipcart",
       "description": "Add e-commerce to any website with Snipcart. Use when a user asks to add a shopping cart to a static site, sell products from a JAMstack site, add buy buttons to any HTML page, or integrate e-commerce without a backend.",
@@ -5912,6 +6447,20 @@
       "slug": "socketio",
       "description": "Add real-time communication with Socket.IO. Use when a user asks to build real-time features, add WebSocket communication, build a chat application, implement live notifications, create collaborative editing, stream live data, build real-time dashboards, add presence indicators, or implement pub/sub messaging in a web app. Covers server setup, client connection, rooms, namespaces, authentication, scaling with Redis adapter, and Next.js integration.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "soda",
+      "slug": "soda",
+      "description": "You are an expert in Soda, the data quality platform for testing, monitoring, and profiling data. You help developers write data quality checks in YAML that validate freshness, completeness, uniqueness, validity, and business rules — catching data issues before they reach dashboards and ML models.",
+      "category": "Data Engineering",
+      "tags": []
+    },
+    {
+      "name": "solana",
+      "slug": "solana",
+      "description": "You are an expert in Solana blockchain development. You help developers build on-chain programs (smart contracts) in Rust, interact with the Solana network using @solana/web3.js, create tokens (SPL), build NFT collections, and integrate with wallets — leveraging Solana's 400ms block times, parallel transaction processing, and sub-cent fees for high-throughput applications.",
+      "category": "Blockchain & Web3",
       "tags": []
     },
     {
@@ -5947,6 +6496,13 @@
         "architecture",
         "design-doc"
       ]
+    },
+    {
+      "name": "spline",
+      "slug": "spline",
+      "description": "You are an expert in Spline, the browser-based 3D design tool that lets designers create interactive 3D scenes and export them to websites without writing code. You help teams build 3D landing pages, product showcases, animated illustrations, and interactive experiences — with Spline's visual editor for modeling, materials, animations, physics, and mouse/scroll interactions, plus export to React, vanilla JS, or embeddable iframe.",
+      "category": "3D & Creative",
+      "tags": []
     },
     {
       "name": "spring-boot",
@@ -5987,6 +6543,13 @@
       "slug": "sqlmap",
       "description": "Detect and exploit SQL injection with sqlmap. Use when a user asks to test for SQL injection, extract database contents, bypass authentication via SQLi, automate injection testing, or dump database schemas.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "sqs",
+      "slug": "sqs",
+      "description": "You are an expert in Amazon SQS (Simple Queue Service), the fully managed message queuing service. You help developers build decoupled, event-driven architectures using standard queues (at-least-once, best-effort ordering) and FIFO queues (exactly-once, ordered), dead-letter queues for failed messages, and Lambda triggers for serverless processing — scaling from zero to millions of messages per second.",
+      "category": "Cloud & Serverless",
       "tags": []
     },
     {
@@ -6037,10 +6600,24 @@
       ]
     },
     {
+      "name": "sst-ion",
+      "slug": "sst-ion",
+      "description": "You are an expert in SST (Ion), the framework for building full-stack serverless applications on AWS. You help developers deploy Next.js, Remix, Astro, and API services with infrastructure-as-code defined in TypeScript, automatic IAM permissions, live Lambda debugging, secrets management, and zero-config deployments — replacing CDK/Terraform complexity with a developer-friendly abstraction over AWS services.",
+      "category": "Cloud & Serverless",
+      "tags": []
+    },
+    {
+      "name": "stagehand",
+      "slug": "stagehand",
+      "description": "You are an expert in Stagehand by BrowserBase, the AI-powered browser automation framework that lets you control web pages using natural language instructions. You help developers build web automations that act, extract data, and observe pages using plain English commands instead of brittle CSS selectors — powered by GPT-4o or Claude for visual understanding of page layouts.",
+      "category": "AI & Machine Learning",
+      "tags": []
+    },
+    {
       "name": "starship",
       "slug": "starship",
-      "description": "Expert guidance for Starship, the minimal, blazing-fast, and infinitely customizable prompt for any shell. Helps developers configure Starship to display relevant context (git branch, language versions, cloud context, execution time) with beautiful formatting and zero lag.",
-      "category": "development",
+      "description": "You are an expert in Starship, the minimal, blazing-fast, cross-shell prompt written in Rust. You help developers customize their terminal prompt with git status, language versions, cloud context, battery level, time, and custom modules — working identically across Bash, Zsh, Fish, PowerShell, and any shell with a single TOML config file.",
+      "category": "Developer Tools",
       "tags": []
     },
     {
@@ -6064,6 +6641,13 @@
       "tags": []
     },
     {
+      "name": "step-functions",
+      "slug": "step-functions",
+      "description": "You are an expert in AWS Step Functions, the serverless orchestration service for building workflows as state machines. You help developers coordinate Lambda functions, API calls, and AWS services using visual workflows with branching, parallel execution, error handling, retries, and human approval steps — building reliable, observable distributed systems without custom orchestration code.",
+      "category": "Cloud & Serverless",
+      "tags": []
+    },
+    {
       "name": "storybook",
       "slug": "storybook",
       "description": "Assists with developing, documenting, and testing UI components in isolation using Storybook. Use when writing component stories, setting up visual regression testing, configuring addons, or generating component documentation. Trigger words: storybook, stories, csf, component story format, visual testing, chromatic, storybook addons.",
@@ -6077,6 +6661,13 @@
       ]
     },
     {
+      "name": "strapi",
+      "slug": "strapi",
+      "description": "You are an expert in Strapi, the leading open-source headless CMS built with Node.js. You help teams build content APIs using Strapi's admin panel for content modeling, role-based access control, media library, and plugin system — with auto-generated REST and GraphQL APIs that power websites, mobile apps, and any frontend through a clean content management interface that non-technical editors can use.",
+      "category": "Content Management",
+      "tags": []
+    },
+    {
       "name": "streamlit",
       "slug": "streamlit",
       "description": "Expert guidance for Streamlit, the Python framework for building interactive data applications and dashboards. Helps developers create web apps for data exploration, ML model demos, and internal tools using pure Python — no frontend skills required.",
@@ -6086,15 +6677,9 @@
     {
       "name": "stripe-billing",
       "slug": "stripe-billing",
-      "description": "Build subscription billing with Stripe — products, prices, checkout sessions, subscriptions, invoices, usage-based metering, customer portal, coupons, webhooks, and dunning. Use when tasks involve SaaS billing, recurring payments, free trials, plan upgrades/downgrades, or usage-based pricing.",
-      "category": "business",
-      "tags": [
-        "stripe",
-        "billing",
-        "subscriptions",
-        "payments",
-        "saas"
-      ]
+      "description": "You are an expert in Stripe Billing, the complete billing platform for SaaS businesses. You help developers implement subscription management, usage-based billing, metered pricing, free trials, proration, invoicing, customer portal, and webhook-driven lifecycle management — building everything from simple monthly plans to complex per-seat + usage hybrid pricing.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "stripe-testing",
@@ -6151,6 +6736,13 @@
       "tags": []
     },
     {
+      "name": "svelte",
+      "slug": "svelte",
+      "description": "You are an expert in Svelte, the UI framework that shifts work from runtime to compile time. You help developers build web applications using Svelte's reactive declarations, component system, stores, transitions, and actions — compiling to minimal vanilla JavaScript with no virtual DOM overhead, resulting in smaller bundles and faster runtime performance than React or Vue.",
+      "category": "Web Frameworks",
+      "tags": []
+    },
+    {
       "name": "sveltekit",
       "slug": "sveltekit",
       "description": "Assists with building full-stack web applications using SvelteKit. Use when creating Svelte apps with file-based routing, server-side rendering, form actions, or API endpoints. Trigger words: sveltekit, svelte, svelte routing, form actions, svelte hooks, svelte adapter, svelte load function.",
@@ -6177,6 +6769,20 @@
       ]
     },
     {
+      "name": "svix",
+      "slug": "svix",
+      "description": "You are an expert in Svix, the enterprise webhook delivery platform. You help developers send reliable webhooks to customers with automatic retries, signature verification, delivery monitoring, endpoint management, and event type filtering — replacing custom webhook infrastructure with a purpose-built service used by companies like Clerk, Resend, and Liveblocks.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
+      "name": "swc",
+      "slug": "swc",
+      "description": "You are an expert in SWC, the Rust-based JavaScript/TypeScript compiler. You help developers replace Babel and Terser with SWC for 20-70x faster compilation, minification, and bundling — used by Next.js, Vite, Parcel, and Deno as their default compiler, handling TypeScript stripping, JSX transformation, polyfill injection, and code minification at native speed.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
       "name": "swr",
       "slug": "swr",
       "description": "Fetch, cache, and revalidate data in React with SWR — stale-while-revalidate data fetching library by Vercel. Use when someone asks to \"fetch data in React\", \"SWR\", \"data fetching hook\", \"cache API calls\", \"stale-while- revalidate\", \"auto-refresh data\", or \"React data fetching without Redux\". Covers data fetching, caching, revalidation, mutation, pagination, and optimistic updates.",
@@ -6188,6 +6794,13 @@
         "cache",
         "revalidation"
       ]
+    },
+    {
+      "name": "symfony",
+      "slug": "symfony",
+      "description": "You are an expert in Symfony, the enterprise PHP framework for building web applications and APIs. You help developers build production systems with Symfony's component architecture, Doctrine ORM, dependency injection, event system, security component, API Platform for REST/GraphQL, and Messenger for async processing — the backbone of enterprise PHP used by companies processing billions of requests.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "systemd",
@@ -6238,15 +6851,9 @@
     {
       "name": "tailwindcss",
       "slug": "tailwindcss",
-      "description": "Build UIs with Tailwind CSS — utility classes, responsive design, dark mode, custom configuration, component patterns, animations, plugins, and design system setup. Use when tasks involve styling web applications, configuring design tokens, building responsive layouts, or migrating from other CSS approaches.",
-      "category": "development",
-      "tags": [
-        "tailwindcss",
-        "css",
-        "frontend",
-        "responsive",
-        "design-system"
-      ]
+      "description": "You are an expert in Tailwind CSS v4, the utility-first CSS framework. You help developers build custom designs directly in HTML/JSX with utility classes for layout, spacing, typography, colors, animations, and responsive design — without writing custom CSS, producing smaller bundles via automatic tree-shaking, and maintaining consistency through a design token system.",
+      "category": "Frontend Development",
+      "tags": []
     },
     {
       "name": "tanstack",
@@ -6260,6 +6867,13 @@
         "routing",
         "state-management"
       ]
+    },
+    {
+      "name": "tanstack-query",
+      "slug": "tanstack-query",
+      "description": "You are an expert in TanStack Query (formerly React Query), the data-fetching and server state management library. You help developers build React applications with automatic caching, background refetching, optimistic updates, pagination, infinite scroll, and offline support — replacing manual `useEffect` + `useState` patterns with declarative, type-safe data fetching hooks.",
+      "category": "Frontend Development",
+      "tags": []
     },
     {
       "name": "tanstack-router",
@@ -6373,17 +6987,17 @@
       "tags": []
     },
     {
-      "name": "terraform-aws",
-      "slug": "terraform-aws",
-      "description": "Infrastructure as Code for AWS using Terraform. Use when the user needs to provision AWS resources like EC2 instances, S3 buckets, RDS databases, VPCs, IAM roles, and Lambda functions using declarative HCL configuration.",
-      "category": "devops",
+      "name": "temporal-sdk",
+      "slug": "temporal-sdk",
+      "description": "You are an expert in Temporal, the open-source durable execution platform for building reliable distributed applications. You help developers write workflows that survive process crashes, network failures, and deployments — with automatic retries, timeouts, cancellation, signals, queries, and versioning — replacing fragile state machines, manual retry logic, and error-prone queue-based orchestration with simple, testable code.",
+      "category": "Backend Development",
       "tags": []
     },
     {
-      "name": "terraform-gcp",
-      "slug": "terraform-gcp",
-      "description": "Infrastructure as Code for Google Cloud Platform using Terraform. Use when the user needs to provision GCP resources like Compute Engine instances, Cloud Storage buckets, Cloud SQL databases, VPC networks, and IAM bindings.",
-      "category": "devops",
+      "name": "tensorflow",
+      "slug": "tensorflow",
+      "description": "You are an expert in TensorFlow, Google's open-source machine learning framework. You help developers build, train, and deploy neural networks using Keras (TensorFlow's high-level API), custom training loops, TensorFlow Serving for production inference, TFLite for mobile/edge deployment, and TensorFlow.js for browser ML — from prototyping to production-scale distributed training.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -6397,6 +7011,20 @@
         "cloud",
         "devops"
       ]
+    },
+    {
+      "name": "terragrunt",
+      "slug": "terragrunt",
+      "description": "You are an expert in Terragrunt, the thin wrapper for Terraform and OpenTofu that provides extra tools for keeping configurations DRY, managing remote state, and orchestrating multi-module deployments. You help platform teams manage large-scale infrastructure across multiple environments and AWS accounts using Terragrunt's hierarchical configuration, dependency management, and before/after hooks.",
+      "category": "Infrastructure & DevOps",
+      "tags": []
+    },
+    {
+      "name": "tesseract",
+      "slug": "tesseract",
+      "description": "You are an expert in Tesseract OCR, the most popular open-source optical character recognition engine. You help developers extract text from images, PDFs, and scanned documents using Tesseract's LSTM neural network engine, multi-language support (100+ languages), page segmentation modes, and integration with image preprocessing for maximum accuracy.",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "test-generator",
@@ -6445,6 +7073,13 @@
       ]
     },
     {
+      "name": "thirdweb",
+      "slug": "thirdweb",
+      "description": "You are an expert in thirdweb, the complete web3 development platform that provides SDKs, pre-built smart contracts, wallet infrastructure, and payment solutions. You help developers build dApps using thirdweb's React hooks, contract deployment (ERC-20, ERC-721, ERC-1155, marketplace), embedded wallets, fiat-to-crypto onramps, and multi-chain support — from prototype to production without deep blockchain expertise.",
+      "category": "Blockchain & Web3",
+      "tags": []
+    },
+    {
       "name": "threejs",
       "slug": "threejs",
       "description": "Assists with building interactive 3D experiences in the browser using Three.js. Use when creating 3D product configurators, data visualizations, games, or creative experiences with scenes, cameras, lighting, model loading, and performance optimization. Trigger words: threejs, three.js, 3d, webgl, react three fiber, r3f, glb, gltf.",
@@ -6479,10 +7114,24 @@
       ]
     },
     {
+      "name": "tiled",
+      "slug": "tiled",
+      "description": "You are an expert in Tiled, the free and open-source 2D level editor for creating tilemaps, placing objects, and designing game worlds. You help game developers design levels with tile layers, object layers for spawn points and triggers, terrain brushes for auto-tiling, animated tiles, and custom properties — exporting to JSON or TMX for use in Phaser, Godot, Unity, PixiJS, and other engines.",
+      "category": "Game Development",
+      "tags": []
+    },
+    {
       "name": "tinacms",
       "slug": "tinacms",
       "description": "Expert guidance for TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. Helps developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.",
       "category": "content",
+      "tags": []
+    },
+    {
+      "name": "tinybase",
+      "slug": "tinybase",
+      "description": "You are an expert in TinyBase, the reactive data store for local-first applications. You help developers build offline-capable apps with structured tables, automatic reactivity, CRDT-based sync, persistence to IndexedDB/SQLite/Postgres, and relationship modeling — providing a complete client-side database that syncs across devices without a custom backend.",
+      "category": "Frontend Development",
       "tags": []
     },
     {
@@ -6513,6 +7162,13 @@
       "tags": []
     },
     {
+      "name": "tokio",
+      "slug": "tokio",
+      "description": "You are an expert in Tokio, the asynchronous runtime for Rust that powers most of the Rust async ecosystem. You help developers build high-performance network applications, concurrent services, and I/O-bound systems using Tokio's task scheduler, async I/O primitives, channels, timers, and synchronization utilities — handling millions of concurrent connections with minimal memory overhead.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
       "name": "tooljet",
       "slug": "tooljet",
       "description": "Build internal tools with ToolJet, the open-source low-code platform. Use when a user asks to create admin dashboards, connect data sources, build CRUD apps with drag-and-drop, or self-host ToolJet.",
@@ -6524,6 +7180,13 @@
         "admin-panel",
         "self-hosted"
       ]
+    },
+    {
+      "name": "traceloop",
+      "slug": "traceloop",
+      "description": "You are an expert in Traceloop and its OpenLLMetry SDK, the open-source observability framework that extends OpenTelemetry for LLM applications. You help developers instrument AI pipelines with automatic tracing for OpenAI, Anthropic, Cohere, LangChain, LlamaIndex, vector databases, and frameworks — exporting to any OpenTelemetry-compatible backend (Grafana Tempo, Jaeger, Datadog, Honeycomb, Traceloop Cloud).",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "traefik",
@@ -6542,8 +7205,15 @@
     {
       "name": "trigger-dev",
       "slug": "trigger-dev",
-      "description": "Build reliable background jobs with Trigger.dev. Use when a user asks to run long-running tasks in the background, process webhooks reliably, build async job queues for serverless, schedule recurring tasks, run AI/LLM pipelines in the background, process file uploads asynchronously, or replace BullMQ or Celery with a serverless-native solution. Covers task definition, triggers, scheduling, retries, concurrency control, and integration with Next.js, Remix, and Express.",
-      "category": "development",
+      "description": "You are an expert in Trigger.dev, the open-source background jobs platform for TypeScript. You help developers build reliable long-running tasks, scheduled jobs, webhook handlers, and event-driven workflows with automatic retries, concurrency control, real-time logs, and deployment to serverless infrastructure — replacing BullMQ/Redis setups with a fully managed or self-hosted solution purpose-built for modern TypeScript apps.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
+      "name": "trigger-dev-v3",
+      "slug": "trigger-dev-v3",
+      "description": "You are an expert in Trigger.dev v3, the background jobs platform for TypeScript. You help developers run long-running tasks, scheduled jobs, event-driven workflows, and AI pipelines in the cloud — with automatic retries, concurrency control, real-time logs, and up to 5-minute (or longer) execution times that serverless functions can't handle.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -6563,15 +7233,9 @@
     {
       "name": "trpc",
       "slug": "trpc",
-      "description": "Assists with building end-to-end type-safe APIs using tRPC without code generation. Use when creating type-safe client-server bridges, defining procedures with Zod validation, integrating with Next.js or React Query, or setting up WebSocket subscriptions. Trigger words: trpc, type-safe api, procedures, react query, end-to-end types.",
-      "category": "development",
-      "tags": [
-        "trpc",
-        "typescript",
-        "api",
-        "type-safety",
-        "react-query"
-      ]
+      "description": "You are an expert in tRPC, the framework for building type-safe APIs without schemas or code generation. You help developers create full-stack TypeScript applications where the server defines procedures and the client calls them with full type inference — no REST routes, no GraphQL schemas, no OpenAPI specs, just TypeScript functions that are type-safe from database to UI.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "tsup",
@@ -6585,6 +7249,13 @@
         "esbuild",
         "library"
       ]
+    },
+    {
+      "name": "turbopack",
+      "slug": "turbopack",
+      "description": "You are an expert in Turbopack, the Rust-based successor to Webpack built by Vercel. You help developers configure and optimize Turbopack for Next.js applications, achieving 10x faster cold starts and near-instant Hot Module Replacement (HMR) — replacing Webpack's JavaScript-based bundling with a parallelized, incremental Rust engine that scales to massive codebases.",
+      "category": "Developer Tools",
+      "tags": []
     },
     {
       "name": "turborepo",
@@ -6602,8 +7273,8 @@
     {
       "name": "turso",
       "slug": "turso",
-      "description": "Use Turso for edge SQLite databases. Use when a user asks to set up an edge database, use SQLite in production, replicate databases globally, or choose a serverless database for low-latency reads.",
-      "category": "data-ai",
+      "description": "You are an expert in Turso, the SQLite-based database platform for production workloads. You help developers use libSQL (Turso's SQLite fork) as a primary database with features like embedded replicas (SQLite file synced from cloud), multi-region replication, vector search, branching, and edge deployment — providing sub-millisecond reads with the simplicity of SQLite and the durability of a cloud database.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -6631,6 +7302,13 @@
       "slug": "twitter-x-marketing",
       "description": "Create, optimize, and automate content for Twitter/X including tweets, threads, Spaces, and API automation. Use when someone asks to \"write a tweet\", \"create a Twitter thread\", \"grow on X\", \"Twitter API integration\", \"automate tweeting\", \"Twitter analytics\", \"Twitter bot\", or \"X content strategy\". Covers platform-specific formatting, X API v2 integration, thread creation, analytics, and growth tactics.",
       "category": "business",
+      "tags": []
+    },
+    {
+      "name": "typeorm",
+      "slug": "typeorm",
+      "description": "You are an expert in TypeORM, the ORM for TypeScript and JavaScript that supports PostgreSQL, MySQL, SQLite, MS SQL, and Oracle. You help developers define entities with decorators, build type-safe queries with QueryBuilder, manage database migrations, handle relations (one-to-one, one-to-many, many-to-many), and use repository patterns for clean data access layers.",
+      "category": "Backend Development",
       "tags": []
     },
     {
@@ -6667,17 +7345,25 @@
       ]
     },
     {
+      "name": "unity",
+      "slug": "unity",
+      "description": "You are an expert in Unity, the most widely-used game engine for indie and mobile game development. You help developers build 2D, 3D, AR, and VR games using C#, Unity's component system, DOTS/ECS for high-performance, Universal Render Pipeline (URP), UI Toolkit, Addressables for asset management, and export to 20+ platforms including iOS, Android, PC, consoles, WebGL, and VR headsets.",
+      "category": "Game Development",
+      "tags": []
+    },
+    {
       "name": "unkey",
       "slug": "unkey",
-      "description": "Add API key management and rate limiting to your API with Unkey — open-source API authentication infrastructure. Use when someone asks to \"add API keys to my API\", \"rate limit my API\", \"API key management\", \"Unkey\", \"usage-based API billing\", \"issue API keys to customers\", or \"per-customer rate limits\". Covers key creation, verification, rate limiting, usage tracking, and analytics.",
-      "category": "development",
-      "tags": [
-        "api",
-        "auth",
-        "rate-limiting",
-        "api-keys",
-        "unkey"
-      ]
+      "description": "You are an expert in Unkey, the open-source API key management platform. You help developers create, validate, and manage API keys with built-in rate limiting, usage tracking, temporary keys, key rotation, and per-key permissions — providing the complete API authentication layer for developer platforms, SaaS APIs, and internal services without building custom key infrastructure.",
+      "category": "Backend Development",
+      "tags": []
+    },
+    {
+      "name": "unreal-engine",
+      "slug": "unreal-engine",
+      "description": "You are an expert in Unreal Engine, Epic Games' professional game engine used for AAA games, architectural visualization, film production, and real-time 3D applications. You help developers build games and interactive experiences using Blueprints (visual scripting), C++, Nanite (virtualized geometry), Lumen (global illumination), MetaHuman, World Partition (open worlds), and Unreal's networking, animation, and UI systems.",
+      "category": "Game Development",
+      "tags": []
     },
     {
       "name": "unusual-whales-api",
@@ -6696,15 +7382,9 @@
     {
       "name": "upstash",
       "slug": "upstash",
-      "description": "Assists with building serverless applications using Upstash Redis, QStash, Workflow, and Vector. Use when adding caching, rate limiting, message queues, durable workflows, or vector search to edge and serverless applications. Trigger words: upstash, serverless redis, rate limiting, qstash, upstash workflow, upstash vector.",
-      "category": "data-ai",
-      "tags": [
-        "upstash",
-        "redis",
-        "serverless",
-        "rate-limiting",
-        "message-queue"
-      ]
+      "description": "You are an expert in Upstash, the serverless data platform for Redis, Kafka, and QStash. You help developers add caching, rate limiting, session storage, message queuing, and scheduled jobs to serverless and edge applications — with HTTP-based APIs that work on Vercel Edge, Cloudflare Workers, and AWS Lambda without persistent connections.",
+      "category": "Cloud & Serverless",
+      "tags": []
     },
     {
       "name": "uptime-kuma",
@@ -6724,6 +7404,13 @@
       "slug": "uptime-robot",
       "description": "Monitor website uptime with UptimeRobot. Use when a user asks to monitor website availability, get alerts when a site goes down, create a public status page, or set up HTTP/ping/port monitoring.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "urql",
+      "slug": "urql",
+      "description": "You are an expert in urql, the highly customizable and lightweight GraphQL client for React, Vue, Svelte, and vanilla JavaScript. You help developers fetch GraphQL data with minimal bundle size, document caching, normalized caching via Graphcache, exchanges (middleware pipeline), subscriptions, and offline support — providing a leaner alternative to Apollo Client with better extensibility.",
+      "category": "Frontend Development",
       "tags": []
     },
     {
@@ -6767,6 +7454,13 @@
       ]
     },
     {
+      "name": "val-town-sdk",
+      "slug": "val-town-sdk",
+      "description": "You are an expert in Val Town, the social platform for writing and deploying serverless TypeScript functions. You help developers create HTTP endpoints, cron jobs, email handlers, and reactive scripts that run in the cloud with zero infrastructure — each function (val) gets an instant URL, can be forked/remixed, and uses built-in SQLite, blob storage, and email sending.",
+      "category": "Cloud & Serverless",
+      "tags": []
+    },
+    {
       "name": "valtio",
       "slug": "valtio",
       "description": "Manage React state with Valtio — proxy-based state that just works. Use when someone asks to \"simple React state management\", \"Valtio\", \"proxy state\", \"mutable state in React\", \"alternative to Zustand/Redux\", or \"state management without boilerplate\". Covers proxy state, subscriptions, computed values, and devtools.",
@@ -6796,15 +7490,9 @@
     {
       "name": "vercel-ai-sdk",
       "slug": "vercel-ai-sdk",
-      "description": "Assists with building AI-powered applications using the Vercel AI SDK. Use when streaming LLM responses, generating structured data with Zod, building chat interfaces, creating multi-step agents with tool calling, or implementing RAG. Trigger words: vercel ai sdk, ai sdk, streamText, generateObject, useChat, tool calling, ai agent.",
-      "category": "data-ai",
-      "tags": [
-        "vercel-ai-sdk",
-        "ai",
-        "llm",
-        "streaming",
-        "structured-output"
-      ]
+      "description": "You are an expert in the Vercel AI SDK, the TypeScript toolkit for building AI-powered applications. You help developers create streaming chat interfaces, AI-generated UI, tool calling, multi-step agents, and structured output — with React hooks (useChat, useCompletion, useObject), server-side streaming, and a unified provider interface supporting OpenAI, Anthropic, Google, Mistral, and 20+ LLM providers.",
+      "category": "AI & Machine Learning",
+      "tags": []
     },
     {
       "name": "vertex-media-generation",
@@ -6833,30 +7521,18 @@
       ]
     },
     {
-      "name": "video-frames",
-      "slug": "video-frames",
-      "description": "Extract frames or clips from videos using ffmpeg. Use when a user asks to extract thumbnails from a video, capture specific frames, create video previews, split a video into clips, generate a contact sheet, or extract frames for analysis. Covers ffmpeg frame extraction, clip cutting, and thumbnail generation.",
-      "category": "automation",
-      "tags": [
-        "video",
-        "ffmpeg",
-        "frames",
-        "thumbnails",
-        "extraction"
-      ]
+      "name": "viem",
+      "slug": "viem",
+      "description": "You are an expert in Viem, the TypeScript interface for Ethereum that provides low-level, type-safe primitives for interacting with the blockchain. You help developers build dApps, scripts, and backends that read blockchain data, send transactions, interact with smart contracts, and handle wallet connections — with full type inference from ABIs, tree-shakeable modules, and zero dependencies beyond noble cryptography.",
+      "category": "Blockchain & Web3",
+      "tags": []
     },
     {
-      "name": "video-subtitles",
-      "slug": "video-subtitles",
-      "description": "Generate and burn subtitles into videos. Use when a user asks to add subtitles to a video, generate captions, transcribe audio to SRT or VTT, auto-transcribe with Whisper, burn in subtitles, create closed captions, or translate subtitles. Supports SRT, VTT, and ASS subtitle formats.",
-      "category": "automation",
-      "tags": [
-        "subtitles",
-        "captions",
-        "whisper",
-        "video",
-        "transcription"
-      ]
+      "name": "vinxi",
+      "slug": "vinxi",
+      "description": "You are an expert in Vinxi, the full-stack JavaScript SDK for building meta-frameworks. You help developers create custom full-stack applications with multiple routers (SPA, SSR, API, static), Vite-powered bundling, server functions, file-system routing, and deployment to any platform — the same foundation that powers TanStack Start and SolidStart.",
+      "category": "Developer Tools",
+      "tags": []
     },
     {
       "name": "vite",
@@ -6887,21 +7563,15 @@
     {
       "name": "vitest",
       "slug": "vitest",
-      "description": "Assists with unit and integration testing using Vitest, a Vite-native test runner. Use when writing tests, configuring mocks, setting up coverage, or migrating from Jest. Trigger words: vitest, unit testing, test runner, vi.fn, vi.mock, test coverage, jest replacement.",
-      "category": "development",
-      "tags": [
-        "vitest",
-        "testing",
-        "unit-testing",
-        "vite",
-        "jest-alternative"
-      ]
+      "description": "You are an expert in Vitest, the Vite-native testing framework. You help developers write and run unit tests, integration tests, and component tests with native TypeScript support, Jest-compatible API, built-in mocking, code coverage, snapshot testing, and watch mode — leveraging Vite's transform pipeline for instant test execution without separate compilation.",
+      "category": "Developer Tools",
+      "tags": []
     },
     {
       "name": "vllm",
       "slug": "vllm",
-      "description": "High-throughput LLM serving engine with PagedAttention for efficient memory management. Serves open-source models with OpenAI-compatible API, continuous batching, tensor parallelism, and quantization support. Optimized for production inference workloads.",
-      "category": "data-ai",
+      "description": "You are an expert in vLLM, the high-throughput LLM serving engine. You help developers deploy open-source models (Llama, Mistral, Qwen, Phi, Gemma) with PagedAttention for efficient memory management, continuous batching, tensor parallelism for multi-GPU, OpenAI-compatible API, and quantization support — achieving 2-24x higher throughput than HuggingFace Transformers for production LLM serving.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -6937,6 +7607,20 @@
       "slug": "warp",
       "description": "Expert guidance for Warp, the modern terminal built for developer productivity. Helps developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "wasm",
+      "slug": "wasm",
+      "description": "You are an expert in WebAssembly, the binary instruction format for stack-based virtual machines. You help developers compile Rust, C, C++, Go, and AssemblyScript to WASM for near-native performance in browsers, edge functions, and serverless environments — building image/video processing, games, crypto, AI inference, and compute-intensive tools that run 10-100x faster than JavaScript.",
+      "category": "Developer Tools",
+      "tags": []
+    },
+    {
+      "name": "weave",
+      "slug": "weave",
+      "description": "You are an expert in Weave, the lightweight toolkit by Weights & Biases for tracking and evaluating AI applications. You help developers trace LLM calls, evaluate outputs, compare model versions, track experiments, and debug AI pipelines — with automatic logging via decorators and a visual dashboard for exploring traces, costs, and quality metrics.",
+      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -6980,6 +7664,13 @@
       "slug": "web-vitals-analyzer",
       "description": "Analyze and optimize Core Web Vitals (LCP, CLS, INP) and frontend performance. Use when a user asks to improve page speed, fix layout shifts, reduce loading times, analyze Lighthouse reports, optimize bundle size, or improve Google PageSpeed scores. Covers image optimization, code splitting, font loading, render-blocking resources, and JavaScript execution costs.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "webflow",
+      "slug": "webflow",
+      "description": "You are an expert in Webflow, the visual web development platform that combines a design tool with a CMS and hosting. You help teams build responsive websites, landing pages, and content-driven sites using Webflow's visual builder, CMS collections, Ecommerce, form handling, and Webflow APIs — enabling designers to build production websites without writing code while giving developers API access for custom integrations and dynamic content.",
+      "category": "Web Development",
       "tags": []
     },
     {
@@ -7092,6 +7783,13 @@
       "slug": "woocommerce",
       "description": "Build e-commerce stores with WooCommerce for WordPress. Use when a user asks to add a shop to WordPress, manage products and orders, customize checkout, integrate payment gateways, or build a WordPress-based online store.",
       "category": "business",
+      "tags": []
+    },
+    {
+      "name": "wordpress",
+      "slug": "wordpress",
+      "description": "You are an expert in WordPress, the open-source CMS powering 43% of the web. You help developers build websites, blogs, e-commerce stores, and web applications using WordPress block editor (Gutenberg), custom themes, plugins, REST API, WP-CLI, and headless WordPress — from simple blogs to complex multi-site enterprise platforms.",
+      "category": "Web Development",
       "tags": []
     },
     {
@@ -7246,15 +7944,9 @@
     {
       "name": "zod",
       "slug": "zod",
-      "description": "Assists with TypeScript-first schema validation using Zod. Use when defining data schemas, validating API inputs, parsing environment variables, integrating with form libraries or tRPC, or generating TypeScript types from runtime validators. Trigger words: zod, schema validation, type inference, z.object, z.infer, input validation.",
-      "category": "development",
-      "tags": [
-        "zod",
-        "validation",
-        "typescript",
-        "schema",
-        "type-safety"
-      ]
+      "description": "You are an expert in Zod, the TypeScript-first schema declaration and validation library. You help developers define schemas that validate data at runtime AND infer TypeScript types at compile time — eliminating the need to write types and validators separately. Used for API input validation, form validation, environment variables, config files, and any data boundary.",
+      "category": "Backend Development",
+      "tags": []
     },
     {
       "name": "zoho",
@@ -7266,12 +7958,30 @@
     {
       "name": "zustand",
       "slug": "zustand",
-      "description": "Manage React state with Zustand. Use when a user asks to set up global state in React, replace Redux with something simpler, share state between components, persist state to localStorage, or implement a lightweight store.",
-      "category": "development",
+      "description": "You are an expert in Zustand, the small, fast, and scalable state management library for React. You help developers manage global state without boilerplate using Zustand's hook-based stores, selectors for performance, middleware (persist, devtools, immer), computed values, and async actions — replacing Redux complexity with a simple, un-opinionated API in under 1KB.",
+      "category": "Frontend Development",
       "tags": []
     }
   ],
   "categories": [
+    "3D & Creative",
+    "3D & VFX",
+    "AI & Machine Learning",
+    "Automation & Integration",
+    "Backend Development",
+    "Blockchain & Web3",
+    "Cloud & Serverless",
+    "Content Management",
+    "Data Engineering",
+    "Developer Tools",
+    "Frontend Development",
+    "Game Development",
+    "Infrastructure & DevOps",
+    "Marketing & Growth",
+    "Mobile Development",
+    "Security & Auth",
+    "Web Development",
+    "Web Frameworks",
     "automation",
     "business",
     "content",
@@ -7283,5 +7993,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-03-06T22:35:37.697Z"
+  "updatedAt": "2026-03-17T16:08:10.232Z"
 }
