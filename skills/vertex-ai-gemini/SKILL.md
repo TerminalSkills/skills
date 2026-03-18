@@ -10,7 +10,7 @@ compatibility: "Python 3.9+ with google-cloud-aiplatform SDK and GCP credentials
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["vertex-ai", "google-cloud", "gemini", "enterprise", "mlops"]
   use-cases:
     - "Deploy Gemini with enterprise IAM, VPC controls, and compliance requirements"

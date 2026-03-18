@@ -10,7 +10,7 @@ compatibility: "Requires Python 3.9+ or Node.js 18+. HeyGen API key required."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-media
+  category: data-ai
   tags: ["heygen", "video-generation", "avatar", "ai-video", "lip-sync"]
   use-cases:
     - "Generate personalized sales outreach videos with AI avatars at scale"

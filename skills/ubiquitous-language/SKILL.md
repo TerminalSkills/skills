@@ -7,7 +7,7 @@ compatibility: "Claude Code, any AI coding agent"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: architecture
+  category: development
   tags: ["ddd", "domain-driven-design", "glossary", "ubiquitous-language", "terminology"]
   use-cases:
     - "Extract and formalize domain terminology from a conversation into a glossary file"

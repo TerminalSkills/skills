@@ -9,8 +9,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, recon, email, subdomain, passive, harvesting]
+  category: research
+  tags: [theharvester, email, subdomain, passive, harvesting]
   use-cases:
     - "Harvest all email addresses for a target domain from public sources"
     - "Enumerate subdomains passively before an authorized penetration test"

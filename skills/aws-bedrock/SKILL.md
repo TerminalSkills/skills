@@ -10,7 +10,7 @@ compatibility: "Python 3.9+ with boto3 SDK and AWS credentials configured"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["aws-bedrock", "aws", "claude", "llama", "enterprise-ai"]
   use-cases:
     - "Run Claude 3.5 Sonnet on AWS infrastructure with SOC2/HIPAA compliance"

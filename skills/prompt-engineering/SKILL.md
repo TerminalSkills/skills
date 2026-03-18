@@ -10,7 +10,7 @@ compatibility: "Works with any LLM API (OpenAI, Anthropic, Google Gemini, etc.)"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["prompt-engineering", "llm", "ai", "claude", "gpt"]
   use-cases:
     - "Design zero-shot prompts for classification or extraction tasks"

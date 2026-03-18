@@ -10,7 +10,7 @@ compatibility: "Requires Python 3.9+. API key required for chosen provider (fal.
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-media
+  category: data-ai
   tags: ["flux", "image-generation", "black-forest-labs", "fal-ai", "replicate"]
   use-cases:
     - "Generate photorealistic product images from text descriptions"

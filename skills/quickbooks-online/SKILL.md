@@ -10,8 +10,8 @@ compatibility: "Node.js 18+ or Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: finance
-  tags: ["quickbooks", "qbo", "accounting", "invoices", "finance", "api", "oauth2", "automation"]
+  category: business
+  tags: ["quickbooks", "qbo", "accounting", "invoices", "oauth2"]
   use-cases:
     - "Sync customer invoices from your app to QuickBooks Online automatically"
     - "Pull P&L and balance sheet reports for financial dashboards"

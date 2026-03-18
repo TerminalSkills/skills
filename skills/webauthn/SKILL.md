@@ -10,7 +10,7 @@ compatibility: "Requires Node.js 18+, modern browser with WebAuthn support"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
+  category: development
   tags: ["webauthn", "passkeys", "authentication", "passwordless", "fido2"]
   use-cases:
     - "Add passkey registration and login to an Express/Node.js app"

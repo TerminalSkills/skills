@@ -10,7 +10,7 @@ compatibility: "Requires React 18+, Tailwind CSS 3+, Node.js 18+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ui
+  category: design
   tags: ["magicui", "react", "animations", "ui-components", "tailwind"]
   use-cases:
     - "Add a particle/confetti effect to a landing page hero section"

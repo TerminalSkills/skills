@@ -10,8 +10,8 @@ compatibility: "Node.js 18+ or Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: finance
-  tags: ["xero", "accounting", "invoices", "bookkeeping", "finance", "api", "automation"]
+  category: business
+  tags: ["xero", "accounting", "invoices", "bookkeeping", "finance"]
   use-cases:
     - "Sync invoices from your app to Xero automatically"
     - "Pull monthly P&L and balance sheet reports via API"

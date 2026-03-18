@@ -9,8 +9,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, breach, hibp, credential-leak, password, exposure, security-audit]
+  category: research
+  tags: [breach, hibp, credential-leak, exposure, security-audit]
   use-cases:
     - "Check if a corporate domain's emails appear in known data breaches"
     - "Assess credential exposure risk for a target organization before a pentest"

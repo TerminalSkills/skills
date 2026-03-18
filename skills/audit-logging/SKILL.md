@@ -9,8 +9,8 @@ compatibility: "Node.js 18+ and Python 3.9+. Storage: PostgreSQL, S3, AWS CloudT
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
-  tags: ["audit-logging", "compliance", "soc2", "hipaa", "immutable-log", "security"]
+  category: development
+  tags: ["audit-logging", "compliance", "soc2", "hipaa", "immutable-log"]
   use-cases:
     - "Add HIPAA-compliant audit logging to a healthcare application"
     - "Build SOC 2 CC7 evidence with tamper-evident logs"

@@ -9,8 +9,8 @@ compatibility: "Language-agnostic. Code examples in Python and Node.js."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
-  tags: ["soc2", "compliance", "saas", "audit", "security", "b2b"]
+  category: development
+  tags: ["soc2", "compliance", "saas", "audit", "trust-services"]
   use-cases:
     - "Implement SOC 2 controls for a B2B SaaS product"
     - "Prepare evidence for a SOC 2 Type II audit"

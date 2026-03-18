@@ -10,8 +10,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, social-media, sherlock, instagram, twitter, linkedin, recon, people-search]
+  category: research
+  tags: [social-media, sherlock, people-search, linkedin, twitter]
   use-cases:
     - "Find all social media accounts for a target person using a known username"
     - "Build a public profile of a company's employees from LinkedIn and Twitter"

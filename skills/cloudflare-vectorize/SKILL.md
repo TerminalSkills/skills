@@ -10,7 +10,7 @@ compatibility: "Requires Cloudflare Workers with Vectorize binding. Use wrangler
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: database
+  category: data-ai
   tags: ["cloudflare", "vectorize", "vector-database", "edge", "semantic-search"]
   use-cases:
     - "Build semantic search for a documentation site using Cloudflare Workers + Vectorize"

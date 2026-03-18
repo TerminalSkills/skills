@@ -10,7 +10,7 @@ compatibility: "Node.js 18+, Python 3.9+, Browser (via @fal-ai/client)"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["fal-ai", "image-generation", "flux", "ml", "inference"]
   use-cases:
     - "Generate product images with Flux Pro for an e-commerce catalog"

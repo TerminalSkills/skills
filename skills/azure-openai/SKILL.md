@@ -10,7 +10,7 @@ compatibility: "Python 3.9+ or Node.js 18+ with openai SDK >=1.0.0"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["azure-openai", "azure", "gpt-4", "enterprise", "microsoft"]
   use-cases:
     - "Deploy GPT-4o on Azure with enterprise compliance and data residency"

@@ -9,7 +9,7 @@ compatibility: "Python 3.9+ or Node.js 18+ with mistralai SDK"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["mistral", "llm", "european-ai", "gdpr", "code-generation"]
   use-cases:
     - "Generate code completions and fill-in-the-middle with Codestral"

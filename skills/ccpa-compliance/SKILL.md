@@ -9,8 +9,8 @@ compatibility: "Language-agnostic. Code examples in Python and Node.js."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
-  tags: ["ccpa", "cpra", "privacy", "california", "compliance", "data-rights"]
+  category: development
+  tags: ["ccpa", "cpra", "privacy", "data-rights", "compliance"]
   use-cases:
     - "Add a 'Do Not Sell My Personal Information' opt-out flow"
     - "Build a Data Subject Request (DSR) API for CCPA compliance"

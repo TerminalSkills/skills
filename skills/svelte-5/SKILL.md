@@ -10,7 +10,7 @@ compatibility: "Requires Svelte 5.0+, SvelteKit 2.0+ (optional)"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
+  category: development
   tags: ["svelte", "svelte-5", "runes", "reactive", "frontend"]
   use-cases:
     - "Build a reactive counter or form with $state and $derived runes"

@@ -10,7 +10,7 @@ compatibility: "Requires React 18+, Tailwind CSS 3+, Framer Motion 10+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ui
+  category: design
   tags: ["aceternity-ui", "react", "framer-motion", "animations", "tailwind"]
   use-cases:
     - "Create a 3D tilt card effect for a product or pricing showcase"

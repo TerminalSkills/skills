@@ -10,7 +10,7 @@ compatibility: "Requires Python 3.9+ or Node.js 18+. Install: pip install assemb
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-media
+  category: data-ai
   tags: ["assemblyai", "transcription", "speech-recognition", "audio-ai", "diarization"]
   use-cases:
     - "Transcribe a podcast episode with speaker labels and auto-generated chapters"

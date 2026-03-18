@@ -10,8 +10,8 @@ compatibility: "OpenAI API, Anthropic API, Python 3.9+, Node.js 18+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
-  tags: ["function-calling", "tool-use", "llm", "openai", "anthropic", "agents"]
+  category: data-ai
+  tags: ["function-calling", "tool-use", "llm", "agents", "anthropic"]
   use-cases:
     - "Build an AI assistant that can query a database and send emails"
     - "Create a multi-step agent that searches the web and summarizes results"

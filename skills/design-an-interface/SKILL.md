@@ -7,7 +7,7 @@ compatibility: "Claude Code, any AI coding agent"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: architecture
+  category: development
   tags: ["interface-design", "api-design", "deep-modules", "design-it-twice", "parallel-agents"]
   use-cases:
     - "Generate multiple radically different API interface designs for comparison"

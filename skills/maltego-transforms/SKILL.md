@@ -7,8 +7,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, maltego, transforms, threat-intel, graph, visualization, recon]
+  category: research
+  tags: [maltego, transforms, threat-intel, graph, visualization]
   use-cases:
     - "Build a custom transform to map domain to associated email addresses"
     - "Create an IP-to-ASN transform for network ownership mapping"

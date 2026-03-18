@@ -9,8 +9,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, shodan, recon, attack-surface, iot, security]
+  category: research
+  tags: [shodan, recon, attack-surface, iot, security]
   use-cases:
     - "Find all hosts in an organization exposed on port 22 or 3389"
     - "Look up IP reputation and open services for a suspicious address"

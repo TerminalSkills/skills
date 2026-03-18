@@ -9,8 +9,8 @@ compatibility: "Go 1.18+ (binary) or Docker"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, amass, dns, subdomain, recon, attack-surface, network-mapping]
+  category: research
+  tags: [amass, dns, subdomain, attack-surface, network-mapping]
   use-cases:
     - "Enumerate all subdomains for a target domain using passive sources"
     - "Map ASN, IP ranges, and CIDR blocks for an organization"

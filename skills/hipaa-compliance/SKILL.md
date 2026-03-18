@@ -9,8 +9,8 @@ compatibility: "Language-agnostic. Code examples in Python and Node.js."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
-  tags: ["hipaa", "healthcare", "compliance", "phi", "security", "audit"]
+  category: development
+  tags: ["hipaa", "healthcare", "compliance", "phi", "encryption"]
   use-cases:
     - "Implement PHI encryption at rest and in transit for a patient portal"
     - "Set up HIPAA-compliant audit logging for EHR access"

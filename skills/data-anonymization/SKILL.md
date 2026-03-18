@@ -9,7 +9,7 @@ compatibility: "Python 3.9+. Libraries: pandas, pycanon, diffprivlib, numpy."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
+  category: development
   tags: ["anonymization", "privacy", "gdpr", "data-science", "differential-privacy"]
   use-cases:
     - "Anonymize a user dataset to share with a research partner"

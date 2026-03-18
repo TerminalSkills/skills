@@ -10,7 +10,7 @@ compatibility: "Python 3.9+ or Node.js 18+ with cohere SDK"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["cohere", "embeddings", "rerank", "rag", "enterprise-nlp"]
   use-cases:
     - "Build a semantic search engine with Cohere Embed v3"

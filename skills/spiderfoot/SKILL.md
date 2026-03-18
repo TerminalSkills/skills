@@ -9,8 +9,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, spiderfoot, automation, threat-intel, recon, profiling]
+  category: research
+  tags: [spiderfoot, threat-intel, recon, profiling, osint]
   use-cases:
     - "Run automated OSINT scan on a company domain to build a full profile"
     - "Investigate an IP address across dark web, breach data, and social sources"

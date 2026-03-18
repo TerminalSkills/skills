@@ -11,8 +11,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: finance
-  tags: ["bookkeeping", "accounting", "bank-statements", "reconciliation", "categorization", "automation", "finance", "csv", "ofx"]
+  category: business
+  tags: ["bookkeeping", "bank-statements", "reconciliation", "categorization", "accounting"]
   use-cases:
     - "Parse a bank CSV export and auto-categorize all transactions"
     - "Detect duplicate transactions across multiple bank feeds"

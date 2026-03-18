@@ -9,7 +9,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: devops
-  tags: [dokku, self-hosted, deployment, paas, heroku-alternative, vps]
+  tags: [dokku, self-hosted, paas, heroku-alternative, deployment]
   use-cases:
     - "Deploy a Node.js/Python/Ruby app to a DigitalOcean droplet with git push"
     - "Set up Postgres and Redis for a self-hosted SaaS app"

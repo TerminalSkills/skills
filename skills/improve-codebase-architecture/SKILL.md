@@ -7,7 +7,7 @@ compatibility: "Claude Code, any AI coding agent"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: architecture
+  category: development
   tags: ["architecture", "refactoring", "deep-modules", "testability", "codebase-health"]
   use-cases:
     - "Find architectural friction points and propose module-deepening refactors"

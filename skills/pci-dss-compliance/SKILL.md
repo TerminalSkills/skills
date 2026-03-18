@@ -9,7 +9,7 @@ compatibility: "Language-agnostic. Code examples in Python and Node.js."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
+  category: development
   tags: ["pci-dss", "payment", "compliance", "security", "ecommerce"]
   use-cases:
     - "Scope and minimize the cardholder data environment for a SaaS payment flow"

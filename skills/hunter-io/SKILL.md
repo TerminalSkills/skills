@@ -9,8 +9,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, hunter, email, recon, lead-generation, email-verification]
+  category: research
+  tags: [hunter, email, recon, lead-generation, email-verification]
   use-cases:
     - "Find all publicly known email addresses for a target company domain"
     - "Discover the email naming convention used by a company"

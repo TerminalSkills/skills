@@ -10,7 +10,7 @@ compatibility: "Requires Node.js 18+, Stripe account with Connect enabled"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: finance
+  category: business
   tags: ["stripe", "stripe-connect", "marketplace", "payments", "platform"]
   use-cases:
     - "Onboard freelancers to accept payments on a service marketplace"

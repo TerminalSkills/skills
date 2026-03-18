@@ -9,8 +9,8 @@ compatibility: "JavaScript/TypeScript. Works with React, Next.js, and vanilla JS
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
-  tags: ["cookie-consent", "gdpr", "privacy", "eprivacy", "analytics", "marketing"]
+  category: development
+  tags: ["cookie-consent", "gdpr", "privacy", "eprivacy", "consent-management"]
   use-cases:
     - "Add a GDPR-compliant cookie banner to a Next.js app"
     - "Implement consent-gated Google Analytics loading"

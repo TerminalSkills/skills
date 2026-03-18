@@ -10,7 +10,7 @@ compatibility: "Requires Python 3.9+ or Node.js 18+. Runway API key required."
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-media
+  category: data-ai
   tags: ["runway", "video-generation", "gen-3", "text-to-video", "ai-video"]
   use-cases:
     - "Generate cinematic video clips from text descriptions"

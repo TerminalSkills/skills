@@ -9,7 +9,7 @@ compatibility: "Python 3.9+ with google-generativeai SDK, or Node.js 18+ with @g
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["google", "gemini", "multimodal", "long-context", "ai"]
   use-cases:
     - "Analyze images, PDFs, and video files with Gemini's multimodal capabilities"

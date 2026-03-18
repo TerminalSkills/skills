@@ -10,7 +10,7 @@ compatibility: "Anthropic API (claude-3-5-sonnet-20241022+), Python 3.9+, Linux/
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["computer-use", "claude", "anthropic", "automation", "gui"]
   use-cases:
     - "Automate form filling in legacy web applications without APIs"

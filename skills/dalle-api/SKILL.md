@@ -10,7 +10,7 @@ compatibility: "Requires Python 3.9+ or Node.js 18+. Install: pip install openai
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-media
+  category: data-ai
   tags: ["dalle", "openai", "image-generation", "text-to-image", "ai-art"]
   use-cases:
     - "Generate product visuals from text descriptions for e-commerce listings"

@@ -10,7 +10,7 @@ compatibility: "Python 3.9+ with openai SDK (OpenAI-compatible API)"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["perplexity", "web-search", "llm", "real-time", "citations"]
   use-cases:
     - "Build a research assistant that cites current web sources"

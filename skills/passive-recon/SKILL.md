@@ -10,8 +10,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, passive-recon, whois, dns, certs, google-dorks, wayback, stealth]
+  category: research
+  tags: [passive-recon, whois, dns, google-dorks, wayback]
   use-cases:
     - "Profile a target domain without triggering IDS or firewall alerts"
     - "Discover historical DNS records and old IP addresses for a domain"

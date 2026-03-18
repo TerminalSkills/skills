@@ -9,8 +9,8 @@ compatibility: "Python 3.9+, Node.js 18+. Libraries: faker, presidio, anonymize-
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: compliance
-  tags: ["data-masking", "pii", "privacy", "security", "gdpr", "hipaa"]
+  category: development
+  tags: ["data-masking", "pii", "privacy", "anonymization", "redaction"]
   use-cases:
     - "Mask production PII before copying to dev/staging environment"
     - "Scrub sensitive data from application logs"

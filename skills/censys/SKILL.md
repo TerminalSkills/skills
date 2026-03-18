@@ -10,8 +10,8 @@ compatibility: "Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: security
-  tags: [osint, censys, certificates, tls, ssl, recon, attack-surface]
+  category: research
+  tags: [censys, certificates, tls, attack-surface, recon]
   use-cases:
     - "Find all IP addresses serving a TLS certificate for a target domain"
     - "Monitor certificate transparency logs for newly issued certs for a domain"

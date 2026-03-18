@@ -10,7 +10,7 @@ compatibility: "Node.js 18+ (TypeScript) or Python 3.10+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["mcp", "model-context-protocol", "ai-tools", "client"]
   use-cases:
     - "Build an AI agent that discovers and calls tools from MCP servers"
