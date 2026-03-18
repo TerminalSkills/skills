@@ -34,13 +34,6 @@
       ]
     },
     {
-      "name": "a2a-sdk",
-      "slug": "a2a-sdk",
-      "description": "You are an expert in the A2A (Agent-to-Agent) Protocol, Google's open standard for inter-agent communication. You help developers build agents that discover, communicate, and delegate tasks to other agents across organizations and platforms — with agent cards for capability discovery, task lifecycle management, streaming updates, and push notifications, enabling a web of interoperable AI agents.",
-      "category": "AI & Machine Learning",
-      "tags": []
-    },
-    {
       "name": "ab-test-setup",
       "slug": "ab-test-setup",
       "description": "When the user wants to plan, design, or implement an A/B test or experiment. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test this change,\" \"variant copy,\" \"multivariate test,\" or \"hypothesis.\" For tracking implementation, see analytics-tracking.",
@@ -1693,13 +1686,6 @@
       ]
     },
     {
-      "name": "convex-sdk",
-      "slug": "convex-sdk",
-      "description": "You are an expert in Convex, the reactive backend platform for TypeScript. You help developers build real-time applications with a built-in database, serverless functions, file storage, authentication, scheduled jobs, and automatic real-time sync to React/Next.js clients — replacing REST APIs, WebSocket servers, and database management with a single reactive backend that pushes updates to clients automatically.",
-      "category": "Cloud & Serverless",
-      "tags": []
-    },
-    {
       "name": "cookie-consent",
       "slug": "cookie-consent",
       "description": "Implement GDPR/ePrivacy-compliant cookie consent management. Use when adding a cookie banner, managing marketing consent, achieving GDPR compliance for EU users, or integrating consent management with analytics platforms.",
@@ -2346,19 +2332,6 @@
       "tags": []
     },
     {
-      "name": "e2b-sandbox",
-      "slug": "e2b-sandbox",
-      "description": "Run AI-generated code safely in cloud sandboxes with E2B — secure execution environments for LLM agents. Use when someone asks to \"run code in a sandbox\", \"E2B\", \"execute AI-generated code safely\", \"code interpreter for AI\", \"sandboxed code execution\", \"run untrusted code\", or \"give my AI agent a computer\". Covers sandbox creation, code execution, file system, process management, and custom environments.",
-      "category": "data-ai",
-      "tags": [
-        "sandbox",
-        "code-execution",
-        "e2b",
-        "ai-agents",
-        "security"
-      ]
-    },
-    {
       "name": "echarts",
       "slug": "echarts",
       "description": "Create interactive data visualizations with Apache ECharts. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications.",
@@ -2370,13 +2343,6 @@
         "dashboard",
         "analytics"
       ]
-    },
-    {
-      "name": "effect-platform",
-      "slug": "effect-platform",
-      "description": "You are an expert in Effect (Effect-TS), the production-grade TypeScript framework for building reliable, composable applications. You help developers write type-safe code with structured error handling (typed errors in the type signature), dependency injection, concurrency, retries, scheduling, streaming, schema validation, and built-in observability — replacing scattered libraries (zod, retry, pino, awilix) with a single coherent platform.",
-      "category": "Backend Development",
-      "tags": []
     },
     {
       "name": "effect-ts",
@@ -2417,13 +2383,6 @@
         "postgres",
         "real-time"
       ]
-    },
-    {
-      "name": "electric-sql-sdk",
-      "slug": "electric-sql-sdk",
-      "description": "You are an expert in Electric SQL, the sync engine that streams Postgres data to local apps in real-time. You help developers build local-first applications where data syncs from Postgres to client-side SQLite/PGlite automatically — enabling instant reads, offline support, and real-time multi-user collaboration using Postgres as the single source of truth with Shape-based partial replication.",
-      "category": "Backend Development",
-      "tags": []
     },
     {
       "name": "electron",
@@ -3824,13 +3783,6 @@
       "tags": []
     },
     {
-      "name": "kafka-js",
-      "slug": "kafka-js",
-      "description": "You are an expert in KafkaJS, the pure JavaScript Apache Kafka client for Node.js. You help developers build event-driven architectures with producers, consumers, consumer groups, exactly-once semantics, SASL authentication, and admin operations — processing millions of events per second for real-time analytics, event sourcing, log aggregation, and microservices communication.",
-      "category": "Backend Development",
-      "tags": []
-    },
-    {
       "name": "kaggle-finetune",
       "slug": "kaggle-finetune",
       "description": "End-to-end workflow for fine-tuning LLMs using Kaggle datasets. Use when downloading datasets from Kaggle for model training, preparing conversation/customer service data for chatbot fine-tuning, or building domain-specific AI assistants. Covers dataset discovery, download, preprocessing into chat format, and integration with PEFT/LoRA training.",
@@ -4177,13 +4129,6 @@
       ]
     },
     {
-      "name": "llamaindex-ts",
-      "slug": "llamaindex-ts",
-      "description": "You are an expert in LlamaIndex.TS, the TypeScript data framework for building RAG (Retrieval-Augmented Generation) applications. You help developers ingest, index, and query data from any source — documents, APIs, databases — and connect it to LLMs with vector indexes, knowledge graphs, structured extraction, agents, and multi-document synthesis.",
-      "category": "AI & Machine Learning",
-      "tags": []
-    },
-    {
       "name": "llm-cost-optimizer",
       "slug": "llm-cost-optimizer",
       "description": "Track, analyze, and reduce LLM API costs — model routing, prompt caching, semantic caching, and budget alerts. Use when someone asks to \"reduce AI costs\", \"track LLM spending\", \"optimize API costs\", \"set up model routing\", \"cache LLM responses\", \"compare model costs\", \"set budget limits for AI\", or \"my OpenAI bill is too high\". Covers cost tracking per feature/user, smart model routing (expensive model for hard tasks, cheap for easy), semantic caching, prompt compression, and budget alerting.",
@@ -4449,13 +4394,6 @@
         "ai-tools",
         "client"
       ]
-    },
-    {
-      "name": "mcp-sdk",
-      "slug": "mcp-sdk",
-      "description": "You are an expert in MCP (Model Context Protocol), the open standard by Anthropic for connecting AI models to external tools and data sources. You help developers build MCP servers that expose tools, resources, and prompts to any MCP-compatible client (Claude Desktop, Cursor, Windsurf, Cline, Continue) — creating a universal plugin system for AI assistants.",
-      "category": "AI & Machine Learning",
-      "tags": []
     },
     {
       "name": "mcp-server-builder",
@@ -4881,20 +4819,6 @@
       ]
     },
     {
-      "name": "neon-branching",
-      "slug": "neon-branching",
-      "description": "You are an expert in Neon's database branching, the feature that creates instant copy-on-write branches of your Postgres database. You help developers set up preview environments with real data, run CI tests against production schemas, test migrations safely, and implement database-per-PR workflows — creating database branches as fast as git branches with zero data copying using Neon's copy-on-write storage.",
-      "category": "Backend Development",
-      "tags": []
-    },
-    {
-      "name": "neon-serverless",
-      "slug": "neon-serverless",
-      "description": "You are an expert in Neon, the serverless Postgres platform. You help developers use fully managed PostgreSQL with instant database branching, autoscaling to zero, edge-compatible HTTP driver, connection pooling, and point-in-time recovery — enabling development workflows where each PR gets its own database branch and production scales automatically based on load.",
-      "category": "Cloud & Serverless",
-      "tags": []
-    },
-    {
       "name": "nestjs",
       "slug": "nestjs",
       "description": "NestJS is a progressive TypeScript framework for building scalable server-side applications on Node.js. It uses decorators, modules, dependency injection, and an opinionated architecture inspired by Angular.",
@@ -5178,13 +5102,6 @@
       "slug": "ollama",
       "description": "Run LLMs locally with Ollama. Use when a user asks to run AI models locally, self-host a language model, use LLaMA or Mistral on their machine, run offline AI, build a local chatbot, avoid sending data to cloud AI providers, generate text without API costs, fine-tune or customize local models, or set up a private AI inference server. Covers model management, API usage, Modelfile customization, GPU acceleration, and integration with LangChain and other frameworks.",
       "category": "data-ai",
-      "tags": []
-    },
-    {
-      "name": "ollama-sdk",
-      "slug": "ollama-sdk",
-      "description": "You are an expert in Ollama, the tool for running open-source LLMs locally. You help developers run Llama, Mistral, Gemma, Phi, CodeLlama, and other models on their machine with a simple CLI and REST API — enabling private AI development, offline inference, fine-tuning experiments, and cost-free prototyping without sending data to cloud APIs.",
-      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -6108,19 +6025,6 @@
       "description": "Automate browsers and scrape dynamic websites with Puppeteer. Use when a user asks to scrape JavaScript-rendered pages, automate browser interactions, take screenshots of web pages, generate PDFs from URLs, test web UIs, fill out forms programmatically, crawl SPAs, extract data from dynamic sites, automate login flows, or build web scrapers that need a real browser. Covers headless Chrome, page navigation, DOM interaction, network interception, screenshots, PDF generation, and stealth techniques.",
       "category": "development",
       "tags": []
-    },
-    {
-      "name": "puppeteer-pdf",
-      "slug": "puppeteer-pdf",
-      "description": "Generate pixel-perfect PDFs from HTML and CSS using Puppeteer — render web pages or HTML templates to PDF with full CSS support including flexbox, grid, web fonts, and print media queries. Use when tasks involve converting HTML reports to PDF, generating invoices from templates, or creating PDFs that require complex CSS layouts.",
-      "category": "documents",
-      "tags": [
-        "puppeteer",
-        "pdf",
-        "html-to-pdf",
-        "headless-chrome",
-        "reports"
-      ]
     },
     {
       "name": "pusher",
@@ -7130,13 +7034,6 @@
       "tags": []
     },
     {
-      "name": "sqs",
-      "slug": "sqs",
-      "description": "You are an expert in Amazon SQS (Simple Queue Service), the fully managed message queuing service. You help developers build decoupled, event-driven architectures using standard queues (at-least-once, best-effort ordering) and FIFO queues (exactly-once, ordered), dead-letter queues for failed messages, and Lambda triggers for serverless processing — scaling from zero to millions of messages per second.",
-      "category": "Cloud & Serverless",
-      "tags": []
-    },
-    {
       "name": "square",
       "slug": "square",
       "description": "Accept payments and manage commerce with Square. Use when a user asks to accept in-person and online payments, process credit cards, manage inventory, handle subscriptions, or build a POS integration.",
@@ -7182,13 +7079,6 @@
         "lambda",
         "full-stack"
       ]
-    },
-    {
-      "name": "sst-ion",
-      "slug": "sst-ion",
-      "description": "You are an expert in SST (Ion), the framework for building full-stack serverless applications on AWS. You help developers deploy Next.js, Remix, Astro, and API services with infrastructure-as-code defined in TypeScript, automatic IAM permissions, live Lambda debugging, secrets management, and zero-config deployments — replacing CDK/Terraform complexity with a developer-friendly abstraction over AWS services.",
-      "category": "Cloud & Serverless",
-      "tags": []
     },
     {
       "name": "stagehand",
@@ -7610,13 +7500,6 @@
       "tags": []
     },
     {
-      "name": "temporal-sdk",
-      "slug": "temporal-sdk",
-      "description": "You are an expert in Temporal, the open-source durable execution platform for building reliable distributed applications. You help developers write workflows that survive process crashes, network failures, and deployments — with automatic retries, timeouts, cancellation, signals, queries, and versioning — replacing fragile state machines, manual retry logic, and error-prone queue-based orchestration with simple, testable code.",
-      "category": "Backend Development",
-      "tags": []
-    },
-    {
       "name": "tensorflow",
       "slug": "tensorflow",
       "description": "You are an expert in TensorFlow, Google's open-source machine learning framework. You help developers build, train, and deploy neural networks using Keras (TensorFlow's high-level API), custom training loops, TensorFlow Serving for production inference, TFLite for mobile/edge deployment, and TensorFlow.js for browser ML — from prototyping to production-scale distributed training.",
@@ -7855,13 +7738,6 @@
       "name": "trigger-dev",
       "slug": "trigger-dev",
       "description": "You are an expert in Trigger.dev, the open-source background jobs platform for TypeScript. You help developers build reliable long-running tasks, scheduled jobs, webhook handlers, and event-driven workflows with automatic retries, concurrency control, real-time logs, and deployment to serverless infrastructure — replacing BullMQ/Redis setups with a fully managed or self-hosted solution purpose-built for modern TypeScript apps.",
-      "category": "Backend Development",
-      "tags": []
-    },
-    {
-      "name": "trigger-dev-v3",
-      "slug": "trigger-dev-v3",
-      "description": "You are an expert in Trigger.dev v3, the background jobs platform for TypeScript. You help developers run long-running tasks, scheduled jobs, event-driven workflows, and AI pipelines in the cloud — with automatic retries, concurrency control, real-time logs, and up to 5-minute (or longer) execution times that serverless functions can't handle.",
       "category": "Backend Development",
       "tags": []
     },
@@ -8116,13 +7992,6 @@
       ]
     },
     {
-      "name": "val-town-sdk",
-      "slug": "val-town-sdk",
-      "description": "You are an expert in Val Town, the social platform for writing and deploying serverless TypeScript functions. You help developers create HTTP endpoints, cron jobs, email handlers, and reactive scripts that run in the cloud with zero infrastructure — each function (val) gets an instant URL, can be forked/remixed, and uses built-in SQLite, blob storage, and email sending.",
-      "category": "Cloud & Serverless",
-      "tags": []
-    },
-    {
       "name": "valtio",
       "slug": "valtio",
       "description": "Manage React state with Valtio — proxy-based state that just works. Use when someone asks to \"simple React state management\", \"Valtio\", \"proxy state\", \"mutable state in React\", \"alternative to Zustand/Redux\", or \"state management without boilerplate\". Covers proxy state, subscriptions, computed values, and devtools.",
@@ -8147,13 +8016,6 @@
       "slug": "velero",
       "description": "Velero for Kubernetes backup and disaster recovery. Use when the user needs to back up cluster resources and persistent volumes, restore workloads, migrate between clusters, or schedule automated backups.",
       "category": "devops",
-      "tags": []
-    },
-    {
-      "name": "vercel-ai-sdk",
-      "slug": "vercel-ai-sdk",
-      "description": "You are an expert in the Vercel AI SDK, the TypeScript toolkit for building AI-powered applications. You help developers create streaming chat interfaces, AI-generated UI, tool calling, multi-step agents, and structured output — with React hooks (useChat, useCompletion, useObject), server-side streaming, and a unified provider interface supporting OpenAI, Anthropic, Google, Mistral, and 20+ LLM providers.",
-      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -8719,5 +8581,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-03-18T17:02:16.012Z"
+  "updatedAt": "2026-03-18T17:47:01.201Z"
 }
