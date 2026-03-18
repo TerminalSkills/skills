@@ -1,8 +1,10 @@
 ---
 title: Map Attack Surface with OSINT Before a Pentest
+slug: map-attack-surface-with-osint
 description: >-
   Pre-engagement attack surface discovery using passive OSINT tools. Build a complete external footprint
   of a target organization — subdomains, exposed services, emails, certificates — before active testing begins.
+category: research
 difficulty: intermediate
 time_estimate: 3-5 hours
 skills:

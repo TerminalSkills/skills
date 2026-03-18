@@ -1,8 +1,10 @@
 ---
 title: "Automate Desktop Workflows with Claude Computer Use"
+slug: automate-desktop-workflows-with-computer-use
 description: "Use Claude's computer use API to automate repetitive GUI tasks — from legacy desktop apps to browser workflows — without writing brittle CSS selectors."
 skills:
   - claude-computer-use
+category: automation
 difficulty: intermediate
 time_estimate: "2-4 hours"
 tags: [automation, computer-use, claude, anthropic, gui, desktop, browser]

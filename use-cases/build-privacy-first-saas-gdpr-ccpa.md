@@ -1,3 +1,12 @@
+---
+title: "Build a Privacy-First SaaS with GDPR and CCPA Compliance"
+slug: build-privacy-first-saas-gdpr-ccpa
+description: "Implement GDPR and CCPA compliance for a B2C SaaS including consent management, data subject requests, retention policies, and audit trails."
+skills: [ccpa-compliance, cookie-consent, audit-logging, data-masking]
+category: development
+tags: [gdpr, ccpa, privacy, compliance, data-protection]
+---
+
 # Build a Privacy-First SaaS (GDPR + CCPA)
 
 **Persona:** Founder launching a B2C SaaS that serves both EU and US users.

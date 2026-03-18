@@ -1,3 +1,12 @@
+---
+title: "Build a Podcast Transcription and Analysis Pipeline"
+slug: build-podcast-transcription-and-analysis
+description: "Automate podcast post-production with AssemblyAI for transcription, speaker diarization, chapter detection, show notes, and social clips."
+skills: [assemblyai]
+category: content
+tags: [podcast, transcription, audio, automation, assemblyai]
+---
+
 # Build a Podcast Transcription and Analysis Pipeline
 
 **Persona:** Podcast producer automating post-production  

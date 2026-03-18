@@ -1,3 +1,12 @@
+---
+title: "Build a Production RAG Pipeline with Cohere Reranking"
+slug: build-rag-pipeline-with-cohere-rerank
+description: "Build a two-stage RAG pipeline using Cohere embeddings, Qdrant vector search, Rerank 3 for precision, and Command R+ for cited answers."
+skills: [cohere-api, qdrant, pgvector, pinecone]
+category: data-ai
+tags: [rag, embeddings, reranking, vector-search, cohere]
+---
+
 # Build a Production RAG Pipeline with Cohere Embeddings and Reranking
 
 **Persona:** Developer building an enterprise knowledge base Q&A system that needs accurate, cited answers from a large internal document corpus.

@@ -7,7 +7,7 @@ skills:
   - xero-accounting
   - quickbooks-online
   - invoice-generator
-category: finance
+category: business
 tags:
   - accounting
   - bookkeeping

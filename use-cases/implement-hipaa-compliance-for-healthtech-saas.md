@@ -1,3 +1,12 @@
+---
+title: "Implement HIPAA Compliance for a Healthtech SaaS"
+slug: implement-hipaa-compliance-for-healthtech-saas
+description: "Set up HIPAA technical safeguards including PHI encryption, audit logging, RBAC, and breach detection for a healthtech SaaS preparing for hospital contracts."
+skills: [hipaa-compliance, audit-logging, data-masking]
+category: development
+tags: [hipaa, compliance, healthcare, security, encryption]
+---
+
 # Implement HIPAA Compliance for a Healthtech SaaS
 
 **Persona:** CTO of a healthtech startup preparing to sign hospital contracts and handle patient data.

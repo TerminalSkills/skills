@@ -1,10 +1,12 @@
 ---
 title: "Build a Reliable AI Data Extraction Pipeline"
+slug: build-reliable-ai-data-extraction-pipeline
 description: "Extract structured data from unstructured text using LLMs with prompt engineering, schema enforcement, validation, and batch processing."
 skills:
   - prompt-engineering
-  - structured-outputs
+  - structured-output
   - function-calling
+category: data-ai
 difficulty: intermediate
 time_estimate: "3-5 hours"
 tags: [ai, llm, data-extraction, etl, structured-outputs, prompt-engineering]

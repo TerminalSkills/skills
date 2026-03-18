@@ -1,3 +1,12 @@
+---
+title: "Build an AI Coding Assistant with Code Interpreter"
+slug: build-ai-coding-assistant-with-code-interpreter
+description: "Build a conversational coding assistant that generates Python code with an LLM and executes it safely in an E2B sandbox with auto-retry."
+skills: [e2b]
+category: development
+tags: [code-interpreter, sandbox, e2b, ai-assistant, coding]
+---
+
 # Build an AI Coding Assistant with Code Interpreter
 
 **Persona:** You're building a Cursor or Replit-like coding assistant — users describe what they want in natural language, your LLM generates the code, and E2B executes it safely in an isolated sandbox. Output streams back to the user in real time.

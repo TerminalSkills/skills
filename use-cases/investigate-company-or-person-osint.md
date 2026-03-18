@@ -1,8 +1,10 @@
 ---
 title: Investigate a Company or Person with OSINT
+slug: investigate-company-or-person-osint
 description: >-
   Full passive OSINT investigation pipeline for a target (company or individual). Build a structured
   intelligence report from public sources without active scanning or direct contact.
+category: research
 difficulty: intermediate
 time_estimate: 2-4 hours
 skills:

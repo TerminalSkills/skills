@@ -1,3 +1,12 @@
+---
+title: "Build a Multi-Provider AI Router for Cost and Latency Optimization"
+slug: build-multi-provider-ai-routing
+description: "Build an AI router that selects the best LLM provider per task type with automatic fallback chains and cost tracking."
+skills: [groq, perplexity-api, azure-openai, aws-bedrock, cohere-api, mistral-api]
+category: data-ai
+tags: [llm-routing, multi-provider, cost-optimization, ai-infrastructure]
+---
+
 # Build a Multi-Provider AI Router
 
 **Persona:** AI product engineer optimizing costs and reliability across multiple LLM providers.

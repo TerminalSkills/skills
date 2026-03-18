@@ -1,3 +1,12 @@
+---
+title: "Build an AI Video Personalization Pipeline for Sales Outreach"
+slug: build-ai-video-personalization-pipeline
+description: "Generate personalized talking-avatar videos at scale using HeyGen API for automated sales outreach from a CSV of contacts."
+skills: [heygen-api]
+category: business
+tags: [video, personalization, sales-outreach, heygen, automation]
+---
+
 # Build an AI Video Personalization Pipeline
 
 **Persona:** Sales team automating personalized video outreach  

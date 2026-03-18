@@ -1,8 +1,10 @@
 ---
 title: "Build a Two-Sided Marketplace with Stripe Connect"
+slug: build-marketplace-with-stripe-connect
 description: "Launch a freelance or service marketplace where buyers pay and sellers get paid automatically — with platform fees, instant payouts, and dispute handling via Stripe Connect."
 skills:
   - stripe-connect
+category: business
 difficulty: intermediate
 time_estimate: "4-6 hours"
 tags: [stripe, stripe-connect, marketplace, payments, platform, saas]
