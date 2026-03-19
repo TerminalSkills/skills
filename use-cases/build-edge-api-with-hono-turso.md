@@ -3,11 +3,10 @@ title: Build a Globally Distributed API with Hono + Turso on Cloudflare Workers
 slug: build-edge-api-with-hono-turso
 description: Build a type-safe, globally distributed REST API using Hono RPC and Turso database that runs on Cloudflare Workers with sub-50ms response times worldwide.
 skills:
-  - hono-rpc
-  - turso-drizzle
-  - libsql
+  - hono
+  - turso
   - cloudflare
-category: backend
+category: development
 tags:
   - hono
   - turso

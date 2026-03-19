@@ -34,13 +34,6 @@
       ]
     },
     {
-      "name": "a2a-sdk",
-      "slug": "a2a-sdk",
-      "description": "You are an expert in the A2A (Agent-to-Agent) Protocol, Google's open standard for inter-agent communication. You help developers build agents that discover, communicate, and delegate tasks to other agents across organizations and platforms — with agent cards for capability discovery, task lifecycle management, streaming updates, and push notifications, enabling a web of interoperable AI agents.",
-      "category": "AI & Machine Learning",
-      "tags": []
-    },
-    {
       "name": "ab-test-setup",
       "slug": "ab-test-setup",
       "description": "When the user wants to plan, design, or implement an A/B test or experiment. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test this change,\" \"variant copy,\" \"multivariate test,\" or \"hypothesis.\" For tracking implementation, see analytics-tracking.",
@@ -65,6 +58,19 @@
         "a11y",
         "compliance",
         "screen-reader"
+      ]
+    },
+    {
+      "name": "aceternity-ui",
+      "slug": "aceternity-ui",
+      "description": "Add premium animated UI components built with Framer Motion and Tailwind CSS using Aceternity UI. Use when: adding animated effects (3D cards, glowing backgrounds, spotlight effects, moving borders), building visually stunning UIs, creating impressive hero sections and feature showcases in React/Next.js.",
+      "category": "design",
+      "tags": [
+        "aceternity-ui",
+        "react",
+        "framer-motion",
+        "animations",
+        "tailwind"
       ]
     },
     {
@@ -279,6 +285,19 @@
       "tags": []
     },
     {
+      "name": "amass",
+      "slug": "amass",
+      "description": "OWASP Amass for in-depth DNS enumeration, subdomain discovery, and network mapping with active and passive modes. Use when: comprehensive subdomain enumeration, ASN and IP range mapping, attack surface discovery, building full network topology of a target organization.",
+      "category": "research",
+      "tags": [
+        "amass",
+        "dns",
+        "subdomain",
+        "attack-surface",
+        "network-mapping"
+      ]
+    },
+    {
       "name": "amqplib",
       "slug": "amqplib",
       "description": "You are an expert in amqplib, the Node.js client for RabbitMQ and AMQP 0-9-1 protocol. You help developers implement reliable message queuing with work queues, pub/sub fanout, topic routing, RPC patterns, dead letter queues, and message acknowledgment — building decoupled microservices that communicate asynchronously through RabbitMQ.",
@@ -469,6 +488,19 @@
       "tags": []
     },
     {
+      "name": "assemblyai",
+      "slug": "assemblyai",
+      "description": "AssemblyAI API for speech recognition, transcription, and audio intelligence. Use when transcribing audio or video files, performing speaker diarization, running sentiment analysis on calls, detecting unsafe content in audio, or asking LLM-powered questions about recorded content with LeMUR.",
+      "category": "data-ai",
+      "tags": [
+        "assemblyai",
+        "transcription",
+        "speech-recognition",
+        "audio-ai",
+        "diarization"
+      ]
+    },
+    {
       "name": "astro",
       "slug": "astro",
       "description": "Assists with building content-driven websites using Astro's island architecture. Use when creating static sites, blogs, documentation, or marketing pages that ship zero JavaScript by default. Trigger words: astro, static site, island architecture, content collections, SSG, hybrid rendering, astro components.",
@@ -496,6 +528,19 @@
       "tags": []
     },
     {
+      "name": "audit-logging",
+      "slug": "audit-logging",
+      "description": "Implement tamper-evident audit logs for compliance (SOC 2, HIPAA, PCI DSS). Use when building compliance audit trails, tracking who did what and when, or implementing immutable event logs that satisfy regulatory retention requirements.",
+      "category": "development",
+      "tags": [
+        "audit-logging",
+        "compliance",
+        "soc2",
+        "hipaa",
+        "immutable-log"
+      ]
+    },
+    {
       "name": "auth-system-setup",
       "slug": "auth-system-setup",
       "description": "When the user wants to set up authentication and authorization for a web application. Use when the user mentions \"auth,\" \"login,\" \"OAuth,\" \"SSO,\" \"single sign-on,\" \"role-based access,\" \"RBAC,\" \"permissions,\" \"user roles,\" \"access control,\" \"authentication,\" or \"authorization.\" Covers OAuth 2.0 provider integration, session management, and role/permission architecture. For JWT-specific tasks, see jwt-handler. For security review, see security-audit.",
@@ -521,6 +566,19 @@
       "description": "Feature-rich Stable Diffusion Web UI for image generation. Supports txt2img, img2img, inpainting, outpainting, LoRA, extensions, upscaling, and batch processing. Widely used desktop interface with an extensive extension ecosystem and API access.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "aws-bedrock",
+      "slug": "aws-bedrock",
+      "description": "AWS Bedrock — fully managed foundation models on AWS infrastructure. Use when deploying AI in AWS-native environments, needing enterprise compliance (SOC2, HIPAA), running Claude, Llama, Titan, or Mistral on AWS, leveraging Knowledge Bases for RAG, or applying Guardrails for content safety.",
+      "category": "data-ai",
+      "tags": [
+        "aws-bedrock",
+        "aws",
+        "claude",
+        "llama",
+        "enterprise-ai"
+      ]
     },
     {
       "name": "aws-cli",
@@ -640,6 +698,19 @@
       "description": "Build serverless applications with Azure Functions. Create HTTP and event-driven functions with input/output bindings, configure triggers for queues, timers, and blob storage. Use Durable Functions for stateful orchestration workflows.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "azure-openai",
+      "slug": "azure-openai",
+      "description": "Azure OpenAI Service — OpenAI models (GPT-4o, DALL-E 3, Whisper) on Azure infrastructure. Use when deploying OpenAI models with enterprise compliance (GDPR, HIPAA, SOC2), Azure-native auth via Managed Identity, content filtering, or VNET-isolated deployments. Same OpenAI API, hosted on Azure.",
+      "category": "data-ai",
+      "tags": [
+        "azure-openai",
+        "azure",
+        "gpt-4",
+        "enterprise",
+        "microsoft"
+      ]
     },
     {
       "name": "babylonjs",
@@ -859,6 +930,19 @@
       "tags": []
     },
     {
+      "name": "bookkeeping-automation",
+      "slug": "bookkeeping-automation",
+      "description": "Automate bookkeeping workflows by parsing bank statements (CSV/OFX/QIF), categorizing transactions using rules or AI, reconciling accounts, generating expense reports, and detecting duplicates. Use when: automating transaction categorization, building reconciliation pipelines, processing bank exports, or generating expense summaries without manual data entry.",
+      "category": "business",
+      "tags": [
+        "bookkeeping",
+        "bank-statements",
+        "reconciliation",
+        "categorization",
+        "accounting"
+      ]
+    },
+    {
       "name": "braintrust",
       "slug": "braintrust",
       "description": "You are an expert in Braintrust, the evaluation and observability platform for AI applications. You help developers run systematic evaluations, compare model versions, track experiments, log production traces, and measure quality metrics — with a focus on making AI development as rigorous as traditional software testing.",
@@ -876,6 +960,19 @@
         "visual-identity",
         "design-system",
         "typography"
+      ]
+    },
+    {
+      "name": "breach-data",
+      "slug": "breach-data",
+      "description": "Check for data breaches and credential leaks using HaveIBeenPwned API and other sources. Use when: checking if an email or domain is in a known breach, assessing corporate credential exposure, password hygiene audits, or pre-engagement phishing simulation scoping.",
+      "category": "research",
+      "tags": [
+        "breach",
+        "hibp",
+        "credential-leak",
+        "exposure",
+        "security-audit"
       ]
     },
     {
@@ -1031,11 +1128,37 @@
       "tags": []
     },
     {
+      "name": "ccpa-compliance",
+      "slug": "ccpa-compliance",
+      "description": "California Consumer Privacy Act (CCPA) / CPRA compliance for businesses handling California resident data. Use when serving California users, building privacy features, implementing consumer data rights, or responding to data subject requests.",
+      "category": "development",
+      "tags": [
+        "ccpa",
+        "cpra",
+        "privacy",
+        "data-rights",
+        "compliance"
+      ]
+    },
+    {
       "name": "celery",
       "slug": "celery",
       "description": "Run background tasks in Python with Celery. Use when a user asks to process tasks asynchronously, schedule periodic jobs, run background workers, build task queues in Python, or offload heavy processing from web requests.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "censys",
+      "slug": "censys",
+      "description": "Censys search engine for internet-connected hosts, TLS certificates, and domains. Use when: certificate transparency monitoring, finding hosts by certificate fingerprint, alternative to Shodan for TLS/SSL analysis, discovering hosts running specific services, or tracking infrastructure changes via cert issuance.",
+      "category": "research",
+      "tags": [
+        "censys",
+        "certificates",
+        "tls",
+        "attack-surface",
+        "recon"
+      ]
     },
     {
       "name": "centrifugo",
@@ -1205,6 +1328,19 @@
       ]
     },
     {
+      "name": "claude-computer-use",
+      "slug": "claude-computer-use",
+      "description": "Automate computer tasks using Anthropic's computer use API — Claude controls mouse, keyboard, and screen. Use when automating GUI workflows, browser automation without CSS selectors, desktop app testing, or any task that requires seeing and interacting with a graphical interface.",
+      "category": "data-ai",
+      "tags": [
+        "computer-use",
+        "claude",
+        "anthropic",
+        "automation",
+        "gui"
+      ]
+    },
+    {
       "name": "clay",
       "slug": "clay",
       "description": "You are an expert in Clay, the data enrichment and outbound sales platform that pulls from 75+ data providers to build rich prospect profiles. You help teams automate lead discovery, enrich contacts with firmographic and technographic data, score leads against ICP criteria, and trigger personalized outreach sequences — replacing manual research with automated, data-driven prospecting.",
@@ -1277,6 +1413,19 @@
       "description": "You are an expert in Cloudflare Workers AI, the serverless AI inference platform running on Cloudflare's global network. You help developers run LLMs, embedding models, image generation, speech-to-text, and translation models at the edge with zero cold starts, pay-per-use pricing, and integration with Workers, Pages, and Vectorize — enabling AI features without managing GPU infrastructure.",
       "category": "AI & Machine Learning",
       "tags": []
+    },
+    {
+      "name": "cloudflare-vectorize",
+      "slug": "cloudflare-vectorize",
+      "description": "Serverless vector database at the edge with Cloudflare Vectorize. Use when: building semantic search on Cloudflare Workers, RAG pipelines at the edge, low-latency vector similarity search, or storing and querying embeddings without managing a separate vector database.",
+      "category": "data-ai",
+      "tags": [
+        "cloudflare",
+        "vectorize",
+        "vector-database",
+        "edge",
+        "semantic-search"
+      ]
     },
     {
       "name": "cloudflare-workers",
@@ -1386,6 +1535,19 @@
         "sub-agent",
         "background-process",
         "orchestration"
+      ]
+    },
+    {
+      "name": "cohere-api",
+      "slug": "cohere-api",
+      "description": "Cohere API for enterprise NLP — embeddings, reranking, RAG, and text generation. Use when building RAG pipelines, semantic search, document reranking, or enterprise NLP applications. Command R+ excels at tool use and retrieval-augmented generation; Embed v3 and Rerank 3 are best-in-class for search quality.",
+      "category": "data-ai",
+      "tags": [
+        "cohere",
+        "embeddings",
+        "rerank",
+        "rag",
+        "enterprise-nlp"
       ]
     },
     {
@@ -1524,11 +1686,17 @@
       ]
     },
     {
-      "name": "convex-sdk",
-      "slug": "convex-sdk",
-      "description": "You are an expert in Convex, the reactive backend platform for TypeScript. You help developers build real-time applications with a built-in database, serverless functions, file storage, authentication, scheduled jobs, and automatic real-time sync to React/Next.js clients — replacing REST APIs, WebSocket servers, and database management with a single reactive backend that pushes updates to clients automatically.",
-      "category": "Cloud & Serverless",
-      "tags": []
+      "name": "cookie-consent",
+      "slug": "cookie-consent",
+      "description": "Implement GDPR/ePrivacy-compliant cookie consent management. Use when adding a cookie banner, managing marketing consent, achieving GDPR compliance for EU users, or integrating consent management with analytics platforms.",
+      "category": "development",
+      "tags": [
+        "cookie-consent",
+        "gdpr",
+        "privacy",
+        "eprivacy",
+        "consent-management"
+      ]
     },
     {
       "name": "coolify",
@@ -1759,6 +1927,19 @@
       "tags": []
     },
     {
+      "name": "dalle-api",
+      "slug": "dalle-api",
+      "description": "DALL-E 3 API for AI image generation — text-to-image, image editing, and variations via OpenAI. Use when generating images from text prompts, creating product visuals, illustrating content, or editing images with an inpainting mask.",
+      "category": "data-ai",
+      "tags": [
+        "dalle",
+        "openai",
+        "image-generation",
+        "text-to-image",
+        "ai-art"
+      ]
+    },
+    {
       "name": "data-analysis",
       "slug": "data-analysis",
       "description": "Analyze spreadsheet data, generate insights, and create visualizations. Use when a user asks to analyze data, explore a dataset, find trends, generate statistics, create charts from CSV or Excel data, summarize data, or answer questions about tabular data.",
@@ -1772,6 +1953,19 @@
       ]
     },
     {
+      "name": "data-anonymization",
+      "slug": "data-anonymization",
+      "description": "Anonymize datasets for analytics and ML while preserving utility — k-anonymity, l-diversity, and differential privacy. Use when sharing data with third parties, building analytics on user data, or achieving GDPR Article 4 anonymization (data no longer considered personal).",
+      "category": "development",
+      "tags": [
+        "anonymization",
+        "privacy",
+        "gdpr",
+        "data-science",
+        "differential-privacy"
+      ]
+    },
+    {
       "name": "data-extractor",
       "slug": "data-extractor",
       "description": "Extract structured data from any document format using unified document processing. Use when a user asks to extract data from a document, parse a PDF, pull structured data from files, convert documents to JSON or CSV, extract fields from invoices or forms, or scrape data from documents.",
@@ -1782,6 +1976,19 @@
         "pdf",
         "structured-data",
         "etl"
+      ]
+    },
+    {
+      "name": "data-masking",
+      "slug": "data-masking",
+      "description": "Mask and redact sensitive data (PII, PCI, PHI) in databases, logs, and APIs. Use when protecting PII in dev/staging environments, redacting sensitive data from logs, or anonymizing data for analytics while preserving data structure.",
+      "category": "development",
+      "tags": [
+        "data-masking",
+        "pii",
+        "privacy",
+        "anonymization",
+        "redaction"
       ]
     },
     {
@@ -1917,6 +2124,19 @@
       ]
     },
     {
+      "name": "design-an-interface",
+      "slug": "design-an-interface",
+      "description": "Generate multiple radically different interface designs for a module using parallel sub-agents. Use when: user wants to design an API, explore interface options, compare module shapes, or mentions \"design it twice\".",
+      "category": "development",
+      "tags": [
+        "interface-design",
+        "api-design",
+        "deep-modules",
+        "design-it-twice",
+        "parallel-agents"
+      ]
+    },
+    {
       "name": "detox",
       "slug": "detox",
       "description": "When the user wants to write end-to-end tests for React Native apps using Detox's gray-box testing approach. Also use when the user mentions \"detox,\" \"React Native testing,\" \"React Native E2E,\" \"gray-box testing,\" or \"Wix Detox.\" For general mobile testing, see appium. For simpler mobile UI flows, see maestro.",
@@ -2030,6 +2250,19 @@
       ]
     },
     {
+      "name": "dokku",
+      "slug": "dokku",
+      "description": "Deploy apps with Dokku — self-hosted Heroku alternative on any VPS. Use when: self-hosting web apps without Kubernetes, setting up git-push deployments, running PaaS on your own server.",
+      "category": "devops",
+      "tags": [
+        "dokku",
+        "self-hosted",
+        "paas",
+        "heroku-alternative",
+        "deployment"
+      ]
+    },
+    {
       "name": "dokploy",
       "slug": "dokploy",
       "description": "Expert guidance for Dokploy, the open-source, self-hosted Platform as a Service alternative to Vercel, Netlify, and Heroku. Helps developers deploy applications, databases, and services on their own VPS with automatic SSL, Docker-based isolation, and a web dashboard for management.",
@@ -2099,19 +2332,6 @@
       "tags": []
     },
     {
-      "name": "e2b-sandbox",
-      "slug": "e2b-sandbox",
-      "description": "Run AI-generated code safely in cloud sandboxes with E2B — secure execution environments for LLM agents. Use when someone asks to \"run code in a sandbox\", \"E2B\", \"execute AI-generated code safely\", \"code interpreter for AI\", \"sandboxed code execution\", \"run untrusted code\", or \"give my AI agent a computer\". Covers sandbox creation, code execution, file system, process management, and custom environments.",
-      "category": "data-ai",
-      "tags": [
-        "sandbox",
-        "code-execution",
-        "e2b",
-        "ai-agents",
-        "security"
-      ]
-    },
-    {
       "name": "echarts",
       "slug": "echarts",
       "description": "Create interactive data visualizations with Apache ECharts. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications.",
@@ -2123,13 +2343,6 @@
         "dashboard",
         "analytics"
       ]
-    },
-    {
-      "name": "effect-platform",
-      "slug": "effect-platform",
-      "description": "You are an expert in Effect (Effect-TS), the production-grade TypeScript framework for building reliable, composable applications. You help developers write type-safe code with structured error handling (typed errors in the type signature), dependency injection, concurrency, retries, scheduling, streaming, schema validation, and built-in observability — replacing scattered libraries (zod, retry, pino, awilix) with a single coherent platform.",
-      "category": "Backend Development",
-      "tags": []
     },
     {
       "name": "effect-ts",
@@ -2170,13 +2383,6 @@
         "postgres",
         "real-time"
       ]
-    },
-    {
-      "name": "electric-sql-sdk",
-      "slug": "electric-sql-sdk",
-      "description": "You are an expert in Electric SQL, the sync engine that streams Postgres data to local apps in real-time. You help developers build local-first applications where data syncs from Postgres to client-side SQLite/PGlite automatically — enabling instant reads, offline support, and real-time multi-user collaboration using Postgres as the single source of truth with Shape-based partial replication.",
-      "category": "Backend Development",
-      "tags": []
     },
     {
       "name": "electron",
@@ -2446,6 +2652,19 @@
       "tags": []
     },
     {
+      "name": "fal-ai",
+      "slug": "fal-ai",
+      "description": "Deploy and run AI models instantly with fal.ai — image generation, video, audio, and custom models. Use when generating images with Flux/SDXL/LoRA, running ML inference at scale, building AI media features, or accessing state-of-the-art generative models via a simple API.",
+      "category": "data-ai",
+      "tags": [
+        "fal-ai",
+        "image-generation",
+        "flux",
+        "ml",
+        "inference"
+      ]
+    },
+    {
       "name": "falco",
       "slug": "falco",
       "description": "Expert guidance for Falco, the CNCF runtime security tool that detects anomalous behavior in containers and Kubernetes clusters using system call monitoring. Helps developers set up Falco for detecting shell spawns in containers, unexpected network connections, file access violations, and privilege escalation — all in real-time with zero application changes.",
@@ -2652,6 +2871,19 @@
       "tags": []
     },
     {
+      "name": "flux-model",
+      "slug": "flux-model",
+      "description": "FLUX image generation models — Flux Pro, Dev, and Schnell via fal.ai, Replicate, or Black Forest Labs API. Use when generating high-quality or photorealistic images, applying LoRA fine-tuning for custom styles, or building production image generation pipelines.",
+      "category": "data-ai",
+      "tags": [
+        "flux",
+        "image-generation",
+        "black-forest-labs",
+        "fal-ai",
+        "replicate"
+      ]
+    },
+    {
       "name": "fly-io",
       "slug": "fly-io",
       "description": "Assists with deploying applications globally on Fly.io edge infrastructure. Use when deploying Docker-based apps, configuring multi-region machines, setting up persistent storage, or managing global databases. Trigger words: fly.io, fly deploy, fly machines, fly launch, multi-region, edge deployment, flyctl.",
@@ -2735,6 +2967,19 @@
         "landing-pages",
         "dashboards",
         "css"
+      ]
+    },
+    {
+      "name": "function-calling",
+      "slug": "function-calling",
+      "description": "Implement function/tool calling with LLMs — define tools, handle calls, and return results in a loop. Use when building AI agents with tools, letting LLMs interact with APIs or databases, creating agentic workflows, or enabling models to take real-world actions.",
+      "category": "data-ai",
+      "tags": [
+        "function-calling",
+        "tool-use",
+        "llm",
+        "agents",
+        "anthropic"
       ]
     },
     {
@@ -2839,6 +3084,19 @@
       ]
     },
     {
+      "name": "git-guardrails-claude-code",
+      "slug": "git-guardrails-claude-code",
+      "description": "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when: user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.",
+      "category": "devops",
+      "tags": [
+        "git",
+        "safety",
+        "claude-code",
+        "hooks",
+        "guardrails"
+      ]
+    },
+    {
       "name": "github",
       "slug": "github",
       "description": "Interact with GitHub using the gh CLI. Create issues, open pull requests, check CI status, review PRs, manage releases, and run advanced queries. Use when a user asks to create a GitHub issue, open a PR, check CI runs, list pull requests, review a PR, search GitHub issues, or manage releases.",
@@ -2906,6 +3164,19 @@
       "description": "You are an expert in Godot Engine, the free and open-source game engine for 2D and 3D games. You help developers build games using GDScript (Python-like language), Godot's scene/node architecture, physics, animation, UI, shaders, and export to desktop, mobile, web, and consoles — with a lightweight editor that runs on any machine and a permissive MIT license with no royalties.",
       "category": "Game Development",
       "tags": []
+    },
+    {
+      "name": "google-ai-studio",
+      "slug": "google-ai-studio",
+      "description": "Google AI Studio and Gemini API for multimodal AI. Use when you need multimodal AI (text + image + video + audio), long context up to 1M tokens, code generation with Gemini, grounding with Google Search, or structured output with response schemas.",
+      "category": "data-ai",
+      "tags": [
+        "google",
+        "gemini",
+        "multimodal",
+        "long-context",
+        "ai"
+      ]
     },
     {
       "name": "google-indexing",
@@ -3091,6 +3362,32 @@
       ]
     },
     {
+      "name": "heygen-api",
+      "slug": "heygen-api",
+      "description": "HeyGen API for AI video generation — talking avatar videos, lip-sync, and video translation. Use when creating personalized video at scale, AI avatars for marketing, automated video content pipelines, or video localization with lip-sync in any language.",
+      "category": "data-ai",
+      "tags": [
+        "heygen",
+        "video-generation",
+        "avatar",
+        "ai-video",
+        "lip-sync"
+      ]
+    },
+    {
+      "name": "hipaa-compliance",
+      "slug": "hipaa-compliance",
+      "description": "Implement HIPAA compliance for healthcare applications — PHI handling, encryption, audit logging, access controls, and Business Associate Agreements. Use when building healthtech apps, handling patient data, preparing for a HIPAA audit, or signing hospital/payer contracts.",
+      "category": "development",
+      "tags": [
+        "hipaa",
+        "healthcare",
+        "compliance",
+        "phi",
+        "encryption"
+      ]
+    },
+    {
       "name": "hono",
       "slug": "hono",
       "description": "You are an expert in Hono, the ultrafast web framework for the edge. You help developers build APIs and web applications that run on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web Standards API compatibility that makes code truly portable across runtimes.",
@@ -3154,6 +3451,19 @@
       "tags": []
     },
     {
+      "name": "hunter-io",
+      "slug": "hunter-io",
+      "description": "Hunter.io API for finding and verifying corporate email addresses by domain. Use when: finding contact emails for a target domain, discovering email naming patterns, verifying whether an email address is deliverable, or bulk-searching emails for lead generation or OSINT.",
+      "category": "research",
+      "tags": [
+        "hunter",
+        "email",
+        "recon",
+        "lead-generation",
+        "email-verification"
+      ]
+    },
+    {
       "name": "husky",
       "slug": "husky",
       "description": "Run scripts on Git hooks with Husky. Use when a user asks to run linters before commit, validate commit messages, run tests before push, or set up Git hooks for a team.",
@@ -3198,6 +3508,19 @@
         "cdn",
         "optimization",
         "responsive"
+      ]
+    },
+    {
+      "name": "improve-codebase-architecture",
+      "slug": "improve-codebase-architecture",
+      "description": "Explore a codebase to find opportunities for architectural improvement, focusing on making the codebase more testable by deepening shallow modules. Use when: user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more AI-navigable.",
+      "category": "development",
+      "tags": [
+        "architecture",
+        "refactoring",
+        "deep-modules",
+        "testability",
+        "codebase-health"
       ]
     },
     {
@@ -3457,13 +3780,6 @@
       "slug": "kafka",
       "description": "Build event-driven systems with Apache Kafka. Use when a user asks to set up message streaming, implement event sourcing, build pub/sub systems, process real-time data streams, or connect microservices with async messaging.",
       "category": "data-ai",
-      "tags": []
-    },
-    {
-      "name": "kafka-js",
-      "slug": "kafka-js",
-      "description": "You are an expert in KafkaJS, the pure JavaScript Apache Kafka client for Node.js. You help developers build event-driven architectures with producers, consumers, consumer groups, exactly-once semantics, SASL authentication, and admin operations — processing millions of events per second for real-time analytics, event sourcing, log aggregation, and microservices communication.",
-      "category": "Backend Development",
       "tags": []
     },
     {
@@ -3813,13 +4129,6 @@
       ]
     },
     {
-      "name": "llamaindex-ts",
-      "slug": "llamaindex-ts",
-      "description": "You are an expert in LlamaIndex.TS, the TypeScript data framework for building RAG (Retrieval-Augmented Generation) applications. You help developers ingest, index, and query data from any source — documents, APIs, databases — and connect it to LLMs with vector indexes, knowledge graphs, structured extraction, agents, and multi-document synthesis.",
-      "category": "AI & Machine Learning",
-      "tags": []
-    },
-    {
       "name": "llm-cost-optimizer",
       "slug": "llm-cost-optimizer",
       "description": "Track, analyze, and reduce LLM API costs — model routing, prompt caching, semantic caching, and budget alerts. Use when someone asks to \"reduce AI costs\", \"track LLM spending\", \"optimize API costs\", \"set up model routing\", \"cache LLM responses\", \"compare model costs\", \"set budget limits for AI\", or \"my OpenAI bill is too high\". Covers cost tracking per feature/user, smart model routing (expensive model for hard tasks, cheap for easy), semantic caching, prompt compression, and budget alerting.",
@@ -3941,6 +4250,19 @@
       "tags": []
     },
     {
+      "name": "magicui",
+      "slug": "magicui",
+      "description": "Add animated React UI components for landing pages and marketing sites with Magic UI. Use when: adding animated UI components, building impressive landing pages, creating particle effects, text animations, number counters, shimmer buttons, and visual effects in React. Tailwind CSS based and shadcn/ui compatible.",
+      "category": "design",
+      "tags": [
+        "magicui",
+        "react",
+        "animations",
+        "ui-components",
+        "tailwind"
+      ]
+    },
+    {
       "name": "mailgun",
       "slug": "mailgun",
       "description": "Send and receive emails with Mailgun. Use when a user asks to send bulk emails, set up email routing, validate email addresses, track email engagement, or handle both transactional and marketing emails.",
@@ -3960,6 +4282,19 @@
       "description": "Expert guidance for Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. Helps developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "maltego-transforms",
+      "slug": "maltego-transforms",
+      "description": "Build custom Maltego transforms for visual OSINT graph analysis and relationship mapping. Use when: mapping connections between domains, IPs, emails, persons, and organizations; visual threat intelligence; complex OSINT correlation across multiple data sources.",
+      "category": "research",
+      "tags": [
+        "maltego",
+        "transforms",
+        "threat-intel",
+        "graph",
+        "visualization"
+      ]
     },
     {
       "name": "mantine",
@@ -4049,11 +4384,16 @@
       "tags": []
     },
     {
-      "name": "mcp-sdk",
-      "slug": "mcp-sdk",
-      "description": "You are an expert in MCP (Model Context Protocol), the open standard by Anthropic for connecting AI models to external tools and data sources. You help developers build MCP servers that expose tools, resources, and prompts to any MCP-compatible client (Claude Desktop, Cursor, Windsurf, Cline, Continue) — creating a universal plugin system for AI assistants.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "name": "mcp-client",
+      "slug": "mcp-client",
+      "description": "Connect to and consume MCP servers from applications. Use when: integrating MCP servers into your app, building AI agents that use MCP tools, testing MCP server implementations, or programmatically calling MCP tools and reading resources.",
+      "category": "data-ai",
+      "tags": [
+        "mcp",
+        "model-context-protocol",
+        "ai-tools",
+        "client"
+      ]
     },
     {
       "name": "mcp-server-builder",
@@ -4183,6 +4523,19 @@
       "description": "Manage tool versions and tasks with mise (formerly rtx). Use when a user asks to manage Node.js/Python/Go versions per project, replace nvm/pyenv/asdf, or define project-level tool requirements.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "mistral-api",
+      "slug": "mistral-api",
+      "description": "Mistral AI API — European LLM provider with strong code and reasoning models. Use when you need GDPR-compliant AI inference, code generation with Codestral, multilingual tasks, cost-efficient inference, or a European data-residency option.",
+      "category": "data-ai",
+      "tags": [
+        "mistral",
+        "llm",
+        "european-ai",
+        "gdpr",
+        "code-generation"
+      ]
     },
     {
       "name": "mixpanel",
@@ -4464,20 +4817,6 @@
         "database",
         "branching"
       ]
-    },
-    {
-      "name": "neon-branching",
-      "slug": "neon-branching",
-      "description": "You are an expert in Neon's database branching, the feature that creates instant copy-on-write branches of your Postgres database. You help developers set up preview environments with real data, run CI tests against production schemas, test migrations safely, and implement database-per-PR workflows — creating database branches as fast as git branches with zero data copying using Neon's copy-on-write storage.",
-      "category": "Backend Development",
-      "tags": []
-    },
-    {
-      "name": "neon-serverless",
-      "slug": "neon-serverless",
-      "description": "You are an expert in Neon, the serverless Postgres platform. You help developers use fully managed PostgreSQL with instant database branching, autoscaling to zero, edge-compatible HTTP driver, connection pooling, and point-in-time recovery — enabling development workflows where each PR gets its own database branch and production scales automatically based on load.",
-      "category": "Cloud & Serverless",
-      "tags": []
     },
     {
       "name": "nestjs",
@@ -4763,13 +5102,6 @@
       "slug": "ollama",
       "description": "Run LLMs locally with Ollama. Use when a user asks to run AI models locally, self-host a language model, use LLaMA or Mistral on their machine, run offline AI, build a local chatbot, avoid sending data to cloud AI providers, generate text without API costs, fine-tune or customize local models, or set up a private AI inference server. Covers model management, API usage, Modelfile customization, GPU acceleration, and integration with LangChain and other frameworks.",
       "category": "data-ai",
-      "tags": []
-    },
-    {
-      "name": "ollama-sdk",
-      "slug": "ollama-sdk",
-      "description": "You are an expert in Ollama, the tool for running open-source LLMs locally. You help developers run Llama, Mistral, Gemma, Phi, CodeLlama, and other models on their machine with a simple CLI and REST API — enabling private AI development, offline inference, fine-tuning experiments, and cost-free prototyping without sending data to cloud APIs.",
-      "category": "AI & Machine Learning",
       "tags": []
     },
     {
@@ -5084,6 +5416,19 @@
       "tags": []
     },
     {
+      "name": "passive-recon",
+      "slug": "passive-recon",
+      "description": "Comprehensive passive reconnaissance covering WHOIS, DNS history, reverse IP, SSL certificates, Google dorks, and Wayback Machine enumeration. Use when: initial target profiling without active scanning, stealth recon where no direct target contact is desired, or building a complete picture of a target's infrastructure from public data alone.",
+      "category": "research",
+      "tags": [
+        "passive-recon",
+        "whois",
+        "dns",
+        "google-dorks",
+        "wayback"
+      ]
+    },
+    {
       "name": "passport-js",
       "slug": "passport-js",
       "description": "Add authentication to Express with Passport.js. Use when implementing login with Google/GitHub/email, OAuth, session auth, or social login.",
@@ -5115,6 +5460,19 @@
       "description": "When the user wants to create or optimize in-app paywalls, upgrade screens, upsell modals, or feature gates. Also use when the user mentions \"paywall,\" \"upgrade screen,\" \"upgrade modal,\" \"upsell,\" \"feature gate,\" \"convert free to paid,\" \"freemium conversion,\" \"trial expiration screen,\" \"limit reached screen,\" \"plan upgrade prompt,\" or \"in-app pricing.\" Distinct from public pricing pages (see page-cro) — this skill focuses on in-product upgrade moments where the user has already experienced value.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "pci-dss-compliance",
+      "slug": "pci-dss-compliance",
+      "description": "Achieve PCI DSS compliance for handling payment card data — scoping, controls, and SAQ selection. Use when storing, processing, or transmitting payment card data, building e-commerce security, or achieving payment processing compliance.",
+      "category": "development",
+      "tags": [
+        "pci-dss",
+        "payment",
+        "compliance",
+        "security",
+        "ecommerce"
+      ]
     },
     {
       "name": "pdf-analyzer",
@@ -5205,6 +5563,19 @@
         "optimization",
         "code-review",
         "profiling"
+      ]
+    },
+    {
+      "name": "perplexity-api",
+      "slug": "perplexity-api",
+      "description": "Perplexity API for real-time web-search-augmented LLM responses. Use when you need up-to-date information in AI responses, research assistants, fact-checking, current events coverage, or any task requiring knowledge beyond an LLM's training cutoff. Returns cited sources alongside answers.",
+      "category": "data-ai",
+      "tags": [
+        "perplexity",
+        "web-search",
+        "llm",
+        "real-time",
+        "citations"
       ]
     },
     {
@@ -5454,6 +5825,32 @@
       "tags": []
     },
     {
+      "name": "prd-to-issues",
+      "slug": "prd-to-issues",
+      "description": "Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when: user wants to convert a PRD to issues, create implementation tickets, or break down a PRD into work items.",
+      "category": "development",
+      "tags": [
+        "prd",
+        "github-issues",
+        "project-management",
+        "vertical-slices",
+        "tracer-bullets"
+      ]
+    },
+    {
+      "name": "prd-to-plan",
+      "slug": "prd-to-plan",
+      "description": "Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when: user wants to break down a PRD, create an implementation plan, plan phases from a PRD, or mentions \"tracer bullets\".",
+      "category": "development",
+      "tags": [
+        "prd",
+        "planning",
+        "vertical-slices",
+        "tracer-bullets",
+        "implementation-plan"
+      ]
+    },
+    {
       "name": "prd-writing",
       "slug": "prd-writing",
       "description": "Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. Produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.",
@@ -5552,6 +5949,19 @@
       ]
     },
     {
+      "name": "prompt-engineering",
+      "slug": "prompt-engineering",
+      "description": "Prompt engineering techniques for LLMs — zero-shot, few-shot, chain-of-thought, ReAct, and structured prompting. Use when designing prompts for AI features, improving LLM output quality, building reliable AI pipelines, or getting consistent structured responses from language models.",
+      "category": "data-ai",
+      "tags": [
+        "prompt-engineering",
+        "llm",
+        "ai",
+        "claude",
+        "gpt"
+      ]
+    },
+    {
       "name": "prompt-tester",
       "slug": "prompt-tester",
       "description": "Design, test, and iterate on AI prompts systematically using structured evaluation criteria. Use when building AI features, optimizing agent instructions, comparing prompt variants, or evaluating output quality across edge cases. Trigger words: prompt engineering, prompt testing, eval, LLM evaluation, prompt comparison, A/B test prompts, prompt optimization, system prompt, instruction tuning.",
@@ -5617,19 +6027,6 @@
       "tags": []
     },
     {
-      "name": "puppeteer-pdf",
-      "slug": "puppeteer-pdf",
-      "description": "Generate pixel-perfect PDFs from HTML and CSS using Puppeteer — render web pages or HTML templates to PDF with full CSS support including flexbox, grid, web fonts, and print media queries. Use when tasks involve converting HTML reports to PDF, generating invoices from templates, or creating PDFs that require complex CSS layouts.",
-      "category": "documents",
-      "tags": [
-        "puppeteer",
-        "pdf",
-        "html-to-pdf",
-        "headless-chrome",
-        "reports"
-      ]
-    },
-    {
       "name": "pusher",
       "slug": "pusher",
       "description": "You are an expert in Pusher Channels, the hosted real-time messaging platform. You help developers add live features to applications using pub/sub channels, presence channels for online status, private channels with auth, client events for peer-to-peer, webhooks, and batch triggers — enabling real-time notifications, live dashboards, chat, and collaborative features without managing WebSocket infrastructure.",
@@ -5676,6 +6073,19 @@
       "description": "You are an expert in Qdrant, the high-performance vector search engine written in Rust. You help developers build semantic search, RAG retrieval, recommendation systems, and anomaly detection with billion-scale vector collections, advanced filtering, multi-vector support, and hybrid search — providing sub-millisecond query latency with rich payload filtering that other vector DBs can't match.",
       "category": "AI & Machine Learning",
       "tags": []
+    },
+    {
+      "name": "quickbooks-online",
+      "slug": "quickbooks-online",
+      "description": "Integrate with the QuickBooks Online API via OAuth2 to manage invoices, bills, expenses, customers, vendors, and pull financial reports. Use when: connecting SaaS apps to QuickBooks, automating financial data pipelines, syncing transactions, or building accounting integrations for small business clients.",
+      "category": "business",
+      "tags": [
+        "quickbooks",
+        "qbo",
+        "accounting",
+        "invoices",
+        "oauth2"
+      ]
     },
     {
       "name": "qwik",
@@ -6018,6 +6428,19 @@
       ]
     },
     {
+      "name": "request-refactor-plan",
+      "slug": "request-refactor-plan",
+      "description": "Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when: user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps.",
+      "category": "development",
+      "tags": [
+        "refactoring",
+        "github-issues",
+        "planning",
+        "incremental-commits",
+        "rfc"
+      ]
+    },
+    {
       "name": "resend",
       "slug": "resend",
       "description": "You are an expert in Resend, the developer-first email API. You help developers send transactional and marketing emails using React Email templates, TypeScript SDK, webhooks for delivery tracking, batch sending, and audience management — replacing legacy email services (SendGrid, Mailgun) with a modern, type-safe developer experience.",
@@ -6143,6 +6566,19 @@
       "description": "Lint and format Python with Ruff. Use when a user asks to set up Python linting, replace flake8/black/isort, configure code quality rules, or speed up Python code formatting.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "runway-ml",
+      "slug": "runway-ml",
+      "description": "Runway ML API for AI video generation and editing — Gen-3 Alpha Turbo, image-to-video, and video-to-video. Use when generating video from text or images, applying AI video effects, or automating creative video production pipelines.",
+      "category": "data-ai",
+      "tags": [
+        "runway",
+        "video-generation",
+        "gen-3",
+        "text-to-video",
+        "ai-video"
+      ]
     },
     {
       "name": "s3-storage",
@@ -6375,6 +6811,19 @@
       "tags": []
     },
     {
+      "name": "shodan",
+      "slug": "shodan",
+      "description": "Shodan API integration for discovering internet-connected devices and services. Use when: mapping attack surface, finding exposed services by port/product/CVE, IoT device discovery, IP reputation checks, monitoring infrastructure exposure.",
+      "category": "research",
+      "tags": [
+        "shodan",
+        "recon",
+        "attack-surface",
+        "iot",
+        "security"
+      ]
+    },
+    {
       "name": "shopify",
       "slug": "shopify",
       "description": "Build and customize Shopify stores — themes with Liquid, Storefront API, custom apps, and headless commerce with Hydrogen. Use when someone asks to \"build a Shopify store\", \"Shopify theme\", \"Liquid templates\", \"Shopify API\", \"Shopify app\", \"headless Shopify\", \"Hydrogen storefront\", \"customize Shopify\", \"Shopify product management\", or \"e-commerce with Shopify\". Covers Liquid templating, theme development, Storefront/Admin APIs, custom apps, checkout extensions, and Hydrogen (React-based headless).",
@@ -6436,11 +6885,37 @@
       "tags": []
     },
     {
+      "name": "soc2-compliance",
+      "slug": "soc2-compliance",
+      "description": "Achieve SOC 2 Type II compliance for SaaS — Trust Service Criteria, evidence collection, and controls implementation. Use when preparing for a SOC 2 audit, meeting B2B SaaS security requirements, or onboarding enterprise customers who require a SOC 2 report.",
+      "category": "development",
+      "tags": [
+        "soc2",
+        "compliance",
+        "saas",
+        "audit",
+        "trust-services"
+      ]
+    },
+    {
       "name": "social-content",
       "slug": "social-content",
       "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "social-media-osint",
+      "slug": "social-media-osint",
+      "description": "Social media OSINT techniques and tools for gathering intelligence from public profiles across Twitter/X, LinkedIn, Instagram, and Facebook. Use when: investigating individuals or companies, finding social footprint, correlating usernames across platforms, mapping professional networks, or identifying employees and their public activity.",
+      "category": "research",
+      "tags": [
+        "social-media",
+        "sherlock",
+        "people-search",
+        "linkedin",
+        "twitter"
+      ]
     },
     {
       "name": "socketio",
@@ -6498,6 +6973,19 @@
       ]
     },
     {
+      "name": "spiderfoot",
+      "slug": "spiderfoot",
+      "description": "SpiderFoot automated OSINT framework with 200+ modules for comprehensive target profiling. Use when: running automated OSINT investigations on a target, correlating data across dozens of sources, building threat intelligence profiles, or mapping connections between entities.",
+      "category": "research",
+      "tags": [
+        "spiderfoot",
+        "threat-intel",
+        "recon",
+        "profiling",
+        "osint"
+      ]
+    },
+    {
       "name": "spline",
       "slug": "spline",
       "description": "You are an expert in Spline, the browser-based 3D design tool that lets designers create interactive 3D scenes and export them to websites without writing code. You help teams build 3D landing pages, product showcases, animated illustrations, and interactive experiences — with Spline's visual editor for modeling, materials, animations, physics, and mouse/scroll interactions, plus export to React, vanilla JS, or embeddable iframe.",
@@ -6546,13 +7034,6 @@
       "tags": []
     },
     {
-      "name": "sqs",
-      "slug": "sqs",
-      "description": "You are an expert in Amazon SQS (Simple Queue Service), the fully managed message queuing service. You help developers build decoupled, event-driven architectures using standard queues (at-least-once, best-effort ordering) and FIFO queues (exactly-once, ordered), dead-letter queues for failed messages, and Lambda triggers for serverless processing — scaling from zero to millions of messages per second.",
-      "category": "Cloud & Serverless",
-      "tags": []
-    },
-    {
       "name": "square",
       "slug": "square",
       "description": "Accept payments and manage commerce with Square. Use when a user asks to accept in-person and online payments, process credit cards, manage inventory, handle subscriptions, or build a POS integration.",
@@ -6598,13 +7079,6 @@
         "lambda",
         "full-stack"
       ]
-    },
-    {
-      "name": "sst-ion",
-      "slug": "sst-ion",
-      "description": "You are an expert in SST (Ion), the framework for building full-stack serverless applications on AWS. You help developers deploy Next.js, Remix, Astro, and API services with infrastructure-as-code defined in TypeScript, automatic IAM permissions, live Lambda debugging, secrets management, and zero-config deployments — replacing CDK/Terraform complexity with a developer-friendly abstraction over AWS services.",
-      "category": "Cloud & Serverless",
-      "tags": []
     },
     {
       "name": "stagehand",
@@ -6682,6 +7156,19 @@
       "tags": []
     },
     {
+      "name": "stripe-connect",
+      "slug": "stripe-connect",
+      "description": "Build marketplace and platform payment flows with Stripe Connect. Use when: building two-sided marketplaces, splitting payments between buyers and sellers, onboarding sellers/providers to accept payments, handling platform fees and payouts, or managing connected accounts for a platform.",
+      "category": "business",
+      "tags": [
+        "stripe",
+        "stripe-connect",
+        "marketplace",
+        "payments",
+        "platform"
+      ]
+    },
+    {
       "name": "stripe-testing",
       "slug": "stripe-testing",
       "description": "Test and debug Stripe payment integrations. Use when someone needs to verify webhook handling, simulate payment flows, debug failed charges, validate subscription lifecycle, or troubleshoot Stripe API errors. Trigger words: stripe, payment testing, webhook debugging, charge failed, subscription error, payment intent, checkout session.",
@@ -6741,6 +7228,19 @@
       "description": "You are an expert in Svelte, the UI framework that shifts work from runtime to compile time. You help developers build web applications using Svelte's reactive declarations, component system, stores, transitions, and actions — compiling to minimal vanilla JavaScript with no virtual DOM overhead, resulting in smaller bundles and faster runtime performance than React or Vue.",
       "category": "Web Frameworks",
       "tags": []
+    },
+    {
+      "name": "svelte-5",
+      "slug": "svelte-5",
+      "description": "Build reactive web apps with Svelte 5's new runes system. Use when: building new Svelte 5 apps, migrating from Svelte 4, using runes for reactivity ($state, $derived, $effect, $props), replacing stores with fine-grained state, using snippets instead of slots, or working with SvelteKit 2.",
+      "category": "development",
+      "tags": [
+        "svelte",
+        "svelte-5",
+        "runes",
+        "reactive",
+        "frontend"
+      ]
     },
     {
       "name": "sveltekit",
@@ -6922,6 +7422,19 @@
       ]
     },
     {
+      "name": "tdd",
+      "slug": "tdd",
+      "description": "Test-driven development with red-green-refactor loop. Use when: user wants to build features or fix bugs using TDD, mentions \"red-green-refactor\", wants integration tests, or asks for test-first development.",
+      "category": "development",
+      "tags": [
+        "tdd",
+        "testing",
+        "red-green-refactor",
+        "integration-tests",
+        "test-first"
+      ]
+    },
+    {
       "name": "tech-debt-analyzer",
       "slug": "tech-debt-analyzer",
       "description": "Scans codebases for technical debt signals and prioritizes them by business impact. Finds TODO/FIXME/HACK comments, outdated dependencies, code duplication, and correlates with git history to identify high-churn debt hotspots. Use when someone asks about technical debt, code quality audit, refactoring priorities, or maintainability assessment. Trigger words: tech debt, code quality, refactoring, TODOs, maintainability, code health.",
@@ -6984,13 +7497,6 @@
       "slug": "temporal",
       "description": "Build reliable distributed workflows with Temporal. Use when a user asks to orchestrate microservices, handle long-running workflows, implement saga patterns, build reliable background jobs, or create fault-tolerant distributed systems.",
       "category": "development",
-      "tags": []
-    },
-    {
-      "name": "temporal-sdk",
-      "slug": "temporal-sdk",
-      "description": "You are an expert in Temporal, the open-source durable execution platform for building reliable distributed applications. You help developers write workflows that survive process crashes, network failures, and deployments — with automatic retries, timeouts, cancellation, signals, queries, and versioning — replacing fragile state machines, manual retry logic, and error-prone queue-based orchestration with simple, testable code.",
-      "category": "Backend Development",
       "tags": []
     },
     {
@@ -7070,6 +7576,19 @@
         "long-term-storage",
         "global-query",
         "compaction"
+      ]
+    },
+    {
+      "name": "theharvester",
+      "slug": "theharvester",
+      "description": "Passive email, subdomain, and IP harvesting from public sources using theHarvester. Use when: gathering corporate email lists, enumerating subdomains passively, pre-engagement recon, finding exposed employee contacts without triggering alerts.",
+      "category": "research",
+      "tags": [
+        "theharvester",
+        "email",
+        "subdomain",
+        "passive",
+        "harvesting"
       ]
     },
     {
@@ -7196,6 +7715,19 @@
       "tags": []
     },
     {
+      "name": "triage-issue",
+      "slug": "triage-issue",
+      "description": "Triage a bug or issue by exploring the codebase to find root cause, then create a GitHub issue with a TDD-based fix plan. Use when: user reports a bug, wants to file an issue, mentions \"triage\", or wants to investigate and plan a fix for a problem.",
+      "category": "development",
+      "tags": [
+        "triage",
+        "bug",
+        "github-issues",
+        "tdd",
+        "root-cause-analysis"
+      ]
+    },
+    {
       "name": "trieve",
       "slug": "trieve",
       "description": "Expert guidance for Trieve, the all-in-one search infrastructure that combines full-text, semantic, and hybrid search with built-in RAG capabilities. Helps developers implement production search with chunking, re-ranking, recommendations, and analytics without managing vector databases or embedding models.",
@@ -7206,13 +7738,6 @@
       "name": "trigger-dev",
       "slug": "trigger-dev",
       "description": "You are an expert in Trigger.dev, the open-source background jobs platform for TypeScript. You help developers build reliable long-running tasks, scheduled jobs, webhook handlers, and event-driven workflows with automatic retries, concurrency control, real-time logs, and deployment to serverless infrastructure — replacing BullMQ/Redis setups with a fully managed or self-hosted solution purpose-built for modern TypeScript apps.",
-      "category": "Backend Development",
-      "tags": []
-    },
-    {
-      "name": "trigger-dev-v3",
-      "slug": "trigger-dev-v3",
-      "description": "You are an expert in Trigger.dev v3, the background jobs platform for TypeScript. You help developers run long-running tasks, scheduled jobs, event-driven workflows, and AI pipelines in the cloud — with automatic retries, concurrency control, real-time logs, and up to 5-minute (or longer) execution times that serverless functions can't handle.",
       "category": "Backend Development",
       "tags": []
     },
@@ -7317,6 +7842,19 @@
       "description": "Typesense is an open-source, typo-tolerant search engine optimized for instant search experiences. Learn to deploy with Docker, define collections, index documents, and build search UIs as a modern alternative to Algolia.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "ubiquitous-language",
+      "slug": "ubiquitous-language",
+      "description": "Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when: user wants to define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions \"domain model\" or \"DDD\".",
+      "category": "development",
+      "tags": [
+        "ddd",
+        "domain-driven-design",
+        "glossary",
+        "ubiquitous-language",
+        "terminology"
+      ]
     },
     {
       "name": "ui-ux-pro-max",
@@ -7454,13 +7992,6 @@
       ]
     },
     {
-      "name": "val-town-sdk",
-      "slug": "val-town-sdk",
-      "description": "You are an expert in Val Town, the social platform for writing and deploying serverless TypeScript functions. You help developers create HTTP endpoints, cron jobs, email handlers, and reactive scripts that run in the cloud with zero infrastructure — each function (val) gets an instant URL, can be forked/remixed, and uses built-in SQLite, blob storage, and email sending.",
-      "category": "Cloud & Serverless",
-      "tags": []
-    },
-    {
       "name": "valtio",
       "slug": "valtio",
       "description": "Manage React state with Valtio — proxy-based state that just works. Use when someone asks to \"simple React state management\", \"Valtio\", \"proxy state\", \"mutable state in React\", \"alternative to Zustand/Redux\", or \"state management without boilerplate\". Covers proxy state, subscriptions, computed values, and devtools.",
@@ -7488,11 +8019,17 @@
       "tags": []
     },
     {
-      "name": "vercel-ai-sdk",
-      "slug": "vercel-ai-sdk",
-      "description": "You are an expert in the Vercel AI SDK, the TypeScript toolkit for building AI-powered applications. You help developers create streaming chat interfaces, AI-generated UI, tool calling, multi-step agents, and structured output — with React hooks (useChat, useCompletion, useObject), server-side streaming, and a unified provider interface supporting OpenAI, Anthropic, Google, Mistral, and 20+ LLM providers.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "name": "vertex-ai-gemini",
+      "slug": "vertex-ai-gemini",
+      "description": "Google Cloud Vertex AI for enterprise Gemini deployments — production scaling, fine-tuning, and MLOps. Use when deploying Gemini in GCP-native environments, running fine-tuning jobs, needing enterprise IAM controls, VPC isolation, batch prediction at scale, or production ML pipelines on Google Cloud.",
+      "category": "data-ai",
+      "tags": [
+        "vertex-ai",
+        "google-cloud",
+        "gemini",
+        "enterprise",
+        "mlops"
+      ]
     },
     {
       "name": "vertex-media-generation",
@@ -7505,6 +8042,19 @@
         "veo",
         "image-generation",
         "video-generation"
+      ]
+    },
+    {
+      "name": "vibe-coding",
+      "slug": "vibe-coding",
+      "description": "Patterns and workflows for AI-assisted development (vibe coding) — building software primarily through natural language with AI coding agents. Use when: setting up an AI-first development workflow, structuring projects for AI coding, using prompt-driven development best practices, or maximizing output from Claude Code, Cursor, Windsurf, or Aider.",
+      "category": "development",
+      "tags": [
+        "vibe-coding",
+        "ai-coding",
+        "workflow",
+        "productivity",
+        "claude-code"
       ]
     },
     {
@@ -7667,6 +8217,19 @@
       "tags": []
     },
     {
+      "name": "webauthn",
+      "slug": "webauthn",
+      "description": "Implement passwordless authentication with WebAuthn and Passkeys. Use when: adding passkey/biometric login, implementing FIDO2 authentication, replacing password-based login, building touch ID / face ID authentication flows in web apps. Covers browser API, server verification, and simplewebauthn library.",
+      "category": "development",
+      "tags": [
+        "webauthn",
+        "passkeys",
+        "authentication",
+        "passwordless",
+        "fido2"
+      ]
+    },
+    {
       "name": "webflow",
       "slug": "webflow",
       "description": "You are an expert in Webflow, the visual web development platform that combines a design tool with a CMS and hosting. You help teams build responsive websites, landing pages, and content-driven sites using Webflow's visual builder, CMS collections, Ecommerce, form handling, and Webflow APIs — enabling designers to build production websites without writing code while giving developers API access for custom integrations and dynamic content.",
@@ -7765,6 +8328,18 @@
       "tags": []
     },
     {
+      "name": "windsurf-rules",
+      "slug": "windsurf-rules",
+      "description": "Configure Windsurf AI coding assistant with .windsurfrules and workspace rules. Use when: customizing Windsurf for a project, setting AI coding standards, creating team-shared Windsurf configurations, or tuning Cascade AI behavior.",
+      "category": "development",
+      "tags": [
+        "windsurf",
+        "ai-coding",
+        "rules",
+        "workflow"
+      ]
+    },
+    {
       "name": "wireguard",
       "slug": "wireguard",
       "description": "Deploy and manage WireGuard VPN tunnels. Use when a user asks to set up a WireGuard server, create peer configurations, build mesh networks, configure split tunneling, set up site-to-site links, automate peer provisioning, integrate with DNS (Pi-hole/AdGuard), manage keys, monitor connections, or build WireGuard-based overlay networks. Covers server setup, peer management, routing, DNS integration, and production deployment patterns.",
@@ -7818,6 +8393,19 @@
       "description": "Expert guidance for Xata, the serverless data platform that combines PostgreSQL, Elasticsearch, and AI capabilities in a single API. Helps developers build applications with full-text search, vector similarity search, file attachments, and branching — all through a type-safe TypeScript SDK.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "xero-accounting",
+      "slug": "xero-accounting",
+      "description": "Integrate with the Xero accounting API to sync invoices, expenses, bank transactions, and contacts — and generate financial reports like P&L and balance sheet. Use when: connecting apps to Xero, automating bookkeeping workflows, syncing accounting data, or pulling financial reports programmatically.",
+      "category": "business",
+      "tags": [
+        "xero",
+        "accounting",
+        "invoices",
+        "bookkeeping",
+        "finance"
+      ]
     },
     {
       "name": "xray",
@@ -7993,5 +8581,5 @@
     "productivity",
     "research"
   ],
-  "updatedAt": "2026-03-17T16:08:10.232Z"
+  "updatedAt": "2026-03-18T17:47:01.201Z"
 }
