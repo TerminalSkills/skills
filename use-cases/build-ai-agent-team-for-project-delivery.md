@@ -1,222 +1,71 @@
 ---
-title: "Build an AI Agent Team for Project Delivery"
-description: "Build a team of specialized AI agents — Architect, Developer, Reviewer, QA, PM — that deliver a full project together"
-skills: [squad-agents, langchain, anthropic-sdk]
-difficulty: advanced
-time_estimate: "6 hours"
-tags: [ai-agents, multi-agent, project-management, automation, software-delivery]
+title: Build an AI Agent Team for Project Delivery
+slug: build-ai-agent-team-for-project-delivery
+description: Use Squad to orchestrate specialized AI agents that collaborate on full project delivery with defined roles and handoffs.
+skills:
+  - squad-agents
+category: development
+tags:
+  - ai-agents
+  - multi-agent
+  - project-management
+  - automation
+  - collaboration
 ---
 
 # Build an AI Agent Team for Project Delivery
 
 ## The Problem
 
-You're a solo founder. You have ideas and requirements but no team. Hiring takes months. You need an Architect, Developer, Reviewer, QA engineer, and PM — today.
+You are a solo founder or small team with a full requirements doc but no specialists. You need an architect, developer, reviewer, QA engineer, and PM — but hiring takes months. Running one AI agent at a time is slow and loses context between sessions.
 
 ## The Solution
 
-Build a team of specialized AI agents, each with a defined role and clear handoff protocol. They communicate through shared files and state, with human checkpoints at critical decisions.
+Use Squad to create a team of specialized AI agents, each with a defined role, private context, and structured handoff protocol. They communicate through shared files in `.squad/`, persist knowledge across sessions, and coordinate through GitHub issues.
 
-## Persona
+## Step-by-Step Walkthrough
 
-**Kai, Solo Founder** — building a B2B SaaS for invoice management. Has a 20-page requirements doc. Needs to ship an MVP in 2 weeks. Using an AI agent team to work at 10x speed while maintaining quality.
-
-## The Agent Roles
-
-```yaml
-# agent-team.yaml
-agents:
-  pm:
-    role: "Project Manager"
-    responsibilities: "Break requirements into tickets, track progress, flag blockers"
-    input: "requirements.md"
-    output: "tickets/*.md, progress.md"
-
-  architect:
-    role: "Software Architect"
-    responsibilities: "Design system architecture, define APIs, choose tech stack"
-    input: "tickets/design-*.md"
-    output: "docs/architecture.md, docs/api-spec.yaml"
-
-  developer:
-    role: "Developer"
-    responsibilities: "Implement features based on architecture and tickets"
-    input: "tickets/impl-*.md, docs/architecture.md"
-    output: "src/**, tests/**"
-
-  reviewer:
-    role: "Code Reviewer"
-    responsibilities: "Review PRs for quality, security, performance"
-    input: "git diff on PR branches"
-    output: "reviews/*.md"
-
-  qa:
-    role: "QA Engineer"
-    responsibilities: "Write integration tests, run test suites, report bugs"
-    input: "src/**, docs/api-spec.yaml"
-    output: "tests/integration/**, bugs/*.md"
-```
-
-## Step 1: PM Creates the Backlog
-
-Feed your requirements doc to the PM agent:
+### Step 1: Initialize Squad
 
 ```bash
-# PM agent breaks requirements into actionable tickets
-claude-code --task "
-You are a PM agent. Read requirements.md and create individual tickets in tickets/.
-Each ticket should have: title, description, acceptance criteria, priority, dependencies.
-Name them: tickets/001-setup-project.md, tickets/002-design-api.md, etc.
-Create a progress.md tracking file.
-" --auto-approve
+cd ~/projects/invoice-app
+npm init -y && git init
+npm install -g @bradygaster/squad-cli
+squad init
+gh auth login
 ```
 
-Output: 12 tickets in `tickets/`, a `progress.md` board.
-
-## Step 2: Architect Designs the System
+### Step 2: Launch and Describe the Project
 
 ```bash
-# Architect agent reads high-priority design tickets
-claude-code --task "
-You are an Architect agent. Read tickets/002-design-api.md and tickets/003-design-database.md.
-Produce:
-1. docs/architecture.md — system overview, component diagram (mermaid), tech decisions
-2. docs/api-spec.yaml — OpenAPI 3.0 spec for all endpoints
-3. docs/database.md — schema with tables, relationships, indexes
-Use: Node.js + Express, PostgreSQL, Redis for caching, JWT auth.
-" --auto-approve
+copilot --agent squad --yolo
 ```
 
-### 🛑 Human Checkpoint: Architecture Review
+Prompt: "Build an invoice management SaaS. I need user auth with Google OAuth, CRUD for invoices with PDF generation, Stripe billing for Pro plan, and a dashboard showing revenue metrics. Tech stack: Next.js, PostgreSQL, Tailwind."
+
+Squad generates team members with thematic names. Confirm with `yes`.
+
+### Step 3: Let the Team Work
+
+Squad's Lead agent breaks the project into GitHub issues and assigns them to team members:
+- **Lead** creates architecture decision records in `.squad/decisions/`
+- **Backend** builds API routes, database models, and auth
+- **Frontend** picks up handoff docs and builds UI components
+- **Tester** writes tests against completed endpoints
+
+### Step 4: Monitor and Merge
 
 ```bash
-# YOU review before proceeding
-cat docs/architecture.md
-cat docs/api-spec.yaml
-
-# Approve or request changes
-echo "APPROVED" > docs/architecture-review.md
-# or: echo "CHANGES NEEDED: use GraphQL instead of REST" > docs/architecture-review.md
+squad status        # See what each agent is working on
+squad triage        # Auto-assign new issues to appropriate agents
 ```
 
-## Step 3: Developer Implements Features
+Review completed work, merge PRs, and let the team continue on the next batch.
 
-```bash
-# Developer agent works through implementation tickets
-for ticket in tickets/impl-*.md; do
-  BRANCH="feature/$(basename $ticket .md)"
-  git checkout -b "$BRANCH" main
+## Real-World Example
 
-  claude-code --task "
-  You are a Developer agent. Read $ticket and docs/architecture.md.
-  Implement the feature. Follow the API spec in docs/api-spec.yaml.
-  Write unit tests for your code. Commit when done.
-  " --auto-approve
+Kai, a solo founder, uses Squad to build an invoice management MVP. He runs `squad init` and describes the project. Squad creates 4 agents: Ledger (Lead/Architect), Scribe (Backend), Canvas (Frontend), and Auditor (Tester). Ledger writes a decision record choosing PostgreSQL over MongoDB for relational invoice data. Scribe builds the API and writes a handoff: `POST /api/invoices` accepts `{client_id, items[], due_date}` with JWT auth. Canvas picks up the handoff and builds the invoice form with Tailwind. Auditor writes Jest tests for the API and Playwright E2E tests for the form flow. After 3 days of iteration, Kai has a working MVP with auth, invoice CRUD, PDF export, and 47 passing tests — work that would have taken a solo developer 2-3 weeks.
 
-  git push origin "$BRANCH"
-done
-```
+## Related Skills
 
-## Step 4: Reviewer Reviews Each PR
-
-```bash
-# Reviewer agent checks each feature branch
-for branch in $(git branch -r | grep feature/); do
-  PR_DIFF=$(git diff main...$branch)
-
-  claude-code --task "
-  You are a Code Reviewer agent. Review this diff:
-  $PR_DIFF
-
-  Check for:
-  - Security vulnerabilities (SQL injection, XSS, auth bypass)
-  - Performance issues (N+1 queries, missing indexes)
-  - Code quality (naming, structure, DRY)
-  - Test coverage (are edge cases covered?)
-
-  Write review to reviews/$(basename $branch).md with APPROVE or REQUEST_CHANGES.
-  " --auto-approve
-done
-```
-
-## Step 5: QA Writes Integration Tests
-
-```bash
-# QA agent writes end-to-end tests
-claude-code --task "
-You are a QA agent. Read docs/api-spec.yaml and the source code in src/.
-Write integration tests in tests/integration/:
-- Test every API endpoint with valid and invalid inputs
-- Test authentication flows
-- Test error handling and edge cases
-- Test database constraints
-
-Use Jest + Supertest. Ensure all tests pass before finishing.
-" --auto-approve
-```
-
-## Inter-Agent Communication
-
-Agents share state through files:
-
-```
-project/
-├── requirements.md          # Input from human
-├── progress.md              # PM updates after each phase
-├── tickets/                 # PM → all agents
-│   ├── 001-setup-project.md
-│   ├── 002-design-api.md
-│   └── impl-004-auth.md
-├── docs/                    # Architect → Developer
-│   ├── architecture.md
-│   ├── api-spec.yaml
-│   └── database.md
-├── reviews/                 # Reviewer feedback
-│   └── feature-auth.md
-├── bugs/                    # QA → Developer
-│   └── bug-001-pagination.md
-└── src/                     # Developer output
-```
-
-## Step 6: Merge and Ship
-
-### 🛑 Human Checkpoint: Final Review
-
-```bash
-# Review all PRs, tests, and reviews
-cat progress.md              # PM's status
-cat reviews/*.md             # All review outcomes
-npm test                     # All tests green?
-
-# Merge approved branches
-for branch in $(git branch | grep feature/); do
-  git checkout main
-  git merge "$branch" --no-ff
-done
-
-# Deploy
-npm run build && npm run deploy
-```
-
-## Example: Full Run Timeline
-
-| Hour | Agent | Task | Output |
-|------|-------|------|--------|
-| 0-1 | PM | Break requirements into 12 tickets | `tickets/*.md` |
-| 1-2 | Architect | Design system + API spec | `docs/` |
-| 2 | **Human** | **Review architecture** | Approval |
-| 2-5 | Developer | Implement 8 features (parallel worktrees) | `src/` |
-| 5-6 | Reviewer | Review all 8 PRs | `reviews/` |
-| 6-8 | QA | Integration tests + bug reports | `tests/` |
-| 8-9 | Developer | Fix bugs from QA | `src/` |
-| 9 | **Human** | **Final review + deploy** | 🚀 Ship |
-
-**Total: 9 hours** vs 2-3 weeks with a human team.
-
-## Key Takeaways
-
-- **Specialize agents** — a focused agent outperforms a generalist
-- **File-based communication** is simple and debuggable
-- **Human checkpoints** at architecture and pre-deploy prevent costly mistakes
-- **PM agent** keeps everything organized — don't skip this role
-- **Iterate** — bugs found by QA go back to Developer, just like a real team
+- [squad-agents](/skills/squad-agents) — The framework for building AI agent teams
