@@ -9,32 +9,27 @@ compatibility: "Node.js 18+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
-  tags: [ocr, image-to-text, vision-ai, text-extraction, document, claude]
-  use-cases:
-    - "Extract text from a screenshot or scanned document"
-    - "Convert an image of a table into structured JSON or CSV"
-    - "Read form data from a scanned PDF image"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  category: data-ai
+  tags: [ocr, image-to-text, vision-ai, text-extraction, document]
 ---
 
 # Image to Text
 
-Extract all readable text from an image using OCR (Tesseract). Returns the full text content along with word-level bounding boxes and confidence scores.
+## Overview
 
-## When to Use
+Extract all readable text from an image using OCR (Tesseract). Returns the full text content along with word-level bounding boxes and confidence scores.
 
 - Reading text content from a screenshot or design mockup
 - Extracting UI copy (labels, buttons, headings) so you don't have to retype it
 - Getting text positions and bounding boxes from a design image
 
-## How It Works
+## Instructions
 
 1. The image is passed to Tesseract.js for optical character recognition
 2. Tesseract segments the image into lines and words
 3. Returns the full text plus word-level details (position, confidence)
 
-## Usage
+Run the extraction script:
 
 ```bash
 bash <skill-path>/scripts/image-to-text.sh <image-path> [language]
@@ -44,17 +39,7 @@ bash <skill-path>/scripts/image-to-text.sh <image-path> [language]
 - `image-path` — Path to the image file (required)
 - `language` — OCR language code (optional, defaults to `eng`). Common: `eng`, `fra`, `deu`, `spa`, `chi_sim`, `jpn`
 
-**Examples:**
-
-```bash
-# Extract text from a screenshot
-bash <skill-path>/scripts/image-to-text.sh ./screenshot.png
-
-# Extract French text
-bash <skill-path>/scripts/image-to-text.sh ./mockup.png fra
-```
-
-## Output
+The script outputs JSON with extracted text and metadata:
 
 ```json
 {
@@ -65,11 +50,6 @@ bash <skill-path>/scripts/image-to-text.sh ./mockup.png fra
       "text": "Request",
       "confidence": 94.2,
       "bbox": { "x0": 142, "y0": 180, "x1": 268, "y1": 204 }
-    },
-    {
-      "text": "work",
-      "confidence": 96.1,
-      "bbox": { "x0": 274, "y0": 180, "x1": 332, "y1": 204 }
     }
   ],
   "lines": [
@@ -82,16 +62,17 @@ bash <skill-path>/scripts/image-to-text.sh ./mockup.png fra
 }
 ```
 
-| Field      | Type   | Description                                      |
-|------------|--------|--------------------------------------------------|
-| text       | String | Full extracted text, newline-separated            |
-| confidence | Number | Overall confidence score (0-100)                  |
-| words      | Array  | Each word with text, confidence, and bounding box |
-| lines      | Array  | Each line with text, confidence, and bounding box |
+After extracting text, present the content grouped by lines and use the extracted text directly when implementing UI copy from a design.
 
-## Present Results to User
+## Examples
 
-After extracting text, present the content grouped by lines:
+### Example 1: Extract text from a mobile app screenshot
+
+```bash
+bash <skill-path>/scripts/image-to-text.sh ./screenshot.png
+```
+
+Output:
 
 ```
 Extracted text (87.4% confidence):
@@ -106,12 +87,17 @@ Extracted text (87.4% confidence):
 Found 6 lines, 6 words.
 ```
 
-Use the extracted text directly when implementing UI copy from a design.
+### Example 2: Extract French text from a scanned invoice
 
-## Troubleshooting
+```bash
+bash <skill-path>/scripts/image-to-text.sh ./invoice-scan.png fra
+```
 
-**Low confidence / garbled text** — Tesseract works best with clean, high-contrast text. Screenshots of rendered UI work well. Photos of text at angles or with noise may produce poor results.
+Tesseract uses the French language model to correctly recognize accented characters and French-specific formatting. The extracted text can then be parsed for invoice fields like total, date, and line items.
 
-**Wrong language** — Pass the correct language code as the second argument. Tesseract needs the right language model to recognize characters.
+## Guidelines
 
-**First run is slow** — Tesseract downloads language data (~4MB for English) on the first run. Subsequent runs are faster.
+- Tesseract works best with clean, high-contrast text. Screenshots of rendered UI work well. Photos of text at angles or with noise may produce poor results.
+- Pass the correct language code as the second argument when processing non-English text. Tesseract needs the right language model to recognize characters.
+- First run is slow because Tesseract downloads language data (~4MB for English). Subsequent runs are faster.
+- For structured documents (tables, forms), post-process the extracted text to parse it into JSON or CSV format.

@@ -9,26 +9,21 @@ compatibility: "Node.js 18+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: accessibility
-  tags: [accessibility, wcag, contrast, color, ui, design]
-  use-cases:
-    - "Audit all color combinations in a design system for WCAG AA compliance"
-    - "Fix low-contrast text issues before shipping"
-    - "Validate that button/text colors meet accessibility standards"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  category: design
+  tags: [accessibility, wcag, contrast, color, design]
 ---
 
 # Contrast Check
 
-Check color pairs against WCAG 2.1 contrast requirements. Pass in hex colors and get contrast ratios with AA/AAA pass/fail results for both normal and large text.
+## Overview
 
-## When to Use
+Check color pairs against WCAG 2.1 contrast requirements. Pass in hex colors and get contrast ratios with AA/AAA pass/fail results for both normal and large text.
 
 - Checking if a text color is readable against a background color
 - Auditing an entire color palette for accessibility compliance
 - Verifying colors extracted from a design meet WCAG standards
 
-## How It Works
+## Instructions
 
 1. Takes a list of hex colors as arguments
 2. Computes the contrast ratio for every foreground/background pair
@@ -40,26 +35,13 @@ WCAG thresholds:
 - **AAA normal text** — ratio >= 7:1
 - **AAA large text** — ratio >= 4.5:1
 
-## Usage
+Run the script with two or more hex colors (with or without `#` prefix):
 
 ```bash
 bash <skill-path>/scripts/contrast-check.sh <color1> <color2> [color3] [color4] ...
 ```
 
-**Arguments:**
-- Two or more hex colors (required). With or without `#` prefix.
-
-**Examples:**
-
-```bash
-# Check a single pair
-bash <skill-path>/scripts/contrast-check.sh "#1a1a2e" "#ffffff"
-
-# Check all pairs in a palette
-bash <skill-path>/scripts/contrast-check.sh "#1a1a2e" "#e94560" "#ffffff" "#3d83f7" "#bdbdbd"
-```
-
-## Output
+The script outputs JSON with contrast ratios and pass/fail results:
 
 ```json
 {
@@ -70,13 +52,6 @@ bash <skill-path>/scripts/contrast-check.sh "#1a1a2e" "#e94560" "#ffffff" "#3d83
       "ratio": 16.57,
       "aa": { "normal": true, "large": true },
       "aaa": { "normal": true, "large": true }
-    },
-    {
-      "foreground": "#e94560",
-      "background": "#ffffff",
-      "ratio": 3.94,
-      "aa": { "normal": false, "large": true },
-      "aaa": { "normal": false, "large": false }
     }
   ],
   "summary": {
@@ -88,19 +63,7 @@ bash <skill-path>/scripts/contrast-check.sh "#1a1a2e" "#e94560" "#ffffff" "#3d83
 }
 ```
 
-| Field      | Type    | Description                                  |
-|------------|---------|----------------------------------------------|
-| foreground | String  | Foreground (text) color                       |
-| background | String  | Background color                             |
-| ratio      | Number  | Contrast ratio (e.g. 16.57 means 16.57:1)    |
-| aa.normal  | Boolean | Passes WCAG AA for normal text (>= 4.5:1)    |
-| aa.large   | Boolean | Passes WCAG AA for large text (>= 3:1)       |
-| aaa.normal | Boolean | Passes WCAG AAA for normal text (>= 7:1)     |
-| aaa.large  | Boolean | Passes WCAG AAA for large text (>= 4.5:1)    |
-
-## Present Results to User
-
-After checking, present a table:
+After checking, present a table to the user:
 
 ```
 Contrast Check Results:
@@ -113,8 +76,41 @@ Summary: 1/2 pairs pass AA for normal text, 1/2 pass AAA.
 
 Flag any failing pairs and suggest fixes (darken/lighten the color to reach the threshold).
 
-## Troubleshooting
+## Examples
 
-**Invalid color** — Colors must be valid hex values (3 or 6 digits, with or without `#`).
+### Example 1: Check a dark theme header against white text
 
-**Pairing with image-analysis** — Extract colors from a design with the `image-analysis` skill first, then pipe the hex values into this skill to audit accessibility.
+```bash
+bash <skill-path>/scripts/contrast-check.sh "#1a1a2e" "#ffffff"
+```
+
+Output:
+
+```json
+{
+  "pairs": [
+    {
+      "foreground": "#1a1a2e",
+      "background": "#ffffff",
+      "ratio": 16.57,
+      "aa": { "normal": true, "large": true },
+      "aaa": { "normal": true, "large": true }
+    }
+  ],
+  "summary": { "totalPairs": 1, "passAA": 1, "passAAA": 1, "failAA": 0 }
+}
+```
+
+### Example 2: Audit a full brand palette
+
+```bash
+bash <skill-path>/scripts/contrast-check.sh "#1a1a2e" "#e94560" "#ffffff" "#3d83f7" "#bdbdbd"
+```
+
+The script checks all foreground/background combinations and reports which pairs fail AA or AAA. For example, `#e94560` on `#ffffff` yields a ratio of 3.94:1 which fails AA for normal text but passes for large text.
+
+## Guidelines
+
+- Colors must be valid hex values (3 or 6 digits, with or without `#`).
+- Pair with the `image-analysis` skill to extract colors from a design first, then pipe the hex values into this skill to audit accessibility.
+- When a pair fails, suggest darkening or lightening one of the colors to meet the target ratio.
