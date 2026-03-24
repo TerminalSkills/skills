@@ -460,6 +460,19 @@
       ]
     },
     {
+      "name": "architectural-drawing-parser",
+      "slug": "architectural-drawing-parser",
+      "description": "Parse architectural drawings, floor plans, and building code compliance documents using Vision AI. Extracts building type, occupancy, floor areas, room layouts, dimensions, and code parameters. Use when: reading PDF floor plans, analyzing architectural drawings, extracting building data from images or scanned documents.",
+      "category": "design",
+      "tags": [
+        "architecture",
+        "vision-ai",
+        "floor-plan",
+        "building-codes",
+        "pdf-parsing"
+      ]
+    },
+    {
       "name": "archiver",
       "slug": "archiver",
       "description": "Create ZIP and TAR archives programmatically with Archiver — bundle files, directories, and streams into compressed archives with progress tracking. Use when tasks involve generating downloadable bundles, backing up directories, creating deployment packages, or building export features that zip multiple files together.",
@@ -3613,6 +3626,19 @@
         "localization",
         "translations",
         "react-i18next"
+      ]
+    },
+    {
+      "name": "ibc-building-codes",
+      "slug": "ibc-building-codes",
+      "description": "Reference for US International Building Code (IBC) occupancy types, construction types, height/area limits, egress requirements, and R-2 residential standards. Use when: generating US-compliant building models, validating building designs against IBC, understanding occupancy classifications and construction types.",
+      "category": "design",
+      "tags": [
+        "ibc",
+        "building-codes",
+        "occupancy",
+        "construction-type",
+        "egress"
       ]
     },
     {
@@ -7248,6 +7274,19 @@
       ]
     },
     {
+      "name": "spec-to-3d",
+      "slug": "spec-to-3d",
+      "description": "Generate 3D building models from architectural specifications, parsed drawings, or building code data. Outputs Three.js geometry, Pascal Editor JSON, or plain JSON for IFC conversion. Use when: converting floor plans to 3D, building spec-driven 3D models, generating architectural visualizations from structured data.",
+      "category": "design",
+      "tags": [
+        "3d-modeling",
+        "architecture",
+        "three-js",
+        "ifc",
+        "building-generation"
+      ]
+    },
+    {
       "name": "spiderfoot",
       "slug": "spiderfoot",
       "description": "SpiderFoot automated OSINT framework with 200+ modules for comprehensive target profiling. Use when: running automated OSINT investigations on a target, correlating data across dozens of sources, building threat intelligence profiles, or mapping connections between entities.",
@@ -9004,5 +9043,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-03-24T18:37:05.685Z"
+  "updatedAt": "2026-03-24T18:38:20.960Z"
 }
