@@ -460,6 +460,19 @@
       ]
     },
     {
+      "name": "architectural-drawing-parser",
+      "slug": "architectural-drawing-parser",
+      "description": "Parse architectural drawings, floor plans, and building code compliance documents using Vision AI. Extracts building type, occupancy, floor areas, room layouts, dimensions, and code parameters. Use when: reading PDF floor plans, analyzing architectural drawings, extracting building data from images or scanned documents.",
+      "category": "design",
+      "tags": [
+        "architecture",
+        "vision-ai",
+        "floor-plan",
+        "building-codes",
+        "pdf-parsing"
+      ]
+    },
+    {
       "name": "archiver",
       "slug": "archiver",
       "description": "Create ZIP and TAR archives programmatically with Archiver — bundle files, directories, and streams into compressed archives with progress tracking. Use when tasks involve generating downloadable bundles, backing up directories, creating deployment packages, or building export features that zip multiple files together.",
@@ -1179,6 +1192,19 @@
       "description": "Apache Cassandra is a distributed NoSQL database designed for high availability and linear scalability. Learn CQL (Cassandra Query Language), data modeling with partition keys, replication strategies, and integration with Node.js using the DataStax driver.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "cc-connect",
+      "slug": "cc-connect",
+      "description": "Bridge local AI coding agents (Claude Code, Cursor, Gemini CLI, Codex) to messaging platforms (Slack, Telegram, Discord). Use when: controlling AI agents from team chat, sending coding tasks via Slack/Telegram, building team-accessible AI workflows.",
+      "category": "automation",
+      "tags": [
+        "ai-agents",
+        "messaging",
+        "slack",
+        "telegram",
+        "bridge"
+      ]
     },
     {
       "name": "ccpa-compliance",
@@ -3603,6 +3629,19 @@
       ]
     },
     {
+      "name": "ibc-building-codes",
+      "slug": "ibc-building-codes",
+      "description": "Reference for US International Building Code (IBC) occupancy types, construction types, height/area limits, egress requirements, and R-2 residential standards. Use when: generating US-compliant building models, validating building designs against IBC, understanding occupancy classifications and construction types.",
+      "category": "design",
+      "tags": [
+        "ibc",
+        "building-codes",
+        "occupancy",
+        "construction-type",
+        "egress"
+      ]
+    },
+    {
       "name": "ibis",
       "slug": "ibis",
       "description": "Expert guidance for Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. Helps developers write analytics code once and run it anywhere without rewriting SQL for each database.",
@@ -3656,6 +3695,19 @@
       "tags": []
     },
     {
+      "name": "imcp",
+      "slug": "imcp",
+      "description": "Access macOS native data (Messages, Contacts, Reminders, Calendar) via MCP server with iMCP. Use when: building AI assistants that access Apple data, querying contacts/reminders from Claude Desktop, integrating macOS apps with AI agents.",
+      "category": "productivity",
+      "tags": [
+        "mcp",
+        "macos",
+        "apple",
+        "messages",
+        "contacts"
+      ]
+    },
+    {
       "name": "imgix",
       "slug": "imgix",
       "description": "Optimize and transform images with imgix. Use when serving responsive images, implementing image CDN, adding real-time transformations, or optimizing Core Web Vitals with image delivery.",
@@ -3666,6 +3718,19 @@
         "cdn",
         "optimization",
         "responsive"
+      ]
+    },
+    {
+      "name": "impeccable-design",
+      "slug": "impeccable-design",
+      "description": "Apply the Impeccable design language to improve AI-generated UI/UX quality — spacing, typography, color, layout rules that AI agents follow to produce professional designs. Use when: improving AI-generated UI quality, establishing design constraints for AI agents, creating pixel-perfect layouts with AI assistance.",
+      "category": "design",
+      "tags": [
+        "design-language",
+        "ui",
+        "ux",
+        "typography",
+        "layout"
       ]
     },
     {
@@ -7209,6 +7274,19 @@
       ]
     },
     {
+      "name": "spec-to-3d",
+      "slug": "spec-to-3d",
+      "description": "Generate 3D building models from architectural specifications, parsed drawings, or building code data. Outputs Three.js geometry, Pascal Editor JSON, or plain JSON for IFC conversion. Use when: converting floor plans to 3D, building spec-driven 3D models, generating architectural visualizations from structured data.",
+      "category": "design",
+      "tags": [
+        "3d-modeling",
+        "architecture",
+        "three-js",
+        "ifc",
+        "building-generation"
+      ]
+    },
+    {
       "name": "spiderfoot",
       "slug": "spiderfoot",
       "description": "SpiderFoot automated OSINT framework with 200+ modules for comprehensive target profiling. Use when: running automated OSINT investigations on a target, correlating data across dozens of sources, building threat intelligence profiles, or mapping connections between entities.",
@@ -7268,6 +7346,19 @@
       "description": "Detect and exploit SQL injection with sqlmap. Use when a user asks to test for SQL injection, extract database contents, bypass authentication via SQLi, automate injection testing, or dump database schemas.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "squad-agents",
+      "slug": "squad-agents",
+      "description": "Build AI agent teams that collaborate on projects using Squad framework. Use when: orchestrating multiple specialized agents, building collaborative AI workflows, delegating complex tasks across agent teams.",
+      "category": "development",
+      "tags": [
+        "agents",
+        "multi-agent",
+        "orchestration",
+        "collaboration",
+        "squad"
+      ]
     },
     {
       "name": "square",
@@ -7356,6 +7447,19 @@
       "description": "You are an expert in AWS Step Functions, the serverless orchestration service for building workflows as state machines. You help developers coordinate Lambda functions, API calls, and AWS services using visual workflows with branching, parallel execution, error handling, retries, and human approval steps — building reliable, observable distributed systems without custom orchestration code.",
       "category": "Cloud & Serverless",
       "tags": []
+    },
+    {
+      "name": "stitch-mcp",
+      "slug": "stitch-mcp",
+      "description": "Import AI-generated UI designs from Google Stitch into your development workflow via MCP. Use when: converting Stitch designs to code, integrating AI design tools with coding agents, building UI from AI-generated prototypes.",
+      "category": "design",
+      "tags": [
+        "stitch",
+        "google",
+        "design-to-code",
+        "mcp",
+        "ui"
+      ]
     },
     {
       "name": "storybook",
@@ -8709,6 +8813,19 @@
       "tags": []
     },
     {
+      "name": "worktrunk",
+      "slug": "worktrunk",
+      "description": "Manage Git worktrees for parallel AI agent workflows with Worktrunk CLI. Use when: running multiple AI coding agents simultaneously on different branches, parallelizing feature development with AI, managing concurrent git worktrees.",
+      "category": "development",
+      "tags": [
+        "git",
+        "worktree",
+        "parallel",
+        "ai-agents",
+        "branching"
+      ]
+    },
+    {
       "name": "wxt",
       "slug": "wxt",
       "description": "Build cross-browser extensions with WXT — the modern framework for Chrome, Firefox, Safari, and Edge extensions. Use when someone asks to \"build a browser extension\", \"Chrome extension with React\", \"WXT framework\", \"cross- browser extension\", \"manifest v3 extension\", \"build Firefox extension\", or \"browser extension with TypeScript\". Covers content scripts, background workers, popup/options pages, storage, messaging, and publishing.",
@@ -8926,5 +9043,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-03-24T18:37:18.663Z"
+  "updatedAt": "2026-03-24T18:38:20.960Z"
 }
