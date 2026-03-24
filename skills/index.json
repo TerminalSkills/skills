@@ -1023,6 +1023,20 @@
       ]
     },
     {
+      "name": "bun-runtime",
+      "slug": "bun-runtime",
+      "description": "Bun — fast all-in-one JavaScript runtime, bundler, test runner, and package manager. Use when speeding up Node.js projects, using Bun as a drop-in Node replacement, bundling with Bun, or running tests faster. Covers runtime APIs, package management, bundling, and Bun-specific features like Bun.serve, Bun.file, and Bun.sqlite.",
+      "category": "runtime",
+      "tags": [
+        "bun",
+        "javascript",
+        "runtime",
+        "bundler",
+        "fast",
+        "node-alternative"
+      ]
+    },
+    {
       "name": "burp-suite",
       "slug": "burp-suite",
       "description": "Test web application security with Burp Suite. Use when a user asks to intercept HTTP traffic, test for web vulnerabilities, fuzz API endpoints, analyze authentication flows, or perform manual web application pentesting.",
@@ -2101,6 +2115,20 @@
         "runtime",
         "secure",
         "web-standards"
+      ]
+    },
+    {
+      "name": "deno-2",
+      "slug": "deno-2",
+      "description": "Deno 2 — secure JavaScript/TypeScript runtime with npm compatibility. Use when building secure server-side apps, using TypeScript without config, deploying to Deno Deploy for serverless edge, or using npm packages inside Deno. Covers permissions model, npm imports, JSR registry, and built-in tooling (test, lint, fmt, compile).",
+      "category": "runtime",
+      "tags": [
+        "deno",
+        "javascript",
+        "typescript",
+        "secure",
+        "serverless",
+        "edge"
       ]
     },
     {
@@ -3349,6 +3377,19 @@
       "tags": []
     },
     {
+      "name": "hermes-agent",
+      "slug": "hermes-agent",
+      "description": "Build self-improving AI agents using Hermes patterns — agents that learn from interactions, update their own instructions, and adapt their behavior over time. Use when: building agents that improve with usage, creating adaptive AI assistants, implementing agent self-reflection.",
+      "category": "data-ai",
+      "tags": [
+        "agents",
+        "self-improving",
+        "hermes",
+        "adaptive",
+        "learning"
+      ]
+    },
+    {
       "name": "hetzner-cloud",
       "slug": "hetzner-cloud",
       "description": "Manage Hetzner Cloud infrastructure from the terminal. Use when a user asks to create a Hetzner server, manage VPS instances, set up firewalls, configure networks, manage volumes, create snapshots, handle SSH keys, or provision infrastructure on Hetzner. Covers the hcloud CLI for all resource types. For deploying applications on top of Hetzner servers, see coolify.",
@@ -3393,6 +3434,20 @@
       "description": "You are an expert in Hono, the ultrafast web framework for the edge. You help developers build APIs and web applications that run on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web Standards API compatibility that makes code truly portable across runtimes.",
       "category": "Backend Development",
       "tags": []
+    },
+    {
+      "name": "hono-rpc",
+      "slug": "hono-rpc",
+      "description": "Hono RPC — end-to-end type-safe API client for the Hono web framework. Use when building type-safe REST APIs with Hono, sharing types between frontend and backend, or replacing tRPC with a REST-compatible approach. Works on Cloudflare Workers, Deno, Bun, and Node.js.",
+      "category": "backend",
+      "tags": [
+        "hono",
+        "rpc",
+        "type-safe",
+        "cloudflare-workers",
+        "api",
+        "typescript"
+      ]
     },
     {
       "name": "hoppscotch",
@@ -4046,6 +4101,19 @@
       "description": "Get free TLS certificates with Certbot and Let's Encrypt. Use when a user asks to add HTTPS to a website, get a free SSL certificate, auto-renew certificates, or secure a web server with TLS.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "libsql",
+      "slug": "libsql",
+      "description": "libSQL — a fork of SQLite with replication, HTTP API, and embedded replicas (used by Turso). Use when you need embedded SQLite with remote sync, an edge-compatible database, or a Turso cloud database. Covers the @libsql/client SDK, local/in-memory/cloud connections, embedded replicas, batch queries, and transactions.",
+      "category": "database",
+      "tags": [
+        "libsql",
+        "sqlite",
+        "turso",
+        "edge-database",
+        "embedded"
+      ]
     },
     {
       "name": "lighthouse-ci",
@@ -6946,6 +7014,19 @@
       "tags": []
     },
     {
+      "name": "solid-js",
+      "slug": "solid-js",
+      "description": "SolidJS — fine-grained reactive UI library without a virtual DOM. Use when building high-performance UIs, choosing a React alternative with better reactivity primitives, or using SolidStart for full-stack apps with SSR and server functions. Covers signals, effects, memos, stores, and migration patterns from React.",
+      "category": "frontend",
+      "tags": [
+        "solidjs",
+        "reactive",
+        "signals",
+        "performance",
+        "frontend"
+      ]
+    },
+    {
       "name": "solidity",
       "slug": "solidity",
       "description": "Write smart contracts with Solidity for Ethereum. Use when a user asks to create a smart contract, build an ERC-20 token, deploy to Ethereum, write NFT contracts, or develop DeFi protocols.",
@@ -7708,6 +7789,19 @@
       "tags": []
     },
     {
+      "name": "trading-agents",
+      "slug": "trading-agents",
+      "description": "Build multi-agent LLM trading systems for financial analysis and automated trading decisions. Use when: building AI-powered investment research, automating financial analysis pipelines, creating multi-agent systems that analyze markets, news, and fundamentals.",
+      "category": "data-ai",
+      "tags": [
+        "trading",
+        "finance",
+        "multi-agent",
+        "llm",
+        "analysis"
+      ]
+    },
+    {
       "name": "traefik",
       "slug": "traefik",
       "description": "Route traffic and manage TLS with Traefik reverse proxy. Use when a user asks to set up a reverse proxy, route traffic to Docker containers, auto-provision SSL certificates with Let's Encrypt, set up load balancing, configure HTTPS for multiple services, use a modern alternative to nginx for Docker, set up path-based or host-based routing, add middleware (rate limiting, auth, headers), or manage ingress for containerized applications.",
@@ -7801,6 +7895,20 @@
       "description": "You are an expert in Turso, the SQLite-based database platform for production workloads. You help developers use libSQL (Turso's SQLite fork) as a primary database with features like embedded replicas (SQLite file synced from cloud), multi-region replication, vector search, branching, and edge deployment — providing sub-millisecond reads with the simplicity of SQLite and the durability of a cloud database.",
       "category": "Backend Development",
       "tags": []
+    },
+    {
+      "name": "turso-drizzle",
+      "slug": "turso-drizzle",
+      "description": "Turso + Drizzle ORM — type-safe SQLite at the edge with replication. Use when building edge-compatible applications with type-safe SQL, SQLite in production, multi-region databases, or Cloudflare Workers with a managed DB. Covers Turso setup, Drizzle schema definition, migrations with drizzle-kit, and edge deployment patterns.",
+      "category": "database",
+      "tags": [
+        "turso",
+        "drizzle",
+        "sqlite",
+        "edge",
+        "orm",
+        "type-safe"
+      ]
     },
     {
       "name": "twenty-crm",
@@ -8571,15 +8679,19 @@
     "Web Development",
     "Web Frameworks",
     "automation",
+    "backend",
     "business",
     "content",
     "data-ai",
+    "database",
     "design",
     "development",
     "devops",
     "documents",
+    "frontend",
     "productivity",
-    "research"
+    "research",
+    "runtime"
   ],
-  "updatedAt": "2026-03-18T17:47:01.201Z"
+  "updatedAt": "2026-03-24T18:26:33.354Z"
 }
