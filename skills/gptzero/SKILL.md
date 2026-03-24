@@ -1,237 +1,121 @@
 ---
 name: gptzero
 description: >-
-  Integrate GPTZero API for AI content detection — batch scanning, document
-  analysis, probability scores. Use when: programmatic AI content scanning,
-  building content moderation pipelines, academic integrity tools.
+  Integrate GPTZero API for AI content detection — text scanning, file upload,
+  batch processing, per-sentence probability scores. Use when: programmatic AI
+  content scanning, academic integrity tools, content moderation pipelines.
 license: Apache-2.0
-compatibility: "Requires Node.js 18+ with native fetch or node-fetch"
+compatibility: "Requires Node.js 18+ with native fetch"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
+  category: data-ai
   tags: ["ai-detection", "gptzero", "content-moderation", "text-analysis"]
-  use-cases:
-    - "Scan submitted essays and flag likely AI-generated content"
-    - "Build a content moderation pipeline with per-sentence AI scores"
-    - "Batch-check hundreds of documents for AI authorship"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
 # GPTZero API Integration
 
 ## Overview
 
-GPTZero is a specialized AI content detection service that provides per-document
-and per-sentence AI probability scores. It is purpose-built for detecting
-GPT-family, Claude, Gemini, and other LLM outputs.
+GPTZero is a specialized AI content detection service providing per-document and per-sentence AI probability scores. It detects output from GPT-family, Claude, Gemini, and other LLMs.
 
-**API base URL:** `https://api.gptzero.me/v2`  
-**Auth:** `x-api-key` header  
-**Docs:** https://gptzero.me/docs
+- **API base URL:** `https://api.gptzero.me/v2`
+- **Auth:** `x-api-key` header
+- **Docs:** https://gptzero.me/docs
 
-## Setup
+## Instructions
 
-```typescript
-const GPTZERO_API_KEY = process.env.GPTZERO_API_KEY!;
-const BASE_URL = "https://api.gptzero.me/v2";
+### Authentication
 
-const headers = {
-  "x-api-key": GPTZERO_API_KEY,
-  "Content-Type": "application/json",
-};
-```
+Set `GPTZERO_API_KEY` in your environment, then use it in the `x-api-key` header for all requests.
 
-## Single Text Analysis — `/v2/predict/text`
+### Single Text Analysis — POST `/v2/predict/text`
 
-Send a single document for AI detection.
+Send `{ "document": "<text>" }` as JSON. Returns a response with:
+- `completely_generated_prob` (0-1) — probability the entire document is AI-generated
+- `average_generated_prob` (0-1) — average AI probability across sentences
+- `overall_burstiness` — burstiness score (low = more AI-like)
+- `sentences[]` — per-sentence objects with `generated_prob`, `perplexity`, and `highlight_sentence_for_ai`
 
-```typescript
-interface GPTZeroDocument {
-  completely_generated_prob: number;   // 0-1: probability entire doc is AI
-  average_generated_prob: number;      // 0-1: average across sentences
-  overall_burstiness: number;          // burstiness score
-  paragraphs: GPTZeroParagraph[];
-  sentences: GPTZeroSentence[];
-}
+### Score Interpretation
 
-interface GPTZeroParagraph {
-  start_index: number;
-  end_index: number;
-  completely_generated_prob: number;
-}
-
-interface GPTZeroSentence {
-  sentence: string;
-  generated_prob: number;             // per-sentence AI probability
-  perplexity: number;
-  highlight_sentence_for_ai: boolean;
-}
-
-interface GPTZeroResponse {
-  documents: GPTZeroDocument[];
-}
-
-async function scanText(text: string): Promise<GPTZeroDocument> {
-  const res = await fetch(`${BASE_URL}/predict/text`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ document: text }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`GPTZero error ${res.status}: ${err}`);
-  }
-
-  const data: GPTZeroResponse = await res.json();
-  return data.documents[0];
-}
-```
-
-### Interpreting Scores
-
-| `completely_generated_prob` | Interpretation          |
-|-----------------------------|-------------------------|
+| `completely_generated_prob` | Meaning                  |
+|-----------------------------|--------------------------|
 | > 0.80                      | Very likely AI-generated |
-| 0.50 – 0.80                 | Mixed / uncertain        |
+| 0.50 - 0.80                | Mixed / uncertain        |
 | < 0.50                      | Likely human-written     |
 
-```typescript
-function interpret(doc: GPTZeroDocument): string {
-  const p = doc.completely_generated_prob;
-  if (p > 0.8) return "🔴 AI-generated";
-  if (p > 0.5) return "🟡 Mixed/uncertain";
-  return "🟢 Human-written";
+### File Upload — POST `/v2/predict/files`
+
+Upload PDF, DOCX, or TXT files using multipart form data. Returns the same document structure as text analysis.
+
+### Batch Processing
+
+GPTZero free tier allows ~10 req/min. For bulk scanning, process in batches with concurrency control (e.g., 3 concurrent requests with 300ms delay between batches).
+
+### Flagged Sentences
+
+Filter `sentences` where `highlight_sentence_for_ai === true` to extract the specific sentences GPTZero considers AI-generated.
+
+## Examples
+
+### Example 1: Scanning a student essay
+
+A university teaching assistant checks a submitted essay using the GPTZero API:
+
+```
+POST https://api.gptzero.me/v2/predict/text
+Headers: { "x-api-key": "gz-abc123...", "Content-Type": "application/json" }
+Body: { "document": "The Industrial Revolution fundamentally transformed Western society in numerous ways. It is worth noting that the shift from agrarian economies to industrial manufacturing created unprecedented urbanization. Furthermore, the development of steam power and mechanized production significantly altered labor dynamics and social structures across Europe and North America." }
+
+Response:
+{
+  "documents": [{
+    "completely_generated_prob": 0.89,
+    "average_generated_prob": 0.85,
+    "overall_burstiness": 0.12,
+    "sentences": [
+      { "sentence": "The Industrial Revolution fundamentally transformed Western society in numerous ways.", "generated_prob": 0.78, "highlight_sentence_for_ai": true },
+      { "sentence": "It is worth noting that the shift from agrarian economies...", "generated_prob": 0.95, "highlight_sentence_for_ai": true },
+      { "sentence": "Furthermore, the development of steam power...", "generated_prob": 0.91, "highlight_sentence_for_ai": true }
+    ]
+  }]
 }
+
+Verdict: AI-generated (89% probability). All 3 sentences flagged.
 ```
 
-## Highlighted Sentences
+### Example 2: Verifying a journalist's draft
 
-Retrieve the specific sentences GPTZero flagged as AI-generated:
+An editor checks a news article draft before publication:
 
-```typescript
-function getAISentences(doc: GPTZeroDocument): string[] {
-  return doc.sentences
-    .filter((s) => s.highlight_sentence_for_ai)
-    .map((s) => s.sentence);
+```
+POST https://api.gptzero.me/v2/predict/text
+Body: { "document": "At 3:47 AM on Tuesday, a pipe burst in the basement of Mel's Diner on Crenshaw Blvd, flooding the kitchen where owner Melinda Torres had just finished prepping 40 pounds of brisket for the lunch rush. 'I heard it pop and I just stood there watching the water come up,' Torres said. 'Twenty-two years in this spot and nothing like this has happened.' The city's Department of Water and Power dispatched a crew by 5 AM." }
+
+Response:
+{
+  "documents": [{
+    "completely_generated_prob": 0.08,
+    "average_generated_prob": 0.11,
+    "overall_burstiness": 0.67,
+    "sentences": [
+      { "sentence": "At 3:47 AM on Tuesday, a pipe burst...", "generated_prob": 0.05, "highlight_sentence_for_ai": false },
+      { "sentence": "'I heard it pop and I just stood there...'", "generated_prob": 0.03, "highlight_sentence_for_ai": false },
+      { "sentence": "The city's Department of Water and Power...", "generated_prob": 0.12, "highlight_sentence_for_ai": false }
+    ]
+  }]
 }
+
+Verdict: Human-written (8% probability). No sentences flagged.
 ```
 
-## File Upload — `/v2/predict/files`
-
-For PDF, DOCX, or TXT files:
-
-```typescript
-async function scanFile(filePath: string): Promise<GPTZeroDocument> {
-  const { createReadStream } = await import("fs");
-  const { default: FormData } = await import("form-data");
-
-  const form = new FormData();
-  form.append("files", createReadStream(filePath));
-
-  const res = await fetch(`${BASE_URL}/predict/files`, {
-    method: "POST",
-    headers: {
-      "x-api-key": GPTZERO_API_KEY,
-      ...form.getHeaders(),
-    },
-    body: form,
-  });
-
-  if (!res.ok) throw new Error(`GPTZero file error ${res.status}`);
-  const data = await res.json();
-  return data.documents[0];
-}
-```
-
-## Batch Processing with Rate Limiting
-
-GPTZero free tier allows ~10 req/min. Use a queue with concurrency control:
-
-```typescript
-async function batchScan(
-  texts: string[],
-  options: { concurrency?: number; delayMs?: number } = {}
-): Promise<{ text: string; result: GPTZeroDocument; verdict: string }[]> {
-  const { concurrency = 3, delayMs = 300 } = options;
-  const results: { text: string; result: GPTZeroDocument; verdict: string }[] = [];
-
-  for (let i = 0; i < texts.length; i += concurrency) {
-    const batch = texts.slice(i, i + concurrency);
-
-    const batchResults = await Promise.all(
-      batch.map(async (text) => {
-        const result = await scanText(text);
-        return { text, result, verdict: interpret(result) };
-      })
-    );
-
-    results.push(...batchResults);
-
-    // Respect rate limits between batches
-    if (i + concurrency < texts.length) {
-      await new Promise((r) => setTimeout(r, delayMs));
-    }
-  }
-
-  return results;
-}
-```
-
-## Per-Article Report
-
-```typescript
-function generateReport(text: string, doc: GPTZeroDocument): string {
-  const aiSentences = getAISentences(doc);
-  const verdict = interpret(doc);
-
-  return `
-## AI Detection Report
-
-**Verdict:** ${verdict}
-**AI Probability:** ${(doc.completely_generated_prob * 100).toFixed(1)}%
-**Average Sentence AI Score:** ${(doc.average_generated_prob * 100).toFixed(1)}%
-**Burstiness:** ${doc.overall_burstiness?.toFixed(3) ?? "N/A"}
-
-### Flagged Sentences (${aiSentences.length})
-${aiSentences.map((s, i) => `${i + 1}. "${s}"`).join("\n")}
-`.trim();
-}
-```
-
-## Error Handling
-
-```typescript
-async function safeScan(text: string): Promise<GPTZeroDocument | null> {
-  try {
-    // GPTZero requires minimum ~250 characters
-    if (text.length < 250) {
-      console.warn("Text too short for reliable detection (<250 chars)");
-    }
-    return await scanText(text);
-  } catch (err: any) {
-    if (err.message.includes("429")) {
-      console.error("Rate limited — wait 60s before retrying");
-    } else if (err.message.includes("402")) {
-      console.error("Quota exceeded — check your GPTZero plan");
-    } else {
-      console.error("GPTZero error:", err.message);
-    }
-    return null;
-  }
-}
-```
-
-## Pricing Notes
-
-- **Free tier:** Limited to ~10,000 words/month, ~10 req/min
-- **Essential / Pro:** Higher limits, file upload, API access
-- Check https://gptzero.me/pricing for current plans
-
-## Limitations
+## Guidelines
 
 - Minimum text length: ~250 characters for reliable results
-- Paraphrased or edited AI text may score lower
-- Best accuracy on English text; other languages supported but less reliable
+- Best accuracy on English text; other languages are supported but less reliable
+- Paraphrased or lightly edited AI text may score lower than raw AI output
 - Does not detect AI-generated images or code
+- Free tier: ~10,000 words/month, ~10 req/min; check https://gptzero.me/pricing for paid plans
+- Handle HTTP 429 (rate limit) by waiting 60s and HTTP 402 (quota exceeded) by checking your plan
+- Always route flagged content to human review — no detector is 100% accurate
