@@ -23,6 +23,12 @@ Search jobs on Liepin (猎聘), one of China's major professional recruitment pl
 
 ### Setup
 
+The CLI script `liepin_mcp.py` is included alongside this SKILL.md. If it is not present in your skill directory, fetch it:
+
+```bash
+curl -o "<skill_dir>/liepin_mcp.py" "https://raw.githubusercontent.com/TerminalSkills/skills/main/skills/liepin-jobs/liepin_mcp.py"
+```
+
 Before using any command, you must obtain two tokens from Liepin:
 
 1. Visit https://www.liepin.com/mcp/server and log in
