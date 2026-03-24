@@ -1,7 +1,7 @@
 ---
 name: supermemory
 description: >-
-  Add persistent memory to AI agents using Supermemory API — the #1 ranked AI memory engine.
+  Add persistent memory to AI agents using Supermemory API -- the #1 ranked AI memory engine.
   Use when: building AI assistants that remember users, adding long-term memory to chatbots,
   creating personalized AI products, storing conversation context across sessions.
 license: Apache-2.0
@@ -9,29 +9,19 @@ compatibility: "Node.js 18+ or Python 3.9+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
-  tags: [memory, ai-agents, rag, personalization, context, supermemory]
-  use-cases:
-    - "Add persistent memory to a Claude/GPT chatbot so it remembers users"
-    - "Build a personal AI assistant that learns over time"
-    - "Store and retrieve user preferences, past conversations, and facts"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  category: data-ai
+  tags: [memory, ai-agents, rag, personalization, supermemory]
 ---
 
 # Supermemory
 
 ## Overview
 
-Supermemory is the memory and context layer for AI — #1 on LongMemEval, LoCoMo, and ConvoMem benchmarks. Automatically extracts facts from conversations, maintains user profiles, handles temporal changes and contradictions, and delivers the right context at the right time.
+Supermemory is the memory and context layer for AI -- ranked #1 on LongMemEval, LoCoMo, and ConvoMem benchmarks. It automatically extracts facts from conversations, maintains user profiles with ~50ms retrieval, handles temporal changes and contradictions, and delivers the right context at the right time. Supports hybrid search (RAG + memory), connectors (Google Drive, Gmail, Notion, GitHub), and multi-modal input (PDFs, images, videos, code).
 
-**Key capabilities:**
-- 🧠 **Memory** — extracts and stores facts from conversations, handles updates/contradictions
-- 👤 **User Profiles** — auto-maintained user context, ~50ms retrieval
-- 🔍 **Hybrid Search** — RAG + Memory in a single query
-- 🔌 **Connectors** — Google Drive, Gmail, Notion, OneDrive, GitHub sync
-- 📄 **Multi-modal** — PDFs, images, videos, code processing
+## Instructions
 
-## Installation
+### Installation
 
 ```bash
 npm install supermemory
@@ -39,25 +29,20 @@ npm install supermemory
 pip install supermemory
 ```
 
-Get API key: https://console.supermemory.ai
+Get an API key at https://console.supermemory.ai
 
-## Basic Memory Operations (TypeScript)
+### Core Memory Operations
 
 ```typescript
 import Supermemory from "supermemory";
 
-const client = new Supermemory({
-  apiKey: process.env.SUPERMEMORY_API_KEY,
-});
+const client = new Supermemory({ apiKey: process.env.SUPERMEMORY_API_KEY });
 
 // Add a memory
 const memory = await client.memories.add({
   content: "User prefers dark mode and uses TypeScript exclusively",
   userId: "user_123",
-  metadata: {
-    source: "conversation",
-    timestamp: new Date().toISOString(),
-  },
+  metadata: { source: "conversation", timestamp: new Date().toISOString() },
 });
 
 // Search memories
@@ -67,118 +52,84 @@ const results = await client.memories.search({
   limit: 5,
 });
 
-console.log(results.results);
-// [{ content: "...", score: 0.95, metadata: {...} }]
-
 // Delete a memory
 await client.memories.delete(memory.id);
 ```
 
-## User Profile (Auto-maintained)
+### User Profiles (Auto-maintained)
 
 ```typescript
-// Get comprehensive user profile in ~50ms
 const profile = await client.users.getProfile("user_123");
-console.log(profile);
-// {
-//   stable_facts: ["Uses TypeScript", "Based in NYC", "Works on SaaS products"],
-//   recent_activity: ["Asked about React hooks", "Discussed deployment"],
-//   preferences: { theme: "dark", language: "TypeScript" }
-// }
+// Returns: { stable_facts, recent_activity, preferences }
 ```
 
-## Add Memory to AI Conversations
+### Adding Memory to AI Conversations
+
+1. Retrieve relevant memories before each response
+2. Include memory context in the system prompt
+3. Store new information from each conversation turn
 
 ```typescript
-import Anthropic from "@anthropic-ai/sdk";
-import Supermemory from "supermemory";
-
-const claude = new Anthropic();
-const memory = new Supermemory({ apiKey: process.env.SUPERMEMORY_API_KEY });
-
-async function chatWithMemory(userId: string, userMessage: string): Promise<string> {
-  // 1. Retrieve relevant memories
-  const memories = await memory.memories.search({
-    query: userMessage,
-    userId,
-    limit: 5,
+async function chatWithMemory(userId: string, userMessage: string) {
+  const memories = await client.memories.search({
+    query: userMessage, userId, limit: 5,
   });
 
-  const memoryContext = memories.results
-    .map(m => `- ${m.content}`)
-    .join("\n");
+  const memoryContext = memories.results.map(m => `- ${m.content}`).join("\n");
 
-  // 2. Build prompt with memory context
   const response = await claude.messages.create({
     model: "claude-opus-4-5",
     max_tokens: 1024,
-    system: `You are a helpful assistant. Here is what you know about this user:
-${memoryContext}
-
-Use this context to personalize your responses.`,
+    system: `You know this about the user:\n${memoryContext}`,
     messages: [{ role: "user", content: userMessage }],
   });
 
-  const assistantResponse = response.content[0].type === "text"
-    ? response.content[0].text : "";
-
-  // 3. Store new information from conversation
-  await memory.memories.add({
-    content: `User said: "${userMessage}". Assistant responded about: ${assistantResponse.slice(0, 100)}`,
+  await client.memories.add({
+    content: `User said: "${userMessage}"`,
     userId,
   });
 
-  return assistantResponse;
+  return response.content[0].text;
 }
 ```
 
-## Python Example
+### Python Usage
 
 ```python
 from supermemory import Supermemory
 
 client = Supermemory(api_key="your_api_key")
 
-# Add memory
 client.memories.add(
-    content="User is building a B2B SaaS product targeting HR teams",
+    content="User is building a B2B SaaS targeting HR teams",
     user_id="user_123",
 )
 
-# Search
-results = client.memories.search(
-    query="what is the user building",
-    user_id="user_123",
-    limit=3,
-)
-
+results = client.memories.search(query="what is the user building", user_id="user_123", limit=3)
 for r in results.results:
     print(f"[{r.score:.2f}] {r.content}")
 ```
 
-## Connectors (Auto-sync External Sources)
+### Connectors (Auto-sync External Sources)
 
 ```typescript
-// Connect Google Drive — automatically indexes all documents
-const connector = await client.connectors.connect({
+await client.connectors.connect({
   type: "google_drive",
   userId: "user_123",
-  credentials: {
-    access_token: googleAccessToken,
-  },
+  credentials: { access_token: googleAccessToken },
 });
 
-// Now search across Drive docs + memories together
+// Search across Drive docs + memories together
 const results = await client.memories.search({
-  query: "project requirements document",
+  query: "project requirements",
   userId: "user_123",
   includeConnectors: true,
 });
 ```
 
-## MCP Integration (Claude Desktop)
+### MCP Integration (Claude Desktop)
 
-Add to your `claude_desktop_config.json`:
+Add to `claude_desktop_config.json`:
 
 ```json
 {
@@ -186,16 +137,42 @@ Add to your `claude_desktop_config.json`:
     "supermemory": {
       "command": "npx",
       "args": ["-y", "supermemory-mcp"],
-      "env": {
-        "SUPERMEMORY_API_KEY": "your_api_key"
-      }
+      "env": { "SUPERMEMORY_API_KEY": "your_api_key" }
     }
   }
 }
 ```
 
-## Pricing
+## Examples
 
-- Free: 1,000 memories, 100 searches/day
-- Pro: $20/month — 100k memories, unlimited search
-- API: $0.001 per memory add, $0.0001 per search
+### Example 1: Personal AI Assistant with Memory
+
+Build a chatbot that remembers user preferences across sessions:
+
+1. On first conversation: user mentions they work in fintech, prefer Python, and are building a payment API
+2. `client.memories.add({ content: "Works in fintech, prefers Python, building payment API", userId })` stores this
+3. Next session, user asks "help me with error handling" -- search returns their context
+4. System prompt includes: "User works in fintech, prefers Python, is building a payment API"
+5. Response is tailored: Python error handling examples specific to payment processing, not generic code
+6. Profile auto-updates: `{ stable_facts: ["Works in fintech", "Prefers Python"], recent_activity: ["Building payment API"] }`
+
+### Example 2: Knowledge Base with Connector Sync
+
+Sync a team's Google Drive and let anyone search across all documents plus conversation history:
+
+1. Connect Google Drive: `client.connectors.connect({ type: "google_drive", userId: "team_shared" })`
+2. Supermemory indexes all Drive documents automatically
+3. Team member asks: "What did we decide about the pricing model?"
+4. Search with `includeConnectors: true` returns both the pricing doc from Drive and a memory from a previous conversation where the CEO said "let us go with usage-based"
+5. Response synthesizes both sources: "The pricing doc outlines three tiers, and in your last discussion the team decided on usage-based pricing"
+
+## Guidelines
+
+- Always scope memories to a `userId` for multi-user applications
+- Use `metadata` to tag memories with source and timestamp for traceability
+- Search before adding to avoid duplicate memories -- Supermemory handles contradictions but duplicates waste quota
+- Retrieve 3-5 memories per query for optimal context without noise
+- User profiles are auto-maintained -- no need to manually build them
+- Free tier: 1,000 memories, 100 searches/day. Pro: $20/month for 100k memories, unlimited search
+- Keep API keys in environment variables, never hardcode them
+- Connectors sync automatically after initial setup -- no polling required

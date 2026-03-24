@@ -9,52 +9,62 @@ compatibility: "Any AI agent"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: architecture
-  tags: [architecture, dimensions, building-spec, floor-plan, 3d, standards, proportions]
-  use-cases:
-    - "Generate a building where all rooms, doors, and windows match client specifications"
-    - "Validate that an AI-generated floor plan meets project-specific requirements"
-    - "Apply custom dimension standards to any architectural generation task"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  category: design
+  tags: [architecture, building-spec, floor-plan, 3d, standards]
 ---
 
 # Building Spec
 
 ## Overview
 
-Before generating any building, floor plan, or spatial design, always:
-1. Look for `BUILDING_SPEC.md` or `DIMENSIONS.md` in the project root
-2. Load the spec and treat it as ground truth
-3. Fill any gaps with defaults from the `architectural-dimensions` skill
-4. Validate all generated elements against the spec
+Before generating any building, floor plan, or spatial design, always look for a project-specific specification file. This skill defines the workflow for finding, parsing, and applying custom dimension constraints so that every generated element matches client requirements. When no spec file exists, fall back to defaults from the `architectural-dimensions` skill.
 
-## Finding the Spec File
+## Instructions
 
-```typescript
-import fs from "fs";
-import path from "path";
+### Step 1: Find the Spec File
 
-function findBuildingSpec(startDir: string = process.cwd()): string | null {
-  const names = ["BUILDING_SPEC.md", "DIMENSIONS.md", "building-spec.md", "dimensions.md"];
-  
-  let dir = startDir;
-  while (dir !== path.dirname(dir)) {
-    for (const name of names) {
-      const p = path.join(dir, name);
-      if (fs.existsSync(p)) return p;
-    }
-    dir = path.dirname(dir);
-  }
-  return null;
-}
+Search the project root (and parent directories) for any of these filenames:
+- `BUILDING_SPEC.md`
+- `DIMENSIONS.md`
+- `building-spec.md`
+- `dimensions.md`
 
-const specPath = findBuildingSpec();
-const spec = specPath ? fs.readFileSync(specPath, "utf8") : null;
-```
+If found, load it and treat it as ground truth for all dimensions.
 
-## Standard BUILDING_SPEC.md Template
+### Step 2: Parse the Spec
 
-Create this file in your project root:
+Extract structured parameters from the spec file:
+
+- **Units**: metric (meters) or imperial (feet/inches)
+- **Floor heights**: ground, upper, basement ceiling heights
+- **Wall thicknesses**: external, load-bearing, partition
+- **Door dimensions**: main entrance, internal, bathroom (width x height)
+- **Window dimensions**: sill height, standard size, room-specific overrides
+- **Room requirements**: minimum area and width per room type
+- **Special requirements**: accessibility, max height, setbacks, parking
+
+### Step 3: Apply During Generation
+
+When generating building geometry:
+
+1. Use spec values as absolute constraints for all dimensions
+2. Fill any gaps with defaults (ceiling 2.7 m, exterior wall 0.25 m, partition 0.10 m, door 0.9 m x 2.1 m)
+3. Every room must meet the spec minimum area and width
+4. All doors and windows must use spec-defined sizes
+
+### Step 4: Validate Against Spec
+
+After generation, check every element:
+
+- Ceiling heights match spec per level type (ground vs upper)
+- Wall thicknesses match spec (exterior vs partition)
+- Door widths meet spec minimums
+- Room areas meet spec minimums per room type
+- Any violations must be reported or auto-corrected before output
+
+### Standard BUILDING_SPEC.md Template
+
+Projects should create this file in the root directory:
 
 ```markdown
 # Building Dimensions Specification
@@ -62,285 +72,94 @@ Create this file in your project root:
 ## Project Information
 - **Project name:** [Your Project Name]
 - **Standard:** Metric (meters) | Imperial (feet/inches)
-- **Building type:** Residential | Commercial | Mixed-use | Industrial
-- **Location/Code:** [Country/Region building code reference]
+- **Building type:** Residential | Commercial | Mixed-use
 
 ## Floor Heights
 - Ground floor: 2.7m
 - Upper floors: 2.7m
 - Basement: 2.4m
-- <!-- Override example: Ground floor: 3.5m (retail ground floor) -->
 
 ## Wall Thicknesses
 - External walls: 0.25m
-- Internal load-bearing walls: 0.20m
+- Internal load-bearing: 0.20m
 - Internal partitions: 0.10m
 
 ## Doors
-- Main entrance: 1.0m wide × 2.1m tall
-- Standard internal: 0.9m × 2.1m
-- Bathroom: 0.8m × 2.1m
-- Emergency/fire exit: 0.9m × 2.1m
-- <!-- Add custom doors as needed -->
+- Main entrance: 1.0m wide x 2.1m tall
+- Standard internal: 0.9m x 2.1m
+- Bathroom: 0.8m x 2.1m
 
 ## Windows
 - Standard sill height: 0.9m from floor
-- Standard window: 1.2m wide × 1.2m tall
-- Living area windows: 1.8m wide × 1.4m tall
-- Bathroom: 0.6m × 0.6m (frosted)
+- Standard window: 1.2m wide x 1.2m tall
 
 ## Room Requirements
-| Room | Min Area | Min Width | Notes |
-|------|----------|-----------|-------|
-| Bedroom | 10m² | 2.7m | Must have window |
-| Master bedroom | 16m² | 3.2m | En-suite if possible |
-| Kitchen | 8m² | 2.4m | |
-| Bathroom | 4m² | 1.5m | |
-| Living room | 20m² | 3.5m | |
-| Corridor | — | 1.0m | Accessible: 1.2m |
-
-## Special Requirements
-- Wheelchair accessible: [Yes/No, specify which areas]
-- Minimum floor area: [total m²]
-- Maximum building height: [m]
-- Setbacks: [front/rear/side distances from plot boundary]
-- Parking: [number of spaces required]
-
-## Materials (for reference)
-- External walls: [material]
-- Roof: [type and material]
-- Flooring: [material per room type]
+| Room | Min Area | Min Width |
+|------|----------|-----------|
+| Bedroom | 10m2 | 2.7m |
+| Master bedroom | 16m2 | 3.2m |
+| Kitchen | 8m2 | 2.4m |
+| Bathroom | 4m2 | 1.5m |
+| Living room | 20m2 | 3.5m |
+| Corridor | -- | 1.0m |
 ```
 
-## Parsing the Spec
+### Default Fallback Values
 
-When you receive a building spec, extract structured parameters:
+When no spec file is found, use these defaults:
 
-```typescript
-interface BuildingSpec {
-  units: "metric" | "imperial";
-  buildingType: string;
-  floorHeights: {
-    ground: number;
-    upper: number;
-    basement?: number;
-  };
-  walls: {
-    external: number;
-    loadBearing: number;
-    partition: number;
-  };
-  doors: {
-    mainEntrance: { width: number; height: number };
-    internal: { width: number; height: number };
-    bathroom: { width: number; height: number };
-    [key: string]: { width: number; height: number };
-  };
-  windows: {
-    sillHeight: number;
-    standard: { width: number; height: number };
-    [key: string]: any;
-  };
-  rooms: {
-    [roomType: string]: {
-      minArea: number;
-      minWidth: number;
-      notes?: string;
-    };
-  };
-  special: {
-    accessible?: boolean;
-    minFloorArea?: number;
-    maxHeight?: number;
-    parking?: number;
-  };
-}
+| Parameter | Value |
+|---|---|
+| Ceiling height (ground/upper) | 2.7 m |
+| Ceiling height (basement) | 2.4 m |
+| External wall | 0.25 m |
+| Partition | 0.10 m |
+| Main entrance door | 0.9 m x 2.1 m |
+| Bathroom door | 0.8 m x 2.1 m |
+| Window sill height | 0.9 m |
+| Standard window | 1.2 m x 1.2 m |
+| Bedroom min area | 10 m2 |
+| Kitchen min area | 8 m2 |
+| Living room min area | 20 m2 |
+| Corridor min width | 1.0 m |
 
-async function parseSpecWithAI(specMarkdown: string): Promise<BuildingSpec> {
-  const response = await claude.messages.create({
-    model: "claude-opus-4-5",
-    max_tokens: 2048,
-    messages: [{
-      role: "user",
-      content: `Parse this building specification into a structured JSON object.
-Extract all dimensions in meters (convert from feet if needed).
+## Examples
 
-BUILDING SPEC:
-${specMarkdown}
+### Example 1: Generate a Building from a Custom Spec
 
-Return valid JSON matching the BuildingSpec interface. Use null for missing values.`,
-    }],
-  });
+A project has `BUILDING_SPEC.md` with ground floor height 3.5 m (retail), upper floors 2.7 m, external walls 0.30 m, and minimum bedroom area 12 m2.
 
-  const text = response.content[0].type === "text" ? response.content[0].text : "";
-  const match = text.match(/\{[\s\S]*\}/);
-  return match ? JSON.parse(match[0]) : getDefaultSpec();
-}
-```
+1. Find spec: `BUILDING_SPEC.md` exists in project root
+2. Parse: ground=3.5 m, upper=2.7 m, ext_wall=0.30 m, bedroom_min=12 m2
+3. Generate: ground floor level with 3.5 m ceiling, 0.30 m exterior walls, all bedrooms >= 12 m2
+4. Validate: check each element against spec values
+5. Result: all rooms meet custom minimums, ground floor has retail-height ceiling
 
-## Applying the Spec to Generation
+### Example 2: Validate an Existing Model Against Spec
 
-```typescript
-async function generateBuildingWithSpec(
-  description: string,
-  specPath?: string
-): Promise<BuildingModel> {
-  
-  // 1. Load spec
-  const specFile = specPath || findBuildingSpec();
-  const specMarkdown = specFile ? fs.readFileSync(specFile, "utf8") : null;
-  const spec = specMarkdown 
-    ? await parseSpecWithAI(specMarkdown)
-    : getDefaultSpec();
+A model has a bedroom at 9 m2 but the spec requires minimum 10 m2:
 
-  // 2. Generate building with spec as constraint
-  const response = await claude.messages.create({
-    model: "claude-opus-4-5",
-    max_tokens: 4096,
-    system: `You are an architectural design AI. Generate building models using the following specification as absolute constraints.
+1. Load spec: bedroom min area = 10 m2
+2. Scan model rooms: bedroom R-bed2 has area 9.0 m2
+3. Violation detected: "Room Bedroom 2: area 9.0 m2 < spec minimum 10 m2"
+4. Auto-fix: expand room width from 2.5 m to 2.8 m, increasing area to 11.2 m2
+5. Re-validate: all rooms now pass
 
-BUILDING SPECIFICATION:
-${specMarkdown || "No spec file found — use standard architectural dimensions."}
+### Example 3: No Spec File Found
 
-RULES:
-- All dimensions MUST comply with the spec
-- If a spec value is not provided, use standard architectural defaults
-- Every room must meet minimum area and width requirements
-- All doors and windows must use spec-defined sizes
-- Validate each element against spec before including it`,
-    messages: [{
-      role: "user",
-      content: `Generate a building based on this description: ${description}
-      
-Output as JSON BuildingModel with all dimensions in meters.`,
-    }],
-  });
+No `BUILDING_SPEC.md` or `DIMENSIONS.md` in the project:
 
-  const model = extractJSON(response);
-  
-  // 3. Validate against spec
-  const violations = validateAgainstSpec(model, spec);
-  if (violations.length > 0) {
-    throw new Error(`Spec violations:\n${violations.join("\n")}`);
-  }
+1. Search project root and parent directories -- not found
+2. Fall back to default values (2.7 m ceiling, 0.25 m ext wall, 0.10 m partition)
+3. Generate using defaults from the `architectural-dimensions` skill
+4. Validate against standard minimums
 
-  return model;
-}
-```
+## Guidelines
 
-## Validation Against Spec
-
-```typescript
-interface SpecViolation {
-  element: string;
-  issue: string;
-  expected: string;
-  actual: string;
-}
-
-function validateAgainstSpec(model: BuildingModel, spec: BuildingSpec): SpecViolation[] {
-  const violations: SpecViolation[] = [];
-
-  for (const level of model.building.levels) {
-    // Check ceiling height
-    const expectedHeight = level.elevation === 0 
-      ? spec.floorHeights.ground 
-      : spec.floorHeights.upper;
-    
-    if (Math.abs(level.height - expectedHeight) > 0.05) {
-      violations.push({
-        element: `Level ${level.name}`,
-        issue: "Ceiling height mismatch",
-        expected: `${expectedHeight}m`,
-        actual: `${level.height}m`,
-      });
-    }
-
-    // Check wall thicknesses
-    for (const wall of level.walls) {
-      const expectedThickness = wall.isExterior 
-        ? spec.walls.external 
-        : spec.walls.partition;
-      
-      if (Math.abs(wall.thickness - expectedThickness) > 0.02) {
-        violations.push({
-          element: `Wall at (${wall.start.x},${wall.start.y})`,
-          issue: "Wall thickness mismatch",
-          expected: `${expectedThickness}m`,
-          actual: `${wall.thickness}m`,
-        });
-      }
-
-      // Check door dimensions
-      for (const opening of wall.openings.filter(o => o.type === "door")) {
-        const specDoor = spec.doors.internal;
-        if (opening.width < specDoor.width - 0.05) {
-          violations.push({
-            element: "Door opening",
-            issue: "Door too narrow",
-            expected: `≥${specDoor.width}m`,
-            actual: `${opening.width}m`,
-          });
-        }
-      }
-    }
-
-    // Check room minimum sizes
-    for (const room of level.rooms) {
-      const roomSpec = spec.rooms[room.type];
-      if (roomSpec && room.area < roomSpec.minArea) {
-        violations.push({
-          element: `Room: ${room.name}`,
-          issue: "Room too small",
-          expected: `≥${roomSpec.minArea}m²`,
-          actual: `${room.area.toFixed(1)}m²`,
-        });
-      }
-    }
-  }
-
-  return violations;
-}
-```
-
-## Default Spec (Fallback)
-
-```typescript
-function getDefaultSpec(): BuildingSpec {
-  return {
-    units: "metric",
-    buildingType: "residential",
-    floorHeights: { ground: 2.7, upper: 2.7, basement: 2.4 },
-    walls: { external: 0.25, loadBearing: 0.20, partition: 0.10 },
-    doors: {
-      mainEntrance: { width: 0.9, height: 2.1 },
-      internal: { width: 0.9, height: 2.1 },
-      bathroom: { width: 0.8, height: 2.1 },
-    },
-    windows: {
-      sillHeight: 0.9,
-      standard: { width: 1.2, height: 1.2 },
-    },
-    rooms: {
-      bedroom: { minArea: 10, minWidth: 2.7 },
-      master_bedroom: { minArea: 16, minWidth: 3.2 },
-      kitchen: { minArea: 8, minWidth: 2.4 },
-      bathroom: { minArea: 4, minWidth: 1.5 },
-      living: { minArea: 20, minWidth: 3.5 },
-      corridor: { minArea: 0, minWidth: 1.0 },
-    },
-    special: {},
-  };
-}
-```
-
-## Workflow Summary
-
-```
-1. findBuildingSpec() → locate BUILDING_SPEC.md
-2. parseSpecWithAI()  → extract structured parameters
-3. generateBuilding() → Claude generates with spec as system prompt constraint
-4. validateAgainstSpec() → check every element meets spec
-5. If violations → auto-fix or report to user
-6. Output → validated BuildingModel JSON
-```
+- Always search for a spec file before generating any architectural elements
+- Spec values override all defaults -- treat the spec as ground truth
+- If a spec value is missing for a particular element, use the default fallback
+- Report all spec violations as errors, not warnings
+- Pair this skill with `architectural-dimensions` for comprehensive validation
+- When creating a new project, generate the `BUILDING_SPEC.md` template for the client to fill in
+- Keep spec files in the project root for easy discovery
