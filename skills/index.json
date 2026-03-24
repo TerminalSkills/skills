@@ -434,6 +434,19 @@
       "tags": []
     },
     {
+      "name": "architectural-drawing-parser",
+      "slug": "architectural-drawing-parser",
+      "description": "Parse architectural drawings, floor plans, and building code compliance documents using Vision AI. Extracts building type, occupancy, floor areas, room layouts, dimensions, and code parameters. Use when: reading PDF floor plans, analyzing architectural drawings, extracting building data from images or scanned documents.",
+      "category": "design",
+      "tags": [
+        "architecture",
+        "vision-ai",
+        "floor-plan",
+        "building-codes",
+        "pdf-parsing"
+      ]
+    },
+    {
       "name": "archiver",
       "slug": "archiver",
       "description": "Create ZIP and TAR archives programmatically with Archiver — bundle files, directories, and streams into compressed archives with progress tracking. Use when tasks involve generating downloadable bundles, backing up directories, creating deployment packages, or building export features that zip multiple files together.",
@@ -1020,6 +1033,20 @@
         "package-manager",
         "bundler",
         "typescript"
+      ]
+    },
+    {
+      "name": "bun-runtime",
+      "slug": "bun-runtime",
+      "description": "Bun — fast all-in-one JavaScript runtime, bundler, test runner, and package manager. Use when speeding up Node.js projects, using Bun as a drop-in Node replacement, bundling with Bun, or running tests faster. Covers runtime APIs, package management, bundling, and Bun-specific features like Bun.serve, Bun.file, and Bun.sqlite.",
+      "category": "runtime",
+      "tags": [
+        "bun",
+        "javascript",
+        "runtime",
+        "bundler",
+        "fast",
+        "node-alternative"
       ]
     },
     {
@@ -2101,6 +2128,20 @@
         "runtime",
         "secure",
         "web-standards"
+      ]
+    },
+    {
+      "name": "deno-2",
+      "slug": "deno-2",
+      "description": "Deno 2 — secure JavaScript/TypeScript runtime with npm compatibility. Use when building secure server-side apps, using TypeScript without config, deploying to Deno Deploy for serverless edge, or using npm packages inside Deno. Covers permissions model, npm imports, JSR registry, and built-in tooling (test, lint, fmt, compile).",
+      "category": "runtime",
+      "tags": [
+        "deno",
+        "javascript",
+        "typescript",
+        "secure",
+        "serverless",
+        "edge"
       ]
     },
     {
@@ -3395,6 +3436,20 @@
       "tags": []
     },
     {
+      "name": "hono-rpc",
+      "slug": "hono-rpc",
+      "description": "Hono RPC — end-to-end type-safe API client for the Hono web framework. Use when building type-safe REST APIs with Hono, sharing types between frontend and backend, or replacing tRPC with a REST-compatible approach. Works on Cloudflare Workers, Deno, Bun, and Node.js.",
+      "category": "backend",
+      "tags": [
+        "hono",
+        "rpc",
+        "type-safe",
+        "cloudflare-workers",
+        "api",
+        "typescript"
+      ]
+    },
+    {
       "name": "hoppscotch",
       "slug": "hoppscotch",
       "description": "Test and debug APIs with Hoppscotch. Use when a user asks to test API endpoints, debug REST/GraphQL/WebSocket APIs, create API collections, or find a Postman alternative that's open-source.",
@@ -3481,6 +3536,19 @@
         "localization",
         "translations",
         "react-i18next"
+      ]
+    },
+    {
+      "name": "ibc-building-codes",
+      "slug": "ibc-building-codes",
+      "description": "Reference for US International Building Code (IBC) occupancy types, construction types, height/area limits, egress requirements, and R-2 residential standards. Use when: generating US-compliant building models, validating building designs against IBC, understanding occupancy classifications and construction types.",
+      "category": "design",
+      "tags": [
+        "ibc",
+        "building-codes",
+        "occupancy",
+        "construction-type",
+        "egress"
       ]
     },
     {
@@ -4046,6 +4114,19 @@
       "description": "Get free TLS certificates with Certbot and Let's Encrypt. Use when a user asks to add HTTPS to a website, get a free SSL certificate, auto-renew certificates, or secure a web server with TLS.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "libsql",
+      "slug": "libsql",
+      "description": "libSQL — a fork of SQLite with replication, HTTP API, and embedded replicas (used by Turso). Use when you need embedded SQLite with remote sync, an edge-compatible database, or a Turso cloud database. Covers the @libsql/client SDK, local/in-memory/cloud connections, embedded replicas, batch queries, and transactions.",
+      "category": "database",
+      "tags": [
+        "libsql",
+        "sqlite",
+        "turso",
+        "edge-database",
+        "embedded"
+      ]
     },
     {
       "name": "lighthouse-ci",
@@ -6946,6 +7027,19 @@
       "tags": []
     },
     {
+      "name": "solid-js",
+      "slug": "solid-js",
+      "description": "SolidJS — fine-grained reactive UI library without a virtual DOM. Use when building high-performance UIs, choosing a React alternative with better reactivity primitives, or using SolidStart for full-stack apps with SSR and server functions. Covers signals, effects, memos, stores, and migration patterns from React.",
+      "category": "frontend",
+      "tags": [
+        "solidjs",
+        "reactive",
+        "signals",
+        "performance",
+        "frontend"
+      ]
+    },
+    {
       "name": "solidity",
       "slug": "solidity",
       "description": "Write smart contracts with Solidity for Ethereum. Use when a user asks to create a smart contract, build an ERC-20 token, deploy to Ethereum, write NFT contracts, or develop DeFi protocols.",
@@ -6970,6 +7064,19 @@
         "rfc",
         "architecture",
         "design-doc"
+      ]
+    },
+    {
+      "name": "spec-to-3d",
+      "slug": "spec-to-3d",
+      "description": "Generate 3D building models from architectural specifications, parsed drawings, or building code data. Outputs Three.js geometry, Pascal Editor JSON, or plain JSON for IFC conversion. Use when: converting floor plans to 3D, building spec-driven 3D models, generating architectural visualizations from structured data.",
+      "category": "design",
+      "tags": [
+        "3d-modeling",
+        "architecture",
+        "three-js",
+        "ifc",
+        "building-generation"
       ]
     },
     {
@@ -7803,6 +7910,20 @@
       "tags": []
     },
     {
+      "name": "turso-drizzle",
+      "slug": "turso-drizzle",
+      "description": "Turso + Drizzle ORM — type-safe SQLite at the edge with replication. Use when building edge-compatible applications with type-safe SQL, SQLite in production, multi-region databases, or Cloudflare Workers with a managed DB. Covers Turso setup, Drizzle schema definition, migrations with drizzle-kit, and edge deployment patterns.",
+      "category": "database",
+      "tags": [
+        "turso",
+        "drizzle",
+        "sqlite",
+        "edge",
+        "orm",
+        "type-safe"
+      ]
+    },
+    {
       "name": "twenty-crm",
       "slug": "twenty-crm",
       "description": "Build custom CRM workflows with Twenty — open-source CRM alternative to Salesforce. Use when someone asks to \"set up a CRM\", \"Twenty CRM\", \"open-source Salesforce alternative\", \"customer relationship management\", \"self-hosted CRM\", or \"CRM with API access\". Covers contacts, companies, pipelines, custom objects, automations, and API integration.",
@@ -8571,15 +8692,19 @@
     "Web Development",
     "Web Frameworks",
     "automation",
+    "backend",
     "business",
     "content",
     "data-ai",
+    "database",
     "design",
     "development",
     "devops",
     "documents",
+    "frontend",
     "productivity",
-    "research"
+    "research",
+    "runtime"
   ],
-  "updatedAt": "2026-03-18T17:47:01.201Z"
+  "updatedAt": "2026-03-24T18:27:58.407Z"
 }
