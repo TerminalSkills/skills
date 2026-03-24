@@ -11,16 +11,13 @@ metadata:
   version: "1.0.0"
   category: development
   tags: [onboarding, documentation, knowledge-graph, developer-experience, team]
-  use-cases:
-    - "Generate a step-by-step onboarding guide for a new hire"
-    - "Create living documentation of a codebase's architecture"
-    - "Ramp up quickly on an unfamiliar project"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
 # /understand-onboard
 
-Generate a comprehensive onboarding guide from the project's knowledge graph.
+## Overview
+
+Generate a comprehensive onboarding guide for new developers by reading the codebase knowledge graph. The skill extracts project metadata, architectural layers, guided tour steps, and complexity hotspots to produce a structured markdown document that helps new team members understand the codebase in hours instead of weeks.
 
 ## Graph Structure Reference
 
@@ -66,3 +63,25 @@ The knowledge graph JSON has this structure:
 8. Format as clean markdown
 9. Offer to save the guide to `docs/ONBOARDING.md` in the project
 10. Suggest the user commit it to the repo for the team
+
+## Examples
+
+**Example 1: Generating an onboarding guide for a SaaS project**
+
+User: `/understand-onboard`
+
+The agent reads the knowledge graph and finds: project "my-saas-app" (TypeScript, Next.js, tRPC, Prisma), 5 architectural layers (UI, API Gateway, Services, Data, Infrastructure), 47 file-level nodes, and a 6-step guided tour. It identifies 3 complexity hotspots: `src/billing/subscription.ts` (complexity: 18), `src/sync/conflict-resolver.ts` (complexity: 15), and `src/auth/session.ts` (complexity: 12). The agent generates a structured onboarding guide with Project Overview, Architecture Layers (with key files per layer), Guided Tour (starting from the app entry point through auth, data models, and API), File Map (organized by layer), and Complexity Hotspots (with warnings about the billing state machine). It offers to save the guide to `docs/ONBOARDING.md`.
+
+**Example 2: Generating a guide for a Python microservices project**
+
+User: `/understand-onboard`
+
+The agent reads the knowledge graph for "order-service" (Python, FastAPI, SQLAlchemy, Redis), finds 3 layers (API, Domain, Infrastructure), 23 file-level nodes, and a 4-step tour. Complexity hotspots include `src/domain/order_state_machine.py` (complexity: 16) and `src/infrastructure/event_bus.py` (complexity: 11). The guide covers the FastAPI router structure, domain-driven design patterns used in the service, the event-driven architecture with Redis pub/sub, and warns new developers about the order state machine's 9 possible transitions.
+
+## Guidelines
+
+- Only use file-level nodes for the guide; function and class details make it too granular for onboarding
+- Structure the guide around architectural layers since this gives new developers the mental model they need
+- Always include the guided tour from the knowledge graph as it provides a curated learning path
+- Flag files with complexity scores above 10 as hotspots that new developers should approach carefully
+- Suggest committing the generated guide to the repo so the whole team benefits

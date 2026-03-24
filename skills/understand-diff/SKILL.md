@@ -11,16 +11,13 @@ metadata:
   version: "1.0.0"
   category: development
   tags: [git, diff, code-review, knowledge-graph, impact-analysis]
-  use-cases:
-    - "Understand what a 500-line PR actually changes at a high level"
-    - "Identify risk areas in a pull request before merging"
-    - "See which components are affected by a code change"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
 # /understand-diff
 
-Analyze the current code changes against the knowledge graph at `.understand-anything/knowledge-graph.json`.
+## Overview
+
+Analyze git diffs and pull requests using the codebase knowledge graph to understand the true impact and risk of code changes. The skill maps changed files to graph nodes, follows edges to find affected components, identifies cross-layer concerns, and produces a structured risk assessment.
 
 ## Graph Structure Reference
 
@@ -83,3 +80,25 @@ The knowledge graph JSON has this structure:
    }
    ```
    After writing, tell the user they can run `/understand-anything:understand-dashboard` to see the diff overlay visually.
+
+## Examples
+
+**Example 1: Analyzing a feature branch diff**
+
+User: `/understand-diff`
+
+The agent runs `git diff main...HEAD --name-only` and finds 3 changed files: `src/auth/session.ts`, `src/auth/middleware.ts`, and `src/api/users.ts`. It searches the knowledge graph for these file paths and finds 5 matching nodes (3 file nodes plus 2 function nodes). Following edges reveals 8 affected components: the checkout flow, billing service, and admin panel all depend on the auth middleware. The agent reports: Changed Components (3 files in the Auth layer), Affected Components (8 upstream callers across 3 layers), Risk Assessment (HIGH -- auth middleware change affects 8 callers, complexity score 12). It writes `diff-overlay.json` and suggests running the dashboard to visualize the blast radius.
+
+**Example 2: Reviewing a PR with targeted changes**
+
+User: `/understand-diff` (with uncommitted changes to `src/services/payment.ts`)
+
+The agent runs `git diff --name-only` and finds 1 changed file. It locates `file:src/services/payment.ts` in the graph (complexity: 14, tags: billing, stripe, payments). Edge traversal shows 2 upstream callers (`handleCheckout`, `runMonthlyBilling`) and 1 downstream dependency (`stripe-client`). The agent reports: Changed Components (1 file, Services layer), Affected Components (2 callers in API and Jobs layers), Risk Assessment (MEDIUM -- high-complexity file but limited blast radius). It writes the diff overlay and notes that the billing job should be tested since it calls the changed payment service.
+
+## Guidelines
+
+- Always get the changed files list before reading the knowledge graph to minimize unnecessary reads
+- Focus the risk assessment on cross-layer edges, which indicate changes with broader architectural impact
+- Include node complexity scores in the risk assessment since high-complexity files are more likely to have subtle bugs
+- Write `diff-overlay.json` after every analysis so the dashboard can visualize results
+- When changed files are not found in the graph, warn that the knowledge graph may be outdated and suggest regenerating it

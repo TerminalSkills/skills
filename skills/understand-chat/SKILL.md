@@ -11,16 +11,13 @@ metadata:
   version: "1.0.0"
   category: development
   tags: [codebase, knowledge-graph, ai, architecture, documentation]
-  use-cases:
-    - "Ask 'how does authentication work?' and get answers grounded in the real code"
-    - "Explore relationships between modules in a 200k-line codebase"
-    - "Onboard to a new project by chatting with the codebase"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
 # /understand-chat
 
-Answer questions about this codebase using the knowledge graph at `.understand-anything/knowledge-graph.json`.
+## Overview
+
+Answer questions about any codebase using an AI-generated knowledge graph stored at `.understand-anything/knowledge-graph.json`. The skill searches graph nodes, follows edges to find connected components, and returns answers grounded in actual file paths, function names, and architectural layers.
 
 ## Graph Structure Reference
 
@@ -65,3 +62,25 @@ The knowledge graph JSON has this structure:
    - Explain which layer(s) are relevant and why
    - Be concise but thorough — link concepts to actual code locations
    - If the query doesn't match any nodes, say so and suggest related terms from the graph
+
+## Examples
+
+**Example 1: Understanding authentication flow**
+
+User: `/understand-chat how does authentication work?`
+
+The agent searches the knowledge graph for nodes matching "auth", "login", "session", and "token". It finds `file:src/auth/session.ts` (summary: "JWT session management with refresh token rotation") and `func:src/auth/middleware.ts:requireAuth` (summary: "Express middleware that validates JWT and attaches user to request"). It follows edges to discover that `func:src/api/users.ts:createUser` calls `func:src/auth/session.ts:createSession`, and that the auth layer contains 4 files. The agent responds with the complete authentication flow: request hits middleware, JWT is validated, session is refreshed if needed, and user object is attached to the request context.
+
+**Example 2: Tracing dependencies of a service**
+
+User: `/understand-chat what calls the payment service?`
+
+The agent searches for nodes matching "payment" and finds `file:src/services/payment.ts` and `func:src/services/payment.ts:processCharge`. It then searches edges where `target` matches these node IDs, finding 3 upstream callers: `func:src/api/checkout.ts:handleCheckout`, `func:src/jobs/billing.ts:runMonthlyBilling`, and `func:src/webhooks/stripe.ts:handleInvoicePaid`. The agent reports all three callers with their file paths, explains that the payment service sits in the Services layer, and notes that it has both synchronous API callers and asynchronous job callers.
+
+## Guidelines
+
+- Always search the knowledge graph with Grep before reading the full file to minimize context usage
+- Reference specific file paths and function names from the graph rather than giving generic answers
+- When a query is ambiguous, search multiple related terms and present the most relevant matches
+- Limit edge traversal to 1-hop to keep responses focused; suggest follow-up queries for deeper exploration
+- If the knowledge graph is outdated (check `analyzedAt` and `gitCommitHash`), warn the user to regenerate it

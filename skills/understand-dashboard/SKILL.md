@@ -11,16 +11,13 @@ metadata:
   version: "1.0.0"
   category: development
   tags: [codebase, knowledge-graph, visualization, dashboard, architecture]
-  use-cases:
-    - "Visualize a complex codebase as an interactive graph"
-    - "See which modules depend on each other at a glance"
-    - "Explore project layers and dependencies visually"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
 # /understand-dashboard
 
-Start the Understand Anything dashboard to visualize the knowledge graph for the current project.
+## Overview
+
+Launch an interactive web dashboard that visualizes a codebase's knowledge graph as a force-directed node graph. The dashboard provides layer views, dependency exploration, complexity heatmaps, and search filtering, all served locally via Vite.
 
 ## Instructions
 
@@ -64,8 +61,24 @@ Start the Understand Anything dashboard to visualize the knowledge graph for the
    The dashboard is running in the background. Press Ctrl+C in the terminal to stop it.
    ```
 
-## Notes
+## Examples
 
-- The dashboard auto-opens in the default browser via `--open`
-- If port 5173 is already in use, Vite will pick the next available port
-- The `GRAPH_DIR` environment variable tells the dashboard where to find the knowledge graph
+**Example 1: Launching the dashboard for the current project**
+
+User: `/understand-dashboard`
+
+The agent verifies `.understand-anything/knowledge-graph.json` exists in the current directory, resolves the dashboard package path at `packages/dashboard/`, installs dependencies with `pnpm install`, builds the core package, and starts the Vite dev server with `GRAPH_DIR=$(pwd) npx vite --open`. The browser opens to `http://localhost:5173` showing the interactive graph with 47 nodes across 5 architectural layers.
+
+**Example 2: Launching the dashboard for a specific project path**
+
+User: `/understand-dashboard ~/projects/my-api`
+
+The agent checks that `~/projects/my-api/.understand-anything/knowledge-graph.json` exists, then starts the dashboard with `GRAPH_DIR=~/projects/my-api`. The user sees the knowledge graph for their API project rendered in the browser, with nodes color-coded by layer and sized by complexity score.
+
+## Guidelines
+
+- Always verify the knowledge graph file exists before attempting to start the dashboard
+- Run the Vite server in the background so the user can continue working in the terminal
+- If port 5173 is occupied, Vite automatically picks the next available port; report the actual URL
+- Ensure the core package is built before starting the dashboard since it depends on `@understand-anything/core`
+- The `GRAPH_DIR` environment variable tells the dashboard where to find the knowledge graph file

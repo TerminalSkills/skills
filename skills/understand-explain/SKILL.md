@@ -11,16 +11,13 @@ metadata:
   version: "1.0.0"
   category: development
   tags: [codebase, knowledge-graph, documentation, explanation, learning]
-  use-cases:
-    - "Get a plain-English explanation of any function or class"
-    - "Understand how a specific feature is implemented end-to-end"
-    - "Learn a legacy codebase by exploring its key components"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
 # /understand-explain
 
-Provide a thorough, in-depth explanation of a specific code component.
+## Overview
+
+Get a deep-dive explanation of any file, function, or module by combining knowledge graph context with source code analysis. The skill locates the target component in the graph, maps its connections and architectural layer, reads the actual source code, and delivers a clear explanation of how it works and why it exists.
 
 ## Graph Structure Reference
 
@@ -68,3 +65,25 @@ The knowledge graph JSON has this structure:
    - Data flow (inputs → processing → outputs — from source code)
    - Explain clearly, assuming the reader may not know the programming language
    - Highlight any patterns, idioms, or complexity worth understanding
+
+## Examples
+
+**Example 1: Explaining a file**
+
+User: `/understand-explain src/auth/session.ts`
+
+The agent searches the knowledge graph for `filePath` matching `src/auth/session.ts` and finds `file:src/auth/session.ts` (summary: "JWT session management with refresh token rotation", complexity: 7, tags: auth, jwt, security). It finds edges showing that `createSession` is called by `createUser` and `handleLogin`, and that the file imports `jsonwebtoken` and `src/config/auth-config.ts`. The layer lookup shows it belongs to the Authentication layer. The agent reads the source file and explains: the file exports 4 functions (createSession, validateSession, refreshSession, destroySession), implements JWT with RS256 signing, uses refresh token rotation to prevent token theft, and sits at the core of the auth layer with 6 upstream callers depending on it.
+
+**Example 2: Explaining a specific function**
+
+User: `/understand-explain src/api/middleware.ts:requireAuth`
+
+The agent searches for a node with name `requireAuth` in file `src/api/middleware.ts` and finds `func:src/api/middleware.ts:requireAuth` (summary: "Express middleware that validates JWT and attaches user to request", complexity: 4). Edge traversal shows 12 API route handlers depend on this function, and it calls `validateSession` from the auth layer. The agent reads the source file, locates the function, and explains: it extracts the Bearer token from the Authorization header, calls validateSession to verify the JWT, attaches the decoded user object to `req.user`, and returns 401 if the token is missing or invalid. It is the gateway function that protects all authenticated endpoints.
+
+## Guidelines
+
+- Start with the graph context before reading source code to understand the component's role in the architecture first
+- Explain clearly assuming the reader may not know the programming language used
+- Highlight complexity hotspots and patterns that are non-obvious from the code alone
+- When explaining a file, focus on exported functions and the public API rather than internal helpers
+- If the target component is not found in the graph, search by partial name match and suggest corrections
