@@ -10,12 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: [git, worktree, parallel, ai-agents, branching, productivity]
-  use-cases:
-    - "Run 5 Claude Code agents in parallel, each on a different feature branch"
-    - "Manage git worktrees for concurrent AI-assisted development"
-    - "Speed up development by parallelizing tasks across AI agents"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: [git, worktree, parallel, ai-agents, branching]
 ---
 
 # Worktrunk
@@ -24,15 +19,11 @@ metadata:
 
 Worktrunk is a CLI for git worktree management, designed for running AI coding agents in parallel. AI agents like Claude Code and Codex can handle longer tasks without supervision, making it possible to manage 5-10+ agents simultaneously. Git worktrees give each agent its own working directory so they don't step on each other's changes.
 
-The problem: git worktree UX is clunky. Starting a new worktree requires typing the branch name three times. Worktrunk makes worktrees as easy as branches with three core commands.
+The problem: git worktree UX is clunky — starting a new worktree requires typing the branch name three times. Worktrunk makes worktrees as easy as branches with three core commands.
 
-## Prerequisites
+## Instructions
 
-- Git 2.20+
-- Rust toolchain (for installing from crates.io) or pre-built binary
-- One or more AI coding agents (Claude Code, Codex, Gemini CLI, Cursor)
-
-## Installation
+### Installation
 
 ```bash
 # From crates.io
@@ -42,218 +33,129 @@ cargo install worktrunk
 # https://github.com/max-sixty/worktrunk/releases
 ```
 
-## Core Commands
+### Core Commands
 
-Worktrunk's three core commands replace verbose git worktree operations:
-
-### Switch (create or move to a worktree)
+**Switch** — create or move to a worktree:
 
 ```bash
-# Switch to existing worktree
-wt switch feat
-
-# Create new worktree + switch to it
-wt switch -c feat
-
-# Create + immediately launch Claude Code
-wt switch -c -x claude feat
-
-# Create + launch any command
-wt switch -c -x "npm test" feat
+wt switch feat              # Switch to existing worktree
+wt switch -c feat            # Create new worktree + switch
+wt switch -c -x claude feat  # Create + launch Claude Code in it
+wt switch -c -x "npm test" feat  # Create + run any command
 ```
 
-**Equivalent plain git:**
-```bash
-git worktree add -b feat ../repo.feat && cd ../repo.feat && claude
-```
-
-### List (show all worktrees with status)
+**List** — show all worktrees with status:
 
 ```bash
-wt list
+wt list  # Shows branch names, paths, dirty status, ahead/behind
 ```
 
-Shows branch names, paths, dirty status, and ahead/behind counts — much richer than `git worktree list`.
-
-### Remove (clean up worktree + branch)
+**Remove** — clean up worktree and branch:
 
 ```bash
 wt remove        # Remove current worktree
 wt remove feat   # Remove specific worktree
 ```
 
-**Equivalent plain git:**
-```bash
-cd ../repo && git worktree remove ../repo.feat && git branch -d feat
-```
-
-## Parallel Agent Workflow
-
-### Step 1: Plan your tasks
-
-Break work into independent features that can be developed in parallel:
-
-```
-- feat/auth      → Authentication system
-- feat/dashboard → Dashboard UI
-- feat/api       → REST API endpoints
-- feat/tests     → Test suite
-- feat/docs      → Documentation
-```
-
-### Step 2: Create worktrees and launch agents
-
-```bash
-# Create 5 worktrees, each launching Claude Code
-wt switch -c -x claude feat/auth
-wt switch -c -x claude feat/dashboard
-wt switch -c -x claude feat/api
-wt switch -c -x claude feat/tests
-wt switch -c -x claude feat/docs
-```
-
-Each agent gets its own isolated working directory. No conflicts, no stashing, no branch switching.
-
-### Step 3: Monitor progress
-
-```bash
-wt list  # See status of all worktrees
-```
-
-### Step 4: Merge results
-
-```bash
-# Switch to each completed worktree and merge
-wt switch feat/auth
-wt merge          # Squash, rebase, or merge + clean up
-
-wt switch feat/dashboard
-wt merge
-# ... repeat for each feature
-```
-
-## Workflow Automation with Hooks
-
-Worktrunk supports hooks that run at key lifecycle points:
+### Workflow Automation with Hooks
 
 ```toml
-# .worktrunk.toml (or worktrunk.toml)
-
+# .worktrunk.toml
 [hooks]
-# Run after creating a new worktree
 on_create = "npm install"
-
-# Run before merging
 pre_merge = "npm test"
-
-# Run after merging
 post_merge = "git push origin main"
-```
-
-### Common Hook Patterns
-
-**Install dependencies on create:**
-```toml
-on_create = "npm install && npm run build"
-```
-
-**Run tests before merge:**
-```toml
-pre_merge = "npm test && npm run lint"
-```
-
-**Auto-push after merge:**
-```toml
-post_merge = "git push"
-```
-
-## LLM Commit Messages
-
-Worktrunk can generate commit messages from diffs using an LLM:
-
-```bash
-wt commit  # Auto-generates commit message from staged changes
-```
-
-## Advanced Features
-
-### Interactive Picker
-
-Browse worktrees with live diff and log previews:
-
-```bash
-wt switch  # No argument → opens interactive picker
 ```
 
 ### Copy Build Caches
 
-Avoid redundant `node_modules` installs by copying caches from the main worktree:
+Avoid redundant dependency installs:
 
-```bash
-# Configure in .worktrunk.toml
+```toml
 [create]
 copy = ["node_modules", ".next", "dist"]
 ```
 
 ### Path Templates
 
-Control where worktrees are created:
-
 ```toml
-# .worktrunk.toml
 [paths]
-template = "../{repo}.{branch}"  # Default
-# Or: "../worktrees/{branch}"
-# Or: "/tmp/worktrees/{repo}/{branch}"
+template = "../{repo}.{branch}"  # Default naming pattern
 ```
 
-## Best Practices for Parallel AI Agents
+## Examples
 
-1. **Independent tasks**: Each agent should work on a self-contained feature
-2. **Shared base**: All worktrees branch from the same commit to minimize merge conflicts
-3. **Hook automation**: Use `on_create` hooks to set up each worktree automatically
-4. **Copy caches**: Configure `copy` to avoid redundant dependency installations
-5. **Regular merges**: Merge completed features promptly to keep the base fresh
-6. **Test before merge**: Use `pre_merge` hooks to validate each feature
-7. **Clean up**: Remove worktrees after merging to keep your workspace tidy
+### Example 1: Parallel Feature Development on a SaaS App
 
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| "worktree already exists" | Use `wt switch` (without `-c`) for existing worktrees |
-| Merge conflicts | Rebase on latest main: `git rebase main` in the worktree |
-| Stale worktrees | `wt list` to find them, `wt remove <name>` to clean up |
-| Dependencies missing | Add `on_create = "npm install"` hook |
-| Build cache stale | Configure `copy` in `.worktrunk.toml` |
-
-## Example: Full Parallel Development Session
+A developer needs to build three independent features for a Node.js SaaS application. They use Worktrunk to run three Claude Code agents in parallel:
 
 ```bash
-# Start from main branch
-cd my-project
+cd ~/projects/saas-app
 
-# Plan: 3 features in parallel
-wt switch -c -x "claude --prompt 'Implement user auth with JWT'" feat/auth
-wt switch -c -x "claude --prompt 'Build dashboard with charts'" feat/dashboard
-wt switch -c -x "claude --prompt 'Write API integration tests'" feat/tests
+# Configure hooks for automatic setup
+cat > .worktrunk.toml << 'EOF'
+[hooks]
+on_create = "npm install && npm run build"
+pre_merge = "npm test && npm run lint"
 
-# Check progress
+[create]
+copy = ["node_modules", ".next"]
+
+[paths]
+template = "../saas-app.{branch}"
+EOF
+
+# Create 3 worktrees, each launching Claude Code with a task
+wt switch -c -x "claude --prompt 'Implement Stripe subscription billing with webhooks for plan upgrades/downgrades'" feat/billing
+wt switch -c -x "claude --prompt 'Add role-based access control: admin, editor, viewer roles with middleware guards'" feat/rbac
+wt switch -c -x "claude --prompt 'Build CSV/JSON export for analytics dashboard with date range filtering'" feat/export
+
+# Monitor progress across all worktrees
+wt list
+# feat/billing    ../saas-app.feat/billing    [dirty, ahead 3]
+# feat/rbac       ../saas-app.feat/rbac       [dirty, ahead 5]
+# feat/export     ../saas-app.feat/export     [clean, ahead 2]
+
+# Merge completed features (pre_merge hook runs tests automatically)
+wt switch feat/export && wt merge
+wt switch feat/rbac && wt merge
+wt switch feat/billing && wt merge
+```
+
+### Example 2: Bug Fix Sprint with Multiple Agents
+
+A team lead triages 4 bug reports and assigns each to a separate agent working in its own worktree:
+
+```bash
+cd ~/projects/api-server
+
+# Spin up one worktree per bug
+wt switch -c -x "claude --prompt 'Fix: POST /api/users returns 500 when email contains + character. Add input sanitization and test.'" fix/email-plus
+wt switch -c -x "claude --prompt 'Fix: Rate limiter counts OPTIONS preflight requests. Exclude CORS preflight from rate limit middleware.'" fix/rate-limit-cors
+wt switch -c -x "claude --prompt 'Fix: Pagination returns duplicate items when records are inserted during traversal. Use cursor-based pagination.'" fix/pagination-dupes
+wt switch -c -x "claude --prompt 'Fix: WebSocket connections leak when clients disconnect without close frame. Add heartbeat and cleanup.'" fix/ws-leak
+
+# Check which fixes are done
 wt list
 
-# Merge completed features
-wt switch feat/auth && wt merge
-wt switch feat/dashboard && wt merge
-wt switch feat/tests && wt merge
+# Merge fixes one by one, running tests each time
+wt switch fix/email-plus && wt merge
+wt switch fix/rate-limit-cors && wt merge
+wt switch fix/pagination-dupes && wt merge
+wt switch fix/ws-leak && wt merge
 
-# Push everything
+# Push all fixes
 git push origin main
 ```
 
-## Resources
+## Guidelines
 
-- [Worktrunk Documentation](https://worktrunk.dev)
-- [GitHub Repository](https://github.com/max-sixty/worktrunk)
-- [Hooks Guide](https://worktrunk.dev/hook/)
-- [Merge Workflow](https://worktrunk.dev/merge/)
-- [Interactive Picker](https://worktrunk.dev/switch/#interactive-picker)
+- Break work into independent, self-contained tasks to avoid merge conflicts
+- Branch all worktrees from the same commit to minimize divergence
+- Use `on_create` hooks to automatically install dependencies in new worktrees
+- Configure `copy` for `node_modules` and build caches to speed up worktree creation
+- Use `pre_merge` hooks to run tests before merging each feature
+- Merge completed features promptly to keep the base branch fresh
+- Clean up worktrees after merging with `wt remove` to keep your workspace tidy
+- Run `wt list` regularly to monitor progress across all active agents
+- See [worktrunk.dev](https://worktrunk.dev) and [GitHub](https://github.com/max-sixty/worktrunk) for full docs

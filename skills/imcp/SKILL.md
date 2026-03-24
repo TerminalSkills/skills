@@ -5,17 +5,12 @@ description: >-
   Use when: building AI assistants that access Apple data, querying contacts/reminders from
   Claude Desktop, integrating macOS apps with AI agents.
 license: MIT
-compatibility: "macOS 14+, Claude Desktop"
+compatibility: "macOS 15.3+, Claude Desktop or any MCP client"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
-  tags: [mcp, macos, apple, messages, contacts, reminders, calendar]
-  use-cases:
-    - "Ask Claude to check your reminders and suggest priorities"
-    - "Search contacts and draft personalized messages from Claude Desktop"
-    - "Build AI workflows that integrate with macOS native apps"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  category: productivity
+  tags: [mcp, macos, apple, messages, contacts]
 ---
 
 # iMCP
@@ -24,46 +19,28 @@ metadata:
 
 iMCP is a macOS app that connects your digital life with AI through the Model Context Protocol (MCP). It provides a native MCP server that gives AI assistants like Claude Desktop access to your Calendar, Contacts, Location, Maps, Messages, Reminders, and Weather data.
 
-**Key principle:** iMCP does NOT collect or store any of your data. It acts as a bridge between your macOS apps and MCP-compatible AI clients. Data is sent to the AI client only when tool calls are made.
+iMCP does NOT collect or store any of your data. It acts as a bridge between your macOS apps and MCP-compatible AI clients. Data is sent to the AI client only when tool calls are made.
 
-## Prerequisites
+Requires macOS 15.3 or later.
 
-- macOS 15.3 or later
-- An MCP-compatible client (Claude Desktop, or any client supporting the [Model Context Protocol](https://modelcontextprotocol.io))
+## Instructions
 
-## Installation
-
-### Option 1: Homebrew (recommended)
+### Installation
 
 ```bash
+# Via Homebrew (recommended)
 brew install --cask mattt/tap/iMCP
+
+# Or download from https://iMCP.app/download
 ```
 
-### Option 2: Direct download
+### Setup
 
-Download from [iMCP.app/download](https://iMCP.app/download).
+1. Launch iMCP. A menu bar icon appears with all available services listed.
+2. Click each service icon to activate it. macOS will prompt for permissions (Calendar, Contacts, Reminders, Location, Messages).
+3. Grant permissions for the services you want to use.
 
-## Setup
-
-### 1. Launch iMCP
-
-Open the app. A menu bar icon appears with all available services listed (initially gray/inactive).
-
-The blue toggle at the top indicates the MCP server is running and ready for connections.
-
-### 2. Activate services
-
-Click each service icon to activate it. macOS will prompt for permissions:
-
-- **Calendar** → "Allow Full Access to Your Calendar"
-- **Contacts** → "Allow Access to Your Contacts"
-- **Reminders** → "Allow Access to Your Reminders"
-- **Location** → "Allow Location Access"
-- **Messages** → "Allow Access to Messages"
-
-Grant permissions for the services you want to use. Activated services change from gray to their distinctive colors.
-
-### 3. Connect to Claude Desktop
+### Connect to Claude Desktop
 
 Add iMCP to your Claude Desktop MCP configuration:
 
@@ -80,145 +57,57 @@ Add iMCP to your Claude Desktop MCP configuration:
 
 Restart Claude Desktop. iMCP tools are now available.
 
-## Available Services
+### Available Services
 
-### 📅 Calendar
+- **Calendar** — View upcoming events, create new events, set recurrence and alarms
+- **Contacts** — Search contacts by name, phone, or email; browse details
+- **Location** — Get current device location, geocode addresses
+- **Maps** — Search places, get directions, estimate travel times
+- **Messages** — Read message history (read-only), search conversations
+- **Reminders** — View and create reminders with due dates and priorities
+- **Weather** — Current conditions for any location
 
-Access and manage calendar events.
+## Examples
 
-**Capabilities:**
-- View upcoming events across all calendars
-- Create new events with customizable settings
-- Set recurrence rules, alarms, and availability status
-- Query events by date range or calendar
+### Example 1: Meeting Preparation Workflow
 
-**Example prompts:**
+A product manager asks Claude Desktop to help prepare for an upcoming meeting:
+
 ```
-"What's on my calendar this week?"
-"Create a meeting with John tomorrow at 2pm for 1 hour"
-"Show me all events for next Monday"
-"Add a recurring standup at 9am every weekday"
-```
-
-### 👤 Contacts
-
-Search and access contact information.
-
-**Capabilities:**
-- Search contacts by name, phone number, or email
-- Access your own contact information
-- Browse contact details (phone, email, address, company)
-
-**Example prompts:**
-```
-"Find John Smith's email address"
-"What's Sarah's phone number?"
-"Show me all contacts at Acme Corp"
-"What's my own phone number?"
+User: "I have a meeting with Sarah Chen tomorrow. Find her contact info,
+check what time the meeting is, and summarize our recent messages."
 ```
 
-### 📍 Location
+Claude Desktop uses iMCP to:
+1. Search Contacts for "Sarah Chen" — finds email sarah.chen@acmecorp.com, phone +1-415-555-0192
+2. Query Calendar for tomorrow — finds "Q2 Planning w/ Sarah" at 2:00 PM
+3. Read Messages with Sarah — summarizes last 5 messages about the Q2 roadmap discussion
 
-Access current location and geocoding.
+Response includes Sarah's contact details, meeting time, and a summary of recent conversation context.
 
-**Capabilities:**
-- Get current device location
-- Convert addresses to coordinates (geocoding)
-- Convert coordinates to addresses (reverse geocoding)
+### Example 2: Daily Planning with Reminders and Calendar
 
-**Example prompts:**
+A developer uses Claude Desktop each morning to organize their day:
+
 ```
-"Where am I right now?"
-"What's the latitude and longitude of 1 Apple Park Way?"
-```
-
-### 🗺️ Maps
-
-Location search, directions, and map generation.
-
-**Capabilities:**
-- Search for places and points of interest
-- Get directions between locations
-- Estimate travel times
-- Generate static map images
-- Look up nearby businesses/services
-
-**Example prompts:**
-```
-"Find coffee shops near me"
-"How long will it take to drive to the airport?"
-"Show me a map of downtown San Francisco"
-"Get directions from home to the office"
+User: "What's on my plate today? Check my calendar and outstanding reminders,
+then suggest a prioritized schedule."
 ```
 
-### 💬 Messages
+Claude Desktop uses iMCP to:
+1. Query Calendar for today — finds 3 events: standup at 9:30 AM, design review at 1:00 PM, 1:1 with manager at 4:00 PM
+2. Fetch Reminders — finds 7 outstanding: "Review PR #428" (high priority), "Update API docs", "Book dentist appointment", "Reply to vendor email", "Order monitor stand", "Submit expense report" (due today), "Renew SSL cert" (due tomorrow)
+3. Check Weather — 72F, sunny
 
-Access message history (read-only).
+Suggests a schedule: handle "Submit expense report" first (due today), tackle "Review PR #428" (high priority) before standup, slot "Update API docs" between meetings, and defer lower-priority items.
 
-**Capabilities:**
-- Read message history with specific contacts
-- Search messages within date ranges
-- View conversation threads
+## Guidelines
 
-**Example prompts:**
-```
-"Show me my recent messages with Sarah"
-"What did John text me last week?"
-"Find messages mentioning 'dinner' from this month"
-```
-
-### ✅ Reminders
-
-View and create reminders.
-
-**Capabilities:**
-- View reminders across all lists
-- Create new reminders with due dates
-- Set priorities and alerts
-- Organize across reminder lists
-
-**Example prompts:**
-```
-"What are my outstanding reminders?"
-"Add a reminder to buy groceries tomorrow at 5pm"
-"Show me high-priority reminders"
-"Create a reminder to call the dentist next Monday"
-```
-
-### 🌤️ Weather
-
-Current weather conditions for any location.
-
-**Capabilities:**
-- Current temperature, wind speed, conditions
-- Weather for any location (uses Location service)
-
-**Example prompts:**
-```
-"What's the weather like right now?"
-"What's the temperature in Tokyo?"
-"Will I need an umbrella today?"
-```
-
-## Privacy & Security
-
-- iMCP runs **entirely locally** on your Mac
-- **No data collection** — iMCP does not store or transmit your data
-- Data is only sent when your MCP client (e.g., Claude Desktop) makes tool calls
-- macOS permission dialogs control exactly which services iMCP can access
-- You can revoke permissions anytime in System Settings → Privacy & Security
-
-## Tips
-
-- Activate only the services you actually need
+- Activate only the services you actually need to minimize permission exposure
 - Check the menu bar icon to verify the MCP server is running (blue toggle)
-- If a service stops working, check System Settings → Privacy & Security
-- Combine services for powerful workflows: "Check my calendar, find the meeting attendee's contact, and draft a prep email"
+- If a service stops working, check System Settings > Privacy & Security to re-grant permissions
+- Combine services for powerful workflows (e.g., calendar + contacts + messages for meeting prep)
 - iMCP works with any MCP-compatible client, not just Claude Desktop
-
-## Resources
-
-- [iMCP Website](https://iMCP.app)
-- [GitHub Repository](https://github.com/mattt/iMCP)
-- [Model Context Protocol](https://modelcontextprotocol.io)
-- [MCP Compatible Clients](https://modelcontextprotocol.io/clients)
+- iMCP runs entirely locally on your Mac with no data collection
+- You can revoke permissions anytime in System Settings > Privacy & Security
+- See [iMCP.app](https://iMCP.app) and [GitHub](https://github.com/mattt/iMCP) for full documentation

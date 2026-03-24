@@ -5,17 +5,12 @@ description: >-
   Use when: converting Stitch designs to code, integrating AI design tools with coding agents,
   building UI from AI-generated prototypes.
 license: MIT
-compatibility: "Node.js 18+, Claude Code"
+compatibility: "Node.js 18+, Claude Code or any MCP client"
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: design
-  tags: [stitch, google, design-to-code, mcp, ui, prototyping]
-  use-cases:
-    - "Import a Google Stitch design and generate production React components"
-    - "Bridge AI design tools with AI coding agents for full stack delivery"
-    - "Convert AI prototypes to pixel-perfect implementations"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: [stitch, google, design-to-code, mcp, ui]
 ---
 
 # Stitch MCP
@@ -24,37 +19,33 @@ metadata:
 
 Stitch MCP is a CLI for moving AI-generated UI designs from Google's Stitch platform into your development workflow. Stitch creates HTML/CSS designs through AI — stitch-mcp fetches those designs, serves them locally, builds deployable sites from them, and exposes them to coding agents via the Model Context Protocol (MCP).
 
-The workflow: **Design in Stitch → Preview locally → Hand off to coding agent → Ship production code.**
+The workflow: Design in Stitch, preview locally, hand off to a coding agent, ship production code.
 
-## Prerequisites
+## Instructions
+
+### Prerequisites
 
 - Node.js 18+
 - Google Cloud account with Stitch access
 - `gcloud` CLI installed
-- An MCP-compatible client (Claude Code, VS Code, Cursor, Gemini CLI, Codex, OpenCode)
 
-## Quick Start
-
-### 1. Initialize (one-time setup)
+### Setup
 
 ```bash
 npx @_davideast/stitch-mcp init
 ```
 
-This guided wizard handles:
-- Google Cloud authentication
-- Stitch API access configuration
-- MCP client configuration for your IDE
+This guided wizard handles Google Cloud authentication, Stitch API access, and MCP client configuration.
 
-### 2. Preview designs locally
+### Preview Designs Locally
 
 ```bash
 npx @_davideast/stitch-mcp serve -p <project-id>
 ```
 
-Serves all project screens on a local Vite dev server for preview.
+Serves all project screens on a local Vite dev server.
 
-### 3. Build a site from designs
+### Build a Deployable Site
 
 ```bash
 npx @_davideast/stitch-mcp site -p <project-id>
@@ -62,7 +53,7 @@ npx @_davideast/stitch-mcp site -p <project-id>
 
 Maps Stitch screens to routes and generates a deployable Astro project.
 
-## MCP Integration
+### MCP Integration
 
 Add to your MCP client config to give coding agents access to Stitch tools:
 
@@ -77,119 +68,87 @@ Add to your MCP client config to give coding agents access to Stitch tools:
 }
 ```
 
-**Supported clients:** VS Code, Cursor, Claude Code, Gemini CLI, Codex, OpenCode.
-
-### Virtual Tools (for AI Agents)
-
-The MCP proxy exposes high-level tools that combine multiple API calls:
+### MCP Tools for AI Agents
 
 | Tool | Description |
 |------|-------------|
-| `build_site` | Build a site from a project by mapping screens to routes. Returns design HTML for each page. |
-| `get_screen_code` | Retrieve a screen and download its HTML code content. |
-| `get_screen_image` | Retrieve a screen and download its screenshot as base64. |
+| `build_site` | Build a site from a project by mapping screens to routes |
+| `get_screen_code` | Retrieve a screen's HTML code content |
+| `get_screen_image` | Retrieve a screen screenshot as base64 |
 
-#### build_site Schema
-
-```json
-{
-  "projectId": "string (required)",
-  "routes": [
-    {
-      "screenId": "string (required)",
-      "route": "string (required, e.g. '/' or '/about')"
-    }
-  ]
-}
-```
-
-#### Example: Build site via CLI
-
-```bash
-npx @_davideast/stitch-mcp tool build_site -d '{
-  "projectId": "123456",
-  "routes": [
-    { "screenId": "abc", "route": "/" },
-    { "screenId": "def", "route": "/about" }
-  ]
-}'
-```
-
-## Exploring Designs
-
-Browse your design data before handing off to agents:
-
-```bash
-# Browse all projects
-npx @_davideast/stitch-mcp view --projects
-
-# Inspect a specific screen
-npx @_davideast/stitch-mcp view --project <project-id> --screen <screen-id>
-
-# List available MCP tools
-npx @_davideast/stitch-mcp tool
-
-# See a tool's schema
-npx @_davideast/stitch-mcp tool <toolName> -s
-```
-
-**Interactive browser controls:** `c` copies value, `s` previews HTML in browser, `o` opens in Stitch, `q` quits, arrow keys to navigate.
-
-## CLI Commands
+### CLI Commands
 
 | Command | Description |
 |---------|-------------|
 | `init` | Set up auth, gcloud, and MCP client config |
 | `doctor` | Verify configuration health |
-| `logout` | Revoke credentials |
 | `serve -p <id>` | Preview project screens locally |
-| `screens -p <id>` | Browse screens in terminal |
 | `view` | Interactive resource browser |
 | `site -p <id>` | Generate Astro project from screens |
-| `snapshot` | Save screen state to file |
 | `tool [name]` | Invoke MCP tools from CLI |
 | `proxy` | Run MCP proxy for agents |
 
-## Design-to-Code Workflow
+## Examples
 
-### Step 1: Design in Google Stitch
+### Example 1: Marketing Site from Stitch Designs
 
-Create your UI designs in Stitch. Each screen becomes a self-contained HTML/CSS artifact.
-
-### Step 2: Preview and iterate
+A frontend developer uses Stitch to design a startup marketing site, then hands it off to Claude Code for production React components:
 
 ```bash
-npx @_davideast/stitch-mcp serve -p <project-id>
-# Open localhost to review all screens
+# Preview the Stitch designs locally
+npx @_davideast/stitch-mcp serve -p proj_8x7kq2m
+
+# Verify screens look correct at localhost:3000
+# Screens: home (hero + features), pricing (3 tiers), about (team bios)
 ```
 
-### Step 3: Hand off to coding agent
+With MCP configured, the developer prompts Claude Code:
 
-With MCP configured, your coding agent can:
-- Fetch screen HTML and images directly
-- Build complete sites from screen routes
-- Use design context when generating production components
-
-### Step 4: Generate production code
-
-Ask your agent:
 ```
-Using the Stitch designs from project <id>, create production React
-components with Tailwind CSS. Map the home screen to / and the about
-screen to /about.
+Using the Stitch designs from project proj_8x7kq2m, create production
+React components with Tailwind CSS. Map screens:
+- home -> /
+- pricing -> /pricing
+- about -> /about
+
+Use semantic HTML, add responsive breakpoints, and extract shared
+components (Navbar, Footer, CTAButton).
 ```
 
-The agent calls `build_site` via MCP, receives the design HTML, and generates production code that matches the design.
+Claude Code calls `build_site` via MCP with the route mapping, receives the design HTML for each page, and generates a complete Next.js app with `components/Navbar.tsx`, `components/Footer.tsx`, `app/page.tsx`, `app/pricing/page.tsx`, and `app/about/page.tsx` — all matching the original Stitch designs.
 
-## Tips
+### Example 2: Iterating on a Dashboard Design
 
-- Run `doctor` after setup to verify everything works
-- Use `snapshot` to save screen state for offline work
-- Preview designs with `serve` before handing to agents for faster iteration
-- Combine with other MCP tools for full-stack workflows
+A product designer creates dashboard screens in Stitch and uses stitch-mcp to iterate between design and code:
 
-## Resources
+```bash
+# Browse available screens
+npx @_davideast/stitch-mcp view --projects
 
-- [GitHub Repository](https://github.com/davideast/stitch-mcp)
-- [Google Stitch](https://stitch.google.com)
-- [Model Context Protocol](https://modelcontextprotocol.io)
+# Inspect specific screen details
+npx @_davideast/stitch-mcp view --project proj_4n9wf3r --screen scr_analytics
+
+# Build the site to see all screens as routes
+npx @_davideast/stitch-mcp tool build_site -d '{
+  "projectId": "proj_4n9wf3r",
+  "routes": [
+    { "screenId": "scr_analytics", "route": "/" },
+    { "screenId": "scr_settings", "route": "/settings" },
+    { "screenId": "scr_users", "route": "/users" }
+  ]
+}'
+```
+
+The designer then asks their coding agent: "Take the analytics dashboard from Stitch and add interactive Chart.js graphs for the revenue and user metrics. Keep the exact layout from the design but make the data tables sortable."
+
+The agent fetches the screen HTML via `get_screen_code`, preserves the layout structure, and adds client-side interactivity on top of the design.
+
+## Guidelines
+
+- Run `doctor` after setup to verify authentication and configuration
+- Use `snapshot` to save screen state for offline work or version control
+- Preview designs with `serve` before handing to agents — faster iteration loop
+- Stitch MCP works with VS Code, Cursor, Claude Code, Gemini CLI, Codex, and OpenCode
+- Use the interactive browser (`view`) to explore projects before building
+- Combine with other design skills (impeccable-design, frontend-design) for polished output
+- See [GitHub](https://github.com/davideast/stitch-mcp) and [Google Stitch](https://stitch.google.com) for more
