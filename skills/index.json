@@ -170,6 +170,19 @@
       "tags": []
     },
     {
+      "name": "ai-content-detection",
+      "slug": "ai-content-detection",
+      "description": "Detect AI-generated text using rule-based analysis, LLM-as-judge scoring, and optional external APIs. Use when: auditing content for AI authorship, academic integrity checks, editorial review, SEO content audits.",
+      "category": "data-ai",
+      "tags": [
+        "ai-detection",
+        "content-moderation",
+        "llm",
+        "text-analysis",
+        "academic-integrity"
+      ]
+    },
+    {
       "name": "ai-eval-ci",
       "slug": "ai-eval-ci",
       "description": "Run AI agent and LLM evaluations in CI/CD pipelines — automated quality gates that fail the build when AI output quality drops. Use when someone asks to \"test my AI agent\", \"add evals to CI\", \"catch prompt regressions\", \"compare models\", \"evaluate LLM output quality\", \"set up AI quality gates\", or \"benchmark my agent before deploying\". Covers eval frameworks (Cobalt, Promptfoo, Braintrust), LLM-as-judge scoring, threshold-based assertions, and GitHub Actions integration.",
@@ -432,6 +445,19 @@
       "description": "Build backends with Appwrite — open-source Backend-as-a-Service. Use when a user asks to set up user authentication, manage a database without writing backend code, handle file storage and uploads, add realtime subscriptions, set up cloud functions, build a mobile or web app backend, replace Firebase with an open-source alternative, or self-host a BaaS platform. Covers auth, databases, storage, functions, realtime, and SDK integration for web, mobile, and server-side.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "architectural-dimensions",
+      "slug": "architectural-dimensions",
+      "description": "Reference for architectural dimensions, proportions, and building codes for AI-generated 3D/2D models. Use when: generating floor plans, creating 3D buildings, validating architectural designs, ensuring correct human-scale proportions in models.",
+      "category": "design",
+      "tags": [
+        "architecture",
+        "dimensions",
+        "floor-plan",
+        "3d",
+        "building"
+      ]
     },
     {
       "name": "archiver",
@@ -1000,6 +1026,19 @@
         "testing",
         "git-friendly",
         "open-source"
+      ]
+    },
+    {
+      "name": "building-spec",
+      "slug": "building-spec",
+      "description": "Read and apply a project-specific BUILDING_SPEC.md or DIMENSIONS.md file before generating any architectural elements. Use when: generating floor plans, 3D buildings, or any spatial design where the project has defined custom dimensions, room requirements, or design standards.",
+      "category": "design",
+      "tags": [
+        "architecture",
+        "building-spec",
+        "floor-plan",
+        "3d",
+        "standards"
       ]
     },
     {
@@ -1684,6 +1723,19 @@
         "review",
         "risk-analysis",
         "compliance"
+      ]
+    },
+    {
+      "name": "contrast-check",
+      "slug": "contrast-check",
+      "description": "Check color contrast ratios for WCAG accessibility compliance. Use when: auditing UI components for accessibility, validating color schemes meet AA/AAA standards, fixing low-contrast text in designs.",
+      "category": "design",
+      "tags": [
+        "accessibility",
+        "wcag",
+        "contrast",
+        "color",
+        "design"
       ]
     },
     {
@@ -3220,6 +3272,18 @@
       ]
     },
     {
+      "name": "gptzero",
+      "slug": "gptzero",
+      "description": "Integrate GPTZero API for AI content detection — text scanning, file upload, batch processing, per-sentence probability scores. Use when: programmatic AI content scanning, academic integrity tools, content moderation pipelines.",
+      "category": "data-ai",
+      "tags": [
+        "ai-detection",
+        "gptzero",
+        "content-moderation",
+        "text-analysis"
+      ]
+    },
+    {
       "name": "gradio",
       "slug": "gradio",
       "description": "Python library for building ML demo UIs with minimal code. Create interactive web interfaces for models with text, image, audio, and video inputs/outputs. Share demos via public links or deploy to Hugging Face Spaces.",
@@ -3544,6 +3608,45 @@
       "description": "Expert guidance for Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. Helps developers write analytics code once and run it anywhere without rewriting SQL for each database.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "image-analysis",
+      "slug": "image-analysis",
+      "description": "Analyze images to extract colors, composition, mood, and visual elements using Vision AI. Use when: extracting color palettes from images, analyzing design screenshots, understanding visual style of reference images.",
+      "category": "design",
+      "tags": [
+        "image-analysis",
+        "color-palette",
+        "design",
+        "visual",
+        "claude"
+      ]
+    },
+    {
+      "name": "image-compare",
+      "slug": "image-compare",
+      "description": "Compare two images visually using Vision AI to identify differences, similarities, and changes. Use when: comparing design mockups vs implementation, visual regression testing, identifying what changed between two versions.",
+      "category": "design",
+      "tags": [
+        "image-compare",
+        "visual-regression",
+        "design",
+        "testing",
+        "diff"
+      ]
+    },
+    {
+      "name": "image-to-text",
+      "slug": "image-to-text",
+      "description": "Extract text and structured data from images using Vision AI (OCR). Use when: reading text from screenshots, extracting data from scanned documents, converting images of tables/forms/charts to structured text.",
+      "category": "data-ai",
+      "tags": [
+        "ocr",
+        "image-to-text",
+        "vision-ai",
+        "text-extraction",
+        "document"
+      ]
     },
     {
       "name": "imagemagick",
@@ -4028,6 +4131,19 @@
       "tags": []
     },
     {
+      "name": "last30days-skill",
+      "slug": "last30days-skill",
+      "description": "Deep research engine covering the last 30 days across 10+ sources -- Reddit, X/Twitter, YouTube, TikTok, HackerNews, Polymarket, Bluesky, and the web. Synthesizes findings into grounded, cited reports. Use when: researching trending topics, competitive intelligence, understanding what people are saying about a subject right now.",
+      "category": "research",
+      "tags": [
+        "research",
+        "trends",
+        "deep-research",
+        "social-media",
+        "competitive-intelligence"
+      ]
+    },
+    {
       "name": "launch-strategy",
       "slug": "launch-strategy",
       "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' or 'product update.' This skill covers phased launches, channel strategy, and ongoing launch momentum.",
@@ -4113,6 +4229,19 @@
         "turso",
         "edge-database",
         "embedded"
+      ]
+    },
+    {
+      "name": "liepin-jobs",
+      "slug": "liepin-jobs",
+      "description": "Search jobs on Liepin (猎聘), apply to positions, view and edit resumes. Zero-dependency Python CLI wrapping Liepin's official MCP Server. Trigger words: jobs, liepin, resume, 找工作, 搜职位, 投简历, 猎聘, 求职, 招聘, 简历.",
+      "category": "productivity",
+      "tags": [
+        "jobs",
+        "liepin",
+        "resume",
+        "mcp",
+        "chinese"
       ]
     },
     {
@@ -5355,6 +5484,19 @@
       "tags": []
     },
     {
+      "name": "originality-ai",
+      "slug": "originality-ai",
+      "description": "Use Originality.ai API to detect AI-generated content and check for plagiarism simultaneously. Use when: SEO content audits, freelancer content verification, editorial review pipelines, originality checks.",
+      "category": "data-ai",
+      "tags": [
+        "ai-detection",
+        "plagiarism",
+        "originality",
+        "content-moderation",
+        "seo"
+      ]
+    },
+    {
       "name": "otel-js",
       "slug": "otel-js",
       "description": "Instrument Node.js apps with OpenTelemetry. Use when a user asks to add distributed tracing, collect metrics, instrument HTTP requests, trace database queries, or set up observability for microservices.",
@@ -5482,6 +5624,19 @@
       "description": "Build multiplayer and collaborative apps with PartyKit. Use when a user asks to build real-time collaboration features, create multiplayer experiences, add live cursors, build collaborative editing, create real-time voting or polls, sync state across clients, or build WebSocket servers on the edge. Covers PartyServer definition, client connections, state management, hibernation, and deployment to Cloudflare.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "pascal-editor",
+      "slug": "pascal-editor",
+      "description": "Build and extend 3D building editor apps using Pascal Editor's architecture (React Three Fiber + Zustand scene graph). Use when: building 3D architectural tools, creating BIM-like editors, extending Pascal Editor with custom features, building floor plan generators.",
+      "category": "design",
+      "tags": [
+        "pascal-editor",
+        "3d",
+        "react-three-fiber",
+        "architecture",
+        "bim"
+      ]
     },
     {
       "name": "passive-recon",
@@ -7297,6 +7452,19 @@
       "tags": []
     },
     {
+      "name": "supermemory",
+      "slug": "supermemory",
+      "description": "Add persistent memory to AI agents using Supermemory API -- the #1 ranked AI memory engine. Use when: building AI assistants that remember users, adding long-term memory to chatbots, creating personalized AI products, storing conversation context across sessions.",
+      "category": "data-ai",
+      "tags": [
+        "memory",
+        "ai-agents",
+        "rag",
+        "personalization",
+        "supermemory"
+      ]
+    },
+    {
       "name": "superset",
       "slug": "superset",
       "description": "Apache Superset is an open-source data exploration and visualization platform. Learn Docker deployment, database connections, chart creation, dashboard building, SQL Lab usage, and programmatic access via the REST API.",
@@ -7988,6 +8156,71 @@
         "privacy",
         "tracking",
         "open-source"
+      ]
+    },
+    {
+      "name": "understand-chat",
+      "slug": "understand-chat",
+      "description": "Answer questions about any codebase using an AI-generated knowledge graph. Use when: asking architecture questions about a project, understanding how specific features work, exploring codebase relationships interactively.",
+      "category": "development",
+      "tags": [
+        "codebase",
+        "knowledge-graph",
+        "ai",
+        "architecture",
+        "documentation"
+      ]
+    },
+    {
+      "name": "understand-dashboard",
+      "slug": "understand-dashboard",
+      "description": "Launch an interactive web dashboard to visualize a codebase as a knowledge graph. Use when: exploring project architecture visually, seeing file/function dependencies, understanding code structure at a glance.",
+      "category": "development",
+      "tags": [
+        "codebase",
+        "knowledge-graph",
+        "visualization",
+        "dashboard",
+        "architecture"
+      ]
+    },
+    {
+      "name": "understand-diff",
+      "slug": "understand-diff",
+      "description": "Analyze git diffs and PRs using the codebase knowledge graph to understand impact and risk. Use when: reviewing pull requests, understanding what a diff actually changes, assessing risk of a code change.",
+      "category": "development",
+      "tags": [
+        "git",
+        "diff",
+        "code-review",
+        "knowledge-graph",
+        "impact-analysis"
+      ]
+    },
+    {
+      "name": "understand-explain",
+      "slug": "understand-explain",
+      "description": "Get a deep-dive explanation of any file, function, or module using the codebase knowledge graph. Use when: understanding unfamiliar code, explaining how a feature is implemented, learning a legacy codebase.",
+      "category": "development",
+      "tags": [
+        "codebase",
+        "knowledge-graph",
+        "documentation",
+        "explanation",
+        "learning"
+      ]
+    },
+    {
+      "name": "understand-onboard",
+      "slug": "understand-onboard",
+      "description": "Generate a comprehensive onboarding guide for new developers joining a project, based on the codebase knowledge graph. Use when: onboarding new team members, creating developer documentation, ramping up on a new project.",
+      "category": "development",
+      "tags": [
+        "onboarding",
+        "documentation",
+        "knowledge-graph",
+        "developer-experience",
+        "team"
       ]
     },
     {
@@ -8693,5 +8926,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-03-24T18:26:33.354Z"
+  "updatedAt": "2026-03-24T18:37:18.663Z"
 }
