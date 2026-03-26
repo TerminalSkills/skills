@@ -1,7 +1,9 @@
 ---
 title: "Build a Real-Time Intelligence Dashboard"
+slug: build-real-time-intelligence-dashboard
 description: "Create a live intelligence dashboard that monitors news, social media, and market data with AI-powered categorization and deduplication."
 skills: [worldmonitor, anthropic-sdk, resend]
+category: data-ai
 difficulty: advanced
 time_estimate: "10 hours"
 tags: [real-time, monitoring, intelligence, dashboard, websocket, news-analysis, email-digest]
@@ -9,13 +11,15 @@ tags: [real-time, monitoring, intelligence, dashboard, websocket, news-analysis,
 
 # Build a Real-Time Intelligence Dashboard
 
-## Persona
+## The Problem
 
-You're an analyst at a consulting firm. Your clients pay for insights, not information. You need to track 200+ sources across news, social media, and markets — then surface what actually matters. No more tab-hopping between Bloomberg, Twitter, and Reuters. One dashboard. AI-filtered. Real-time.
+Analysts at consulting firms need to track 200+ sources across news, social media, and markets — then surface what actually matters. Tab-hopping between Bloomberg, Twitter, and Reuters wastes hours every day. Clients pay for insights, not information, but there is no single tool that ingests everything, deduplicates across sources, and delivers AI-filtered intelligence in real time.
 
 Inspired by [WorldMonitor](https://github.com/worldmonitor/worldmonitor) (43k+ stars) — real-time global event tracking with AI classification.
 
-## Architecture
+## The Solution
+
+Build a single dashboard that pulls from RSS feeds, Reddit, and news APIs in parallel, classifies each event with Claude for topic and severity, deduplicates using embedding similarity, pushes updates via WebSocket, and sends a daily email digest through Resend.
 
 ```
 Sources (RSS, Twitter/X, Reddit, News APIs)
@@ -33,7 +37,9 @@ Sources (RSS, Twitter/X, Reddit, News APIs)
     Daily Digest → Email (Resend)
 ```
 
-## Step 1: Multi-Source Ingestion
+## Step-by-Step Walkthrough
+
+### 1. Multi-Source Ingestion
 
 ```python
 import feedparser
@@ -71,7 +77,7 @@ async def ingest_all() -> list[dict]:
     return [item for batch in results for item in batch]
 ```
 
-## Step 2: AI Classification & Severity Scoring
+### 2. AI Classification & Severity Scoring
 
 ```python
 import anthropic, json
@@ -89,7 +95,7 @@ def classify_event(event: dict) -> dict:
     return {**event, **classification}
 ```
 
-## Step 3: Deduplication via Embedding Similarity
+### 3. Deduplication via Embedding Similarity
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -118,7 +124,7 @@ def deduplicate(events: list[dict], threshold: float = 0.85) -> list[dict]:
     return [events[i] for i in keep]
 ```
 
-## Step 4: WebSocket Push to Dashboard
+### 4. WebSocket Push to Dashboard
 
 ```python
 from fastapi import FastAPI, WebSocket
@@ -163,7 +169,7 @@ async def poll_loop():
         await asyncio.sleep(300)  # every 5 min
 ```
 
-## Step 5: Daily Digest Email via Resend
+### 5. Daily Digest Email via Resend
 
 ```python
 import resend
@@ -191,6 +197,18 @@ def send_daily_digest(events: list[dict], recipient: str):
         "html": html
     })
 ```
+
+## Real-World Example
+
+A geopolitical risk consultancy monitors 150 sources for a client in the energy sector. On a Monday morning, the dashboard ingests 1,200 items across Reuters, BBC, Reddit, and specialized energy RSS feeds. Claude classifies each item, flagging 8 as severity-5 (critical) — including breaking news about OPEC production cuts and a pipeline disruption in the Middle East. Embedding-based deduplication merges 45 duplicate articles about the OPEC announcement into a single event with 45 linked sources. The WebSocket dashboard highlights the critical events immediately, and the daily digest email groups them under "Energy & Commodities" with red severity indicators. The analyst walks into a client meeting fully briefed, having spent zero time manually scanning sources.
+
+## Related Skills
+
+- **[anthropic-sdk](/skills/anthropic-sdk)** — Claude API integration for event classification and severity scoring
+- **[resend](/skills/resend)** — Transactional email for daily intelligence digests
+- **[fastapi](/skills/fastapi)** — WebSocket server and API endpoints for the dashboard backend
+- **[datadog](/skills/datadog)** — Production monitoring and alerting for the ingestion pipeline
+- **[n8n](/skills/n8n)** — Workflow automation for connecting additional data sources
 
 ## What You'll Learn
 

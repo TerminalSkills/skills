@@ -1,7 +1,9 @@
 ---
 title: "Build a Self-Evolving AI Agent"
+slug: build-self-evolving-ai-agent
 description: "Create an AI agent that improves itself over time by reading, writing, and pruning its own context files — hierarchical memory with self-reflection."
 skills: [openviking, hermes-agent, agent-memory]
+category: data-ai
 difficulty: advanced
 time_estimate: "8 hours"
 tags: [ai-agents, self-improvement, context-management, memory, reflection, autonomous]
@@ -9,13 +11,15 @@ tags: [ai-agents, self-improvement, context-management, memory, reflection, auto
 
 # Build a Self-Evolving AI Agent
 
-## Persona
+## The Problem
 
-You're an AI researcher tired of agents that forget everything between sessions. You want to build an agent that **gets better at its job** — one that writes down what it learned, updates its own instructions, prunes stale context, and measurably improves over iterations. Not fine-tuning. Not RAG. Pure context engineering.
+AI agents forget everything between sessions. Each conversation starts from scratch — no memory of past mistakes, no accumulated wisdom, no improvement over time. Fine-tuning is expensive and slow. RAG adds retrieval overhead but does not help the agent learn from its own behavior. There is no simple way to build an agent that gets measurably better at its job through experience.
 
 Inspired by [OpenViking](https://github.com/openviking/openviking) (18k+ stars) — agents that maintain and evolve their own operational context.
 
-## Architecture
+## The Solution
+
+Build an agent that maintains a hierarchical context system (global, project, task, subtask), reflects on each completed task to extract learnings, writes new instructions to its own context files, prunes stale or contradictory entries, and tracks performance over time. Pure context engineering — no retraining required.
 
 ```
 Task Arrives
@@ -34,7 +38,9 @@ Context pruning: remove stale entries
 Performance tracked over time
 ```
 
-## Step 1: Hierarchical Context System
+## Step-by-Step Walkthrough
+
+### 1. Hierarchical Context System
 
 ```python
 from pathlib import Path
@@ -86,7 +92,7 @@ class ContextManager:
         (self.base / "learnings.json").write_text(json.dumps(learnings, indent=2))
 ```
 
-## Step 2: Self-Reflection After Each Task
+### 2. Self-Reflection After Each Task
 
 ```python
 import anthropic, time
@@ -127,7 +133,7 @@ Return JSON: {worked: [string], failed: [string], missing_context: string, new_i
     return reflection
 ```
 
-## Step 3: Context Pruning
+### 3. Context Pruning
 
 ```python
 def prune_context(ctx: ContextManager, max_lines: int = 200):
@@ -153,7 +159,7 @@ Return JSON: {pruned_context: string, removed_count: int, reason: string}""",
     return result
 ```
 
-## Step 4: Performance Tracking
+### 4. Performance Tracking
 
 ```python
 class PerformanceTracker:
@@ -187,7 +193,7 @@ class PerformanceTracker:
         }
 ```
 
-## Step 5: The Evolution Loop
+### 5. The Evolution Loop
 
 ```python
 async def evolution_loop(tasks: list[str], iterations: int = 50):
@@ -221,6 +227,18 @@ async def evolution_loop(tasks: list[str], iterations: int = 50):
 
         print(f"[Iter {i}] Quality: {quality:.2f} | Trend: {tracker.improvement_trend()['trend']}")
 ```
+
+## Real-World Example
+
+A development team deploys this self-evolving agent to handle code review for a Python monorepo. In the first 10 iterations, the agent flags generic style issues but misses domain-specific patterns. After each review, the reflection step captures learnings like "this codebase uses dataclasses instead of Pydantic — stop suggesting Pydantic migrations" and "the team prefers explicit error handling over broad try/except blocks." By iteration 30, the agent's quality score has improved from 0.55 to 0.82. The context pruning step at iteration 20 merged three redundant rules about import ordering into one concise instruction and removed a stale note about a deprecated API that was fixed weeks ago. The performance tracker shows a clear upward trend, and the team's code review turnaround time drops by 40%.
+
+## Related Skills
+
+- **[agent-memory](/skills/agent-memory)** — Persistent memory patterns for AI agents across sessions
+- **[hermes-agent](/skills/hermes-agent)** — Agent framework for building autonomous AI workflows
+- **[anthropic-sdk](/skills/anthropic-sdk)** — Claude API integration for self-reflection and context analysis
+- **[langchain](/skills/langchain)** — Agent orchestration and chaining for multi-step reasoning
+- **[crewai](/skills/crewai)** — Multi-agent collaboration framework with role-based agents
 
 ## What You'll Learn
 

@@ -1,7 +1,9 @@
 ---
 title: "Build a Client-Side Code Knowledge Graph"
+slug: build-client-side-code-knowledge-graph
 description: "Create a zero-server code intelligence tool that runs entirely in the browser — parse repos, build knowledge graphs, and query code with Graph RAG."
 skills: [gitnexus, understand-chat]
+category: development
 difficulty: advanced
 time_estimate: "12 hours"
 tags: [code-analysis, knowledge-graph, browser, wasm, tree-sitter, d3, graph-rag, offline]
@@ -9,13 +11,15 @@ tags: [code-analysis, knowledge-graph, browser, wasm, tree-sitter, d3, graph-rag
 
 # Build a Client-Side Code Knowledge Graph
 
-## Persona
+## The Problem
 
-You just joined a team that owns a 500-file open source project. No docs. The original author left. You need to understand the codebase **fast** — what calls what, where the dependencies are, which files are the real entry points. You want a tool that runs in your browser, works offline, and lets you ask questions like "what happens when a user clicks submit?"
+You just joined a team that owns a 500-file open source project. No docs. The original author left. You need to understand the codebase fast — what calls what, where the dependencies are, which files are the real entry points. Existing tools require server setups, language servers, or IDE plugins. You want something that runs in your browser, works offline, and lets you ask questions like "what happens when a user clicks submit?" without reading every file manually.
 
 Inspired by [GitNexus](https://github.com/gitnexus/gitnexus) (19k+ stars) — client-side code intelligence with zero server dependencies.
 
-## Architecture
+## The Solution
+
+Build a browser-based tool that parses source code using Tree-sitter compiled to WASM, extracts functions, classes, and imports into a knowledge graph, visualizes it with D3 force-directed layouts, and supports Graph RAG queries so you can ask natural language questions about the codebase. Everything runs client-side — no server needed.
 
 ```
 ZIP/Repo Upload (browser)
@@ -32,7 +36,9 @@ ZIP/Repo Upload (browser)
   └─────────────┴──────────────────┘
 ```
 
-## Step 1: Parse Code in the Browser with Tree-sitter WASM
+## Step-by-Step Walkthrough
+
+### Step 1: Parse Code in the Browser with Tree-sitter WASM
 
 ```javascript
 import Parser from "web-tree-sitter";
@@ -90,7 +96,7 @@ function extractImports(tree) {
 }
 ```
 
-## Step 2: Build the Knowledge Graph
+### Step 2: Build the Knowledge Graph
 
 ```javascript
 class CodeGraph {
@@ -156,7 +162,7 @@ class CodeGraph {
 }
 ```
 
-## Step 3: Visualize with D3 Force-Directed Graph
+### Step 3: Visualize with D3 Force-Directed Graph
 
 ```javascript
 import * as d3 from "d3";
@@ -190,7 +196,7 @@ function renderGraph(container, graph) {
 }
 ```
 
-## Step 4: Graph RAG — Ask Questions About Code
+### Step 4: Graph RAG — Ask Questions About Code
 
 ```javascript
 async function queryCode(graph, question) {
@@ -225,6 +231,15 @@ async function queryCode(graph, question) {
   return response.json();
 }
 ```
+
+## Real-World Example
+
+You upload a 500-file React + Express project as a ZIP. The tool parses it in 8 seconds using Tree-sitter WASM, extracting 340 functions, 45 classes, and 890 import edges. The D3 visualization immediately reveals two large clusters (frontend and backend) connected through a thin API layer. You click on `src/api/client.ts` and see it's imported by 28 components — the central hub. You ask "what happens when a user submits a form?" and the Graph RAG returns: "`FormComponent.handleSubmit` (src/components/Form.tsx:42) calls `apiClient.post` (src/api/client.ts:15), which hits `POST /api/submissions` handled by `createSubmission` (server/routes/submissions.ts:23), writing to the database via `SubmissionModel.create`." In 10 minutes you have a mental map that would have taken days of code reading.
+
+## Related Skills
+
+- [gitnexus](/skills/gitnexus) — Client-side code intelligence and repository analysis
+- [understand-chat](/skills/understand-chat) — AI-powered code understanding through conversation
 
 ## What You'll Learn
 

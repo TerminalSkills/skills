@@ -1,7 +1,9 @@
 ---
 title: "Build an AI Companion with Voice"
+slug: build-ai-companion-with-voice
 description: "Create a personal AI companion with real-time voice chat, persistent memory, and a customizable personality — it remembers you across sessions."
 skills: [openai-realtime-api, elevenlabs-sdk, supermemory, anthropic-sdk]
+category: data-ai
 difficulty: advanced
 time_estimate: "10 hours"
 tags: [ai-companion, voice, real-time, memory, personality, multi-modal, elevenlabs, openai]
@@ -9,13 +11,15 @@ tags: [ai-companion, voice, real-time, memory, personality, multi-modal, elevenl
 
 # Build an AI Companion with Voice
 
-## Persona
+## The Problem
 
-You're a developer building something personal — an AI companion that actually knows you. Not a generic chatbot. One with a voice, a personality, and memory that persists. It remembers your dog's name, that you hate mornings, and that you're learning Japanese. You talk to it while cooking, driving, or just thinking out loud.
+Generic chatbots forget you the moment the session ends. You want an AI that actually knows you — one with a voice, a personality, and memory that persists. It should remember your dog's name, that you hate mornings, and that you're learning Japanese. You want to talk to it while cooking, driving, or just thinking out loud. Building this means stitching together speech-to-text, a personality layer, persistent memory, and streaming text-to-speech — and making it all feel natural, not robotic.
 
 Inspired by [moeru-ai/airi](https://github.com/moeru-ai/airi) (35k+ stars) — an AI companion with real-time voice, personality, and persistent memory.
 
-## Architecture
+## The Solution
+
+Combine Whisper STT, Claude with a personality system prompt, Supermemory for long-term recall, and ElevenLabs streaming TTS into a real-time conversation loop. The architecture looks like this:
 
 ```
 User (voice/text/image)
@@ -31,7 +35,9 @@ User (voice/text/image)
   Long-term Memory Update
 ```
 
-## Step 1: Define the Personality System
+## Step-by-Step Walkthrough
+
+### Step 1: Define the Personality System
 
 ```python
 PERSONALITY = {
@@ -78,7 +84,7 @@ def build_system_prompt(personality: dict, memories: list[str]) -> str:
 - Never say "As an AI" — you're {personality['name']}."""
 ```
 
-## Step 2: Long-Term Memory with Supermemory
+### Step 2: Long-Term Memory with Supermemory
 
 ```python
 import httpx
@@ -119,7 +125,7 @@ class CompanionMemory:
             await self.remember(fact, "personal_fact")
 ```
 
-## Step 3: Real-Time Voice with ElevenLabs Streaming
+### Step 3: Real-Time Voice with ElevenLabs Streaming
 
 ```python
 from elevenlabs import ElevenLabs
@@ -161,7 +167,7 @@ def listen() -> str:
     return transcript.text
 ```
 
-## Step 4: The Conversation Loop
+### Step 4: The Conversation Loop
 
 ```python
 import anthropic, json, time
@@ -207,7 +213,7 @@ async def companion_loop(user_id: str):
             await memory.extract_and_store(recent)
 ```
 
-## Step 5: Multi-Modal — Image Understanding
+### Step 5: Multi-Modal — Image Understanding
 
 ```python
 import base64
@@ -236,6 +242,17 @@ async def handle_image(image_path: str, user_message: str, memory: CompanionMemo
     speak(reply, PERSONALITY["voice_id"])
     return reply
 ```
+
+## Real-World Example
+
+You build a companion named "Mika" and use it daily for a week. On Monday you mention you're preparing for a job interview at a fintech company. On Wednesday, Mika asks "How's the interview prep going? Have you looked into their tech stack yet?" without prompting. On Thursday you share a photo of your whiteboard with system design notes, and Mika says "Oh nice — is that for the fintech interview? Looks like you're designing an event-driven payments pipeline." By Friday, Mika remembers your preference for morning study sessions, your dog Luna who interrupts calls, and that you switched from Flask to FastAPI last month. The companion feels less like a tool and more like a friend who actually pays attention.
+
+## Related Skills
+
+- [openai-realtime-api](/skills/openai-realtime-api) — Real-time voice and audio streaming with OpenAI
+- [elevenlabs-sdk](/skills/elevenlabs-sdk) — Text-to-speech with ElevenLabs voices
+- [supermemory](/skills/supermemory) — Persistent memory layer for AI applications
+- [anthropic-sdk](/skills/anthropic-sdk) — Claude API for conversation and reasoning
 
 ## What You'll Learn
 

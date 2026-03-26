@@ -1,7 +1,9 @@
 ---
 title: "Build a Swarm Intelligence Prediction System"
+slug: build-swarm-intelligence-prediction-system
 description: "Create a prediction system where 10+ AI agents analyze data from different perspectives and converge on a consensus prediction using weighted voting."
 skills: [swarm-intelligence, anthropic-sdk, langgraph]
+category: data-ai
 difficulty: advanced
 time_estimate: "8 hours"
 tags: [ai-agents, swarm-intelligence, prediction, multi-agent, consensus, vc-screening]
@@ -9,13 +11,15 @@ tags: [ai-agents, swarm-intelligence, prediction, multi-agent, consensus, vc-scr
 
 # Build a Swarm Intelligence Prediction System
 
-## Persona
+## The Problem
 
-You're a VC analyst at a mid-stage fund. Every week, 50+ pitch decks land on your desk. You need a system that screens deals fast — not with one AI opinion, but with a **swarm of specialized agents** that argue, disagree, and converge on a prediction. Like having 10 partners in a room, each with a different lens.
+VC analysts face 50+ pitch decks per week and need to screen deals quickly. A single AI opinion is unreliable — it lacks the diversity of perspectives that a real investment committee brings. There is no way to simulate the "10 partners in a room" dynamic where specialists in market timing, unit economics, technical moats, and founder evaluation each weigh in independently and then converge on a verdict.
 
 Inspired by [MiroFish](https://github.com/mirofish/mirofish) (42k+ stars) — multi-agent deliberation for complex decisions.
 
-## Architecture
+## The Solution
+
+Build a swarm of 10 specialized AI agents, each with a unique analytical lens (optimist, pessimist, data-driven, contrarian, etc.), that independently evaluate the same input. A weighted aggregation layer combines their scores, measures consensus confidence via standard deviation, and surfaces dissenting opinions. Agent weights adapt over time based on prediction accuracy.
 
 ```
 Pitch Deck → Parser → 10 Agent Perspectives → Independent Analysis
@@ -26,7 +30,9 @@ Pitch Deck → Parser → 10 Agent Perspectives → Independent Analysis
                                     Confidence Score + Final Verdict
 ```
 
-## Step 1: Define Agent Perspectives
+## Step-by-Step Walkthrough
+
+### 1. Define Agent Perspectives
 
 Each agent gets a unique system prompt that shapes how it evaluates data:
 
@@ -75,7 +81,7 @@ AGENT_PERSPECTIVES = {
 }
 ```
 
-## Step 2: Independent Agent Analysis
+### 2. Independent Agent Analysis
 
 Each agent analyzes the same input independently — no cross-talk:
 
@@ -105,7 +111,7 @@ async def swarm_analyze(pitch_data: str) -> list:
     return await asyncio.gather(*tasks)
 ```
 
-## Step 3: Weighted Aggregation & Consensus
+### 3. Weighted Aggregation & Consensus
 
 ```python
 def aggregate_predictions(results: list) -> dict:
@@ -133,7 +139,7 @@ def aggregate_predictions(results: list) -> dict:
     }
 ```
 
-## Step 4: Adaptive Weights from Track Record
+### 4. Adaptive Weights from Track Record
 
 Agents that predicted well in the past get more weight:
 
@@ -149,7 +155,7 @@ def update_weights(agent_name: str, predicted_score: float, actual_outcome: floa
     save_agent_history(agent_name, history)
 ```
 
-## Step 5: Run It
+### 5. Run It
 
 ```python
 pitch = """
@@ -169,6 +175,18 @@ print(f"Confidence: {verdict['confidence']:.0%}")
 print(f"Verdict: {verdict['verdict']}")
 print(f"Dissenting agents: {[d['perspective'] for d in verdict['dissent']]}")
 ```
+
+## Real-World Example
+
+A Series A fund uses this system to screen 200 deals over a quarter. For a developer tools startup (DataMesh AI), the swarm returns a score of 7.4/10 with 78% confidence. The optimist and trend_follower rate it 9/10 (strong AI tailwind, experienced team), while the pessimist gives it 4/10 (crowded market, no clear moat against Databricks). The contrarian flags that "every AI infrastructure play gets overhyped" but the unit_economist notes strong LTV/CAC of 5.2x. The dissent report highlights the pessimist and contrarian as outliers. After 6 months of tracking outcomes, the data_driven and unit_economist agents prove most accurate, and their weights automatically increase from 1.2 to 1.45, while the optimist's weight drops from 1.0 to 0.72 due to consistently overrating deals.
+
+## Related Skills
+
+- **[anthropic-sdk](/skills/anthropic-sdk)** — Claude API integration for running parallel agent analyses
+- **[langgraph](/skills/langgraph)** — Graph-based agent orchestration for multi-step deliberation workflows
+- **[crewai](/skills/crewai)** — Multi-agent collaboration framework with role-based specialization
+- **[langchain](/skills/langchain)** — Agent chaining and tool integration for complex evaluation pipelines
+- **[n8n](/skills/n8n)** — Workflow automation for connecting pitch deck ingestion to the swarm
 
 ## What You'll Learn
 

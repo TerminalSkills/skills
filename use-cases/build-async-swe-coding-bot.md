@@ -1,7 +1,9 @@
 ---
 title: "Build an Async SWE Coding Bot"
+slug: build-async-swe-coding-bot
 description: "Create an autonomous coding bot that picks up GitHub issues labeled 'ai-fix', writes code, runs tests, and submits pull requests — with human review in the loop."
 skills: [open-swe, github-actions, anthropic-sdk]
+category: automation
 difficulty: advanced
 time_estimate: "10 hours"
 tags: [coding-bot, github, automation, swe-agent, pull-requests, ci-cd, autonomous-coding]
@@ -9,13 +11,15 @@ tags: [coding-bot, github, automation, swe-agent, pull-requests, ci-cd, autonomo
 
 # Build an Async SWE Coding Bot
 
-## Persona
+## The Problem
 
-You lead a 6-person engineering team. Bug backlog keeps growing — 40+ issues, most are straightforward fixes. Your devs should be building features, not patching typos and fixing off-by-one errors. You want a bot that picks up simple issues, writes the fix, runs tests, and opens a PR. Humans review and merge. Target: automate 30% of bug fixes.
+You lead a 6-person engineering team with a growing bug backlog — 40+ issues, most of them straightforward fixes like typos, off-by-one errors, and missing null checks. Your developers should be building features, not spending hours on mechanical patches. You need a way to automate the simple fixes so humans can focus on what matters. The goal: automatically triage, fix, test, and open PRs for ~30% of your bug backlog — with human review before anything gets merged.
 
 Inspired by [open-swe](https://github.com/langchain-ai/open-swe) (8k+ stars) — LangChain's open-source software engineering agent.
 
-## Architecture
+## The Solution
+
+Build a GitHub-integrated bot that listens for issues labeled "ai-fix", clones the repo, uses an AI agent to explore the codebase and plan a fix, writes the code, runs tests, and opens a pull request. Humans review and merge. The architecture:
 
 ```
 GitHub Issue (labeled "ai-fix")
@@ -31,7 +35,9 @@ GitHub Issue (labeled "ai-fix")
   Human reviews → Merge or request changes
 ```
 
-## Step 1: GitHub Webhook Handler
+## Step-by-Step Walkthrough
+
+### Step 1: GitHub Webhook Handler
 
 ```python
 from fastapi import FastAPI, Request, HTTPException
@@ -66,7 +72,7 @@ async def handle_webhook(request: Request):
     return {"status": "ok"}
 ```
 
-## Step 2: Codebase Exploration Agent
+### Step 2: Codebase Exploration Agent
 
 ```python
 import anthropic
@@ -114,7 +120,7 @@ Return JSON: {
     return json.loads(response.content[0].text)
 ```
 
-## Step 3: Code Writing Agent
+### Step 3: Code Writing Agent
 
 ```python
 def write_fix(issue: dict, plan: dict, codebase: CodebaseExplorer) -> list[dict]:
@@ -133,7 +139,7 @@ def write_fix(issue: dict, plan: dict, codebase: CodebaseExplorer) -> list[dict]
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=4096,
-        system="""You are a senior developer writing a bug fix. 
+        system="""You are a senior developer writing a bug fix.
 - Make minimal, focused changes
 - Follow existing code style
 - Add or update tests for your changes
@@ -144,7 +150,7 @@ def write_fix(issue: dict, plan: dict, codebase: CodebaseExplorer) -> list[dict]
     return json.loads(response.content[0].text)
 ```
 
-## Step 4: Test Runner & Validation
+### Step 4: Test Runner & Validation
 
 ```python
 def apply_and_test(changes: list[dict], codebase: CodebaseExplorer) -> dict:
@@ -167,7 +173,7 @@ def apply_and_test(changes: list[dict], codebase: CodebaseExplorer) -> dict:
     }
 ```
 
-## Step 5: Create PR with Progress Updates
+### Step 5: Create PR with Progress Updates
 
 ```python
 import httpx
@@ -217,6 +223,16 @@ async def process_issue(repo: str, issue_number: int, title: str, body: str):
     else:
         await post_comment(repo, issue_number, f"❌ Tests failed. Needs human attention.\n```\n{test_result['stdout'][-500:]}\n```")
 ```
+
+## Real-World Example
+
+Your team's open-source Python SDK has 43 open bug reports. You label 15 of them "ai-fix" — issues like "TypeError when passing None to `parse_date()`", "Missing `Content-Type` header in file upload", and "Off-by-one in pagination `next_page` calculation." Within an hour, the bot opens 12 PRs. Ten pass CI. Your senior dev reviews them in 20 minutes, approves 9, and requests a small change on one. Three issues that the bot couldn't fix (a race condition, a complex schema migration, and a test environment issue) get flagged with "needs human attention" comments. Your team clears a third of the backlog in under two hours instead of two sprints.
+
+## Related Skills
+
+- [open-swe](/skills/open-swe) — Open-source software engineering agent framework
+- [github-actions](/skills/github-actions) — CI/CD workflow automation with GitHub Actions
+- [anthropic-sdk](/skills/anthropic-sdk) — Claude API for code generation and reasoning
 
 ## What You'll Learn
 
