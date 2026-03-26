@@ -1,160 +1,303 @@
 ---
-title: Scale a Consulting Business Into a Productized Service
+title: Scale a Consulting Agency to a Productized Service
 slug: scale-consulting-to-productized-service
-description: Transform a $180k/year web design agency where the founder works 60 hours/week into a $350k/year productized "Website-in-a-Week" service — with SOPs, templates, and a recurring maintenance subscription — while cutting founder hours to 35/week.
+description: >-
+  Diana runs a web design agency doing $180k/year with 3 freelancers and
+  60-hour weeks. By productizing into "Website-in-a-Week" and adding a
+  maintenance subscription, she reaches $350k revenue working 35 hours/week.
 skills:
   - business-finance-fundamentals
   - systems-thinking
   - team-leadership
 category: business
 tags:
+  - agency
   - productized-service
   - consulting
+  - systems
   - scaling
-  - sops
-  - recurring-revenue
-  - agency
-  - delegation
+  - subscription
 ---
 
-# Scale a Consulting Business Into a Productized Service
+## The Problem
 
-Diana runs a web design agency. On paper, it's a good business: $180k/year revenue, 3 freelance contractors, steady client flow from referrals. In reality, Diana works 60 hours/week, personally manages every project, and hasn't taken a real vacation in 2 years. Every project is custom-scoped, custom-priced, and custom-delivered. Her contractors are talented but can't work without Diana directing every detail. If she gets sick for a week, everything stops.
+Diana has been running a web design agency for 4 years. She has 3 freelancers, a healthy reputation, and a steady stream of clients. Revenue: $180k/year.
 
-Diana doesn't have a business — she has a job she can't quit.
+She also works 60-hour weeks and hasn't taken a real vacation in 2 years.
 
-## Step 1 — Map the Current System and Find the Constraint
+**Her business by the numbers:**
+- Revenue: $180k/year ($15k/month average)
+- Clients: 8-10 projects/year at $15k-25k each
+- Project length: 6-14 weeks each (highly variable)
+- Team: 3 part-time freelancers (paid per project)
+- Diana's role: Every project — discovery calls, scoping, design reviews, client emails, revisions, launch
 
-Use systems-thinking to model the agency as a system:
+The constraint is clear: Diana. She is personally involved in every step of every project. She can't take on more clients because there are only so many hours in her day. She can't delegate because her clients hired "Diana's agency" — meaning Diana.
 
-**Current workflow:**
+She's built a job for herself, not a business.
+
+## The Solution
+
+Apply productization: define a fixed-scope, fixed-price, systemized service offering. Move from "custom project at custom price" to "productized service at flat fee." Then add a recurring subscription for ongoing revenue that doesn't require Diana's continuous time.
+
+## Step-by-Step Walkthrough
+
+### Step 1: Identify the Constraint
+
+Diana maps every activity she does in a typical month:
+
 ```
-Lead → Diana scopes → Diana prices → Diana manages → Diana reviews → Diana delivers
-         ↓                  ↓                ↓               ↓              ↓
-     (2 hours)         (1 hour)         (15 hrs/project) (3 hours)     (2 hours)
+DIANA'S TIME AUDIT (60 hrs/week):
+  Discovery calls with prospects:       8 hrs/week
+  Writing proposals and contracts:      5 hrs/week
+  Project kickoff calls:                3 hrs/week
+  Design review and feedback:          15 hrs/week
+  Client email management:              8 hrs/week
+  Revisions and scope creep management: 6 hrs/week
+  Invoicing and admin:                  3 hrs/week
+  Actual creative direction:           12 hrs/week
+
+Of 60 hours, Diana does 12 hours of work that requires HER expertise.
+The other 48 hours is process work that could be systemized or delegated.
 ```
 
-**The constraint is obvious:** Diana. She's in every step. Her 3 contractors do the actual design and development, but Diana handles scoping, client communication, quality review, and delivery for every single project. She's the bottleneck, the single point of failure, and the reason the business can't grow.
+The constraint isn't Diana's skill — it's Diana's involvement in every non-creative decision.
 
-**Current economics (business-finance-fundamentals):**
-- Revenue: $180,000/year
-- Projects per year: ~24 (2 per month average)
-- Average project price: $7,500 (ranges from $3,000 to $15,000)
-- Contractor costs: ~$72,000/year ($3,000 avg per project)
-- Overhead (tools, hosting, insurance): ~$18,000/year
-- Diana's take-home: ~$90,000/year
-- Diana's hours: 60/week × 50 weeks = 3,000 hours/year
-- Effective hourly rate: $30/hour (for someone running a "successful" agency)
+### Step 2: Design the Productized Service
 
-At $30/hour for 60-hour weeks, Diana is working harder than her contractors and earning less per hour.
+Diana's insight: most clients actually want the same thing with variations. She analyzes her last 15 projects:
 
-## Step 2 — Design the Productized Service
+```
+PATTERN ANALYSIS:
+  - All clients needed: brand/style input, homepage, about, services, contact
+  - 12/15 also needed: blog, portfolio/case studies section
+  - 8/15 also needed: e-commerce (Shopify or WooCommerce)
+  - Average revision rounds: 3.2 (almost always on the same things: hero copy, colors, footer)
+  - Average project length: 9 weeks (much longer than necessary — mostly client delays)
 
-The fix isn't "hire a project manager." That adds cost without fixing the underlying problem: every project is a snowflake. The fix is standardization.
+The variation that kills time: endless customization, scope creep, and unclear deliverables.
+The fix: define exactly what's included and what's not.
+```
 
-**"Website-in-a-Week" — the productized offer:**
-- Fixed price: $4,500 (no proposals, no scoping calls, no "it depends")
-- Fixed scope: 5-page business website (Home, About, Services, Blog, Contact)
-- Fixed timeline: Monday kickoff → Friday delivery
-- Fixed process: same 5 steps every time
-- Client chooses from 6 premium templates (not "what do you want?")
+**The Product: "Website-in-a-Week"**
 
-**Why $4,500?** Diana's data shows 60% of her clients actually need a 5-page site. They're paying $7,500 for custom work, but most of the "custom" is Diana reinventing the wheel each time. At $4,500 with a templated process, the profit margin is actually higher because delivery cost drops from $3,000 to $1,500.
+```
+NAME: Website-in-a-Week™
+PRICE: $4,500 flat (no negotiation, no custom quotes)
+TIMELINE: 5 business days from kickoff to delivery
 
-**The math:**
-- Old model: 2 projects/month × $7,500 = $15,000/month, ~$3,750 profit per project
-- New model: 4 projects/month × $4,500 = $18,000/month, ~$2,500 profit per project
-- Monthly profit: Old = $7,500 → New = $10,000 (+33%)
+WHAT'S INCLUDED:
+  Day 1: Strategy call (90 min) + brand questionnaire completed
+  Day 2: Initial design (homepage + inner pages) delivered
+  Day 3: Revision round #1 (1 round, max 10 feedback items)
+  Day 4: Revisions applied + full site built
+  Day 5: Review, launch, handoff + training video recorded
 
-Lower margin per project, but double the volume because the system can handle it without Diana in every step.
+DELIVERABLES:
+  ✓ Up to 6 pages (home, about, services, portfolio, blog, contact)
+  ✓ Mobile responsive
+  ✓ Contact form connected
+  ✓ Google Analytics installed
+  ✓ Basic SEO setup
+  ✓ 2 weeks of support post-launch
+  ✓ Loom tutorial video for client to manage their own content
 
-## Step 3 — Build SOPs for Every Phase
+NOT INCLUDED (clear scope boundaries):
+  ✗ E-commerce (separate product: "Shop-in-a-Week" at $7,500)
+  ✗ Custom integrations or APIs
+  ✗ Logo design (client must provide)
+  ✗ Copywriting (client provides content OR add-on: $800)
+  ✗ More than 6 pages (additional pages: $300/page)
+```
 
-Use systems-thinking to break the 5-day process into repeatable steps with clear ownership:
+**Why $4,500?** Diana's previous projects averaged $18k but took 9 weeks each. At $4,500/week and 4 projects/month: $216k/year. At $15k margin per project now → nearly the same revenue in 1/9th the time per project.
 
-**Monday — Kickoff (1 hour)**
-- Client fills out intake form (automated via Typeform): business name, colors, logo upload, 5 pages of content, 10 reference sites they like
-- System auto-creates project in ClickUp from template
-- Contractor assigned automatically (round-robin)
-- Client gets automated email: "Here's your timeline. Your designer is [Name]."
+### Step 3: Build the Systems
 
-**Tuesday — Design (contractor, 4 hours)**
-- Contractor picks closest template to client's references
-- Customizes colors, fonts, layout to match brand
-- Uploads to Figma review link
-- Client reviews async — up to 2 rounds of revisions (defined in contract)
+The product is only scalable if it doesn't depend on Diana remembering what to do. She documents every step:
 
-**Wednesday — Build (contractor, 5 hours)**
-- Contractor converts approved design to live site (Webflow or WordPress)
-- Content populated from intake form
-- Mobile responsive check (automated via BrowserStack)
+```
+STANDARD OPERATING PROCEDURES:
 
-**Thursday — Polish (contractor, 3 hours + Diana 30 min)**
-- SEO basics: meta titles, descriptions, alt tags
-- Speed optimization: compress images, lazy loading
-- Diana does 30-minute quality check against a 25-point checklist
-- Fix any issues same day
+Phase 1: Pre-kick (before Diana's involved)
+  - [Typeform] Client fills brand questionnaire (30 questions about brand, audience, goals)
+  - [Calendly] Client books kickoff slot (Day 1, 9 AM slots only)
+  - [Stripe] Payment collected upfront — no exceptions
+  - [Notion] Project workspace auto-created from template
+  - [Slack] Client invited to dedicated project channel
+  → Time: 0 minutes of Diana's time
 
-**Friday — Deliver (automated + Diana 15 min)**
-- Automated email to client: "Your website is live!" with training video links
-- Diana sends personal Loom walkthrough (15 min, reuses template script)
-- Client signs off or requests final minor tweaks
+Phase 2: Kickoff (Day 1 — Diana's 90 minutes)
+  - Run through questionnaire answers (no new brainstorming — she has the data)
+  - Confirm 3 reference sites client likes (done upfront in questionnaire)
+  - Set clear expectations: "Designs tomorrow by 5 PM. 1 revision round. Launch Friday."
+  - Record 5-minute Loom: "here's what happens this week"
+  → Time: 90 minutes Diana
 
-**Diana's involvement per project: ~45 minutes** (down from 23 hours)
+Phase 3: Design (Day 2 — freelancer)
+  - Designer uses template library (30 Figma templates sorted by industry)
+  - Customizes color, typography, images from questionnaire
+  - Delivers via shared Figma link in Slack
+  → Time: 0 minutes Diana (designer does this)
 
-## Step 4 — Add Recurring Revenue With Maintenance Plans
+Phase 4: Feedback (Day 3)
+  - Client submits feedback via Notion form (max 10 items, ranked by priority)
+  - Diana reviews in 20 minutes: approves or redirects
+  - Designer implements
+  → Time: 20 minutes Diana
 
-The productized service solves the capacity problem. But there's an even bigger opportunity: recurring revenue. Diana's been leaving money on the table — clients launch a site and never hear from her again.
+Phase 5: Build (Day 4 — developer)
+  - Developer uses Webflow template (5 master templates by industry)
+  - Implements design, connects forms, installs analytics
+  - Internal QA checklist (47-point)
+  → Time: 0 minutes Diana
 
-Use pricing to design a maintenance subscription:
+Phase 6: Launch (Day 5 — Diana 30 minutes)
+  - Final review against QA checklist
+  - Domain connection + DNS (developer handles)
+  - Record Loom training video (15 min) using script template
+  - Handoff email (template) with all resources
+  → Time: 30 minutes Diana
 
-**$99/month maintenance plan includes:**
-- WordPress/Webflow updates and security patches
-- Monthly uptime monitoring
-- 30 minutes of content updates (swap images, edit text)
-- Monthly analytics report (automated via Google Analytics API)
-- Priority email support (24-hour response)
+TOTAL DIANA TIME PER PROJECT: ~2.5 hours (vs 40+ hours before)
+```
 
-**Cost to deliver:** ~15 minutes per client per month (mostly automated). At scale with 40 clients, that's 10 hours/month for $3,960/month in recurring revenue.
+### Step 4: Add the Subscription Layer
 
-Pitch it at delivery: "Your site is live! Most clients add our $99/month maintenance plan so they never have to worry about updates or security. Want me to add it?" Conversion rate: ~55% of Website-in-a-Week clients add it.
+Projects are episodic. Subscriptions are reliable.
 
-## Step 5 — Delegate and Remove Diana From the Critical Path
+Diana launches "Website Care" after noticing how much time clients spend asking her to make tiny updates after launch.
 
-Use team-leadership to restructure the team:
+```
+WEBSITE CARE SUBSCRIPTION: $99/month
 
-**Before:** Diana → manages everything → 3 contractors execute
+WHAT'S INCLUDED:
+  - Up to 2 hours of monthly content updates
+    (text changes, new photos, blog posts, team page updates)
+  - Monthly backup and security scan
+  - Monthly uptime monitoring
+  - Priority support response (same business day)
+  - Annual analytics report
 
-**After:**
-- **Lead Designer (promoted from contractor pool):** Handles quality review, client escalations, contractor scheduling. Diana trains them using the 25-point checklist. $5,000/month retainer.
-- **2 Design Contractors:** Execute the 5-day process. $1,500 per project.
-- **Virtual Assistant (new, part-time):** Manages intake forms, onboarding emails, maintenance tasks. $1,500/month.
-- **Diana:** Handles sales (30 min/day), reviews weekly metrics, takes on 1-2 premium custom projects per month for clients who need more than the productized offer.
+HOW IT WORKS:
+  - Client submits requests via Basecamp (batch, async)
+  - Freelancer handles requests (Diana approves if > $500 impact)
+  - Invoiced monthly, auto-charged via Stripe
 
-## Step 6 — Results After 6 Months
+POSITIONING:
+  - Offered to every "Website-in-a-Week" client at launch as an add-on
+  - "For $99/month, we keep your site fresh. Otherwise you'll need to
+    learn Webflow or bug your developer nephew."
 
-| Metric | Before | After 6 Months |
-|---|---|---|
-| Annual revenue | $180,000 | $350,000 |
-| Projects/month | 2 | 5 (productized) + 1 (custom) |
-| Maintenance subscribers | 0 | 22 ($2,178/month MRR) |
-| Diana's hours/week | 60 | 35 |
-| Effective hourly rate | $30/hr | $97/hr |
-| Team size | 3 contractors | 1 lead + 2 contractors + 1 VA |
-| Vacation days taken | 0 | 2 weeks (system ran without her) |
+TARGET: 40% of project clients convert to subscription
+At $4,500 project price, $99/month subscription = $1,188/year additional
+Subscription is pure margin: freelancer handles it for $40/hour, max 2 hrs/month
+```
 
-Revenue breakdown:
-- Productized websites: 5/month × $4,500 = $22,500
-- Custom projects: 1/month × $12,000 = $12,000
-- Maintenance: 22 × $99 = $2,178
-- Monthly total: ~$36,678 → annualized: ~$350k (with seasonal variation)
+### Step 5: Financial Model
 
-The custom projects are now Diana's "fun" work — high-end clients who pay premium for her personal touch. The productized service runs on the system.
+```
+BEFORE (Custom Agency):
+  Revenue: $180,000/year
+  Projects: 10/year at $18k average
+  Diana's hours: 60/week, 52 weeks = 3,120 hours/year
+  Effective rate: $180k / 3,120 hrs = $58/hour
 
-## Why This Approach Works
+AFTER (Productized Service):
 
-Diana's agency had a classic consulting trap: selling hours, not outcomes. Every project was custom, which meant every project required Diana. The constraint wasn't talent or demand — it was that the business was designed around a single person.
+  Projects: 4/month × 12 months = 48 projects/year
+  Project revenue: 48 × $4,500 = $216,000
 
-Productizing the service did three things simultaneously: standardized delivery (SOPs replace Diana's judgment calls), increased capacity (4 projects/month instead of 2), and created a path to recurring revenue (maintenance plans).
+  Add-ons taken (30% attach rate):
+    Copywriting add-on: 14 projects × $800 = $11,200
+    Extra pages: 8 projects × $600 avg = $4,800
 
-The key insight from systems thinking: Diana wasn't the solution, she was the bottleneck. Removing her from the day-to-day didn't weaken the business — it unlocked it. The system now runs whether Diana is there or on a beach in Portugal.
+  Subscription revenue (40% convert, 6-month avg):
+    48 × 0.40 = 19 clients on subscription (growing)
+    By month 12: 38 subscription clients
+    Annual average: 20 clients × $99 × 12 months = $23,760
+
+  TOTAL YEAR 1 REVENUE: $255,760
+  YEAR 2 REVENUE (48 projects + 38 subscriptions full year): $347,000
+
+  Diana's hours: 48 projects × 2.5 hrs = 120 hrs/year on projects
+                 + 5 hrs/week management/sales = 260 hrs/year
+                 Total: ~380 hours/year = 35 hrs/week (vs 60 hrs/week before)
+
+  Effective rate: $347k / 1,820 hrs (35 hrs/week) = $190/hour (vs $58)
+```
+
+### Step 6: Handling the Hardest Part — Saying No to Custom Work
+
+The #1 failure mode of productization: breaking the scope rules when a client pushes.
+
+```
+CLIENT: "I need a completely custom design, not a template."
+DIANA: "Our Website-in-a-Week uses proven templates as a starting point —
+        they're customized fully for your brand. If you need truly custom
+        from-scratch design, that's a different scope. I can refer you to
+        agencies that specialize in that, or we can scope it separately
+        starting at $12,000. Most clients find the template approach gets
+        them 95% of what they want at 25% of the price."
+
+CLIENT: "Can you add an e-commerce section?"
+DIANA: "E-commerce is our separate 'Shop-in-a-Week' product at $7,500.
+        We can book that immediately after your website launches, or
+        we can combine them as a bundle for $11,000. Which works for you?"
+
+CLIENT: "I just need one small extra thing..."
+DIANA: "Happy to help with that — additional work outside the scope is
+        $150/hour, or if you're on our Care plan it might be covered.
+        Want me to quote it separately?"
+
+RULE: Every scope exception costs Diana 3x in time and sets wrong expectations.
+The first "yes" to scope creep opens the floodgates.
+```
+
+### Step 7: Scaling the Team
+
+With systems in place, Diana can scale without being the bottleneck:
+
+```
+TEAM STRUCTURE:
+  Diana: Creative Director (2.5 hrs/project, quality control, strategy)
+  
+  Freelancer 1 (Designer): 
+    - 3 projects/week capacity
+    - Paid $750/project (17% of $4,500)
+    - Hired on monthly retainer for reliability
+    
+  Freelancer 2 (Developer):
+    - 3 projects/week capacity  
+    - Paid $850/project (19% of $4,500)
+    - Also handles Care subscriptions ($30/hour from Diana's $99)
+    
+  Virtual Assistant (new hire, month 6):
+    - Handles all client onboarding, questionnaire follow-ups
+    - Schedules kickoffs, sends all template emails
+    - Paid $15/hour, ~10 hrs/week = $600/week
+    - Frees Diana from all admin
+
+MARGIN PER PROJECT:
+  Revenue:    $4,500
+  Designer:   -$750
+  Developer:  -$850
+  VA (est):   -$150
+  Tools/misc: -$100
+  Gross profit: $2,650 (59% margin)
+  
+  Diana's 2.5 hours: valued at $600 (executive creative oversight)
+  Net after Diana's time: $2,050 per project
+```
+
+## Key Lessons
+
+1. **"Trading time for money" is a system design problem, not a work ethic problem.** Diana worked 60-hour weeks. The system was broken, not her work ethic.
+
+2. **Productization requires saying no to custom work.** Every exception breaks the system. The first "yes" to scope creep undermines everything.
+
+3. **Subscriptions change the economics fundamentally.** $99/month sounds small but $347k/year is nearly double Diana's original revenue — half of it recurring, requiring minimal Diana time.
+
+4. **SOPs enable delegation.** Without documented systems, Diana couldn't delegate because "everything was in her head." The SOP library is what enables the team to operate without her.
+
+5. **Price is a filter, not just revenue.** At $4,500, Diana attracts clients who value speed and reliability. At $15-25k custom, she attracted clients who wanted endless revisions and "their vision." Different prices attract different clients.

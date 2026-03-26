@@ -1,151 +1,367 @@
 ---
-title: Launch a B2B SaaS Product From Repeated Agency Work
+title: Launch a B2B SaaS from Recurring Agency Work
 slug: launch-b2b-saas-from-agency-work
-description: Spot a recurring pattern in agency projects (Stripe→CRM integration), validate demand with past clients, build an MVP in 2 weeks, and grow to $4.2k MRR in 6 months — while keeping the agency running as a cash cow.
+description: >-
+  Tom's dev agency keeps building the same Stripe-to-CRM integrations for
+  different clients. He recognizes the pattern, market-evaluates the opportunity,
+  shadow tests with past clients, and reaches $4.2k MRR by month 6 while
+  the agency continues running.
 skills:
   - market-evaluation
-  - first-customers
-  - mvp
-  - pricing
 category: business
 tags:
-  - agency-to-saas
+  - agency
+  - saas
+  - productization
   - b2b
-  - mvp
-  - stripe
-  - crm
-  - integration
-  - first-customers
-  - pricing
+  - integrations
+  - indie-hacker
 ---
 
-# Launch a B2B SaaS Product From Repeated Agency Work
+## The Problem
 
-Tom runs a 4-person dev agency specializing in payment integrations. Good revenue ($420k/year), solid reputation, clients keep coming back. But Tom's noticed something over the last 18 months: he keeps building the same thing. Different clients, different CRMs, but the core request is identical — "sync our Stripe data to our CRM so sales can see who's paying and who churned."
+Tom runs a 4-person dev agency. Good team, steady clients, $320k/year revenue. Life is fine.
 
-He's built this integration for 8 of his last 15 clients. Each time, his team spends 2-4 weeks and charges $8,000-$15,000. Each time, they solve roughly the same problems: webhook reliability, data mapping, handling edge cases (refunds, disputes, subscription changes), and keeping the sync running without breaking.
+Except he keeps building the same thing. For the 8th time in 15 months, a client asks for "the Stripe-to-HubSpot sync." Each time it costs them $8-15k in dev time. Each time Tom's team builds it slightly differently because every client has slightly different requirements. Each time Tom thinks "we should productize this" and then moves on to the next client.
 
-Tom's building the same product over and over — except he's selling it as custom work instead of software.
+The pattern is undeniable:
+- 8 of last 15 clients needed to sync Stripe subscription data to their CRM
+- Average build cost: $11,000
+- Average timeline: 3-4 weeks
+- Tom's margin: ~40% ($4,400 per project)
+- Total spent on this problem across 8 clients: $88,000
 
-## Step 1 — Evaluate the Market Opportunity
+Someone else will see this pattern and build it. Or someone already has and Tom just hasn't noticed because he's buried in client work.
 
-Use market-evaluation to score this opportunity systematically:
+It's time to extract the product from the agency.
 
-| Factor | Score | Notes |
-|---|---|---|
-| Urgency | 8 | Sales teams need this data daily; manual exports = pain |
-| Market Size | 7 | ~200k businesses use Stripe + a CRM simultaneously |
-| Willingness to Pay | 8 | Currently paying $8-15k for custom builds |
-| Ease of Reaching | 9 | Tom already has the exact buyer persona in his client list |
-| CAC Estimate | 8 | Can sell to existing relationships, near-zero initial CAC |
-| Delivery Cost | 7 | SaaS margins ~85% once built; API costs minimal |
-| Competitive Moat | 6 | Existing tools (Zapier, native integrations) are basic/unreliable |
-| Personal Fit | 9 | Tom's team has literally built this 8 times |
-| Speed to MVP | 8 | 2 weeks — they've already written most of the code |
-| Retention Potential | 8 | Infrastructure product; high switching cost once integrated |
-| **Total** | **74/100** | Strong opportunity — above 70 threshold |
+## The Solution
 
-Key competitive insight: Zapier can do basic Stripe→CRM sync, but breaks on edge cases (partial refunds, subscription upgrades, multi-currency). Native CRM integrations (HubSpot's Stripe integration) are surface-level — they sync payment status but not line items, LTV calculations, or churn risk signals. Tom's agency has solved all these edge cases already.
+Run a structured market evaluation, shadow test the idea with past clients, build a focused MVP in 2 weeks, and launch with the built-in advantage of having 8 potential customers who already know and trust Tom's team.
 
-## Step 2 — Validate Demand With Past Clients
+## Step-by-Step Walkthrough
 
-Use first-customers to test demand before writing a line of new code. Tom already has the perfect test audience: the 8 clients he built this integration for.
+### Step 1: Recognize the Pattern
 
-**The email (sent to all 8):**
+Tom does a simple audit of the last 18 months of agency projects:
 
-> Hey [Name], quick question. You know that Stripe→[CRM] integration we built for you? I'm thinking about turning it into a standalone product — self-service, auto-updating, no maintenance on your end. Would you pay $49/month for a managed version instead of maintaining the custom code? Hit reply with a yes/no/maybe — takes 2 seconds.
+```
+PROJECT AUDIT (last 18 months, 22 projects):
 
-**Results within 48 hours:**
-- 5 replied "yes" immediately
-- 1 replied "maybe, depends on features"
-- 1 replied "we've actually been having issues with the custom integration breaking, so yes please"
-- 1 didn't reply (they'd churned as a client months ago)
+Integration work:
+  - Stripe → HubSpot sync:     8 projects  ($8-15k each, avg $11k)
+  - Stripe → Salesforce sync:  3 projects  ($12-18k each)
+  - Stripe → Pipedrive sync:   2 projects  ($7-10k each)
+  - Stripe → Notion (internal):1 project   ($6k)
+  - Other CRM integrations:    3 projects
 
-5 out of 8 = 62.5% conversion on a cold email with no product, no demo, no sales call. For B2B, that's exceptional signal.
+PATTERN: 77% of agency clients needed Stripe → CRM data sync
+COMMON REQUIREMENTS (across all 8 Stripe→HubSpot projects):
+  - Sync subscription status (active/cancelled/past_due)
+  - Create/update contact records on payment events
+  - Update deal stage when subscription changes
+  - Log payment history to contact timeline
+  - Handle webhook retries and failures
+  - Map Stripe fields to CRM custom fields
 
-Tom also asked his 3 agency team members: "How many hours per month do we spend maintaining these custom integrations for clients?" Answer: 12-15 hours/month across all clients. That's maintenance work that generates zero new revenue but eats capacity.
+VARIATION (what changes project to project):
+  - Field mapping customization (always a few custom fields)
+  - Which Stripe events to listen to
+  - Duplicate handling logic
+  - Error notification preferences (Slack vs email)
+```
 
-## Step 3 — Build the MVP in 2 Weeks
+The core is 80% the same. The variation is configuration, not code.
 
-Use mvp to scope the minimum viable product. Tom's advantage: he's not starting from zero. His team has 8 implementations to draw from. The MVP is essentially "take the best parts of each custom build and make them configurable."
+### Step 2: Market Evaluation
 
-**Week 1 — Core sync engine:**
-- Stripe webhook listener (handles all event types: charges, subscriptions, invoices, refunds, disputes)
-- Data transformation layer (normalize Stripe data into CRM-friendly fields)
-- HubSpot connector (most popular CRM among Tom's clients — 5/8 use it)
-- Salesforce connector (2/8 use it)
-- Dashboard: sync status, error log, last synced timestamp
-- Auth: sign in with Google, connect Stripe account (OAuth), connect CRM (OAuth)
+Tom runs the idea through the 10-factor framework before investing a minute of dev time.
 
-**Week 2 — Reliability and onboarding:**
-- Retry logic with exponential backoff (webhook failures are the #1 issue in custom builds)
-- Conflict resolution: if CRM record was manually edited, don't overwrite
-- Field mapping UI: let users customize which Stripe fields map to which CRM fields
-- Onboarding flow: connect Stripe → connect CRM → select fields → test sync → go live
-- Billing: Stripe subscription ($49/$149/$499 tiers)
+```
+MARKET EVALUATION: Stripe→CRM Sync SaaS ("StripeSync")
 
-**Tech stack:** Next.js + Supabase + Bull (job queue) + Vercel. Total hosting cost at MVP: ~$50/month.
+Urgency (8/10):
+  Every SaaS company using Stripe and a CRM faces this problem.
+  When a customer churns, the sales team often doesn't know for 2-3 weeks.
+  When a trial converts, the CRM doesn't update automatically.
+  Operations people hate this. It's a DAILY pain, not an occasional one.
 
-## Step 4 — Set Pricing That Captures Value
+Market Size (7/10):
+  - Stripe has 4M+ active businesses
+  - HubSpot has 190k+ customers
+  - 60-70% of SaaS companies use Stripe + a CRM
+  - Realistic TAM: 200k-500k potential customers globally
+  - Accessible initially: US/EU SaaS companies with 10-500 employees
 
-Use pricing to design tiers based on what Tom knows from 8 client engagements:
+Pricing Potential (8/10):
+  - Customers currently pay $8-15k one-time for custom builds
+  - MRR model: $49-499/month is easy to justify against custom dev cost
+  - Enterprise firms will pay $1k+/month for reliability + support SLA
+  - At $149/month, ROI vs custom build is clear: pay $149/mo instead of $11k once
 
-| Tier | Price | Target | Includes |
-|---|---|---|---|
-| Starter | $49/month | Solo founders, small teams | 1 Stripe account, 1 CRM, 1,000 syncs/month |
-| Growth | $149/month | Growing SaaS companies | 2 Stripe accounts, 2 CRMs, 10,000 syncs/month, custom fields |
-| Scale | $499/month | Agencies and enterprises | Unlimited accounts, unlimited CRMs, 100,000 syncs/month, priority support, SLA |
+CAC (7/10):
+  - Stripe Partner Directory (direct access to target market)
+  - HubSpot App Marketplace (native discovery channel)
+  - Dev/RevOps communities on LinkedIn, Slack groups
+  - Content marketing: "Stripe-to-HubSpot sync guide" will rank on Google
+  - Tom already has 8 warm leads (past clients with the problem)
 
-**Pricing logic:**
-- $49/month is 1/160th of what Tom charges for a custom build ($8,000). No-brainer for the buyer.
-- $149/month captures the "we've outgrown basic but don't need enterprise" segment — Tom knows from agency work that this is 60% of the market.
-- $499/month targets agencies (like Tom's own!) who manage Stripe integrations for multiple clients.
+Value Delivery Cost (9/10):
+  - Pure SaaS, zero marginal cost per customer after infrastructure
+  - Infrastructure: ~$200/month at 100 customers, scales well
 
-Annual discount: 20% (2 months free). Pushed at month 3 to lock in retention.
+Uniqueness (6/10):
+  - Zapier does this but it's fragile, requires non-technical setup, and breaks
+  - Some competitors exist (Syncari, Census) but expensive ($500+/month, enterprise-focused)
+  - Gap: nobody serves the $49-149/month segment with a purpose-built Stripe-CRM tool
+  - That gap is Tom's opportunity
 
-## Step 5 — Get First 10 Customers
+Speed to Market (7/10):
+  - Tom's team has built this 8 times — they know every edge case
+  - MVP estimate: 2 weeks (vs 6 weeks for someone starting from scratch)
+  - This is a significant competitive advantage
 
-Use first-customers to convert the validated demand into paying users:
+Up-front Investment (8/10):
+  - No inventory, no hardware, no office
+  - AWS + Stripe API + a domain = under $500 to get started
+  - Team cost is already covered by agency work
 
-**Month 1 — Agency clients (5 customers):**
-Tom migrates his 5 "yes" clients from custom integrations to the SaaS product. Offers them founding member pricing: $39/month for life (instead of $49). All 5 convert. Tom's team stops maintaining 5 custom integrations — saving 8 hours/month.
+Upsell Potential (8/10):
+  - Add more CRMs: Salesforce, Pipedrive, Zoho
+  - Add more sources: Paddle, Chargebee, LemonSqueezy
+  - Add more destinations: Slack alerts, Notion databases, data warehouses
+  - Enterprise tier: custom field mapping, SLA, dedicated support
 
-**Month 2 — Agency network (5 more):**
-Tom sends a case study to his agency's mailing list (120 past and prospective clients): "How [Client Name] replaced a $12,000 custom Stripe integration with a $49/month tool." 3 sign up directly. He also posts in a Stripe developer Slack community — 2 more sign up.
+Evergreen Potential (9/10):
+  - SaaS companies will always use Stripe + CRMs
+  - Problem isn't going away; getting bigger as Stripe adoption grows
+  - Regulatory requirements (keeping CRM data accurate) add permanence
 
-**Month 2 total:** 10 customers, $590 MRR. Not life-changing, but 100% validated.
+TOTAL: 77/100 — PROMISING ✓
 
-**Month 3-6 — Content + partnerships:**
-Tom writes 3 blog posts targeting long-tail SEO: "How to sync Stripe to HubSpot automatically," "Stripe Salesforce integration without Zapier," "Stripe CRM sync best practices." These start ranking by month 4.
+Weaknesses: Uniqueness (6) — not zero competition. Need to own the niche
+            for smaller companies underserved by enterprise solutions.
+```
 
-He also reaches out to 5 HubSpot Solutions Partners (agencies like his that build HubSpot integrations for clients). 2 become referral partners — they recommend Tom's tool instead of building custom integrations, earning 20% recurring commission.
+### Step 3: Shadow Test with Past Clients
 
-## Step 6 — Month 6 Results
+Before writing code, Tom validates that people will actually pay.
 
-| Metric | Month 1 | Month 3 | Month 6 |
-|---|---|---|---|
-| Customers | 5 | 18 | 42 |
-| MRR | $245 | $1,380 | $4,200 |
-| ARR (run rate) | $2,940 | $16,560 | $50,400 |
-| Churn | 0% | 2.1% | 3.8% |
-| CAC | $0 (agency clients) | $35 (content) | $85 (blended) |
-| Agency revenue impact | -$0 | -$8k (one fewer custom project) | -$12k |
+He emails his 8 past clients who paid for this as custom work:
 
-**Revenue mix at month 6:**
-- 12 customers on Starter ($49) = $588
-- 24 customers on Growth ($149) = $3,576
-- 1 customer on Scale ($499) = $499
-- Minus: referral partner commissions = -$463
-- **Net MRR: $4,200**
+```
+Subject: Quick question about your Stripe→HubSpot integration
 
-The agency lost ~$12,000 in custom integration work that migrated to the SaaS product. But that work was low-margin (~30%) and high-maintenance. The SaaS product does the same thing at 85% margin with zero ongoing developer time per customer.
+Hi [Name],
 
-**Tom's agency still runs.** He hasn't quit or pivoted — the SaaS product runs alongside the agency. The agency generates cash flow and feeds the SaaS pipeline. The SaaS builds long-term equity. They complement each other.
+We built your Stripe→HubSpot sync last year. I'm considering turning that
+into a standalone product that your team could manage yourselves — no dev
+involvement needed.
 
-## Why This Approach Works
+Quick question: If this existed as a $49/month SaaS (vs the $11k you paid us),
+with automatic updates whenever Stripe or HubSpot changes their API,
+would you have used it instead?
 
-Tom didn't start with "I should build a SaaS." He started with "I keep solving the same problem." The pattern recognition came from 8 identical client projects — that's 8 rounds of customer development that most SaaS founders pay thousands in ads to get.
+And would you be willing to pay $49-149/month to have it maintained, monitored,
+and supported?
 
-The validation was almost free: one email to existing clients. The MVP was fast because the team had already built it 8 times. The first customers were already in Tom's network. The pricing was informed by 18 months of selling custom solutions at $8,000-$15,000 — Tom knows exactly how much value the product creates.
+Just a 1-word reply helps: Yes / No / Maybe
 
-This is the agency-to-SaaS playbook: use client work to identify patterns, validate before building, sell to people who already trust you, and let the agency fund the product until it can stand on its own. Tom didn't burn his boats — he built a bridge.
+Thanks,
+Tom
+```
+
+**Responses (5 days later):**
+```
+8 emails sent
+7 responded (87% response rate — warm audience)
+
+YES (would pay now):   5 clients
+NO (happy with custom): 1 client
+MAYBE (need to think): 1 client
+
+Follow-up question to the 5 YES responses:
+"What price range feels right?"
+  $49/month: 2 clients
+  $99/month: 2 clients
+  $149/month: 1 client (wants Salesforce support too)
+
+Demand: CONFIRMED
+Pricing ceiling: $99-149/month for the core product
+```
+
+That's $495-$745/month from people he already has relationships with, before building anything.
+
+### Step 4: Build the MVP (2 Weeks)
+
+Tom scopes ruthlessly. The MVP does ONE thing well: Stripe → HubSpot sync.
+
+```
+MVP SCOPE (Ship in 14 days):
+
+IN SCOPE:
+  - Connect Stripe account via API keys
+  - Connect HubSpot via OAuth
+  - Sync 5 core events: subscription created, updated, cancelled, payment failed, trial ended
+  - Auto-create/update HubSpot contact on each event
+  - Map 8 default Stripe fields → HubSpot properties (with rename UI)
+  - Webhook retry logic (3 attempts with exponential backoff)
+  - Basic activity dashboard (events received, synced, failed)
+  - Email alerts on sync failures
+
+OUT OF SCOPE (v2+):
+  - Salesforce, Pipedrive, other CRMs
+  - Bidirectional sync
+  - Custom field mapping beyond the 8 defaults
+  - Historical sync (past Stripe data)
+  - Zapier/Make integration
+
+Tech stack: Next.js + Postgres + Stripe webhooks + HubSpot API + Railway
+
+TEAM:
+  - Tom: architecture + Stripe webhook handling (3 days)
+  - Dev 1: HubSpot integration + UI (5 days)
+  - Dev 2: Dashboard + testing + deployment (4 days)
+  Total: parallel work, live in 12 days
+
+KEY INFRASTRUCTURE DECISIONS:
+  - Multi-tenant from day 1 (each customer gets isolated Stripe/HubSpot credentials)
+  - Webhook queue with dead-letter for failed events (critical — no data loss)
+  - Audit log for every sync event (customers need this for debugging)
+```
+
+**Core sync logic:**
+
+```typescript
+// Stripe webhook handler
+export async function handleStripeEvent(event: Stripe.Event, customerId: string) {
+  const subscription = event.data.object as Stripe.Subscription;
+
+  const contactData = mapStripeToHubSpot(subscription, event.type);
+
+  await syncToHubSpot({
+    customerId,
+    email: subscription.customer_email,
+    properties: contactData,
+    eventType: event.type,
+    stripeEventId: event.id,
+  });
+}
+
+function mapStripeToHubSpot(sub: Stripe.Subscription, eventType: string): HubSpotProperties {
+  return {
+    stripe_subscription_status: sub.status,
+    stripe_subscription_id: sub.id,
+    stripe_plan_name: sub.items.data[0]?.price.nickname ?? 'Unknown',
+    stripe_mrr: (sub.items.data[0]?.price.unit_amount ?? 0) / 100,
+    stripe_trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+    stripe_cancel_at_period_end: sub.cancel_at_period_end,
+    stripe_current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+    stripe_last_event: eventType,
+  };
+}
+```
+
+### Step 5: Pricing Strategy
+
+Tom doesn't price based on cost. He prices based on value:
+
+```
+VALUE ANCHOR: Custom dev costs $8-15k one-time.
+Maintenance of that custom code: $2-5k/year.
+Total cost of custom solution: $10-20k year 1.
+
+"StripeSync" pricing:
+
+  STARTER:    $49/month ($490/year)
+    - 1 Stripe account → 1 HubSpot portal
+    - Up to 1,000 sync events/month
+    - Email support
+    - 5 event types
+
+  GROWTH:    $149/month ($1,490/year)
+    - 1 Stripe account → HubSpot + Salesforce + Pipedrive (added in v2)
+    - Unlimited sync events
+    - Priority support + Slack alerts
+    - Custom field mapping
+    - Historical sync
+
+  ENTERPRISE:  $499/month ($4,990/year)
+    - Multiple Stripe accounts
+    - All CRMs + custom destinations
+    - Dedicated support + SLA
+    - Custom onboarding
+    - White-label option
+
+ROI for customer at STARTER tier:
+  Monthly cost: $49
+  vs. custom dev maintenance: $200-400/month (if they even do it)
+  vs. engineer time debugging sync issues: 2-4 hrs/month at $80/hr = $160-320
+  Net savings: $111-271/month — clear positive ROI
+```
+
+### Step 6: First Customers and Distribution
+
+**Week 1 post-launch:**
+
+1. **Warm leads (past clients):** Tom emails the 5 YES responses. 4 sign up at $49-149/month. $416 MRR before any marketing.
+
+2. **Stripe Partner Directory:** Tom submits StripeSync to the Stripe App Marketplace (free listing, buyers already need this).
+
+3. **HubSpot App Marketplace:** Lists the integration. 2-week approval, but reaches 190k+ HubSpot users searching for Stripe integrations.
+
+4. **SEO content:** Publishes "How to Sync Stripe Data to HubSpot Without Custom Code" — targets the exact search query Tom's clients previously Googled before hiring him.
+
+5. **Reddit + HN:** Posts on r/SaaS and launches on Hacker News (Show HN). Honest post: "I built Stripe-to-CRM sync 8 times for clients. Here's the product version." Gets 47 upvotes, 23 signups.
+
+**Month-by-month MRR:**
+```
+Month 0 (launch):    $416  (4 agency clients)
+Month 1:           $1,247  (HN launch + word of mouth)
+Month 2:           $2,100  (Stripe Partner listing goes live)
+Month 3:           $2,890  (first organic SEO traffic)
+Month 4:           $3,400  (Salesforce support added, Growth tier customers)
+Month 5:           $3,850  (first enterprise customer at $499/month)
+Month 6:           $4,200  ← milestone
+```
+
+**At month 6:**
+- 52 paying customers
+- $4,200 MRR
+- Agency is still running at $280k/year (StripeSync is additive, not a pivot)
+- Tom is spending 8 hours/week on StripeSync (evenings + weekend mornings)
+- Support load: 3-5 tickets/week (mostly onboarding questions)
+
+### Step 7: The Long Game
+
+```
+MONTH 12 PROJECTIONS:
+
+  MRR target: $9,000-12,000
+  How:
+    - Salesforce + Pipedrive support (v2 — tap new markets)
+    - Historical sync feature (upsell for GROWTH tier)
+    - 2 enterprise customers ($499/month each = $1k/month alone)
+    - Referral program: "Get $50 credit per referral" (engineers refer each other)
+
+  Decision point at $10k MRR:
+    Option A: Keep agency + product (lifestyle business)
+    Option B: Hire first SaaS employee, start scaling, reduce agency work
+    Option C: Sell the agency, go full-time on SaaS
+
+  Tom's preference: Option B.
+  At $10k MRR, hiring a $70k support/customer success person is profitable.
+  That person handles support + onboarding, freeing Tom for product.
+```
+
+## Key Lessons
+
+1. **Recurring client work is market validation.** If 8 clients paid $11k for the same custom build, there's a market. The market told Tom. He just needed to listen.
+
+2. **Past clients are the best first customers.** They trust you, they know the problem, they already paid you once. Email them before you write code.
+
+3. **MVP scope is about saying no.** Tom resisted adding Salesforce to the MVP even though 3 clients asked. Adding it would have extended the build to 6 weeks. Ship Salesforce in v2 when you have revenue.
+
+4. **Marketplace listings are underrated distribution.** Stripe + HubSpot App Marketplaces put StripeSync in front of exactly the right buyer at the moment of need. Zero ad spend.
+
+5. **Agency → SaaS doesn't require quitting the agency.** Tom built $4.2k MRR in 6 months working part-time. The agency funded the product. The product will eventually fund the team that replaces the agency.
