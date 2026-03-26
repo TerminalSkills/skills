@@ -1,9 +1,11 @@
 ---
 title: Build an Offline AI Knowledge Base
+slug: build-offline-ai-knowledge-base
 description: >-
   Build a self-contained offline AI knowledge system for field work — local LLM,
   embedded vector search, pre-downloaded knowledge, and a PWA interface that
   works without internet.
+category: data-ai
 persona: >-
   Field researcher needing AI assistance in remote areas with no internet —
   medical references, survival guides, technical manuals, and general knowledge
@@ -14,17 +16,13 @@ tags: [offline, knowledge-base, local-ai, field-work, ollama, self-contained]
 
 # Build an Offline AI Knowledge Base
 
-## Goal
+## The Problem
 
-Build a completely self-contained AI knowledge system that works without any internet connection. Pre-download and embed knowledge (Wikipedia, manuals, guides), run a local LLM via Ollama, search with vector similarity, and interact through a PWA that works offline. Everything runs on a single laptop or even a Raspberry Pi.
+Field researchers, emergency responders, and travelers in remote areas have no access to cloud AI services or internet search. When you need to look up medical procedures, identify plants, troubleshoot equipment, or reference technical manuals in the jungle, desert, or Arctic, there is no connectivity. Carrying printed manuals is impractical, and you cannot predict every question you will need answered.
 
-## Who This Is For
+## The Solution
 
-- Field researchers in remote areas (jungle, desert, Arctic)
-- Emergency responders needing reference material without connectivity
-- Military/government operators in air-gapped environments
-- Travelers wanting AI assistance in areas with no cell service
-- Privacy-conscious users who don't want data leaving their device
+Build a completely self-contained AI knowledge system that works without any internet connection. Pre-download and embed knowledge (Wikipedia, manuals, guides), run a local LLM via Ollama, search with vector similarity, and interact through a PWA that works offline. Everything runs on a single laptop or even a Raspberry Pi. Field researchers, emergency responders, military operators, travelers, and privacy-conscious users all benefit from AI assistance that never phones home.
 
 ## Architecture
 
@@ -52,7 +50,7 @@ Build a completely self-contained AI knowledge system that works without any int
 └──────────────────────────────────────────┘
 ```
 
-## Step-by-Step
+## Step-by-Step Walkthrough
 
 ### 1. Hardware Preparation
 
@@ -324,6 +322,10 @@ cp knowledge.db /media/usb/offline-ai/
 | Plant ID | "Edible plants in tropical forests" | Botany articles |
 | Repair | "Fix a broken solar panel" | Technical manuals |
 | Research | "Properties of local soil types" | Personal notes + geology |
+
+## Real-World Example
+
+A marine biologist prepares for a 3-month expedition to a remote Pacific atoll with no cell service. Before departure, she downloads 2,000 Wikipedia articles on marine species, coral biology, and oceanography, plus 30 PDF field guides and her team's 500 pages of prior research notes. The knowledge database totals 8GB including the llama3.1:8b model. On the atoll, when she encounters an unfamiliar fish species, she queries the system: "What reef fish have vertical blue stripes and a yellow tail fin?" The vector search surfaces relevant articles from her marine biology corpus, and the LLM synthesizes an answer pointing to the Thalassoma lutescens family. She also uses it daily to cross-reference water temperature readings against coral bleaching thresholds from her downloaded NOAA datasets. The system handles 50+ queries per day on her MacBook Air without any connectivity.
 
 ## Limitations
 

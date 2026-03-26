@@ -11,7 +11,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: [claude-code, hud, dashboard, devtools, monitoring, agent-status]
+  tags: [claude-code, hud, dashboard, devtools, monitoring]
   use-cases:
     - "Build a real-time dashboard showing what your AI agents are doing"
     - "Monitor context window usage and tool calls during AI coding sessions"
@@ -29,15 +29,13 @@ Build heads-up display dashboards that monitor AI coding agents in real-time. Tr
 
 ### Step 1: Understand the HUD Architecture
 
-An AI agent HUD has these core components:
-
 | Component | What It Shows | Data Source |
 |-----------|---------------|-------------|
 | Context meter | Tokens used / remaining | Agent API response headers |
 | Tool tracker | Active tool calls + history | Hook into tool execution |
 | Sub-agent panel | Spawned agents + status | Agent orchestration layer |
 | Task progress | Todo items + completion | Parse agent task lists |
-| Cost tracker | $ spent this session | Token count × model pricing |
+| Cost tracker | $ spent this session | Token count x model pricing |
 
 ### Step 2: Set Up the Project
 
@@ -47,14 +45,7 @@ npm init -y
 npm install blessed blessed-contrib chalk ws
 ```
 
-**Key dependencies:**
-- `blessed` / `blessed-contrib` — terminal UI widgets (gauges, logs, tables)
-- `ws` — WebSocket server for real-time data from agent
-- `chalk` — colored terminal output
-
 ### Step 3: Build the Context Usage Monitor
-
-Track how much of the context window the agent has consumed:
 
 ```javascript
 // context-monitor.js
@@ -65,7 +56,6 @@ class ContextMonitor {
     this.outputTokens = 0;
     this.cacheHits = 0;
   }
-
   update(apiResponse) {
     const usage = apiResponse.usage || {};
     this.inputTokens = usage.input_tokens || 0;
@@ -73,15 +63,12 @@ class ContextMonitor {
     this.cacheHits = usage.cache_read_input_tokens || 0;
     return this.getStatus();
   }
-
   getStatus() {
     const total = this.inputTokens + this.outputTokens;
     const pct = ((total / this.maxTokens) * 100).toFixed(1);
     return {
-      used: total,
-      remaining: this.maxTokens - total,
-      percentage: parseFloat(pct),
-      cached: this.cacheHits,
+      used: total, remaining: this.maxTokens - total,
+      percentage: parseFloat(pct), cached: this.cacheHits,
       warning: parseFloat(pct) > 80 ? 'HIGH' : 'OK'
     };
   }
@@ -90,30 +77,24 @@ class ContextMonitor {
 
 ### Step 4: Build the Tool Call Tracker
 
-Monitor which tools the agent is invoking:
-
 ```javascript
 // tool-tracker.js
 class ToolTracker {
   constructor() {
-    this.active = [];     // currently running
-    this.history = [];    // completed calls
-    this.counts = {};     // call count per tool
+    this.active = [];
+    this.history = [];
+    this.counts = {};
   }
-
   onToolStart(toolName, input) {
     const call = {
-      id: Date.now(),
-      tool: toolName,
+      id: Date.now(), tool: toolName,
       input: JSON.stringify(input).slice(0, 100),
-      startedAt: new Date(),
-      status: 'running'
+      startedAt: new Date(), status: 'running'
     };
     this.active.push(call);
     this.counts[toolName] = (this.counts[toolName] || 0) + 1;
     return call;
   }
-
   onToolEnd(callId, output) {
     const idx = this.active.findIndex(c => c.id === callId);
     if (idx !== -1) {
@@ -125,77 +106,47 @@ class ToolTracker {
       if (this.history.length > 50) this.history.pop();
     }
   }
-
   getTopTools(n = 5) {
-    return Object.entries(this.counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, n);
+    return Object.entries(this.counts).sort((a, b) => b[1] - a[1]).slice(0, n);
   }
 }
 ```
 
 ### Step 5: Build the Terminal Dashboard
 
-Render everything in a terminal UI using blessed-contrib:
-
 ```javascript
 // dashboard.js
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
-
 const screen = blessed.screen({ smartCSR: true, title: 'AI Agent HUD' });
 const grid = new contrib.grid({ rows: 12, cols: 12, screen });
 
-// Context usage gauge
 const contextGauge = grid.set(0, 0, 3, 4, contrib.gauge, {
-  label: ' Context Usage ',
-  stroke: 'green',
-  fill: 'white'
+  label: ' Context Usage ', stroke: 'green', fill: 'white'
 });
-
-// Tool call log
 const toolLog = grid.set(0, 4, 6, 8, contrib.log, {
-  label: ' Tool Calls ',
-  fg: 'green',
-  selectedFg: 'green'
+  label: ' Tool Calls ', fg: 'green', selectedFg: 'green'
 });
-
-// Task progress bar
 const taskBar = grid.set(3, 0, 3, 4, contrib.bar, {
-  label: ' Tasks ',
-  barWidth: 6,
-  maxHeight: 10
+  label: ' Tasks ', barWidth: 6, maxHeight: 10
 });
-
-// Cost tracker
 const costLine = grid.set(6, 0, 6, 6, contrib.line, {
-  label: ' Cost ($) ',
-  showLegend: true,
-  minY: 0
+  label: ' Cost ($) ', showLegend: true, minY: 0
 });
-
-// Sub-agent table
 const agentTable = grid.set(6, 6, 6, 6, contrib.table, {
-  label: ' Sub-Agents ',
-  keys: true,
-  columnWidth: [20, 10, 15]
+  label: ' Sub-Agents ', keys: true, columnWidth: [20, 10, 15]
 });
 
 function refresh(state) {
   contextGauge.setPercent(state.context.percentage);
-  state.tools.active.forEach(t =>
-    toolLog.log(`⚡ ${t.tool} — ${t.input}`)
-  );
+  state.tools.active.forEach(t => toolLog.log(`> ${t.tool} - ${t.input}`));
   screen.render();
 }
-
 screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
 screen.render();
 ```
 
 ### Step 6: Connect via WebSocket
-
-Stream agent events to the dashboard in real-time:
 
 ```javascript
 // server.js
@@ -206,7 +157,6 @@ wss.on('connection', (ws) => {
   console.log('HUD client connected');
   ws.on('message', (data) => {
     const event = JSON.parse(data);
-    // Route to appropriate tracker
     switch (event.type) {
       case 'context_update': contextMonitor.update(event.data); break;
       case 'tool_start': toolTracker.onToolStart(event.tool, event.input); break;
@@ -220,11 +170,9 @@ wss.on('connection', (ws) => {
 
 ### Step 7: Add Cost Tracking
 
-Calculate session cost based on model pricing:
-
 ```javascript
 const PRICING = {
-  'claude-sonnet-4-20250514': { input: 3.0, output: 15.0 },   // per 1M tokens
+  'claude-sonnet-4-20250514': { input: 3.0, output: 15.0 },
   'claude-opus-4-20250514': { input: 15.0, output: 75.0 },
   'gpt-4o': { input: 2.5, output: 10.0 },
 };
@@ -235,13 +183,60 @@ function calculateCost(model, inputTokens, outputTokens) {
 }
 ```
 
-## Customization Ideas
+## Examples
 
-- **Web UI variant**: Replace blessed with React + D3.js for a browser-based HUD
-- **Multi-agent view**: Show multiple agents side-by-side with separate context meters
-- **Alert system**: Notify when context usage > 80% or cost exceeds budget
-- **Session recording**: Log all events to replay agent sessions later
-- **Git integration**: Show files modified by agent alongside tool calls
+### Example 1: Monitor a Claude Code Refactoring Session
+
+A developer launches the HUD while Claude Code refactors a large codebase:
+
+```javascript
+const monitor = new ContextMonitor(200000); // Claude Sonnet 200k context
+const tracker = new ToolTracker();
+
+// Simulated events from a real refactoring session
+monitor.update({ usage: { input_tokens: 45200, output_tokens: 12800, cache_read_input_tokens: 31000 } });
+console.log(monitor.getStatus());
+// { used: 58000, remaining: 142000, percentage: 29.0, cached: 31000, warning: 'OK' }
+
+tracker.onToolStart('Read', { file_path: '/src/components/Dashboard.tsx' });
+tracker.onToolStart('Grep', { pattern: 'useState', path: '/src' });
+tracker.onToolEnd(tracker.active[0].id, '245 lines read');
+console.log(tracker.getTopTools());
+// [['Read', 12], ['Grep', 8], ['Edit', 6], ['Bash', 3]]
+// Dashboard shows: context at 29%, 2 active tools, $0.0234 session cost
+```
+
+### Example 2: Multi-Agent Workflow Dashboard
+
+A team runs 3 agents in parallel and monitors all of them on one HUD:
+
+```javascript
+const agents = {
+  'agent-1-backend': new ContextMonitor(200000),
+  'agent-2-frontend': new ContextMonitor(200000),
+  'agent-3-tests': new ContextMonitor(200000),
+};
+
+// Agent 1: refactoring API routes — 67% context used
+agents['agent-1-backend'].update({ usage: { input_tokens: 98000, output_tokens: 36000 } });
+// Agent 2: building React components — 23% context used
+agents['agent-2-frontend'].update({ usage: { input_tokens: 32000, output_tokens: 14000 } });
+// Agent 3: writing test suites — 45% context used
+agents['agent-3-tests'].update({ usage: { input_tokens: 61000, output_tokens: 29000 } });
+
+// Dashboard renders 3 gauges side-by-side:
+// [agent-1: 67% HIGH] [agent-2: 23% OK] [agent-3: 45% OK]
+// Total session cost: $0.0234 + $0.0108 + $0.0179 = $0.0521
+```
+
+## Guidelines
+
+- **Keep the HUD lightweight** — avoid heavy polling; use WebSocket push for real-time updates
+- **Set context alerts at 80%** — warn developers before hitting the context window limit
+- **Log all events to disk** — enable session replay for debugging and optimization
+- **Support multiple agents** — design the dashboard to handle parallel agent workflows
+- **Customize per workflow** — different tasks benefit from different widget layouts
+- **Respect privacy** — do not log sensitive code content in tool call history; truncate inputs
 
 ## References
 

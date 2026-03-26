@@ -1,8 +1,10 @@
 ---
 title: Build an AI Short Video Generator
+slug: build-ai-short-video-generator
 description: >-
   Build a faceless YouTube Shorts / TikTok video generator pipeline that creates
   50+ videos per day — from topic research to upload automation.
+category: content
 persona: >-
   Content creator building a faceless video channel generating $2k/month in
   ad revenue and affiliate income within 6 months.
@@ -12,13 +14,13 @@ tags: [video, tiktok, youtube-shorts, faceless-channel, automation, passive-inco
 
 # Build an AI Short Video Generator
 
-## Goal
+## The Problem
 
-Build an automated pipeline that generates faceless short-form videos (YouTube Shorts, TikTok, Instagram Reels) — from trending topic research through script writing, narration, stock footage selection, subtitle generation, assembly, and upload. Target: 50 videos/day at ~$0.05/video cost.
+Creating short-form video content at scale for YouTube Shorts, TikTok, and Instagram Reels is extremely labor-intensive. Manually scripting, recording narration, finding footage, adding subtitles, and uploading limits most creators to 1-2 videos per day — not enough to build traction on algorithm-driven platforms that reward volume and consistency.
 
-## Who This Is For
+## The Solution
 
-A content creator who wants to build one or more faceless video channels generating passive income. No camera, no face, no editing skills needed — just AI + automation.
+Build an automated pipeline that generates faceless short-form videos — from trending topic research through script writing, narration, stock footage selection, subtitle generation, assembly, and upload. Target: 50 videos/day at ~$0.05/video cost. No camera, no face, no editing skills needed — just AI + automation.
 
 ## Architecture
 
@@ -40,7 +42,7 @@ Trending Topics API
   Analytics Dashboard
 ```
 
-## Step-by-Step
+## Step-by-Step Walkthrough
 
 ### 1. Set Up the Project
 
@@ -168,6 +170,10 @@ Track what works:
 | 2 | 1,000 | 200K | $50-100 |
 | 3 | 1,500 | 500K | $200-500 |
 | 6 | 3,000 | 2M+ | $1,000-2,000 |
+
+## Real-World Example
+
+A creator launches a faceless "AI Tools Nobody Talks About" YouTube Shorts channel. The pipeline researches trending AI tools via Product Hunt and Hacker News, generates 60-second scripts with Claude highlighting one tool per video, narrates with a consistent ElevenLabs voice, overlays Pexels stock footage of people using laptops, and adds word-by-word highlighted subtitles. In month 1, they upload 500 videos and get 50K total views. By month 3, one video about an obscure AI image editor goes viral (2M views), pushing the channel past the YouTube Partner Program threshold. At month 6 with 3,000+ videos live, the channel earns $1,500/month from YouTube ad revenue ($12 RPM on tech content) plus $400/month from affiliate links to the AI tools featured in video descriptions.
 
 ## Tips for Success
 
