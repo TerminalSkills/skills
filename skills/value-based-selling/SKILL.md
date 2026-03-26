@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: business
-  tags: [sales, pricing, value-based, conversion, negotiation, revenue]
+  tags: [sales, pricing, value-based, conversion, negotiation]
   use-cases:
     - "Price a B2B SaaS product based on value delivered, not cost"
     - "Identify and remove the top 5 barriers preventing customers from buying"

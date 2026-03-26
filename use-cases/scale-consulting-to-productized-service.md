@@ -290,6 +290,19 @@ MARGIN PER PROJECT:
   Net after Diana's time: $2,050 per project
 ```
 
+## Real-World Example
+
+**Company:** Website-in-a-Week (Diana's productized design agency)
+**Timeline:** 12 months from custom agency to $347k revenue at 35 hrs/week
+
+Diana ran a web design agency for 4 years doing $180k/year with 3 freelancers. She worked 60-hour weeks, personally involved in every project from discovery calls to launch. Her effective hourly rate was $58/hour — less than many of her freelancers.
+
+She audited her time and found that of 60 weekly hours, only 12 required her actual creative expertise. The other 48 hours were process work: writing proposals, managing emails, chasing revisions. She analyzed 15 past projects and discovered that all clients needed essentially the same deliverables (homepage, about, services, contact, blog) with minor variations.
+
+Diana designed "Website-in-a-Week" at $4,500 flat — a fixed-scope, 5-day delivery with clear boundaries (6 pages max, 1 revision round, no e-commerce). She built SOPs for every phase: automated client onboarding via Typeform and Calendly, a Figma template library sorted by industry, and a 47-point QA checklist. Her time per project dropped from 40+ hours to 2.5 hours.
+
+She added a $99/month "Website Care" subscription for ongoing updates, with a 40% attach rate. By month 12: 48 projects/year at $4,500 each plus 38 subscription clients generated $347k revenue — nearly double her original agency — while she worked 35 hours/week. Her effective rate rose from $58 to $190/hour. The hardest part was saying no to custom work that broke the system.
+
 ## Key Lessons
 
 1. **"Trading time for money" is a system design problem, not a work ethic problem.** Diana worked 60-hour weeks. The system was broken, not her work ethic.
@@ -301,3 +314,11 @@ MARGIN PER PROJECT:
 4. **SOPs enable delegation.** Without documented systems, Diana couldn't delegate because "everything was in her head." The SOP library is what enables the team to operate without her.
 
 5. **Price is a filter, not just revenue.** At $4,500, Diana attracts clients who value speed and reliability. At $15-25k custom, she attracted clients who wanted endless revisions and "their vision." Different prices attract different clients.
+
+## Related Skills
+
+- **[business-finance-fundamentals](/skills/business-finance-fundamentals)** — Analyze margins, effective hourly rates, and revenue models
+- **[systems-thinking](/skills/systems-thinking)** — Identify the constraint (Diana) and design systems to remove bottlenecks
+- **[team-leadership](/skills/team-leadership)** — Build and manage a freelancer team with clear SOPs and delegation
+- **[pricing-strategy](/skills/pricing-strategy)** — Design fixed-price productized offerings and subscription tiers
+- **[lean-canvas](/skills/lean-canvas)** — Map the productized service business model before launching

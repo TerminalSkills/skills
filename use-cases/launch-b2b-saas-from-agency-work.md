@@ -354,6 +354,19 @@ MONTH 12 PROJECTIONS:
   That person handles support + onboarding, freeing Tom for product.
 ```
 
+## Real-World Example
+
+**Company:** StripeSync (Tom's agency-born SaaS)
+**Timeline:** 6 months from pattern recognition to $4.2k MRR
+
+Tom ran a 4-person dev agency in Austin doing $320k/year. Over 15 months, 8 of his clients paid $8-15k each for custom Stripe-to-HubSpot integrations — $88k in total agency revenue from the same type of project. He scored the opportunity at 77/100 using the 10-factor framework, with strengths in urgency (8), pricing potential (8), and evergreen demand (9).
+
+Before building, Tom emailed all 8 past clients: "If this existed as a $49/month SaaS with automatic updates, would you have used it instead?" Five said yes immediately. He scoped a 2-week MVP covering only Stripe-to-HubSpot sync (5 core events, webhook retry logic, field mapping UI) and shipped in 12 days with his existing team working in parallel with agency projects.
+
+Tom launched to his warm leads first — 4 past clients signed up at $49-149/month, generating $416 MRR before any public marketing. He then listed on the Stripe Partner Directory and HubSpot App Marketplace for free discovery. A "Show HN" post ("I built Stripe-to-CRM sync 8 times for clients. Here's the product version.") earned 47 upvotes and 23 signups.
+
+By month 6: 52 paying customers, $4,200 MRR, agency still running at $280k/year. Total time investment: 8 hours/week on StripeSync alongside full-time agency work. The agency funded the product; the product will eventually fund replacing the agency.
+
 ## Key Lessons
 
 1. **Recurring client work is market validation.** If 8 clients paid $11k for the same custom build, there's a market. The market told Tom. He just needed to listen.
@@ -365,3 +378,11 @@ MONTH 12 PROJECTIONS:
 4. **Marketplace listings are underrated distribution.** Stripe + HubSpot App Marketplaces put StripeSync in front of exactly the right buyer at the moment of need. Zero ad spend.
 
 5. **Agency → SaaS doesn't require quitting the agency.** Tom built $4.2k MRR in 6 months working part-time. The agency funded the product. The product will eventually fund the team that replaces the agency.
+
+## Related Skills
+
+- **[market-evaluation](/skills/market-evaluation)** — The 10-factor framework Tom used to score the opportunity at 77/100
+- **[pricing-strategy](/skills/pricing-strategy)** — Structure tiered pricing anchored against custom development costs
+- **[go-to-market](/skills/go-to-market)** — Plan distribution through marketplaces, SEO, and community channels
+- **[saas-architecture-advisor](/skills/saas-architecture-advisor)** — Design multi-tenant architecture for the SaaS product
+- **[product-strategy](/skills/product-strategy)** — Prioritize features and plan the roadmap from MVP to enterprise tier

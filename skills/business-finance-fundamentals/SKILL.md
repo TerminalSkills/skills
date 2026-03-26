@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: business
-  tags: [finance, unit-economics, ltv, cac, margins, revenue, profitability, saas]
+  tags: [finance, unit-economics, ltv-cac, margins, revenue]
   use-cases:
     - "Calculate whether a SaaS business is healthy using LTV/CAC ratio"
     - "Find which of the 4 revenue levers will have the biggest impact"
@@ -34,24 +34,13 @@ When a user asks about business profitability, unit economics, pricing impact, o
 
 Every business in the world can only increase revenue in exactly four ways. There are no exceptions:
 
-1. **Increase the number of customers**
-   - More marketing, better conversion, new channels, referrals
-   - Impact: Linear. 2x customers = 2x revenue (usually hardest and most expensive)
+1. **Increase the number of customers** — More marketing, better conversion, new channels. Linear impact: 2x customers = 2x revenue (usually hardest and most expensive).
 
-2. **Increase the average transaction size**
-   - Upsells, bundles, premium tiers, add-ons
-   - Impact: Multiplier. Adding a $20 add-on to 1,000 transactions = $20k more revenue
-   - Example: "Would you like fries with that?" generates billions for McDonald's
+2. **Increase the average transaction size** — Upsells, bundles, premium tiers, add-ons. Example: "Would you like fries with that?" generates billions for McDonald's.
 
-3. **Increase the frequency of transactions**
-   - Subscriptions, consumables, habit-building, regular check-ins
-   - Impact: Multiplier. Monthly → weekly purchasing = 4x frequency
-   - Example: Moving from one-time purchase to subscription model
+3. **Increase the frequency of transactions** — Subscriptions, consumables, habit-building. Example: Moving from one-time purchase to subscription model = recurring revenue.
 
-4. **Increase prices**
-   - Value-based pricing, premium positioning, removing discounts
-   - Impact: Highest leverage. 10% price increase with no cost change goes straight to profit
-   - Example: A 10% price increase often causes < 5% customer loss = net positive
+4. **Increase prices** — Value-based pricing, premium positioning. Highest leverage: a 10% price increase with no cost change goes straight to profit. Often causes < 5% customer loss.
 
 **The Revenue Impact Formula:**
 ```
@@ -147,143 +136,28 @@ Below 103 customers: losing money. Above 103: every new customer adds $78/month 
 
 ### Cash Flow vs Profit
 
-**Profit** is an accounting concept. **Cash flow** is reality.
-
-You can be profitable on paper and still go bankrupt:
-- Customer pays Net 60 (you get cash in 2 months)
-- You pay salaries on the 1st (cash goes out now)
-- Profit: positive. Cash: negative. Business: dead.
+**Profit** is an accounting concept. **Cash flow** is reality. You can be profitable on paper and still go bankrupt (customer pays Net 60, you pay salaries now — profit positive, cash negative, business dead).
 
 **Cash flow rules:**
 1. Collect money as fast as possible (annual plans > monthly, prepayment > Net 30)
 2. Pay expenses as late as reasonably possible (negotiate terms)
 3. Always have 3-6 months of operating expenses in reserve
-4. Annual plan with discount is almost always worth it: $90/mo × 12 = $1,080. Offer $890/year (18% discount). You get $890 cash NOW vs $90/month drip.
+4. Annual plan with discount is almost always worth it: offer $890/year vs $90/month ($1,080). You get $890 cash NOW.
 
 ### Allowable Acquisition Cost
 
-How much CAN you spend to acquire a customer and still be profitable?
+How much CAN you spend to acquire a customer? Max Allowable CAC = LTV x Target Margin. Example: LTV = $1,800, target margin 60%, Max CAC = $1,800 x 0.40 = $720. If actual CAC is $340, you have $380 of headroom to invest more in growth.
+
+## Key Formulas
 
 ```
-Maximum Allowable CAC = LTV × Target Margin
-
-Example:
-  LTV = $1,800
-  Target margin after acquisition: 60%
-  Max CAC = $1,800 × 0.40 = $720
-  (You keep 60%, spend up to 40% on acquisition)
-```
-
-If your actual CAC is $340 and your max is $720, you have $380 of headroom. You could invest more in growth.
-
-## Code Example: SaaS Unit Economics Calculator
-
-```typescript
-interface SaaSMetrics {
-  mrr: number;                    // Monthly Recurring Revenue
-  customerCount: number;          // Total paying customers
-  monthlyChurnRate: number;       // % of customers who cancel per month (e.g., 0.05 for 5%)
-  monthlySalesMarketingSpend: number; // Total S&M spend per month
-  newCustomersPerMonth: number;   // New customers acquired per month
-  grossMarginPercent: number;     // Gross margin % (e.g., 80 for 80%)
-  fixedMonthlyCosts: number;      // Fixed operating costs per month
-}
-
-interface UnitEconomicsReport {
-  arpu: number;
-  ltv: number;
-  cac: number;
-  ltvCacRatio: number;
-  ltvCacVerdict: string;
-  cacPaybackMonths: number;
-  grossMarginDollars: number;
-  netMarginDollars: number;
-  netMarginPercent: number;
-  breakEvenCustomers: number;
-  maxAllowableCAC: number;
-  cacHeadroom: number;
-  medianCustomerLifeMonths: number;
-  revenueLevers: {
-    lever: string;
-    currentValue: string;
-    tenPercentImprovement: string;
-    revenueImpact: number;
-  }[];
-}
-
-function analyzeUnitEconomics(metrics: SaaSMetrics): UnitEconomicsReport {
-  const arpu = metrics.mrr / metrics.customerCount;
-  const ltv = (arpu * (metrics.grossMarginPercent / 100)) / metrics.monthlyChurnRate;
-  const cac = metrics.monthlySalesMarketingSpend / metrics.newCustomersPerMonth;
-  const ltvCacRatio = ltv / cac;
-
-  let ltvCacVerdict: string;
-  if (ltvCacRatio < 1) ltvCacVerdict = "CRITICAL: Losing money on every customer";
-  else if (ltvCacRatio < 2) ltvCacVerdict = "DANGER: Barely surviving";
-  else if (ltvCacRatio < 3) ltvCacVerdict = "WARNING: Borderline healthy";
-  else if (ltvCacRatio < 5) ltvCacVerdict = "HEALTHY: Good unit economics";
-  else ltvCacVerdict = "EXCELLENT: Very efficient or under-investing in growth";
-
-  const cacPaybackMonths = cac / (arpu * (metrics.grossMarginPercent / 100));
-  const grossMarginDollars = metrics.mrr * (metrics.grossMarginPercent / 100);
-  const netMarginDollars = grossMarginDollars - metrics.fixedMonthlyCosts - metrics.monthlySalesMarketingSpend;
-  const netMarginPercent = (netMarginDollars / metrics.mrr) * 100;
-  const variableCostPerCustomer = arpu * (1 - metrics.grossMarginPercent / 100);
-  const contributionPerCustomer = arpu - variableCostPerCustomer;
-  const breakEvenCustomers = Math.ceil(
-    (metrics.fixedMonthlyCosts + metrics.monthlySalesMarketingSpend) / contributionPerCustomer
-  );
-  const maxAllowableCAC = ltv * 0.4;
-  const medianCustomerLifeMonths = Math.round(1 / metrics.monthlyChurnRate * 10) / 10;
-
-  // Calculate impact of 10% improvement on each lever
-  const baseRevenue = metrics.mrr;
-  const levers = [
-    {
-      lever: "Increase customers (reduce churn)",
-      currentValue: `${(metrics.monthlyChurnRate * 100).toFixed(1)}% monthly churn`,
-      tenPercentImprovement: `${(metrics.monthlyChurnRate * 0.9 * 100).toFixed(1)}% monthly churn`,
-      revenueImpact: baseRevenue * (1 / (metrics.monthlyChurnRate * 0.9) - 1 / metrics.monthlyChurnRate) * metrics.monthlyChurnRate,
-    },
-    {
-      lever: "Increase ARPU (upsell/pricing)",
-      currentValue: `$${arpu.toFixed(0)} ARPU`,
-      tenPercentImprovement: `$${(arpu * 1.1).toFixed(0)} ARPU`,
-      revenueImpact: baseRevenue * 0.1,
-    },
-    {
-      lever: "Increase new customers",
-      currentValue: `${metrics.newCustomersPerMonth} new/month`,
-      tenPercentImprovement: `${Math.round(metrics.newCustomersPerMonth * 1.1)} new/month`,
-      revenueImpact: Math.round(metrics.newCustomersPerMonth * 0.1) * arpu,
-    },
-    {
-      lever: "Increase prices",
-      currentValue: `$${arpu.toFixed(0)}/month`,
-      tenPercentImprovement: `$${(arpu * 1.1).toFixed(0)}/month`,
-      revenueImpact: baseRevenue * 0.1,
-    },
-  ];
-
-  levers.sort((a, b) => b.revenueImpact - a.revenueImpact);
-
-  return {
-    arpu: Math.round(arpu * 100) / 100,
-    ltv: Math.round(ltv),
-    cac: Math.round(cac),
-    ltvCacRatio: Math.round(ltvCacRatio * 10) / 10,
-    ltvCacVerdict,
-    cacPaybackMonths: Math.round(cacPaybackMonths * 10) / 10,
-    grossMarginDollars: Math.round(grossMarginDollars),
-    netMarginDollars: Math.round(netMarginDollars),
-    netMarginPercent: Math.round(netMarginPercent * 10) / 10,
-    breakEvenCustomers,
-    maxAllowableCAC: Math.round(maxAllowableCAC),
-    cacHeadroom: Math.round(maxAllowableCAC - cac),
-    medianCustomerLifeMonths,
-    revenueLevers: levers.map(l => ({ ...l, revenueImpact: Math.round(l.revenueImpact) })),
-  };
-}
+ARPU = MRR / Customer Count
+LTV = (ARPU × Gross Margin) / Monthly Churn Rate
+CAC = Total Sales & Marketing Spend / New Customers Acquired
+LTV/CAC Ratio = LTV / CAC
+CAC Payback = CAC / (ARPU × Gross Margin)
+Breakeven Customers = (Fixed Costs + Marketing Spend) / (ARPU × Gross Margin)
+Max Allowable CAC = LTV × 0.40 (keep 60%, spend up to 40% on acquisition)
 ```
 
 ## Examples

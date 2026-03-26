@@ -238,6 +238,19 @@ Marco
 
 Result: 8 paying customers by end of day. $232 MRR on day 1 of launch.
 
+## Real-World Example
+
+**Company:** InvoiceAI (Marco's validated SaaS)
+**Timeline:** 3 weeks from idea evaluation to first paying customers
+
+Marco, a solo developer in Berlin, had been stuck between three SaaS ideas for six months. He ran each through the 10-factor market evaluation framework and scored them: AI caption generator (57/100), AI invoice parser for accountants (75/100), and legal grammar checker (59/100). The invoice parser won decisively on urgency, pricing potential, and upsell opportunity.
+
+He validated assumption #1 (accountants spend 5+ hours/week on manual data entry) with 20 cold calls over two days. 18 of 20 confirmed the pain. He then ran a $194 Google Ads campaign targeting "invoice data entry automation" and "pdf to quickbooks" keywords, landing 47 waitlist signups at a 15.1% conversion rate — 3x above the strong-signal benchmark.
+
+Before writing any code, Marco emailed all 47 signups about pricing. 24 confirmed they would pay $49/month. He scoped a 2-week MVP (PDF upload, GPT-4 Vision extraction, one-click Xero/QuickBooks sync) and shipped in 12 days. Day one post-launch: 8 paying customers at $29/month early-bird pricing, generating $232 MRR.
+
+Total investment before first revenue: $194 in ads, 20 phone calls, and 12 days of development. Six months of indecision replaced by 3 weeks of structured validation.
+
 ## Key Lessons
 
 1. **Six months of indecision = zero revenue.** The 10-factor framework forced a decision in one afternoon.
@@ -256,3 +269,11 @@ Result: 8 paying customers by end of day. $232 MRR on day 1 of launch.
 - Month 2: Add batch processing (most requested feature)
 - Month 3: Build enterprise tier ($299/month) for accounting firms
 - Ongoing: Post in accounting communities (not ads) — lower CAC, higher trust
+
+## Related Skills
+
+- **[market-evaluation](/skills/market-evaluation)** — The 10-factor scoring framework used to evaluate and rank Marco's three ideas
+- **[lean-canvas](/skills/lean-canvas)** — Map business model assumptions before building
+- **[pricing-strategy](/skills/pricing-strategy)** — Structure pricing tiers and validate willingness to pay
+- **[ad-campaign-optimization](/skills/ad-campaign-optimization)** — Run and optimize the shadow test ad campaigns
+- **[go-to-market](/skills/go-to-market)** — Plan the launch strategy after validation confirms demand

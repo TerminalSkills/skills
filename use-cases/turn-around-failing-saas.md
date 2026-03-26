@@ -236,6 +236,21 @@ LESSON: Never discount to fight churn. Fix the product. If they're leaving,
         price isn't the problem.
 ```
 
+## Real-World Example
+
+**Company:** AgencyFlow (Alex's project management SaaS for creative agencies)
+**Timeline:** 3 months from $12k MRR flatline to $18.2k MRR growth
+
+Alex's project management tool had been stuck at $12k MRR for 9 straight months. He was acquiring ~28 new customers per month, but ~28 churned — perfect equilibrium at the wrong number. He had tried redesigning the homepage, adding 4 new features, and offering discounts. Nothing moved the needle.
+
+He finally instrumented the full funnel with Mixpanel and discovered the real problem: of 120 monthly signups, only 28 (23%) completed onboarding. Users signed up, saw an empty dashboard with no guidance, and never came back. Meanwhile, users who did activate converted to paid at 67% — the product was good, but nobody was getting to it.
+
+Alex applied the 5-Fold Why by watching 10 Hotjar recordings and interviewing 8 users. Root cause: creative agencies have complex workflows, and an empty project management tool with no templates or guided setup required 20+ minutes to see any value. Competitors had massive documentation libraries; Alex had nothing.
+
+He shipped a fix in 11 days: a 4-step onboarding wizard that auto-created a template project based on agency type (digital, creative, branding), simplified navigation from 7 items to 4, and removed 4 features with under 2% usage. He also added an onboarding email sequence with GIFs showing core workflows.
+
+Results after 30 days: activation jumped from 23% to 52%, paid conversions nearly tripled from 16 to 38 per month, and support tickets dropped 31%. By month 3: $18.2k MRR and growing. He never changed marketing spend — the same 120 signups/month now produced 2.4x more paying customers.
+
 ## Key Lessons
 
 1. **You can't see your constraint until you measure the whole funnel.** Alex optimized the homepage for 9 months while 77% of users left at the front door of the product.
@@ -247,3 +262,11 @@ LESSON: Never discount to fight churn. Fix the product. If they're leaving,
 4. **5-Fold Why is only useful if you OBSERVE, not guess.** Alex watched Hotjar sessions and ran user interviews. The root cause (empty state with no templates) would not have been obvious from dashboard metrics alone.
 
 5. **Activation is almost always the biggest lever.** For most early SaaS products, activation (trial → engaged user) is more broken than acquisition or retention. Fix it first.
+
+## Related Skills
+
+- **[systems-thinking](/skills/systems-thinking)** — Map the customer journey as a system with feedback loops and find the constraint
+- **[market-evaluation](/skills/market-evaluation)** — Re-evaluate market positioning when growth stalls
+- **[product-analytics](/skills/product-analytics)** — Instrument the activation funnel and track feature usage rates
+- **[product-discovery](/skills/product-discovery)** — Run user interviews and session recordings to find root causes
+- **[product-strategy](/skills/product-strategy)** — Decide what features to kill and what to double down on

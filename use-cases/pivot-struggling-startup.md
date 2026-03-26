@@ -328,6 +328,19 @@ Options: raise from strength or keep growing profitably
 The pivot extended the company's life AND multiplied its value.
 ```
 
+## Real-World Example
+
+**Company:** ContentAI (pivoted from a social media scheduler)
+**Timeline:** 3 months from pivot decision to $8.3k MRR
+
+Kai's social media scheduling tool had 200 paying customers at $12 ARPU ($2.4k MRR) after 18 months, competing against Buffer ($16.8M ARR) and Hootsuite ($300M revenue). Three VCs passed. He re-scored the market using the 10-factor framework: it dropped from 66/100 at launch to 42/100 — firmly in "don't bother" territory as AI tools commoditized pure scheduling.
+
+Before giving up, Kai checked his analytics and found a signal hiding in plain sight: the AI caption generator feature had 80% daily active usage, while the core scheduling feature had only 21%. He called 20 heavy users of the caption tool. Their feedback was unanimous: "I pay for your tool just for the captions, honestly" and "I'd just use the native schedulers — they're free."
+
+Kai validated the pivot in 5 days: surveyed all 200 users (76.5% open to an AI writing pivot), tested pricing ($29/month — 67 users said yes), and ran a $300 landing page test that converted at 20.2% vs the scheduler's 6.8%. He executed a 2-week sprint: redirected UX to the AI writer, added platform-specific tone and brand voice training, raised pricing from $12 to $29/month, and launched on Product Hunt (#4 product of the day).
+
+Results: 634 new signups in launch week, 89 paid conversions, 82% of existing customers retained. MRR went from $2,400 to $4,681 in week one. By month 3: $8,320 MRR with organic SEO traffic growing and the first $299/month agency customer signed.
+
 ## Key Lessons
 
 1. **Re-score your market evaluation annually.** Markets change. Kai's idea went from 66/100 to 42/100 in 18 months. If he'd re-evaluated at month 12, he'd have pivoted 6 months earlier.
@@ -341,3 +354,11 @@ The pivot extended the company's life AND multiplied its value.
 5. **Pricing changes are easier during pivots.** Users accept price increases more easily when the product is genuinely different. The $12 → $29 increase was the right move at the right time.
 
 6. **18 months is not failure.** The data, the users, the infrastructure, the team trust — all of that is an asset. The pivot leveraged 18 months of learning. The "failed" product funded the successful one.
+
+## Related Skills
+
+- **[market-evaluation](/skills/market-evaluation)** — The 10-factor framework Kai used to re-score his market and confirm the pivot
+- **[systems-thinking](/skills/systems-thinking)** — Analyze feedback loops between product usage, churn, and market positioning
+- **[product-analytics](/skills/product-analytics)** — Track feature usage data that revealed the 80% caption generator signal
+- **[pricing-strategy](/skills/pricing-strategy)** — Restructure pricing during the pivot from $12 to $29-299/month tiers
+- **[go-to-market](/skills/go-to-market)** — Plan the relaunch distribution across Product Hunt, communities, and SEO

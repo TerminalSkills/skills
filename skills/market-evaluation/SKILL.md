@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: business
-  tags: [market-research, evaluation, startup, product-market-fit, demand, competition]
+  tags: [market-research, evaluation, startup, product-market-fit, demand]
   use-cases:
     - "Score a SaaS idea on 10 dimensions before investing time building it"
     - "Compare 3 market opportunities and pick the best one"

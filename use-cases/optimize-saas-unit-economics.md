@@ -282,6 +282,19 @@ The sequence matters:
   4. Never do Step 3 before Steps 1 and 2
 ```
 
+## Real-World Example
+
+**Company:** ProjectLens (Jana's project analytics SaaS)
+**Timeline:** 90 days from bleeding cash to profitability
+
+Jana's SaaS had 500 customers and $45k MRR but was losing $5,250/month with only 5 months of runway. Her LTV/CAC ratio was 2.5x (borderline) due to 8% monthly churn eating through her customer base. Her instinct was to spend more on marketing to "grow out of the problem" — exactly the wrong move, since acquiring more customers at negative unit economics accelerates losses.
+
+She ran exit interviews with 20 churned customers and found that 65% left because of fixable onboarding issues ("didn't understand how to use feature X"), not product gaps. She implemented a 30-day onboarding email sequence, built a customer health score system (green/yellow/red), and personally emailed every red-flagged account within 24 hours of inactivity.
+
+In month 2, she launched annual plans at $890/year (18% discount vs monthly). 100 customers converted, injecting $89k cash that extended runway from 5 months to 10+. Annual plan customers churned at 40-60% lower rates. In month 3, she raised prices for new customers from $90 to $99/month while grandfathering existing users.
+
+Results after 90 days: churn dropped from 8% to 5.2%, ARPU rose from $90 to $108, LTV improved 50% to $1,244, and LTV/CAC reached 3.7x. Monthly P&L flipped from -$5,250 to +$4,983. No additional capital raised.
+
 ## Key Lessons
 
 1. **LTV/CAC below 3x is a warning sign.** Jana's 2.5x was a ticking clock — she was acquiring customers too fast relative to their value.
@@ -293,3 +306,11 @@ The sequence matters:
 4. **The 4 revenue levers have a sequence.** Fix retention before scaling acquisition, or you're pouring water into a leaky bucket.
 
 5. **Exit interviews are worth their weight in gold.** 20 conversations revealed the root cause in 2 weeks. No amount of dashboard analytics would have told Jana "they were confused about feature X."
+
+## Related Skills
+
+- **[business-finance-fundamentals](/skills/business-finance-fundamentals)** — The 4 revenue levers and LTV/CAC framework used to diagnose Jana's unit economics
+- **[pricing-strategy](/skills/pricing-strategy)** — Design annual plans, price increases, and tiered pricing
+- **[product-analytics](/skills/product-analytics)** — Track activation, retention, and usage metrics to identify churn drivers
+- **[ab-test-setup](/skills/ab-test-setup)** — Test onboarding flows and pricing page changes with controlled experiments
+- **[product-discovery](/skills/product-discovery)** — Run exit interviews and customer research to find root causes of churn
