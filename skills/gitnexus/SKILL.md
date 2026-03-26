@@ -10,7 +10,7 @@ metadata:
   author: terminal-skills
   version: "1.0.0"
   category: development
-  tags: [knowledge-graph, code-analysis, graph-rag, browser, client-side, visualization]
+  tags: [knowledge-graph, code-analysis, graph-rag, browser, visualization]
   use-cases:
     - "Build a browser-based code exploration tool from a GitHub repo URL"
     - "Create an interactive knowledge graph of any codebase without a server"
@@ -24,22 +24,6 @@ metadata:
 
 Build client-side code knowledge graphs that run entirely in the browser — no server required. Parse code with tree-sitter WASM, construct a graph of files, functions, classes, and dependencies, visualize it with force-directed layouts, and query it with Graph RAG for natural-language code exploration.
 
-## Architecture
-
-```
-[GitHub Repo URL]
-       ↓
-[Fetch via GitHub API / git clone to OPFS]
-       ↓
-[Tree-sitter WASM] → Parse AST per file
-       ↓
-[Graph Builder] → Nodes: files, functions, classes, imports
-                → Edges: calls, imports, extends, implements
-       ↓
-[Force Graph Viz]     [Graph RAG Query]
-  D3 / force-graph      Embed nodes → vector search → LLM answer
-```
-
 ## Instructions
 
 When a user asks to build a code knowledge graph, browser-based code explorer, or Graph RAG for code:
@@ -50,12 +34,9 @@ When a user asks to build a code knowledge graph, browser-based code explorer, o
 4. **Visualize** — Render with force-directed graph (D3 or force-graph library)
 5. **Enable Graph RAG** — Embed graph nodes, allow natural-language queries
 
-## Code Parsing with Tree-sitter WASM
+### Code Parsing with Tree-sitter WASM
 
 ```typescript
-/**
- * Parse source files into AST nodes entirely in the browser.
- */
 import Parser from "web-tree-sitter";
 
 interface CodeNode {
@@ -84,307 +65,163 @@ async function initParser(language: string): Promise<Parser> {
 
 function extractNodes(tree: Parser.Tree, filePath: string): CodeNode[] {
   const nodes: CodeNode[] = [];
-  const fileId = `file:${filePath}`;
-
-  nodes.push({
-    id: fileId,
-    type: "file",
-    name: filePath.split("/").pop()!,
-    filePath,
-    startLine: 0,
-    endLine: tree.rootNode.endPosition.row,
-    code: "",
-  });
+  nodes.push({ id: `file:${filePath}`, type: "file", name: filePath.split("/").pop()!, filePath, startLine: 0, endLine: tree.rootNode.endPosition.row, code: "" });
 
   function walk(node: Parser.SyntaxNode) {
-    // Functions
-    if (node.type === "function_declaration" || node.type === "arrow_function") {
-      const nameNode = node.childForFieldName("name");
-      if (nameNode) {
-        nodes.push({
-          id: `fn:${filePath}:${nameNode.text}`,
-          type: "function",
-          name: nameNode.text,
-          filePath,
-          startLine: node.startPosition.row,
-          endLine: node.endPosition.row,
-          code: node.text.slice(0, 500),
-        });
-      }
+    const nameNode = node.childForFieldName("name");
+    if ((node.type === "function_declaration" || node.type === "arrow_function") && nameNode) {
+      nodes.push({ id: `fn:${filePath}:${nameNode.text}`, type: "function", name: nameNode.text, filePath, startLine: node.startPosition.row, endLine: node.endPosition.row, code: node.text.slice(0, 500) });
     }
-
-    // Classes
-    if (node.type === "class_declaration") {
-      const nameNode = node.childForFieldName("name");
-      if (nameNode) {
-        nodes.push({
-          id: `class:${filePath}:${nameNode.text}`,
-          type: "class",
-          name: nameNode.text,
-          filePath,
-          startLine: node.startPosition.row,
-          endLine: node.endPosition.row,
-          code: node.text.slice(0, 500),
-        });
-      }
+    if (node.type === "class_declaration" && nameNode) {
+      nodes.push({ id: `class:${filePath}:${nameNode.text}`, type: "class", name: nameNode.text, filePath, startLine: node.startPosition.row, endLine: node.endPosition.row, code: node.text.slice(0, 500) });
     }
-
-    // Import statements
     if (node.type === "import_statement") {
       const source = node.descendantsOfType("string")[0];
-      if (source) {
-        nodes.push({
-          id: `import:${filePath}:${source.text}`,
-          type: "import",
-          name: source.text.replace(/['"]/g, ""),
-          filePath,
-          startLine: node.startPosition.row,
-          endLine: node.endPosition.row,
-          code: node.text,
-        });
-      }
+      if (source) nodes.push({ id: `import:${filePath}:${source.text}`, type: "import", name: source.text.replace(/['"]/g, ""), filePath, startLine: node.startPosition.row, endLine: node.endPosition.row, code: node.text });
     }
-
     for (const child of node.children) walk(child);
   }
-
   walk(tree.rootNode);
   return nodes;
 }
 ```
 
-## Graph Construction
+### Graph Construction
 
 ```typescript
-/**
- * Build a knowledge graph from parsed code nodes.
- */
-interface CodeGraph {
-  nodes: CodeNode[];
-  edges: CodeEdge[];
-}
-
-function buildGraph(fileNodes: Map<string, CodeNode[]>): CodeGraph {
+function buildGraph(fileNodes: Map<string, CodeNode[]>): { nodes: CodeNode[]; edges: CodeEdge[] } {
   const allNodes: CodeNode[] = [];
   const edges: CodeEdge[] = [];
-  const functionIndex = new Map<string, string>(); // name → id
+  const functionIndex = new Map<string, string>();
 
-  // Collect all nodes and index functions
-  for (const [filePath, nodes] of fileNodes) {
+  for (const [, nodes] of fileNodes) {
     allNodes.push(...nodes);
     for (const node of nodes) {
-      if (node.type === "function" || node.type === "method") {
-        functionIndex.set(node.name, node.id);
-      }
+      if (node.type === "function" || node.type === "method") functionIndex.set(node.name, node.id);
     }
   }
 
-  // Build edges
   for (const node of allNodes) {
     const fileId = `file:${node.filePath}`;
-
-    // File contains function/class
-    if (node.type !== "file") {
-      edges.push({ source: fileId, target: node.id, type: "contains" });
-    }
-
-    // Import edges: file → imported file
+    if (node.type !== "file") edges.push({ source: fileId, target: node.id, type: "contains" });
     if (node.type === "import") {
       const targetFile = resolveImport(node.name, node.filePath);
-      if (targetFile) {
-        edges.push({ source: fileId, target: `file:${targetFile}`, type: "imports" });
-      }
+      if (targetFile) edges.push({ source: fileId, target: `file:${targetFile}`, type: "imports" });
     }
-
-    // Call edges: scan function body for references to other functions
     if (node.type === "function" || node.type === "method") {
       for (const [fnName, fnId] of functionIndex) {
-        if (fnId !== node.id && node.code.includes(fnName + "(")) {
-          edges.push({ source: node.id, target: fnId, type: "calls" });
-        }
+        if (fnId !== node.id && node.code.includes(fnName + "(")) edges.push({ source: node.id, target: fnId, type: "calls" });
       }
     }
   }
-
   return { nodes: allNodes, edges };
 }
 
 function resolveImport(importPath: string, fromFile: string): string | null {
-  // Simplified: resolve relative imports
   if (importPath.startsWith(".")) {
-    const dir = fromFile.split("/").slice(0, -1).join("/");
-    return `${dir}/${importPath.replace(/^\.\//, "")}.ts`;
+    return `${fromFile.split("/").slice(0, -1).join("/")}/${importPath.replace(/^\.\//, "")}.ts`;
   }
-  return null; // External package
+  return null;
 }
 ```
 
-## Visualization with Force-Graph
+### Visualization with Force-Graph
 
 ```typescript
-/**
- * Render the knowledge graph with force-graph (WebGL-powered).
- */
 import ForceGraph from "force-graph";
 
-function renderGraph(container: HTMLElement, graph: CodeGraph) {
-  const colorMap: Record<string, string> = {
-    file: "#4a9eff",
-    function: "#50c878",
-    class: "#ff6b6b",
-    method: "#ffa500",
-    import: "#888888",
-    export: "#dda0dd",
-  };
-
-  const fg = ForceGraph()(container)
+function renderGraph(container: HTMLElement, graph: { nodes: CodeNode[]; edges: CodeEdge[] }) {
+  const colorMap: Record<string, string> = { file: "#4a9eff", function: "#50c878", class: "#ff6b6b", method: "#ffa500", import: "#888888", export: "#dda0dd" };
+  ForceGraph()(container)
     .graphData({
-      nodes: graph.nodes.map((n) => ({
-        id: n.id,
-        name: n.name,
-        type: n.type,
-        val: n.type === "file" ? 8 : n.type === "class" ? 5 : 3,
-      })),
-      links: graph.edges.map((e) => ({
-        source: e.source,
-        target: e.target,
-        type: e.type,
-      })),
+      nodes: graph.nodes.map((n) => ({ id: n.id, name: n.name, type: n.type, val: n.type === "file" ? 8 : n.type === "class" ? 5 : 3 })),
+      links: graph.edges.map((e) => ({ source: e.source, target: e.target, type: e.type })),
     })
     .nodeColor((node: any) => colorMap[node.type] || "#999")
     .nodeLabel((node: any) => `${node.type}: ${node.name}`)
-    .linkDirectionalArrowLength(4)
-    .linkColor((link: any) => (link.type === "calls" ? "#ff6b6b" : "#cccccc"))
-    .onNodeClick((node: any) => {
-      // Show code preview panel
-      showCodePreview(node.id, graph);
-    });
-
-  return fg;
-}
-
-function showCodePreview(nodeId: string, graph: CodeGraph) {
-  const node = graph.nodes.find((n) => n.id === nodeId);
-  if (!node) return;
-  const panel = document.getElementById("code-preview")!;
-  panel.innerHTML = `
-    <h3>${node.type}: ${node.name}</h3>
-    <p>${node.filePath}:${node.startLine}-${node.endLine}</p>
-    <pre><code>${escapeHtml(node.code)}</code></pre>
-  `;
+    .linkDirectionalArrowLength(4);
 }
 ```
 
-## Graph RAG (Query Code in Natural Language)
+### Graph RAG Query
 
 ```typescript
-/**
- * Graph RAG: embed graph nodes, search by similarity, answer with LLM.
- */
+import { pipeline } from "@xenova/transformers";
 
-// Step 1: Embed graph nodes (run once after graph construction)
-async function embedNodes(graph: CodeGraph): Promise<Map<string, number[]>> {
+async function embedNodes(graph: { nodes: CodeNode[] }): Promise<Map<string, number[]>> {
   const embeddings = new Map<string, number[]>();
-
-  // Batch embed using a local model or API
-  const texts = graph.nodes.map((n) =>
-    `${n.type} "${n.name}" in ${n.filePath}: ${n.code.slice(0, 200)}`
-  );
-
-  // Using transformers.js for in-browser embedding
-  const { pipeline } = await import("@xenova/transformers");
   const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-
-  for (let i = 0; i < texts.length; i++) {
-    const result = await embedder(texts[i], { pooling: "mean", normalize: true });
-    embeddings.set(graph.nodes[i].id, Array.from(result.data));
+  for (const node of graph.nodes) {
+    const text = `${node.type} "${node.name}" in ${node.filePath}: ${node.code.slice(0, 200)}`;
+    const result = await embedder(text, { pooling: "mean", normalize: true });
+    embeddings.set(node.id, Array.from(result.data));
   }
-
   return embeddings;
 }
 
-// Step 2: Search for relevant nodes
-function searchGraph(
-  query: number[],
-  embeddings: Map<string, number[]>,
-  topK: number = 10
-): string[] {
-  const scores: Array<[string, number]> = [];
+function searchGraph(query: number[], embeddings: Map<string, number[]>, topK = 10): string[] {
+  const scores: [string, number][] = [];
   for (const [id, emb] of embeddings) {
-    const sim = cosineSimilarity(query, emb);
-    scores.push([id, sim]);
+    let dot = 0, magA = 0, magB = 0;
+    for (let i = 0; i < query.length; i++) { dot += query[i] * emb[i]; magA += query[i] ** 2; magB += emb[i] ** 2; }
+    scores.push([id, dot / (Math.sqrt(magA) * Math.sqrt(magB))]);
   }
-  scores.sort((a, b) => b[1] - a[1]);
-  return scores.slice(0, topK).map(([id]) => id);
-}
-
-// Step 3: Expand with graph neighbors (the "Graph" in Graph RAG)
-function expandWithNeighbors(nodeIds: string[], graph: CodeGraph, hops: number = 1): string[] {
-  const expanded = new Set(nodeIds);
-  for (let i = 0; i < hops; i++) {
-    for (const edge of graph.edges) {
-      if (expanded.has(edge.source)) expanded.add(edge.target);
-      if (expanded.has(edge.target)) expanded.add(edge.source);
-    }
-  }
-  return [...expanded];
-}
-
-// Step 4: Ask LLM with graph context
-async function queryCode(question: string, graph: CodeGraph, embeddings: Map<string, number[]>) {
-  const { pipeline } = await import("@xenova/transformers");
-  const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-  const qEmb = Array.from((await embedder(question, { pooling: "mean", normalize: true })).data);
-
-  const relevantIds = searchGraph(qEmb, embeddings, 5);
-  const expandedIds = expandWithNeighbors(relevantIds, graph, 1);
-  const context = expandedIds
-    .map((id) => graph.nodes.find((n) => n.id === id))
-    .filter(Boolean)
-    .map((n) => `[${n!.type}] ${n!.name} (${n!.filePath}:${n!.startLine})\n${n!.code.slice(0, 300)}`)
-    .join("\n---\n");
-
-  // Call LLM (use WebLLM for fully client-side, or API)
-  const response = await fetch("/api/chat", {
-    method: "POST",
-    body: JSON.stringify({
-      messages: [
-        { role: "system", content: `Answer questions about code using this context:\n${context}` },
-        { role: "user", content: question },
-      ],
-    }),
-  });
-  return response.json();
-}
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  let dot = 0, magA = 0, magB = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    magA += a[i] * a[i];
-    magB += b[i] * b[i];
-  }
-  return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+  return scores.sort((a, b) => b[1] - a[1]).slice(0, topK).map(([id]) => id);
 }
 ```
 
-## Project Setup
+## Examples
+
+### Example 1: Build a Browser-Based Code Explorer for a React Project
 
 ```bash
-# Vite + TypeScript project
 npm create vite@latest code-nexus -- --template vanilla-ts
 cd code-nexus
 npm install web-tree-sitter force-graph @xenova/transformers
 ```
 
-```html
-<!-- index.html -->
-<div id="graph" style="width: 100vw; height: 80vh;"></div>
-<div id="code-preview" style="position: fixed; right: 0; top: 0; width: 400px;"></div>
-<input id="query" placeholder="Ask about the code..." style="width: 100%;" />
+```typescript
+// main.ts — Parse a GitHub repo and render its knowledge graph
+const parser = await initParser("typescript");
+const files = await fetchRepoFiles("facebook/react", "packages/react/src");
+const fileNodes = new Map<string, CodeNode[]>();
+for (const file of files) {
+  const tree = parser.parse(file.content);
+  fileNodes.set(file.path, extractNodes(tree, file.path));
+}
+const graph = buildGraph(fileNodes);
+renderGraph(document.getElementById("graph")!, graph);
+// Result: interactive force-directed graph showing React's internal module structure
 ```
 
-## Best Practices
+### Example 2: Natural-Language Code Query with Graph RAG
+
+```typescript
+// After building the graph, embed all nodes and query
+const graph = buildGraph(fileNodes);
+const embeddings = await embedNodes(graph);
+
+// User asks a question about the codebase
+const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+const qEmb = Array.from((await embedder("How does the authentication middleware work?", { pooling: "mean", normalize: true })).data);
+const relevantIds = searchGraph(qEmb, embeddings, 5);
+const context = relevantIds
+  .map((id) => graph.nodes.find((n) => n.id === id))
+  .filter(Boolean)
+  .map((n) => `[${n!.type}] ${n!.name} (${n!.filePath})\n${n!.code.slice(0, 300)}`)
+  .join("\n---\n");
+
+// Pass context to LLM for a grounded answer about the codebase
+const response = await fetch("/api/chat", {
+  method: "POST",
+  body: JSON.stringify({ messages: [
+    { role: "system", content: `Answer using this code context:\n${context}` },
+    { role: "user", content: "How does the authentication middleware work?" },
+  ]}),
+});
+```
+
+## Guidelines
 
 1. **Lazy-load grammars** — Only load tree-sitter WASM grammars for languages present in the repo
 2. **OPFS for large repos** — Store cloned files in Origin Private File System for persistence
@@ -392,9 +229,3 @@ npm install web-tree-sitter force-graph @xenova/transformers
 4. **Limit graph size** — For repos with 1000+ files, allow filtering by directory or file type
 5. **Web Workers** — Run parsing and embedding in Web Workers to keep the UI responsive
 6. **Cache embeddings** — Store in IndexedDB so you don't re-embed on every page load
-
-## Dependencies
-
-```bash
-npm install web-tree-sitter force-graph @xenova/transformers
-```
