@@ -4,14 +4,15 @@ description: >-
   Expert frontend design guidelines for creating beautiful, modern UIs.
   Use when a user asks to design a landing page, create a dashboard layout,
   build a modern UI, style a web application, design a hero section,
-  create a responsive layout, or implement frontend design patterns.
+  create a responsive layout, implement frontend design patterns, or
+  improve AI-generated UI quality with design-system-level controls.
 license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
   version: "1.0.0"
   category: design
-  tags: ["frontend", "ui-design", "landing-pages", "dashboards", "css"]
+  tags: ["frontend", "ui-design", "landing-pages", "dashboards", "design-system"]
   use-cases:
     - "Design and implement modern landing pages with hero sections and CTAs"
     - "Create dashboard layouts with data visualization and navigation"
@@ -208,15 +209,28 @@ Use Tailwind CSS or well-organized CSS with these patterns:
 </div>
 ```
 
+## Anti-Patterns to Avoid
+
+Common mistakes in AI-generated UIs that make designs look generic:
+
+- **Do not default to Inter/Arial everywhere** — choose fonts that match the brand personality. Pair a display font for headings with a readable body font.
+- **Do not use pure gray** — always tint grays with warm or cool undertones (e.g., `slate`, `zinc`, `stone` in Tailwind) for more polished neutrals.
+- **Do not nest cards inside cards** — use whitespace and subtle dividers to separate content within a card instead of adding another card container.
+- **Do not use purple gradients as defaults** — this is the top tell of AI-generated UI. Use brand-derived colors or more distinctive palettes.
+- **Do not use gray text on colored backgrounds** — use tinted neutrals that harmonize with the background color.
+- **Do not use bounce/elastic easing** — prefer `ease-out` for entrances and `ease-in` for exits. Bounce effects feel dated.
+
 ## Guidelines
 
 - Mobile first. Design for small screens, then enhance for larger ones.
 - Use `rem` and Tailwind spacing classes, never arbitrary pixel values.
 - Limit border radius options. Pick 1-2 sizes (e.g., `rounded-lg` and `rounded-full`) and use them consistently.
 - Shadows should be subtle. `shadow-sm` for cards, `shadow-md` for dropdowns, `shadow-lg` for modals. Never `shadow-2xl` on a card.
-- Animate sparingly. Transitions on hover/focus are fine. Gratuitous motion is distracting.
-- Every interactive element needs hover, focus, and active states.
+- Animate sparingly. Transitions on hover/focus are fine. Gratuitous motion is distracting. Respect `prefers-reduced-motion`.
+- Every interactive element needs hover, focus, and active states. Use 44px minimum touch targets on mobile.
 - Test with real content, not lorem ipsum. Real text reveals layout issues.
 - Color should communicate meaning, not just decoration. If everything is colored, nothing stands out.
 - Use `max-w-` constraints on text blocks. Lines over 75 characters are hard to read.
-- Accessibility is not optional. Use semantic HTML, proper heading hierarchy, alt text, and sufficient contrast.
+- Accessibility is not optional. Use semantic HTML, proper heading hierarchy, alt text, and sufficient contrast (WCAG AA: 4.5:1 for body, 3:1 for large text).
+- Use skeleton loading states instead of spinners for content-heavy pages.
+- Write actionable button labels ("Start free trial") instead of generic ones ("Submit", "Click here").

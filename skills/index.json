@@ -183,6 +183,19 @@
       ]
     },
     {
+      "name": "ai-content-monetization",
+      "slug": "ai-content-monetization",
+      "description": "Automate online content creation and monetization with AI — blog posts, videos, social media, affiliate marketing, and digital products. Use when: building passive income streams with AI, automating content marketing, scaling content production.",
+      "category": "business",
+      "tags": [
+        "monetization",
+        "content-creation",
+        "passive-income",
+        "affiliate",
+        "ai-content"
+      ]
+    },
+    {
       "name": "ai-eval-ci",
       "slug": "ai-eval-ci",
       "description": "Run AI agent and LLM evaluations in CI/CD pipelines — automated quality gates that fail the build when AI output quality drops. Use when someone asks to \"test my AI agent\", \"add evals to CI\", \"catch prompt regressions\", \"compare models\", \"evaluate LLM output quality\", \"set up AI quality gates\", or \"benchmark my agent before deploying\". Covers eval frameworks (Cobalt, Promptfoo, Braintrust), LLM-as-judge scoring, threshold-based assertions, and GitHub Actions integration.",
@@ -227,6 +240,19 @@
         "pitch-deck",
         "keynote",
         "storytelling"
+      ]
+    },
+    {
+      "name": "ai-video-generator",
+      "slug": "ai-video-generator",
+      "description": "Generate short-form videos with AI — script writing, text-to-speech narration, stock footage selection, subtitle generation, and video assembly. Use when: creating TikTok/YouTube Shorts/Reels content, automating video production, building content pipelines.",
+      "category": "content",
+      "tags": [
+        "video-generation",
+        "tiktok",
+        "youtube-shorts",
+        "content-creation",
+        "ai-video"
       ]
     },
     {
@@ -808,13 +834,14 @@
     {
       "name": "billing-automation",
       "slug": "billing-automation",
-      "description": "Automate invoice generation, billing workflows, payment tracking, and revenue recognition for SaaS and service businesses. Use when building billing pipelines, usage-based invoicing, subscription management, payment reminders, or financial reporting. Trigger words: invoice, billing, payment, subscription, usage billing, revenue recognition, accounts receivable, payment reminder, overdue invoice, billing cycle, proration, Stripe billing.",
+      "description": "Automate invoice generation, billing workflows, payment tracking, and revenue recognition for SaaS and service businesses. Use when building billing pipelines, generating invoice PDFs, usage-based invoicing, subscription management, payment reminders, or financial reporting. Trigger words: invoice, billing, payment, subscription, usage billing, revenue recognition, accounts receivable, dunning, proration, Stripe billing, generate invoice, create bill.",
       "category": "business",
       "tags": [
         "billing",
         "invoicing",
         "payments",
-        "automation"
+        "automation",
+        "finance"
       ]
     },
     {
@@ -830,19 +857,6 @@
       "description": "Manage repositories, pipelines, and code review with Bitbucket Cloud. Use when a user asks to set up Bitbucket repositories, configure Bitbucket Pipelines for CI/CD, manage pull requests, set up branch permissions, use Bitbucket REST API 2.0, create webhooks, manage deployment environments, set up code review workflows, integrate with Jira, configure merge checks, or automate repository operations. Covers repository management, CI/CD pipelines, code review, deployments, and Atlassian ecosystem integration.",
       "category": "devops",
       "tags": []
-    },
-    {
-      "name": "blender-3d-modeling",
-      "slug": "blender-3d-modeling",
-      "description": "Create 3D models procedurally with Blender Python. Use when the user wants to generate meshes from code, build geometry with bmesh, apply modifiers, create parametric shapes, procedural landscapes, grids, curves, or any programmatic 3D modeling in Blender.",
-      "category": "design",
-      "tags": [
-        "blender",
-        "3d-modeling",
-        "procedural",
-        "bmesh",
-        "geometry"
-      ]
     },
     {
       "name": "blender-addon-dev",
@@ -925,14 +939,14 @@
     {
       "name": "blender-scripting",
       "slug": "blender-scripting",
-      "description": "Write and run Blender Python scripts for 3D automation. Use when the user wants to automate Blender tasks, run headless scripts, manipulate scenes, batch process .blend files, import/export 3D models, manage objects, or script Blender from the command line using the bpy API.",
+      "description": "Write and run Blender Python scripts for 3D automation and procedural modeling. Use when the user wants to automate Blender tasks, create 3D models from code, run headless scripts, manipulate scenes, batch process .blend files, build geometry with bmesh, apply modifiers, generate procedural shapes, or import/export 3D models using the bpy API.",
       "category": "automation",
       "tags": [
         "blender",
         "3d",
         "python",
         "automation",
-        "scripting"
+        "procedural"
       ]
     },
     {
@@ -1094,6 +1108,19 @@
       "description": "Test web application security with Burp Suite. Use when a user asks to intercept HTTP traffic, test for web vulnerabilities, fuzz API endpoints, analyze authentication flows, or perform manual web application pentesting.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "business-finance-fundamentals",
+      "slug": "business-finance-fundamentals",
+      "description": "Understand essential business finance — profit margins, unit economics, cash flow, LTV/CAC, and the 4 methods to increase revenue. Use when: analyzing business profitability, making pricing decisions, evaluating SaaS unit economics, financial planning.",
+      "category": "business",
+      "tags": [
+        "finance",
+        "unit-economics",
+        "ltv-cac",
+        "margins",
+        "revenue"
+      ]
     },
     {
       "name": "cache-strategy",
@@ -1370,12 +1397,12 @@
     {
       "name": "cicd-pipeline",
       "slug": "cicd-pipeline",
-      "description": "Generate and optimize CI/CD pipelines for automated testing, building, and deployment. Use when a user asks to create a GitHub Actions workflow, set up GitLab CI, build a CI pipeline, automate deployments, add test automation, configure continuous integration, set up continuous deployment, create a release workflow, or optimize build times. Supports GitHub Actions, GitLab CI, and CircleCI.",
+      "description": "Generate and optimize CI/CD pipelines for GitLab CI and CircleCI. Use when a user asks to set up GitLab CI, create a CircleCI pipeline, build a CI pipeline for GitLab, automate deployments with CircleCI, add test automation to GitLab, or configure continuous integration on non-GitHub platforms. For GitHub Actions pipelines, use the github-actions skill instead.",
       "category": "devops",
       "tags": [
         "cicd",
-        "github-actions",
         "gitlab-ci",
+        "circleci",
         "pipeline",
         "deployment"
       ]
@@ -1417,6 +1444,19 @@
         "anthropic",
         "automation",
         "gui"
+      ]
+    },
+    {
+      "name": "claude-hud",
+      "slug": "claude-hud",
+      "description": "Build heads-up display (HUD) dashboards for AI coding agents — show context usage, active tools, running sub-agents, and task progress in real-time. Use when: monitoring AI agent activity, building developer tools for AI-assisted coding, creating status dashboards for agent workflows.",
+      "category": "development",
+      "tags": [
+        "claude-code",
+        "hud",
+        "dashboard",
+        "devtools",
+        "monitoring"
       ]
     },
     {
@@ -1662,6 +1702,19 @@
       "description": "Enforce conventional commit messages with commitlint. Use when a user asks to standardize commit messages, enforce commit conventions, set up commit linting in CI, or generate changelogs from commits.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "company-values",
+      "slug": "company-values",
+      "description": "Define authentic company values that guide decisions and culture — not generic corporate platitudes but actionable principles. Use when: defining company culture, creating a values document, aligning a team around shared principles.",
+      "category": "business",
+      "tags": [
+        "company-values",
+        "culture",
+        "leadership",
+        "startup",
+        "team"
+      ]
     },
     {
       "name": "competitor-alternatives",
@@ -2045,19 +2098,6 @@
       ]
     },
     {
-      "name": "data-anonymization",
-      "slug": "data-anonymization",
-      "description": "Anonymize datasets for analytics and ML while preserving utility — k-anonymity, l-diversity, and differential privacy. Use when sharing data with third parties, building analytics on user data, or achieving GDPR Article 4 anonymization (data no longer considered personal).",
-      "category": "development",
-      "tags": [
-        "anonymization",
-        "privacy",
-        "gdpr",
-        "data-science",
-        "differential-privacy"
-      ]
-    },
-    {
       "name": "data-extractor",
       "slug": "data-extractor",
       "description": "Extract structured data from any document format using unified document processing. Use when a user asks to extract data from a document, parse a PDF, pull structured data from files, convert documents to JSON or CSV, extract fields from invoices or forms, or scrape data from documents.",
@@ -2073,7 +2113,7 @@
     {
       "name": "data-masking",
       "slug": "data-masking",
-      "description": "Mask and redact sensitive data (PII, PCI, PHI) in databases, logs, and APIs. Use when protecting PII in dev/staging environments, redacting sensitive data from logs, or anonymizing data for analytics while preserving data structure.",
+      "description": "Mask, redact, and anonymize sensitive data (PII, PCI, PHI) in databases, logs, and APIs. Use when protecting PII in dev/staging environments, redacting sensitive data from logs, anonymizing data for analytics, or applying k-anonymity and differential privacy for GDPR-compliant data sharing.",
       "category": "development",
       "tags": [
         "data-masking",
@@ -2185,7 +2225,7 @@
     {
       "name": "deno",
       "slug": "deno",
-      "description": "Assists with building secure JavaScript and TypeScript applications using the Deno runtime. Use when creating servers, CLI tools, or scripts with Deno's built-in tooling, permission model, and web standards APIs. Trigger words: deno, deno deploy, deno serve, deno kv, deno permissions, secure runtime, jsr.",
+      "description": "Assists with building secure JavaScript and TypeScript applications using the Deno runtime. Use when creating servers, CLI tools, or scripts with Deno's built-in tooling, permission model, npm compatibility, and web standards APIs. Trigger words: deno, deno deploy, deno serve, deno kv, deno permissions, secure runtime, jsr.",
       "category": "development",
       "tags": [
         "deno",
@@ -2193,20 +2233,6 @@
         "runtime",
         "secure",
         "web-standards"
-      ]
-    },
-    {
-      "name": "deno-2",
-      "slug": "deno-2",
-      "description": "Deno 2 — secure JavaScript/TypeScript runtime with npm compatibility. Use when building secure server-side apps, using TypeScript without config, deploying to Deno Deploy for serverless edge, or using npm packages inside Deno. Covers permissions model, npm imports, JSR registry, and built-in tooling (test, lint, fmt, compile).",
-      "category": "runtime",
-      "tags": [
-        "deno",
-        "javascript",
-        "typescript",
-        "secure",
-        "serverless",
-        "edge"
       ]
     },
     {
@@ -2706,27 +2732,14 @@
     {
       "name": "expo",
       "slug": "expo",
-      "description": "Assists with building, deploying, and updating React Native applications using Expo. Use when setting up file-based routing with Expo Router, configuring EAS Build and Submit, implementing over-the-air updates, or integrating Expo SDK modules for camera, location, and notifications. Trigger words: expo, expo router, eas build, eas update, expo sdk.",
+      "description": "Build, deploy, and update React Native apps with Expo. Covers file-based routing with Expo Router (stacks, tabs, drawers, deep linking), EAS Build and Submit, over-the-air updates, and 50+ SDK modules for camera, location, notifications. Use when setting up Expo, adding navigation, configuring builds, or integrating native device APIs. Trigger words: expo, expo router, eas build, react native expo, file-based routing mobile, deep linking.",
       "category": "development",
       "tags": [
         "expo",
         "react-native",
         "mobile",
-        "eas",
-        "cross-platform"
-      ]
-    },
-    {
-      "name": "expo-router",
-      "slug": "expo-router",
-      "description": "Build native mobile apps with file-based routing using Expo Router — React Native navigation that works like Next.js. Use when someone asks to \"add navigation to React Native\", \"Expo Router\", \"file-based routing for mobile\", \"deep linking in React Native\", \"mobile app navigation\", or \"React Native routing like Next.js\". Covers file-based routes, layouts, deep linking, tabs, stacks, and universal links.",
-      "category": "development",
-      "tags": [
-        "expo",
         "routing",
-        "react-native",
-        "navigation",
-        "file-based"
+        "eas"
       ]
     },
     {
@@ -2915,6 +2928,19 @@
       ]
     },
     {
+      "name": "find-community",
+      "slug": "find-community",
+      "description": "Find and build a community around your product — identify where your users gather, engage authentically, and grow a loyal user base. Use when: building community-led growth, finding early adopters, creating a brand community.",
+      "category": "business",
+      "tags": [
+        "community",
+        "growth",
+        "engagement",
+        "users",
+        "startup"
+      ]
+    },
+    {
       "name": "firebase",
       "slug": "firebase",
       "description": "Expert guidance for Firebase, Google's platform for building and scaling web and mobile applications. Helps developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.",
@@ -2940,6 +2966,19 @@
       "description": "Expert guidance for Fireworks AI, the platform for running open-source LLMs (Llama, Mixtral, Qwen, etc.) with enterprise-grade speed and reliability. Helps developers integrate Fireworks' inference API, fine-tune models, and deploy custom model endpoints with function calling and structured output support.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "first-customers",
+      "slug": "first-customers",
+      "description": "Find and convert your first 10-100 customers using founder-led sales, community engagement, and early adopter strategies. Use when: launching a new product, acquiring first users, building initial traction before scaling.",
+      "category": "business",
+      "tags": [
+        "startup",
+        "customers",
+        "sales",
+        "traction",
+        "founder-sales"
+      ]
     },
     {
       "name": "flask",
@@ -3043,19 +3082,6 @@
       "tags": []
     },
     {
-      "name": "framer-motion",
-      "slug": "framer-motion",
-      "description": "Animate React components with Framer Motion. Use when adding page transitions, gesture animations, layout animations, scroll-triggered effects, or building interactive UI with spring physics.",
-      "category": "development",
-      "tags": [
-        "framer-motion",
-        "animation",
-        "react",
-        "transitions",
-        "gestures"
-      ]
-    },
-    {
       "name": "free-tool-strategy",
       "slug": "free-tool-strategy",
       "description": "When the user wants to plan, evaluate, or build a free tool for marketing purposes — lead generation, SEO value, or brand awareness. Also use when the user mentions \"engineering as marketing,\" \"free tool,\" \"marketing tool,\" \"calculator,\" \"generator,\" \"interactive tool,\" \"lead gen tool,\" \"build a tool for leads,\" or \"free resource.\" This skill bridges engineering and marketing — useful for founders and technical marketers.",
@@ -3065,14 +3091,14 @@
     {
       "name": "frontend-design",
       "slug": "frontend-design",
-      "description": "Expert frontend design guidelines for creating beautiful, modern UIs. Use when a user asks to design a landing page, create a dashboard layout, build a modern UI, style a web application, design a hero section, create a responsive layout, or implement frontend design patterns.",
+      "description": "Expert frontend design guidelines for creating beautiful, modern UIs. Use when a user asks to design a landing page, create a dashboard layout, build a modern UI, style a web application, design a hero section, create a responsive layout, implement frontend design patterns, or improve AI-generated UI quality with design-system-level controls.",
       "category": "design",
       "tags": [
         "frontend",
         "ui-design",
         "landing-pages",
         "dashboards",
-        "css"
+        "design-system"
       ]
     },
     {
@@ -3230,6 +3256,19 @@
       "tags": []
     },
     {
+      "name": "gitnexus",
+      "slug": "gitnexus",
+      "description": "Build client-side code knowledge graphs with built-in Graph RAG for code exploration. Use when: analyzing large codebases in the browser, building zero-server code intelligence tools, creating interactive code exploration UIs.",
+      "category": "development",
+      "tags": [
+        "knowledge-graph",
+        "code-analysis",
+        "graph-rag",
+        "browser",
+        "visualization"
+      ]
+    },
+    {
       "name": "gleam",
       "slug": "gleam",
       "description": "Expert guidance for Gleam, the type-safe functional language that runs on the Erlang BEAM virtual machine. Helps developers build concurrent, fault-tolerant applications with Gleam's friendly syntax, exhaustive pattern matching, and access to the entire Erlang/OTP ecosystem.",
@@ -3350,6 +3389,19 @@
       "description": "Expert guidance for Groq, the LLM inference platform that provides the fastest token generation speeds available, powered by custom LPU (Language Processing Unit) hardware. Helps developers integrate Groq's API for real-time AI applications where latency matters — chatbots, code completion, and streaming responses.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "grow-sustainably",
+      "slug": "grow-sustainably",
+      "description": "Grow a business sustainably without burning out — focus on profitability, retention, and organic growth over vanity metrics. Use when: planning growth strategy, avoiding premature scaling, building a profitable business.",
+      "category": "business",
+      "tags": [
+        "growth",
+        "profitability",
+        "retention",
+        "bootstrapping",
+        "sustainability"
+      ]
     },
     {
       "name": "growth-hacking",
@@ -3721,19 +3773,6 @@
       ]
     },
     {
-      "name": "impeccable-design",
-      "slug": "impeccable-design",
-      "description": "Apply the Impeccable design language to improve AI-generated UI/UX quality — spacing, typography, color, layout rules that AI agents follow to produce professional designs. Use when: improving AI-generated UI quality, establishing design constraints for AI agents, creating pixel-perfect layouts with AI assistance.",
-      "category": "design",
-      "tags": [
-        "design-language",
-        "ui",
-        "ux",
-        "typography",
-        "layout"
-      ]
-    },
-    {
       "name": "improve-codebase-architecture",
       "slug": "improve-codebase-architecture",
       "description": "Explore a codebase to find opportunities for architectural improvement, focusing on making the codebase more testable by deepening shallow modules. Use when: user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more AI-navigable.",
@@ -3813,19 +3852,6 @@
       "description": "Add customer messaging and support with Intercom. Use when a user asks to add in-app messaging, build a help center, set up customer onboarding flows, create product tours, or implement a support ticketing system.",
       "category": "business",
       "tags": []
-    },
-    {
-      "name": "invoice-generator",
-      "slug": "invoice-generator",
-      "description": "Create professional invoices with proper formatting. Use when a user asks to generate an invoice, create a bill, make an invoice PDF, build an invoice for a client, or produce a billing document. Supports multiple currencies, tax calculations, discounts, and customizable templates.",
-      "category": "business",
-      "tags": [
-        "invoice",
-        "billing",
-        "pdf",
-        "business",
-        "finance"
-      ]
     },
     {
       "name": "ionic",
@@ -4317,6 +4343,19 @@
       "tags": []
     },
     {
+      "name": "lightpanda-browser",
+      "slug": "lightpanda-browser",
+      "description": "Use Lightpanda headless browser optimized for AI agents — fast, lightweight, designed for web scraping and automation at scale. Use when: building AI web scrapers, automating web tasks with agents, running headless browsing in resource-constrained environments.",
+      "category": "automation",
+      "tags": [
+        "headless-browser",
+        "scraping",
+        "automation",
+        "ai-agents",
+        "lightpanda"
+      ]
+    },
+    {
       "name": "linear",
       "slug": "linear",
       "description": "Manage projects and issues with Linear. Use when a user asks to set up Linear workspaces, create issues and projects, automate workflows, build Linear integrations, sync issues with GitHub, manage sprints and cycles, set up triage processes, build custom views, use Linear's GraphQL API, create webhooks, automate issue transitions, or build tools on top of Linear. Covers workspace configuration, team workflows, API automation, and integration patterns.",
@@ -4618,11 +4657,37 @@
       ]
     },
     {
+      "name": "market-evaluation",
+      "slug": "market-evaluation",
+      "description": "Evaluate market opportunities before building — assess demand, competition, margins, and timing using Personal MBA's proven 10-factor framework. Use when: evaluating a new business idea, deciding which market to enter, assessing product-market fit potential.",
+      "category": "business",
+      "tags": [
+        "market-research",
+        "evaluation",
+        "startup",
+        "product-market-fit",
+        "demand"
+      ]
+    },
+    {
       "name": "marketing-ideas",
       "slug": "marketing-ideas",
       "description": "When the user needs marketing ideas, inspiration, or strategies for their SaaS or software product. Also use when the user asks for 'marketing ideas,' 'growth ideas,' 'how to market,' 'marketing strategies,' 'marketing tactics,' 'ways to promote,' or 'ideas to grow.' This skill provides 139 proven marketing approaches organized by category.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "marketing-plan",
+      "slug": "marketing-plan",
+      "description": "Create a comprehensive marketing plan — channels, messaging, content strategy, and growth tactics. Use when: planning marketing for a product launch, creating a content calendar, designing a go-to-market strategy.",
+      "category": "business",
+      "tags": [
+        "marketing",
+        "strategy",
+        "content",
+        "growth",
+        "go-to-market"
+      ]
     },
     {
       "name": "marketing-psychology",
@@ -4758,6 +4823,19 @@
       "description": "You are an expert in MikroORM, the TypeScript ORM built on Unit of Work and Identity Map patterns. You help developers build data layers with decorator-based entities, automatic change tracking, lazy/eager loading, embeddables, query builder, migrations, and seeding — supporting PostgreSQL, MySQL, SQLite, and MongoDB with a DDD-friendly architecture.",
       "category": "Backend Development",
       "tags": []
+    },
+    {
+      "name": "minimalist-review",
+      "slug": "minimalist-review",
+      "description": "Evaluate business decisions through the minimalist entrepreneur framework — community focus, simplicity, and profitability over growth theater. Use when: weighing a business decision, avoiding over-engineering a strategy, keeping a startup lean and intentional.",
+      "category": "business",
+      "tags": [
+        "business-review",
+        "minimalism",
+        "profitability",
+        "decision-making",
+        "entrepreneurship"
+      ]
     },
     {
       "name": "minio",
@@ -4917,7 +4995,7 @@
       "name": "motion",
       "slug": "motion",
       "description": "You are an expert in Motion, the production-ready animation library for React (formerly Framer Motion). You help developers create fluid animations, layout transitions, scroll-linked effects, gesture interactions, shared layout animations, and exit animations — using a declarative API where animations are defined as props rather than imperative code.",
-      "category": "Frontend Development",
+      "category": "development",
       "tags": []
     },
     {
@@ -4952,6 +5030,19 @@
         "api-mocking",
         "rest",
         "graphql"
+      ]
+    },
+    {
+      "name": "mvp",
+      "slug": "mvp",
+      "description": "Build a Minimum Viable Product — scope ruthlessly, ship fast, learn from real users. Use when: planning what to build first, reducing scope to essentials, launching quickly to test assumptions.",
+      "category": "business",
+      "tags": [
+        "startup",
+        "mvp",
+        "product",
+        "launch",
+        "lean-startup"
       ]
     },
     {
@@ -5353,6 +5444,19 @@
       ]
     },
     {
+      "name": "offline-ai-toolkit",
+      "slug": "offline-ai-toolkit",
+      "description": "Build offline-capable AI systems with local models, embedded knowledge bases, and no internet dependency. Use when: building AI tools for offline use, creating self-contained knowledge systems, deploying AI in air-gapped environments.",
+      "category": "development",
+      "tags": [
+        "offline",
+        "local-ai",
+        "ollama",
+        "knowledge-base",
+        "edge-ai"
+      ]
+    },
+    {
       "name": "okr-planning",
       "slug": "okr-planning",
       "description": "Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. Applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.",
@@ -5406,6 +5510,19 @@
       "description": "Expert guidance for OPA (Open Policy Agent), the CNCF policy engine for unified authorization across the stack. Helps developers write Rego policies for Kubernetes admission control, API authorization, infrastructure-as-code validation, and data filtering — enforcing security policies as code.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "open-swe",
+      "slug": "open-swe",
+      "description": "Build asynchronous coding agents using LangChain's Open SWE framework — agents that plan, code, test, and iterate on software engineering tasks. Use when: building coding bots, automating issue resolution, creating SWE agents that work on repos asynchronously.",
+      "category": "development",
+      "tags": [
+        "swe-agent",
+        "coding-agent",
+        "langchain",
+        "async",
+        "automation"
+      ]
     },
     {
       "name": "openai-agents",
@@ -5469,6 +5586,19 @@
       "tags": []
     },
     {
+      "name": "opendataloader-pdf",
+      "slug": "opendataloader-pdf",
+      "description": "Parse PDFs into AI-ready structured data — extract text, tables, images, and metadata with high accuracy. Use when: processing PDF documents for RAG, extracting data from invoices/contracts, building document processing pipelines.",
+      "category": "data-ai",
+      "tags": [
+        "pdf",
+        "parsing",
+        "document-processing",
+        "rag",
+        "data-extraction"
+      ]
+    },
+    {
       "name": "openrouter",
       "slug": "openrouter",
       "description": "You are an expert in OpenRouter, the unified API gateway for accessing 200+ LLMs through a single OpenAI-compatible endpoint. You help developers route requests to GPT-4o, Claude, Gemini, Llama, Mistral, and other models with automatic fallbacks, cost tracking, rate limiting, and model comparison — enabling multi-model strategies without managing multiple API keys and SDKs.",
@@ -5506,6 +5636,19 @@
         "opentype",
         "glyphs",
         "text-rendering"
+      ]
+    },
+    {
+      "name": "openviking",
+      "slug": "openviking",
+      "description": "Manage AI agent context (memory, resources, skills) using OpenViking's file system paradigm. Use when: building agents with persistent context, managing agent memories across sessions, implementing hierarchical context delivery for complex agent systems.",
+      "category": "data-ai",
+      "tags": [
+        "context-database",
+        "agent-memory",
+        "openviking",
+        "context-management",
+        "file-system"
       ]
     },
     {
@@ -6174,6 +6317,19 @@
       "tags": []
     },
     {
+      "name": "pricing",
+      "slug": "pricing",
+      "description": "Design pricing strategy — value-based pricing, freemium, tiers, and packaging. Use when: setting prices for a new product, redesigning pricing page, deciding between freemium and paid-only models.",
+      "category": "business",
+      "tags": [
+        "pricing",
+        "monetization",
+        "saas",
+        "freemium",
+        "business-model"
+      ]
+    },
+    {
       "name": "pricing-strategy",
       "slug": "pricing-strategy",
       "description": "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' or 'monetization.' This skill covers pricing research, tier structure, and packaging strategy.",
@@ -6214,6 +6370,19 @@
       "description": "Expert guidance for product strategy, helping product leaders define product vision, craft positioning, analyze competitive landscapes, choose pricing models, and build outcome-driven roadmaps. Applies frameworks from Marty Cagan (Empowered), April Dunford (Obviously Awesome), Gibson Biddle (DHM Model), and Reforge.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "productivity-mental-models",
+      "slug": "productivity-mental-models",
+      "description": "Apply proven mental models to boost personal and team productivity — focus techniques, decision frameworks, and task management principles. Use when: improving personal productivity, making better decisions faster, coaching teams on effective work habits.",
+      "category": "business",
+      "tags": [
+        "productivity",
+        "mental-models",
+        "decision-making",
+        "focus",
+        "time-management"
+      ]
     },
     {
       "name": "programmatic-seo",
@@ -6501,13 +6670,6 @@
       ]
     },
     {
-      "name": "react-native-expo",
-      "slug": "react-native-expo",
-      "description": "You are an expert in React Native with Expo, the modern framework for building native iOS and Android apps with React. You help developers create mobile applications using Expo Router (file-based navigation), Expo SDK modules (camera, notifications, auth, maps), EAS Build/Submit for cloud builds, over-the-air updates, and the full Expo development workflow — from `npx create-expo-app` to App Store submission.",
-      "category": "Mobile Development",
-      "tags": []
-    },
-    {
       "name": "react-native-reanimated",
       "slug": "react-native-reanimated",
       "description": "Build smooth 60fps animations in React Native with Reanimated — run animations on the UI thread without JS bridge delays. Use when someone asks to \"animate in React Native\", \"Reanimated\", \"smooth mobile animations\", \"gesture animations\", \"shared element transitions\", or \"60fps React Native animations\". Covers worklets, shared values, layout animations, gestures, and scroll-driven animations.",
@@ -6705,14 +6867,14 @@
     {
       "name": "report-generator",
       "slug": "report-generator",
-      "description": "Generate professional data reports with charts, tables, and visualizations. Use when a user asks to create a report, generate a data report, build a dashboard report, produce a PDF report with charts, create an executive summary, or generate a weekly/monthly report from data.",
+      "description": "Generate professional reports with charts, tables, visualizations, and structured narratives. Covers data-driven PDF/HTML reports, weekly status reports, executive summaries, and recurring team updates. Use when a user asks to create a report, generate a data report, build a dashboard report, write a weekly report, create a status update, or produce a team progress report.",
       "category": "data-ai",
       "tags": [
         "reports",
         "visualization",
-        "pdf",
+        "status-updates",
         "charts",
-        "business-intelligence"
+        "productivity"
       ]
     },
     {
@@ -7227,17 +7389,10 @@
       "tags": []
     },
     {
-      "name": "solid",
-      "slug": "solid",
-      "description": "SolidJS is a reactive UI library that compiles to efficient vanilla JavaScript. It uses fine-grained reactivity with signals and stores, has no virtual DOM, and provides JSX components with excellent performance and small bundle size.",
-      "category": "development",
-      "tags": []
-    },
-    {
       "name": "solid-js",
       "slug": "solid-js",
       "description": "SolidJS — fine-grained reactive UI library without a virtual DOM. Use when building high-performance UIs, choosing a React alternative with better reactivity primitives, or using SolidStart for full-stack apps with SSR and server functions. Covers signals, effects, memos, stores, and migration patterns from React.",
-      "category": "frontend",
+      "category": "development",
       "tags": [
         "solidjs",
         "reactive",
@@ -7578,21 +7733,14 @@
     {
       "name": "svelte",
       "slug": "svelte",
-      "description": "You are an expert in Svelte, the UI framework that shifts work from runtime to compile time. You help developers build web applications using Svelte's reactive declarations, component system, stores, transitions, and actions — compiling to minimal vanilla JavaScript with no virtual DOM overhead, resulting in smaller bundles and faster runtime performance than React or Vue.",
-      "category": "Web Frameworks",
-      "tags": []
-    },
-    {
-      "name": "svelte-5",
-      "slug": "svelte-5",
-      "description": "Build reactive web apps with Svelte 5's new runes system. Use when: building new Svelte 5 apps, migrating from Svelte 4, using runes for reactivity ($state, $derived, $effect, $props), replacing stores with fine-grained state, using snippets instead of slots, or working with SvelteKit 2.",
+      "description": "You are an expert in Svelte 5 and SvelteKit 2. You help developers build web applications using runes ($state, $derived, $effect, $props, $bindable, $inspect), snippets, stores, transitions, and actions — compiling to minimal vanilla JavaScript with no virtual DOM. Use when building Svelte apps, migrating from Svelte 4, or working with SvelteKit.",
       "category": "development",
       "tags": [
         "svelte",
-        "svelte-5",
+        "frontend",
         "runes",
         "reactive",
-        "frontend"
+        "sveltekit"
       ]
     },
     {
@@ -7629,6 +7777,19 @@
       "tags": []
     },
     {
+      "name": "swarm-intelligence",
+      "slug": "swarm-intelligence",
+      "description": "Build swarm intelligence systems where multiple AI agents collaborate to make predictions and solve complex problems. Use when: implementing ensemble AI predictions, building consensus-based decision systems, creating multi-agent prediction markets.",
+      "category": "data-ai",
+      "tags": [
+        "swarm-intelligence",
+        "multi-agent",
+        "prediction",
+        "ensemble",
+        "consensus"
+      ]
+    },
+    {
       "name": "swc",
       "slug": "swc",
       "description": "You are an expert in SWC, the Rust-based JavaScript/TypeScript compiler. You help developers replace Babel and Terser with SWC for 20-70x faster compilation, minification, and bundling — used by Next.js, Vite, Parcel, and Deno as their default compiler, handling TypeScript stripping, JSX transformation, polyfill injection, and code minification at native speed.",
@@ -7663,6 +7824,19 @@
       "tags": []
     },
     {
+      "name": "systems-thinking",
+      "slug": "systems-thinking",
+      "description": "Apply systems thinking to business problems — identify constraints, understand feedback loops, anticipate second-order effects, and improve processes. Use when: diagnosing why a business process is broken, optimizing operations, understanding complex system behavior.",
+      "category": "business",
+      "tags": [
+        "systems-thinking",
+        "operations",
+        "optimization",
+        "constraints",
+        "feedback-loops"
+      ]
+    },
+    {
       "name": "table-extractor",
       "slug": "table-extractor",
       "description": "Extract tables from PDFs with high accuracy using camelot. Handles complex table structures including merged cells, multi-line rows, and spanning headers. Use when a user asks to extract a table from a PDF, pull tabular data from a document, convert PDF tables to CSV or Excel, or parse structured tables from reports.",
@@ -7689,37 +7863,11 @@
       ]
     },
     {
-      "name": "tailwind-animate",
-      "slug": "tailwind-animate",
-      "description": "Add animations to Tailwind CSS projects. Use when implementing CSS animations with Tailwind, adding entrance effects, building animated components, or creating loading spinners and skeleton screens.",
-      "category": "development",
-      "tags": [
-        "tailwind",
-        "animation",
-        "css",
-        "transitions",
-        "ui"
-      ]
-    },
-    {
       "name": "tailwindcss",
       "slug": "tailwindcss",
       "description": "You are an expert in Tailwind CSS v4, the utility-first CSS framework. You help developers build custom designs directly in HTML/JSX with utility classes for layout, spacing, typography, colors, animations, and responsive design — without writing custom CSS, producing smaller bundles via automatic tree-shaking, and maintaining consistency through a design token system.",
       "category": "Frontend Development",
       "tags": []
-    },
-    {
-      "name": "tanstack",
-      "slug": "tanstack",
-      "description": "Assists with building React applications using the TanStack ecosystem: Query for server state management, Router for type-safe routing, Table for headless data tables, and Virtual for list virtualization. Trigger words: tanstack, react query, tanstack query, tanstack table, tanstack router, useQuery, useMutation.",
-      "category": "development",
-      "tags": [
-        "tanstack",
-        "react-query",
-        "data-table",
-        "routing",
-        "state-management"
-      ]
     },
     {
       "name": "tanstack-query",
@@ -7785,6 +7933,19 @@
         "red-green-refactor",
         "integration-tests",
         "test-first"
+      ]
+    },
+    {
+      "name": "team-leadership",
+      "slug": "team-leadership",
+      "description": "Lead teams effectively using proven frameworks — set clear intent, reduce communication overhead, create psychological safety, and use forcing functions to drive results. Use when: managing teams, improving team collaboration, setting goals and accountability.",
+      "category": "business",
+      "tags": [
+        "leadership",
+        "team-management",
+        "communication",
+        "goals",
+        "culture"
       ]
     },
     {
@@ -8437,6 +8598,19 @@
       ]
     },
     {
+      "name": "validate-idea",
+      "slug": "validate-idea",
+      "description": "Validate a business idea before building — market research, competitor analysis, customer interviews, and demand signals. Use when: evaluating a startup idea, deciding whether to build something, assessing market opportunity.",
+      "category": "business",
+      "tags": [
+        "startup",
+        "validation",
+        "market-research",
+        "business-idea",
+        "entrepreneurship"
+      ]
+    },
+    {
       "name": "valtio",
       "slug": "valtio",
       "description": "Manage React state with Valtio — proxy-based state that just works. Use when someone asks to \"simple React state management\", \"Valtio\", \"proxy state\", \"mutable state in React\", \"alternative to Zustand/Redux\", or \"state management without boilerplate\". Covers proxy state, subscriptions, computed values, and devtools.",
@@ -8447,6 +8621,19 @@
         "react",
         "proxy",
         "store"
+      ]
+    },
+    {
+      "name": "value-based-selling",
+      "slug": "value-based-selling",
+      "description": "Master value-based selling techniques — price based on customer value, reduce barriers to purchase, and close deals through education rather than pressure. Use when: setting prices for a product/service, improving conversion rates, training sales teams.",
+      "category": "business",
+      "tags": [
+        "sales",
+        "pricing",
+        "value-based",
+        "conversion",
+        "negotiation"
       ]
     },
     {
@@ -8727,19 +8914,6 @@
       ]
     },
     {
-      "name": "weekly-report",
-      "slug": "weekly-report",
-      "description": "Generate consistent, professional weekly status reports for teams and stakeholders. Use when a user asks to write a weekly report, create a status update, generate a weekly summary, write a progress report, compile a week-in-review, or produce a team status report.",
-      "category": "productivity",
-      "tags": [
-        "reports",
-        "weekly-updates",
-        "status",
-        "team-management",
-        "productivity"
-      ]
-    },
-    {
       "name": "whatsapp-bot-builder",
       "slug": "whatsapp-bot-builder",
       "description": "Builds WhatsApp bots and integrations using the WhatsApp Business API (Cloud API). Use when the user wants to create a WhatsApp bot, send template messages, handle incoming messages, build interactive lists and buttons, process media, or automate customer communication via WhatsApp. Trigger words: whatsapp bot, whatsapp business api, whatsapp integration, whatsapp cloud api, whatsapp template, whatsapp webhook, whatsapp automation, whatsapp chatbot, meta business, whatsapp flows.",
@@ -8823,6 +8997,19 @@
         "parallel",
         "ai-agents",
         "branching"
+      ]
+    },
+    {
+      "name": "worldmonitor",
+      "slug": "worldmonitor",
+      "description": "Build real-time intelligence dashboards that aggregate news, geopolitical events, and infrastructure data using AI. Use when: building news aggregation systems, monitoring global events, creating situational awareness dashboards.",
+      "category": "data-ai",
+      "tags": [
+        "intelligence",
+        "news-aggregation",
+        "geopolitical",
+        "monitoring",
+        "dashboard"
       ]
     },
     {
@@ -9024,7 +9211,6 @@
     "Game Development",
     "Infrastructure & DevOps",
     "Marketing & Growth",
-    "Mobile Development",
     "Security & Auth",
     "Web Development",
     "Web Frameworks",
@@ -9038,10 +9224,9 @@
     "development",
     "devops",
     "documents",
-    "frontend",
     "productivity",
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-03-24T18:38:20.960Z"
+  "updatedAt": "2026-03-26T21:30:02.806Z"
 }

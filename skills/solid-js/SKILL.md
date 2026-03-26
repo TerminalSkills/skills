@@ -11,7 +11,7 @@ compatibility: "SolidJS 1.x / 2.x. SolidStart 1.x. Requires Node.js 18+ for buil
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: frontend
+  category: development
   tags: ["solidjs", "reactive", "signals", "performance", "frontend"]
   use-cases:
     - "Build a high-performance UI without virtual DOM overhead"
@@ -98,68 +98,6 @@ setPrice(120);
 console.log(total()); // 360 — recalculated
 ```
 
-## Components
-
-SolidJS components are functions that run once — not re-rendered like React:
-
-```typescript
-import { createSignal, For, Show, type Component } from "solid-js";
-
-interface TodoItem {
-  id: number;
-  text: string;
-  done: boolean;
-}
-
-const TodoApp: Component = () => {
-  const [todos, setTodos] = createSignal<TodoItem[]>([]);
-  const [input, setInput] = createSignal("");
-
-  const addTodo = () => {
-    if (!input().trim()) return;
-    setTodos((prev) => [
-      ...prev,
-      { id: Date.now(), text: input(), done: false },
-    ]);
-    setInput("");
-  };
-
-  const toggle = (id: number) => {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    );
-  };
-
-  // <Show> renders conditionally
-  // <For> renders lists — keyed by item (not index)
-  return (
-    <div>
-      <input
-        value={input()}
-        onInput={(e) => setInput(e.currentTarget.value)}
-        placeholder="New todo..."
-      />
-      <button onClick={addTodo}>Add</button>
-
-      <Show when={todos().length > 0} fallback={<p>No todos yet.</p>}>
-        <For each={todos()}>
-          {(todo) => (
-            <div
-              style={{ "text-decoration": todo.done ? "line-through" : "none" }}
-              onClick={() => toggle(todo.id)}
-            >
-              {todo.text}
-            </div>
-          )}
-        </For>
-      </Show>
-    </div>
-  );
-};
-
-export default TodoApp;
-```
-
 ## Control Flow
 
 ```typescript
@@ -193,13 +131,8 @@ import { Show, For, Switch, Match, Index } from "solid-js";
 ```typescript
 import { createStore, produce } from "solid-js/store";
 
-interface AppState {
-  users: { id: number; name: string; active: boolean }[];
-  loading: boolean;
-}
-
-const [state, setState] = createStore<AppState>({
-  users: [],
+const [state, setState] = createStore({
+  users: [] as { id: number; name: string; active: boolean }[],
   loading: false,
 });
 
@@ -207,31 +140,13 @@ const [state, setState] = createStore<AppState>({
 setState("loading", true);
 setState("users", 0, "active", false);
 
-// Add items
-setState("users", (users) => [...users, { id: 3, name: "Charlie", active: true }]);
-
 // Immer-like mutations with produce
 setState(
-  produce((state) => {
-    state.users.push({ id: 4, name: "Diana", active: true });
-    state.users[0].active = false;
-    state.loading = false;
+  produce((s) => {
+    s.users.push({ id: 4, name: "Diana", active: true });
+    s.loading = false;
   })
 );
-
-// Read nested values — fine-grained reactivity
-function UserList() {
-  return (
-    <For each={state.users}>
-      {(user) => (
-        <div>
-          {/* Only re-renders when user.name changes */}
-          {user.name} — {user.active ? "active" : "inactive"}
-        </div>
-      )}
-    </For>
-  );
-}
 ```
 
 ## Resources — Async Data Fetching
@@ -328,6 +243,23 @@ export async function createUser(data: { name: string; email: string }) {
   // Runs on the server only — safe to access DB
   return db.insert(users).values(data).returning();
 }
+```
+
+## Context (Dependency Injection)
+
+```typescript
+import { createContext, useContext, type ParentComponent } from "solid-js";
+import { createStore } from "solid-js/store";
+
+const AuthContext = createContext<{ user: () => User | null; login: (u: User) => void }>();
+
+export const AuthProvider: ParentComponent = (props) => {
+  const [state, setState] = createStore<{ user: User | null }>({ user: null });
+  const value = { user: () => state.user, login: (u: User) => setState("user", u) };
+  return <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => useContext(AuthContext)!;
 ```
 
 ## Migrating from React

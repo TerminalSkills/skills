@@ -1,204 +1,255 @@
 ---
 name: svelte
 description: >-
-  You are an expert in Svelte, the UI framework that shifts work from runtime
-  to compile time. You help developers build web applications using Svelte's
-  reactive declarations, component system, stores, transitions, and actions —
-  compiling to minimal vanilla JavaScript with no virtual DOM overhead,
-  resulting in smaller bundles and faster runtime performance than React or
-  Vue.
+  You are an expert in Svelte 5 and SvelteKit 2. You help developers build web
+  applications using runes ($state, $derived, $effect, $props, $bindable,
+  $inspect), snippets, stores, transitions, and actions — compiling to minimal
+  vanilla JavaScript with no virtual DOM. Use when building Svelte apps,
+  migrating from Svelte 4, or working with SvelteKit.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Svelte 5.0+, SvelteKit 2.0+ (optional)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Web Frameworks
-  tags:
-    - frontend
-    - javascript
-    - compiler
-    - reactive
-    - lightweight
-    - no-virtual-dom
+  version: "1.1.0"
+  category: development
+  tags: ["svelte", "frontend", "runes", "reactive", "sveltekit"]
 ---
 
 # Svelte — Compile-Time Reactive UI Framework
 
-You are an expert in Svelte, the UI framework that shifts work from runtime to compile time. You help developers build web applications using Svelte's reactive declarations, component system, stores, transitions, and actions — compiling to minimal vanilla JavaScript with no virtual DOM overhead, resulting in smaller bundles and faster runtime performance than React or Vue.
+## Overview
 
-## Core Capabilities
+Svelte shifts work from runtime to compile time, producing minimal vanilla JavaScript with no virtual DOM. Svelte 5 introduces **runes** — explicit reactivity primitives that replace `$:` declarations and stores. SvelteKit 2 provides SSR, routing, and deployment adapters.
 
-### Reactive Components (Svelte 5 Runes)
+## Instructions
 
-```svelte
-<!-- Counter.svelte — Svelte 5 with runes -->
-<script lang="ts">
-  let count = $state(0);                  // Reactive state
-  let doubled = $derived(count * 2);      // Computed value
+### Runes Reference
 
-  function increment() {
-    count++;                              // Direct mutation triggers updates
-  }
-
-  $effect(() => {
-    // Runs when dependencies change (like useEffect)
-    console.log(`Count changed to ${count}`);
-    document.title = `Count: ${count}`;
-  });
-</script>
-
-<button onclick={increment}>
-  Clicked {count} times (doubled: {doubled})
-</button>
-
-<style>
-  button {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: #ff3e00;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #ff5722;
-  }
-</style>
-```
-
-### Props and Events
+**`$state`** — reactive state (deep by default):
 
 ```svelte
-<!-- Card.svelte -->
 <script lang="ts">
-  interface Props {
-    title: string;
-    description?: string;
-    variant?: "default" | "featured";
-    onclick?: () => void;
-  }
-
-  let { title, description = "", variant = "default", onclick }: Props = $props();
+  let count = $state(0);
+  let user = $state({ name: "Alice", age: 30 });
+  user.age++;  // deep reactivity — triggers updates
 </script>
-
-<div class="card {variant}" onclick={onclick}>
-  <h3>{title}</h3>
-  {#if description}
-    <p>{description}</p>
-  {/if}
-  {@render children()}                    <!-- Slot content -->
-</div>
-
-<style>
-  .card { padding: 1rem; border: 1px solid #ddd; border-radius: 0.5rem; }
-  .card.featured { border-color: #ff3e00; background: #fff5f2; }
-</style>
 ```
 
-### Stores (Global State)
-
-```typescript
-// stores/cart.ts — Writable store
-import { writable, derived } from "svelte/store";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-export const cart = writable<CartItem[]>([]);
-
-export const cartTotal = derived(cart, ($cart) =>
-  $cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-);
-
-export const cartCount = derived(cart, ($cart) =>
-  $cart.reduce((sum, item) => sum + item.quantity, 0)
-);
-
-export function addToCart(item: Omit<CartItem, "quantity">) {
-  cart.update((items) => {
-    const existing = items.find((i) => i.id === item.id);
-    if (existing) {
-      existing.quantity++;
-      return [...items];
-    }
-    return [...items, { ...item, quantity: 1 }];
-  });
-}
-
-export function removeFromCart(id: string) {
-  cart.update((items) => items.filter((i) => i.id !== id));
-}
-```
-
-```svelte
-<!-- CartSummary.svelte — Using stores -->
-<script lang="ts">
-  import { cart, cartTotal, cartCount, removeFromCart } from "$lib/stores/cart";
-</script>
-
-<div class="cart">
-  <h2>Cart ({$cartCount} items)</h2>
-  {#each $cart as item (item.id)}
-    <div class="item">
-      <span>{item.name} × {item.quantity}</span>
-      <span>${(item.price * item.quantity).toFixed(2)}</span>
-      <button onclick={() => removeFromCart(item.id)}>✕</button>
-    </div>
-  {/each}
-  <p class="total">Total: ${$cartTotal.toFixed(2)}</p>
-</div>
-```
-
-### Transitions and Animations
+**`$state.raw`** — shallow reactive (must reassign to trigger):
 
 ```svelte
 <script>
-  import { fade, fly, slide, scale } from "svelte/transition";
-  import { flip } from "svelte/animate";
-
-  let items = $state(["Apple", "Banana", "Cherry"]);
-  let showModal = $state(false);
+  let items = $state.raw([1, 2, 3]);
+  items = [...items, 4];  // must reassign
 </script>
-
-<!-- Animate list changes -->
-{#each items as item (item)}
-  <div animate:flip={{ duration: 300 }} transition:fade={{ duration: 200 }}>
-    {item}
-  </div>
-{/each}
-
-<!-- Modal with transitions -->
-{#if showModal}
-  <div class="overlay" transition:fade={{ duration: 150 }}>
-    <div class="modal" transition:fly={{ y: 50, duration: 300 }}>
-      <h2>Modal Content</h2>
-      <button onclick={() => showModal = false}>Close</button>
-    </div>
-  </div>
-{/if}
 ```
 
-## Installation
+**`$state.snapshot`** — plain non-reactive copy:
+
+```svelte
+<script>
+  let form = $state({ name: "", email: "" });
+  const data = $state.snapshot(form);  // plain object for API calls
+</script>
+```
+
+**`$derived`** and **`$derived.by`** — computed values:
+
+```svelte
+<script>
+  let price = $state(100);
+  let quantity = $state(3);
+  let total = $derived(price * quantity);
+
+  let summary = $derived.by(() => {
+    const t = items.reduce((sum, i) => sum + i.price, 0);
+    return { total: t, count: items.length, avg: t / items.length };
+  });
+</script>
+```
+
+**`$effect`** — side effects with cleanup:
+
+```svelte
+<script>
+  let query = $state("");
+  $effect(() => {
+    if (!query) return;
+    const controller = new AbortController();
+    fetch(`/api/search?q=${query}`, { signal: controller.signal })
+      .then(r => r.json()).then(data => { results = data; });
+    return () => controller.abort();
+  });
+</script>
+```
+
+**`$props`** — component props:
+
+```svelte
+<script>
+  let { label, variant = "primary", onclick, class: className = "", ...rest } = $props();
+</script>
+<button class="btn btn-{variant} {className}" {onclick} {...rest}>{label}</button>
+```
+
+**`$bindable`** — two-way binding:
+
+```svelte
+<!-- Input.svelte -->
+<script>
+  let { value = $bindable(""), placeholder = "" } = $props();
+</script>
+<input bind:value {placeholder} />
+```
+
+**`$inspect`** — debug reactive values (dev only):
+
+```svelte
+<script>
+  $inspect(count, doubled);
+  $inspect(count).with((type, value) => console.log(`[${type}]`, value));
+</script>
+```
+
+### Snippets (Replacing Slots)
+
+Svelte 5 replaces slots with typed, reusable markup fragments:
+
+```svelte
+<!-- List.svelte -->
+<script>
+  let { items, row, children } = $props();
+</script>
+<ul>
+  {#each items as item}
+    <li>{@render row(item)}</li>
+  {/each}
+</ul>
+{@render children?.()}
+```
+
+```svelte
+<!-- Parent.svelte -->
+<List {items}>
+  {#snippet row(item)}
+    <strong>{item.name}</strong> — {item.description}
+  {/snippet}
+</List>
+```
+
+### Stores (Shared State)
+
+```typescript
+// stores/cart.ts — Writable store (Svelte 4 style, still works)
+import { writable, derived } from "svelte/store";
+
+export const cart = writable<CartItem[]>([]);
+export const cartTotal = derived(cart, ($cart) =>
+  $cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+);
+```
+
+**Svelte 5 alternative** — `$state` in `.svelte.ts` modules:
+
+```typescript
+// state/counter.svelte.ts
+let count = $state(0);
+let doubled = $derived(count * 2);
+
+export function getCounter() {
+  return {
+    get count() { return count; },
+    get doubled() { return doubled; },
+    increment() { count++; },
+  };
+}
+```
+
+### Transitions
+
+```svelte
+<script>
+  import { fade, fly, slide } from "svelte/transition";
+  import { flip } from "svelte/animate";
+  let items = $state(["Apple", "Banana"]);
+</script>
+{#each items as item (item)}
+  <div animate:flip={{ duration: 300 }} transition:fade>{item}</div>
+{/each}
+```
+
+### Migration from Svelte 4
+
+| Svelte 4 | Svelte 5 |
+|-----------|----------|
+| `let count = 0` | `let count = $state(0)` |
+| `$: doubled = count * 2` | `let doubled = $derived(count * 2)` |
+| `$: { sideEffect() }` | `$effect(() => { sideEffect() })` |
+| `export let prop` | `let { prop } = $props()` |
+| `<slot />` | `{@render children()}` |
+| `<slot name="header" />` | `{@render header?.()}` |
+| Svelte stores | `$state` in `.svelte.ts` files |
+
+### SvelteKit 2
+
+```svelte
+<!-- +page.svelte -->
+<script>
+  let { data } = $props();  // from +page.ts load function
+</script>
+<h1>{data.title}</h1>
+```
 
 ```bash
-npx sv create my-app                      # SvelteKit project
-cd my-app && npm install && npm run dev
-
-# Or standalone Svelte (with Vite)
-npm create vite@latest my-app -- --template svelte-ts
+npx sv create my-app          # SvelteKit project
+npm create vite@latest -- --template svelte-ts  # standalone Svelte
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: Shopping cart with stores
+
+```svelte
+<!-- CartSummary.svelte -->
+<script lang="ts">
+  import { cart, cartTotal, removeFromCart } from "$lib/stores/cart";
+</script>
+<div class="cart">
+  {#each $cart as item (item.id)}
+    <div>{item.name} x {item.quantity} — ${(item.price * item.quantity).toFixed(2)}
+      <button onclick={() => removeFromCart(item.id)}>Remove</button>
+    </div>
+  {/each}
+  <p>Total: ${$cartTotal.toFixed(2)}</p>
+</div>
+```
+
+### Example 2: Async data fetching with $effect
+
+```svelte
+<script>
+  let userId = $state(1);
+  let user = $state(null);
+  let loading = $state(false);
+
+  $effect(() => {
+    loading = true;
+    fetch(`/api/users/${userId}`)
+      .then(r => r.json())
+      .then(data => { user = data; loading = false; });
+  });
+</script>
+{#if loading}<p>Loading...</p>
+{:else if user}<p>{user.name}</p>{/if}
+```
+
+## Guidelines
 
 1. **Runes for state** — Use `$state()`, `$derived()`, `$effect()` in Svelte 5; cleaner than Svelte 4's `$:` syntax
-2. **Scoped styles by default** — CSS in `<style>` is component-scoped; no CSS modules or CSS-in-JS needed
-3. **Stores for shared state** — Use writable/derived stores for state shared between components; auto-subscribe with `$`
-4. **Transitions built-in** — Use `transition:fade`, `transition:fly` etc.; no animation library needed for common effects
-5. **Small bundles** — Svelte compiles away the framework; a typical app ships 5-10KB of runtime vs 40KB+ for React
-6. **SvelteKit for full-stack** — Use SvelteKit for SSR, routing, API endpoints, and deployment adapters
-7. **TypeScript support** — Use `<script lang="ts">` for type-safe components; types flow through props and stores
-8. **Actions for DOM** — Use `use:action` for reusable DOM behavior (click-outside, tooltip, intersection observer)
+2. **Scoped styles** — CSS in `<style>` is component-scoped; no CSS modules needed
+3. **Stores vs runes** — Use `$state` in `.svelte.ts` for new code; writable/derived stores still work
+4. **Transitions built-in** — Use `transition:fade`, `transition:fly`; no animation library needed
+5. **Small bundles** — Svelte compiles away; typical app ships 5-10KB vs 40KB+ for React
+6. **SvelteKit for full-stack** — SSR, routing, API endpoints, deployment adapters
+7. **TypeScript** — Use `<script lang="ts">` for type-safe components
+8. **Actions for DOM** — Use `use:action` for reusable DOM behavior (click-outside, tooltip)

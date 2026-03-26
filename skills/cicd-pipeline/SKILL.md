@@ -1,26 +1,25 @@
 ---
 name: cicd-pipeline
 description: >-
-  Generate and optimize CI/CD pipelines for automated testing, building, and
-  deployment. Use when a user asks to create a GitHub Actions workflow, set up
-  GitLab CI, build a CI pipeline, automate deployments, add test automation,
-  configure continuous integration, set up continuous deployment, create a
-  release workflow, or optimize build times. Supports GitHub Actions, GitLab CI,
-  and CircleCI.
+  Generate and optimize CI/CD pipelines for GitLab CI and CircleCI. Use when a
+  user asks to set up GitLab CI, create a CircleCI pipeline, build a CI pipeline
+  for GitLab, automate deployments with CircleCI, add test automation to GitLab,
+  or configure continuous integration on non-GitHub platforms. For GitHub Actions
+  pipelines, use the github-actions skill instead.
 license: Apache-2.0
 compatibility: "Any project with Git version control"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
-  tags: ["cicd", "github-actions", "gitlab-ci", "pipeline", "deployment"]
+  tags: ["cicd", "gitlab-ci", "circleci", "pipeline", "deployment"]
 ---
 
-# CI/CD Pipeline
+# CI/CD Pipeline (GitLab CI & CircleCI)
 
 ## Overview
 
-Generate production-ready CI/CD pipeline configurations for automated testing, building, and deploying applications. This skill creates well-structured workflows with proper caching, matrix testing, environment separation, and deployment strategies for GitHub Actions, GitLab CI, and CircleCI.
+Generate production-ready CI/CD pipeline configurations for automated testing, building, and deploying applications on GitLab CI and CircleCI. This skill creates well-structured workflows with proper caching, matrix testing, environment separation, and deployment strategies. For GitHub Actions pipelines, use the `github-actions` skill.
 
 ## Instructions
 
@@ -35,7 +34,7 @@ Detect the project type and requirements:
 ls package.json pyproject.toml Gemfile go.mod Cargo.toml pom.xml build.gradle 2>/dev/null
 
 # Check for existing CI config
-ls .github/workflows/*.yml .gitlab-ci.yml .circleci/config.yml 2>/dev/null
+ls .gitlab-ci.yml .circleci/config.yml 2>/dev/null
 
 # Detect test commands
 cat package.json | grep -A5 '"scripts"' 2>/dev/null
@@ -47,111 +46,15 @@ Identify:
 - **Package manager**: npm, pnpm, yarn, pip, poetry
 - **Test framework**: Jest, Pytest, Go test, etc.
 - **Build output**: Docker image, static site, binary, package
-- **Deploy target**: Vercel, AWS, Docker registry, npm registry
+- **Deploy target**: AWS, Docker registry, npm registry, SSH server
 
 ### Step 2: Choose the CI/CD platform
 
-Default to **GitHub Actions** unless the user specifies otherwise or the repo is on GitLab.
+Default to **GitLab CI** if the repo is on GitLab. Use **CircleCI** if specified or if the project already has a `.circleci/` directory.
 
 ### Step 3: Generate the pipeline configuration
 
-Create the workflow file with these standard stages:
-
-**GitHub Actions — Node.js example:**
-
-```yaml
-# .github/workflows/ci.yml
-name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18, 20, 22]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm ci
-      - run: npm test -- --coverage
-      - uses: actions/upload-artifact@v4
-        if: matrix.node-version == 20
-        with:
-          name: coverage
-          path: coverage/
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [lint, test]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: dist/
-```
-
-**GitHub Actions — Python example:**
-
-```yaml
-name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11', '3.12']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-      - run: pip install -e '.[dev]'
-      - run: pytest --cov=src --cov-report=xml
-      - uses: codecov/codecov-action@v4
-        if: matrix.python-version == '3.12'
-        with:
-          file: coverage.xml
-```
-
-**GitLab CI example:**
+**GitLab CI — Node.js example:**
 
 ```yaml
 # .gitlab-ci.yml
@@ -206,98 +109,95 @@ build:
     - main
 ```
 
-### Step 4: Add deployment stage if requested
+**GitLab CI — Docker build and deploy:**
 
-**Deploy to Vercel:**
 ```yaml
+build-image:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  only:
+    - main
+
 deploy:
-  needs: [build]
-  runs-on: ubuntu-latest
-  if: github.ref == 'refs/heads/main'
-  steps:
-    - uses: actions/checkout@v4
-    - uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
+  script:
+    - ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA && docker-compose up -d"
+  when: manual
+  only:
+    - main
 ```
 
-**Deploy Docker image:**
-```yaml
-deploy:
-  needs: [test]
-  runs-on: ubuntu-latest
-  if: github.ref == 'refs/heads/main'
-  steps:
-    - uses: actions/checkout@v4
-    - uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - uses: docker/build-push-action@v5
-      with:
-        push: true
-        tags: ghcr.io/${{ github.repository }}:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-```
-
-### Step 5: Add release workflow if needed
+**CircleCI — Node.js example:**
 
 ```yaml
-# .github/workflows/release.yml
-name: Release
-on:
-  push:
-    tags: ['v*']
+# .circleci/config.yml
+version: 2.1
+
+orbs:
+  node: circleci/node@5
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  lint-and-test:
+    docker:
+      - image: cimg/node:20.11
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm ci && npm run build
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
+      - checkout
+      - node/install-packages
+      - run: npm run lint
+      - run: npm test -- --coverage
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: coverage
+
+  build:
+    docker:
+      - image: cimg/node:20.11
+    steps:
+      - checkout
+      - node/install-packages
+      - run: npm run build
+      - persist_to_workspace:
+          root: .
+          paths: [dist]
+
+  deploy:
+    docker:
+      - image: cimg/node:20.11
+    steps:
+      - attach_workspace:
+          at: .
+      - run: npx vercel deploy --prod --token $VERCEL_TOKEN
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - lint-and-test
+      - build:
+          requires: [lint-and-test]
+      - deploy:
+          requires: [build]
+          filters:
+            branches:
+              only: main
 ```
 
 ## Examples
 
-### Example 1: Full CI/CD for a Next.js app deploying to Vercel
-
-**User request:** "Set up CI/CD for my Next.js project with tests, linting, and Vercel deploy"
-
-**Actions taken:**
-1. Detected: Next.js 14, npm, Vitest, ESLint
-2. Created `.github/workflows/ci.yml` with lint, test, build jobs
-3. Added Vercel deployment on main branch pushes
-4. Configured concurrency to cancel outdated runs
-
-**Result:**
-```
-Created: .github/workflows/ci.yml
-- Lint job: ESLint + Prettier check
-- Test job: Vitest with coverage upload (Node 18/20 matrix)
-- Build job: next build (depends on lint + test passing)
-- Deploy job: Vercel production deploy (main branch only)
-Estimated run time: ~3 minutes
-Required secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-```
-
-### Example 2: GitLab CI for a Python Django API with Docker
+### Example 1: GitLab CI for a Django API with Docker deployment
 
 **User request:** "Create a GitLab CI pipeline for my Django app with Docker deployment"
 
@@ -310,7 +210,7 @@ Required secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 **Result:**
 ```
 Created: .gitlab-ci.yml
-Stages: lint → test → build → deploy
+Stages: lint -> test -> build -> deploy
 - lint: ruff + mypy type checking
 - test: pytest with PostgreSQL 16 service container
 - build: Docker image build, pushed to $CI_REGISTRY_IMAGE
@@ -318,15 +218,35 @@ Stages: lint → test → build → deploy
 Required variables: DEPLOY_HOST, DEPLOY_USER, SSH_PRIVATE_KEY
 ```
 
+### Example 2: CircleCI for a Node.js monorepo
+
+**User request:** "Set up CircleCI for my monorepo with separate test jobs per package"
+
+**Actions taken:**
+1. Detected: pnpm workspace with 3 packages (api, web, shared)
+2. Created `.circleci/config.yml` with parallel test jobs per package
+3. Used path filtering to only run jobs for changed packages
+4. Added build and deploy workflow for the web package
+
+**Result:**
+```
+Created: .circleci/config.yml
+Jobs: test-api, test-web, test-shared, build-web, deploy-web
+- Uses path filtering: only tests changed packages
+- Shared dependency caching across jobs
+- Deploy to Vercel on main branch only
+Required env vars: VERCEL_TOKEN
+Estimated run time: ~4 minutes (parallel jobs)
+```
+
 ## Guidelines
 
-- Always use `actions/checkout@v4` and the latest stable action versions.
-- Enable dependency caching (`cache: 'npm'`, `cache: 'pip'`) to speed up runs.
-- Use `concurrency` with `cancel-in-progress: true` to avoid wasted compute on PRs.
-- Pin action versions to major tags (e.g., `@v4`) not `@main` or commit SHAs for readability.
-- Use matrix strategy for testing across multiple runtime versions.
-- Separate CI (runs on every PR) from CD (runs only on main/tags).
-- Store secrets in repository/organization secrets, never in workflow files.
-- Add `if: github.ref == 'refs/heads/main'` to deployment jobs to prevent accidental deploys from PRs.
-- For monorepos, use path filters to only run relevant pipelines: `paths: ['packages/api/**']`.
-- Include a status badge in README: `![CI](https://github.com/org/repo/actions/workflows/ci.yml/badge.svg)`.
+- Enable dependency caching to speed up runs. GitLab uses `cache:` blocks; CircleCI uses orbs or `save_cache`/`restore_cache`.
+- Use service containers for database tests (Postgres, Redis, etc.) rather than installing them in the job.
+- Separate CI (runs on every push/MR) from CD (runs only on main/tags).
+- Store secrets in CI/CD variables, never in pipeline files.
+- Use `only`/`rules` in GitLab CI or `filters` in CircleCI to control when jobs run.
+- For monorepos, use path-based triggers to only run relevant pipelines.
+- GitLab CI supports `extends` and YAML anchors for DRY configs — use them for shared job configurations.
+- CircleCI orbs encapsulate common patterns (Node, Python, Docker) — prefer orbs over manual setup.
+- Add `when: manual` in GitLab CI or approval jobs in CircleCI for production deploys to prevent accidental releases.
