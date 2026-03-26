@@ -1,270 +1,256 @@
 ---
 name: blender-scripting
 description: >-
-  Write and run Blender Python scripts for 3D automation. Use when the user
-  wants to automate Blender tasks, run headless scripts, manipulate scenes,
-  batch process .blend files, import/export 3D models, manage objects, or
-  script Blender from the command line using the bpy API.
+  Write and run Blender Python scripts for 3D automation and procedural
+  modeling. Use when the user wants to automate Blender tasks, create 3D models
+  from code, run headless scripts, manipulate scenes, batch process .blend
+  files, build geometry with bmesh, apply modifiers, generate procedural
+  shapes, or import/export 3D models using the bpy API.
 license: Apache-2.0
 compatibility: >-
   Requires Blender 3.0+ installed and accessible from the command line.
   Linux: sudo apt install blender or snap install blender.
-  macOS: brew install --cask blender. Add to PATH if needed.
+  macOS: brew install --cask blender.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: automation
-  tags: ["blender", "3d", "python", "automation", "scripting"]
+  tags: ["blender", "3d", "python", "automation", "procedural"]
 ---
 
 # Blender Scripting
 
 ## Overview
 
-Automate Blender tasks using Python and the `bpy` API. Run scripts headlessly from the terminal to manipulate scenes, batch process files, import/export models, and build 3D pipelines without opening the GUI.
+Automate Blender tasks and create 3D models procedurally using Python and the `bpy` API. Run scripts headlessly from the terminal to manipulate scenes, build geometry with bmesh, apply modifiers, batch process files, and import/export models.
 
 ## Instructions
 
-### 1. Run a Blender script from the terminal
+### 1. Run scripts from the terminal
 
 ```bash
-# Run a script in background mode (no GUI)
 blender --background --python script.py
-
-# Run with a specific .blend file
 blender myfile.blend --background --python script.py
-
-# Pass custom arguments (use -- to separate Blender args from script args)
 blender --background --python script.py -- --output /tmp/result.png --scale 2.0
 ```
 
-Parse custom arguments in the script:
-
-```python
-import sys
-
-argv = sys.argv
-# Everything after "--" is a custom argument
-if "--" in argv:
-    custom_args = argv[argv.index("--") + 1:]
-else:
-    custom_args = []
-```
-
-### 2. Understand the bpy module structure
-
-```python
-import bpy
-
-# bpy.data — all data in the file (meshes, materials, objects, scenes)
-bpy.data.objects["Cube"]
-bpy.data.meshes["Cube"]
-bpy.data.materials["Material"]
-
-# bpy.context — current state (active object, selected objects, scene)
-bpy.context.active_object
-bpy.context.selected_objects
-bpy.context.scene
-
-# bpy.ops — operators (actions like add, delete, transform)
-bpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 0))
-bpy.ops.object.delete()
-```
-
-### 3. Scene setup and cleanup
+### 2. Scene setup and cleanup
 
 ```python
 import bpy
 
 def clear_scene():
-    """Remove all objects from the scene."""
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
-
-    # Also clear orphan data
     for block in bpy.data.meshes:
         if block.users == 0:
             bpy.data.meshes.remove(block)
-    for block in bpy.data.materials:
-        if block.users == 0:
-            bpy.data.materials.remove(block)
-
-def setup_scene():
-    """Set up a clean scene with basic settings."""
-    clear_scene()
-    scene = bpy.context.scene
-    scene.unit_settings.system = 'METRIC'
-    scene.unit_settings.scale_length = 1.0
 ```
 
-### 4. Create and transform objects
+### 3. Create and transform objects
 
 ```python
-import bpy
-from mathutils import Vector, Euler
-import math
+import bpy, math
+from mathutils import Vector
 
-# Add primitives
 bpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 0))
 cube = bpy.context.active_object
-cube.name = "MyCube"
-
-# Transform
 cube.location = (3, 0, 1)
 cube.rotation_euler = (0, 0, math.radians(45))
 cube.scale = (1, 2, 0.5)
-
-# Duplicate
-bpy.ops.object.duplicate(linked=False)
-duplicate = bpy.context.active_object
-duplicate.location.x += 5
-
-# Parent objects
-child = bpy.data.objects["ChildObj"]
-parent = bpy.data.objects["ParentObj"]
-child.parent = parent
 ```
 
-### 5. Import and export 3D files
+### 4. Build meshes from raw data
 
 ```python
-import bpy
+vertices = [(-1,-1,0), (1,-1,0), (1,1,0), (-1,1,0),
+            (-1,-1,2), (1,-1,2), (1,1,2), (-1,1,2)]
+faces = [(0,1,2,3), (4,5,6,7), (0,1,5,4), (2,3,7,6), (0,3,7,4), (1,2,6,5)]
 
-# Import
-bpy.ops.wm.obj_import(filepath="/path/to/model.obj")
-bpy.ops.import_scene.fbx(filepath="/path/to/model.fbx")
-bpy.ops.import_scene.gltf(filepath="/path/to/model.glb")
-bpy.ops.wm.stl_import(filepath="/path/to/model.stl")
-
-# Export
-bpy.ops.wm.obj_export(filepath="/path/to/output.obj")
-bpy.ops.export_scene.fbx(filepath="/path/to/output.fbx", use_selection=True)
-bpy.ops.export_scene.gltf(filepath="/path/to/output.glb", export_format='GLB')
-bpy.ops.wm.stl_export(filepath="/path/to/output.stl")
+mesh = bpy.data.meshes.new("CustomBox")
+mesh.from_pydata(vertices, [], faces)
+mesh.update()
+obj = bpy.data.objects.new("CustomBox", mesh)
+bpy.context.collection.objects.link(obj)
 ```
 
-### 6. Batch process .blend files
+### 5. Use bmesh for advanced mesh editing
 
 ```python
-import bpy
-import glob
-import os
+import bmesh
 
-blend_files = glob.glob("/path/to/projects/*.blend")
+bm = bmesh.new()
+v1 = bm.verts.new((0, 0, 0))
+v2 = bm.verts.new((1, 0, 0))
+v3 = bm.verts.new((1, 1, 0))
+v4 = bm.verts.new((0, 1, 0))
+bm.faces.new((v1, v2, v3, v4))
 
-for filepath in blend_files:
-    bpy.ops.wm.open_mainfile(filepath=filepath)
+bmesh.ops.extrude_face_region(bm, geom=bm.faces[:])
+bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=2)
 
-    # Do work on each file
-    for obj in bpy.data.objects:
-        if obj.type == 'MESH':
-            print(f"  Mesh: {obj.name}, verts: {len(obj.data.vertices)}")
-
-    # Save modified file
-    output = filepath.replace(".blend", "_processed.blend")
-    bpy.ops.wm.save_as_mainfile(filepath=output)
-    print(f"Saved: {output}")
+mesh = bpy.data.meshes.new("Result")
+bm.to_mesh(mesh)
+bm.free()
+obj = bpy.data.objects.new("Result", mesh)
+bpy.context.collection.objects.link(obj)
 ```
 
-### 7. Work with custom properties
+### 6. Apply modifiers
 
 ```python
-import bpy
-
 obj = bpy.context.active_object
 
-# Set custom properties
-obj["my_property"] = 42
-obj["tags"] = "hero,main"
+sub = obj.modifiers.new("Subdivision", 'SUBSURF')
+sub.levels = 2
 
-# Read custom properties
-value = obj.get("my_property", 0)
+mirror = obj.modifiers.new("Mirror", 'MIRROR')
+mirror.use_axis = (True, False, False)
 
-# Iterate all custom properties
-for key, value in obj.items():
-    if key not in {"_RNA_UI"}:
-        print(f"{key}: {value}")
+array = obj.modifiers.new("Array", 'ARRAY')
+array.count = 5
+array.relative_offset_displace = (1.1, 0, 0)
+
+solid = obj.modifiers.new("Solidify", 'SOLIDIFY')
+solid.thickness = 0.1
+
+bevel = obj.modifiers.new("Bevel", 'BEVEL')
+bevel.width = 0.05
+bevel.segments = 3
+
+# Apply permanently
+bpy.context.view_layer.objects.active = obj
+bpy.ops.object.modifier_apply(modifier="Subdivision")
+```
+
+### 7. Create curves
+
+```python
+curve_data = bpy.data.curves.new("MyCurve", type='CURVE')
+curve_data.dimensions = '3D'
+spline = curve_data.splines.new('BEZIER')
+spline.bezier_points.add(3)
+for i, (x, y, z) in enumerate([(0,0,0), (1,1,0), (2,0,1), (3,1,1)]):
+    pt = spline.bezier_points[i]
+    pt.co = (x, y, z)
+    pt.handle_type_left = pt.handle_type_right = 'AUTO'
+curve_data.bevel_depth = 0.1
+obj = bpy.data.objects.new("MyCurve", curve_data)
+bpy.context.collection.objects.link(obj)
+```
+
+### 8. Import and export
+
+```python
+bpy.ops.wm.obj_import(filepath="/path/model.obj")
+bpy.ops.import_scene.fbx(filepath="/path/model.fbx")
+bpy.ops.import_scene.gltf(filepath="/path/model.glb")
+bpy.ops.wm.obj_export(filepath="/path/output.obj")
+bpy.ops.export_scene.gltf(filepath="/path/output.glb", export_format='GLB')
+```
+
+### 9. Assign materials
+
+```python
+mat_red = bpy.data.materials.new("Red")
+mat_red.diffuse_color = (1, 0, 0, 1)
+obj.data.materials.append(mat_red)
+for i, poly in enumerate(obj.data.polygons):
+    poly.material_index = 0 if i % 2 == 0 else 1
+```
+
+### 10. Batch process files
+
+```python
+import glob
+for filepath in glob.glob("/path/to/*.blend"):
+    bpy.ops.wm.open_mainfile(filepath=filepath)
+    for obj in bpy.data.objects:
+        if obj.type == 'MESH':
+            print(f"  {obj.name}: {len(obj.data.vertices)} verts")
+    bpy.ops.wm.save_as_mainfile(filepath=filepath.replace(".blend", "_processed.blend"))
 ```
 
 ## Examples
 
-### Example 1: Export all objects as separate OBJ files
+### Example 1: Procedural spiral staircase
 
-**User request:** "Export every mesh object in my .blend file as a separate OBJ"
+**User request:** "Generate a spiral staircase with 20 steps"
 
 ```python
-import bpy
-import os
+import bpy, math
 
+def create_spiral_staircase(steps=20, radius=3, height=6):
+    bpy.ops.object.select_all(action='SELECT')
+    bpy.ops.object.delete()
+    step_height = height / steps
+    for i in range(steps):
+        angle = (2 * math.pi * i) / steps
+        x, y = radius * math.cos(angle), radius * math.sin(angle)
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(x, y, i * step_height),
+                                         scale=(1.5, 0.4, step_height * 0.8))
+        bpy.context.active_object.rotation_euler.z = angle
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.2, depth=height, location=(0, 0, height/2))
+
+create_spiral_staircase()
+bpy.ops.wm.save_as_mainfile(filepath="/tmp/staircase.blend")
+```
+
+### Example 2: Export all mesh objects as separate OBJ files
+
+**User request:** "Export every mesh in my .blend as a separate OBJ"
+
+```python
+import bpy, os
 output_dir = "/tmp/exports"
 os.makedirs(output_dir, exist_ok=True)
-
-bpy.ops.object.select_all(action='DESELECT')
-
 for obj in bpy.data.objects:
     if obj.type == 'MESH':
         bpy.ops.object.select_all(action='DESELECT')
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
-        filepath = os.path.join(output_dir, f"{obj.name}.obj")
-        bpy.ops.wm.obj_export(filepath=filepath, export_selected_objects=True)
-        print(f"Exported: {filepath}")
+        bpy.ops.wm.obj_export(filepath=os.path.join(output_dir, f"{obj.name}.obj"),
+                               export_selected_objects=True)
 ```
 
 Run: `blender scene.blend --background --python export_all.py`
 
-### Example 2: Batch rename objects by type
+### Example 3: Procedural terrain from heightmap
 
-**User request:** "Rename all mesh objects to mesh_001, mesh_002, etc. and all lights to light_001, etc."
-
-```python
-import bpy
-
-counters = {}
-
-for obj in sorted(bpy.data.objects, key=lambda o: o.name):
-    prefix = obj.type.lower()
-    counters[prefix] = counters.get(prefix, 0) + 1
-    obj.name = f"{prefix}_{counters[prefix]:03d}"
-    print(f"Renamed to: {obj.name}")
-
-bpy.ops.wm.save_mainfile()
-```
-
-### Example 3: Scene statistics report
-
-**User request:** "Give me a summary of what's in this .blend file"
+**User request:** "Generate a terrain mesh using sine waves"
 
 ```python
-import bpy
-
-print("=== Scene Report ===")
-print(f"Objects: {len(bpy.data.objects)}")
-print(f"Meshes: {len(bpy.data.meshes)}")
-print(f"Materials: {len(bpy.data.materials)}")
-print(f"Textures: {len(bpy.data.images)}")
-print(f"Scenes: {len(bpy.data.scenes)}")
-print(f"Collections: {len(bpy.data.collections)}")
-
-total_verts = sum(len(m.vertices) for m in bpy.data.meshes)
-total_faces = sum(len(m.polygons) for m in bpy.data.meshes)
-print(f"Total vertices: {total_verts:,}")
-print(f"Total faces: {total_faces:,}")
-
-for obj in bpy.data.objects:
-    info = f"  {obj.name} ({obj.type})"
-    if obj.type == 'MESH':
-        info += f" — {len(obj.data.vertices)} verts"
-    print(info)
+import bpy, bmesh, math, random
+bm = bmesh.new()
+res, size = 50, 20
+verts = []
+for i in range(res):
+    row = []
+    for j in range(res):
+        x, y = (i/res - 0.5) * size, (j/res - 0.5) * size
+        z = math.sin(x*0.5) * math.cos(y*0.5) * 2 + random.uniform(-0.2, 0.2)
+        row.append(bm.verts.new((x, y, z)))
+    verts.append(row)
+for i in range(res-1):
+    for j in range(res-1):
+        bm.faces.new((verts[i][j], verts[i+1][j], verts[i+1][j+1], verts[i][j+1]))
+mesh = bpy.data.meshes.new("Terrain")
+bm.to_mesh(mesh)
+bm.free()
+obj = bpy.data.objects.new("Terrain", mesh)
+bpy.context.collection.objects.link(obj)
 ```
 
 ## Guidelines
 
-- Always use `--background` when running scripts from the terminal to avoid opening the GUI.
-- Start scripts with `clear_scene()` if building a scene from scratch to avoid leftover default objects.
-- Use `bpy.data` for direct data access (fast, reliable). Use `bpy.ops` for complex operations that mirror user actions (operators require correct context).
-- When using operators, ensure the correct object is active and selected: `bpy.context.view_layer.objects.active = obj` and `obj.select_set(True)`.
-- For batch processing, always save to a new file (not overwrite originals) unless the user explicitly requests in-place modification.
-- Import/export operator names vary between Blender versions. The ones listed here work for Blender 3.6+. For older versions, check `dir(bpy.ops.import_scene)`.
-- Use `mathutils` for vector math, quaternions, and matrix operations — it's bundled with Blender's Python.
-- To debug, use `print()` statements — output goes to the terminal when running with `--background`.
+- Always use `--background` when running from the terminal to skip the GUI
+- Use `from_pydata()` for simple static meshes; use `bmesh` for advanced operations
+- Always call `mesh.update()` after `from_pydata()` and `bm.free()` after bmesh
+- Use `bpy.data` for direct data access (fast); use `bpy.ops` for complex operations
+- Ensure correct object is active and selected before using operators
+- For batch processing, save to new files (not overwrite originals) unless requested
+- For large meshes (10k+ faces), prefer bmesh over repeated `bpy.ops` calls
+- Link objects to a collection — unlinked objects won't appear in the scene
+- Blender uses Z-up coordinates; account for this when importing from Y-up systems
+- Use `mathutils` for vector math and matrix operations (bundled with Blender Python)
+- Import/export operator names vary by Blender version; listed ones work for 3.6+

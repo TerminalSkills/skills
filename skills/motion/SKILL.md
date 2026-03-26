@@ -11,15 +11,13 @@ compatibility: ''
 metadata:
   author: terminal-skills
   version: 1.0.0
-  category: Frontend Development
+  category: development
   tags:
     - animation
     - react
     - motion
     - transitions
     - gestures
-    - scroll
-    - layout
 ---
 
 # Motion (formerly Framer Motion) — Animation for React
@@ -160,6 +158,35 @@ function ScrollReveal({ children }: { children: React.ReactNode }) {
     >
       {children}
     </motion.div>
+  );
+}
+```
+
+### Staggered Children
+
+```tsx
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
+
+function StaggeredList({ items }: { items: { id: string; name: string }[] }) {
+  return (
+    <motion.ul variants={container} initial="hidden" animate="show">
+      {items.map((i) => (
+        <motion.li key={i.id} variants={item}>
+          {i.name}
+        </motion.li>
+      ))}
+    </motion.ul>
   );
 }
 ```

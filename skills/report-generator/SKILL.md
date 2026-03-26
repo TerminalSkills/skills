@@ -1,280 +1,179 @@
 ---
 name: report-generator
 description: >-
-  Generate professional data reports with charts, tables, and visualizations.
-  Use when a user asks to create a report, generate a data report, build
-  a dashboard report, produce a PDF report with charts, create an executive
-  summary, or generate a weekly/monthly report from data.
+  Generate professional reports with charts, tables, visualizations, and
+  structured narratives. Covers data-driven PDF/HTML reports, weekly status
+  reports, executive summaries, and recurring team updates. Use when a user asks
+  to create a report, generate a data report, build a dashboard report, write a
+  weekly report, create a status update, or produce a team progress report.
 license: Apache-2.0
-compatibility: "Requires Python 3.8+ with pandas, matplotlib, and jinja2"
+compatibility: "Python 3.8+ with pandas, matplotlib, jinja2 for data reports; no deps for status reports"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
-  tags: ["reports", "visualization", "pdf", "charts", "business-intelligence"]
-  use-cases:
-    - "Generate a PDF report with charts and tables from CSV data"
-    - "Create executive summary reports with key metrics and trends"
-    - "Produce recurring weekly or monthly data reports"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: ["reports", "visualization", "status-updates", "charts", "productivity"]
 ---
 
 # Report Generator
 
 ## Overview
 
-Generate professional data reports combining narrative text, charts, tables, and key metrics. Outputs HTML reports (viewable in any browser) or PDF. Suitable for executive summaries, weekly dashboards, data analysis reports, and client deliverables.
+Generate professional reports combining data visualizations, narrative text, and structured updates. Supports two modes: **data reports** (charts, tables, KPI cards from CSV/database sources as HTML or PDF) and **status reports** (weekly updates, team progress, executive summaries in Markdown).
 
 ## Instructions
 
-When a user asks you to generate a report, follow this process:
+### Data Reports
 
-### Step 1: Install dependencies
-
-```bash
-pip install pandas matplotlib seaborn jinja2 weasyprint
-# weasyprint is optional, needed only for PDF export
-```
-
-### Step 2: Understand the report requirements
-
-Determine:
-- **Data source:** CSV, Excel, database query results, or manually provided data
-- **Report type:** Executive summary, detailed analysis, dashboard, recurring report
-- **Audience:** Executives (high-level), analysts (detailed), clients (polished)
-- **Key metrics:** What numbers matter most?
-- **Output format:** HTML (default, no extra deps) or PDF (requires weasyprint)
-
-### Step 3: Load and analyze the data
+#### Step 1: Load and analyze data
 
 ```python
 import pandas as pd
 import matplotlib
-matplotlib.use('Agg')  # Non-interactive backend
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
 import base64
 from io import BytesIO
 
-# Load data
 df = pd.read_csv("data.csv")
-
-# Compute key metrics
 metrics = {
     "total_revenue": df["revenue"].sum(),
     "avg_order_value": df["revenue"].mean(),
     "total_orders": len(df),
-    "growth_rate": ((df[df["period"] == "current"]["revenue"].sum() /
-                     df[df["period"] == "previous"]["revenue"].sum()) - 1) * 100,
 }
 ```
 
-### Step 4: Generate charts
-
-Create charts and encode them as base64 for embedding in HTML:
+#### Step 2: Generate charts as base64 for embedding
 
 ```python
 def fig_to_base64(fig):
-    """Convert a matplotlib figure to a base64-encoded PNG string."""
     buf = BytesIO()
     fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
     buf.seek(0)
     return base64.b64encode(buf.read()).decode("utf-8")
 
-# Chart 1: Revenue trend
 fig, ax = plt.subplots(figsize=(10, 5))
 monthly = df.groupby("month")["revenue"].sum()
 monthly.plot(kind="line", marker="o", ax=ax, color="#2563eb")
 ax.set_title("Monthly Revenue Trend")
-ax.set_ylabel("Revenue ($)")
-ax.grid(True, alpha=0.3)
-chart_trend = fig_to_base64(fig)
-plt.close()
-
-# Chart 2: Category breakdown
-fig, ax = plt.subplots(figsize=(8, 5))
-category_data = df.groupby("category")["revenue"].sum().sort_values(ascending=True)
-category_data.plot(kind="barh", ax=ax, color="#22c55e")
-ax.set_title("Revenue by Category")
-ax.set_xlabel("Revenue ($)")
-chart_category = fig_to_base64(fig)
-plt.close()
-
-# Chart 3: Distribution
-fig, ax = plt.subplots(figsize=(8, 5))
-sns.histplot(df["order_value"], bins=30, ax=ax, color="#8b5cf6")
-ax.set_title("Order Value Distribution")
-chart_distribution = fig_to_base64(fig)
+chart_b64 = fig_to_base64(fig)
 plt.close()
 ```
 
-### Step 5: Build the HTML report
+#### Step 3: Build HTML report with Jinja2
 
-```python
-from jinja2 import Template
+Use a template with metric cards, chart sections, and data tables. Embed charts as base64 so the report is a single self-contained file. Convert to PDF with weasyprint or Chrome headless if needed.
 
-report_template = Template("""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>{{ title }}</title>
-    <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 40px; color: #1a1a1a; line-height: 1.6; }
-        .header { border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
-        h1 { color: #1e293b; margin-bottom: 5px; }
-        .subtitle { color: #64748b; font-size: 14px; }
-        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
-        .metric-card { background: #f8fafc; border-radius: 8px; padding: 20px; border-left: 4px solid #2563eb; }
-        .metric-value { font-size: 28px; font-weight: 700; color: #1e293b; }
-        .metric-label { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-        .chart-section { margin: 40px 0; }
-        .chart-section img { max-width: 100%; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; }
-        td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
-        .section { margin: 40px 0; }
-        .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>{{ title }}</h1>
-        <div class="subtitle">Generated on {{ date }} | Period: {{ period }}</div>
-    </div>
+### Status Reports (Weekly/Team Updates)
 
-    <div class="metrics">
-        {% for metric in metrics %}
-        <div class="metric-card">
-            <div class="metric-value">{{ metric.value }}</div>
-            <div class="metric-label">{{ metric.label }}</div>
-        </div>
-        {% endfor %}
-    </div>
+#### Identify the audience
 
-    {% for section in sections %}
-    <div class="section">
-        <h2>{{ section.title }}</h2>
-        <p>{{ section.description }}</p>
-        {% if section.chart %}
-        <div class="chart-section">
-            <img src="data:image/png;base64,{{ section.chart }}" alt="{{ section.title }}">
-        </div>
-        {% endif %}
-        {% if section.table %}
-        {{ section.table }}
-        {% endif %}
-    </div>
-    {% endfor %}
+| Audience | Focus | Detail Level |
+|----------|-------|-------------|
+| Direct manager | Individual contributions, blockers | High detail |
+| Director/VP | Team progress, risks, metrics | Medium detail |
+| Executive/C-suite | Business impact, milestones, KPIs | High-level summary |
+| Cross-functional | Dependencies, shared updates | Relevant items only |
 
-    <div class="footer">
-        <p>This report was auto-generated. Data source: {{ data_source }}</p>
-    </div>
-</body>
-</html>
-""")
+#### Use the standard template
 
-html = report_template.render(
-    title="Monthly Performance Report",
-    date=datetime.now().strftime("%B %d, %Y"),
-    period="January 2025",
-    data_source="sales_data.csv",
-    metrics=[
-        {"label": "Total Revenue", "value": f"${metrics['total_revenue']:,.0f}"},
-        {"label": "Total Orders", "value": f"{metrics['total_orders']:,}"},
-        {"label": "Avg Order Value", "value": f"${metrics['avg_order_value']:,.2f}"},
-        {"label": "Growth Rate", "value": f"{metrics['growth_rate']:+.1f}%"},
-    ],
-    sections=[
-        {
-            "title": "Revenue Trend",
-            "description": "Monthly revenue over the reporting period.",
-            "chart": chart_trend,
-            "table": None,
-        },
-        {
-            "title": "Category Breakdown",
-            "description": "Revenue distribution across product categories.",
-            "chart": chart_category,
-            "table": category_data.to_frame().to_html(classes="data-table"),
-        },
-    ],
-)
+```markdown
+# Weekly Report: [Team/Project Name]
+**Week of:** [Start Date] - [End Date]
 
-# Save HTML
-with open("report.html", "w") as f:
-    f.write(html)
-print("Report saved to report.html")
+## Summary
+[2-3 sentence overview. Main focus, notable wins or challenges.]
+
+## Completed This Week
+- **[Project]:** [What was done and why it matters]
+- **[Bug fix]:** [What was resolved]
+
+## In Progress
+| Item | Owner | Status | ETA |
+|------|-------|--------|-----|
+| [Task] | [Person] | On track | [Date] |
+| [Task] | [Person] | Blocked | - |
+
+## Blockers & Risks
+- **[Blocker]:** [Description and what is needed to unblock]
+
+## Key Metrics
+| Metric | This Week | Last Week | Trend |
+|--------|-----------|-----------|-------|
+| [Metric] | [Value] | [Value] | Up/Down/Flat |
+
+## Next Week Plan
+- [ ] [Priority 1]
+- [ ] [Priority 2]
 ```
 
-### Step 6: Convert to PDF (optional)
+#### Content guidelines
 
-```python
-# Using weasyprint
-from weasyprint import HTML
-HTML(string=html).write_pdf("report.pdf")
-print("PDF saved to report.pdf")
-```
-
-Or use the browser-based approach:
-
-```bash
-# Using Chrome headless
-google-chrome --headless --print-to-pdf=report.pdf report.html
-```
+- Lead with impact, not activity: "Reduced page load time by 40%" beats "Worked on performance"
+- Quantify wherever possible (numbers, percentages, counts)
+- Be honest about blockers — hiding problems does not make them go away
+- Use consistent status labels: On Track, At Risk, Blocked, Complete
+- Keep the full report under 1 page (~400-500 words)
 
 ## Examples
 
-### Example 1: Weekly sales report
+### Example 1: Weekly engineering status report
+
+**User request:** "Write a weekly report from these notes: shipped auth v2, fixed 3 prod bugs, started dashboard redesign, waiting on API team for endpoints, velocity was 34 points"
+
+**Output:**
+```markdown
+# Weekly Report: Platform Engineering
+**Week of:** Jan 20 - Jan 24
+
+## Summary
+Strong delivery week. Shipped Auth v2 on schedule and resolved 3 production
+issues. Dashboard redesign kicked off but partially blocked on API dependencies.
+
+## Completed
+- **Auth v2 launch:** Rolled out to 100% of users with MFA and session management
+- **Production bugs (3):** Payment timeout, avatar upload crash, timezone display
+
+## In Progress
+| Item | Status | ETA |
+|------|--------|-----|
+| Dashboard redesign (frontend) | On track | Feb 7 |
+| Dashboard API integration | Blocked | Pending API team |
+
+## Blockers
+- **API endpoints:** Waiting on API team for analytics endpoints. No ETA yet.
+
+## Metrics
+| Metric | This Week | Last Week | Trend |
+|--------|-----------|-----------|-------|
+| Sprint velocity | 34 pts | 28 pts | Up |
+| Open bugs (P1/P2) | 2 | 5 | Down |
+```
+
+### Example 2: Data-driven sales report from CSV
 
 **User request:** "Generate a weekly sales report from this CSV"
 
-**Actions:**
+The agent loads the CSV, filters to the current week, computes KPIs (revenue, orders, AOV, top product), generates charts (daily revenue trend, top 10 products, channel breakdown), and builds a polished HTML report with metric cards, charts, and a transactions table.
 
-1. Load the CSV and filter to the current week
-2. Compute KPIs: total revenue, orders, AOV, top product, conversion rate
-3. Generate charts: daily revenue trend, top 10 products bar chart, channel pie chart
-4. Build an HTML report with metric cards, charts, and a detailed transactions table
-5. Save as report.html
-
-**Output:** A polished HTML report with 4 KPI cards at the top, 3 charts, and a sortable table of transactions.
-
-### Example 2: Executive summary from multiple data sources
+### Example 3: Executive summary from multiple sources
 
 **User request:** "Create an executive summary combining sales, support, and engagement data"
 
-**Actions:**
-
-1. Load three CSV files (sales.csv, support_tickets.csv, engagement.csv)
-2. Compute cross-functional metrics: revenue, ticket resolution time, user retention
-3. Generate a comparison chart showing month-over-month trends for all three areas
-4. Write narrative summaries for each section highlighting key takeaways
-5. Output as a PDF report
-
-**Output:** A 3-page PDF with an overview dashboard, per-department sections, and a recommendations section.
-
-### Example 3: Automated recurring report
-
-**User request:** "Set up a monthly report template I can reuse"
-
-**Actions:**
-
-1. Create a Python script `generate_report.py` that accepts a CSV path and date range as arguments
-2. Include all chart generation, metric computation, and HTML templating
-3. Make it configurable via a `report_config.json` for title, metrics, and sections
-4. Add CLI argument parsing for easy automation
-
-**Output:** A reusable script the user can run monthly with `python generate_report.py --data sales.csv --period 2025-03`.
+The agent loads three data sources, computes cross-functional metrics, generates comparison charts, writes narrative summaries per department, and outputs a PDF with overview dashboard, per-department sections, and recommendations.
 
 ## Guidelines
 
-- Always use the Agg backend for matplotlib (`matplotlib.use('Agg')`) to avoid display issues in headless environments.
-- Embed charts as base64 in HTML so the report is a single self-contained file.
-- Design for print: use readable fonts, sufficient contrast, and avoid overly wide layouts.
-- Include the data source, generation date, and reporting period on every report.
-- For metric cards, show both the value and the trend (up/down compared to prior period).
-- Use consistent color schemes across all charts in a report.
-- Keep executive summaries to one page of metrics and charts, with details in subsequent sections.
-- For PDF output, test with weasyprint first. Fall back to Chrome headless if CSS rendering is problematic.
-- Always validate data before generating reports. Missing or malformed data should be flagged, not silently ignored.
+- Use `matplotlib.use('Agg')` to avoid display issues in headless environments
+- Embed charts as base64 in HTML for self-contained reports
+- Include data source, generation date, and reporting period on every data report
+- Show both value and trend (vs prior period) for metric cards
+- Use consistent color schemes across all charts in a report
+- For PDF output, use weasyprint or Chrome headless
+- Validate data before generating — flag missing or malformed data
+- For status reports, always include blockers even if none ("No blockers this week")
+- Status labels should be honest — marking "on track" when at risk erodes trust
+- Consistency is key — use the same structure every week so readers know where to look
+- Write for the audience: executives want outcomes, managers want details

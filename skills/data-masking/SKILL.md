@@ -1,9 +1,10 @@
 ---
 name: data-masking
 description: >-
-  Mask and redact sensitive data (PII, PCI, PHI) in databases, logs, and APIs. Use when
-  protecting PII in dev/staging environments, redacting sensitive data from logs, or
-  anonymizing data for analytics while preserving data structure.
+  Mask, redact, and anonymize sensitive data (PII, PCI, PHI) in databases, logs, and APIs.
+  Use when protecting PII in dev/staging environments, redacting sensitive data from logs,
+  anonymizing data for analytics, or applying k-anonymity and differential privacy for
+  GDPR-compliant data sharing.
 license: Apache-2.0
 compatibility: "Python 3.9+, Node.js 18+. Libraries: faker, presidio, anonymize-it."
 metadata:
@@ -271,6 +272,19 @@ psql $PROD_DB -c "\COPY (
 
 echo "Done. Dev database ready with masked data."
 ```
+
+## Statistical Anonymization (GDPR)
+
+**Anonymization vs Pseudonymization (GDPR Article 4):**
+- **Anonymization**: Irreversible -- data can never be linked to an individual. Falls outside GDPR scope.
+- **Pseudonymization**: Reversible -- data can be re-linked with additional info. Still personal data under GDPR.
+
+**Key techniques for true anonymization:**
+- **k-Anonymity**: Each record is indistinguishable from at least k-1 others on quasi-identifiers (age, ZIP, gender). Generalize values into ranges and suppress groups smaller than k.
+- **l-Diversity**: Each equivalence class has at least l distinct sensitive attribute values, preventing attribute disclosure.
+- **Differential Privacy**: Mathematical privacy guarantee controlled by epsilon -- add calibrated noise to query results. Use `diffprivlib` (Python) or Google DP libraries.
+
+k-anonymity alone is often insufficient for GDPR -- combine with l-diversity and/or differential privacy.
 
 ## Compliance Checklist
 

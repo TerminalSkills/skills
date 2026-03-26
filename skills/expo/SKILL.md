@@ -1,65 +1,182 @@
 ---
 name: expo
 description: >-
-  Assists with building, deploying, and updating React Native applications using Expo. Use
-  when setting up file-based routing with Expo Router, configuring EAS Build and Submit,
-  implementing over-the-air updates, or integrating Expo SDK modules for camera, location,
-  and notifications. Trigger words: expo, expo router, eas build, eas update, expo sdk.
+  Build, deploy, and update React Native apps with Expo. Covers file-based
+  routing with Expo Router (stacks, tabs, drawers, deep linking), EAS Build
+  and Submit, over-the-air updates, and 50+ SDK modules for camera, location,
+  notifications. Use when setting up Expo, adding navigation, configuring
+  builds, or integrating native device APIs. Trigger words: expo, expo router,
+  eas build, react native expo, file-based routing mobile, deep linking.
 license: Apache-2.0
-compatibility: "Requires Node.js 18+"
+compatibility: "Expo SDK 50+, Node.js 18+. iOS, Android, Web."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
-  tags: ["expo", "react-native", "mobile", "eas", "cross-platform"]
+  tags: ["expo", "react-native", "mobile", "routing", "eas"]
 ---
 
 # Expo
 
 ## Overview
 
-Expo is a development platform for React Native that provides file-based routing (Expo Router), cloud builds (EAS Build), automated store submissions (EAS Submit), and over-the-air updates (EAS Update). It includes 50+ SDK modules for native device APIs and lets developers ship iOS and Android apps without managing Xcode or Android Studio.
+Expo is a development platform for React Native providing file-based routing (Expo Router), cloud builds (EAS Build), store submissions (EAS Submit), over-the-air updates (EAS Update), and 50+ SDK modules for native device APIs. Ship iOS, Android, and web apps from one codebase without managing Xcode or Android Studio.
 
 ## Instructions
 
-- When starting a new app, use `npx create-expo-app` with TypeScript and set up Expo Router for file-based navigation in the `app/` directory with layouts, dynamic routes, and route groups.
-- When building for production, configure EAS Build profiles (`development`, `preview`, `production`) in `eas.json` and use cloud builds instead of local builds for reproducibility.
-- When deploying updates, use EAS Update for instant JavaScript-only bug fixes that bypass app store review, with channel-based routing and rollback support.
-- When accessing device APIs, use Expo SDK modules (`expo-camera`, `expo-location`, `expo-notifications`, `expo-secure-store`) and config plugins to handle native permissions without ejecting.
-- When testing, use Expo Go for quick iteration on physical devices, and development builds for testing custom native modules.
-- When optimizing performance, use `expo-image` over the built-in `Image` component for caching and modern format support, and configure splash screens and app icons via `app.config.ts`.
+### Setup
+
+```bash
+npx create-expo-app@latest my-app --template tabs
+cd my-app && npx expo start
+```
+
+### File-Based Routing (Expo Router)
+
+Drop a file in `app/`, get a screen. Folder structure defines navigation hierarchy.
+
+```
+app/
+├── _layout.tsx          # Root layout (wraps all screens)
+├── index.tsx            # / (home screen)
+├── about.tsx            # /about
+├── (tabs)/              # Tab navigation group
+│   ├── _layout.tsx      # Tab bar configuration
+│   ├── index.tsx        # First tab
+│   ├── explore.tsx      # Second tab
+│   └── profile.tsx      # Third tab
+├── settings/
+│   ├── _layout.tsx      # Stack layout for settings
+│   ├── index.tsx        # /settings
+│   └── account.tsx      # /settings/account
+├── post/
+│   └── [slug].tsx       # /post/my-first-post (dynamic route)
+└── +not-found.tsx       # 404 screen
+```
+
+### Root Layout
+
+```tsx
+// app/_layout.tsx
+import { Stack } from "expo-router";
+
+export default function RootLayout() {
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+    </Stack>
+  );
+}
+```
+
+### Tab Navigation
+
+```tsx
+// app/(tabs)/_layout.tsx
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+
+export default function TabLayout() {
+  return (
+    <Tabs screenOptions={{ tabBarActiveTintColor: "#007AFF" }}>
+      <Tabs.Screen name="index" options={{
+        title: "Home",
+        tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+      }} />
+      <Tabs.Screen name="explore" options={{
+        title: "Explore",
+        tabBarIcon: ({ color }) => <Ionicons name="compass" size={24} color={color} />,
+      }} />
+      <Tabs.Screen name="profile" options={{
+        title: "Profile",
+        tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color} />,
+      }} />
+    </Tabs>
+  );
+}
+```
+
+### Navigation and Dynamic Routes
+
+```tsx
+import { Link, router, useLocalSearchParams } from "expo-router";
+
+// Declarative: <Link href="/post/hello-world">My Post</Link>
+// Programmatic: router.push("/settings/account")
+
+// app/post/[slug].tsx — Dynamic route
+export default function PostScreen() {
+  const { slug } = useLocalSearchParams<{ slug: string }>();
+  return <Text>{slug}</Text>;
+}
+```
+
+### Deep Linking (Automatic)
+
+Every route gets a URL automatically. Configure the scheme in `app.json`:
+
+```json
+{ "expo": { "scheme": "myapp" } }
+```
+
+- `myapp://` -> Home screen
+- `myapp://post/hello-world` -> Post screen
+- `https://myapp.com/post/hello-world` -> Same screen (universal links)
+
+### Expo SDK Modules
+
+```typescript
+// Camera
+import { CameraView, useCameraPermissions } from "expo-camera";
+const [permission, requestPermission] = useCameraPermissions();
+const photo = await cameraRef.current?.takePictureAsync();
+
+// Push Notifications
+import * as Notifications from "expo-notifications";
+const token = await Notifications.getExpoPushTokenAsync({ projectId: "your-id" });
+
+// Secure Storage
+import * as SecureStore from "expo-secure-store";
+await SecureStore.setItemAsync("token", "jwt-abc123");
+```
+
+### EAS Build, Submit, and Update
+
+```bash
+npm install -g eas-cli
+eas build:configure
+eas build --platform ios          # Cloud build -> .ipa
+eas build --platform android      # Cloud build -> .aab
+eas submit --platform ios         # App Store Connect
+eas submit --platform android     # Google Play Console
+eas update --branch production --message "Bug fix"  # OTA update
+```
 
 ## Examples
 
-### Example 1: Build a mobile app with tab navigation and push notifications
+### Example 1: Social app with tabs, stacks, and modals
 
-**User request:** "Create an Expo app with tabs, push notifications, and deep linking"
+**User prompt:** "Set up navigation for a social app — tabs for feed/search/profile, stack for post details, and modal for creating posts."
 
-**Actions:**
-1. Scaffold with `npx create-expo-app` and set up Expo Router with `app/(tabs)/_layout.tsx`
-2. Configure `expo-notifications` for push notifications (APNs and FCM) with config plugin
-3. Add deep linking via universal links in `app.config.ts`
-4. Set up EAS Build profiles and EAS Submit for App Store and Google Play
+The agent creates a tab layout in `app/(tabs)/_layout.tsx`, nested stack routes for post details, and a modal route with `presentation: "modal"`. Deep linking works automatically for every route.
 
-**Output:** A tab-based mobile app with push notifications, deep linking, and automated store submission.
+### Example 2: Ship an urgent bug fix via OTA update
 
-### Example 2: Ship a bug fix via over-the-air update
+**User prompt:** "Push an urgent fix to production without app store review."
 
-**User request:** "Push an urgent fix to production without going through app store review"
-
-**Actions:**
-1. Fix the bug in the JavaScript/TypeScript code
-2. Run `eas update --channel production` to publish the update
-3. Verify the update fingerprint to ensure no native code changes are required
-4. Monitor rollout and use rollback if issues are detected
-
-**Output:** A production fix deployed instantly to all users without waiting for app store review.
+The agent fixes the JavaScript code, runs `eas update --channel production`, verifies the update fingerprint ensures no native code changes, and monitors rollout with rollback available if issues arise.
 
 ## Guidelines
 
-- Use Expo Router for navigation since file-based routing is simpler and supports deep linking automatically.
-- Use EAS Build instead of local builds for reproducible, cross-platform builds without local Xcode or Android Studio.
-- Use `expo-image` over `Image` for better caching, transitions, and modern format support (WebP, AVIF).
-- Store sensitive data in `expo-secure-store`, never in AsyncStorage or MMKV which are unencrypted.
-- Use config plugins instead of ejecting to keep managed workflow benefits.
-- Use development builds for testing native modules since Expo Go does not support custom native code.
+- **File = route** — `app/about.tsx` becomes `/about`
+- **`_layout.tsx`** for navigation containers (Stack, Tabs, Drawer)
+- **`(group)`** for route groups — organize without affecting URL
+- **`[param]`** for dynamic routes — access via `useLocalSearchParams`
+- **Deep linking is automatic** — every route has a URL
+- Use `expo-image` over `Image` for better caching and modern format support
+- Store secrets in `expo-secure-store`, never AsyncStorage
+- Use config plugins instead of ejecting to keep managed workflow
+- Use development builds for custom native modules (Expo Go cannot run them)
+- Use EAS Build for reproducible cross-platform builds without local Xcode/Android Studio

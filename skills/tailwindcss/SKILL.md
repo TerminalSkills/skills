@@ -105,7 +105,13 @@ function DashboardCard({ title, value, trend }: CardProps) {
 ### Animations
 
 ```tsx
-// Built-in animations + custom
+// 4 built-in animations
+<div className="animate-spin">...</div>        // loading spinner
+<div className="animate-ping">...</div>         // notification dot
+<div className="animate-pulse">...</div>        // skeleton placeholder
+<div className="animate-bounce">...</div>       // scroll indicator
+
+// Staggered bounce loader
 function LoadingPulse() {
   return (
     <div className="flex gap-2">
@@ -115,15 +121,59 @@ function LoadingPulse() {
     </div>
   );
 }
+```
 
-// Slide in on mount
-function SlideIn({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="animate-in slide-in-from-bottom-4 fade-in duration-500">
-      {children}
-    </div>
-  );
+**tailwindcss-animate plugin** (powers shadcn/ui dialog/dropdown animations):
+
+```bash
+npm install tailwindcss-animate
+```
+
+```tsx
+// Entrance animations
+<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+  Content fades and slides up
+</div>
+
+// Exit animations
+<div className="animate-out fade-out slide-out-to-top-4 duration-300">
+  Content fades and slides away
+</div>
+
+// With delay — fill-mode-backwards prevents flash of final state
+<div className="animate-in fade-in delay-200 fill-mode-backwards">
+  Appears after 200ms delay
+</div>
+
+// Staggered children
+{items.map((item, i) => (
+  <div
+    key={item.id}
+    className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-backwards"
+    style={{ animationDelay: `${i * 100}ms` }}
+  >
+    {item.name}
+  </div>
+))}
+```
+
+**Custom keyframes** (Tailwind v4 uses `@theme`, v3 uses `tailwind.config.js`):
+
+```css
+/* globals.css — Tailwind v4 custom animation */
+@theme {
+  --animate-shimmer: shimmer 2s infinite linear;
 }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+```
+
+```tsx
+// Skeleton loading with shimmer
+<div className="h-4 w-48 rounded bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
 ```
 
 ## Installation
@@ -144,3 +194,5 @@ npm install tailwindcss @tailwindcss/vite
 6. **@theme** — Define design tokens in CSS; Tailwind v4 reads tokens directly, no JS config
 7. **Tree-shaking** — Only classes you use ship to production; typical CSS < 10KB gzipped
 8. **cn() helper** — Use `clsx` + `tailwind-merge` for conditional classes: `cn("base", condition && "extra")`
+9. **Animations** — Use CSS animations for simple effects (fade, slide, spin). Prefer `duration-300` for most transitions. Use `motion-reduce:animate-none` for reduced motion.
+10. **tailwindcss-animate** — Install for entrance/exit animations (`animate-in`, `animate-out`). Use `fill-mode-backwards` to prevent flash during delays.
