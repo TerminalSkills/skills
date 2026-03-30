@@ -9,25 +9,14 @@ license: AGPL-3.0
 compatibility: "Claude Code, Node.js 18+"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: ai-tools
+  version: "1.0.0"
+  category: productivity
   tags:
     - claude-code
     - memory
     - context
     - session
     - persistence
-    - compression
-    - agent-memory
-  use-cases:
-    - "Give Claude Code persistent memory across coding sessions"
-    - "Automatically capture and compress session history for future reference"
-    - "Build AI workflows that remember project decisions and past work"
-  agents:
-    - claude-code
-    - openai-codex
-    - gemini-cli
-    - cursor
 ---
 
 # claude-mem
@@ -36,28 +25,13 @@ Persistent memory compression system for Claude Code. Automatically captures wha
 
 GitHub: [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
 
-## How It Works
+## Overview
 
-```
-Session 1: You work on auth module
-  ↓ claude-mem captures decisions, code changes, context
-  ↓ AI compresses session into key facts + decisions
-  ↓ Stored in .claude-mem/
+claude-mem gives Claude Code persistent memory across sessions. It hooks into your session lifecycle, captures decisions and code changes, compresses them with AI, and injects relevant context when you start a new session. No manual context management needed.
 
-Session 2: You return to the project
-  ↓ claude-mem injects relevant compressed context
-  ↓ Claude knows what happened before — no re-explanation needed
-```
+## Instructions
 
-### The Compression Pipeline
-
-1. **Capture** — hooks into Claude Code session, records interactions
-2. **Compress** — AI summarizes session into structured memory (decisions, code changes, learnings)
-3. **Store** — compressed memories saved to `.claude-mem/` directory
-4. **Retrieve** — on new session, relevant memories injected into context
-5. **Search** — MCP tools let you search through past memories
-
-## Installation
+### Installation
 
 ```bash
 # Install globally
@@ -103,58 +77,47 @@ Or use the automatic setup:
 claude-mem setup-hooks
 ```
 
-## Usage
+### How It Works
 
-### Automatic Mode (Recommended)
+```
+Session 1: You work on auth module
+  ↓ claude-mem captures decisions, code changes, context
+  ↓ AI compresses session into key facts + decisions
+  ↓ Stored in .claude-mem/
 
-Once hooks are configured, everything is automatic:
+Session 2: You return to the project
+  ↓ claude-mem injects relevant compressed context
+  ↓ Claude knows what happened before — no re-explanation needed
+```
 
-1. Start a Claude Code session — relevant memories are injected
-2. Work normally — claude-mem captures in the background
-3. End session — memories are compressed and stored
-4. Next session — context from previous work is available
+The compression pipeline:
+
+1. **Capture** — hooks into Claude Code session, records interactions
+2. **Compress** — AI summarizes session into structured memory (decisions, code changes, learnings)
+3. **Store** — compressed memories saved to `.claude-mem/` directory
+4. **Retrieve** — on new session, relevant memories injected into context
+5. **Search** — MCP tools let you search through past memories
 
 ### Manual Commands
 
 ```bash
-# Capture current session
-claude-mem capture
-
-# Inject memories into current context
-claude-mem inject
-
-# Search through memories
-claude-mem search "authentication flow"
-
-# List all memories
-claude-mem list
-
-# Show memory stats
-claude-mem stats
-
-# Compress old memories (reduce storage)
-claude-mem compress
+claude-mem capture       # Capture current session
+claude-mem inject        # Inject memories into current context
+claude-mem search "authentication flow"  # Search through memories
+claude-mem list          # List all memories
+claude-mem stats         # Show memory stats
+claude-mem compress      # Compress old memories (reduce storage)
 ```
 
 ### MCP Search Tools
 
 claude-mem provides MCP tools for searching memories within Claude Code:
 
-```bash
-# In Claude Code, use natural language
-"What did we decide about the database schema last week?"
-"Show me the auth implementation decisions"
-```
-
-The MCP server exposes:
-
 - `memory_search` — semantic search across all memories
 - `memory_list` — list recent memories with summaries
 - `memory_get` — retrieve a specific memory by ID
 
-## Configuration
-
-### `.claude-mem/config.json`
+### Configuration
 
 ```json
 {
@@ -166,65 +129,49 @@ The MCP server exposes:
   "capture": {
     "autoCapture": true,
     "includeCodeChanges": true,
-    "includeDecisions": true,
-    "includeLearnings": true
+    "includeDecisions": true
   },
   "inject": {
     "maxMemories": 10,
     "relevanceThreshold": 0.7,
     "strategy": "semantic"
-  },
-  "storage": {
-    "maxMemories": 1000,
-    "compressAfterDays": 30,
-    "pruneAfterDays": 90
   }
 }
 ```
 
-### Compression Strategies
-
-| Strategy | Description | Best For |
+| Compression Strategy | Description | Best For |
 |----------|-------------|----------|
 | `smart` | AI picks what's important | General use |
 | `full` | Captures everything | Critical projects |
 | `minimal` | Only decisions and errors | Large teams, cost control |
-| `custom` | Your own compression prompt | Domain-specific needs |
 
-### Injection Strategies
+## Examples
 
-| Strategy | Description |
-|----------|-------------|
-| `semantic` | Injects memories most relevant to current task |
-| `recent` | Injects most recent memories first |
-| `all` | Injects all memories (use with small projects) |
+### Example 1: Automatic Session Memory
 
-## Memory Structure
+```bash
+# Session 1: Work on auth module
+$ claude-mem stats
+Memories: 12 | Storage: 45KB | Last capture: 2 hours ago
 
-Each compressed memory contains:
-
-```json
-{
-  "id": "mem_20260329_auth",
-  "timestamp": "2026-03-29T10:00:00Z",
-  "summary": "Implemented JWT auth with refresh tokens",
-  "decisions": [
-    "Use RS256 for JWT signing",
-    "Refresh tokens expire after 7 days",
-    "Store refresh tokens in Redis"
-  ],
-  "codeChanges": [
-    "Created src/auth/jwt.ts",
-    "Added middleware to src/middleware/auth.ts"
-  ],
-  "learnings": [
-    "bcrypt rounds=12 is sufficient for our scale"
-  ],
-  "tags": ["auth", "jwt", "security"]
-}
+# Session 2: Return to project — claude-mem auto-injects context
+# Claude already knows: "You implemented JWT auth with RS256, refresh tokens in Redis"
 ```
 
-## Tips
+### Example 2: Searching Past Decisions
+
+```bash
+$ claude-mem search "database schema"
+[mem_20260329_db] Decided on PostgreSQL with Prisma ORM
+  - Normalized schema for users, teams, projects
+  - Added composite index on (team_id, created_at)
+  - Chose UUID v7 for primary keys
+
+[mem_20260325_api] API routes follow REST conventions
+  - /api/v1/teams/:id/projects pattern
+```
+
+## Guidelines
 
 - Run `claude-mem stats` periodically to check memory usage
 - Use `claude-mem compress` to reduce storage for old memories

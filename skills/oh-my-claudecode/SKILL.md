@@ -9,24 +9,14 @@ license: MIT
 compatibility: "Claude Code, Node.js 18+"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: ai-tools
+  version: "1.0.0"
+  category: development
   tags:
     - claude-code
     - multi-agent
     - orchestration
-    - teams
     - parallel
     - collaboration
-  use-cases:
-    - "Run a 5-agent Claude Code team: architect, frontend, backend, tester, reviewer"
-    - "Coordinate parallel feature development across multiple Claude Code instances"
-    - "Build a CI-like pipeline where agents hand off work to each other"
-  agents:
-    - claude-code
-    - openai-codex
-    - gemini-cli
-    - cursor
 ---
 
 # oh-my-claudecode
@@ -35,16 +25,22 @@ Multi-agent orchestration for Claude Code. Run teams of AI agents in parallel �
 
 GitHub: [Yeachan-Heo/oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode)
 
-## Installation
+## Overview
 
-### Via Claude Code Plugin Marketplace (recommended)
+oh-my-claudecode (OMC) lets you run teams of Claude Code agents in parallel, each with assigned roles. It manages a staged pipeline (plan → PRD → execute → verify → fix) and supports mixing providers (Claude, Codex, Gemini). Agents share context through the filesystem and git branches, with automatic conflict resolution.
+
+## Instructions
+
+### Installation
+
+Via Claude Code Plugin Marketplace (recommended):
 
 ```bash
 /plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
 /plugin install oh-my-claudecode
 ```
 
-### Via npm
+Via npm:
 
 ```bash
 npm i -g oh-my-claude-sisyphus@latest
@@ -69,9 +65,7 @@ Enable experimental teams in `~/.claude/settings.json`:
 }
 ```
 
-## Core Concepts
-
-### Team Mode — The Primary Orchestration Surface
+### Team Pipeline
 
 Team mode runs a staged pipeline for every task:
 
@@ -87,8 +81,6 @@ team-plan → team-prd → team-exec → team-verify → team-fix (loop)
 
 ### Agent Roles
 
-Each agent in a team gets a role that constrains its focus:
-
 | Role | Focus | Example Tasks |
 |------|-------|---------------|
 | `executor` | General coding | Feature implementation, refactoring |
@@ -96,91 +88,7 @@ Each agent in a team gets a role that constrains its focus:
 | `tester` | Quality assurance | Test writing, coverage analysis |
 | `architect` | System design | API design, database schema |
 
-## Usage Patterns
-
-### 1. Simple Team Execution
-
-Spawn 3 executor agents for a task:
-
-```bash
-/team 3:executor "fix all TypeScript errors"
-```
-
-### 2. Mixed Team with Different Providers
-
-Use Codex, Gemini, and Claude agents together:
-
-```bash
-# Codex agents for code review
-omc team 2:codex "review auth module for security issues"
-
-# Gemini agents for UI work
-omc team 2:gemini "redesign UI components for accessibility"
-
-# Claude agents for implementation
-omc team 1:claude "implement the payment flow"
-```
-
-### 3. Tri-Model Advisor with /ccg
-
-Route work to Codex + Gemini, then Claude synthesizes the results:
-
-```bash
-/ccg Review this PR — architecture (Codex) and UI components (Gemini)
-```
-
-### 4. Autopilot Mode
-
-Let OMC handle everything — from planning to execution:
-
-```bash
-autopilot: build a REST API for managing tasks
-```
-
-### 5. Deep Interview for Vague Requirements
-
-When you're not sure what to build, use Socratic questioning:
-
-```bash
-/deep-interview "I want to build a task management app"
-```
-
-The interview clarifies requirements before any code is written.
-
-## Orchestration Patterns
-
-### Parallel Execution
-
-All agents work simultaneously on independent tasks:
-
-```bash
-# 5 agents, each fixing different modules
-/team 5:executor "fix lint errors in src/"
-```
-
-OMC automatically partitions work across agents.
-
-### Sequential Pipeline
-
-Agents hand off work in stages:
-
-```
-Architect → Frontend + Backend (parallel) → QA → DevOps
-```
-
-The team pipeline handles this automatically — `team-plan` creates the dependency graph, `team-exec` respects ordering.
-
-### Monitor and Control
-
-```bash
-# Check status of a running team
-omc team status <task-id>
-
-# Shut down a team
-omc team shutdown <task-id>
-```
-
-## Context Sharing
+### Context Sharing
 
 Agents in a team share context through:
 
@@ -188,18 +96,9 @@ Agents in a team share context through:
 - **Team state file** — `.omc/team-state.json` tracks progress
 - **Git branches** — each agent works on a feature branch, merged at verify stage
 
-### Conflict Resolution
+### Configuration
 
-When multiple agents modify the same file:
-
-1. OMC detects conflicts at merge time
-2. A dedicated resolver agent analyzes both changes
-3. The resolver picks the best merge or combines changes
-4. Human review is requested for unresolvable conflicts
-
-## Configuration
-
-### `~/.omc/config.json`
+`~/.omc/config.json`:
 
 ```json
 {
@@ -218,34 +117,51 @@ When multiple agents modify the same file:
 }
 ```
 
-### Environment Variables
+Requires `codex` / `gemini` CLIs installed and an active tmux session for multi-provider workers (v4.4.0+).
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Enable native teams | `0` |
-| `OMC_MAX_AGENTS` | Max concurrent agents | `10` |
-| `OMC_TIMEOUT` | Task timeout (seconds) | `3600` |
+## Examples
 
-## tmux Workers
-
-v4.4.0+ uses tmux panes for Codex and Gemini workers — real terminal sessions, not MCP servers:
+### Example 1: Team Execution with Mixed Roles
 
 ```bash
-# Workers spawn on-demand and die when task completes
-omc team 2:codex "review auth module"
-omc team 2:gemini "redesign UI components"
+# Spawn 3 executor agents to fix all TypeScript errors
+/team 3:executor "fix all TypeScript errors"
+
+# Use Codex agents for code review
+omc team 2:codex "review auth module for security issues"
+
+# Gemini agents for UI work
+omc team 2:gemini "redesign UI components for accessibility"
 ```
 
-Requires `codex` / `gemini` CLIs installed and an active tmux session.
+### Example 2: Autopilot and Deep Interview
 
-## Tips
+```bash
+# Let OMC handle everything — from planning to execution
+autopilot: build a REST API for managing tasks
+
+# When requirements are vague, use Socratic questioning first
+/deep-interview "I want to build a task management app"
+# The interview clarifies requirements before any code is written
+```
+
+### Example 3: Tri-Model Advisor
+
+Route work to Codex + Gemini, then Claude synthesizes the results:
+
+```bash
+/ccg Review this PR — architecture (Codex) and UI components (Gemini)
+```
+
+## Guidelines
 
 - Start with `autopilot:` for well-defined tasks
 - Use `/deep-interview` when requirements are fuzzy
 - Mix providers: Codex for review, Gemini for UI, Claude for logic
-- Keep team size ≤ 5 for most tasks — diminishing returns beyond that
-- Use `omc team status` to monitor long-running teams
-- The verify → fix loop catches most issues automatically
+- Keep team size at 5 or fewer for most tasks — diminishing returns beyond that
+- Use `omc team status <task-id>` to monitor long-running teams
+- The verify-fix loop catches most issues automatically
+- When multiple agents modify the same file, OMC detects conflicts at merge time and spawns a resolver agent
 
 ## Resources
 
