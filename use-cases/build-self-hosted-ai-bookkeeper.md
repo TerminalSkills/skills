@@ -4,16 +4,13 @@ slug: build-self-hosted-ai-bookkeeper
 description: Deploy TaxHacker on a cheap VPS to automate receipt scanning, expense categorization, and quarterly tax report generation — turning 2 days of bookkeeping into 30 minutes.
 skills:
   - taxhacker
-category: finance
+category: business
 tags:
   - accounting
   - self-hosted
-  - receipts
-  - invoices
   - tax
   - bookkeeping
   - freelancer
-  - automation
 ---
 
 ## The Problem

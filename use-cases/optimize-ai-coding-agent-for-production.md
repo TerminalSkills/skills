@@ -3,8 +3,8 @@ title: Optimize AI Coding Agent for Production Team Use
 slug: optimize-ai-coding-agent-for-production
 description: Standardize Claude Code across a 12-person dev team — shared CLAUDE.md templates, skills library, cross-session memory, and security guardrails — boosting task completion by 40% and eliminating accidental destructive operations.
 skills:
-  - everything-claude-code
   - claude-subconscious
+  - claude-code
 category: development
 tags:
   - claude-code
@@ -12,9 +12,6 @@ tags:
   - optimization
   - memory
   - security
-  - best-practices
-  - agent-performance
-  - developer-productivity
 ---
 
 ## The Problem
