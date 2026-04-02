@@ -7,7 +7,7 @@ compatibility: "SwiftUI (iOS 16+, macOS 13+)"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [swiftui, ui-patterns, ios, macos, components]
   use-cases:
     - "Build SwiftUI screens with best-practice patterns"

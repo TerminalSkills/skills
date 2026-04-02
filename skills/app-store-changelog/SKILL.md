@@ -7,7 +7,7 @@ compatibility: "iOS/Android projects with git tags"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [app-store, changelog, release-notes, ios, android]
   use-cases:
     - "Generate App Store What's New text from git history"

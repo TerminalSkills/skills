@@ -7,7 +7,7 @@ compatibility: "macOS with Swift Package Manager"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [macos, spm, packaging, distribution, notarization]
   use-cases:
     - "Package a SwiftPM app into a signed .app bundle"

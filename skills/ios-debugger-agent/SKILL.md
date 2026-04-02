@@ -7,7 +7,7 @@ compatibility: "macOS with Xcode and XcodeBuildMCP"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [ios, debugging, xcode, swift, agent]
   use-cases:
     - "Build and run iOS app on simulator with AI assistance"

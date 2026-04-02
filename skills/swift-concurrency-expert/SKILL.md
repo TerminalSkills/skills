@@ -7,7 +7,7 @@ compatibility: "Swift 6.2+ projects"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [swift, concurrency, async-await, ios, macos]
   use-cases:
     - "Fix Swift concurrency compiler warnings and errors"

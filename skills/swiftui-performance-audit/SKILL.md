@@ -7,7 +7,7 @@ compatibility: "SwiftUI apps (iOS/macOS)"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [swiftui, performance, profiling, optimization, ios]
   use-cases:
     - "Diagnose and fix slow SwiftUI rendering"

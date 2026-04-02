@@ -7,7 +7,7 @@ compatibility: "macOS with Tuist and SwiftUI"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [macos, menubar, tuist, swift, desktop-app]
   use-cases:
     - "Create a macOS menubar utility with Tuist"

@@ -7,7 +7,7 @@ compatibility: "iOS 26+ / macOS 26+ with SwiftUI"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [swiftui, liquid-glass, wwdc, design, ios]
   use-cases:
     - "Adopt Liquid Glass in new SwiftUI features"

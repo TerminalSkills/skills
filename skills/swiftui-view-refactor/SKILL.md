@@ -7,7 +7,7 @@ compatibility: "SwiftUI with Observation framework"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: mobile
+  category: development
   tags: [swiftui, refactoring, architecture, ios]
   use-cases:
     - "Split large SwiftUI views into focused subviews"

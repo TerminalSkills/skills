@@ -129,5 +129,5 @@ This keeps the motion coherent and avoids duplicate-hit-target bugs.
 
 ## Concrete example
 
-- Pool iOS tile detail reveal: `/Users/dimillian/Documents/Dev/Pool/pool-ios/Pool/Sources/Features/Tile/Detail/TileDetailView.swift`
-- Secondary content anchor example: `/Users/dimillian/Documents/Dev/Pool/pool-ios/Pool/Sources/Features/Tile/Detail/TileDetailIntentListView.swift`
+- Pool iOS tile detail reveal: `Pool/Sources/Features/Tile/Detail/TileDetailView.swift`
+- Secondary content anchor example: `Pool/Sources/Features/Tile/Detail/TileDetailIntentListView.swift`
