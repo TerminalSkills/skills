@@ -1,5 +1,6 @@
 ---
-name: build-autonomous-financial-research-agent
+title: "Build an Autonomous Financial Research Agent"
+slug: build-autonomous-financial-research-agent
 description: >-
   Build an AI agent that automates equity research — fetching SEC filings,
   extracting key metrics, comparing against consensus, and generating
@@ -7,17 +8,13 @@ description: >-
 skills:
   - dexter-finance
   - anthropic-sdk
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: ai-tools
-  tags:
-    - finance
-    - research
-    - sec-filings
-    - investment
-    - automation
-    - earnings
+category: data-ai
+tags:
+  - finance
+  - research
+  - sec-filings
+  - investment
+  - automation
 ---
 
 # Build an Autonomous Financial Research Agent

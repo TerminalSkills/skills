@@ -1,13 +1,18 @@
 ---
 title: "Clone and Rebuild Any Website with AI"
+slug: clone-and-rebuild-website-with-ai
 description: "Use AI agents to reverse-engineer any website, extract its design system, and rebuild it as a modern Next.js app — pixel-perfect clone in under an hour."
 skills:
   - clone-website
   - image-compare
   - web-design
-difficulty: intermediate
-time_estimate: "1-2 hours"
-tags: [website-cloning, design, next-js, ai-automation, landing-page]
+category: design
+tags:
+  - website-cloning
+  - design
+  - next-js
+  - ai-automation
+  - landing-page
 ---
 
 # Clone and Rebuild Any Website with AI

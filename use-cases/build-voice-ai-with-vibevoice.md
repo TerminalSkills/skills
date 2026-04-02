@@ -1,3 +1,20 @@
+---
+title: "Build a Voice AI Healthcare Assistant with VibeVoice"
+slug: build-voice-ai-with-vibevoice
+description: "Build a voice-first healthcare assistant for elderly patients using VibeVoice speech recognition, Claude for intent processing, and persistent conversation memory."
+skills:
+  - vibe-voice
+  - anthropic-sdk
+  - supermemory
+category: data-ai
+tags:
+  - voice-ai
+  - healthcare
+  - speech
+  - assistants
+  - accessibility
+---
+
 # Build a Voice AI Healthcare Assistant with VibeVoice
 
 ## The Situation

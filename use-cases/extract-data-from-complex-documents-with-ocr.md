@@ -1,5 +1,6 @@
 ---
-name: extract-data-from-complex-documents-with-ocr
+title: "Extract Data from Complex Documents with OCR"
+slug: extract-data-from-complex-documents-with-ocr
 description: >-
   Automate data extraction from complex documents — scanned forms with mixed
   printed and handwritten text, tables, checkboxes, and signatures — using
@@ -7,17 +8,13 @@ description: >-
 skills:
   - chandra-ocr
   - anthropic-sdk
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: ai-tools
-  tags:
-    - ocr
-    - document-processing
-    - insurance
-    - forms
-    - automation
-    - data-extraction
+category: documents
+tags:
+  - ocr
+  - document-processing
+  - forms
+  - automation
+  - data-extraction
 ---
 
 # Extract Data from Complex Documents with OCR

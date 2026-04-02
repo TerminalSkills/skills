@@ -1,3 +1,19 @@
+---
+title: "Build a Multi-Agent Claude Code Team"
+slug: build-multi-agent-claude-code-team
+description: "Run 5 Claude Code agents in parallel — each owning a different part of the codebase — to ship a full-stack SaaS MVP in 2 days instead of 2 weeks."
+skills:
+  - oh-my-claudecode
+  - worktrunk
+category: development
+tags:
+  - multi-agent
+  - claude-code
+  - orchestration
+  - parallel
+  - productivity
+---
+
 # Build a Multi-Agent Claude Code Team
 
 ## The Situation
