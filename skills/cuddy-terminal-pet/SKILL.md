@@ -1,15 +1,15 @@
 ---
 name: cuddy-terminal-pet
 description: >-
-  Helps an AI agent design, scaffold, package, and launch a token-aware terminal
-  pet companion with optional desktop behavior, rarity rules, progression, and
-  install flows. Use when users ask for a slash-command mascot, CLI buddy,
-  hidden pet easter egg, token tracking reactions, GitHub release packaging, or
-  skill catalog listing copy for a terminal assistant.
+  Helps an AI agent design and implement a token-aware terminal pet companion
+  with static CLI behavior first, then optional desktop visuals, rarity,
+  progression, and install flows. Use when users ask for a /PET slash command,
+  CLI mascot, terminal buddy, hidden pet easter egg, token-reactive behavior,
+  or a foldable companion that stays subtle during normal work.
 license: MIT
 compatibility: "Core workflow is cross-platform. Optional floating desktop companion is best on Windows with Python 3.10+ and Node.js 20+."
 metadata:
-  author: i798454439
+  author: 798454439
   version: "0.1.0"
   category: development
   tags: ["terminal", "cli", "pet", "packaging", "distribution"]
