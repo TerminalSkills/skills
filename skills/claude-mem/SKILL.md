@@ -1,135 +1,72 @@
 ---
 name: claude-mem
 description: >-
-  Automatically capture, compress, and inject context from Claude Code sessions using
-  claude-mem. Remembers what Claude did in past sessions and provides relevant context
-  in future sessions. Use when: maintaining continuity across Claude Code sessions,
-  building agents with persistent project memory, avoiding repeated context setup.
-license: AGPL-3.0
+  Add persistent memory to Claude Code that survives across sessions. Use when:
+  maintaining continuity across Claude Code sessions, building agents with
+  persistent project memory, avoiding repeated context setup. Covers claude-mem
+  (AI-compressed session logs) and Claude Subconscious (Letta-based background agent).
+license: Apache-2.0
 compatibility: "Claude Code, Node.js 18+"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: productivity
-  tags:
-    - claude-code
-    - memory
-    - context
-    - session
-    - persistence
+  tags: ["claude-code", "memory", "persistence", "context", "session"]
 ---
 
-# claude-mem
-
-Persistent memory compression system for Claude Code. Automatically captures what happens in each session, compresses it with AI, and injects relevant context into future sessions. No manual context management needed.
-
-GitHub: [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
+# Claude Code Persistent Memory
 
 ## Overview
 
-claude-mem gives Claude Code persistent memory across sessions. It hooks into your session lifecycle, captures decisions and code changes, compresses them with AI, and injects relevant context when you start a new session. No manual context management needed.
+Claude Code forgets everything between sessions. Two open-source tools solve this by automatically capturing context and injecting it into future sessions:
+
+- **claude-mem** — captures session activity, compresses it with AI, injects relevant memories on next session. Lightweight, local-first.
+- **Claude Subconscious** — a background Letta agent that watches sessions, builds up memory over time, and whispers guidance back. Cloud or self-hosted.
+
+Both eliminate the need to re-explain context when returning to a project.
 
 ## Instructions
 
-### Installation
+### Option A: claude-mem (Local AI Compression)
+
+**GitHub:** [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
+
+#### Setup
 
 ```bash
-# Install globally
 npm install -g claude-mem
-
-# Or use npx
-npx claude-mem init
-```
-
-### Setup in Your Project
-
-```bash
 cd your-project
 claude-mem init
-```
-
-This creates:
-
-```
-your-project/
-├── .claude-mem/
-│   ├── config.json      # Configuration
-│   ├── memories/        # Compressed session memories
-│   └── index.json       # Memory index for fast search
-```
-
-### Configure Claude Code Integration
-
-Add to your project's `.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "postSession": "claude-mem capture",
-    "preSession": "claude-mem inject"
-  }
-}
-```
-
-Or use the automatic setup:
-
-```bash
 claude-mem setup-hooks
 ```
 
-### How It Works
+This creates `.claude-mem/` with config, compressed memories, and an index. Hooks auto-capture after each session and auto-inject before the next.
 
-```
-Session 1: You work on auth module
-  ↓ claude-mem captures decisions, code changes, context
-  ↓ AI compresses session into key facts + decisions
-  ↓ Stored in .claude-mem/
-
-Session 2: You return to the project
-  ↓ claude-mem injects relevant compressed context
-  ↓ Claude knows what happened before — no re-explanation needed
-```
-
-The compression pipeline:
+#### How It Works
 
 1. **Capture** — hooks into Claude Code session, records interactions
 2. **Compress** — AI summarizes session into structured memory (decisions, code changes, learnings)
 3. **Store** — compressed memories saved to `.claude-mem/` directory
 4. **Retrieve** — on new session, relevant memories injected into context
-5. **Search** — MCP tools let you search through past memories
 
-### Manual Commands
+#### Commands
 
 ```bash
-claude-mem capture       # Capture current session
-claude-mem inject        # Inject memories into current context
-claude-mem search "authentication flow"  # Search through memories
-claude-mem list          # List all memories
-claude-mem stats         # Show memory stats
-claude-mem compress      # Compress old memories (reduce storage)
+claude-mem capture                     # Capture current session
+claude-mem inject                      # Inject memories into context
+claude-mem search "auth flow"          # Semantic search through memories
+claude-mem list                        # List all memories
+claude-mem stats                       # Show memory stats
+claude-mem compress                    # Reduce storage for old memories
 ```
 
-### MCP Search Tools
-
-claude-mem provides MCP tools for searching memories within Claude Code:
-
-- `memory_search` — semantic search across all memories
-- `memory_list` — list recent memories with summaries
-- `memory_get` — retrieve a specific memory by ID
-
-### Configuration
+#### Configuration
 
 ```json
 {
   "compression": {
     "model": "claude-sonnet-4-20250514",
-    "maxTokens": 2000,
     "strategy": "smart"
-  },
-  "capture": {
-    "autoCapture": true,
-    "includeCodeChanges": true,
-    "includeDecisions": true
   },
   "inject": {
     "maxMemories": 10,
@@ -139,50 +76,74 @@ claude-mem provides MCP tools for searching memories within Claude Code:
 }
 ```
 
-| Compression Strategy | Description | Best For |
-|----------|-------------|----------|
-| `smart` | AI picks what's important | General use |
-| `full` | Captures everything | Critical projects |
-| `minimal` | Only decisions and errors | Large teams, cost control |
+Strategies: `smart` (AI picks what's important), `full` (captures everything), `minimal` (only decisions and errors).
+
+### Option B: Claude Subconscious (Letta Background Agent)
+
+**GitHub:** [letta-ai/claude-subconscious](https://github.com/letta-ai/claude-subconscious)
+
+#### Setup
+
+```bash
+/plugin marketplace add letta-ai/claude-subconscious
+/plugin install claude-subconscious@claude-subconscious
+export LETTA_API_KEY="your-api-key"
+```
+
+Get your API key from [app.letta.com](https://app.letta.com). Or self-host:
+
+```bash
+pip install letta
+letta server --port 8283
+export LETTA_BASE_URL="http://localhost:8283"
+```
+
+#### Modes
+
+| Mode | Behavior | Token Cost |
+|------|----------|------------|
+| `whisper` (default) | Short guidance before each prompt | Low |
+| `full` | Full memory blocks + message history | Higher |
+| `off` | Disabled | None |
+
+### Which to Choose
+
+| | claude-mem | Claude Subconscious |
+|---|-----------|-------------------|
+| Storage | Local files (.claude-mem/) | Letta cloud or self-hosted |
+| Cost | Uses your Claude API for compression | Requires Letta API key (free tier) |
+| Latency | Near-zero (local) | ~1-2s per whisper |
+| Memory style | Compressed session summaries | Continuous learning agent |
+| Best for | Local-first, privacy-sensitive | Rich cross-session context |
 
 ## Examples
 
-### Example 1: Automatic Session Memory
+### Example 1: Session Continuity with claude-mem
 
 ```bash
 # Session 1: Work on auth module
 $ claude-mem stats
 Memories: 12 | Storage: 45KB | Last capture: 2 hours ago
 
-# Session 2: Return to project — claude-mem auto-injects context
+# Session 2: Return to project — auto-injected context
 # Claude already knows: "You implemented JWT auth with RS256, refresh tokens in Redis"
 ```
 
-### Example 2: Searching Past Decisions
+### Example 2: Architecture Recall with Subconscious
 
-```bash
-$ claude-mem search "database schema"
-[mem_20260329_db] Decided on PostgreSQL with Prisma ORM
-  - Normalized schema for users, teams, projects
-  - Added composite index on (team_id, created_at)
-  - Chose UUID v7 for primary keys
+After discussing a REST-to-GraphQL migration, you start a new session:
 
-[mem_20260325_api] API routes follow REST conventions
-  - /api/v1/teams/:id/projects pattern
+```
+[subconscious] Last session you decided to switch from REST to GraphQL for the
+user service. Migration is 60% done — resolvers for User and Project are complete,
+Order and Payment still need conversion. You preferred code-first schema with TypeGraphQL.
 ```
 
 ## Guidelines
 
-- Run `claude-mem stats` periodically to check memory usage
-- Use `claude-mem compress` to reduce storage for old memories
-- Set `relevanceThreshold` higher (0.8+) if too much context is injected
-- For monorepos, initialize claude-mem per package
-- Memory files are plain JSON — easy to version control or backup
+- **Pair with CLAUDE.md** — use CLAUDE.md for static project context, persistent memory for dynamic decisions
+- **One tool per project** — don't run both claude-mem and Subconscious simultaneously
+- For claude-mem: set `relevanceThreshold` higher (0.8+) if too much context is injected
+- For Subconscious: `whisper` mode gives 90% of the value at lower token cost
 - Add `.claude-mem/memories/` to `.gitignore` for private projects
-
-## Resources
-
-- [Documentation](https://github.com/thedotmack/claude-mem#documentation)
-- [Configuration Guide](https://github.com/thedotmack/claude-mem#configuration)
-- [Troubleshooting](https://github.com/thedotmack/claude-mem#troubleshooting)
-- [Mentioned in Awesome Claude Code](https://github.com/thedotmack/awesome-claude-code)
+- Memory quality depends on session length — short sessions produce less useful memories

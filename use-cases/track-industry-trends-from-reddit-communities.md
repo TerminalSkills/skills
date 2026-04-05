@@ -4,7 +4,6 @@ slug: track-industry-trends-from-reddit-communities
 description: "Monitor Reddit communities to detect emerging technology trends, shifting developer preferences, and early signals of tool adoption or decline."
 skills:
   - reddit-insights
-  - reddit-readonly
   - web-researchcategory: research
 tags:
   - trend-analysis
@@ -23,7 +22,7 @@ By the time a trend shows up in an analyst report, their competitors have alread
 
 ## The Solution
 
-Use the **reddit-insights** skill to analyze discussion patterns and sentiment across developer subreddits, **reddit-readonly** to read specific threads in detail, and **web-research** to cross-reference Reddit signals with broader industry data for validation.
+Use the **reddit-insights** skill to analyze discussion patterns and sentiment across developer subreddits, and **web-research** to cross-reference Reddit signals with broader industry data for validation.
 
 ## Step-by-Step Walkthrough
 

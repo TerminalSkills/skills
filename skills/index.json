@@ -1509,16 +1509,15 @@
     {
       "name": "claude-mem",
       "slug": "claude-mem",
-      "description": "Automatically capture, compress, and inject context from Claude Code sessions using claude-mem. Remembers what Claude did in past sessions and provides relevant context in future sessions. Use when: maintaining continuity across Claude Code sessions, building agents with persistent project memory, avoiding repeated context setup.",
+      "description": "Add persistent memory to Claude Code that survives across sessions. Use when: maintaining continuity across Claude Code sessions, building agents with persistent project memory, avoiding repeated context setup. Covers claude-mem (AI-compressed session logs) and Claude Subconscious (Letta-based background agent).",
       "category": "productivity",
-      "tags": []
-    },
-    {
-      "name": "claude-subconscious",
-      "slug": "claude-subconscious",
-      "description": "Add persistent subconscious memory to Claude Code that survives across sessions — automatically stores decisions, patterns, and context. Use when: maintaining continuity across Claude Code sessions, building agents with long-term project memory, avoiding repeated context setup.",
-      "category": "development",
-      "tags": []
+      "tags": [
+        "claude-code",
+        "memory",
+        "persistence",
+        "context",
+        "session"
+      ]
     },
     {
       "name": "clay",
@@ -5780,19 +5779,6 @@
       ]
     },
     {
-      "name": "opentelemetry",
-      "slug": "opentelemetry",
-      "description": "Assists with instrumenting applications using OpenTelemetry for distributed tracing, metrics, and logs. Use when adding observability, configuring auto-instrumentation, building custom spans, setting up OTel Collectors, or exporting telemetry to Jaeger, Grafana, or Datadog. Trigger words: opentelemetry, otel, tracing, spans, metrics, observability, collector.",
-      "category": "devops",
-      "tags": [
-        "opentelemetry",
-        "observability",
-        "tracing",
-        "metrics",
-        "monitoring"
-      ]
-    },
-    {
       "name": "opentofu",
       "slug": "opentofu",
       "description": "You are an expert in OpenTofu, the open-source fork of Terraform maintained by the Linux Foundation. You help developers and platform teams provision cloud infrastructure using HCL (HashiCorp Configuration Language), with full compatibility with existing Terraform modules, state files, and providers — plus new features like client-side state encryption, OCI registry support, and removed BSL license restrictions.",
@@ -6503,19 +6489,6 @@
       "tags": []
     },
     {
-      "name": "pricing",
-      "slug": "pricing",
-      "description": "Design pricing strategy — value-based pricing, freemium, tiers, and packaging. Use when: setting prices for a new product, redesigning pricing page, deciding between freemium and paid-only models.",
-      "category": "business",
-      "tags": [
-        "pricing",
-        "monetization",
-        "saas",
-        "freemium",
-        "business-model"
-      ]
-    },
-    {
       "name": "pricing-strategy",
       "slug": "pricing-strategy",
       "description": "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' or 'monetization.' This skill covers pricing research, tier structure, and packaging strategy.",
@@ -6942,19 +6915,6 @@
         "sentiment",
         "market-research",
         "validation"
-      ]
-    },
-    {
-      "name": "reddit-readonly",
-      "slug": "reddit-readonly",
-      "description": "Browse and search Reddit via the public JSON API with no authentication required. Use when a user asks to read Reddit, browse a subreddit, fetch Reddit posts, get Reddit comments, search Reddit for posts, check trending topics on Reddit, read a Reddit thread, or pull content from a subreddit.",
-      "category": "research",
-      "tags": [
-        "reddit",
-        "api",
-        "browsing",
-        "search",
-        "social-media"
       ]
     },
     {
@@ -9516,5 +9476,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-04-05T09:57:21.702Z"
+  "updatedAt": "2026-04-05T10:04:30.311Z"
 }

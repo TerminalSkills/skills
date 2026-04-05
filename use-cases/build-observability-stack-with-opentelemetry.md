@@ -3,6 +3,7 @@ title: Build an Observability Stack with OpenTelemetry
 slug: build-observability-stack-with-opentelemetry
 description: Build a full observability stack with OpenTelemetry — distributed tracing, metrics, and structured logging across microservices with automatic instrumentation and Grafana dashboards.
 skills:
+  - observability-setup
   - typescript
   - redis
   - postgresql
