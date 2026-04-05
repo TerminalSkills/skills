@@ -170,6 +170,13 @@
       "tags": []
     },
     {
+      "name": "agentscope",
+      "slug": "agentscope",
+      "description": "Build transparent, observable AI agents using AgentScope — agents you can see, understand, and trust with full execution tracing and debugging. Use when: building production agents that need observability, debugging complex agent behaviors, creating agents with audit trails.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "ai-content-detection",
       "slug": "ai-content-detection",
       "description": "Detect AI-generated text using rule-based analysis, LLM-as-judge scoring, and optional external APIs. Use when: auditing content for AI authorship, academic integrity checks, editorial review, SEO content audits.",
@@ -220,6 +227,13 @@
       "slug": "ai-pentesting",
       "description": "Run autonomous AI-driven penetration tests on web applications using tools like Shannon, PentAGI, and similar frameworks. Use when tasks involve setting up automated penetration testing pipelines, combining AI agents with security tools (nmap, subfinder, nuclei, sqlmap), building autonomous exploit chains, generating pentest reports with proof-of-concept exploits, or integrating AI pentesting into CI/CD pipelines. Covers the full pentest lifecycle from reconnaissance to reporting using AI orchestration.",
       "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "ai-scientist",
+      "slug": "ai-scientist",
+      "description": "Build AI agents that automate scientific research — hypothesis generation, experiment design, data analysis, and paper writing using agentic tree search. Use when: automating research workflows, generating and testing hypotheses, building AI-powered research assistants.",
+      "category": "research",
       "tags": []
     },
     {
@@ -424,6 +438,19 @@
       "description": "You are an expert in Apollo Client, the comprehensive GraphQL client for React applications. You help developers fetch data with GraphQL queries and mutations, manage local and remote state with Apollo's normalized cache, implement optimistic UI updates, handle pagination, and configure authentication — providing a complete data management solution for GraphQL-powered apps.",
       "category": "Frontend Development",
       "tags": []
+    },
+    {
+      "name": "app-store-changelog",
+      "slug": "app-store-changelog",
+      "description": "Generate App Store release notes from git history. Use when: creating release changelogs, App Store 'What's New' text, or summarizing changes since last tag.",
+      "category": "development",
+      "tags": [
+        "app-store",
+        "changelog",
+        "release-notes",
+        "ios",
+        "android"
+      ]
     },
     {
       "name": "app-store-optimization",
@@ -1056,6 +1083,19 @@
       ]
     },
     {
+      "name": "bug-hunt-swarm",
+      "slug": "bug-hunt-swarm",
+      "description": "Parallel read-only multi-agent root-cause investigation for bugs and regressions. Use when: investigating bugs, finding root causes, tracing regressions, or diagnosing failures with multi-agent swarm.",
+      "category": "development",
+      "tags": [
+        "debugging",
+        "swarm",
+        "multi-agent",
+        "bugs",
+        "testing"
+      ]
+    },
+    {
       "name": "building-spec",
       "slug": "building-spec",
       "description": "Read and apply a project-specific BUILDING_SPEC.md or DIMENSIONS.md file before generating any architectural elements. Use when: generating floor plans, 3D buildings, or any spatial design where the project has defined custom dimensions, room requirements, or design standards.",
@@ -1301,6 +1341,13 @@
       ]
     },
     {
+      "name": "chandra-ocr",
+      "slug": "chandra-ocr",
+      "description": "Extract text from complex documents using Chandra OCR — handles tables, forms, handwriting, and full page layouts with high accuracy. Use when: extracting data from scanned documents, reading complex tables from PDFs/images, processing handwritten forms.",
+      "category": "documents",
+      "tags": []
+    },
+    {
       "name": "changelog-generator",
       "slug": "changelog-generator",
       "description": "Generate release notes and changelogs from git commits, feature lists, or project updates. Use when a user asks to generate a changelog, create release notes, summarize recent changes, draft a CHANGELOG entry, or prepare release documentation from git history.",
@@ -1460,6 +1507,20 @@
       ]
     },
     {
+      "name": "claude-mem",
+      "slug": "claude-mem",
+      "description": "Automatically capture, compress, and inject context from Claude Code sessions using claude-mem. Remembers what Claude did in past sessions and provides relevant context in future sessions. Use when: maintaining continuity across Claude Code sessions, building agents with persistent project memory, avoiding repeated context setup.",
+      "category": "productivity",
+      "tags": []
+    },
+    {
+      "name": "claude-subconscious",
+      "slug": "claude-subconscious",
+      "description": "Add persistent subconscious memory to Claude Code that survives across sessions — automatically stores decisions, patterns, and context. Use when: maintaining continuity across Claude Code sessions, building agents with long-term project memory, avoiding repeated context setup.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "clay",
       "slug": "clay",
       "description": "You are an expert in Clay, the data enrichment and outbound sales platform that pulls from 75+ data providers to build rich prospect profiles. You help teams automate lead discovery, enrich contacts with firmographic and technographic data, score leads against ICP criteria, and trigger personalized outreach sequences — replacing manual research with automated, data-driven prospecting.",
@@ -1506,6 +1567,19 @@
       "description": "You are an expert in Cline, the autonomous AI coding agent for VS Code that can read files, write code, run terminal commands, and use the browser — with human-in-the-loop approval at each step. You help developers use Cline for complex multi-file refactoring, feature implementation, debugging, and codebase exploration where the AI plans and executes while the developer reviews and approves.",
       "category": "Developer Tools",
       "tags": []
+    },
+    {
+      "name": "clone-website",
+      "slug": "clone-website",
+      "description": "Clone any website as a pixel-perfect Next.js app using AI agents — automated reconnaissance, design token extraction, component spec generation, parallel building, and visual QA. Use when: reverse-engineering a website design, rebuilding a site in modern tech stack, creating pixel-perfect clones for redesign projects.",
+      "category": "design",
+      "tags": [
+        "website-cloning",
+        "design-to-code",
+        "reverse-engineering",
+        "pixel-perfect",
+        "next-js"
+      ]
     },
     {
       "name": "cloud-resource-analyzer",
@@ -2203,6 +2277,13 @@
       "tags": []
     },
     {
+      "name": "deep-live-cam",
+      "slug": "deep-live-cam",
+      "description": "Real-time face swap and video deepfake using a single source image. Use when: building face-swap applications, real-time video effects, virtual try-on features, AI video effects pipelines.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "deepeval",
       "slug": "deepeval",
       "description": "Expert guidance for DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.",
@@ -2293,6 +2374,13 @@
       "slug": "devcontainers",
       "description": "Define reproducible development environments with Dev Containers. Use when a user asks to standardize dev environments, set up VS Code remote containers, create reproducible dev setups, or onboard developers faster.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "dexter-finance",
+      "slug": "dexter-finance",
+      "description": "Build autonomous financial research agents that analyze stocks, SEC filings, earnings calls, and market data to produce investment reports. Use when: automating investment research, building AI-powered stock analysis, creating financial due diligence agents.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -2848,6 +2936,19 @@
       "description": "Collect, categorize, and synthesize user feedback from multiple channels into actionable product insights. Use when tasks involve analyzing support tickets, app store reviews, NPS survey responses, social media mentions, user interviews, feature request prioritization, sentiment analysis, churn prediction from feedback patterns, or building voice-of-customer reports. Covers multi-channel feedback aggregation and data-driven product decisions.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "fff-nvim",
+      "slug": "fff-nvim",
+      "description": "Use fff (Fast File Finder) — a blazing-fast file search tool built in Rust with Node.js bindings, optimized for AI agents and Neovim integration. Supports fuzzy matching, regex, gitignore-aware filtering, and sub-millisecond search across large codebases. Use when tasks involve fast file discovery, AI agent tooling, or Neovim file navigation.",
+      "category": "development",
+      "tags": [
+        "file-search",
+        "ai-agents",
+        "neovim",
+        "rust",
+        "fast"
+      ]
     },
     {
       "name": "ffmpeg",
@@ -3861,6 +3962,19 @@
       "tags": []
     },
     {
+      "name": "ios-debugger-agent",
+      "slug": "ios-debugger-agent",
+      "description": "AI agent for building, running, and debugging iOS apps on simulator via XcodeBuildMCP. Use when: running iOS apps, inspecting simulator UI, capturing logs, or diagnosing runtime behavior.",
+      "category": "development",
+      "tags": [
+        "ios",
+        "debugging",
+        "xcode",
+        "swift",
+        "agent"
+      ]
+    },
+    {
       "name": "ipfs",
       "slug": "ipfs",
       "description": "Store and retrieve files on IPFS (InterPlanetary File System). Use when a user asks to store files in a decentralized way, pin content on IPFS, upload NFT metadata, or use content-addressed storage.",
@@ -4544,6 +4658,32 @@
       "tags": []
     },
     {
+      "name": "macos-menubar-tuist-app",
+      "slug": "macos-menubar-tuist-app",
+      "description": "Build macOS menubar apps with Tuist and SwiftUI. Use when: creating LSUIElement menubar utilities, defining Tuist manifests, or building menubar apps without Xcode-first workflows.",
+      "category": "development",
+      "tags": [
+        "macos",
+        "menubar",
+        "tuist",
+        "swift",
+        "desktop-app"
+      ]
+    },
+    {
+      "name": "macos-spm-app-packaging",
+      "slug": "macos-spm-app-packaging",
+      "description": "Scaffold, build, and package SwiftPM-based macOS apps without Xcode project. Use when: creating macOS app bundles from SPM, signing, notarizing, or building appcasts.",
+      "category": "development",
+      "tags": [
+        "macos",
+        "spm",
+        "packaging",
+        "distribution",
+        "notarization"
+      ]
+    },
+    {
       "name": "maestro",
       "slug": "maestro",
       "description": "When the user wants to write mobile UI tests using Maestro's simple YAML-based flow definitions. Also use when the user mentions \"maestro,\" \"mobile UI testing,\" \"YAML mobile tests,\" \"maestro flows,\" or \"maestro studio.\" For React Native-specific gray-box testing, see detox. For cross-platform mobile automation, see appium.",
@@ -4836,6 +4976,13 @@
         "decision-making",
         "entrepreneurship"
       ]
+    },
+    {
+      "name": "minimind",
+      "slug": "minimind",
+      "description": "Train a small GPT model from scratch in 2 hours — understand LLM architecture by building one. Use when: learning how LLMs work internally, training custom small language models, educational AI projects, fine-tuning experiments.",
+      "category": "data-ai",
+      "tags": []
     },
     {
       "name": "minio",
@@ -5457,6 +5604,13 @@
       ]
     },
     {
+      "name": "oh-my-claudecode",
+      "slug": "oh-my-claudecode",
+      "description": "Orchestrate multi-agent Claude Code teams — assign roles, coordinate parallel tasks, share context between agents, and manage team workflows. Use when: running multiple Claude Code agents simultaneously, building team-based AI development workflows, coordinating complex multi-agent coding projects.",
+      "category": "development",
+      "tags": []
+    },
+    {
       "name": "okr-planning",
       "slug": "okr-planning",
       "description": "Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. Applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.",
@@ -5566,6 +5720,13 @@
       "tags": []
     },
     {
+      "name": "openbb",
+      "slug": "openbb",
+      "description": "Access financial data for analysis, quantitative research, and AI agents using OpenBB platform — stocks, crypto, forex, macro economics, alternative data. Use when: building financial analysis tools, feeding market data to AI agents, creating quantitative research pipelines, accessing free financial data APIs.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "openclaw",
       "slug": "openclaw",
       "description": "Deploy and manage OpenClaw, a self-hosted gateway bridging messaging platforms to AI coding agents. Use when a user asks to set up OpenClaw, connect WhatsApp or Telegram or Discord to an AI agent, configure multi-agent routing, schedule cron jobs in OpenClaw, set up webhooks, manage OpenClaw channels, pair a messaging account, configure heartbeats, spawn sub-agents, or troubleshoot OpenClaw gateway issues. Covers installation, channel setup, agent configuration, cron scheduling, webhooks, and sub-agents.",
@@ -5604,6 +5765,19 @@
       "description": "You are an expert in OpenRouter, the unified API gateway for accessing 200+ LLMs through a single OpenAI-compatible endpoint. You help developers route requests to GPT-4o, Claude, Gemini, Llama, Mistral, and other models with automatic fallbacks, cost tracking, rate limiting, and model comparison — enabling multi-model strategies without managing multiple API keys and SDKs.",
       "category": "AI & Machine Learning",
       "tags": []
+    },
+    {
+      "name": "openscreen",
+      "slug": "openscreen",
+      "description": "Create stunning screen recordings and product demos with OpenScreen — open-source, no watermarks, free for commercial use. Use when: recording product demos, creating tutorial videos, building marketing content, screen recording with post-processing effects.",
+      "category": "productivity",
+      "tags": [
+        "screen-recording",
+        "demo",
+        "video",
+        "marketing",
+        "open-source"
+      ]
     },
     {
       "name": "opentelemetry",
@@ -5690,6 +5864,18 @@
       "description": "Expert guidance for Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. Helps developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "orchestrate-batch-refactor",
+      "slug": "orchestrate-batch-refactor",
+      "description": "Plan and execute large refactor efforts with parallel multi-agent analysis. Use when: refactoring many files, splitting workstreams, or coordinating sub-agents for batch code changes.",
+      "category": "development",
+      "tags": [
+        "refactoring",
+        "multi-agent",
+        "batch",
+        "code-quality"
+      ]
     },
     {
       "name": "originality-ai",
@@ -6392,6 +6578,18 @@
       "tags": []
     },
     {
+      "name": "project-skill-audit",
+      "slug": "project-skill-audit",
+      "description": "Analyze a project and recommend highest-value skills to create or update. Use when: auditing project skills, getting skill recommendations, or reviewing existing skill coverage.",
+      "category": "development",
+      "tags": [
+        "audit",
+        "skills",
+        "project-analysis",
+        "recommendations"
+      ]
+    },
+    {
       "name": "prometheus-alertmanager",
       "slug": "prometheus-alertmanager",
       "description": "Configure Prometheus Alertmanager for alert routing, grouping, silencing, and notification delivery. Use when a user needs to set up alert receivers (Slack, PagerDuty, email), define routing trees, manage silences and inhibition rules, or troubleshoot alert delivery pipelines.",
@@ -6948,6 +7146,18 @@
         "admin-panel",
         "dashboard",
         "crud"
+      ]
+    },
+    {
+      "name": "review-swarm",
+      "slug": "review-swarm",
+      "description": "Parallel read-only multi-agent code review of git diffs. Use when: reviewing diffs for regressions, security risks, performance issues, or wanting a parallel review swarm.",
+      "category": "development",
+      "tags": [
+        "code-review",
+        "swarm",
+        "multi-agent",
+        "quality"
       ]
     },
     {
@@ -7797,6 +8007,70 @@
       "tags": []
     },
     {
+      "name": "swift-concurrency-expert",
+      "slug": "swift-concurrency-expert",
+      "description": "Swift Concurrency review and remediation for Swift 6.2+. Use when: reviewing async/await usage, fixing concurrency compiler errors, adding Sendable conformance, or migrating to structured concurrency.",
+      "category": "development",
+      "tags": [
+        "swift",
+        "concurrency",
+        "async-await",
+        "ios",
+        "macos"
+      ]
+    },
+    {
+      "name": "swiftui-liquid-glass",
+      "slug": "swiftui-liquid-glass",
+      "description": "Implement iOS 26+ Liquid Glass design in SwiftUI. Use when: adopting Liquid Glass API, refactoring existing UI to Liquid Glass, or reviewing Liquid Glass usage.",
+      "category": "development",
+      "tags": [
+        "swiftui",
+        "liquid-glass",
+        "wwdc",
+        "design",
+        "ios"
+      ]
+    },
+    {
+      "name": "swiftui-performance-audit",
+      "slug": "swiftui-performance-audit",
+      "description": "Audit and optimize SwiftUI runtime performance. Use when: diagnosing slow rendering, janky scrolling, excessive view updates, or high CPU/memory usage in SwiftUI apps.",
+      "category": "development",
+      "tags": [
+        "swiftui",
+        "performance",
+        "profiling",
+        "optimization",
+        "ios"
+      ]
+    },
+    {
+      "name": "swiftui-ui-patterns",
+      "slug": "swiftui-ui-patterns",
+      "description": "Comprehensive SwiftUI UI patterns with example-driven guidance. Use when: building SwiftUI views, designing navigation, creating custom modifiers, composing layouts, or needing component-specific patterns.",
+      "category": "development",
+      "tags": [
+        "swiftui",
+        "ui-patterns",
+        "ios",
+        "macos",
+        "components"
+      ]
+    },
+    {
+      "name": "swiftui-view-refactor",
+      "slug": "swiftui-view-refactor",
+      "description": "Refactor SwiftUI views for better architecture with MV patterns. Use when: cleaning up SwiftUI views, splitting long bodies, standardizing Observable usage, or removing inline side effects.",
+      "category": "development",
+      "tags": [
+        "swiftui",
+        "refactoring",
+        "architecture",
+        "ios"
+      ]
+    },
+    {
       "name": "swr",
       "slug": "swr",
       "description": "Fetch, cache, and revalidate data in React with SWR — stale-while-revalidate data fetching library by Vercel. Use when someone asks to \"fetch data in React\", \"SWR\", \"data fetching hook\", \"cache API calls\", \"stale-while- revalidate\", \"auto-refresh data\", or \"React data fetching without Redux\". Covers data fetching, caching, revalidation, mutation, pagination, and optimistic updates.",
@@ -7921,6 +8195,13 @@
         "cross-platform",
         "webview"
       ]
+    },
+    {
+      "name": "taxhacker",
+      "slug": "taxhacker",
+      "description": "Self-hosted AI accounting tool that analyzes receipts, invoices, and bank transactions using LLMs. Use when: automating personal/business bookkeeping, categorizing expenses with AI, preparing tax documents, building self-hosted financial tools.",
+      "category": "business",
+      "tags": []
     },
     {
       "name": "tdd",
@@ -8690,6 +8971,13 @@
       ]
     },
     {
+      "name": "vibe-voice",
+      "slug": "vibe-voice",
+      "description": "Build voice AI applications using Microsoft's VibeVoice — open-source frontier voice synthesis, recognition, and real-time conversation. Use when: building voice assistants, adding TTS/STT to applications, creating real-time voice chat, voice cloning.",
+      "category": "data-ai",
+      "tags": []
+    },
+    {
       "name": "victoriametrics",
       "slug": "victoriametrics",
       "description": "Deploy and configure VictoriaMetrics as a high-performance time-series database for metrics storage and querying. Use when a user needs a Prometheus-compatible long-term storage backend, wants to write MetricsQL queries, configure vmagent for metrics scraping, or set up VictoriaMetrics cluster mode for horizontal scaling.",
@@ -9228,5 +9516,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-03-26T21:30:02.806Z"
+  "updatedAt": "2026-04-05T09:57:21.702Z"
 }
