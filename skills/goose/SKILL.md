@@ -8,16 +8,12 @@ description: >-
   agents (DevOps, data pipelines, incident response), or comparing Goose to other
   AI coding agents.
 license: Apache-2.0
+compatibility: "macOS, Linux, Python 3.10+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
-  tags: ["goose", "ai-agent", "extensible", "open-source", "block", "coding-agent"]
-  use-cases:
-    - "Set up Goose as a DevOps AI assistant with SSH and monitoring tools"
-    - "Build a custom Goose extension for Jira integration"
-    - "Use Goose with MCP servers for database queries and API calls"
-  agents: [claude-code, openai-codex, cursor]
+  category: development
+  tags: ["ai-agent", "extensible", "coding-agent"]
 ---
 
 # Goose — Extensible AI Agent by Block
@@ -236,16 +232,6 @@ Goose: [uses ssh-tools to connect]
        [finds 47 5xx errors]
        [creates JIRA ticket OPS-1234 with error summary]
        Found 47 5xx errors in the last hour. Created OPS-1234.
-```
-
-### Code Review + Fix
-```
-You: Review the PR at #142, check for security issues, and fix them
-
-Goose: [fetches PR diff]
-       [identifies SQL injection in user_query parameter]
-       [creates fix with parameterized queries]
-       [pushes commit to PR branch]
 ```
 
 ## Tips

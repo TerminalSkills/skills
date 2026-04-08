@@ -7,16 +7,12 @@ description: >-
   comparing local VLM to cloud APIs (GPT-4V, Claude Vision), or working with
   LLaVA, Phi-3-Vision, Qwen2-VL, Pixtral, Llama-3.2-Vision on Mac.
 license: Apache-2.0
+compatibility: "macOS 14+, Apple Silicon, Python 3.10+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
-  tags: ["mlx", "vision", "vlm", "mac", "apple-silicon", "local-ai", "fine-tuning"]
-  use-cases:
-    - "Analyze product photos locally without cloud API costs"
-    - "Fine-tune a vision model on custom image datasets"
-    - "Batch process images with AI-generated descriptions on Mac"
-  agents: [claude-code, openai-codex, cursor]
+  category: data-ai
+  tags: ["mlx", "vision", "apple-silicon"]
 ---
 
 # MLX-VLM — Vision Language Models on Apple Silicon

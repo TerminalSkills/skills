@@ -7,16 +7,12 @@ description: >-
   using built-in agents (ChatCompletion, OpenAI Assistant), deploying agent
   systems, or comparing agent orchestration patterns.
 license: Apache-2.0
+compatibility: "Python 3.10+ or .NET 8+"
 metadata:
   author: terminal-skills
   version: "1.0.0"
-  category: ai-tools
-  tags: ["microsoft", "agents", "multi-agent", "orchestration", "python", "dotnet"]
-  use-cases:
-    - "Build a multi-agent system where researcher, writer, and editor collaborate"
-    - "Orchestrate sequential agent pipeline for data processing"
-    - "Create custom agents with tool-calling in Python or .NET"
-  agents: [claude-code, openai-codex, cursor]
+  category: development
+  tags: ["microsoft", "multi-agent", "orchestration"]
 ---
 
 # Microsoft Agent Framework
@@ -205,15 +201,13 @@ var kernel = Kernel.CreateBuilder()
 
 ChatCompletionAgent researcher = new()
 {
-    Kernel = kernel,
-    Name = "Researcher",
+    Kernel = kernel, Name = "Researcher",
     Instructions = "You are a research analyst. Find key facts and statistics."
 };
 
 ChatCompletionAgent writer = new()
 {
-    Kernel = kernel,
-    Name = "Writer",
+    Kernel = kernel, Name = "Writer",
     Instructions = "You are a technical writer. Produce clear, engaging content."
 };
 
@@ -250,14 +244,6 @@ async def chat(message: str):
     return {"response": response.content}
 ```
 
-### With Azure Container Apps
-```bash
-az containerapp up \
-  --name agent-service \
-  --source . \
-  --env-vars AZURE_OPENAI_ENDPOINT=... AZURE_OPENAI_KEY=...
-```
-
 ## Tips
 
 - Start with `ChatCompletionAgent` — it works with any chat model provider
@@ -265,4 +251,3 @@ az containerapp up \
 - Set `max_iterations` on termination strategy to prevent infinite agent loops
 - Each agent can have its own kernel with different models — use cheaper models for simple tasks
 - `AgentGroupChat` maintains shared conversation history — all agents see all messages
-- For production, add logging to track which agent responds and why
