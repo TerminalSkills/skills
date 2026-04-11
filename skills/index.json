@@ -284,6 +284,13 @@
       "tags": []
     },
     {
+      "name": "aircrack-ng",
+      "slug": "aircrack-ng",
+      "description": "Audit Wi-Fi networks with the aircrack-ng suite. Use when a user asks to test their own wireless network, capture WPA2 handshakes, crack captured handshakes offline, put an adapter into monitor mode, or perform a wireless pentest under an authorized engagement.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "airflow",
       "slug": "airflow",
       "description": "Apache Airflow is a platform for programmatically authoring, scheduling, and monitoring workflows. Learn to write DAGs, use operators, set up connections, configure scheduling, and deploy with Docker Compose.",
@@ -1704,6 +1711,17 @@
       ]
     },
     {
+      "name": "code-simplification",
+      "slug": "code-simplification",
+      "description": "Simplifies code for clarity without changing behavior. Use when refactoring for readability, when code works but is harder to maintain than it should be, or when reviewing code that has accumulated unnecessary complexity. Covers the five principles, simplification process, and language-specific guidance.",
+      "category": "development",
+      "tags": [
+        "refactoring",
+        "simplification",
+        "code-quality"
+      ]
+    },
+    {
       "name": "coderabbit",
       "slug": "coderabbit",
       "description": "Automate code reviews with CodeRabbit, the AI-powered review tool. Use when a user asks to set up automated PR reviews, configure review rules, integrate with GitHub or GitLab, customize review instructions, or manage CodeRabbit settings.",
@@ -1856,6 +1874,17 @@
       "description": "You are an expert in Contentful, the API-first content platform for enterprise teams. You help developers integrate Contentful's Content Delivery API (CDN-backed, read), Content Management API (write), and Content Preview API (draft content) into websites and apps — using typed content models, localization, rich text rendering, image transformations, and webhooks for build triggers.",
       "category": "Content Management",
       "tags": []
+    },
+    {
+      "name": "context-engineering",
+      "slug": "context-engineering",
+      "description": "Optimizes agent context setup for maximum output quality. Use when starting a new session, when agent output quality degrades, when switching between tasks, or when configuring rules files and context for AI-assisted development. Covers the context hierarchy, packing strategies, and confusion management.",
+      "category": "development",
+      "tags": [
+        "context",
+        "prompt-engineering",
+        "ai-workflow"
+      ]
     },
     {
       "name": "continue-dev",
@@ -2349,6 +2378,17 @@
       ]
     },
     {
+      "name": "design-md",
+      "slug": "design-md",
+      "description": "Use DESIGN.md files to give AI agents a complete design system in plain text. Drop a DESIGN.md into your project root and any AI coding agent generates consistent, pixel-perfect UI matching that design. Use when: building UI with AI agents, maintaining design consistency across AI-generated components, recreating the look of existing websites.",
+      "category": "design",
+      "tags": [
+        "design-system",
+        "ui",
+        "ai-design"
+      ]
+    },
+    {
       "name": "detox",
       "slug": "detox",
       "description": "When the user wants to write end-to-end tests for React Native apps using Detox's gray-box testing approach. Also use when the user mentions \"detox,\" \"React Native testing,\" \"React Native E2E,\" \"gray-box testing,\" or \"Wix Detox.\" For general mobile testing, see appium. For simpler mobile UI flows, see maestro.",
@@ -2446,6 +2486,17 @@
         "dockerfile",
         "compose",
         "devops"
+      ]
+    },
+    {
+      "name": "documentation-and-adrs",
+      "slug": "documentation-and-adrs",
+      "description": "Records architectural decisions and documentation. Use when making architectural decisions, changing public APIs, shipping features, or when you need to record context that future engineers and agents will need to understand the codebase. Covers ADRs, inline docs, API docs, READMEs, and changelogs.",
+      "category": "development",
+      "tags": [
+        "documentation",
+        "adr",
+        "architecture"
       ]
     },
     {
@@ -3142,6 +3193,13 @@
       ]
     },
     {
+      "name": "foremost",
+      "slug": "foremost",
+      "description": "Recover deleted files and carve artifacts from disk images and memory dumps with Foremost. Use when a user asks to extract files from a raw disk image, recover accidentally deleted photos, pull embedded files out of a CTF blob, or carve artifacts from unallocated space.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "form-cro",
       "slug": "form-cro",
       "description": "When the user wants to optimize any form that is NOT signup/registration — including lead capture forms, contact forms, demo request forms, application forms, survey forms, or checkout forms. Also use when the user mentions \"form optimization,\" \"lead form conversions,\" \"form friction,\" \"form fields,\" \"form completion rate,\" or \"contact form.\" For signup/registration forms, see signup-flow-cro. For popups containing forms, see popup-cro.",
@@ -3437,6 +3495,17 @@
       ]
     },
     {
+      "name": "goose",
+      "slug": "goose",
+      "description": "Use Block's Goose — an open-source, extensible AI agent that goes beyond code suggestions to install software, execute commands, edit files, run tests, and manage infrastructure. Use when: setting up Goose, building custom extensions, adding MCP tool support, configuring multi-LLM backends, creating task-specific agents (DevOps, data pipelines, incident response), or comparing Goose to other AI coding agents.",
+      "category": "development",
+      "tags": [
+        "ai-agent",
+        "extensible",
+        "coding-agent"
+      ]
+    },
+    {
       "name": "gptzero",
       "slug": "gptzero",
       "description": "Integrate GPTZero API for AI content detection — text scanning, file upload, batch processing, per-sentence probability scores. Use when: programmatic AI content scanning, academic integrity tools, content moderation pipelines.",
@@ -3569,6 +3638,13 @@
       "slug": "hardhat",
       "description": "Develop and test Ethereum smart contracts with Hardhat. Use when a user asks to set up a Solidity development environment, test smart contracts, deploy to testnets, or debug Ethereum transactions.",
       "category": "development",
+      "tags": []
+    },
+    {
+      "name": "hashcat",
+      "slug": "hashcat",
+      "description": "GPU-accelerated password hash recovery with hashcat. Use when a user asks to crack NTLM/bcrypt/MD5/SHA/WPA hashes, run mask or rule-based attacks, convert a PCAP to a crackable hash, or benchmark hash cracking throughput on their own hardware.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -3727,6 +3803,13 @@
       "tags": []
     },
     {
+      "name": "hping3",
+      "slug": "hping3",
+      "description": "Craft custom TCP/UDP/ICMP packets with hping3. Use when a user asks to test firewall rules, probe services with non-default flags, measure RTT to a TCP port, map open ports behind an ICMP-blocking host, or simulate packet patterns for network troubleshooting on systems they control.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "htmx",
       "slug": "htmx",
       "description": "htmx gives you access to AJAX, CSS transitions, WebSockets, and Server-Sent Events directly in HTML using attributes. It enables dynamic web UIs without writing JavaScript by letting any element issue HTTP requests and swap content into the DOM.",
@@ -3768,6 +3851,13 @@
       "tags": []
     },
     {
+      "name": "hydra",
+      "slug": "hydra",
+      "description": "Run online login brute-force and password spraying with THC Hydra. Use when a user asks to test the login strength of SSH/FTP/HTTP/SMB/RDP services they own, validate a credential list against a target during an authorized engagement, or run a CTF login brute challenge.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "i18next",
       "slug": "i18next",
       "description": "Internationalize JavaScript apps with i18next. Use when adding translations, handling plurals, loading locale files dynamically, or i18n for React/Vue/Node.",
@@ -3799,6 +3889,17 @@
       "description": "Expert guidance for Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. Helps developers write analytics code once and run it anywhere without rewriting SQL for each database.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "idea-refine",
+      "slug": "idea-refine",
+      "description": "Refines raw ideas into sharp, actionable concepts through structured divergent and convergent thinking. Use when you have a vague idea that needs sharpening, want to stress-test a plan, or need to explore variations before committing to a direction. Produces a concrete markdown one-pager with problem statement, assumptions, MVP scope, and trade-offs.",
+      "category": "productivity",
+      "tags": [
+        "ideation",
+        "refinement",
+        "planning"
+      ]
     },
     {
       "name": "image-analysis",
@@ -3883,6 +3984,17 @@
         "deep-modules",
         "testability",
         "codebase-health"
+      ]
+    },
+    {
+      "name": "incremental-implementation",
+      "slug": "incremental-implementation",
+      "description": "Delivers changes incrementally in thin vertical slices. Use when implementing any feature or change that touches more than one file, when you're about to write a large amount of code at once, or when a task feels too big to land in one step. Each increment leaves the system in a working, testable state.",
+      "category": "development",
+      "tags": [
+        "incremental",
+        "implementation",
+        "workflow"
       ]
     },
     {
@@ -4073,6 +4185,13 @@
       ]
     },
     {
+      "name": "john-the-ripper",
+      "slug": "john-the-ripper",
+      "description": "Crack password hashes offline with John the Ripper. Use when a user asks to identify an unknown hash format, recover a forgotten password from a local database or ZIP file, run a CTF hash challenge, or audit the strength of hashes from a system they own.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "jotai",
       "slug": "jotai",
       "description": "You are an expert in Jotai, the primitive and flexible state management library for React based on atomic state. You help developers build React applications with fine-grained reactivity using atoms (state primitives), derived atoms (computed values), async atoms (data fetching), and atom families — providing bottom-up state management where only components subscribing to changed atoms re-render.",
@@ -4149,6 +4268,13 @@
       "slug": "kaggle-finetune",
       "description": "End-to-end workflow for fine-tuning LLMs using Kaggle datasets. Use when downloading datasets from Kaggle for model training, preparing conversation/customer service data for chatbot fine-tuning, or building domain-specific AI assistants. Covers dataset discovery, download, preprocessing into chat format, and integration with PEFT/LoRA training.",
       "category": "data-ai",
+      "tags": []
+    },
+    {
+      "name": "kali-linux",
+      "slug": "kali-linux",
+      "description": "Use Kali Linux for authorized penetration testing, security research, and CTF work. Use when a user asks about installing Kali, setting up a pentest lab, picking tools from the Kali toolchain, using Kali in WSL/Docker/VM, or updating the distribution.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -4943,6 +5069,17 @@
       "tags": []
     },
     {
+      "name": "microsoft-agent-framework",
+      "slug": "microsoft-agent-framework",
+      "description": "Build multi-agent AI systems with Microsoft's Agent Framework (formerly Semantic Kernel Agents). Use when: defining AI agents, orchestrating multi-agent workflows (sequential, parallel, conditional), creating custom agents in Python or .NET, using built-in agents (ChatCompletion, OpenAI Assistant), deploying agent systems, or comparing agent orchestration patterns.",
+      "category": "development",
+      "tags": [
+        "microsoft",
+        "multi-agent",
+        "orchestration"
+      ]
+    },
+    {
       "name": "microsoft-teams",
       "slug": "microsoft-teams",
       "description": "Build bots, automate workflows, and manage Microsoft Teams programmatically via Microsoft Graph API. Use when someone asks to \"build a Teams bot\", \"automate Teams messages\", \"create Teams channels\", \"integrate with Teams\", \"Teams webhook\", \"send Teams notifications\", \"manage Teams meetings\", or \"Teams app development\". Covers Graph API for messaging, channels, meetings, bots with Bot Framework, incoming webhooks, and Power Automate integration.",
@@ -5056,6 +5193,17 @@
       "description": "Open-source platform for managing the ML lifecycle. Track experiments with metrics and parameters, register and version models, deploy models to various targets, and build reproducible ML pipelines. Integrates with all major ML frameworks.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "mlx-vlm",
+      "slug": "mlx-vlm",
+      "description": "Run Vision Language Models locally on Apple Silicon Macs using MLX. Use when: installing mlx-vlm, running VLM inference (image + text → response), fine-tuning vision models on custom datasets, batch processing images with local AI, comparing local VLM to cloud APIs (GPT-4V, Claude Vision), or working with LLaVA, Phi-3-Vision, Qwen2-VL, Pixtral, Llama-3.2-Vision on Mac.",
+      "category": "data-ai",
+      "tags": [
+        "mlx",
+        "vision",
+        "apple-silicon"
+      ]
     },
     {
       "name": "mobx",
@@ -5656,6 +5804,17 @@
       "description": "Open Neural Network Exchange format for model interoperability across frameworks. Export models from PyTorch, TensorFlow, and other frameworks to ONNX, optimize with ONNX Runtime, and deploy for cross-platform inference on CPU, GPU, and edge devices.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "onyx-ai",
+      "slug": "onyx-ai",
+      "description": "Deploy and configure Onyx, a self-hosted AI chat platform with RAG and 25+ data connectors. Use when: setting up private ChatGPT alternative, connecting AI to company documents, building enterprise AI assistant with Confluence/Slack/Drive access.",
+      "category": "data-ai",
+      "tags": [
+        "self-hosted",
+        "rag",
+        "enterprise-ai"
+      ]
     },
     {
       "name": "opa",
@@ -6615,6 +6774,17 @@
       ]
     },
     {
+      "name": "prompts-chat",
+      "slug": "prompts-chat",
+      "description": "Browse, search, and self-host a community prompt library with 1000+ curated prompts. Use when: finding proven prompts for specific tasks, building a team prompt library, learning prompt patterns from community-tested examples.",
+      "category": "productivity",
+      "tags": [
+        "prompts",
+        "prompt-library",
+        "community"
+      ]
+    },
+    {
       "name": "proposal-writer",
       "slug": "proposal-writer",
       "description": "Create compelling business proposals that win deals and partnerships. Use when a user asks to write a proposal, draft a business proposal, create a project proposal, prepare a bid, write a pitch document, or generate a partnership proposal. Produces structured, persuasive documents ready for client delivery.",
@@ -7431,6 +7601,17 @@
       "tags": []
     },
     {
+      "name": "sherlock",
+      "slug": "sherlock",
+      "description": "Search for social media accounts by username across 400+ platforms using Sherlock. Use when: OSINT investigations, finding online presence by username, digital footprint analysis, brand monitoring across social platforms.",
+      "category": "research",
+      "tags": [
+        "osint",
+        "social-media",
+        "username-search"
+      ]
+    },
+    {
       "name": "shodan",
       "slug": "shodan",
       "description": "Shodan API integration for discovering internet-connected devices and services. Use when: mapping attack surface, finding exposed services by port/product/CVE, IoT device discovery, IP reputation checks, monitoring infrastructure exposure.",
@@ -7469,6 +7650,13 @@
       "slug": "signup-flow-cro",
       "description": "When the user wants to optimize signup, registration, account creation, or trial activation flows. Also use when the user mentions \"signup conversions,\" \"registration friction,\" \"signup form optimization,\" \"free trial signup,\" \"reduce signup dropoff,\" or \"account creation flow.\" For post-signup onboarding, see onboarding-cro. For lead capture forms (not account creation), see form-cro.",
       "category": "business",
+      "tags": []
+    },
+    {
+      "name": "skipfish",
+      "slug": "skipfish",
+      "description": "Run active web application reconnaissance with SkipFish. Use when a user asks to scan a web app they own for directory enumeration, injection vulnerabilities, and misconfigurations, or wants a fast dictionary-driven crawl with HTML output as a starting point for manual review.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -7522,6 +7710,13 @@
       "slug": "social-content",
       "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies.",
       "category": "business",
+      "tags": []
+    },
+    {
+      "name": "social-engineer-toolkit",
+      "slug": "social-engineer-toolkit",
+      "description": "Run authorized red team social engineering assessments with the Social Engineer Toolkit (SET). Use when a user asks to simulate a phishing campaign for security awareness training, clone a login page for a sanctioned exercise, or test an organization's human-layer defenses under a signed engagement.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -8395,6 +8590,17 @@
       "tags": []
     },
     {
+      "name": "timesfm",
+      "slug": "timesfm",
+      "description": "Forecast time series data using Google's TimesFM foundation model with zero-shot prediction. Use when: forecasting sales or demand, predicting server metrics, financial time series analysis, anomaly detection without training custom models.",
+      "category": "data-ai",
+      "tags": [
+        "forecasting",
+        "time-series",
+        "google-research"
+      ]
+    },
+    {
       "name": "tinacms",
       "slug": "tinacms",
       "description": "Expert guidance for TinaCMS, the open-source headless CMS that stores content in Git (Markdown/MDX/JSON) and provides visual editing capabilities. Helps developers set up TinaCMS with Next.js, define content schemas, and build visual editing experiences where editors can see changes in real time.",
@@ -8804,6 +9010,17 @@
       "description": "Expert guidance for user research, helping product teams conduct interviews, create personas, design surveys, run usability tests, and synthesize findings into actionable insights. Applies both qualitative methods (interviews, contextual inquiry) and quantitative methods (surveys, analytics) to build deep understanding of user needs, behaviors, and motivations.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "using-agent-skills",
+      "slug": "using-agent-skills",
+      "description": "Meta-skill for discovering and invoking the right agent skill for any task. Use when starting a session, when unsure which skill applies, or when you need to understand the development lifecycle and how skills chain together. Covers skill discovery, core operating behaviors, and failure modes to avoid.",
+      "category": "productivity",
+      "tags": [
+        "agent-skills",
+        "meta",
+        "workflow"
+      ]
     },
     {
       "name": "uvicorn",
@@ -9221,6 +9438,13 @@
       "tags": []
     },
     {
+      "name": "wireshark",
+      "slug": "wireshark",
+      "description": "Capture and analyze network traffic with Wireshark and tshark. Use when a user asks to sniff packets, debug a protocol, extract files from PCAPs, inspect TLS handshakes, troubleshoot network latency, or triage a CTF PCAP challenge.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "woocommerce",
       "slug": "woocommerce",
       "description": "Build e-commerce stores with WooCommerce for WordPress. Use when a user asks to add a shop to WordPress, manage products and orders, customize checkout, integrate payment gateways, or build a WordPress-based online store.",
@@ -9476,5 +9700,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-04-05T10:04:30.311Z"
+  "updatedAt": "2026-04-11T11:25:35.644Z"
 }
