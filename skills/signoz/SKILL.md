@@ -1,11 +1,11 @@
 ---
 name: signoz
-description: Expert guidance for SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. Helps developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.
+description: "Set up and configure SigNoz, the open-source observability platform built on OpenTelemetry. Use when the user asks about SigNoz, OpenTelemetry instrumentation for SigNoz, self-hosted observability, distributed tracing with SigNoz, migrating from Datadog or New Relic to SigNoz, or configuring SigNoz dashboards and alerts. Covers deployment, application instrumentation, custom metrics, structured logging, and alert configuration."
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: devops
   tags:
   - observability
@@ -17,25 +17,22 @@ metadata:
 
 # SigNoz — Open-Source Observability Platform
 
-
-## Overview
-
-
-SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. Helps developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.
-
-
 ## Instructions
 
 ### Deployment
 
 ```bash
 # Docker Compose (quickstart)
-git clone -b main https://github.com/SigNoz/signoz.git
-cd signoz/deploy
+git clone -b main https://github.com/SigNoz/signoz.git && cd signoz/deploy
 docker compose -f docker/clickhouse-setup/docker-compose.yaml up -d
 
+# Verify: curl http://localhost:3301/api/v1/health
 # SigNoz UI at http://localhost:3301
 # OTel Collector at localhost:4317 (gRPC) / localhost:4318 (HTTP)
+
+# Helm (Kubernetes)
+helm repo add signoz https://charts.signoz.io
+helm install signoz signoz/signoz -n observability --create-namespace
 ```
 
 ### Instrument a Node.js Application
@@ -225,49 +222,35 @@ export default logger;
 # Notification channels: Slack, PagerDuty, webhook, email, MS Teams, Opsgenie
 ```
 
-## Installation
+### Client Libraries
 
 ```bash
-# Self-hosted (Docker Compose)
-git clone https://github.com/SigNoz/signoz.git
-cd signoz/deploy && docker compose up -d
-
-# Helm (Kubernetes)
-helm repo add signoz https://charts.signoz.io
-helm install signoz signoz/signoz -n observability --create-namespace
-
-# SigNoz Cloud (managed)
-# https://signoz.io/teams/
-
-# Client instrumentation
-npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node
-npm install @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http
+npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node \
+  @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http
 ```
-
 
 ## Examples
 
+### Example 1: Instrument a Node.js API with Docker Compose
 
-### Example 1: Setting up Signoz for a microservices project
+**User request:** "I have a Node.js API running in Docker. Set up SigNoz for tracing."
 
-**User request:**
+1. Add SigNoz services to `docker-compose.yml` using the SigNoz deploy config
+2. Install OTel packages: `npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node @opentelemetry/exporter-trace-otlp-http`
+3. Create `tracing.ts` with auto-instrumentation pointing to `http://signoz-otel-collector:4318`
+4. Import `tracing.ts` as the first import in `index.ts`
+5. Restart containers: `docker compose up -d --build`
+6. Verify: open `http://localhost:3301/services` — the service name appears within 30 seconds
 
-```
-I have a Node.js API and a React frontend running in Docker. Set up Signoz for monitoring/deployment.
-```
+### Example 2: Debug missing traces
 
-The agent creates the necessary configuration files based on patterns like `# Docker Compose (quickstart)`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
+**User request:** "SigNoz shows no traces for my service."
 
-### Example 2: Troubleshooting instrument a node.js application issues
-
-**User request:**
-
-```
-Signoz is showing errors in our instrument a node.js application. Here are the logs: [error output]
-```
-
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Signoz issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
-
+1. Check OTel Collector is reachable: `curl http://localhost:4318/v1/traces` — expect 405 (method not allowed = endpoint exists)
+2. Verify `OTEL_EXPORTER_OTLP_ENDPOINT` matches the collector address and port
+3. Confirm `tracing.ts` is imported before all other imports (auto-instrumentation must patch modules first)
+4. Check collector logs: `docker logs signoz-otel-collector 2>&1 | grep -i error`
+5. Send a test request to the API and check `http://localhost:3301/traces` within 30 seconds
 
 ## Guidelines
 
