@@ -1,14 +1,16 @@
 ---
 name: gcp-cloud-run
 description: |
-  Deploy serverless containers on Google Cloud Run. Build and push container
-  images, configure auto-scaling from zero, split traffic between revisions
-  for canary deployments, and set up custom domains with managed TLS.
+  Deploy serverless containers on Google Cloud Run — services for HTTP traffic,
+  jobs for batch and scheduled tasks, and worker pools for always-on pull-based
+  background processing. Build and push container images, configure auto-scaling
+  from zero, split traffic for canary deploys, and set up custom domains with
+  managed TLS.
 license: Apache-2.0
 compatibility: 'gcloud-cli, terraform'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - gcp
@@ -19,17 +21,24 @@ metadata:
 
 # GCP Cloud Run
 
+## Overview
+
 Google Cloud Run is a fully managed serverless platform for running containers. It automatically scales from zero to thousands of instances, charges only for actual usage, and supports any language or binary that can run in a container.
 
-## Core Concepts
+## Instructions
 
-- **Service** — a long-running container that auto-scales based on traffic
+### Core Concepts
+
+- **Service** — a long-running container that auto-scales based on HTTP traffic
 - **Revision** — an immutable snapshot of a service's configuration and code
 - **Traffic splitting** — route percentages of traffic to different revisions
 - **Job** — run a container to completion (batch, cron, one-off tasks)
+- **Worker pool** — always-on container for pull-based background work (Pub/Sub pull, Kafka consumer, RabbitMQ)
 - **Concurrency** — max simultaneous requests per container instance
 
-## Deploying a Service
+> **CRITICAL:** Code MUST listen on `0.0.0.0` (not `127.0.0.1`) and use the injected `$PORT` env var (defaults to `8080`), or the container will crash on boot.
+
+### Deploying a Service
 
 ```bash
 # Deploy from source code (Cloud Build + Cloud Run)
@@ -59,7 +68,7 @@ gcloud run deploy web-app \
   --set-secrets "DATABASE_URL=db-url:latest,API_KEY=api-key:latest"
 ```
 
-## Building and Pushing Images
+### Building and Pushing Images
 
 ```bash
 # Build with Cloud Build and push to Artifact Registry
@@ -86,7 +95,7 @@ EXPOSE 8080
 CMD ["node", "dist/server.js"]
 ```
 
-## Traffic Splitting
+### Traffic Splitting
 
 ```bash
 # Deploy a new revision without sending traffic
@@ -117,7 +126,7 @@ gcloud run services update-traffic web-app \
   --to-revisions web-app-00001=100
 ```
 
-## Cloud Run Jobs
+### Cloud Run Jobs
 
 ```bash
 # Create a batch job
@@ -146,7 +155,31 @@ gcloud scheduler jobs create http data-export-daily \
   --oauth-service-account-email my-sa@my-project.iam.gserviceaccount.com
 ```
 
-## Custom Domains
+### Worker Pools (Pull-Based Workloads)
+
+Worker pools handle long-running background work that pulls from a queue — Pub/Sub pull subscriptions, Kafka consumers, RabbitMQ. Unlike services, they have no HTTP endpoint and are not driven by request traffic.
+
+```bash
+# Deploy a Pub/Sub worker pool
+gcloud run worker-pools deploy events-consumer \
+  --image us-central1-docker.pkg.dev/my-project/repo/consumer:v1.0.0 \
+  --region us-central1 \
+  --memory 1Gi --cpu 1 \
+  --min-instances 1 --max-instances 20 \
+  --set-env-vars "SUBSCRIPTION=projects/my-project/subscriptions/events-pull"
+```
+
+```bash
+# Deploy from source (uses Cloud Build + buildpacks)
+gcloud run worker-pools deploy events-consumer \
+  --source . --region us-central1
+```
+
+Use worker pools instead of:
+- **Services** when there's no HTTP traffic to scale on (pull workloads need their own scaling signal)
+- **Jobs** when the work is continuous, not a discrete task with an end
+
+### Custom Domains
 
 ```bash
 # Map a custom domain
@@ -163,7 +196,7 @@ gcloud run domain-mappings describe \
   --region us-central1
 ```
 
-## Service Configuration
+### Service Configuration
 
 ```bash
 # Update environment variables and secrets
@@ -183,7 +216,7 @@ gcloud run services add-iam-policy-binding web-app \
   --role="roles/run.invoker"
 ```
 
-## Monitoring
+### Monitoring
 
 ```bash
 # View service details and URL
@@ -200,7 +233,17 @@ gcloud run revisions list --service web-app --region us-central1
 gcloud run services logs tail web-app --region us-central1
 ```
 
-## Best Practices
+## Examples
+
+### Example 1 — Ship a new web service with safe canary rollout
+
+User wants to deploy a new revision of a Node.js API. Build and push the image to Artifact Registry, deploy with `--no-traffic` so it doesn't take live requests, run smoke tests against the revision URL, then `update-traffic --to-revisions web-app-00002=10,web-app-00001=90` for a 10% canary. After 30 minutes of clean metrics, promote with `--to-latest`. If errors spike, rollback by routing 100% to the previous revision — no redeploy needed.
+
+### Example 2 — Convert a self-hosted Kafka consumer to a worker pool
+
+User runs a Kafka consumer on a Compute Engine VM. Containerize the consumer, deploy as a Cloud Run worker pool with `--min-instances=1 --max-instances=10`, attach a service account with the Kafka topic's read access, and remove the VM. Worker pools auto-scale on CPU/memory, restart on crash, and cost only for actual instance time — no provisioning headaches.
+
+## Guidelines
 
 - Set min-instances=1 for latency-sensitive services to avoid cold starts
 - Use concurrency settings matching your app's thread model (default 80)
@@ -210,3 +253,4 @@ gcloud run services logs tail web-app --region us-central1
 - Use traffic splitting for safe canary deployments
 - Set appropriate request timeouts (default 300s, max 3600s)
 - Use Cloud Run Jobs for batch work instead of long-running services
+- Use Worker Pools for always-on pull-based work (Pub/Sub pull, Kafka, RabbitMQ) instead of dedicated VMs

@@ -3294,6 +3294,20 @@
       "tags": []
     },
     {
+      "name": "gcp-alloydb",
+      "slug": "gcp-alloydb",
+      "description": "Provision and manage AlloyDB for PostgreSQL clusters and instances on Google Cloud — a managed, PostgreSQL-compatible database with disaggregated compute/storage, columnar engine, and AlloyDB AI for vector search and natural-language queries. Use for HA clusters, read pools, IAM database auth, and Terraform-managed AlloyDB deployments.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-auth",
+      "slug": "gcp-auth",
+      "description": "Configure authentication and authorization for Google Cloud — Application Default Credentials (ADC), service account impersonation, Workload Identity Federation for GKE and external clouds, and OIDC ID tokens for service-to- service auth. Use when setting up local dev access, deploying to Cloud Run / Cloud Functions / GKE, or calling private Google Cloud APIs.",
+      "category": "devops",
+      "tags": []
+    },
+    {
       "name": "gcp-bigquery",
       "slug": "gcp-bigquery",
       "description": "Analyze massive datasets with Google BigQuery. Run SQL queries on petabytes of data, load and stream data in real-time, create materialized views, and use BigQuery ML for machine learning models directly in SQL.",
@@ -3310,7 +3324,14 @@
     {
       "name": "gcp-cloud-run",
       "slug": "gcp-cloud-run",
-      "description": "Deploy serverless containers on Google Cloud Run. Build and push container images, configure auto-scaling from zero, split traffic between revisions for canary deployments, and set up custom domains with managed TLS.",
+      "description": "Deploy serverless containers on Google Cloud Run — services for HTTP traffic, jobs for batch and scheduled tasks, and worker pools for always-on pull-based background processing. Build and push container images, configure auto-scaling from zero, split traffic for canary deploys, and set up custom domains with managed TLS.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-cloud-sql",
+      "slug": "gcp-cloud-sql",
+      "description": "Provision and manage Cloud SQL instances on Google Cloud for MySQL, PostgreSQL, and SQL Server. Configure high availability, read replicas, automated backups, IAM database authentication, the Cloud SQL Auth Proxy, and Terraform deployments. Use for managed relational databases on GCP.",
       "category": "devops",
       "tags": []
     },
@@ -3325,6 +3346,41 @@
       "name": "gcp-firestore",
       "slug": "gcp-firestore",
       "description": "Build real-time applications with Google Cloud Firestore. Model data with collections and documents, execute queries with composite indexes, set up real-time listeners for live updates, enable offline persistence, and write security rules for client-side access control.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-gke",
+      "slug": "gcp-gke",
+      "description": "Provision and operate production-ready Google Kubernetes Engine (GKE) clusters using Autopilot as the golden path. Covers Autopilot vs Standard, private clusters, Workload Identity, autoscaling, GPU/TPU node pools for AI inference, cost optimization with Spot VMs, and observability via Managed Prometheus.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-networking-observability",
+      "slug": "gcp-networking-observability",
+      "description": "Investigate Google Cloud networking issues by analyzing VPC Flow Logs, firewall logs, Cloud NAT logs, threat logs, and networking metrics. Run Connectivity Tests for path diagnostics and use BigQuery linked datasets for high-volume traffic analysis. Use when troubleshooting connection failures, latency, packet loss, or top-talkers.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-waf-cost-optimization",
+      "slug": "gcp-waf-cost-optimization",
+      "description": "Apply the Google Cloud Well-Architected Framework's Cost Optimization pillar to evaluate workloads and recommend FinOps practices — billing exports, budgets, rightsizing via Active Assist, Spot VMs, Committed Use Discounts, storage lifecycle policies, and serverless adoption. Use for cloud cost reviews, monthly billing analysis, and architecture cost decisions.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-waf-reliability",
+      "slug": "gcp-waf-reliability",
+      "description": "Apply the Google Cloud Well-Architected Framework's Reliability pillar — define user-centric SLOs, eliminate single points of failure with multi-zone/region redundancy, configure horizontal autoscaling, observability via Cloud Monitoring, graceful degradation patterns, DR testing, and blameless postmortems. Use for production readiness reviews and SRE practices.",
+      "category": "devops",
+      "tags": []
+    },
+    {
+      "name": "gcp-waf-security",
+      "slug": "gcp-waf-security",
+      "description": "Apply the Google Cloud Well-Architected Framework's Security pillar — security by design, zero trust with IAP and BeyondCorp, shift-left scanning in CI/CD, Binary Authorization, VPC Service Controls, Cloud Armor, Sensitive Data Protection, and Security Command Center. Use for security architecture reviews, hardening checklists, and compliance evaluations.",
       "category": "devops",
       "tags": []
     },
@@ -9700,5 +9756,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-04-11T11:25:35.644Z"
+  "updatedAt": "2026-05-02T20:19:22.025Z"
 }

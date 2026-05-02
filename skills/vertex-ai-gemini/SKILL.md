@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Python 3.9+ with google-cloud-aiplatform SDK and GCP credentials"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["vertex-ai", "google-cloud", "gemini", "enterprise", "mlops"]
   use-cases:
@@ -38,7 +38,45 @@ Vertex AI is Google Cloud's enterprise ML platform. It provides access to the sa
 | Pricing | Per token | Per token (different rates) |
 | Quotas | Shared | Project-level quotas |
 
-## Setup
+> **Naming note:** "Vertex AI" is being rebranded to **Agent Platform** (full name: Gemini Enterprise Agent Platform). The endpoints, IAM roles, and SDKs are the same product — most documentation still uses the legacy "Vertex AI" name.
+
+## SDK Choice — Use the Unified Gen AI SDK
+
+Google now ships a single `google-genai` SDK that targets both Agent Platform (Vertex) and Google AI Studio with the same code. **Use this for all new code.** The legacy `google-cloud-aiplatform` and `vertexai` modules are deprecated.
+
+| New (use this) | Legacy (deprecated) |
+|---|---|
+| `google-genai` (Python) | `google-cloud-aiplatform`, `google-generativeai` |
+| `@google/genai` (JS/TS) | `@google-cloud/vertexai` |
+| `google.golang.org/genai` (Go) | `cloud.google.com/go/vertexai` |
+| `com.google.genai:google-genai` (Java) | — |
+| `Google.GenAI` (.NET) | — |
+
+```bash
+# Recommended: unified Gen AI SDK
+pip install google-genai
+```
+
+```python
+import os
+from google import genai
+
+os.environ["GOOGLE_CLOUD_PROJECT"] = "my-project-id"
+os.environ["GOOGLE_CLOUD_LOCATION"] = "global"  # routes to nearest region
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "true"
+
+client = genai.Client()  # picks up env vars
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Explain containerization in simple terms.",
+)
+print(response.text)
+```
+
+Use `location="global"` by default — routes to the region with available capacity. Pin to a specific region (`us-central1`, `europe-west4`) only when data residency requires it.
+
+## Setup (Legacy SDK — only for existing code)
 
 ```bash
 pip install google-cloud-aiplatform
@@ -59,6 +97,8 @@ export GOOGLE_CLOUD_LOCATION=us-central1
 ```
 
 ## Instructions
+
+> The examples below use the legacy `google-cloud-aiplatform` SDK. For new code, prefer the unified `google-genai` SDK shown above — same capabilities, cross-platform, current best practice.
 
 ### Basic Gemini Inference
 
@@ -261,12 +301,23 @@ vertexai.init(
 
 Use `gemini-2.0-flash-001` (version pinned) in production to avoid unexpected model changes.
 
+## Examples
+
+### Example 1 — Migrate a Python service from `google-cloud-aiplatform` to `google-genai`
+
+User has a recommendation service running on Cloud Run that uses the legacy `google-cloud-aiplatform` SDK. Replace `pip install google-cloud-aiplatform` with `pip install google-genai`, swap `vertexai.init(...)` + `GenerativeModel(...)` for `genai.Client()` (with `GOOGLE_GENAI_USE_VERTEXAI=true`), update `model.generate_content(...)` to `client.models.generate_content(model=..., contents=...)`. Keep the existing service account and IAM bindings — same auth, new SDK. Pin to `gemini-2.5-flash` for cost, validate parity in staging before cutover.
+
+### Example 2 — Run nightly batch translation of 5M product titles
+
+User has 5M product titles in BigQuery to translate into 4 languages. Streaming inference would be slow and expensive. Format input as JSONL in GCS (`{"request": {"contents": [...]}}`) per row × language, submit a `BatchPredictionJob` against `gemini-2.5-flash`, and let it run unattended. Output JSONL lands in GCS, load it back into BigQuery via `bq load`. Cost is roughly half of streaming, runtime is hours not days.
+
 ## Guidelines
 
-- Always pin model versions (e.g., `gemini-2.0-flash-001` not `gemini-2.0-flash`) in production for stability.
+- **Use `google-genai` for all new code** — `google-cloud-aiplatform` and `google-generativeai` are deprecated.
+- Always pin model versions in production for stability — `gemini-2.5-flash` is fine for non-prod, but production should target a specific build.
 - Use Application Default Credentials (`gcloud auth application-default login`) during development.
 - In GKE or Cloud Run, use Workload Identity — no service account keys needed.
+- Default `location="global"` for the Gen AI SDK; pin to a region only for data residency.
 - Fine-tuning requires a training JSONL with `messages` format and at least 100 examples.
 - Batch prediction is cost-effective for offline bulk inference (no streaming).
 - Enable Cloud Audit Logs on the `aiplatform.googleapis.com` service for compliance.
-- Vertex AI supports regional endpoints — choose a region to ensure data residency compliance.

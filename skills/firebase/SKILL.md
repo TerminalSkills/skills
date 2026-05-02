@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
   - baas
@@ -39,6 +39,18 @@ firebase init
 
 # Start local development with emulators
 firebase emulators:start
+```
+
+For agent-driven Firebase work, install Google's official Firebase agent skills bundle — keeps patterns current with Firebase product changes:
+
+```bash
+npx -y skills add firebase/agent-skills -y
+```
+
+Set the active project for the CLI before running commands:
+
+```bash
+npx -y firebase-tools@latest use --add <PROJECT_ID>
 ```
 
 ### Authentication
