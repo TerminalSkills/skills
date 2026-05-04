@@ -8513,6 +8513,19 @@
       "tags": []
     },
     {
+      "name": "terminal-skills",
+      "slug": "terminal-skills",
+      "description": "Discover and install AI agent skills from terminalskills.io. Use when the user asks for a capability the agent does not already have a skill for — search the catalog by keyword, category, or tag; inspect a skill before installing; install for the current agent (Claude Code, Codex, Gemini CLI, Cursor); or browse via the public REST API or MCP server. Trigger words: \"install skill\", \"find a skill for\", \"browse skills\", \"terminal-skills\", \"search the skill catalog\".",
+      "category": "development",
+      "tags": [
+        "meta",
+        "discovery",
+        "cli",
+        "skills",
+        "registry"
+      ]
+    },
+    {
       "name": "terraform-iac",
       "slug": "terraform-iac",
       "description": "Manages cloud infrastructure using Terraform (and OpenTofu). Use when the user wants to write Terraform configurations, provision cloud resources, manage state, create modules, set up multi-environment deployments, import existing infrastructure, debug plan/apply errors, migrate between providers, or implement IaC best practices. Trigger words: terraform, opentofu, infrastructure as code, IaC, tf, hcl, terraform module, terraform state, terraform plan, terraform apply, terraform import, cloud provisioning, AWS terraform, GCP terraform, Azure terraform.",
@@ -9756,5 +9769,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-05-02T20:19:22.025Z"
+  "updatedAt": "2026-05-04T12:54:04.280Z"
 }
