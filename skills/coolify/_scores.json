@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d25c68b812be025fefac3e681151667e735d13fa0b351f511b9370ee517903b4",
+  "scoredAt": "2026-05-12T00:00:00Z",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Happy path is well covered, but the skill does not explain what to do when a deploy fails beyond fetching logs (no rollback or build-cache guidance, no common-error catalogue)."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.58,
+    "baselineAvg": 36,
+    "treatmentAvg": 92,
+    "scenarios": [
+      {
+        "name": "deploy-nextjs-with-env-sync",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Without the skill, the agent stitched together a manual while-loop curl pipeline to push env vars and used a GET-based deploy trigger. With the skill it used the canonical 'coolify app env sync --file', noted the non-destructive semantics, and used 'coolify deploy uuid' plus 'coolify app deployments logs' for monitoring."
+      },
+      {
+        "name": "debug-failed-deployment",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline reached for GitHub Actions logs and curl against deployment status endpoints; treatment led with the exact 'coolify app deployments logs dep-789xyz' command, distinguished build-time from runtime errors, and surfaced 'coolify deploy cancel' for stuck queues."
+      },
+      {
+        "name": "postgres-with-nightly-backups",
+        "baseline": 62,
+        "treatment": 100,
+        "rationale": "Both arrived at a correct cron schedule and noted S3 must be pre-configured. Baseline did so via raw REST calls (curl POST to /api/v1/databases); treatment used 'coolify database create postgresql' and 'coolify database backup create --frequency --s3' which is the documented path."
+      },
+      {
+        "name": "github-actions-deploy-webhook",
+        "baseline": 72,
+        "treatment": 67,
+        "rationale": "Both agents independently used 'curl GET /api/v1/deploy?uuid=...' instead of the POST-with-JSON-body shown in the skill, so the skill did not lift the score here. Baseline edged out treatment because it added a --fail flag and a status-polling step. Signal: the skill's CI/CD example should call out POST vs GET explicitly and explain when each is appropriate."
+      },
+      {
+        "name": "manage-multiple-coolify-instances",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Largest lift in the set. Without the skill, the agent invented a custom shell-alias / INI-file scheme with env-var swapping — exactly what the skill explicitly warns against. With the skill it used the built-in 'coolify context add/use/list/verify' commands, which are not discoverable from general knowledge."
+      }
+    ]
+  }
+}

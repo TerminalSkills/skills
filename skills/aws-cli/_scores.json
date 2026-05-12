@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:9a2e9155f525f52d5851ce697e7a8b826d4a70fd0338855d02101a2fc9a4da25",
+  "scoredAt": "2026-05-12T00:00:00Z",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "body-structure",
+        "detail": "Examples content is thin — commands are listed but not framed as user-request → actions → output demonstrations, and IAM/CloudWatch sections show inputs without expected outputs."
+      },
+      {
+        "severity": "HIGH",
+        "category": "body-structure",
+        "detail": "Guidelines content is absent — no do/don't advice, gotchas, or best-practices callouts anywhere."
+      },
+      {
+        "severity": "INFO",
+        "category": "body-structure",
+        "detail": "Uses topical cookbook headings (Installation and Configuration, S3 Operations, EC2 Management, Lambda Functions, CloudWatch, IAM Management, Useful Patterns) instead of the conventional Overview/Instructions/Examples/Guidelines template. Content organization is otherwise complete."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "frontmatter",
+        "detail": "tags array has 6 entries; library convention is 3-5."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "cross-platform",
+        "detail": "compatibility claims linux/macos/windows but only the Linux install command is shown."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

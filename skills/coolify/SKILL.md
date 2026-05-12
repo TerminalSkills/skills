@@ -14,6 +14,66 @@ metadata:
   version: "1.0.0"
   category: devops
   tags: ["coolify", "paas", "deployment", "self-hosting", "docker"]
+evals:
+  - name: deploy-nextjs-with-env-sync
+    prompt: |
+      Deploy my Next.js app to my Coolify instance. The app UUID is
+      abc123-def456. Before deploying, sync the production env vars from my
+      local .env.production file. Then trigger the deploy and tell me how
+      to monitor the logs.
+    rubric: |
+      Score 0-100 by points achieved:
+      - Uses `coolify app env sync abc123-def456 --file .env.production` (or equivalent --file flag): 30pts
+      - Notes the sync is non-destructive (keeps unlisted vars intact): 10pts
+      - Uses `coolify deploy uuid abc123-def456` (not dashboard UI, not `coolify deploy app`): 30pts
+      - Mentions `coolify app deployments logs <deployment-uuid>` for monitoring: 20pts
+      - Does NOT recommend scp/SSH or manual file copy of the .env: 10pts
+  - name: debug-failed-deployment
+    prompt: |
+      My deployment to Coolify just failed. The deployment UUID is dep-789xyz.
+      Help me figure out what went wrong and how to fix it.
+    rubric: |
+      Score 0-100 by points achieved:
+      - First diagnostic step is `coolify app deployments logs dep-789xyz` (NOT SSH-into-server): 35pts
+      - Distinguishes build-time vs runtime errors when interpreting logs: 15pts
+      - Suggests `coolify deploy cancel <uuid>` if the deploy is stuck/queued: 15pts
+      - Mentions checking env vars / config if logs show missing-config errors: 15pts
+      - Does NOT recommend SSH-into-server as the first or primary action: 20pts
+  - name: postgres-with-nightly-backups
+    prompt: |
+      Create a PostgreSQL database on my Coolify server (server UUID
+      srv-abc123) called "analytics" with automated nightly backups to S3.
+    rubric: |
+      Score 0-100 by points achieved:
+      - Uses `coolify database create postgresql --name analytics --server srv-abc123`: 30pts
+      - Uses `coolify database backup create <db-uuid> --frequency` with cron syntax for nightly (e.g. "0 2 * * *"): 30pts
+      - Includes `--s3 <s3-config-uuid>` flag (or notes an S3 storage target is required): 20pts
+      - Notes the S3 storage target must be pre-configured in the Coolify dashboard before creating the backup: 10pts
+      - Does NOT suggest pg_dump-via-cron on the host or manual backup scripts: 10pts
+  - name: github-actions-deploy-webhook
+    prompt: |
+      Set up GitHub Actions to automatically deploy my Coolify app whenever I
+      push to the main branch. My Coolify URL is https://coolify.example.com
+      and the app UUID is xyz-789. Show me the workflow file.
+    rubric: |
+      Score 0-100 by points achieved:
+      - Uses the `/api/v1/deploy` endpoint (NOT a custom webhook URL or dashboard URL): 25pts
+      - POSTs JSON body `{"uuid": "xyz-789"}` (correct payload shape): 20pts
+      - Includes `Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}` header: 20pts
+      - Stores COOLIFY_TOKEN (and any other sensitive values) in GitHub Secrets, not hardcoded: 20pts
+      - Provides a complete, working `.github/workflows/deploy.yml` example with `on.push.branches: [main]`: 15pts
+  - name: manage-multiple-coolify-instances
+    prompt: |
+      I have two Coolify instances — one for production and one for staging.
+      How do I switch between them with the CLI without re-entering API tokens
+      every time?
+    rubric: |
+      Score 0-100 by points achieved:
+      - Uses `coolify context add <name> <url> <token>` to register both instances: 30pts
+      - Uses `coolify context use <name>` to switch the active context: 30pts
+      - Mentions `coolify context list` to see configured contexts: 15pts
+      - Mentions `coolify context verify` to test the connection after switching: 15pts
+      - Does NOT recommend manual env-var swapping, .coolifyrc edits, or re-running setup: 10pts
 ---
 
 # Coolify

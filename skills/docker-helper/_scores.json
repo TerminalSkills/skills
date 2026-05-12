@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:53c8cfaefcf2ea7bfe526eb4e06a387a033e6ab6220c852500f2bc69594fba9b",
+  "scoredAt": "2026-05-12T00:00:00Z",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f3ac9196846437d9030d991e234d9fe1d70a0dc505bf0d96b709c552d20521a6",
+  "scoredAt": "2026-05-12T00:00:00Z",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Instructions are 'When X, do Y' pattern guidance rather than runnable code or precise procedures. Acceptable for a framework-philosophy skill but the agent has to translate patterns into code itself."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Light on error handling and edge cases (no notes on hydration mismatches, RSC streaming pitfalls, or Server Action error boundaries)."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

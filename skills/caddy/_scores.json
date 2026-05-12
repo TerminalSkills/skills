@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:911fd3e2a8c26eae4dcf37b9c553e1df94b80b06306b0a20a8821efefa833d47",
+  "scoredAt": "2026-05-12T00:00:00Z",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "body-structure",
+        "detail": "Uses topical headings (Setup, Caddyfile, JSON Config, Common Patterns, Caddy vs Nginx, Commands) plus a labeled Guidelines section. All four content types are present."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "length",
+        "detail": "323 lines, over the 300-line soft warning (still under the 400 fail threshold). Caddy-vs-Nginx comparison section could be trimmed."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}
