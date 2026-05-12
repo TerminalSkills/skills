@@ -1,15 +1,15 @@
 {
   "version": "1.0.0",
-  "skillHash": "sha256:53c8cfaefcf2ea7bfe526eb4e06a387a033e6ab6220c852500f2bc69594fba9b",
-  "scoredAt": "2026-05-12T22:05:51.633Z",
+  "skillHash": "sha256:a53e68408ca33879bbc14161d050ada36a46107cf214c97897f66cf376c28843",
+  "scoredAt": "2026-05-12T22:03:57.782Z",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": []

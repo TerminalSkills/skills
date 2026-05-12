@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "skillHash": "sha256:911fd3e2a8c26eae4dcf37b9c553e1df94b80b06306b0a20a8821efefa833d47",
-  "scoredAt": "2026-05-12T22:05:47.381Z",
+  "skillHash": "sha256:a52eaef2fe7d06c37f758fb352994653c12ddff192cc226ff1a3bb376bce2524",
+  "scoredAt": "2026-05-12T22:05:03.800Z",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -16,7 +16,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill lacks explicit error handling or edge case coverage, focusing mainly on happy path scenarios."
+        "detail": "The skill file does not explicitly cover error handling for script failures or missing file scenarios."
       }
     ]
   },
