@@ -3764,6 +3764,19 @@
       ]
     },
     {
+      "name": "hermes-tweet",
+      "slug": "hermes-tweet",
+      "description": "Provides Hermes Agent workflows for X/Twitter through Hermes Tweet and Xquik. Use when tasks mention searching tweets, reading tweet replies, looking up users, exporting followers, monitoring tweets, posting tweets or replies, sending DMs, Hermes Agent X automation, or approval-gated Twitter actions.",
+      "category": "automation",
+      "tags": [
+        "hermes",
+        "twitter",
+        "x",
+        "automation",
+        "social-media"
+      ]
+    },
+    {
       "name": "hetzner-cloud",
       "slug": "hetzner-cloud",
       "description": "Manage Hetzner Cloud infrastructure from the terminal. Use when a user asks to create a Hetzner server, manage VPS instances, set up firewalls, configure networks, manage volumes, create snapshots, handle SSH keys, or provision infrastructure on Hetzner. Covers the hcloud CLI for all resource types. For deploying applications on top of Hetzner servers, see coolify.",
@@ -9769,5 +9782,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-05-04T12:54:04.280Z"
+  "updatedAt": "2026-05-12T20:05:14.811Z"
 }

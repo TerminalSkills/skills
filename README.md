@@ -51,6 +51,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [api-tester](skills/api-tester/) | Development | Test REST and GraphQL API endpoints with assertions |
 | [docker-helper](skills/docker-helper/) | DevOps | Build, debug, and optimize Docker configurations |
 | [web-scraper](skills/web-scraper/) | Automation | Extract structured data from web pages reliably |
+| [hermes-tweet](skills/hermes-tweet/) | Automation | Search tweets, read replies, monitor X/Twitter, and run approval-gated actions through Hermes Agent |
 | [data-visualizer](skills/data-visualizer/) | Data & AI | Generate charts and visualizations from datasets |
 | [markdown-writer](skills/markdown-writer/) | Content | Generate well-structured technical documentation |
 | [sql-optimizer](skills/sql-optimizer/) | Data & AI | Analyze and optimize SQL queries for performance |
