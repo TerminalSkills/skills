@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:34b6b163d586d7494329b3358ae0fc1e7f35f22c120e86e3a942bb1879436534",
-  "scoredAt": "2026-05-13T08:22:50.527Z",
+  "scoredAt": "2026-05-13T14:52:53.798Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 6.67,
+    "baselineAvg": 15,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "evaluate-support-chatbot",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with proper init, Eval, data, task, and custom scorer; Response B lacks the required init and Eval structure."
+      },
+      {
+        "name": "log-production-traces",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric by using init with apiKey, braintrust.traced() to wrap the chatbot call, and logging input/output, whereas Response B uses a manual Trace API instead of traced() and does not wrap a function."
+      }
+    ]
+  }
 }

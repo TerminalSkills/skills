@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:25a5eae41c7dfe9dcbc2f714fff0e94bbc201bfc56cfed64c41528ca89441edb",
   "scoredAt": "2026-05-13T09:12:55.617Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 37,
+    "treatmentAvg": 93,
+    "multiplier": 2.51,
+    "scenarios": [
+      {
+        "name": "Typed users API with shared client",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline uses Hono and Zod manually but misses the RPC pattern entirely (no AppType export, no hc client, no zValidator middleware); treatment exports typeof route as AppType, uses hc<AppType> with $post, and applies zValidator('json', schema) with c.req.valid('json')."
+      },
+      {
+        "name": "Cloudflare Workers D1 API with auth headers",
+        "baseline": 38,
+        "treatment": 93,
+        "rationale": "Baseline correctly uses Hono<{ Bindings }> and D1 prepare/bind/run but has no AppType export and uses raw fetch for auth; treatment chains routes, exports AppType, and uses hc<AppType>(url, { headers: { Authorization } }) per the skill's auth pattern."
+      }
+    ]
+  }
 }

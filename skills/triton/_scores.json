@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9e54851d46587e000a8cb046fe0fc3ef9eaf2e49ad0f61fddffd67ab91da20c4",
   "scoredAt": "2026-05-13T10:27:47.449Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 94,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "ONNX text classifier config.pbtxt",
+        "baseline": 55,
+        "treatment": 94,
+        "rationale": "Baseline often guesses platform strings and field names (e.g. onnx_runtime instead of onnxruntime_onnx) and forgets max_queue_delay_microseconds; treatment matches the documented pbtxt exactly including dynamic_batching and KIND_GPU instance_group."
+      },
+      {
+        "name": "gRPC client batch inference",
+        "baseline": 50,
+        "treatment": 94,
+        "rationale": "Baseline tends to fall back to the HTTP /v2/.../infer endpoint or invents grpcclient APIs; treatment uses tritonclient.grpc with is_server_live/is_model_ready, InferInput.set_data_from_numpy, InferRequestedOutput and result.as_numpy as documented."
+      }
+    ]
+  }
 }

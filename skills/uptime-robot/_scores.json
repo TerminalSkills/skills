@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 86,
+    "multiplier": 2.0,
+    "scenarios": [
+      {
+        "name": "Create HTTP health-check monitor via API",
+        "baseline": 45,
+        "treatment": 87,
+        "rationale": "Treatment posts to https://api.uptimerobot.com/v2/newMonitor with type:1 (HTTP), interval:300 seconds, friendly_name, and alert_contacts in the dashed format; baseline guesses endpoint structure and omits the numeric type/interval encoding."
+      },
+      {
+        "name": "List monitors with response times and decode status codes",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment calls /v2/getMonitors with response_times:1 and response_times_limit:24, and decodes status values 0/1/2/8/9 (paused/not-checked/up/seems-down/down); baseline omits the response_times flags and the numeric status mapping."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

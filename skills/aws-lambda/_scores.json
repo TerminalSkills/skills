@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d8f4a810537bf1d5e55b06623980541652078bc6074bfda377d956377c1fdbe1",
-  "scoredAt": "2026-05-13T08:19:46.033Z",
+  "scoredAt": "2026-05-13T14:26:21.206Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.63,
+    "baselineAvg": 38,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "nodejs-api-gateway-dynamodb",
+        "baseline": 25,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits several key elements such as the correct handler type, runtime, environment variable, policy, and API paths."
+      },
+      {
+        "name": "python-s3-image-thumbnail",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks key elements such as the correct handler name, runtime, prefix filter, statusCode, and processed count."
+      }
+    ]
+  }
 }

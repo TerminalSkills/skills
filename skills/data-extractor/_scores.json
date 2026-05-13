@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5c658490f0d7bd22ee7900567f6bd926391e8f48a8f6c0423f311e0f964182c9",
-  "scoredAt": "2026-05-13T08:42:03.530Z",
+  "scoredAt": "2026-05-13T16:19:25.435Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.45,
+    "baselineAvg": 55,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "extract-invoice-pdf",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items with explicit regex for every field, proper DataFrame handling, and file outputs, while Response B omits a regex-based vendor extraction, falling short of the rubric requirement."
+      },
+      {
+        "name": "extract-contacts-docx",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but omits department and phone columns, while Response B lacks table handling, deduplication, and the required CSV columns."
+      }
+    ]
+  }
 }

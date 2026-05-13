@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ca56b56059ae3de3e79c60b6a3b71f350228d9ef0beafeae72f0c50b6748f1df",
   "scoredAt": "2026-05-13T09:59:01.269Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 95,
+    "multiplier": 2.71,
+    "scenarios": [
+      {
+        "name": "API request validation with custom rules",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline uses Pydantic v1 @validator decorators with the values dict pattern instead of v2's @field_validator and @model_validator(mode=\"after\"), while the treatment uses both v2 decorators correctly for the cross-field date check."
+      },
+      {
+        "name": "Type-safe environment configuration",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline relies on python-dotenv plus a plain BaseModel with manual os.getenv calls and string coercion, while the treatment uses pydantic_settings.BaseSettings with model_config env_file binding and typed list[str]/bool fields that auto-coerce."
+      }
+    ]
+  }
 }

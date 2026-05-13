@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a1595706bfe8d180d8717e32d121ff0c6277001cef1a1f612f852d9119d2c024",
   "scoredAt": "2026-05-13T09:50:18.481Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 66,
+    "treatmentAvg": 94,
+    "multiplier": 1.42,
+    "scenarios": [
+      {
+        "name": "Articles context with changeset and preload",
+        "baseline": 72,
+        "treatment": 95,
+        "rationale": "Phoenix/Ecto patterns (schema, changeset, contexts, preload) are mainstream so baseline gets most of the rubric; treatment matches the documented context pattern with explicit where/order_by/preload pipeline exactly."
+      },
+      {
+        "name": "LiveView with debounced search",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Baseline knows mount/handle_event shape but typically misses phx-debounce and the live route helper specifics; treatment uses phx-change/phx-debounce and the live router macro as documented."
+      }
+    ]
+  }
 }

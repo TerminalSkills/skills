@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9cf29f74de633b2e58bb9c2c1b37464a8971dc8576c93c0bf6f4fbb557f9b84e",
   "scoredAt": "2026-05-13T10:01:02.735Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 96,
+    "multiplier": 2.91,
+    "scenarios": [
+      {
+        "name": "ClickHouse events table for product analytics",
+        "baseline": 30,
+        "treatment": 97,
+        "rationale": "Baseline omits LowCardinality, DateTime64(3), monthly partitioning, ORDER BY (event_name, timestamp), and TTL; treatment uses every documented base field and MergeTree optimization."
+      },
+      {
+        "name": "Node.js ingestion service with buffer + health",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline does a per-request insert with no batching, no validation, and no /health endpoint; treatment buffers to 1000/2s, validates event_name and timestamp, uses INSERT FORMAT JSONEachRow, retries with backoff to a dead-letter file, and exposes the documented health payload."
+      }
+    ]
+  }
 }

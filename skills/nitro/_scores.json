@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2322ff6fd9a256a6ed068e37bf9f6bd6c592774f809cb11672481b7095a8dc3e",
   "scoredAt": "2026-05-13T09:40:59.237Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 88,
+    "multiplier": 2.93,
+    "scenarios": [
+      {
+        "name": "CRUD users API deployable to Cloudflare Workers",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Treatment scaffolds via npx giget@latest nitro, creates server/routes/users/index.get.ts, index.post.ts, [id].get.ts with defineEventHandler/getRouterParam/readBody/createError and builds with NITRO_PRESET=cloudflare-pages; baseline writes an Express app that won't run on Workers."
+      },
+      {
+        "name": "KV-backed cache endpoint accessible across platforms",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Treatment uses server/routes/cache/[key].ts with useStorage(\"cache\").getItem/setItem and dispatches on event.method as documented; baseline uses a Map or Redis directly and breaks Nitro's universal-deploy promise."
+      }
+    ]
+  }
 }

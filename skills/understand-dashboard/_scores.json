@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:12081f92d82d6b6704f892314f86084ee8e2c7199b2df66aaab0c9fdea2ef490",
   "scoredAt": "2026-05-13T10:29:38.056Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 91,
+    "multiplier": 5.06,
+    "scenarios": [
+      {
+        "name": "launch-dashboard-cwd",
+        "baseline": 18,
+        "treatment": 92,
+        "rationale": "Baseline cannot guess the packages/dashboard layout, the @understand-anything/core build step, or the GRAPH_DIR convention; treatment verifies the graph file, builds the core package, and starts Vite with GRAPH_DIR set to the project dir."
+      },
+      {
+        "name": "launch-dashboard-explicit-path",
+        "baseline": 18,
+        "treatment": 90,
+        "rationale": "Baseline has no way to know that the dashboard expects a GRAPH_DIR env var pointing at the project root; treatment checks ~/projects/my-api/.understand-anything/knowledge-graph.json and starts Vite with that GRAPH_DIR and reports the local URL."
+      }
+    ]
+  }
 }

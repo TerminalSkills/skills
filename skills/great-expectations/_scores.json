@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:065b3bb97103de2ebc17bedd02c955e2b82960da0319574c78bb478137dcb654",
   "scoredAt": "2026-05-13T09:10:17.066Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 97,
+    "multiplier": 2.94,
+    "scenarios": [
+      {
+        "name": "orders-suite-postgres",
+        "baseline": 35,
+        "treatment": 96,
+        "rationale": "Treatment uses the modern fluent datasource API (sources.add_postgres + add_table_asset) and a validator with save_expectation_suite; baseline relies on the legacy from_pandas pattern and skips the Postgres datasource flow entirely."
+      },
+      {
+        "name": "pipeline-dataframe-check",
+        "baseline": 30,
+        "treatment": 97,
+        "rationale": "Treatment builds a runtime pandas datasource + dataframe asset and runs a checkpoint with add_or_update_checkpoint, checking result.success; baseline uses the deprecated from_pandas/ExpectationSuite.from_json approach without checkpoints."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:68c9765617fb6ff38c070636352ef3245014911ad63a9a9eb46ae800b632af44",
   "scoredAt": "2026-05-13T09:52:44.661Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 91,
+    "multiplier": 2.28,
+    "scenarios": [
+      {
+        "name": "Order shipped email with template",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline reached for sendEmail with hardcoded HtmlBody and skipped MessageStream; treatment used sendEmailWithTemplate with TemplateAlias, TemplateModel variables, and MessageStream: 'outbound' as documented."
+      },
+      {
+        "name": "Bulk invoice send",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Baseline looped sendEmail 300 times without batching or Tag usage; treatment used sendEmailBatch in a single call with a Tag for analytics tracking."
+      }
+    ]
+  }
 }

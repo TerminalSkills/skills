@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:19b3ed83274b8a6cac8d5e7d10e1318ccf2adb3f33cc08937779f708a6c56469",
-  "scoredAt": "2026-05-12T22:25:22.571Z",
+  "scoredAt": "2026-05-13T13:53:07.861Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 6.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 63,
+    "scenarios": [
+      {
+        "name": "sentry-alert-creation",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response B better meets the rubric, providing a JSON rules array with correct tier prefixes, event_frequency conditions, filters, frequency caps, and auto-resolve for P3, though it omits one integration per rule; Response A lacks the required structure and key fields."
+      },
+      {
+        "name": "pagerduty-escalation-runbook",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B covers the escalation policy and a full runbook, while Response A only provides the policy JSON and omits the event rule and runbook."
+      }
+    ]
+  }
 }

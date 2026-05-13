@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a2e84a0495bfc7d69a0a357748f32d92d2645aaee0913c4c0dbb1af1b47eee11",
   "scoredAt": "2026-05-13T09:44:46.902Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 95,
+    "multiplier": 5.28,
+    "scenarios": [
+      {
+        "name": "Set up Codex CLI in suggest mode with project conventions",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline tends to confuse Codex CLI with GitHub Copilot CLI and misses the project-context mechanism, while treatment uses npm install -g @openai/codex, --approval-mode suggest, and a checked-in codex.md as documented."
+      },
+      {
+        "name": "Sandbox Codex CLI to ./src and ./tests with no network",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline reaches for Docker or seccomp wrappers instead of the built-in config, while treatment edits ~/.codex/config.yaml setting sandbox.enabled, sandbox.network false, and sandbox.writable_paths exactly as documented."
+      }
+    ]
+  }
 }

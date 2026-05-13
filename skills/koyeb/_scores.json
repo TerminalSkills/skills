@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1dff89a5dddb113d8f27d78b7198364206da59862da30fcf328ab59f0adfe5e5",
   "scoredAt": "2026-05-13T09:20:35.895Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 93,
+    "multiplier": 2.45,
+    "scenarios": [
+      {
+        "name": "CLI deploy from Git with secret-backed env",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Treatment uses koyeb secret create then references it via --env DATABASE_URL=@database-url and includes the exact --git-build-command / --git-run-command flags from the skill; baseline guesses flag names and inlines the database URL."
+      },
+      {
+        "name": "Declarative koyeb.yaml with multi-region autoscaling",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Treatment matches the skill's exact koyeb.yaml schema (scaling.targets with metric/value, health_checks with healthy_threshold/unhealthy_threshold, regions list); baseline invents field names that do not exist in the documented format."
+      }
+    ]
+  }
 }

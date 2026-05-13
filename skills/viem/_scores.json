@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a115d60dd12b9a1a87dd91cf82467a19a9d1f255c8bf210b7522319ea6797e0d",
   "scoredAt": "2026-05-13T10:34:19.043Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 92,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "Type-safe USDC balance read",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses createPublicClient with `chain: mainnet` and an `http(...)` transport, declares the ERC-20 ABI with `as const` for inferred return types, and calls readContract with functionName \"balanceOf\"; baseline often uses ethers.js or omits `as const`, losing type inference."
+      },
+      {
+        "name": "Send ETH and confirm with receipt",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Treatment loads the signer via privateKeyToAccount from viem/accounts, creates a walletClient, sends with parseEther(\"0.1\"), and then calls publicClient.waitForTransactionReceipt({ hash }); baseline frequently skips the receipt wait or uses ethers' wallet flow."
+      }
+    ]
+  }
 }

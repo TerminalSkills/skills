@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a9ca958858cf3c407df0aab46273280b3004ea1a45e7fdf31e7c13a92c7a4345",
-  "scoredAt": "2026-05-12T22:24:29.160Z",
+  "scoredAt": "2026-05-13T13:47:35.766Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7.8,
+    "baselineAvg": 8,
+    "treatmentAvg": 78,
+    "scenarios": [
+      {
+        "name": "generate-single-short-video",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A provides no content."
+      },
+      {
+        "name": "batch-5-videos",
+        "baseline": 15,
+        "treatment": 55,
+        "rationale": "Response B is more detailed and closer to the rubric, though it still misses key requirements; Response A lacks most rubric elements."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b5df462aa7b84b7178ee73d05a8ec6344dfa8a0bf473e549031970e3de2602ab",
   "scoredAt": "2026-05-13T09:47:41.035Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 88,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "Trigger Alertmanager incident via Events API",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment posts to events.pagerduty.com/v2/enqueue with routing_key, dedup_key, severity, source, and custom_details including runbook link; baseline used a generic curl missing dedup_key and proper payload structure."
+      },
+      {
+        "name": "Create service with business-hours urgency and intelligent grouping",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment uses POST /services with alert_grouping_parameters type=intelligent, incident_urgency_rule type=use_support_hours, and support_hours configuration; baseline omitted the urgency rule structure and grouping."
+      }
+    ]
+  }
 }

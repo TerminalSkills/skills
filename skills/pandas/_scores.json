@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9f2ee61c06c2721d012cf683c3d400745aad069e97ea1c764c0363e0530ad8e8",
   "scoredAt": "2026-05-13T09:47:49.097Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 95,
+    "multiplier": 1.79,
+    "scenarios": [
+      {
+        "name": "Clean sales CSV into monthly revenue summary",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Baseline produces a working pipeline but skips explicit dtype, named aggregation and resample('M'); treatment uses parse_dates+dtype, assign, and resample with named aggregation as the skill recommends."
+      },
+      {
+        "name": "Merge CRM + transactions + ticket counts with validation",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline merges without validate and exports CSV; treatment uses pd.merge with validate='one_to_many'/'many_to_one', named groupby aggregation, and to_parquet for the unified output."
+      }
+    ]
+  }
 }

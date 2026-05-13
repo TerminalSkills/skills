@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:db557c76e0ff890438f85ba0e61d123734cfa8bebe2ef6d1a3cd3a67bd1501ef",
   "scoredAt": "2026-05-13T09:34:51.454Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 98,
+    "multiplier": 3.5,
+    "scenarios": [
+      {
+        "name": "Adaptive Card deployment notification via incoming webhook",
+        "baseline": 35,
+        "treatment": 98,
+        "rationale": "Baseline used the legacy MessageCard format with OpenUri actions; treatment posts the AdaptiveCard 1.5 payload with FactSet and Action.OpenUrl exactly as the skill specifies."
+      },
+      {
+        "name": "Slash-command Teams bot with system status card",
+        "baseline": 20,
+        "treatment": 97,
+        "rationale": "Baseline hand-rolled an Express endpoint with no Bot Framework primitives; treatment uses ActivityHandler.onMessage, CardFactory.adaptiveCard with FactSet, and BotFrameworkAdapter on /api/messages as the skill prescribes."
+      }
+    ]
+  }
 }

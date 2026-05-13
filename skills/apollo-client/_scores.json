@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:e65720c1ce4297494f2c558807d044aa5646c8b917f56975f2f040c2de01b646",
-  "scoredAt": "2026-05-12T22:33:18.434Z",
+  "scoredAt": "2026-05-13T14:04:04.374Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.17,
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "paginated-post-list",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses cursor-based pagination, omits the required offset variable, and sets keyArgs incorrectly."
+      },
+      {
+        "name": "optimistic-create-post",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Response B fully satisfies the rubric by using a POST_FRAGMENT and cache.modify, while Response A omits the fragment and uses update instead."
+      }
+    ]
+  }
 }

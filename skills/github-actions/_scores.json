@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ce090d9270d658017f4eb78f58d4a7a1eee95a107d9aae24e94a95a959818775",
   "scoredAt": "2026-05-13T09:08:13.296Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 95,
+    "treatmentAvg": 97,
+    "multiplier": 1.02,
+    "scenarios": [
+      {
+        "name": "Lint+test+build+deploy pipeline with concurrency and main-branch guard",
+        "baseline": 95,
+        "treatment": 98,
+        "rationale": "Both include concurrency cancel-in-progress, cache: npm, needs ordering, artifact handoff, and main-only deploy guard; treatment adds retention-days and production environment."
+      },
+      {
+        "name": "Postgres service container with health check for integration tests",
+        "baseline": 95,
+        "treatment": 96,
+        "rationale": "Both define a postgres service with env vars, pg_isready health check, and DATABASE_URL on localhost:5432; treatment also wires a Redis sidecar and explains the readiness gate."
+      }
+    ]
+  }
 }

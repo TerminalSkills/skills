@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:48237bbbd5e412df79b5cb608d7bcee767d9d37679d36e695f71d2e49a5c93f8",
   "scoredAt": "2026-05-13T09:47:58.650Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Validate orders.csv ingestion pipeline",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline rolls its own per-row pydantic checks; treatment uses DataFrameModel with strict+coerce Config, @pa.check_types loader and catches pa.errors.SchemaError with failure_cases."
+      },
+      {
+        "name": "Custom IQR outlier check on a Polars users schema",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline computes IQR manually and never touches Pandera; treatment registers a check via extensions.register_check_method and validates a Polars DataFrame through pandera.polars DataFrameModel.validate."
+      }
+    ]
+  }
 }

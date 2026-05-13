@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:8583f9371f74e335658c6b2e182305cf913f50ca0a2d6ed22ce9cba1b1176b02",
-  "scoredAt": "2026-05-13T08:27:57.904Z",
+  "scoredAt": "2026-05-13T15:20:14.706Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "scrape-product-prices",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with fetch, cheerio, CSS selectors, and JSON output, while Response A uses Python and BeautifulSoup, missing the required JavaScript tools."
+      },
+      {
+        "name": "clean-html-email",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric using cheerio, while Response A uses BeautifulSoup and does not meet the specified requirements."
+      }
+    ]
+  }
 }

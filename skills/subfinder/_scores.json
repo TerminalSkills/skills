@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fc926a551a7e5233a6898c7c6400a6ab47abaa322f431a8e5c5f00382e703c0e",
   "scoredAt": "2026-05-13T10:15:59.659Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 95,
+    "multiplier": 2.21,
+    "scenarios": [
+      {
+        "name": "subfinder to httpx to nuclei recon pipeline",
+        "baseline": 60,
+        "treatment": 95,
+        "rationale": "Baseline gets the rough shape but uses -l flags instead of stdin piping and omits the cves/ template path; treatment uses the documented cat subs.txt | httpx -silent and nuclei -t cves/ -severity critical,high chain."
+      },
+      {
+        "name": "Source-attributed enumeration with rate limiting and API key config",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline invents --sources and --rate flags and is vague about the config path; treatment uses -cs and -rate-limit and points to ~/.config/subfinder/provider-config.yaml with the correct censys api-id:api-secret format."
+      }
+    ]
+  }
 }

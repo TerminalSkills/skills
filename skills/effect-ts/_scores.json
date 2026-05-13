@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7006387a0a4c2db861643aaca169ef64a503d77f95058f3afc871bf7f0e6b5e0",
   "scoredAt": "2026-05-13T08:47:07.808Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 88,
+    "multiplier": 2.67,
+    "scenarios": [
+      {
+        "name": "Typed payment errors per failure mode",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline used plain TS discriminated unions and try/catch without Effect's tagged-class + catchTag pattern, while the treatment surfaced the error union in Effect.Effect<S,E,R> and dispatched on _tag."
+      },
+      {
+        "name": "Swap Prisma for fakes via DI",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Baseline relied on constructor injection or factory patterns; treatment defined Context.Tag, supplied Layer.succeed for live and test, and ran with Effect.provide."
+      }
+    ]
+  }
 }

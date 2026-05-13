@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:80a14c4828665841bbf1d1eabee18b61ca0247b5aa734a24595f55ca71608112",
-  "scoredAt": "2026-05-13T08:20:23.617Z",
+  "scoredAt": "2026-05-13T14:31:54.474Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 20,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-storage-account-with-lifecycle",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement; Response A omits several mandatory flags and options."
+      },
+      {
+        "name": "bulk-sync-and-python-sas",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, while Response A lacks the required azcopy sync and copy commands and uses a different BlobServiceClient constructor."
+      }
+    ]
+  }
 }

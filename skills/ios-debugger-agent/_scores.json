@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:68b47ec9029a71ce71a4e3145a9fbb60ce7359bf7005477c9bc8d57e07215a72",
   "scoredAt": "2026-05-13T09:17:13.456Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 60,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 90,
+    "multiplier": 2.81,
+    "scenarios": [
+      {
+        "name": "Build, run and verify iOS app on booted simulator",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Treatment follows list_sims -> session-set-defaults -> build_run_sim -> describe_ui/screenshot verification using XcodeBuildMCP tools; baseline reaches for xcrun simctl and xcodebuild directly, bypassing the MCP toolchain the skill exists to leverage."
+      },
+      {
+        "name": "Tap button and capture logs in simulator",
+        "baseline": 34,
+        "treatment": 88,
+        "rationale": "Treatment calls describe_ui, taps by id/label, and brackets with start_sim_log_cap/stop_sim_log_cap on the bundle id; baseline uses xcrun simctl io ... and log stream without the structured UI inspection step."
+      }
+    ]
+  }
 }

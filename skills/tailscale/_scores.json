@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3789b75d18ff0cfdb898f55e9507ad0aaf63cb26c23b055057ade380cc85f77f",
   "scoredAt": "2026-05-13T10:22:52.582Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Subnet router exposing 10.0.0.0/16 from an EC2 box to the tailnet",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline knows about ip_forward but misses --advertise-routes and route approval, and reaches for unrelated iptables; treatment runs tailscale up --advertise-routes, writes net.ipv4.ip_forward and net.ipv6.conf.all.forwarding to /etc/sysctl.conf with sysctl -p, and approves routes via admin panel/API."
+      },
+      {
+        "name": "Fleet provisioning script for 4 prod API servers with tag:prod,tag:api",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline loops ssh with interactive tailscale up and leaves tagging manual; treatment POSTs to /api/v2/tailnet/$TAILNET/keys with Authorization: Bearer to mint a reusable tagged auth key and uses tailscale up --authkey --hostname over ssh in parallel."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a0c0a311f51303222d665676970bc9abf268b816fceb408f87dc71d7abe57fc0",
   "scoredAt": "2026-05-13T10:05:46.675Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 96,
+    "multiplier": 2.74,
+    "scenarios": [
+      {
+        "name": "Stateful REST API fuzzing with HTML report",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Treatment uses st run with --stateful=links, --checks all, --hypothesis-max-examples, --report and --cassette-path; baseline runs schemathesis with --checks all only and omits stateful chaining and HTML report flags."
+      },
+      {
+        "name": "Schemathesis in GitHub Actions with JUnit upload",
+        "baseline": 30,
+        "treatment": 96,
+        "rationale": "Treatment uses the schemathesis/action@v1 action, passes --junit-xml=results.xml, and uploads results via actions/upload-artifact; baseline runs schemathesis directly with no JUnit output or artifact upload."
+      }
+    ]
+  }
 }

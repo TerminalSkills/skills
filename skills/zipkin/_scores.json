@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:56c5a801e06d73cad75821196e8f0eb60a7062cecde4a2b12beba48f13dab078",
   "scoredAt": "2026-05-13T10:40:53.867Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 74,
+    "treatmentAvg": 94,
+    "multiplier": 1.27,
+    "scenarios": [
+      {
+        "name": "spring-boot-3-instrumentation",
+        "baseline": 72,
+        "treatment": 95,
+        "rationale": "The treatment delivers the exact Micrometer-bridge-brave + zipkin-reporter-brave dependency pair plus the MDC logging pattern `%X{traceId:-},%X{spanId:-}`, where the baseline gets the overall approach right but is hazy on the precise property keys under `management.tracing` and the log pattern."
+      },
+      {
+        "name": "zipkin-elasticsearch-docker-compose",
+        "baseline": 75,
+        "treatment": 92,
+        "rationale": "Both produce a working compose file, but the treatment pins `openzipkin/zipkin:3` and includes ES_INDEX/REPLICAS/SHARDS and SELF_TRACING_ENABLED that the skill calls out, which the baseline omits."
+      }
+    ]
+  }
 }

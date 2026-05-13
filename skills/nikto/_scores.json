@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8867fe7f31fa985cc1c9f06d55efd504763c63e270a0d6c15dc48d6caf82df32",
   "scoredAt": "2026-05-13T09:40:53.174Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 85,
+    "multiplier": 2.13,
+    "scenarios": [
+      {
+        "name": "Quick misconfig + info-disclosure scan with HTML report",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment runs nikto -h with -Tuning 23 and -o report.html -Format html per the documented tuning categories; baseline suggests curl checks or generic scanners and misses Nikto's tuning flags."
+      },
+      {
+        "name": "Chain Nmap discovery into Nikto scans",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment reproduces the documented nmap -sV -p ... -oG - | grep open | awk | while read ip; do nikto -h $ip -o ... -Format html pipeline; baseline runs nmap separately and does not feed results into Nikto."
+      }
+    ]
+  }
 }

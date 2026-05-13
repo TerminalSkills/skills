@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4abdb44bbd6295056211f5d184ca18d25e22b285626f752f4f56067605be38d4",
   "scoredAt": "2026-05-13T09:18:12.057Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 69,
+    "treatmentAvg": 93,
+    "multiplier": 1.35,
+    "scenarios": [
+      {
+        "name": "Senior backend payments engineer JD",
+        "baseline": 68,
+        "treatment": 93,
+        "rationale": "Baseline produces a competent JD with Required/Nice-to-Have split but often blows past 6 required items and uses passive voice; treatment follows the skill's 4-6 required cap, you-language, and EEO statement."
+      },
+      {
+        "name": "Rewrite developer JD for inclusivity",
+        "baseline": 70,
+        "treatment": 92,
+        "rationale": "Baseline DEI advice is reasonably strong (removes 'rockstar', softens degree), but rarely cites the 60-vs-100% requirements gap or restructures the required list aggressively; treatment applies the full set of inclusivity fixes from the skill."
+      }
+    ]
+  }
 }

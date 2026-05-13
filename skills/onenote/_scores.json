@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9fcd0f3f2de18d160eef01f022f4e922fb9e6262aa96b573e704e7f3e1bb7f5f",
   "scoredAt": "2026-05-13T09:43:53.206Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 92,
+    "multiplier": 3.07,
+    "scenarios": [
+      {
+        "name": "Create structured OneNote standup page with to-do tags via Graph API",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline suggested wrong Graph endpoints or missed XHTML requirements; treatment POSTed to /users/{userId}/onenote/sections/{sectionId}/pages with Content-Type application/xhtml+xml, included <title>, <meta name=created>, and data-tag=to-do on action items as documented."
+      },
+      {
+        "name": "Find OneNote page by title and append an update via PATCH",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Baseline tried to overwrite the page or used the wrong PATCH shape; treatment used $filter=contains(title, ...) to find the page, then PATCH /onenote/pages/{pageId}/content with [{target: body, action: append, position: after, content: ...}] exactly as documented."
+      }
+    ]
+  }
 }

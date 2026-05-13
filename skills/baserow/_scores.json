@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:79eb24b545dde1b8f7aa737440dd997b8a5fc461ed253497d4f4fb32dac91ae7",
-  "scoredAt": "2026-05-13T08:20:59.958Z",
+  "scoredAt": "2026-05-13T14:36:23.856Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.22,
+    "baselineAvg": 45,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-baseline-docker-compose",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items exactly, while Response A uses the wrong compose syntax, wrong UI URL, and lacks explicit confirmation of the link field in the schema."
+      },
+      {
+        "name": "api-create-row-with-lookup",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits required parameters and field names."
+      }
+    ]
+  }
 }

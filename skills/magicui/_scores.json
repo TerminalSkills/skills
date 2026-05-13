@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e082e491f359925395dc3c1a6ecda7a9737f8dbe829c6806c56e961396edb169",
   "scoredAt": "2026-05-13T09:27:06.442Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 89,
+    "multiplier": 3.18,
+    "scenarios": [
+      {
+        "name": "Animated stats counter section with shimmer CTA",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Treatment installs the right components via npx magicui-cli add number-ticker and shimmer-button, imports them from @/components/magicui/*, and uses NumberTicker value and ShimmerButton shimmerColor/shimmerDuration/background props as documented; baseline writes a hand-rolled counter and gradient button without the Magic UI CLI workflow."
+      },
+      {
+        "name": "Hero with ripple background, blur-in headline, and marquee logos",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "Treatment composes Ripple (mainCircleSize, numCircles), BlurIn (word, duration), and Marquee with [--duration:Xs] CSS variable plus pauseOnHover from the documented full landing page pattern; baseline writes generic Framer Motion/CSS animations and misses the CLI install plus the documented prop names."
+      }
+    ]
+  }
 }

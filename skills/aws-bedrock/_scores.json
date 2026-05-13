@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:af5dbd1d22bc6f72c8444d0ef10d912f5fef858d1190c388e7151db2b41a3535",
-  "scoredAt": "2026-05-13T08:19:05.712Z",
+  "scoredAt": "2026-05-13T14:20:36.907Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 28,
+    "scenarios": [
+      {
+        "name": "converse-simple-explanation",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required Bedrock API call and token count output."
+      },
+      {
+        "name": "knowledge-base-rag-refund-policy",
+        "baseline": 10,
+        "treatment": 55,
+        "rationale": "Response A correctly uses retrieve_and_generate and prints the answer, but the modelArn is incorrect; Response B does not use retrieve_and_generate or the correct modelArn at all."
+      }
+    ]
+  }
 }

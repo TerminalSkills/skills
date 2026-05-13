@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3e366ec1c6717327c0ab085ac768e5eadb490b60cea05797dc6d3e9859aa2681",
-  "scoredAt": "2026-05-13T08:26:48.814Z",
+  "scoredAt": "2026-05-13T15:13:06.857Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7,
+    "baselineAvg": 5,
+    "treatmentAvg": 70,
+    "scenarios": [
+      {
+        "name": "setup-centrifugo-server",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required config and a docker run command, but it omits the mandatory flags for token_hmac_secret_key, api_key, and allowed_origins; Response A lacks both the config and docker command entirely."
+      },
+      {
+        "name": "publish-chat-message-with-jwt",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response A meets the Centrifugo API and JWT requirements (minor text difference), while Response B uses PubNub and does not satisfy the rubric."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4da984a3c551e8021ec490fa9e46568128cf6806a9ed496ea7395ab9dc3ddb14",
   "scoredAt": "2026-05-13T09:48:17.811Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 84,
+    "multiplier": 4.67,
+    "scenarios": [
+      {
+        "name": "Build a 10m x 8m ground floor with walls, door, windows",
+        "baseline": 18,
+        "treatment": 86,
+        "rationale": "Treatment uses useScene().createNode for typed level/slab/wall/item nodes with parentId, 0.20 m exterior thickness in meters, and door/window items with sillHeight 0 and 0.9; baseline writes raw three.js/R3F geometry without the typed node hierarchy or Pascal stores."
+      },
+      {
+        "name": "Register a custom wall-thickness validator",
+        "baseline": 18,
+        "treatment": 82,
+        "rationale": "Treatment calls registerSystem from @pascal-app/core with nodeTypes:['wall'], priority>50, and a process(dirtyNodes) that reads node.props.thickness/height; baseline writes a Zustand subscription that misses the dirty-node pipeline and priority ordering."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:716384073b54dd19cc0de9ff69d307a5771b4ef8621b697ff1a827f700065157",
-  "scoredAt": "2026-05-13T08:37:24.079Z",
+  "scoredAt": "2026-05-13T15:48:42.216Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4,
+    "baselineAvg": 25,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "remote-saas-values",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric criteria, including example stories, hiring and daily guidance, anti-patterns, and a polarizing value; Response A lacks stories, anti-patterns, and a polarizing element."
+      },
+      {
+        "name": "post-merger-values",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric while Response A is incomplete."
+      }
+    ]
+  }
 }

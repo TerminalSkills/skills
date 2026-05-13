@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:77852853179d0a7137dd22a2083779f8112ed1c49682dd196a0f5b84238986bf",
   "scoredAt": "2026-05-13T09:45:32.941Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 87,
+    "multiplier": 2.07,
+    "scenarios": [
+      {
+        "name": "Quarterly financial PDF to RAG-ready JSON with tables",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment extracts text with pdfplumber's layout=True, tables via extract_tables with vertical_strategy='text' converted to dicts keyed by header row, plus chunk_for_rag with overlap and unified pdf_to_ai_ready output; baseline uses raw PyPDF2 page.extract_text and skips tables entirely."
+      },
+      {
+        "name": "Batch process mixed digital + scanned legal contracts",
+        "baseline": 40,
+        "treatment": 86,
+        "rationale": "Treatment runs the pdfplumber pipeline first, detects scanned docs by checking total extracted text length, and falls back to PyMuPDF get_pixmap at dpi=300 piped into pytesseract.image_to_string as documented; baseline lacks the digital-vs-scanned detection heuristic and uses ad-hoc OCR."
+      }
+    ]
+  }
 }

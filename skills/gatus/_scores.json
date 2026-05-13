@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ce02735db97531d7aadc0e8ccb4a1af82ecb8105044a8f95ad001635a04a2ee2",
   "scoredAt": "2026-05-13T09:05:17.718Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 88,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "Configure a Gatus endpoint that asserts JSON body health plus response-time SLO with Slack alerts after 3 failures",
+        "baseline": 48,
+        "treatment": 90,
+        "rationale": "Treatment uses the documented condition syntax ([STATUS] == 200, [RESPONSE_TIME] < 2000, [BODY].status == healthy) and Slack provider with failure-threshold: 3 and send-on-resolved: true; baseline tends to invent fields or use generic HTTP checks rather than Gatus's bracketed placeholders."
+      },
+      {
+        "name": "Monitor TCP connectivity for PostgreSQL and SSL certificate expiry on the same Gatus instance",
+        "baseline": 48,
+        "treatment": 85,
+        "rationale": "Treatment correctly uses the tcp:// URL scheme with [CONNECTED] == true and the [CERTIFICATE_EXPIRATION] > 720h condition documented in the skill; baseline typically resorts to external pg_isready scripts or omits the bracketed Gatus placeholders."
+      }
+    ]
+  }
 }

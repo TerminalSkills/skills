@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ceefe41e791195cda25442a2d95cc343667e01a5c1f6d8bcb4c0fe1677dc7e33",
   "scoredAt": "2026-05-13T09:48:07.283Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Live cursors for collaborative note-taking app",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reaches for raw ws server and native WebSocket on the client; treatment matches the documented Party.Server class with broadcast-exclusion and usePartySocket plus npx partykit deploy."
+      },
+      {
+        "name": "Real-time audience polling with live tally",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline relies on socket.io rooms with no PartyKit specifics; treatment uses Party.Server, onConnect state replay, room.broadcast, room-per-poll partitioning and the partykit CLI."
+      }
+    ]
+  }
 }

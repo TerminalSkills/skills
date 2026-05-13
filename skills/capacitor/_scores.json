@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b108be8b3f7f2d6a15c58b1d5681527793b90d48b64a604305532f4c97cd0bae",
-  "scoredAt": "2026-05-13T08:26:01.859Z",
+  "scoredAt": "2026-05-13T15:07:26.789Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.21,
+    "baselineAvg": 28,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "convert-vue-app-with-camera-file-upload",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits native platform detection; Response B lacks Filesystem.writeFile and platform detection, so A scores higher."
+      },
+      {
+        "name": "add-push-notifications-and-prep-app-store",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention Capacitor push notifications or the required steps."
+      }
+    ]
+  }
 }

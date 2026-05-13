@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9f6a49018ed3ee9fd1de6cbc6f8ed58f7a4fdddac47a444990533375fb54551d",
   "scoredAt": "2026-05-13T10:01:53.880Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 84,
+    "multiplier": 2.8,
+    "scenarios": [
+      {
+        "name": "orders-list-with-sort-and-filter",
+        "baseline": 32,
+        "treatment": 85,
+        "rationale": "Treatment uses `useTable` from `@refinedev/antd` with `sorters.initial`, `filters.permanent`, and `pagination.pageSize`, plus `useSelect` for the status dropdown, and registers `orders` in the `resources` array on `<Refine>`; baseline scaffolds an antd Table manually with useState/useEffect and no Refine resource definition."
+      },
+      {
+        "name": "custom-rest-data-provider",
+        "baseline": 28,
+        "treatment": 83,
+        "rationale": "Treatment implements the `DataProvider` interface with the documented `getList`/`getOne`/`create`/`update`/`deleteOne`/`getApiUrl` signatures (including the `{data, total}` return shape and `pagination`/`sorters`/`filters` args); baseline writes an ad-hoc fetch wrapper that doesn't conform to Refine's DataProvider contract."
+      }
+    ]
+  }
 }

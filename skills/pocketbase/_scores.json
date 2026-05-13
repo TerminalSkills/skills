@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:66543c4c2a651af0ae055d1da6da0d0d2af5a1c8336435641a889bf9a71f7403",
   "scoredAt": "2026-05-13T09:51:37.996Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 15,
+    "treatmentAvg": 92,
+    "multiplier": 6.13,
+    "scenarios": [
+      {
+        "name": "Real-time chat backend with per-room access control",
+        "baseline": 10,
+        "treatment": 93,
+        "rationale": "Baseline built a Socket.io stack with no PocketBase use; treatment used pb.collection('messages').subscribe, listRule/viewRule/createRule with @request.auth.id filter syntax, and the expand parameter as documented."
+      },
+      {
+        "name": "Auto-create Inbox record after user signup",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Baseline wrapped PocketBase behind external Express middleware; treatment used an onAfterCreateRecord JS hook in pb_hooks running inside the single binary, matching the skill's hook guidance."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:99a1869346737e19d7640a0c9d4747f133064e1f367174ab37062f63201a4df7",
   "scoredAt": "2026-05-13T09:28:04.093Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 89,
+    "multiplier": 2.78,
+    "scenarios": [
+      {
+        "name": "Single URL to clean Markdown for LLM ingestion",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Treatment uses the markdown.new prefix/POST endpoint with the documented method=auto parameter and checks x-markdown-tokens; baseline writes a custom readability scraper that does not satisfy the rubric's requirement to call markdown.new."
+      },
+      {
+        "name": "Batch RAG ingestion of 200 article URLs with rate limit handling",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment hits POST https://markdown.new/ with auto then falls back to browser on empty output, sleeps on 429s per the documented ~500/day limit; baseline uses BeautifulSoup which never touches the markdown.new service."
+      }
+    ]
+  }
 }

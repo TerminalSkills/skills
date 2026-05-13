@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ebd503e5028b908654229b1f23ba541845747c791e88863f40c063d3c1bf8f6d",
   "scoredAt": "2026-05-13T10:10:22.321Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 95,
+    "multiplier": 4.75,
+    "scenarios": [
+      {
+        "name": "Focused infrastructure CLI scan with JSON output",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline guesses generic --flag syntax and invented module names, while the treatment uses the documented `python3 sf.py -s <target> -t INTERNET_NAME -m sfp_dnsresolve,sfp_dnsdumpster,sfp_certspotter,sfp_shodan -o json -f` invocation."
+      },
+      {
+        "name": "REST API automation: start scan, poll, fetch results",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline invents /api/scan endpoints, while the treatment uses the documented POST /startscan with scanname/scantarget/scantype=INTERNET_NAME/modulelist, polls /scanopts?id= for FINISHED/FAILED/ABORTED, and fetches /scaneventresults?id=...&eventType=ALL."
+      }
+    ]
+  }
 }

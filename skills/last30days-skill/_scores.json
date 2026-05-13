@@ -2,8 +2,8 @@
   "version": "2.9.5",
   "skillHash": "sha256:11565b69cb9a8344854baa0491c965b1c1034cccf5e8f0a7304336639848f702",
   "scoredAt": "2026-05-13T09:21:51.826Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 85,
+    "multiplier": 2.83,
+    "scenarios": [
+      {
+        "name": "Research what developers are saying about Bun runtime right now",
+        "baseline": 32,
+        "treatment": 86,
+        "rationale": "Treatment invokes the last30days.py script with --emit=compact, parses intent into TOPIC/TARGET_TOOL/QUERY_TYPE, supplements with WebSearch and weights Reddit/X/YouTube engagement signals over web, while baseline only suggests manual searches without engagement weighting or the script."
+      },
+      {
+        "name": "Compare Plaud vs Granola for AI meeting notes based on community sentiment",
+        "baseline": 28,
+        "treatment": 84,
+        "rationale": "Treatment identifies QUERY_TYPE=COMPARISON, runs three research passes (A alone, B alone, A vs B), cites with @handles and r/subreddits, and reports mention counts with sentiment; baseline gives a generic features comparison without engagement-weighted, citation-rich synthesis."
+      }
+    ]
+  }
 }

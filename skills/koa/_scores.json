@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4e2fa0ebd1a74c73505187860de78ee2228607eef3be6746ed9c05e470eac7e2",
   "scoredAt": "2026-05-13T09:20:11.379Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 90,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Centralized error handling and response-time metric for a Koa API",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment placed try/catch upstream so ctx.app.emit('error') fires for all downstream handlers, used ctx.throw, and implemented the onion-model response-time middleware around await next(); baseline added try/catch per route and computed timing only on the way down."
+      },
+      {
+        "name": "Composing auth + role + audit middleware for an admin DELETE route",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Treatment used koa-compose to bundle the three middleware into a single reusable stack stored in ctx.state and threw via ctx.throw(401); baseline chained the middlewares inline as separate router arguments without compose and stored user on ctx directly."
+      }
+    ]
+  }
 }

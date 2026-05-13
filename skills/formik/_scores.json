@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c68350105490c3963b22cef2d4df522d4e6ea5df788072599294bd88b84754ea",
   "scoredAt": "2026-05-13T09:04:17.633Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 64,
+    "treatmentAvg": 88,
+    "multiplier": 1.38,
+    "scenarios": [
+      {
+        "name": "Signup form with Yup validation and server-side error",
+        "baseline": 68,
+        "treatment": 90,
+        "rationale": "Treatment used Yup schema via validationSchema, ErrorMessage component, and setErrors in onSubmit for duplicate-email server validation exactly as in the SKILL; baseline used Formik but missed setErrors and used inline validate instead of schema."
+      },
+      {
+        "name": "Dynamic team-member form with add/remove rows",
+        "baseline": 60,
+        "treatment": 86,
+        "rationale": "Treatment used FieldArray render-prop with push/remove and the members.${i}.name nested name pattern shown in the SKILL; baseline managed array state manually with useState rather than FieldArray."
+      }
+    ]
+  }
 }

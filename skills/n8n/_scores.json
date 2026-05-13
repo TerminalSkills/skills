@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:023ed58b3dccd30c214d774a06fce4ec78bf3b10bcc3c2791db2a562bb29513a",
   "scoredAt": "2026-05-13T09:38:32.885Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 78,
+    "multiplier": 1.73,
+    "scenarios": [
+      {
+        "name": "Self-host n8n with persistent PostgreSQL via Docker Compose",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Treatment uses the documented docker-compose with n8nio/n8n image, DB_TYPE=postgresdb env vars, n8n_data + pgdata volumes, and WEBHOOK_URL set; baseline produces a similar compose file but typically forgets WEBHOOK_URL and basic auth env names."
+      },
+      {
+        "name": "Transform data inside an n8n Code node between webhook and Slack steps",
+        "baseline": 40,
+        "treatment": 76,
+        "rationale": "Treatment uses $input.all() and returns items in the {json: {...}} shape n8n expects per the skill; baseline often returns a plain array or uses the wrong input accessor, which breaks downstream nodes."
+      }
+    ]
+  }
 }

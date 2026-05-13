@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b16812e441ff54fc573620529cc3e0eec9d28a4a50df26ad67cc39af7ba61904",
   "scoredAt": "2026-05-13T09:41:21.547Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 21,
+    "treatmentAvg": 96,
+    "multiplier": 4.57,
+    "scenarios": [
+      {
+        "name": "Initial recon on an authorized /24 subnet",
+        "baseline": 22,
+        "treatment": 95,
+        "rationale": "Treatment follows the documented host-discovery (-PR -sn) -> service scan (-A -T4) -> vuln scan (--script vuln) progression with -oA/-oX output and an authorization reminder, while the baseline runs a single broad scan with no staging or XML output."
+      },
+      {
+        "name": "TLS Heartbleed check on a specific host",
+        "baseline": 20,
+        "treatment": 96,
+        "rationale": "Treatment uses the documented `nmap --script ssl-heartbleed -p 443 <host>` invocation with -oX for parsing, while the baseline sidesteps nmap entirely and falls back to openssl/Python, missing every rubric check."
+      }
+    ]
+  }
 }

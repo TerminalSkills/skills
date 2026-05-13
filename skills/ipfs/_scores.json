@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e7ddaec9481e380b8f1be11f3455db69a488230247977778fc38c4add524e52a",
   "scoredAt": "2026-05-13T09:17:19.656Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 90,
+    "multiplier": 1.5,
+    "scenarios": [
+      {
+        "name": "Upload NFT image and metadata via Pinata",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": "Treatment hits pinFileToIPFS for the image and pinJSONToIPFS for the metadata with Bearer JWT, extracts IpfsHash and returns ipfs:// URIs; baseline often uses ipfs-http-client or a single endpoint and skips the ipfs:// scheme."
+      },
+      {
+        "name": "Fetch JSON from IPFS via gateway",
+        "baseline": 58,
+        "treatment": 88,
+        "rationale": "Treatment fetches from a documented gateway (gateway.pinata.cloud/ipfs/<cid>) and parses res.json(); baseline often uses a local ipfs daemon or non-listed endpoints."
+      }
+    ]
+  }
 }

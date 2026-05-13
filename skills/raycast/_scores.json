@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0b60e09311c3b27f5c6bb57478755cd7e135a6e0eed59047732ecdbc80f2dd2e",
   "scoredAt": "2026-05-13T10:00:20.654Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 24,
+    "treatmentAvg": 94,
+    "multiplier": 3.92,
+    "scenarios": [
+      {
+        "name": "GitHub repo search list command",
+        "baseline": 30,
+        "treatment": 93,
+        "rationale": "Treatment uses useFetch from @raycast/utils, getPreferenceValues for the token, List.Item accessories for stars/date, and Action.OpenInBrowser as the primary action; baseline reaches for raw fetch + useState and hardcodes the token, missing the caching + preferences patterns the rubric checks."
+      },
+      {
+        "name": "Menu bar notifications poller",
+        "baseline": 18,
+        "treatment": 94,
+        "rationale": "Treatment uses MenuBarExtra with Section/Item plus a package.json command configured with mode: \"menu-bar\" and interval: \"5m\" backed by a password preference; baseline suggests setInterval polling or a generic macOS menu helper and does not surface the MenuBarExtra API or the interval manifest field."
+      }
+    ]
+  }
 }

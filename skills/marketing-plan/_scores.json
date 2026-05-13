@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:361f52f70c5a41cffe179e04331c536e56cd86b4a59424d50bb2b94cd9df9915",
   "scoredAt": "2026-05-13T09:28:26.141Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 93,
+    "multiplier": 2.91,
+    "scenarios": [
+      {
+        "name": "B2B SaaS scaling from 80 paying users",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Treatment picks one primary platform, applies the three content levels (educate/inspire/entertain) with 5 ideas each, owned-email lead magnet, and defers paid ads until ~300+ users; baseline scatters paid and organic from day one without the framework."
+      },
+      {
+        "name": "Local service business with no budget",
+        "baseline": 28,
+        "treatment": 92,
+        "rationale": "Treatment picks Instagram + Google Business Profile as a single channel, supplies content across all three levels, collects email at booking, and explicitly defers paid ads; baseline recommends paid first and multi-channel scatter, violating the spend-time-not-money principle."
+      }
+    ]
+  }
 }

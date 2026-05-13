@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c0502c18f47a0060ed543c09a4cfb6261faf67233973c5153ae5078fb6a939d4",
   "scoredAt": "2026-05-13T10:38:31.027Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 88,
+    "multiplier": 2.1,
+    "scenarios": [
+      {
+        "name": "Scaffold a Chrome+Firefox extension with React popup and content script",
+        "baseline": 45,
+        "treatment": 89,
+        "rationale": "Treatment uses npx wxt@latest init, entrypoints/popup + entrypoints/content.ts with defineContentScript and matches, and npm run dev/dev:firefox/zip per the skill; baseline hand-writes manifest.json and webpack/vite config, missing the file-based entrypoints and per-browser dev scripts."
+      },
+      {
+        "name": "Persist an API key from popup and consume it in background fetch",
+        "baseline": 40,
+        "treatment": 87,
+        "rationale": "Treatment uses the WXT storage helper (storage.getItem/setItem with the local: prefix) in popup, defineBackground for the service worker, and browser.runtime.sendMessage for messaging as documented; baseline reaches for raw chrome.storage.local and chrome.runtime APIs without WXT's typed helpers."
+      }
+    ]
+  }
 }

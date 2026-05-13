@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:68e84b798e77cea5b2aeda3ef2b38be016991ac94c911c435da3488c7fe95b21",
-  "scoredAt": "2026-05-12T22:24:12.794Z",
+  "scoredAt": "2026-05-13T13:45:25.006Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.2,
+    "baselineAvg": 25,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "nextjs-stream-poem",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Response A correctly implements the required API route but misses the useChat hook; Response B implements the client streaming logic but does not use streamText or toDataStreamResponse in the API route."
+      },
+      {
+        "name": "multi-step-agent-weather-search",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required structure."
+      }
+    ]
+  }
 }

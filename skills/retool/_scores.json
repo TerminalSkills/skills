@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6b444373c330c5e5b1424010e842db186c7886cc0054c1e19ddcf6e8c4ebba32",
   "scoredAt": "2026-05-13T10:03:53.639Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 87,
+    "multiplier": 1.74,
+    "scenarios": [
+      {
+        "name": "Build a Stripe refund admin panel with a confirmation flow",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "Treatment uses {{ table1.selectedRow.stripe_charge_id }} bindings, utils.openConfirmDialog, refundQuery.trigger(), utils.showNotification, and re-runs usersQuery as documented; baseline writes a generic React + Express refund flow."
+      },
+      {
+        "name": "Trial-expiration reminder workflow",
+        "baseline": 48,
+        "treatment": 85,
+        "rationale": "Treatment builds a Retool Workflow with scheduled trigger, query() for expiring trials, per-row sendgrid.send with template_id, and log-insert step from the skill; baseline writes a standalone cron + Node script."
+      }
+    ]
+  }
 }

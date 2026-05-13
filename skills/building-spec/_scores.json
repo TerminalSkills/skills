@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:fa72196194f6edb464442e2b0caf51120d075f811c14db92ba97e118177a210d",
-  "scoredAt": "2026-05-13T08:23:25.670Z",
+  "scoredAt": "2026-05-13T14:57:43.866Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.85,
+    "baselineAvg": 68,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "generate-floor-plan-with-spec",
+        "baseline": 80,
+        "treatment": 50,
+        "rationale": "Response A covers most rubric items, including spec values and room dimensions, while Response B omits key confirmations and spec usage details."
+      },
+      {
+        "name": "validate-and-auto-correct-model",
+        "baseline": 55,
+        "treatment": 65,
+        "rationale": "Both responses identify the violation and propose a width expansion, but neither references the spec file or confirms all rooms meet minimums; A is slightly more precise in the width calculation."
+      }
+    ]
+  }
 }

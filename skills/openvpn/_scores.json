@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1d2057b874ec323d4c0ef89a35eec6ef8c7aa68d510e8043166d86dbcf688372",
   "scoredAt": "2026-05-13T09:46:06.725Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 95,
+    "multiplier": 1.9,
+    "scenarios": [
+      {
+        "name": "Deploy production OpenVPN with EC keys, NAT, and self-contained .ovpn profiles",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline used AES-256-CBC, no tls-auth, RSA defaults, and external-file client profile; treatment hit EC keys, AES-256-GCM, inline tls-auth with key-direction 1, and dynamic-interface NAT MASQUERADE."
+      },
+      {
+        "name": "Add TOTP MFA and revoke a compromised client",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline mentioned components but used an incorrect plugin filename and omitted google-authenticator rate-limit flags; treatment matched the documented plugin path, full flag set, and complete revoke+gen-crl+restart sequence."
+      }
+    ]
+  }
 }

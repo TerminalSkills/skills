@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:bba33fbf508008d3b4553671d1fc56a37f73b7806347d3eb63b77ec87c537076",
-  "scoredAt": "2026-05-13T08:30:40.787Z",
+  "scoredAt": "2026-05-13T15:39:22.580Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.12,
+    "baselineAvg": 83,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "scaffold-root-and-deploy",
+        "baseline": 65,
+        "treatment": 85,
+        "rationale": "Response A meets almost all rubric items, missing only the Example field, while Response B lacks the PersistentPreRun, initConfig, and Example, covering fewer requirements."
+      },
+      {
+        "name": "add-status-subcommand",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric requirements."
+      }
+    ]
+  }
 }

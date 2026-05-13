@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b4d2a52b14d314c4035f8d2c0465721f0bef86fb8a17dcbd67210de42a928669",
   "scoredAt": "2026-05-13T09:14:49.647Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 29,
+    "treatmentAvg": 96,
+    "multiplier": 3.31,
+    "scenarios": [
+      {
+        "name": "Configure i18next with HTTP-loaded namespace JSON files",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline inlines resources without HttpBackend or LanguageDetector and ignores namespaces; treatment chains all three plugins, sets supportedLngs/ns/defaultNS and the /locales/{{lng}}/{{ns}}.json loadPath, and shows useTranslation('dashboard')."
+      },
+      {
+        "name": "Pluralized project count plus a Trans-wrapped Terms link",
+        "baseline": 22,
+        "treatment": 96,
+        "rationale": "Baseline uses an inline ternary and hardcoded link; treatment defines projects_one/projects_other with {{count}}, calls t('projects', { count }), and uses <Trans i18nKey=\"terms\"> wrapping an <a href=\"/terms\"> element."
+      }
+    ]
+  }
 }

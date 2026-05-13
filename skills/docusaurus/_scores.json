@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b75c57e3186f8174e4b88aa2138001077efb052c78b83ddb2def7d28ba4a0532",
-  "scoredAt": "2026-05-13T08:45:29.474Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "scoredAt": "2026-05-13T16:43:34.487Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.26,
+    "baselineAvg": 43,
+    "treatmentAvg": 97,
+    "scenarios": [
+      {
+        "name": "versioned-sdk-docs-with-algolia",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Treatment uses the exact `npm run docusaurus docs:version 1.0` command, the documented `algolia` themeConfig shape with appId/apiKey/indexName, and `type: 'category'` sidebar entries; baseline scaffolds correctly but misses the snapshot command and the precise algolia config block."
+      },
+      {
+        "name": "mdx-tabs-for-package-managers",
+        "baseline": 35,
+        "treatment": 98,
+        "rationale": "Treatment imports `@theme/Tabs` and `@theme/TabItem` and uses value/label with `default` exactly as documented; baseline tends to suggest generic react-tabs or wrong import paths that don't render in Docusaurus."
+      }
+    ]
+  }
 }

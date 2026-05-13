@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1a64888b74b77f7b0fa6823c5573019c547b5e81d3088180571ad8aba125b8eb",
   "scoredAt": "2026-05-13T09:05:06.253Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 88,
+    "multiplier": 1.47,
+    "scenarios": [
+      {
+        "name": "Build an OpenAI agent loop that calls get_weather and conditionally send_email, handling parallel tool calls",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "Treatment iterates messages with a capped max_iterations, appends the assistant message before tool results, handles multiple tool_calls in one response by appending all tool-role results before the next API call, and exits when tool_calls is None; baseline often loops without iteration cap and processes only the first tool call."
+      },
+      {
+        "name": "Implement an Anthropic Claude tool-use loop with a search_database tool that terminates on end_turn",
+        "baseline": 58,
+        "treatment": 86,
+        "rationale": "Treatment uses Anthropic's input_schema (not parameters), inspects response.stop_reason for end_turn vs tool_use, collects every tool_use block into a single user message of tool_result objects, and returns JSON errors instead of raising; baseline tends to confuse OpenAI's schema with Anthropic's or returns results one-at-a-time."
+      }
+    ]
+  }
 }

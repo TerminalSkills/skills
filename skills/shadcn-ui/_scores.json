@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5b84cb4c166fd3e27c0039eb055533733ff52778dad3893dfe5de20a5d152fbd",
   "scoredAt": "2026-05-13T10:07:20.510Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Create a validated user signup dialog using shadcn/ui",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment uses the documented Form + FormField + zodResolver pattern with shadcn add commands and components/ui imports; baseline writes a generic React form without the shadcn copy-paste pattern."
+      },
+      {
+        "name": "Add a Cmd+K command palette to a Next.js app",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Treatment uses the documented CommandDialog/CommandInput/CommandList components installed via shadcn add and the keydown listener pattern; baseline likely hand-rolls a modal or uses cmdk directly without the shadcn wrapper."
+      }
+    ]
+  }
 }

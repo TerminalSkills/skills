@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:de803bca81effaf1ba2485365e4d5d3169b260c024782c9b79b27ee4ca91bb3e",
   "scoredAt": "2026-05-13T10:06:02.365Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 73,
     "dimensions": {
@@ -41,5 +41,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 93,
+    "multiplier": 1.69,
+    "scenarios": [
+      {
+        "name": "es-blog-index-mapping",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline produced a basic text/keyword mapping with no autocomplete; treatment boosted title 3-5x, mapped author/tags as keyword, added a suggest field of type completion, and applied the documented content_analyzer with lowercase, synonym, and edge_ngram filters."
+      },
+      {
+        "name": "algolia-ecommerce-config",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Baseline set searchableAttributes/attributesForFaceting/customRanking but omitted filterOnly() and typo tuning; treatment called setSettings with prioritized searchableAttributes, filterOnly(price_cents) in facets, desc()-wrapped customRanking, and minWordSizefor1Typo: 3."
+      }
+    ]
+  }
 }

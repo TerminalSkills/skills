@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:78c87f3b17e95282f215f4d13f1fb1f691a699ba1c693e063f9ca453db45eebf",
   "scoredAt": "2026-05-13T10:08:50.912Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 73,
     "dimensions": {
@@ -41,5 +41,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 63,
+    "treatmentAvg": 92,
+    "multiplier": 1.46,
+    "scenarios": [
+      {
+        "name": "First-time SOC 2 Type II timeline and CC6 controls",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Baseline mentions MFA, encryption, and Vanta but gives a vague one-year estimate without phase decomposition or concrete CC6 controls; treatment breaks the timeline into readiness 4-6w, remediation 2-4mo, 6-12mo evidence window, 4-8w fieldwork, 2-4w report, and details MFA middleware, quarterly access reviews, and KMS-managed keys."
+      },
+      {
+        "name": "Quarterly IAM access review evidence script",
+        "baseline": 65,
+        "treatment": 93,
+        "rationale": "Baseline uses boto3 correctly but omits the login profile check (with NoSuchEntityException handling) and the review_date/reviewed_by fields auditors require; treatment matches the skill's generate_access_review_report exactly, including console-access detection and audit metadata for CC6 evidence."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7f711e7003ccbe5d385815adf7def38b9935fea02f6c6dc60adeb840f0c975e4",
   "scoredAt": "2026-05-13T08:49:55.216Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 86,
+    "multiplier": 2.26,
+    "scenarios": [
+      {
+        "name": "Programmatic architecture diagram generation",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment uses the documented Excalidraw element shape with roughness, fontFamily:1, startBinding/endBinding, and seed for hand-drawn variation; baseline guesses generic JSON without proper bindings or element fields."
+      },
+      {
+        "name": "Embedding Excalidraw with PNG export at retina scale",
+        "baseline": 40,
+        "treatment": 84,
+        "rationale": "Treatment correctly uses excalidrawAPI.getSceneElements/getFiles with exportToBlob and getDimensions for 2x scale plus explicit container height; baseline misses the API ref pattern and the getDimensions scale option."
+      }
+    ]
+  }
 }

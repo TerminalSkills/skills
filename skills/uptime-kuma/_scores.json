@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 87,
+    "multiplier": 2.29,
+    "scenarios": [
+      {
+        "name": "Deploy Uptime Kuma in Docker with keyword + container monitors",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment uses louislam/uptime-kuma:1 on port 3001 with the uptime-kuma-data volume, mounts /var/run/docker.sock for container monitoring, and adds an HTTP keyword check on \"status\":\"ok\"; baseline often suggests a different self-hosted tool or omits the keyword/Docker monitor types."
+      },
+      {
+        "name": "Add monitor via Socket.IO API and configure maintenance cron",
+        "baseline": 25,
+        "treatment": 85,
+        "rationale": "Treatment connects with socket.io-client, emits login then add with type/interval/maxretries/accepted_statuscodes/notificationIDList, and sets a cron-strategy maintenance window like 0 2 * * 0; baseline does not know Kuma uses Socket.IO and proposes a fictional REST API."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

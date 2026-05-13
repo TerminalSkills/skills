@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:208bc64cea25b740aedab1d382d3b85da883f29f78f6ceec3585aeaa62b07688",
-  "scoredAt": "2026-05-12T22:23:39.756Z",
+  "scoredAt": "2026-05-13T13:41:54.056Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "add-ci-quality-gates",
+        "baseline": 0,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with a Promptfoo config, GitHub Actions workflow, and PR comment logic, while Response A provides no content."
+      },
+      {
+        "name": "compare-models-eval",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B fully meets the rubric by configuring Promptfoo with the required providers, running the eval suite, producing a comparison table with scores, latency, and cost, and recommending a model based on score-to-cost ratio, whereas Response A only provides a custom script without Promptfoo, lacking per-test metrics, cost, and recommendation."
+      }
+    ]
+  }
 }

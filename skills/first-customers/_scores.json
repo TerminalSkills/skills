@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e7bc30389c37b7b973ac36ab40a7020fbb752597c4d504b1388bab8ac9925992",
   "scoredAt": "2026-05-13T08:53:24.005Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 44,
+    "treatmentAvg": 85,
+    "multiplier": 1.93,
+    "scenarios": [
+      {
+        "name": "Plan to land first 10 paying SaaS customers",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Treatment uses the three Concentric Circles structure (friends/family, community, cold outreach) with the required Output Format (10-person lists, personalized template, pricing, weekly goal) plus the 'don't launch before 100 customers' rule; baseline gives generic Product Hunt / paid ads advice that ignores founder-led manual sales sequencing."
+      },
+      {
+        "name": "Pricing decision for a new product (free vs paid)",
+        "baseline": 42,
+        "treatment": 84,
+        "rationale": "Treatment invokes the zero-price-effect rule (never free, gap from $0 to $1 > $1 to $100), recommends starting low and raising over time, and distinguishes cost-based vs value-based pricing per the skill; baseline tends to recommend a free tier or freemium without the skill's specific framing."
+      }
+    ]
+  }
 }

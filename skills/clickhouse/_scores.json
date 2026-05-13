@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:2fd2e390ab8e268b8d20b2648d91e714453cb38c3f6c325f0037ec927ab06806",
-  "scoredAt": "2026-05-13T08:29:30.368Z",
+  "scoredAt": "2026-05-13T15:31:31.629Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.05,
+    "baselineAvg": 43,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "deploy-and-query-dau",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements, while Response B omits partitioning, ordering, and uses count(DISTINCT) instead of uniqExact."
+      },
+      {
+        "name": "nodejs-insert-and-query-dau",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response B covers most rubric items (import, client setup, insert with format, JSON result, close) but misses parameterized days and uniqExact; Response A lacks format, uniqExact, parameterization, and client close."
+      }
+    ]
+  }
 }

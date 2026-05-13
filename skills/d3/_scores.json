@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7cf375849a430af98e9e77fb878ae7b7a5f93c749316f975383ed630759d8b87",
-  "scoredAt": "2026-05-13T08:41:27.702Z",
+  "scoredAt": "2026-05-13T16:15:18.674Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.22,
+    "baselineAvg": 60,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "responsive-grouped-bar-chart",
+        "baseline": 45,
+        "treatment": 65,
+        "rationale": "Response B better meets the rubric by using .join for bars, a 750 ms transition, and a tooltip, whereas Response A uses .enter().append, a 800 ms transition, and lacks the required join syntax and resize handling."
+      },
+      {
+        "name": "interactive-force-graph",
+        "baseline": 75,
+        "treatment": 80,
+        "rationale": "Both responses meet most rubric items, but neither implements the required 750 ms transition for node and link updates; Response A includes additional features (resize handling, more detailed tooltip) giving it a slightly higher score."
+      }
+    ]
+  }
 }

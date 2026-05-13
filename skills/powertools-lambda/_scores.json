@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:457036b64ac165e088e3d2e57c6a924769bcc65eaebf5bde3841ab0216af5bc3",
   "scoredAt": "2026-05-13T09:53:01.830Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -26,5 +26,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 13,
+    "treatmentAvg": 94,
+    "multiplier": 7.23,
+    "scenarios": [
+      {
+        "name": "Add observability to Lambda",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Baseline reached for raw console.log, AWSXRay, and CloudWatch putMetricData rather than Powertools; treatment wired Logger/Tracer/Metrics via middy with injectLambdaContext, captureLambdaHandler, logMetrics, MetricUnit, and appendKeys correlation IDs."
+      },
+      {
+        "name": "Idempotent payment handler",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Baseline hand-rolled a DynamoDB conditional-write lock; treatment used makeIdempotent with DynamoDBPersistenceLayer and IdempotencyConfig including eventKeyJmesPath and expiresAfterSeconds TTL."
+      }
+    ]
+  }
 }

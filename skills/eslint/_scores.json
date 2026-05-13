@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:605551978bd08b5cd29d00d9bc09bc71b27d05a192ac58d67834db565115478b",
   "scoredAt": "2026-05-13T08:49:24.007Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 95,
+    "multiplier": 2.5,
+    "scenarios": [
+      {
+        "name": "Set up ESLint 9 flat config for a TypeScript React project",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline defaults to legacy .eslintrc JSON format and fails the flat config rubric; treatment matches eslint.config.js array pattern with @eslint/js, typescript-eslint, and scoped files globs."
+      },
+      {
+        "name": "Add ESLint as a blocking GitHub Actions check that fails on warnings",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline produces a working workflow but typically omits --max-warnings 0; treatment uses the exact flag pattern from the skill to treat warnings as CI errors."
+      }
+    ]
+  }
 }

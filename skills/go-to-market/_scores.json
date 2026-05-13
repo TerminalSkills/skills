@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2e799919b9b5849a98567b5601e0ad7d74f8772be5e311ea72e392356d65e846",
   "scoredAt": "2026-05-13T09:08:52.581Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 91,
+    "multiplier": 2.28,
+    "scenarios": [
+      {
+        "name": "Recommend a GTM motion for a remote-design-team PM tool with motion contrast",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Baseline picks a motion intuitively with vague metrics; treatment applies the documented requirements checklist, names PLG's Signup→Activation→Conversion metrics, and contrasts SLG and CLG using documented criteria."
+      },
+      {
+        "name": "6-week launch campaign for a B2B analytics platform across three phases",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Baseline lists tactics without time-boxed phases; treatment maps pre-launch deliverables (waitlist, 5-10 design partners, 90s demo, load testing), the documented launch-day sequence, and post-launch activation/source-attribution metrics."
+      }
+    ]
+  }
 }

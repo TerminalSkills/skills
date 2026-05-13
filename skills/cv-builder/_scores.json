@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:bc6144d03001720648f72fe344e9c5229a92a7edca26e5e9debdbda7a026d5f6",
-  "scoredAt": "2026-05-13T08:41:10.754Z",
+  "scoredAt": "2026-05-13T16:12:25.912Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-new-cv-sb2nov",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a complete cv.yaml, quantifiable experience, sb2nov theme, and render instructions, while Response B provides LaTeX code and omits all required elements."
+      },
+      {
+        "name": "update-cv-add-google-job",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not address the YAML file or rendercv command at all."
+      }
+    ]
+  }
 }

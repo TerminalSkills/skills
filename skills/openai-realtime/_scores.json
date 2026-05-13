@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d5e19bd921440d325e1ff5c3923220d6c5145b876bb3b928a4e1ca00cf77d482",
   "scoredAt": "2026-05-13T09:44:56.020Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Node.js Realtime voice agent with server VAD and nova voice",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline guesses URLs or stitches together STT/TTS pipelines, missing the realtime WebSocket protocol, while treatment uses the documented wss URL, OpenAI-Beta header, session.update with voice nova, server_vad, and pcm16."
+      },
+      {
+        "name": "Add function-calling appointment-booking tool to voice agent",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline confuses the format with Chat Completions tool_calls, while treatment registers tools via session.update, handles response.function_call_arguments.done, and returns results through conversation.item.create with function_call_output plus response.create."
+      }
+    ]
+  }
 }

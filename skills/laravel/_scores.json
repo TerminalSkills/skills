@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e71cc86dd4930cb7c3157e4015fd9caf3f80acf07364a3027e5d3b1d8a3ba4ec",
   "scoredAt": "2026-05-13T09:21:47.178Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 84,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "Build a paginated User index with search filter and eager-loaded posts",
+        "baseline": 58,
+        "treatment": 86,
+        "rationale": "Treatment uses Eloquent query with when() conditional, with('posts') eager loading and paginate(20) per the skill's controller pattern; baseline returns a working but less idiomatic implementation that often omits eager loading and the when() pattern."
+      },
+      {
+        "name": "Dispatch a background job to process orders with retry/backoff and send confirmation email",
+        "baseline": 52,
+        "treatment": 82,
+        "rationale": "Treatment defines a job implementing ShouldQueue with $tries=3, $backoff=60, constructor property promotion, and dispatches via ProcessOrder::dispatch($order)->onQueue('orders') exactly as documented; baseline gives a generic queue job without retry/backoff defaults and the dispatch->onQueue chain."
+      }
+    ]
+  }
 }

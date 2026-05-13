@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:355e8a314865c52a210eaf1a58ab1bf59d9bbb61dea08e9212f503dfc51dbf74",
   "scoredAt": "2026-05-13T10:33:24.504Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 93,
+    "multiplier": 1.75,
+    "scenarios": [
+      {
+        "name": "Price a SOC 2 evidence automation SaaS based on value",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Baseline gives reasonable competitor-anchored numbers but rarely quantifies annual value in dollars and applies an explicit 10-20% rule with paired risk reversals, while treatment computes hours-saved-times-rate, sets price at ~15% of value, and stacks money-back guarantee + free trial + ROI guarantee."
+      },
+      {
+        "name": "Diagnose 4% free-trial-to-paid conversion rate",
+        "baseline": 55,
+        "treatment": 94,
+        "rationale": "Baseline gives ad hoc onboarding/pricing fixes but rarely cites the 15-25% SaaS benchmark or systematically walks the five barriers in priority order, while treatment enumerates the exact five barriers and prioritizes value-not-demonstrated first per the skill."
+      }
+    ]
+  }
 }

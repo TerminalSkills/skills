@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7d5d3fa510ce9eb5dec5827cc8282e670c72a7e7fc30f1b242e691b5b0b9d7f3",
   "scoredAt": "2026-05-13T09:10:39.231Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 92,
+    "multiplier": 1.92,
+    "scenarios": [
+      {
+        "name": "Build a Node.js gRPC user service with server streaming for live updates",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "Baseline used grpc-tools codegen and ad-hoc errors; treatment loaded the proto dynamically with @grpc/proto-loader using keepCase/longs/enums/defaults/oneofs, returned grpc.status.NOT_FOUND, and cleaned up server-stream intervals on call.on('cancelled')."
+      },
+      {
+        "name": "Add a bidirectional chat RPC between two clients",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Both implemented bidirectional streaming, but treatment matched the skill's exact proto shape (stream ChatMessage returns stream ChatMessage) and handler pattern (call.on('data') + call.write + call.on('end', () => call.end())), while baseline used ad-hoc message types."
+      }
+    ]
+  }
 }

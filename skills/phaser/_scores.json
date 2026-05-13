@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3c5228b3d68df5a97576c246b4c0752be7e0eae4e3290ed681fbb5bd1bf0572f",
   "scoredAt": "2026-05-13T09:50:12.542Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 95,
+    "multiplier": 1.58,
+    "scenarios": [
+      {
+        "name": "Platformer with Tiled tilemap and coin overlap",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline knows Phaser scenes broadly but is imprecise about make.tilemap/getObjectLayer/setCollisionByProperty and physics.add.overlap wiring; treatment lifts the documented tilemap + arcade group + camera.startFollow pattern exactly."
+      },
+      {
+        "name": "Pixel-art Phaser config that fits any viewport",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Scale config options (pixelArt, roundPixels, Phaser.Scale.FIT, CENTER_BOTH) are documented widely so baseline does reasonably well, while treatment matches the exact GameConfig snippet."
+      }
+    ]
+  }
 }

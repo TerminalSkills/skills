@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:93835bbbac83457e925312b7ec3bc49f2257ae7db095cca3eaa554e863c30486",
-  "scoredAt": "2026-05-13T08:43:47.410Z",
+  "scoredAt": "2026-05-13T16:30:36.707Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3,
+    "baselineAvg": 25,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "deploy-counter-api",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items but uses a different project name, while Response A lacks key elements such as Hono, JSON responses, and deploy commands."
+      },
+      {
+        "name": "cron-cleanup-urls",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B meets the core Deno.cron, KV, and deployctl requirements (though project name differs), while Response A uses Cloudflare Workers instead of Deno.cron and omits the required deployctl command."
+      }
+    ]
+  }
 }

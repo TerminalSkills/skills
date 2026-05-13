@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bea6eea42c4d96d96042275620cfde1c06fad1108d629d06bfdf46a7d8741be5",
   "scoredAt": "2026-05-13T09:35:19.199Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -42,5 +42,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Wire AWS SDK Node client to self-hosted MinIO with presigned uploads",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Treatment sets `forcePathStyle: true`, uses `@aws-sdk/s3-request-presigner` `getSignedUrl` with `PutObjectCommand` and a short expiry; baseline misses `forcePathStyle` and the presigned-PUT pattern documented for browser-direct uploads."
+      },
+      {
+        "name": "Auto-delete temp uploads after 30 days using mc CLI",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment uses `mc alias set`, `mc mb`, and `mc ilm rule add --expiry-days 30`; baseline reaches for aws-cli `put-bucket-lifecycle-configuration` JSON instead of the documented `mc ilm` workflow."
+      }
+    ]
+  }
 }

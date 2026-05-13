@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1e5e7567557c9f404f2579db39581aa325c6c8f03bc345f5628fa23b7bd910f2",
   "scoredAt": "2026-05-13T09:28:15.043Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 24,
+    "treatmentAvg": 95,
+    "multiplier": 3.96,
+    "scenarios": [
+      {
+        "name": "Score a single SaaS idea on the 10-factor framework",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Treatment scores all 10 named factors 1-10, sums to a 0-100 total, applies the 75/50 verdict thresholds, identifies strengths/weaknesses/critical risks, and lists cheapest assumptions to test; baseline gives a prose pros/cons take with no structured score or verdict."
+      },
+      {
+        "name": "Compare three ideas and pick a winner",
+        "baseline": 22,
+        "treatment": 94,
+        "rationale": "Treatment scores each idea on all 10 factors, ranks by total, applies Iron Law of the Market for existing-budget check, and recommends a specific shadow test (landing page + $200 LinkedIn ads with 2-5% signup band); baseline picks a winner qualitatively without scoring or validation plan."
+      }
+    ]
+  }
 }

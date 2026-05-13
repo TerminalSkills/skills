@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:43132c0d15c8ffa858738ff9c6c20a60ef20c6ab0d4d57a80ae7b48ec70a036d",
   "scoredAt": "2026-05-13T10:24:45.424Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 15,
+    "treatmentAvg": 95,
+    "multiplier": 6.33,
+    "scenarios": [
+      {
+        "name": "Find, inspect, and install a Coolify skill for Claude Code",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline has no awareness of terminal-skills CLI and resorts to manual GitHub copying; treatment uses search/info/install with auto-detection and the .claude/skills path."
+      },
+      {
+        "name": "Search REST API for accessibility skills and fetch SKILL.md",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline lacks knowledge of the public /api/v1/skills endpoints; treatment hits /api/v1/skills?q= and /api/v1/skills/<slug> with jq to extract bodyMarkdown."
+      }
+    ]
+  }
 }

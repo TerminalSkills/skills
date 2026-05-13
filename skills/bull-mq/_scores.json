@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:c8a635ced88ba4f0891338e12a3aaf39010537e4c94de26211292e73690308fe",
-  "scoredAt": "2026-05-13T08:23:30.411Z",
+  "scoredAt": "2026-05-13T14:58:21.182Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3,
+    "baselineAvg": 30,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "setup-email-queue-with-delay-and-rate-limit",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "A fully meets all rubric items, B lacks job.updateProgress and result return."
+      },
+      {
+        "name": "create-report-flow-with-dependencies",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B correctly uses FlowProducer.add with children, but misnames queues; Response A uses a different framework entirely."
+      }
+    ]
+  }
 }

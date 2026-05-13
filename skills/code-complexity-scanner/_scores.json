@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f84eb8387d645d86e158dd599cf3caa02b7d5b575853d94044d920c7e3e29357",
-  "scoredAt": "2026-05-13T08:30:46.992Z",
+  "scoredAt": "2026-05-13T15:40:17.241Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.5,
+    "baselineAvg": 20,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "scan-ts-project-complexity",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the explicit exclusion of generated code, while Response B lacks tiers, refactoring suggestions, and threshold details."
+      },
+      {
+        "name": "analyze-django-complexity",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not provide any analysis."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1b129234ef9b2634801b78534a1fbbbe1165e38bd14a9ddc6d13b7d7a3d31f4f",
   "scoredAt": "2026-05-13T09:12:09.717Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 88,
+    "multiplier": 2.32,
+    "scenarios": [
+      {
+        "name": "RAG pipeline with indexing and query stages",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Treatment uses Haystack's Pipeline class with separate indexing and query pipelines, OpenAIDocumentEmbedder/OpenAITextEmbedder, InMemoryEmbeddingRetriever, PromptBuilder, OpenAIGenerator, and connects components with explicit pipeline.connect() including embedder.embedding to retriever.query_embedding; baseline reaches for a generic LangChain-style chain or hand-rolled cosine similarity, missing the pipeline-as-code primitives."
+      },
+      {
+        "name": "Custom metadata filter component",
+        "baseline": 35,
+        "treatment": 86,
+        "rationale": "Treatment uses the @component decorator with @component.output_types(documents=list[Document]) and a run(documents, category) method returning a dict, matching the documented custom component shape; baseline writes a plain Python function that won't slot into a Haystack pipeline."
+      }
+    ]
+  }
 }

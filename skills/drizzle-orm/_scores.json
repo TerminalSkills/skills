@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9b07059dcda0cbd362647a2d523dfd60afdf8cdabd8a75dbc6912e0ca91f1c78",
   "scoredAt": "2026-05-13T08:46:19.790Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 88,
+    "multiplier": 1.76,
+    "scenarios": [
+      {
+        "name": "Define a users/posts schema with relations and generate a migration",
+        "baseline": 52,
+        "treatment": 90,
+        "rationale": "Treatment uses drizzle-orm/pg-core builders (pgTable, uuid, varchar, timestamp), declares relations() for posts↔users, and runs npx drizzle-kit generate to emit the migration; baseline writes a typeORM/Prisma-style schema or hand-rolled SQL without drizzle-kit generate."
+      },
+      {
+        "name": "Fetch admins with their published posts using nested includes",
+        "baseline": 48,
+        "treatment": 86,
+        "rationale": "Treatment uses db.query.users.findMany with the with: { posts: ... } relational include filtered by eq(users.role, 'admin'); baseline writes two manual queries or a hand-built JOIN with no awareness of db.query relational API."
+      }
+    ]
+  }
 }

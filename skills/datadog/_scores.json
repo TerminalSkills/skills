@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:74dfca0af1ffcc74b72b14ea476fb1485e5513286fc456f69b31d65e29f7a313",
-  "scoredAt": "2026-05-13T08:42:38.268Z",
+  "scoredAt": "2026-05-13T16:23:32.452Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.25,
+    "baselineAvg": 40,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "composite-monitor-cpu-mem",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B includes the required curl POST, query, tags, notify_no_data, escalation_message, and renotify_interval, but lacks a warning threshold; Response A lacks most rubric items."
+      },
+      {
+        "name": "ddtrace-instrumentation-flask",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B omits key configuration details and metric setting."
+      }
+    ]
+  }
 }

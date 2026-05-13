@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1876b749401624a287599740c5ac1ea1924c4497eb86912bdf0dcecb4f39f737",
   "scoredAt": "2026-05-13T10:32:42.841Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 95,
+    "multiplier": 2.88,
+    "scenarios": [
+      {
+        "name": "Starting a new notifications feature",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline jumps straight to design and tech-stack choices without naming agent skills or surfacing assumptions; treatment applies the documented lifecycle (idea-refine, spec-driven-development, planning-and-task-breakdown, etc.) and uses the explicit Surface Assumptions, Manage Confusion, and Scope Discipline behaviors."
+      },
+      {
+        "name": "Hot production bug fix workflow",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline gives a reasonable incident playbook but never references named skills or the not-every-task-needs-every-skill principle; treatment limits the chain to debugging-and-error-recovery, test-driven-development, and code-review-and-quality and applies verify-don't-assume and scope-discipline by name."
+      }
+    ]
+  }
 }

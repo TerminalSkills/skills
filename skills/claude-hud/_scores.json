@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:55b22b913231d7a10a80d6e26385e137a6a2b81b6f735b3ab87403c88c4c14a8",
-  "scoredAt": "2026-05-13T08:28:55.653Z",
+  "scoredAt": "2026-05-13T15:28:03.577Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.87,
+    "baselineAvg": 15,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "single-agent-hud-setup",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items, missing only the explicit use of calculateCost in the server logic, while Response B omits all required components."
+      },
+      {
+        "name": "multi-agent-dashboard",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A lacks ContextMonitor usage, gauge widgets, cost calculation, and WebSocket server."
+      }
+    ]
+  }
 }

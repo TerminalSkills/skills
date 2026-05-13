@@ -1,29 +1,29 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:cda1aff23057ac837bda5d90aef5dce7d74c9acc281d31aac0e3570bac0233d8",
-  "scoredAt": "2026-05-12T22:21:35.816Z",
+  "scoredAt": "2026-05-13T11:34:37.785Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
+        "category": "clarity",
+        "detail": "The skill file lacks explicit instructions for the AI on how to use the skill, making it ambiguous."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill file assumes a Node.js environment, limiting cross-platform applicability."
+        "category": "completeness",
+        "detail": "The skill file does not cover error handling or edge cases, limiting robustness."
       }
     ]
   },
@@ -31,5 +31,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.6,
+    "baselineAvg": 20,
+    "treatmentAvg": 92,
+    "scenarios": [
+      {
+        "name": "presence-tracking-welcome",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with Ably code, while Response B uses Laravel Echo/Pusher and misses all required Ably elements."
+      },
+      {
+        "name": "batch-publish-serverless",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers the required POST to /messages with an array of messages but omits token generation, while Response B fails to use ably.request and also omits token generation."
+      },
+      {
+        "name": "chat-room-typing-reactions",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the Chat SDK or required methods."
+      }
+    ]
+  }
 }

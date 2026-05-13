@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6a9b952d3b1d7cfdb36887810680101820fc2a6f3f8bfa04025ede2642a454fe",
   "scoredAt": "2026-05-13T10:16:11.270Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Chatbot with userId-scoped memory retrieval and store",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline guesses method names (sm.query, sm.store) and is uncertain about scoping; treatment uses client.memories.search({query,userId,limit}), injects results into the system prompt, and calls client.memories.add({content,userId}) as documented."
+      },
+      {
+        "name": "Cross-source search via Google Drive connector",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline invents unrelated connector APIs; treatment calls client.connectors.connect({type:'google_drive',userId,credentials:{access_token}}) and searches with includeConnectors:true exactly as the skill specifies."
+      }
+    ]
+  }
 }

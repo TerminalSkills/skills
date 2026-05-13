@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:39f39cd18b883cd21924eec58c566b0889d9c8f2daf97bfa42c2c299442277b4",
   "scoredAt": "2026-05-13T10:08:16.493Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 86,
+    "multiplier": 2.15,
+    "scenarios": [
+      {
+        "name": "Fast scoped scan of a single host with dangerous endpoints excluded",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment runs skipfish with -W minimal.wl, -I '^http://host/' to clamp scope, -X to skip /logout and /delete, and -d/-c/-l to time-box, then opens ./report/index.html as documented; baseline reaches for nikto/nmap/zap or runs skipfish without scope flags and risks crawling /logout."
+      },
+      {
+        "name": "Authenticated scan using a pre-acquired session cookie",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment pre-authenticates via curl, extracts the session value, passes it with -C 'session=...' to skipfish along with -X for the logout endpoint and a fresh -o output dir — exactly the skill's pattern; baseline tries skipfish flags like --auth or a login URL form that the tool does not support."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:323c35f1b8b545cc406ac8be74fd14efe049b4661274b98c2fb86821253f4d74",
-  "scoredAt": "2026-05-13T08:37:31.279Z",
+  "scoredAt": "2026-05-13T15:49:41.342Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.75,
+    "baselineAvg": 40,
+    "treatmentAvg": 70,
+    "scenarios": [
+      {
+        "name": "mailchimp-alternative-page",
+        "baseline": 45,
+        "treatment": 65,
+        "rationale": "Response A covers more rubric items, including a detailed comparison table and multiple sections, whereas Response B is shorter and lacks several required sections."
+      },
+      {
+        "name": "teamsync-vs-asana-page",
+        "baseline": 35,
+        "treatment": 75,
+        "rationale": "Response B covers most rubric items (TL;DR, comparison table, detailed categories, migration path, target audiences) but lacks testimonials and CTA, whereas Response A misses many core requirements."
+      }
+    ]
+  }
 }

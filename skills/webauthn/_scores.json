@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f7da51645ee117006a6178aebab415f613c5c6e7a5fe7d07755cf742bd84a872",
   "scoredAt": "2026-05-13T10:36:09.074Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 90,
+    "multiplier": 1.8,
+    "scenarios": [
+      {
+        "name": "Passkey registration endpoint in Express",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment uses generateRegistrationOptions/verifyRegistrationResponse from @simplewebauthn/server with excludeCredentials and challenge storage; baseline cobbles together raw WebAuthn API without library-specific patterns."
+      },
+      {
+        "name": "Verifying passkey login with replay protection",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment passes credential.publicKey and counter into verifyAuthenticationResponse and updates counter from authenticationInfo.newCounter as the SKILL.md prescribes; baseline mentions counter conceptually but lacks the simplewebauthn call shape."
+      }
+    ]
+  }
 }

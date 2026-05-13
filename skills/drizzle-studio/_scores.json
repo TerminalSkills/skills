@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2a7142e081c76fba6ef74a91ab2d964cb8c6a72b0158642f6d3d4c4879291084",
   "scoredAt": "2026-05-13T08:46:27.254Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 84,
+    "multiplier": 2.63,
+    "scenarios": [
+      {
+        "name": "Launch a visual browser against an existing Drizzle project",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Treatment runs npx drizzle-kit studio (which reads drizzle.config.ts on http://localhost:4983) and points the user to the existing schema/dbCredentials config; baseline reaches for pgAdmin/DBeaver and never invokes drizzle-kit studio."
+      },
+      {
+        "name": "Quickly inspect a Postgres database with no Drizzle ORM project",
+        "baseline": 35,
+        "treatment": 82,
+        "rationale": "Treatment uses the documented standalone form DATABASE_URL=... npx drizzle-kit studio --host 0.0.0.0 --port 4983 to launch without a config file; baseline installs a heavyweight GUI or psql instead of leveraging drizzle-kit studio standalone."
+      }
+    ]
+  }
 }

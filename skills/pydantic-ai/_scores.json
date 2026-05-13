@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ea5b855701de0825cb2f6f23b8c3b5f6bb82e8c3eab4f13ca141b69b1126e27e",
   "scoredAt": "2026-05-13T09:59:06.735Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 89,
+    "multiplier": 2.70,
+    "scenarios": [
+      {
+        "name": "Customer support agent with deps_type and tools",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline tends to default to LangChain or hand-rolled OpenAI function-calling patterns and misses PydanticAI's deps_type + @agent.tool + ctx.deps injection; treatment uses Agent('openai:gpt-4o', deps_type=Deps), @dataclass Deps, async @support_agent.tool with ctx.deps.db, and agent.run(..., deps=Deps(...)) precisely as documented."
+      },
+      {
+        "name": "Structured CityInfo output with streaming",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline reaches for OpenAI native structured outputs and a regular streaming loop, missing the PydanticAI result_type + run_stream pattern; treatment uses Agent(result_type=CityInfo) with run_sync returning result.data and async with agent.run_stream(...) as stream: + async for chunk in stream.stream() as in the skill."
+      }
+    ]
+  }
 }

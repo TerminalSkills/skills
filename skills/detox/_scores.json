@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:71d67ec16b407fa65d435c557262fd0e95f17b1688f3b5e100199eec679be39d",
-  "scoredAt": "2026-05-13T08:44:15.999Z",
+  "scoredAt": "2026-05-13T16:33:34.034Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.43,
+    "baselineAvg": 70,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-detox-both-platforms",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, while Response A omits global CLI, applesimutils, detox init, and uses a different config file."
+      },
+      {
+        "name": "write-login-flow-test",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing the required test suite structure, valid credentials test, and error test with element(by.id(...)) and expect(...).toBeVisible()."
+      }
+    ]
+  }
 }

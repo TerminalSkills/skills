@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5230f761b6a473273322520f9aeae914bc219355c79840bc1d175950220b0381",
   "scoredAt": "2026-05-13T08:47:55.181Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 90,
+    "multiplier": 1.88,
+    "scenarios": [
+      {
+        "name": "Gmail spam-folder audit for a transactional subdomain",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment ran dig +short TXT for SPF/DKIM selectors and _dmarc, checked SPF lookup count against the 10-lookup limit, flagged DMARC p=none and Return-Path/From alignment per the skill, and prioritized fixes by Critical/High/Medium/Low; baseline only suggested 'check SPF and DKIM' without the lookup count, alignment check, or staged DMARC progression."
+      },
+      {
+        "name": "Outlook 550 5.7.1 rejection diagnosis",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment interpreted 550 5.7.1 as content/policy rejection, checked DKIM d= alignment vs the sending domain, ran the reversed-IP DNSBL loop against zen.spamhaus.org/barracudacentral/spamcop, and recommended mail-tester.com verification before bulk sending — all documented patterns; baseline gave generic 'check reputation and warm IPs' advice without alignment or DNSBL queries."
+      }
+    ]
+  }
 }

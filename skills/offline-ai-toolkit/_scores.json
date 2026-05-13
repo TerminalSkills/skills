@@ -32,5 +32,25 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 86,
+    "multiplier": 2.26,
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6",
+    "scenarios": [
+      {
+        "name": "Field research offline RAG",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment uses ollama with nomic-embed-text plus llama3.1:8b via the documented /api/embeddings and /api/generate endpoints, stores embeddings in SQLite with struct.pack BLOBs, and runs cosine_similarity search before answering with the strict 'use ONLY context' prompt; baseline reaches for FAISS or chromadb and OpenAI APIs, which do not match the skill's documented offline stack."
+      },
+      {
+        "name": "Air-gapped developer docs assistant",
+        "baseline": 35,
+        "treatment": 84,
+        "rationale": "Treatment ingests local doc trees with os.walk, populates the documents/embeddings/fts5 schema, calls embed_all_documents, and exposes ask_offline returning answer plus source chunks as documented; baseline outlines a generic langchain RAG that contradicts the offline-only constraint."
+      }
+    ]
+  }
 }

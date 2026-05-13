@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:dd3b033b9b6fb0af300040457b2b98c433a545d6a179c2f6ef105c2eac10c2b3",
   "scoredAt": "2026-05-13T09:07:08.944Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 95,
+    "multiplier": 2.71,
+    "scenarios": [
+      {
+        "name": "Monthly cost review investigating a bill spike",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline points at the Console dashboard; treatment pulls BigQuery billing export with cost-by-service and cost-by-label SQL, runs MachineTypeRecommender + IdleResourceRecommender via gcloud recommender, and wires budget pubsub for auto-shutdown."
+      },
+      {
+        "name": "Architectural cost review of a job processor",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline suggests smaller VMs and Spot; treatment challenges the always-on architecture, replaces 6 VMs with Cloud Run Jobs + Pub/Sub for a 70%+ cut, adds the Standard->Nearline->Coldline->Archive lifecycle policy, and defers CUDs until 12+ months of stable consumption."
+      }
+    ]
+  }
 }

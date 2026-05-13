@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6689f56b305d76304c1b6a1ed407e282633c5f70460bb776d8b9c06d3b1a02a7",
   "scoredAt": "2026-05-13T10:24:53.307Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 95,
+    "multiplier": 2.21,
+    "scenarios": [
+      {
+        "name": "Import existing VPC and EC2 to a clean plan",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline uses only the terraform import CLI loop; treatment combines 1.5+ import blocks with terraform plan -generate-config-out for config generation."
+      },
+      {
+        "name": "Variable validation and consistent tagging",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline lacks a validation block and a shared locals/common_tags pattern; treatment uses can(regex(...)) validation plus merge(var.common_tags, ...) on resources."
+      }
+    ]
+  }
 }

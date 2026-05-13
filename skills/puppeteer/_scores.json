@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4e3878c3a5cf38ff532c213d771ccb43aaa7f5c8c826b70829c38f4b1e3e1859",
   "scoredAt": "2026-05-13T09:58:47.264Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "Fast scraping by blocking assets",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline extracts data via page.evaluate but never calls setRequestInterception to abort image/font/stylesheet requests and uses waitUntil 'load' instead of 'networkidle2', while the treatment implements both the interception handler and the SPA-friendly wait condition."
+      },
+      {
+        "name": "Stealth scraping with anti-bot bypass",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline only spoofs a user agent and toggles headless: false, missing the puppeteer-extra-plugin-stealth plugin and the --disable-blink-features=AutomationControlled launch flag that the treatment uses to defeat detection."
+      }
+    ]
+  }
 }

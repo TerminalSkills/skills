@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1c9573535ee5bb0c7d37fca09fa184d88866b183ddaed1ec64ecde8c9562a68c",
   "scoredAt": "2026-05-13T09:49:28.046Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 88,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "QLoRA fine-tune Llama 3.1 8B for customer-support on a 12 GB GPU",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses BitsAndBytesConfig with load_in_4bit + nf4 + bnb_4bit_use_double_quant, LoraConfig r=16 alpha=32 targeting all 7 linear projections, and SFTTrainer with cosine scheduler + 3% warmup; baseline picks LoRA without 4-bit quant and targets only q_proj/v_proj."
+      },
+      {
+        "name": "Merge a trained LoRA adapter and export weights for downstream inference",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Treatment loads PeftModel.from_pretrained on the base model, calls merge_and_unload, saves with save_pretrained, and copies the tokenizer; baseline saves the adapter separately and omits merge_and_unload or tokenizer copy."
+      }
+    ]
+  }
 }

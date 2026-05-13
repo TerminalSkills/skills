@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d183830a02a74a3c0dad45a9e99eaa0ad3cf317d37e5e50f7f5ba3fb1aa6b552",
   "scoredAt": "2026-05-13T09:25:38.632Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 47,
+    "treatmentAvg": 88,
+    "multiplier": 1.87,
+    "scenarios": [
+      {
+        "name": "Self-host an OpenAI-compatible API with model config",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment uses LocalAI's specific docker-compose with GALLERIES env var, models/<name>.yaml config with backend: llama-cpp and template block, and shows the exact /models/apply gallery API; baseline gives generic llama.cpp/Ollama setup that does not match LocalAI's config schema."
+      },
+      {
+        "name": "Use existing OpenAI SDK code for embeddings, images, and Whisper locally",
+        "baseline": 45,
+        "treatment": 87,
+        "rationale": "Treatment shows LocalAI as drop-in baseURL replacement with same OpenAI SDK calls for chat, embeddings (text-embedding-ada-002 alias), images (stablediffusion), and whisper-1, plus matching multi-model YAML configs; baseline glues together separate tools and does not preserve OpenAI SDK call shape."
+      }
+    ]
+  }
 }

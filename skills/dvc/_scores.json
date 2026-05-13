@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:547f4382943f1f8695f29fe96abd6a2e47f3980f69aaedc3c4cc8ab58b62b86a",
   "scoredAt": "2026-05-13T08:46:48.293Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 89,
+    "multiplier": 3.18,
+    "scenarios": [
+      {
+        "name": "Incremental ML pipeline with params and metrics",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline drafted a Makefile or ad-hoc scripts; treatment wrote dvc.yaml with cmd/deps/outs stages, declared params from params.yaml, and ran dvc repro for change-driven execution."
+      },
+      {
+        "name": "Parallel learning-rate sweep with comparison",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "Baseline wrote a shell loop or suggested Optuna without DVC; treatment queued runs with dvc exp run --set-param ... --queue, started them via dvc queue start --jobs, and compared with dvc exp show / exp diff."
+      }
+    ]
+  }
 }

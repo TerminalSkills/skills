@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:48eb2c3db344fa1a45d1bec4f63ac25021a5e1c5ef19bd7d74f97bbf0df63f75",
-  "scoredAt": "2026-05-13T08:26:26.268Z",
+  "scoredAt": "2026-05-13T15:10:31.096Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 20,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "slack-code-review-setup",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the required cc-connect.yaml configuration and key steps."
+      },
+      {
+        "name": "telegram-daily-report-cron",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with a complete cc-connect.yaml, cron config, and setup steps, while Response B omits the required YAML, init/start commands, and key details."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:86cac016e6adbbe823edc712e88a5143f61491586fda1287086262ee2fd8b1ec",
   "scoredAt": "2026-05-13T10:05:24.276Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 94,
+    "multiplier": 3.36,
+    "scenarios": [
+      {
+        "name": "Shopify webhook to S/4HANA sales order",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Treatment performs the OAuth2 client_credentials token exchange, fetches and sends X-CSRF-Token on POST, and posts to /API_SALES_ORDER_SRV/A_SalesOrder with the documented to_Item field names; baseline invents a generic /api/sales/orders endpoint with Basic auth and no CSRF."
+      },
+      {
+        "name": "Cron-based sales order polling to analytics",
+        "baseline": 30,
+        "treatment": 93,
+        "rationale": "Treatment polls every 5 minutes and queries A_SalesOrder with $filter on CreationDate, $expand=to_Item, $select and $top; baseline invents a non-OData /sales/orders?since= endpoint with no $expand or field selection."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:37ec38219f9593d1ef295cd04fbfa3f1f84aa530d505b1fc71e229f60085b007",
   "scoredAt": "2026-05-13T09:22:27.578Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 90,
+    "multiplier": 1.70,
+    "scenarios": [
+      {
+        "name": "parallel-pre-commit-lint",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses parallel: true with glob and {staged_files} placeholder per skill; baseline writes sequential hooks and re-lints all files instead of just staged."
+      },
+      {
+        "name": "pre-push-test-commit-msg",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment correctly defines pre-push and commit-msg blocks using {1} for the commit message file per skill; baseline approximates with husky-style scripts and misses lefthook's YAML shape."
+      }
+    ]
+  }
 }

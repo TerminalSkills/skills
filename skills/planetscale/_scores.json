@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b6f1618ae238e289310a800268b2059923a16fc5a7c5adc12a72ef283527aba2",
   "scoredAt": "2026-05-13T09:51:00.178Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 94,
+    "multiplier": 2.85,
+    "scenarios": [
+      {
+        "name": "Add orders table to production without downtime",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment runs pscale branch create, applies DDL on the branch, then pscale deploy-request create/diff/deploy for non-blocking rollout; baseline applies ALTER/CREATE directly on main with manual backups and no deploy-request workflow."
+      },
+      {
+        "name": "Prisma + PlanetScale on Vercel Edge",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Treatment sets relationMode = \"prisma\" in the datasource, uses @planetscale/database for edge queries, and declares @@index for filtered columns; baseline uses default Prisma MySQL FK constraints that PlanetScale rejects."
+      }
+    ]
+  }
 }

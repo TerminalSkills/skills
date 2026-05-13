@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5487f5c8ea9f0bf1bd6bf7e0239c96a4f668d5c6f9b26ff2f6f1ac34d6110f93",
   "scoredAt": "2026-05-13T09:58:16.328Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 13,
+    "treatmentAvg": 91,
+    "multiplier": 7.0,
+    "scenarios": [
+      {
+        "name": "Self-host a private team prompt library",
+        "baseline": 10,
+        "treatment": 92,
+        "rationale": "Baseline recommends generic alternatives like Notion or LangChain Hub and never reaches the specific tool; treatment provides the exact prompts.chat git clone + docker compose self-host commands and the fork-and-add-to-prompts/ team workflow."
+      },
+      {
+        "name": "Grab a ready-made senior code reviewer prompt for Cursor",
+        "baseline": 15,
+        "treatment": 90,
+        "rationale": "Baseline hand-writes a generic code review prompt and never points to the curated library; treatment walks through the prompts.chat search-by-category workflow, copies the Senior Code Reviewer template, and adds customization guidance."
+      }
+    ]
+  }
 }

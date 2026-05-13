@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4f2b3050b2100dcf2eaba4a4f37f3582ff52b43f954458e55cf87a5e5a8237c2",
   "scoredAt": "2026-05-13T10:03:42.544Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 90,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Nightly encrypted S3 backup with PostgreSQL dump and retention",
+        "baseline": 58,
+        "treatment": 92,
+        "rationale": "Treatment uses restic init s3:..., pg_dump | restic backup --stdin --stdin-filename, --exclude-file, forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune, and a weekly restic check as per the skill; baseline relies on tar/aws s3 cp without encryption or dedup."
+      },
+      {
+        "name": "Restore a single deleted file from latest snapshot",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "Treatment runs restic snapshots, restic ls latest --path, then restic restore latest --target --include for the specific file path per the skill's documented example; baseline suggests a full restore or generic recovery tools."
+      }
+    ]
+  }
 }

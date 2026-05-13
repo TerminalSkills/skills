@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:536855f976aad1f6029d94846b59e01cd34215cd8b77f91dc66a1d1fc64a0e7c",
-  "scoredAt": "2026-05-13T08:17:06.685Z",
+  "scoredAt": "2026-05-13T14:07:10.542Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.78,
+    "baselineAvg": 58,
+    "treatmentAvg": 45,
+    "scenarios": [
+      {
+        "name": "screen-batch-resumes",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A provides a YAML rubric with required and preferred criteria but lacks scoring, ranking, markdown report, and CSV, whereas Response B lacks a YAML rubric and also omits scoring, ranking, and the required outputs."
+      },
+      {
+        "name": "re-evaluate-with-kubernetes",
+        "baseline": 95,
+        "treatment": 30,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is incomplete."
+      }
+    ]
+  }
 }

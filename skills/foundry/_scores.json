@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:984f8cf8990bedeb6e73e70d3dc912100a22aafe9052cb7b186faa08ba4a96e1",
   "scoredAt": "2026-05-13T09:04:44.171Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 89,
+    "multiplier": 1.62,
+    "scenarios": [
+      {
+        "name": "Write fuzz and fork tests for an ERC-4626 vault",
+        "baseline": 58,
+        "treatment": 91,
+        "rationale": "Treatment used Foundry-native patterns (testFuzz_ prefix with bound(), vm.createSelectFork, vm.startPrank/stopPrank, makeAddr, forge-std Test import) per the SKILL; baseline wrote Hardhat-style or generic Solidity tests without the cheatcodes."
+      },
+      {
+        "name": "Set up reproducible deployment script and CLI interactions",
+        "baseline": 52,
+        "treatment": 87,
+        "rationale": "Treatment used forge script with vm.startBroadcast/vm.envUint plus cast call/cast send for interactions and forge snapshot for gas regression as documented; baseline used a JavaScript deploy script without scripted broadcast or cast follow-up."
+      }
+    ]
+  }
 }

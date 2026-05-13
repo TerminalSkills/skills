@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:41cc1e9b8ab670dc0b9d9f65c801dcd759c6fb39aeb4d22fbfb00eadb09a202c",
-  "scoredAt": "2026-05-13T08:42:23.253Z",
+  "scoredAt": "2026-05-13T16:21:55.667Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.32,
+    "baselineAvg": 28,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "csv-validation-before-load",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B lacks the required data profile, checks, and sample rows."
+      },
+      {
+        "name": "json-schema-violation-check",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Response A covers most rubric items but lacks sample JSON objects, while Response B misses several key requirements such as outlier warnings, passed checks, and sample JSON examples."
+      }
+    ]
+  }
 }

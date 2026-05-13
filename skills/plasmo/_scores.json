@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:58c78052209faf24c5335d912cedf962e7c1970024cfdb0bb52867f7d661bed5",
   "scoredAt": "2026-05-13T09:51:07.578Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 94,
+    "multiplier": 2.47,
+    "scenarios": [
+      {
+        "name": "Reactive cross-component storage for theme and API key",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "Treatment uses useStorage from @plasmohq/storage/hook with default values so state syncs automatically between popup and content scripts; baseline wires raw chrome.storage.local with onChanged listeners and re-implements sync by hand."
+      },
+      {
+        "name": "Type-safe popup-to-background save messaging",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Treatment calls sendToBackground({ name: 'save-item', body }) from @plasmohq/messaging and pairs it with src/background/messages/save-item.ts exporting a PlasmoMessaging.MessageHandler; baseline relies on chrome.runtime.sendMessage with manual onMessage switches."
+      }
+    ]
+  }
 }

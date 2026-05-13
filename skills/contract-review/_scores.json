@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:88f25864af379307dd130b901e713e4cf6d72df14e26406ebbd98a0c3699858c",
-  "scoredAt": "2026-05-13T08:38:35.059Z",
+  "scoredAt": "2026-05-13T15:57:39.158Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 6.8,
+    "baselineAvg": 0,
+    "treatmentAvg": 68,
+    "scenarios": [
+      {
+        "name": "review-employment-contract",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B provides most rubric items and a pdfplumber snippet, but lacks a concrete overall risk score, earning it a high but not perfect score."
+      },
+      {
+        "name": "compare-nda-versions",
+        "baseline": 0,
+        "treatment": 55,
+        "rationale": "Response A provides the required code snippet but omits the comparison table, recommendations, and summary, whereas Response B offers no relevant content."
+      }
+    ]
+  }
 }

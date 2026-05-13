@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:303d8f2d7faaf370da9caad95dc5afe2ce1c859126b4d72efcc8b9e5aca6fe3e",
   "scoredAt": "2026-05-13T09:59:31.277Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 89,
+    "multiplier": 2.34,
+    "scenarios": [
+      {
+        "name": "Sync Stripe charge to QBO as paid invoice",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline knows OAuth and invoice creation conceptually but misses the upsert-by-query idempotency pattern, the SalesItemLineDetail line structure, and most importantly the LinkedTxn payment-to-invoice linkage; treatment follows the documented upsert_customer -> create('invoice') -> record_payment with LinkedTxn flow precisely."
+      },
+      {
+        "name": "Monthly P&L report between two dates",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Baseline knows the /reports/ProfitAndLoss endpoint exists and passes date params, but fails to parse the nested Rows.Row[].Summary.ColData report structure; treatment uses get_report with start_date/end_date and parses the exact ColData rows shape."
+      }
+    ]
+  }
 }

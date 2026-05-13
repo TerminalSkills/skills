@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bec5c9c50ae4dcb270fa85145d0c027c99d6bd3c6b13cef02d13791015ff8985",
   "scoredAt": "2026-05-13T09:56:50.465Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 94,
+    "multiplier": 1.57,
+    "scenarios": [
+      {
+        "name": "Configure Prettier with CI gate for TypeScript monorepo",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Baseline installs Prettier and runs --check in CI but uses a sparse config without .prettierignore or named format/format:check scripts; treatment supplies the full documented .prettierrc.json option set, ignore file, both npm scripts, and the documented GitHub Actions workflow."
+      },
+      {
+        "name": "Resolve ESLint and Prettier rule conflicts with format-on-save",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline references eslint-config-prettier and a VS Code formatOnSave setting but uses legacy .eslintrc and omits ordering guidance; treatment uses the flat config with prettierConfig placed last, plus a per-language defaultFormatter map committed to .vscode/settings.json as the skill prescribes."
+      }
+    ]
+  }
 }

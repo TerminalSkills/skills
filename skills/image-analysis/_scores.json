@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:391280e1919e74cf4b1e7d833e68ec374d40253a7171d474980ce93f18d4fcc6",
   "scoredAt": "2026-05-13T09:15:25.917Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 89,
+    "multiplier": 1.78,
+    "scenarios": [
+      {
+        "name": "Extract dominant palette from landing page screenshot",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline scripts color-thief or k-means clustering; treatment runs extract-colors.sh, consumes the JSON array (hex/rgb/hsl/area) sorted by prominence, and assigns the top entries to primary/accent/background as the skill prescribes."
+      },
+      {
+        "name": "Map Figma export colors into Tailwind theme.extend.colors",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Baseline picks colors by eyedropping or color-thief; treatment runs extract-colors.sh on the Figma jpg and translates the highest-area hex values directly into a theme.extend.colors block as documented."
+      }
+    ]
+  }
 }

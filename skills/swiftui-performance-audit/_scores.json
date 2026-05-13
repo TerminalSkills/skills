@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c3795bebe4c825cfbc10f0c6dd46995baf7867ffa9d092c4e422bae754cb9681",
   "scoredAt": "2026-05-13T10:17:10.421Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 83,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 87,
+    "multiplier": 1.74,
+    "scenarios": [
+      {
+        "name": "Audit janky scrolling in a List backed by @Observable model",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "Treatment categorizes the issue (invalidation storm / identity churn), narrows observation scope, stabilizes ForEach identity, and applies equatable() only when cheaper than recomputing; baseline mentions LazyVStack or .id but misses the documented invalidation fan-out and identity guidance."
+      },
+      {
+        "name": "Diagnose CPU spike from heavy work in body",
+        "baseline": 48,
+        "treatment": 86,
+        "rationale": "Treatment moves heavy work out of body into derived/precomputed state, downsamples images, and follows the intake -> code-first review -> profile workflow with a structured report; baseline jumps to caching without the documented workflow or remediation hierarchy."
+      }
+    ]
+  }
 }

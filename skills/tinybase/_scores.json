@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:051649ad5daf24ce6afad29339864385cb6d91a94a45a219253a46bf4e40f8f1",
   "scoredAt": "2026-05-13T10:26:24.882Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Offline-first React todo app with multi-device sync",
+        "baseline": 35,
+        "treatment": 96,
+        "rationale": "Baseline knows the createStore basics but misses the CRDT-specific createMergeableStore, createWsSynchronizer with startSync, and createLocalPersister with startAutoLoad/startAutoSave required for the offline+sync requirement."
+      },
+      {
+        "name": "Reactive query with relationships for incomplete todos",
+        "baseline": 20,
+        "treatment": 94,
+        "rationale": "Baseline filters/sorts imperatively in the component, missing createQueries with select/where/order, createRelationships for foreign-key navigation, and useResultTable for fine-grained reactive rerenders."
+      }
+    ]
+  }
 }

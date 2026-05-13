@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c7a4273d705dfb37a61d530ca34e061f8386482a2836e21f50a3201bed0c468a",
   "scoredAt": "2026-05-13T10:25:26.953Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 94,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "Thanos sidecar with S3 long-term storage",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Treatment includes the required 2h min/max block duration tuning on Prometheus, S3 bucket.yml, and both gRPC 10901 + HTTP 10902 endpoints; baseline typically omits the 2h block tuning that the skill calls out as required for sidecar compatibility."
+      },
+      {
+        "name": "Thanos compactor downsampling and retention",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Treatment specifies per-resolution retention (raw=30d, 5m=90d, 1h=365d), the single-compactor-per-bucket rule, and --wait/--wait-interval; baseline tends to omit per-resolution retention and the singleton constraint."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ea85081768e233d93cb0cc8cc14a7eb0f75f4ea933e2e2ee30b76f2607ebb076",
   "scoredAt": "2026-05-13T09:46:45.859Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 89,
+    "multiplier": 2.07,
+    "scenarios": [
+      {
+        "name": "Guaranteed-valid review analysis JSON from a local Llama model",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses outlines.models.transformers plus outlines.generate.json(model, ReviewAnalysis) with Pydantic Field constraints (ge/le/min_length/max_length) for first-try validity, while baseline falls back to free-text prompts plus retry/json.loads parsing."
+      },
+      {
+        "name": "Spam classifier and US phone number formatter",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment uses outlines.generate.choice(model, [\"spam\", \"ham\", \"uncertain\"]) and outlines.generate.regex with the documented r\"\\(\\d{3}\\) \\d{3}-\\d{4}\" pattern, while baseline emits prompt instructions and post-hoc regex validation that can still produce invalid strings."
+      }
+    ]
+  }
 }

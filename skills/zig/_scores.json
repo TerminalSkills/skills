@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d310f36afb365c9bbe5c83c0d7adf979f51d3e6629533379c9b1f019e7796d76",
   "scoredAt": "2026-05-13T10:40:47.551Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -26,5 +26,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 87,
+    "treatmentAvg": 94,
+    "multiplier": 1.08,
+    "scenarios": [
+      {
+        "name": "cross-compile-to-multiple-targets",
+        "baseline": 85,
+        "treatment": 95,
+        "rationale": "Zig's cross-compilation story is well-known so both responses produce correct `zig build -Dtarget=...` invocations for the three targets; the treatment matches the skill's exact triples and framing as Zig's killer feature."
+      },
+      {
+        "name": "request-scoped-allocator",
+        "baseline": 88,
+        "treatment": 93,
+        "rationale": "Both correctly recommend `ArenaAllocator` with `defer arena.deinit()` since this is idiomatic Zig; the treatment additionally reflects the skill's explicit-allocator-as-parameter guideline."
+      }
+    ]
+  }
 }

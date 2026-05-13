@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7ab99df517afb9418255ad7a215b85c96eea0ee8faf2703b375c0234c45bfdb6",
   "scoredAt": "2026-05-13T10:04:51.912Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 93,
+    "multiplier": 2.82,
+    "scenarios": [
+      {
+        "name": "text-to-video Gen-3 Turbo with poll-and-download",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline tends to guess wrong host or endpoint, omit the X-Runway-Version header, and mistype the model id, whereas treatment posts to api.dev.runwayml.com/v1/image_to_video with model gen3a_turbo and polls /tasks/{id} until SUCCEEDED exactly as documented."
+      },
+      {
+        "name": "animate local product PNG via data URI",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Baseline usually proposes a separate image-hosting step rather than the data:image/png;base64 promptImage payload; treatment base64-encodes the file inline and submits the documented image_to_video call with correct headers and polling."
+      }
+    ]
+  }
 }

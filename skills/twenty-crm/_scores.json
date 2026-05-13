@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d009d93b4619e360f83b4bbbd693f59f12a913e56105157606d854a0baf16716",
   "scoredAt": "2026-05-13T10:28:40.848Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 16,
+    "treatmentAvg": 95,
+    "multiplier": 5.94,
+    "scenarios": [
+      {
+        "name": "Self-host Twenty CRM and create a company plus contact via API",
+        "baseline": 22,
+        "treatment": 95,
+        "rationale": "Baseline invents REST endpoints, wrong auth header, and a flat name field; treatment pulls the documented twenty-docker compose file, calls /api/graphql with Bearer auth, and uses createCompany/createPerson with the nested name:{firstName,lastName} input shape."
+      },
+      {
+        "name": "Add a custom Support Ticket object with a priority select field",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Baseline mutates PostgreSQL directly or guesses at a REST shape; treatment uses createOneObject with nameSingular/namePlural/labelSingular/labelPlural and createOneField with type:SELECT and the documented options array."
+      }
+    ]
+  }
 }

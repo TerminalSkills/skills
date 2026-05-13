@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:76d13714ec73021438c07bcdffe145a1cebea32e7fefd55e76e37daef37553e5",
   "scoredAt": "2026-05-13T09:39:43.398Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 95,
+    "multiplier": 1.46,
+    "scenarios": [
+      {
+        "name": "Cypher friend-of-friend recommendation for Alice",
+        "baseline": 75,
+        "treatment": 95,
+        "rationale": "Baseline approximates the two-hop MATCH but sometimes omits the WHERE NOT exclusion or rec <> p filter; treatment matches the SKILL.md pattern exactly including count(*) aggregation, ORDER BY mutual DESC, and LIMIT 5."
+      },
+      {
+        "name": "Node.js driver MERGE relationship with transaction lifecycle",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline tends to use session.run directly or the deprecated writeTransaction helper; treatment uses session.executeWrite with parameterized MERGE for both nodes and the KNOWS relationship plus a finally-block session.close, matching the SKILL.md pattern."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:39d85ab81f9ae3f29fae65347d7bf267b19cb8d2cd166fef704a986ddc5dc9ba",
   "scoredAt": "2026-05-13T09:52:12.186Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 86,
+    "multiplier": 1.91,
+    "scenarios": [
+      {
+        "name": "porter.yaml for web + worker + cron with autoscaling",
+        "baseline": 48,
+        "treatment": 88,
+        "rationale": "Treatment authored a version: v2 porter.yaml declaring web/worker/job service types, autoscaling with targetCPU, a predeploy migrate step, and secret: true env vars, matching the skill's schema; baseline produced raw Kubernetes manifests with no Porter primitives."
+      },
+      {
+        "name": "Per-PR preview environments with isolated database",
+        "baseline": 42,
+        "treatment": 84,
+        "rationale": "Treatment enabled previews in porter.yaml with addons of type postgresql and per-app predeploy migrate+seed using the documented preview block; baseline manually scripted namespace-per-branch in kubectl with no Porter preview configuration."
+      }
+    ]
+  }
 }

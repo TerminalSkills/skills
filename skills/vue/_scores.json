@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:236d573590c79b779bb1c0e4e225a20c9ffb4484c8cfa34166c64577d1929b27",
   "scoredAt": "2026-05-13T10:34:56.450Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 95,
+    "multiplier": 1.46,
+    "scenarios": [
+      {
+        "name": "Pinia store with computed and async create action",
+        "baseline": 60,
+        "treatment": 95,
+        "rationale": "Treatment uses setup-style defineStore with ref/computed and explicit return object as in the skill; baseline reverts to options-style state/getters/actions API which is valid but not the recommended pattern shown."
+      },
+      {
+        "name": "Typed useApi composable with loading and error state",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Treatment includes the res.ok HTTP error check and a finally block to reset loading on failure; baseline omits both and would leave loading=true after a thrown error."
+      }
+    ]
+  }
 }

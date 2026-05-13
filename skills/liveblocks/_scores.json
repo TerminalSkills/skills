@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5ec1ae50407ba69e08864709d166c22933e901c6a2e3a5d5e335cd5dc1cda1bc",
   "scoredAt": "2026-05-13T09:24:45.998Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 41,
+    "treatmentAvg": 87,
+    "multiplier": 2.12,
+    "scenarios": [
+      {
+        "name": "Add a shared canvas of shapes where two users can drag rectangles simultaneously without conflicts",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment uses `LiveList<LiveObject<Shape>>` with `useStorage`/`useMutation` and per-field `shape.set('x', x)` granular updates so only changed fields sync; baseline reaches for raw WebSockets or Yjs and misses Liveblocks' Storage primitives."
+      },
+      {
+        "name": "Secure a Next.js Liveblocks app so users can only join rooms they have access to",
+        "baseline": 37,
+        "treatment": 86,
+        "rationale": "Treatment implements `/api/liveblocks-auth` with `@liveblocks/node`'s `liveblocks.prepareSession(userId, { userInfo })`, calls `liveblocksSession.allow(room, FULL_ACCESS)` after access check, and returns the `authorize()` body; baseline writes generic JWT auth and never uses the Liveblocks node SDK."
+      }
+    ]
+  }
 }

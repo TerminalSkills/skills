@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:aab9054591514fd98904d8ed35b76b8e52b9e800874bda064003360ee8928388",
   "scoredAt": "2026-05-13T09:45:09.258Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 95,
+    "multiplier": 2.38,
+    "scenarios": [
+      {
+        "name": "Generate TypeScript types from openapi.yaml",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline reaches for class-based codegen tools like openapi-typescript-codegen and misses the paths-indexed type pattern, while treatment uses the documented npx openapi-typescript invocation plus paths['...']['get']['responses'] indexing."
+      },
+      {
+        "name": "Lint and preview docs locally",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline suggests Spectral or swagger-cli without preview, while treatment uses the documented npx @redocly/cli lint and preview-docs commands directly."
+      }
+    ]
+  }
 }

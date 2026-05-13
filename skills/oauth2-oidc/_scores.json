@@ -31,5 +31,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 86,
+    "multiplier": 1.56,
+    "scenarios": [
+      {
+        "name": "Next.js social login with Google and GitHub",
+        "baseline": 58,
+        "treatment": 88,
+        "rationale": "Treatment uses Authorization Code + PKCE with state and nonce validation, auto-configures from the /.well-known/openid-configuration discovery endpoint, exchanges the code and validates ID token JWT signature plus exp/iss/aud, and stores the session in httpOnly+secure+sameSite=lax cookies with single-use refresh token rotation — never localStorage; baseline uses NextAuth defaults and stores tokens in localStorage, violating the skill's mandated patterns."
+      },
+      {
+        "name": "REST API JWT validation middleware",
+        "baseline": 52,
+        "treatment": 84,
+        "rationale": "Treatment fetches JWKS from the provider's discovery endpoint, verifies signature plus exp, iss, and aud on every request, returns 401 for invalid tokens and 403 for insufficient scopes, and requests only minimum scopes (openid email); baseline statically pastes a public key and skips the iss/aud checks and the 401-vs-403 distinction."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

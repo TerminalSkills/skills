@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8bd5223fae11c533601213b7333609a90e9d56b9f5582218a1f001897e93c19e",
   "scoredAt": "2026-05-13T09:15:38.021Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 90,
+    "multiplier": 1.88,
+    "scenarios": [
+      {
+        "name": "Extract UI labels from a mobile screenshot",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Baseline reaches for raw tesseract or pytesseract installs; treatment runs the skill's image-to-text.sh, consumes the JSON with text/confidence/lines, and presents output grouped by line as instructed."
+      },
+      {
+        "name": "OCR a French scanned invoice",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Baseline shells out to `tesseract -l fra`; treatment passes `fra` as the documented second argument to image-to-text.sh and uses the structured JSON (words/bbox) to parse invoice line items."
+      }
+    ]
+  }
 }

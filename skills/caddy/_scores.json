@@ -1,7 +1,9 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:911fd3e2a8c26eae4dcf37b9c553e1df94b80b06306b0a20a8821efefa833d47",
-  "scoredAt": "2026-05-12T22:05:47.381Z",
+  "scoredAt": "2026-05-13T15:02:40.630Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -24,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.82,
+    "baselineAvg": 33,
+    "treatmentAvg": 60,
+    "scenarios": [
+      {
+        "name": "static-site-with-proxy-and-rate-limit",
+        "baseline": 55,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the required rate_limit zone and Content-Security-Policy header."
+      },
+      {
+        "name": "wildcard-subdomain-with-dns-challenge-and-health-checks",
+        "baseline": 10,
+        "treatment": 20,
+        "rationale": "Both responses lack the required JSON configuration and POST example, but Response B includes more of the specified directives (round-robin, active health checks, DNS TLS) and is therefore closer to the rubric."
+      }
+    ]
+  }
 }

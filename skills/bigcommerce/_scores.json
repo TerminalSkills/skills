@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:49d5e1b4fec40a3549f0e2194b2b8d3519265305d0a5078388abf76e19593e62",
-  "scoredAt": "2026-05-13T08:21:26.011Z",
+  "scoredAt": "2026-05-13T14:39:39.412Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.83,
+    "baselineAvg": 23,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "create-product-and-fetch",
+        "baseline": 15,
+        "treatment": 65,
+        "rationale": "Response B meets most rubric requirements (fetch POST, error handling, correct fields) but still misses the 12‑limit and returned object structure; Response A fails to use fetch, the correct endpoint, and the required fields."
+      },
+      {
+        "name": "setup-nextjs-commerce-bigcommerce",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response B includes the required create-next-app command and .env.local setup, but misses the commerce.config.ts provider entry and headless-first note; Response A lacks the command, proper env vars, and provider configuration altogether."
+      }
+    ]
+  }
 }

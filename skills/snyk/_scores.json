@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4f17daf08558b444fb5797066405b224d12485915d7a45789c2eabdd6648d5f3",
   "scoredAt": "2026-05-13T10:08:42.463Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 89,
+    "multiplier": 1.37,
+    "scenarios": [
+      {
+        "name": "CI gate on high-severity deps plus Docker scan",
+        "baseline": 75,
+        "treatment": 88,
+        "rationale": "Baseline already knows snyk auth, snyk test --severity-threshold=high, and snyk container test from common usage; treatment additionally invokes snyk monitor for continuous monitoring and uses --file=Dockerfile as documented in the skill."
+      },
+      {
+        "name": "Auto-fix vulnerable npm deps plus Terraform IaC scan",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Baseline suggests snyk wizard (not in the skill) and steers toward tfsec/checkov for IaC; treatment uses snyk fix for auto-generated dependency upgrade PRs and snyk iac test (with --report to upload) for Terraform/K8s manifests as documented."
+      }
+    ]
+  }
 }

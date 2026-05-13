@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c58572e737efd01c5086adce2904f86777a9982dff6d7057333173b25d79e09c",
   "scoredAt": "2026-05-13T10:35:56.220Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 63,
+    "treatmentAvg": 95,
+    "multiplier": 1.51,
+    "scenarios": [
+      {
+        "name": "Paginated catalog scrape with hash dedup and integer-cent prices",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline uses requests+bs4 and pagination but dedupes by name and stores prices as floats while treatment adds User-Agent/timeout, integer cents, and md5 content-hash dedup with separated extract/transform."
+      },
+      {
+        "name": "JS-rendered listings via Playwright + Bright Data residential proxy",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Both use headless Playwright with networkidle and a proxy, but treatment hands rendered HTML to BeautifulSoup and uses the exact customer-zone-{zone} auth on brd.superproxy.io:22225."
+      }
+    ]
+  }
 }

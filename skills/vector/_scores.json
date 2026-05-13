@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d39ac99e9d89453ea78d6ae777fbbc5c2738bbf340bb56591ec0319585774fa4",
   "scoredAt": "2026-05-13T10:33:32.840Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 94,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "Cost-cutting log pipeline: filter noise, sample info, archive to S3, route errors to Slack",
+        "baseline": 50,
+        "treatment": 94,
+        "rationale": "Baseline pieces together generic filter/sample/sink TOML but tends to miss the exclude-on-error sample pattern, rate-limit on the Slack sink, and gzip-archive sizing, while treatment uses the skill's exact filter_noise/sample/s3_archive/slack_errors stanzas."
+      },
+      {
+        "name": "VRL transform: parse JSON, redact email, geoip-enrich country, normalize severity",
+        "baseline": 55,
+        "treatment": 94,
+        "rationale": "Baseline writes valid parse_json/if-else VRL but commonly invents geoip function names or uses del on email instead of the redact() builtin, while treatment uses get_enrichment_table_record and the exact redact() signature from the skill."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a6cef3a1bd232cd4101c3df3797ff8fd997e7f9830a867eef487900d5005a21a",
   "scoredAt": "2026-05-13T10:23:38.758Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 89,
+    "multiplier": 3.87,
+    "scenarios": [
+      {
+        "name": "Deploy TaxHacker on a Hetzner VPS",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline offered generic Dockerized OCR advice without TaxHacker-specific commands, while treatment curled the vas3k/TaxHacker docker-compose.yml, ran docker compose up -d, set AI_PROVIDER/AI_MODEL/OPENAI_API_KEY/SECRET_KEY, and exposed port 8000 via Caddy."
+      },
+      {
+        "name": "Configure German-freelancer deductibility field",
+        "baseline": 20,
+        "treatment": 88,
+        "rationale": "Baseline tried generic prompt engineering without knowledge of TaxHacker's custom field mechanism, whereas treatment configured a custom AI extraction field with the Yes (100%) / Partial / No prompt scoped to a freelance German software developer."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a95e3e22037244fb0a53db4dc0cebad09ac6c5fe0c8d150240cfa07638112005",
   "scoredAt": "2026-05-13T10:11:51.350Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Show git ahead/behind/modified counts in the prompt across bash and zsh",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline edited PS1 and parse_git_branch shell helpers without a shared cross-shell config; treatment configured ~/.config/starship.toml with a [git_status] block using ahead = \"⇡${count} \" / behind = \"⇣${count} \" / modified = \"!${count} \" and added eval \"$(starship init bash)\" and eval \"$(starship init zsh)\" to both rcs."
+      },
+      {
+        "name": "Add a custom prompt module showing the number of running docker containers",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Baseline appended a docker ps pipeline into PS1; treatment defined a [custom.docker_running] section in starship.toml with command = \"docker ps -q | wc -l | tr -d ' '\", when = \"docker ps -q\", and a styled format string as documented."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:1e3c56c58b4f849c4c594768c66053907997b0bac714346d13f88d826b3410cd",
-  "scoredAt": "2026-05-13T08:41:14.402Z",
+  "scoredAt": "2026-05-13T16:13:16.169Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.32,
+    "baselineAvg": 25,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "custom-login-command",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response A implements the required command and test logic, though it omits aliasing and waiting, whereas Response B fails to meet key rubric items such as command name, aliasing, waiting, and selector usage."
+      },
+      {
+        "name": "ci-parallel-recording",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B is incomplete and missing key elements."
+      }
+    ]
+  }
 }

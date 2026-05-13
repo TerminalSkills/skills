@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e7ca94f0f63fe363341a7f8ffcf503ec1b4089154851bc92ac5335d4e55b3cf3",
   "scoredAt": "2026-05-13T10:45:20.650Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 8,
+    "treatmentAvg": 95,
+    "multiplier": 9.5,
+    "scenarios": [
+      {
+        "name": "Postgres MCP server (TypeScript)",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Baseline invented an HTTP/Express protocol with no SDK, no zod validation, no SELECT-only enforcement, no timeout, and no isError; treatment used McpServer + StdioServerTransport with all guardrails."
+      },
+      {
+        "name": "Jira MCP server (Python FastMCP)",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Baseline wrote a Flask app with a hardcoded token instead of FastMCP; treatment used @mcp.tool() with type hints, env-var credentials, readable text returns, and the matching Claude Desktop config."
+      }
+    ]
+  }
 }

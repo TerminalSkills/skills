@@ -1,7 +1,7 @@
 {
   "version": "1.1.0",
   "skillHash": "sha256:2e26f244fc2294fc563e1c34ea33145f1b48c032a4b2aa6ad250162589946585",
-  "scoredAt": "2026-05-13T08:21:32.760Z",
+  "scoredAt": "2026-05-13T14:40:30.794Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 0,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "tiered-usage-invoice-generation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required calculateTieredPricing function with correct tiers and fields, while Response B defines a different function and does not meet the rubric."
+      },
+      {
+        "name": "stripe-dunning-workflow",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack content to evaluate against the rubric."
+      }
+    ]
+  }
 }

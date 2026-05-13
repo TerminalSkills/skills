@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0fe8f2702d605f6f91999a97ea9f48fedeffb3f5bd3fc96a36a216bf677be8f0",
   "scoredAt": "2026-05-13T09:19:28.682Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 84,
+    "multiplier": 1.68,
+    "scenarios": [
+      {
+        "name": "Set up an isolated Kali web-app pentest lab with vulnerable targets",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment installs `kali-tools-web` metapackage (sqlmap, nikto, gobuster, ffuf, wfuzz, zaproxy), spins up vulnerables/web-dvwa and bkimminich/juice-shop containers in an isolated host-only network, and gunzips /usr/share/wordlists/rockyou.txt.gz; baseline names individual tools but misses the metapackage pattern and the rockyou wordlist path."
+      },
+      {
+        "name": "Create a throwaway Kali container for a CTF and persist loot to the host",
+        "baseline": 50,
+        "treatment": 83,
+        "rationale": "Treatment uses `docker run -it --rm -v \"$PWD/ctf-loot:/root/loot\" kalilinux/kali-rolling bash` so loot persists on host while the container disappears, then `apt update && apt install -y` the needed tools and runs `nmap -sV -oA`; baseline likely installs Kali on bare metal or omits the --rm + volume-mount pattern."
+      }
+    ]
+  }
 }

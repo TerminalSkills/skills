@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:9f75a77059d10de853ee12e219ac879d0235a23b30bdcdc690a1458cae0c7ce0",
-  "scoredAt": "2026-05-13T08:30:24.365Z",
+  "scoredAt": "2026-05-13T15:36:49.536Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "create-index-and-insert-vectors",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to meet the specified command syntax, toml binding format, and TypeScript interface and usage."
+      },
+      {
+        "name": "query-with-filter-and-namespace",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A uses the wrong method and filter syntax."
+      }
+    ]
+  }
 }

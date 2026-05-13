@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ca4439572f2d25476781c444045c78c21dc2236775ad03119125f5f2cae810ad",
   "scoredAt": "2026-05-13T09:22:07.454Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 94,
+    "multiplier": 3.13,
+    "scenarios": [
+      {
+        "name": "BANT scoring of 30 webinar signups to ranked CSV",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment applies the exact 30/25/25/20 BANT weights, Hot/Warm/Nurture/Cold tiers at 80/60/40 with tier-specific actions, and descending CSV output; baseline uses arbitrary equal weights and non-skill tier labels."
+      },
+      {
+        "name": "ICP fit scoring for mid-market SaaS prospects",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Treatment uses Company Fit weights (Industry 25, Size 25, Geography 15, Tech 20, Revenue 15), tier classification with actions, and explicit deprioritize callouts; baseline sums binary checks without skill-defined weights or actions."
+      }
+    ]
+  }
 }

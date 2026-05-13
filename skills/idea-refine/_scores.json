@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5e3240daec692fd62e4aa5e661db9f4a96236c6d5a7525c306e5c3f3cecfb5c3",
   "scoredAt": "2026-05-13T09:15:18.887Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 17,
+    "treatmentAvg": 91,
+    "multiplier": 5.35,
+    "scenarios": [
+      {
+        "name": "Refine a vague Slack AI summarizer idea",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Baseline jumps straight to a tech stack with no sharpening questions or trade-offs; treatment runs the three-phase flow, asks who/success questions, uses named lenses, and produces a full one-pager including Not Doing and assumptions."
+      },
+      {
+        "name": "Stress-test a developer newsletter plan",
+        "baseline": 18,
+        "treatment": 90,
+        "rationale": "Baseline gives generic risks without structured evaluation; treatment clusters 3 directions, stress-tests on painkiller/feasibility/differentiation, surfaces hidden assumptions per direction, and emits the full markdown one-pager template."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:50bdf35c2212b22997dadd23010ff498670844d6fa0ee59034a5fe289be0dd6a",
   "scoredAt": "2026-05-13T09:16:36.871Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 91,
+    "multiplier": 1.82,
+    "scenarios": [
+      {
+        "name": "Build a 24-hour user activation drip with reminder if not activated",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment wraps each side effect in step.run() so retries skip completed work, uses step.sleep('wait-for-activation', '24 hours') for durable delay, and branches on a step.run-cached activation check; baseline uses setTimeout or a cron and a DB flag, losing durability and retry-safety."
+      },
+      {
+        "name": "Debounce noisy 'user/updated' events to sync a CRM at most 100 times per hour",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment configures createFunction with debounce: { period: '5m', key: 'event.data.userId' } and rateLimit: { limit: 100, period: '1h' } on a function bound to event 'user/updated'; baseline rolls its own Redis-based debounce/rate limiter."
+      }
+    ]
+  }
 }

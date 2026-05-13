@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:40791f8b1f50be0353813d6f0c710eed64ee8d53f73ed4a345182e6abbaf9e95",
-  "scoredAt": "2026-05-13T08:20:54.633Z",
+  "scoredAt": "2026-05-13T14:35:38.877Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 8,
+    "baselineAvg": 0,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "pbr-material-gui-interaction",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B meets most Babylon.js requirements but uses StandardMaterial instead of PBRMaterial, whereas Response A uses the wrong library entirely."
+      },
+      {
+        "name": "load-model-physics-xr",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet any of the required Babylon.js specifics."
+      }
+    ]
+  }
 }

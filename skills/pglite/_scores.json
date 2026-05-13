@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d543d58d64ac6ddc49f305e372b6bb44f1ae4650001e717cbe201d8e684a56c6",
   "scoredAt": "2026-05-13T09:49:59.937Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "Browser PGlite with IndexedDB persistence and full-text search",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline rarely produces the @electric-sql/pglite import with dataDir: 'idb://...' plus GIN/to_tsvector/plainto_tsquery/@@ together; treatment matches the documented persistence + FTS recipe exactly."
+      },
+      {
+        "name": "Reactive live query in React with useLiveQuery",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline defaults to react-query or manual state and misses the @electric-sql/pglite/live extension plus useLiveQuery hook; treatment lifts the documented live-extension registration and React hook usage verbatim."
+      }
+    ]
+  }
 }

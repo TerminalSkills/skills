@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:66b6682d92a574e3349ebe1c44b09b831ce68873e9327754c590cee8592d62a6",
   "scoredAt": "2026-05-13T09:37:41.993Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 89,
+    "multiplier": 1.78,
+    "scenarios": [
+      {
+        "name": "Build an animated tab underline indicator that slides between active tabs using motion/react",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline imports from framer-motion and animates the underline imperatively via state, while treatment imports from motion/react and uses a single motion.div with the same layoutId=\"activeTab\" rendered conditionally inside the active tab so the shared layout animation handles the slide with a spring transition as documented."
+      },
+      {
+        "name": "Create a parallax hero where the heading translates upward and fades out as the user scrolls",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Baseline wires up a scroll event listener with useState, while treatment uses useScroll and useTransform(scrollY, [0, 500], [0, -150]) plus an opacity transform applied via motion.div style={{ y, opacity }} as documented."
+      }
+    ]
+  }
 }

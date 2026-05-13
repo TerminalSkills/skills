@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f33a59e4b76267ea7862e8d314eaa5952ca9e3744f16f806414aa8e96814ee90",
   "scoredAt": "2026-05-13T09:57:40.569Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 91,
+    "multiplier": 3.25,
+    "scenarios": [
+      {
+        "name": "Audit project skill coverage from agent session history",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Baseline recommends skills from stack themes with no session evidence and skips the memory/rollout pipeline entirely; treatment follows the seven-step workflow, resolving CODEX_HOME, reading MEMORY.md, opening targeted rollout summaries, and scanning project-local skill directories before suggesting updates vs new skills with a priority order."
+      },
+      {
+        "name": "Decide whether to extend an existing skill or create a new one",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline gives surface-level update-vs-new heuristics with no procedure; treatment applies the skill's recommendation rules driven by recurrence evidence from rollout summaries and notes the SKILL.md / agents/openai.yaml drift check."
+      }
+    ]
+  }
 }

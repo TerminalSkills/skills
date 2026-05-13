@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:ccccb22c21ce23f1cab0bc0af08150eb7eb97d41db6822e4d8f4036f65637bec",
-  "scoredAt": "2026-05-13T08:17:32.593Z",
+  "scoredAt": "2026-05-13T14:10:32.905Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4,
+    "baselineAvg": 5,
+    "treatmentAvg": 40,
+    "scenarios": [
+      {
+        "name": "extract-floor-plan-rooms",
+        "baseline": 10,
+        "treatment": 30,
+        "rationale": "Response A offers a workable script that could generate the required JSON if extended, whereas Response B simply refuses to provide any data."
+      },
+      {
+        "name": "extract-ibc-compliance-data",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A partially meets the rubric by providing some fields, while Response B fails to produce the required JSON structure."
+      }
+    ]
+  }
 }

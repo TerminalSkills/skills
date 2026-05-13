@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:19b3e2610b530b741c54f8249e088a5f9034216e082e8389e24dd2008521fb60",
   "scoredAt": "2026-05-13T09:46:51.728Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 88,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Send HTML sprint report with PDF attachment",
+        "baseline": 50,
+        "treatment": 87,
+        "rationale": "Treatment posts to /users/{userId}/sendMail with contentType HTML, a base64 fileAttachment carrying the correct @odata.type and contentType, and saveToSentItems true, while baseline produces a hand-rolled SMTP/nodemailer flow that ignores the Graph API contract."
+      },
+      {
+        "name": "Auto-organize emails from a client domain",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment first creates the folder via POST /users/{userId}/mailFolders and then posts a messageRule with senderContains, moveToFolder, and markAsRead, while baseline tries to script Outlook desktop rules or skips creating the folder programmatically."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:736bcda07f3cedae83413dad355390236fa30909801a1450918a509054577036",
   "scoredAt": "2026-05-13T10:35:28.495Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 85,
+    "multiplier": 2.13,
+    "scenarios": [
+      {
+        "name": "Create a parameterized Warp Workflow for deploying a service",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment writes a YAML file under ~/.warp/workflows/ with name/description/tags/command using {{variables}} and an arguments list with description/default_value as documented; baseline produces a generic shell script with no Warp Workflow schema."
+      },
+      {
+        "name": "Configure a multi-tab launch configuration for full-stack dev",
+        "baseline": 35,
+        "treatment": 82,
+        "rationale": "Treatment writes ~/.warp/launch_configurations.yaml with a configurations list, each entry having tabs with title/directory/command per the SKILL.md format; baseline lacks the launch_configurations file structure and falls back to tmux or aliases."
+      }
+    ]
+  }
 }

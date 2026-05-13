@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9a424b09e05222eef8f023ddf9143c521d91ecc2ddf74c7b70352979d1f7c587",
   "scoredAt": "2026-05-13T09:58:07.905Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 19,
+    "treatmentAvg": 93,
+    "multiplier": 4.89,
+    "scenarios": [
+      {
+        "name": "Automated eval suite for SaaS support chatbot with CI",
+        "baseline": 18,
+        "treatment": 94,
+        "rationale": "Baseline rolls a hand-built Python test runner with no Promptfoo at all; treatment delivers a complete promptfooconfig.yaml with contains, llm-rubric, contains-any, and not-contains assertions across normal/edge/hostile cases plus a GitHub Actions CI workflow using npx promptfoo@latest eval --ci."
+      },
+      {
+        "name": "Compare GPT-4o, Claude Sonnet, and Gemini Flash for code review with cost and latency limits",
+        "baseline": 20,
+        "treatment": 92,
+        "rationale": "Baseline proposes a manual spreadsheet comparison and ignores the framework; treatment writes a multi-provider promptfooconfig with llm-rubric for quality, latency and cost threshold assertions, file:// test inputs, and the eval + view CLI commands."
+      }
+    ]
+  }
 }

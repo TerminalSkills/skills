@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:41d4b25207b283445c2399015ac9977669cd08b08228f2798a8e13b712c1239f",
   "scoredAt": "2026-05-13T09:09:00.832Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 87,
+    "treatmentAvg": 95,
+    "multiplier": 1.09,
+    "scenarios": [
+      {
+        "name": "Directory and file discovery with backup extensions",
+        "baseline": 88,
+        "treatment": 95,
+        "rationale": "Both use dir mode with proper wordlist and backup extensions; treatment adds richer extension list, 401/403 reasoning, and output saving."
+      },
+      {
+        "name": "Subdomain enumeration plus virtual host discovery",
+        "baseline": 85,
+        "treatment": 95,
+        "rationale": "Both cover dns and vhost modes correctly; treatment includes --append-domain, --show-ips, and clearer mechanism explanation."
+      }
+    ]
+  }
 }

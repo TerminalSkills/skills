@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:114cb35a218f5d68ec3f890de4e6b753398292c22b21f720d5d21352e36a3d15",
   "scoredAt": "2026-05-13T09:48:30.972Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 62,
+    "treatmentAvg": 88,
+    "multiplier": 1.42,
+    "scenarios": [
+      {
+        "name": "Express app with email/password and Google login",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Treatment wires passport-local with bcrypt.compare plus passport-google-oauth20 with callbackURL and routes using passport.authenticate with successRedirect/failureRedirect, including serializeUser/deserializeUser; baseline covers local strategy adequately but skips serialize/deserialize wiring."
+      },
+      {
+        "name": "Harden a Passport session-auth app for production",
+        "baseline": 58,
+        "treatment": 86,
+        "rationale": "Treatment specifies bcrypt cost 12+, express-session with Redis store, CSRF protection for session auth, and OAuth account linking; baseline gives broader best practices but omits the Redis session store and account linking guidance."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:66d601714f9c54c6eba915bac024a4a24205e25a2b432598b0d2f4e3cd3395d4",
   "scoredAt": "2026-05-13T10:01:20.810Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 94,
+    "multiplier": 4.09,
+    "scenarios": [
+      {
+        "name": "Todo filter with independent re-renders",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline uses Context which re-renders everything together; treatment splits state into todosAtom + filterAtom, derives filteredTodos and todoStats selectors, and uses useRecoilValue vs useRecoilState to scope subscriptions."
+      },
+      {
+        "name": "Async user profile with Suspense",
+        "baseline": 20,
+        "treatment": 93,
+        "rationale": "Baseline manages loading flags manually with useState/useEffect; treatment uses a selectorFamily async get, reads via useRecoilValue, and wraps the consumer in Suspense for native loading integration."
+      }
+    ]
+  }
 }

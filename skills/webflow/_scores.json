@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e7de4d09c3df82bf87dffc5d4ec1ea9dc48da6457e54b859c5928f38b53afded",
   "scoredAt": "2026-05-13T10:36:15.520Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 86,
+    "multiplier": 1.79,
+    "scenarios": [
+      {
+        "name": "Sync blog posts from an external source into Webflow CMS",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment hits POST https://api.webflow.com/v2/collections/{id}/items with a Bearer WEBFLOW_API_TOKEN, sends fieldData with name/slug/post-body/thumbnail-image, sets isArchived/isDraft, then calls the /items/publish endpoint with itemIds; baseline guesses at v1 endpoints or uses a flat body without fieldData and skips the publish step."
+      },
+      {
+        "name": "Design responsive landing page with reusable components",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment names the documented breakpoints (991/767/478), recommends combo classes like .button-primary.is-large, uses Symbols for navbar/footer/CTA, and orders work desktop -> tablet -> mobile so styles inherit downward; baseline gives generic CSS media-query advice without Webflow's specific combo-class and symbol patterns."
+      }
+    ]
+  }
 }

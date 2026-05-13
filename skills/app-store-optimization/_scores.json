@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:fd608b2f0e999b762d9413cfe1c0dabb605a168139d0c7656ad8677bdf180fa4",
-  "scoredAt": "2026-05-12T22:33:27.708Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "scoredAt": "2026-05-13T14:05:43.038Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.19,
+    "baselineAvg": 43,
+    "treatmentAvg": 94,
+    "scenarios": [
+      {
+        "name": "ios-metadata-rewrite-zenflow",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Treatment respects the 30/30/100 character splits, deduplicates keywords across fields, uses comma-no-space in the keyword field, picks singular OR plural, and avoids 'app'/category names and competitor brands; baseline rewrites copy but typically duplicates terms and ignores the keyword-field formatting rules."
+      },
+      {
+        "name": "google-play-screenshot-ab-test",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Treatment cites Google Play Experiments' 5-variant limit, recommends 7-14 day runs, prioritizes screenshots over icon and description, and ties success to install conversion plus first-3-visible/one-message-per-screenshot design rules; baseline gives generic A/B advice without the platform-specific constraints."
+      }
+    ]
+  }
 }

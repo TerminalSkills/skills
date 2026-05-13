@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c249a69ad1e648e0eb5a00aa86844c65d7b1e25a65d4936d1e8ae6b1400596ce",
   "scoredAt": "2026-05-13T09:51:19.833Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 94,
+    "multiplier": 1.62,
+    "scenarios": [
+      {
+        "name": "Authenticate once and reuse session across tests",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Treatment uses a setup project with testMatch /.*\\.setup\\.ts/, page.context().storageState({ path }), and dependent project storageState + dependencies: ['setup']; baseline falls back to globalSetup or per-test login and misses the project-dependency pattern."
+      },
+      {
+        "name": "Mock /api/projects 500 to assert error UI",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment uses page.route('**/api/projects', route.fulfill({ status: 500, contentType, body })) and asserts the failure text via getByText; baseline mocks more loosely and misses contentType/body shape."
+      }
+    ]
+  }
 }

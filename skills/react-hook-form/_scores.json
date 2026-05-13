@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:df597b9eb3ed05a7ab6a6cd0af707d505d4cf5e6cb32b623bc0aee97c146ffa1",
   "scoredAt": "2026-05-13T10:00:39.175Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 88,
+    "multiplier": 2.05,
+    "scenarios": [
+      {
+        "name": "Signup form with strong password rules and confirm-password matching",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment wires up `useForm` with `zodResolver`, a Zod schema with `.regex` rules plus `.refine` for confirmPassword equality, and surfaces `formState.errors`/`isSubmitting` per the skill, while baseline manages state with `useState` and ad-hoc validation, missing the uncontrolled-input performance pattern."
+      },
+      {
+        "name": "Invoice builder with add/remove line items and a live total",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment uses `useFieldArray` with `append`/`remove`, `register('items.${index}.quantity', { valueAsNumber: true })`, and `watch('items')` to compute the live total — the exact pattern in the skill — while baseline manages the array via `useState` and manual mutators that the rubric does not credit."
+      }
+    ]
+  }
 }

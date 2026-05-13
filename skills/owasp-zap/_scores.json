@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:70245e823691676155807744c42ef15a21dbe116c64df8851c4aa95a277b90c6",
   "scoredAt": "2026-05-13T09:46:57.425Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 88,
+    "multiplier": 2.05,
+    "scenarios": [
+      {
+        "name": "Add ZAP scan to every pull request",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment correctly picks the non-destructive zap-baseline.py via zaproxy/action-baseline with High-only fail threshold and HTML/JSON reports, while baseline reaches for an active scan that risks breaking PRs."
+      },
+      {
+        "name": "Pre-launch staging audit of an SPA with REST API",
+        "baseline": 40,
+        "treatment": 87,
+        "rationale": "Treatment combines zap-full-scan.py with authenticated session, Ajax Spider for the SPA, and zap-api-scan.py against the OpenAPI spec, while baseline runs a single unauthenticated active scan and misses login-gated endpoints."
+      }
+    ]
+  }
 }

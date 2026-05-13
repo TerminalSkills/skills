@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:e5a87b439faa4d16a40ea9360d8d09b0c62ed6ab9fdcf1b40ead43aa0cf88779",
-  "scoredAt": "2026-05-12T22:26:33.625Z",
+  "scoredAt": "2026-05-13T14:01:48.390Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.3,
+    "baselineAvg": 23,
+    "treatmentAvg": 30,
+    "scenarios": [
+      {
+        "name": "wrk-single-endpoint-benchmark",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit one of the required flags; A uses -t4 instead of -t200, B uses -d30s instead of -d60s."
+      },
+      {
+        "name": "multi-step-k6-flow",
+        "baseline": 45,
+        "treatment": 60,
+        "rationale": "Response B better meets the rubric by including http_req_duration thresholds and more stages, while Response A lacks the required http_req_duration threshold and uses a different dynamic email pattern."
+      }
+    ]
+  }
 }

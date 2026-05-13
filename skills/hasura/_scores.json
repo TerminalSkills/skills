@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d404c1ae195449e821905adf63156b6236ed678f3f4db0e0d4f6a28198b1ffe1",
   "scoredAt": "2026-05-13T09:11:55.397Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 87,
+    "multiplier": 2.18,
+    "scenarios": [
+      {
+        "name": "Role-based row-level permissions for orders",
+        "baseline": 42,
+        "treatment": 88,
+        "rationale": "Treatment writes the metadata YAML with select_permissions filtering on user_id _eq X-Hasura-User-Id, an admin role with filter: {} and allow_aggregations: true, and update_permissions constrained to status _eq pending with a check forcing status _eq cancelled; baseline writes Postgres RLS policies and an API gateway, missing the Hasura permission DSL and X-Hasura-User-Id session variable."
+      },
+      {
+        "name": "Event-triggered side effects on order paid",
+        "baseline": 38,
+        "treatment": 86,
+        "rationale": "Treatment registers an event_triggers entry with update.columns: [status], retry_conf (num_retries, interval_sec), and a webhook handler reading event.data.old and event.data.new to gate on the status transition to paid; baseline writes a NOTIFY/LISTEN listener or a polling cron, missing Hasura's event trigger payload shape and built-in retry config."
+      }
+    ]
+  }
 }

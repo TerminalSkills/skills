@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f3b234e997226ea303fa9b9eb03caf816980d963b6b27363e1e94a66aa278c2e",
-  "scoredAt": "2026-05-13T08:39:54.115Z",
+  "scoredAt": "2026-05-13T16:06:08.229Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.7,
+    "baselineAvg": 53,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "custom-tool-crew-report",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required args_schema, context passing, and crew memory setting."
+      },
+      {
+        "name": "hierarchical-report-crew",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "Response B better satisfies the rubric by including memory=True, auto‑created manager, and explicit task delegation, whereas Response A lacks memory, uses an explicit manager, and does not clearly delegate tasks."
+      }
+    ]
+  }
 }

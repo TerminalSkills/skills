@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a59f512505e97b97dc76d708b6d6ec4301c9252b0e51df41e3c34d6c82ba8b8d",
   "scoredAt": "2026-05-13T09:46:00.758Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 95,
+    "multiplier": 2.71,
+    "scenarios": [
+      {
+        "name": "Build a filesystem-paradigm context manager with hierarchical scoping for a coding agent",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline produced flat CRUD with no SCOPE_RULES, scope-layered loading, lessons inclusion, or '---'-separated '## path' formatting; treatment implemented all four."
+      },
+      {
+        "name": "Self-evolving lessons.md after a failed task",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline appended a flat line with local time and no current.md archive or LLM lesson extraction; treatment archived task/current.md to a UTC-timestamped history file and used the LLM to append a structured lesson via the ContextManager."
+      }
+    ]
+  }
 }

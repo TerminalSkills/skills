@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7d34dfe4b33b366dfe45ffeaaac9455bbf43494f7e1b6e6de4963f8f081cb79c",
   "scoredAt": "2026-05-13T09:16:55.501Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 92,
+    "multiplier": 1.84,
+    "scenarios": [
+      {
+        "name": "Extract contacts from email text into a validated Pydantic schema with retries",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses instructor.from_openai(OpenAI()), passes response_model=ExtractedContacts and max_retries=3, and leverages Field(description=...) to guide extraction; baseline calls OpenAI directly with json_mode and a hand-rolled parser, missing Instructor's validation-retry loop."
+      },
+      {
+        "name": "Stream partial sentiment-analysis objects from a local Ollama model",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Treatment uses instructor.from_openai with base_url='http://localhost:11434/v1' and mode=instructor.Mode.JSON, defines Literal-typed fields for sentiment/emotions, and iterates client.chat.completions.create_partial; baseline streams raw text from Ollama and tries to parse JSON manually."
+      }
+    ]
+  }
 }

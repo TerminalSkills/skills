@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7d41286c322e1b1e22e7cb10f2f3950ff5331b5ffcefbce1d5410c56909c02ec",
   "scoredAt": "2026-05-13T10:07:52.934Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 92,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "staff-editable-hero-section",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Treatment uses the documented {% schema %} block with image_picker/text/richtext/url settings, presets for theme editor insertion, and section.settings.image | image_url: width: 1920 — baseline writes a Liquid section but misses the schema typing/presets pattern that makes it admin-editable."
+      },
+      {
+        "name": "ajax-cart-add-without-reload",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Treatment hits the skill's exact fetch('/cart/add.js') with JSON body { items: [{ id: variantId, quantity }] } plus /cart/change.js and /cart.js helpers; baseline often uses older form-encoded id/quantity payload rather than the items-array shape."
+      }
+    ]
+  }
 }

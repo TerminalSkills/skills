@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:dc72f1397badc4a342ef48dc298b8dda493cfcb8b76b48c3f718deec92d8c429",
   "scoredAt": "2026-05-13T10:27:06.511Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 88,
+    "multiplier": 2.32,
+    "scenarios": [
+      {
+        "name": "Instrument a multi-step RAG agent with semantic trace hierarchy",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment uses Traceloop.init plus @workflow/@task/@agent/@tool decorators to build a meaningful span hierarchy; baseline writes raw OpenTelemetry spans without OpenLLMetry's auto-instrumentation or AI semantic conventions."
+      },
+      {
+        "name": "Export LLM traces from existing app to self-hosted Grafana Tempo",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment uses Traceloop.init with api_endpoint pointing at the Tempo OTLP HTTP endpoint and the documented headers parameter; baseline configures generic OTel exporters and misses the one-line auto-instrumentation pattern."
+      }
+    ]
+  }
 }

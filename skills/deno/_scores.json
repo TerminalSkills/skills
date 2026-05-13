@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:61a81afcb6cb36961c970e3e1dfdc7b2b15bd30c754573c190b226ee9ea3b219",
-  "scoredAt": "2026-05-13T08:43:37.797Z",
+  "scoredAt": "2026-05-13T16:29:52.594Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.79,
+    "baselineAvg": 28,
+    "treatmentAvg": 78,
+    "scenarios": [
+      {
+        "name": "secure-rest-api-with-kv",
+        "baseline": 35,
+        "treatment": 55,
+        "rationale": "Response A uses Deno.serve and explicit permissions via deno.json, but still lacks kv.atomic and TTL; Response B uses Oak and runtime permission requests, missing Deno.serve and TTL."
+      },
+      {
+        "name": "cross-platform-cli-compile",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits @std/cli, proper permissions, coverage, and cross-platform compilation."
+      }
+    ]
+  }
 }

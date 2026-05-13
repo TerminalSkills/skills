@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:585571c738a5ca27568295a961f39f9f049ceb731b37d9ab510576175591e77a",
   "scoredAt": "2026-05-13T10:41:09.540Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 79,
+    "treatmentAvg": 90,
+    "multiplier": 1.14,
+    "scenarios": [
+      {
+        "name": "selector-performance-rerenders",
+        "baseline": 85,
+        "treatment": 88,
+        "rationale": "Both responses correctly recommend per-field selectors to avoid unnecessary re-renders; the treatment mirrors the skill's exact phrasing about 'automatic re-render only when selected state changes' but the baseline covers the core fix adequately."
+      },
+      {
+        "name": "persist-immer-devtools-stack",
+        "baseline": 72,
+        "treatment": 92,
+        "rationale": "The treatment uses the skill's exact curried `create<T>()(...)` TypeScript generic syntax and provides the named devtools label, while the baseline gets the middleware composition order right but misses the curried generic form and devtools name option."
+      }
+    ]
+  }
 }

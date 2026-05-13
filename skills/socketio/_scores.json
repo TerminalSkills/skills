@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:89e9b9f2dc7a7ae157051c46716e0545a2a41bb2421e95fa63b1a7f8123f454a",
   "scoredAt": "2026-05-13T10:09:30.390Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 89,
+    "multiplier": 1.48,
+    "scenarios": [
+      {
+        "name": "Scale Socket.IO across multiple Node instances",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment installs @socket.io/redis-adapter with createClient + pubClient.duplicate() then io.adapter(createAdapter(pubClient, subClient)) per the skill; baseline reaches for sticky sessions or generic pub/sub and misses the redis-adapter pattern."
+      },
+      {
+        "name": "Authenticate WebSocket connections with JWT in handshake",
+        "baseline": 65,
+        "treatment": 88,
+        "rationale": "Treatment uses io.use middleware reading socket.handshake.auth.token and storing decoded userId on socket.data per the skill; baseline often parses cookies or query strings and misses the auth payload convention."
+      }
+    ]
+  }
 }

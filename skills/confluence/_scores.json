@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:cac1077e29f9d72e7f09eca24f609886fbfeb6dcb4f62274386984b924491c74",
-  "scoredAt": "2026-05-13T08:37:43.058Z",
+  "scoredAt": "2026-05-13T15:51:30.298Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.33,
+    "baselineAvg": 43,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-space-page-hierarchy-with-labels",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to use the correct endpoints for space creation, omits the global type, and does not provide page URLs."
+      },
+      {
+        "name": "create-page-with-jira-macro-and-summary",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the required structured‑macro syntax, column specification, and summary placement."
+      }
+    ]
+  }
 }

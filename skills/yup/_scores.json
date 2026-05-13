@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e70a511f7c91515355000ad0c61db10ad32a96597a7f4b87bdef7e5a4e1c87c2",
   "scoredAt": "2026-05-13T10:40:13.039Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 91,
+    "multiplier": 1.72,
+    "scenarios": [
+      {
+        "name": "Signup schema with nested address, password confirmation, and inferred TS type",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Yup is widely known so baseline gets common API right, but treatment is sharper on yup.ref('password') for confirmPassword, multi-.matches() password rules, and yup.InferType type inference."
+      },
+      {
+        "name": "Conditional schema requiring email only when contactMethod='email', phone only when 'phone'",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline gestures at .when but often uses the older object form; treatment uses the current then: (s) => s.email().required(...) callback pattern and validate(data, { abortEarly: false }) from the skill."
+      }
+    ]
+  }
 }

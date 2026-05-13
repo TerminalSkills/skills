@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 88,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Express API OpenTelemetry instrumentation",
+        "baseline": 48,
+        "treatment": 90,
+        "rationale": "Treatment installs @opentelemetry/sdk-node plus auto-instrumentations-node and the OTLP HTTP trace/metric exporters, creates src/instrumentation.ts loaded via `node --require` before app imports, wires OTLPTraceExporter and PeriodicExportingMetricReader to OTEL_EXPORTER_OTLP_ENDPOINT, and adds a pino mixin that injects trace_id/span_id from getActiveSpan — all directly from the skill; baseline reaches for older opentelemetry/node packages and skips the --require ordering and pino trace correlation."
+      },
+      {
+        "name": "Docker Compose LGTM stack with collector",
+        "baseline": 42,
+        "treatment": 86,
+        "rationale": "Treatment delivers compose services for otel-collector (otel/opentelemetry-collector-contrib with ports 4317/4318), tempo, loki, mimir, and grafana with the anonymous Admin role, and supplies a collector config with otlp receivers, memory_limiter + batch processors, and otlphttp/tempo, prometheusremotewrite to mimir, and loki exporters wired through pipelines; baseline produces a generic Prometheus+Grafana+Jaeger compose that omits Tempo/Mimir/Loki and the memory_limiter processor."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

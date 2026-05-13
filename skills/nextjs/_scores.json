@@ -1,16 +1,16 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f3ac9196846437d9030d991e234d9fe1d70a0dc505bf0d96b709c552d20521a6",
-  "scoredAt": "2026-05-13T11:21:57.459Z",
+  "scoredAt": "2026-05-13T13:31:48.630Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "qwen2.5-coder:14b",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack coverage of error handling and edge cases for data fetching and mutations."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill does not provide runnable code snippets or concrete procedures for implementation."
+        "detail": "The instructions do not cover error scenarios or edge cases."
       }
     ]
   },
@@ -32,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5.5,
-    "baselineAvg": 10,
-    "treatmentAvg": 55,
+    "multiplier": 1.16,
+    "baselineAvg": 73,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "blog-page-ssg-ssr",
-        "baseline": 30,
-        "treatment": 65,
-        "rationale": "Response A covers most rubric items but lacks error.tsx and generateMetadata, while Response B omits the required files and ISR syntax entirely."
+        "name": "create-dashboard",
+        "baseline": 60,
+        "treatment": 85,
+        "rationale": "Response A covers most of the rubric requirements including layout.tsx, async Server Components with database queries, loading.tsx for Suspense-based streaming, and uses revalidate option in fetch calls. Response B misses some key elements like using 'use server' directive, proper widget separation, and does not include ISR revalidation."
       },
       {
-        "name": "contact-form-server-action",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to meet the rubric: neither uses a server‑only form component with <form action={submitContact}>, calls revalidatePath('/') after a successful mutation, nor omits 'use client'."
+        "name": "implement-auth",
+        "baseline": 70,
+        "treatment": 85,
+        "rationale": "Response A covers most of the rubric but does not include the useOptimistic() hook for instant form feedback. Response B includes the useOptimistic() hook but lacks session management with encrypted cookies."
       },
       {
-        "name": "admin-auth-middleware",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric with a Next.js middleware file, matcher, cookie check, and redirect, while Response A is an Express example and does not meet the specified requirements."
+        "name": "optimize-images",
+        "baseline": 90,
+        "treatment": 85,
+        "rationale": "Response B slightly exceeds Response A by including more detailed configuration options in next.config.js, such as deviceSizes and imageSizes, which are not mentioned in Response A."
       }
     ]
   }

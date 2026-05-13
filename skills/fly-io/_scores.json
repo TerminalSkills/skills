@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1ff1903f3f385ad28100b353881d438e6876698a730c1cff8cf36ea074e095a9",
   "scoredAt": "2026-05-13T08:54:05.976Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 93,
+    "multiplier": 2.66,
+    "scenarios": [
+      {
+        "name": "Canary deploy with health-check rollback",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline does a plain fly deploy and improvises rollback; treatment uses --strategy canary, curls the health endpoint within a deadline, promotes with --strategy rolling, and uses fly releases rollback on failure."
+      },
+      {
+        "name": "Multi-region scale-to-zero SQLite staging",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Baseline picks Postgres and misses scale-to-zero specifics; treatment configures auto_stop_machines/auto_start_machines, provisions volumes per region, and uses LiteFS for multi-region SQLite."
+      }
+    ]
+  }
 }

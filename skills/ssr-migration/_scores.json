@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2950a7422ba08d28f003305fc752287304ffaac9c1368b97bb26d0aa57bba102",
   "scoredAt": "2026-05-13T10:11:24.418Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 96,
+    "multiplier": 1.81,
+    "scenarios": [
+      {
+        "name": "Migrate Marketing Site to Next.js",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Treatment applies the SSG/SSR/CSR classification, App Router generateStaticParams + revalidate, and the grep-based audit for window/localStorage; baseline uses Pages Router APIs and skips the audit step."
+      },
+      {
+        "name": "Hydration Mismatch + Authenticated SSR Fetch",
+        "baseline": 65,
+        "treatment": 96,
+        "rationale": "Treatment uses the exact cookies().toString() forwarding pattern and the use client + useEffect deferral example from the skill; baseline gestures at the concepts but lacks the concrete Next.js APIs."
+      }
+    ]
+  }
 }

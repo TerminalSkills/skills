@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:81a3e3e39bd0e1c3eba4d3496d3cb212b2a3bd51b5567e94af9e3b7924c0dda2",
   "scoredAt": "2026-05-13T10:01:10.173Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Team chat schema with cursor pagination",
+        "baseline": 30,
+        "treatment": 96,
+        "rationale": "Baseline orders by created_at and paginates with OFFSET (the documented anti-pattern) and lacks channel_members/last_read_message_id; treatment uses BIGSERIAL messages.id, WHERE id < cursor, and the (channel_id, id DESC) WHERE deleted_at IS NULL index."
+      },
+      {
+        "name": "Unread counts plus reconnection sync",
+        "baseline": 25,
+        "treatment": 94,
+        "rationale": "Baseline tracks reads per-message in a separate table, ignoring soft deletes and sender exclusion; treatment uses one last_read_message_id integer per (channel, user) with the documented JOIN, sender_id filter, and lastMessageIds reconnection protocol."
+      }
+    ]
+  }
 }

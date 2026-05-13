@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c242f09bf746e84d35d0635b77c49bd99d4f5e289eadb29665442e90c0137fa9",
   "scoredAt": "2026-05-13T10:06:08.622Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 59,
+    "treatmentAvg": 93,
+    "multiplier": 1.58,
+    "scenarios": [
+      {
+        "name": "node-express-audit",
+        "baseline": 60,
+        "treatment": 93,
+        "rationale": "Baseline ran npm audit and grepped broadly but printed secrets in full and skipped OWASP categorization; treatment ran npm audit --json, used the documented grep with --exclude-dir, grouped findings as Critical/High/Medium/Low with OWASP codes, and masked secrets to first 8 chars."
+      },
+      {
+        "name": "django-secrets-deps",
+        "baseline": 58,
+        "treatment": 93,
+        "rationale": "Baseline used pip-audit and flagged SECRET_KEY but only said to remove it from code; treatment ran pip-audit --format=json, advised rotating the key and any committed .env, and recommended adding .env to .gitignore plus a gitleaks pre-commit hook."
+      }
+    ]
+  }
 }

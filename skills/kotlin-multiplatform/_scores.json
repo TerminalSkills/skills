@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:43bafae13413b232a26c5b898c15108604adb0087778f2d69a0d33bbfe7450b1",
   "scoredAt": "2026-05-13T09:20:28.051Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 93,
+    "multiplier": 1.43,
+    "scenarios": [
+      {
+        "name": "Offline-first TaskRepository with Flow",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Treatment returns Flow via db.observeAll().map { entities.map { it.toTask() } }, uses multiplatform generateUuid(), and calls db.markPendingSync(task.id) in the catch as the skill shows; baseline uses java.util.UUID (non-multiplatform) and lacks the explicit pending-sync mark."
+      },
+      {
+        "name": "Platform-specific UUID and platform name via expect/actual",
+        "baseline": 75,
+        "treatment": 92,
+        "rationale": "Both define expect/actual correctly, but treatment includes Build.VERSION.SDK_INT on Android and UIDevice.currentDevice.systemName()/systemVersion on iOS, matching the skill's exact platform identification."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:360eb5234c6c11a2811ea518df1dbd467027eeb9d2adc3e0fea7b66d8c52914d",
   "scoredAt": "2026-05-13T10:00:32.682Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 88,
+    "multiplier": 2.2,
+    "scenarios": [
+      {
+        "name": "Typed team-invite email template with logo, CTA, and inbox preview text",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment composes the template from `@react-email/components` (`Html`/`Head`/`Body`/`Container`/`Section`/`Button`/`Img`/`Preview`) wrapped in `<Tailwind>`, with typed props for personalization, while baseline hand-rolls HTML tables and inline styles and omits the `<Preview>` inbox-text component the rubric checks for."
+      },
+      {
+        "name": "Render the invite template and send it via Resend with a plain-text fallback",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment calls `render()` from `@react-email/render` twice (HTML and `{ plainText: true }`) and passes both to `resend.emails.send` per the skill, plus mentions `npx email dev` for preview, while baseline stringifies a template literal and sends only `html`, missing the deliverability-friendly plain-text path."
+      }
+    ]
+  }
 }

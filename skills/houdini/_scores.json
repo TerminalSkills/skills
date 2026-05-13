@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2288b8cb00012ead3ead27756bf9f71d5f15e7bd160b596f18e266dbf2e417b1",
   "scoredAt": "2026-05-13T09:13:25.610Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 88,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Scatter trees on terrain with slope-based density in a Point Wrangle (VEX)",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment used the documented VEX pattern (dot(@N, {0,1,0}) for slope, removepoint(0, @ptnum), f@pscale, i@tree_type, fit01/rand); baseline gave a generic 'use a scatter SOP' answer without the VEX point-wrangle attribute writes."
+      },
+      {
+        "name": "Batch-export 1000 game asset LODs from heightmaps using PDG/TOPs",
+        "baseline": 40,
+        "treatment": 86,
+        "rationale": "Treatment chained File Pattern -> HDA Processor (mesh, scatter, LOD) -> ROP Geometry -> CSV Output with HQueue/Deadline scheduling as documented; baseline described generic Python loops without the TOP node chain."
+      }
+    ]
+  }
 }

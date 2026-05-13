@@ -1,24 +1,53 @@
 {
   "version": "1.0.0",
-  "skillHash": "sha256:3b60dba4a7b335a8afb0886863de807af78855daab36b9d3a22528395b35007b",
-  "scoredAt": "2026-05-13T10:04:13.833Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "skillHash": "sha256:d6e6f51abf86d98eae01dc8f17e168728f318905d8fd69c749232e76402dd2d9",
+  "scoredAt": "2026-05-13T10:04:38.737Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly cover error handling or edge cases such as permission errors or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes rsync is available on Linux/macOS, limiting compatibility with other platforms."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 93,
+    "multiplier": 1.75,
+    "scenarios": [
+      {
+        "name": "Auth-guarded POST /api/users with admin-only check",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Baseline produced an axum/actix-style extractor sketch and missed Rocket's Outcome-based guard contract; treatment used #[post(\"/users\", format = \"json\", data = \"<input>\")], implemented FromRequest reading the Authorization header with Outcome::Success/Error, and returned Status::Forbidden for non-admins."
+      },
+      {
+        "name": "Global JSON 404 catcher with shared DbPool state",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Baseline used #[catch(404)] but forgot to register catchers and used a plain global for DB access; treatment defined catchers returning Json<serde_json::Value>, registered them via .register(\"/\", catchers![...]), attached DbPool::init(), and injected it through &State<DbPool> in handlers."
+      }
+    ]
+  }
 }

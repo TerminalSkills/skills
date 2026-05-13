@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1b32005f8c57bacc64435e888ae80b7c43d3196b5c7f117170033b80c31dd160",
   "scoredAt": "2026-05-13T10:40:35.657Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 90,
+    "multiplier": 4.5,
+    "scenarios": [
+      {
+        "name": "Deploy Next.js app and Postgres with zeabur CLI, set DATABASE_URL, attach api.myapp.com domain",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline invents CLI subcommands and routes user to a dashboard; treatment uses the documented zeabur auth login, zeabur deploy, marketplace DATABASE_URL auto-injection, and zeabur domain add."
+      },
+      {
+        "name": "Write a script to list services and restart one via Zeabur API",
+        "baseline": 15,
+        "treatment": 90,
+        "rationale": "Baseline assumes REST and fabricates endpoints; treatment correctly uses the gateway.zeabur.com/graphql endpoint with the exact services query and restartService mutation shapes from the skill."
+      }
+    ]
+  }
 }

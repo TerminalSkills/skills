@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8172d19ced477f58f43f06aed7e81143984a06c3dddb4bb1dca596d8fd007085",
   "scoredAt": "2026-05-13T09:47:35.403Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 88,
+    "multiplier": 1.76,
+    "scenarios": [
+      {
+        "name": "SaaS homepage audit converting at 1.2%",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment walks the 7-dimension framework in impact order (value proposition first, friction last), gives outcome-focused headline rewrites, repositions a value-laden CTA above the fold, and outputs Quick Wins / High-Impact / Test Ideas sections; baseline gave generic CRO advice without prioritized framework or copy alternatives."
+      },
+      {
+        "name": "Pricing page tier upgrade optimization",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment applies pricing-specific framework (recommended plan indication, decision anxiety), suggests Most Popular badge, reordered comparison leading with Pro differentiators, annual-default pricing, and a Pro-customer testimonial near pricing cards; baseline missed the pricing-specific frame and copy alternatives."
+      }
+    ]
+  }
 }

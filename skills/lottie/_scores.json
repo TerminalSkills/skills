@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4d6d466e3b2f2ad3d656c31316e8c4c13ad5037a8319008d656a744c808d9f05",
   "scoredAt": "2026-05-13T09:26:20.358Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 86,
+    "multiplier": 1.65,
+    "scenarios": [
+      {
+        "name": "Build a React Lottie component that plays only frames 10-50 on hover",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment uses lottie-web's loadAnimation with renderer:'svg', anim.playSegments([10,50], true) for hover, and calls animRef.current?.destroy() in cleanup; baseline often imports lottie-react and misses playSegments and explicit destroy on unmount."
+      },
+      {
+        "name": "Recolor a Lottie JSON to match brand colors before rendering",
+        "baseline": 48,
+        "treatment": 84,
+        "rationale": "Treatment walks layer.shapes/it recursively, matches shape.ty === 'fl' fills via shape.c.k, and writes back normalized [r,g,b,1] tuples as in the skill's recolorAnimation; baseline edits hex strings or applies CSS filters which do not work on Lottie shape fills."
+      }
+    ]
+  }
 }

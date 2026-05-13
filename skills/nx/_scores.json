@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ad36b42f722b2640e23c99d69bd6de4da7d6a6a43dc41107680adb4a9a57685f",
   "scoredAt": "2026-05-13T09:42:34.565Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 87,
+    "multiplier": 2.02,
+    "scenarios": [
+      {
+        "name": "Affected CI pipeline",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Baseline mentions running tests across packages but lacks the specific nx affected -t test command and nx.json targetDefaults cache config; treatment uses both the affected command and configures cache in nx.json with dependsOn."
+      },
+      {
+        "name": "Init Nx in existing monorepo",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Baseline gives generic monorepo advice and may not surface npx nx init nor demonstrate cache benefit via run-many; treatment uses nx init, configures targetDefaults cache:true, and shows nx run-many -t build for shared caching."
+      }
+    ]
+  }
 }

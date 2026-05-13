@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:50b9bebf8e0db1df5b23336680bb7a950c0b5a38e9c4bb23c10c608df57d9d81",
   "scoredAt": "2026-05-13T10:31:43.188Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 25,
+    "treatmentAvg": 95,
+    "multiplier": 3.8,
+    "scenarios": [
+      {
+        "name": "Create Unkey key for customer-42 with rate limit, expiry, and roles",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline guesses generic key-management code without Unkey SDK shape, missing apiId/ownerId/meta/ratelimit{type:'fast',limit,duration}/expires/roles; treatment uses unkey.keys.create with the exact documented options."
+      },
+      {
+        "name": "Auth middleware with verifyKey and 429/403 handling",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline does not know the verifyKey export or the code strings (RATE_LIMITED, NOT_FOUND, etc.); treatment imports verifyKey from @unkey/api, branches on result.code === 'RATE_LIMITED' for 429, and gates roles for 403."
+      }
+    ]
+  }
 }

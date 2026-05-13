@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:dd7d44acf43344a3f0d0f5bc7abe71dd74d30eaceabaf2f3766d4101898c563d",
   "scoredAt": "2026-05-13T08:52:38.905Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Pull a node from a Figma URL and generate a pricing card",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment fetches the node via curl against /v1/files/<file_key>/nodes with X-Figma-Token, normalizes spacing to a 4px scale, returns a semantic <article> with typed PricingCardProps and a CSS module folder layout; baseline used the wrong endpoint and inline tag soup with no token extraction."
+      },
+      {
+        "name": "Dashboard layout from a Figma URL with responsive collapse",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Treatment splits the design into Sidebar/StatsGrid/DataTable, uses Grid/Flexbox (never absolute positioning), stacks below 768px and applies clamp() for fluid typography, and externalizes colors/type as design tokens; baseline produced a single monolithic component with absolute positioning and no responsive plan."
+      }
+    ]
+  }
 }

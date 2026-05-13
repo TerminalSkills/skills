@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:db2dbba660ecd374b68b95daaa71486cb65544f985b7c0ce786c80306f8cbf51",
   "scoredAt": "2026-05-13T09:07:50.264Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 90,
+    "multiplier": 1.38,
+    "scenarios": [
+      {
+        "name": "Commit a timezone bug fix in date utility",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Treatment inspects with git diff --cached, writes a Conventional Commits fix(scope) subject in imperative mood with a WHY-focused body and Fixes #N reference using the documented heredoc git commit pattern; baseline produces a plain message without scope or the staged-diff inspection step."
+      },
+      {
+        "name": "Commit a mixed chore: README, .env.example, typo",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Treatment categorizes the diff, picks chore type, uses bullet body per SKILL.md guidance for multiple small changes, and verifies with git log --oneline -1; baseline often picks the wrong type or jams it into one vague subject."
+      }
+    ]
+  }
 }

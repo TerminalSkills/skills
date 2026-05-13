@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3a0d523fc89ffc83a0009fa55078bb56b3bac1ba059106d88b63bd5ec9aee9da",
-  "scoredAt": "2026-05-13T08:37:58.491Z",
+  "scoredAt": "2026-05-13T15:53:21.268Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.25,
+    "baselineAvg": 20,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "register-web-service-with-health-check",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items but misses the required file path and command prefix, while Response A fails to meet the rubric at all."
+      },
+      {
+        "name": "setup-connect-sidecar-with-intentions",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response B correctly specifies the required ports and intention syntax, though it uses a different file name and command, whereas Response A has incorrect port numbers and also omits the required commands."
+      }
+    ]
+  }
 }

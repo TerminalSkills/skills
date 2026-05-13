@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:be453533b9a4065d1533e9cf8fc162fbfd3051bc43f6469cff075c935d540611",
   "scoredAt": "2026-05-13T09:25:18.857Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 89,
+    "multiplier": 1.71,
+    "scenarios": [
+      {
+        "name": "Cut GPT-4o chatbot bill by routing + caching FAQs",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment combines CostTracker middleware (per-feature and per-user logging with PRICING table and cached-token pricing), routeModel sending extraction/classification/summarize to gpt-4o-mini, and SemanticCache with 0.92 similarity threshold + TTL — exactly the three-layer pattern in the skill; baseline suggests caching/cheaper models generically but does not separate cached vs uncached input pricing or use a 0.92 threshold."
+      },
+      {
+        "name": "Enforce per-team monthly budgets with alerts",
+        "baseline": 48,
+        "treatment": 88,
+        "rationale": "Treatment uses CostTracker.setBudget(feature, monthlyLimitUsd), getMonthlySpend filtering by month start, and triggers the warn at 80% threshold off the report() grouping by feature → model; baseline writes a generic spend tracker that doesn't match per-feature budget API or the report grouping shape."
+      }
+    ]
+  }
 }

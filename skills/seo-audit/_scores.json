@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:281b04fb9c4b7f82e01e0ade5da9df273b16b31aebd7fac3a7c20a3d6c488281",
   "scoredAt": "2026-05-13T10:07:00.914Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 87,
+    "multiplier": 1.5,
+    "scenarios": [
+      {
+        "name": "Audit a SaaS site that lost 35% organic traffic after a Next.js migration",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "Treatment follows the documented priority order (crawlability/indexation first, then technical, then on-page), checks redirect chains/canonicals/SSR rendering, and references Search Console + PageSpeed Insights; baseline jumps to generic advice without the audit ordering."
+      },
+      {
+        "name": "On-page audit for a 'wireless earbuds' category page stuck on page 3",
+        "baseline": 55,
+        "treatment": 86,
+        "rationale": "Treatment delivers the documented Issue/Impact/Evidence/Fix/Priority output structure, references the Core Web Vitals thresholds (LCP <2.5s, INP <200ms, CLS <0.1) and product/BreadcrumbList schema, and benchmarks against top competitors; baseline gives a generic checklist without competitor comparison or the structured output."
+      }
+    ]
+  }
 }

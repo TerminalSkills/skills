@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7d37943045cd27816039723612478b6aec757538d25997a90112f414514aa323",
   "scoredAt": "2026-05-13T09:57:15.921Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 96,
+    "multiplier": 4.17,
+    "scenarios": [
+      {
+        "name": "Initial setup of product marketing context for a SaaS repo",
+        "baseline": 20,
+        "treatment": 96,
+        "rationale": "Baseline dumps a single block of questions and saves to an arbitrary file with no existence check or section structure; treatment first checks for the documented `.claude/product-marketing-context.md`, offers the auto-draft vs from-scratch options, drafts all 12 sections with [needs input] gap markers, and saves to the documented path."
+      },
+      {
+        "name": "Update existing context after repositioning from freelancers to agencies",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline rewrites the whole document without reading existing state; treatment reads `.claude/product-marketing-context.md` first, summarizes current state, walks through only the affected sections (Target Audience, Personas, Pain Points, Customer Language, Competitive Landscape) one at a time, and pushes for verbatim agency language."
+      }
+    ]
+  }
 }

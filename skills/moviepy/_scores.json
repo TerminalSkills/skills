@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8c21156a60a7e60125248f0fc69ce60b95d400e125dff63b8b041c65f947869e",
   "scoredAt": "2026-05-13T09:37:50.064Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 88,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Composite a 1920x1080 colored background, a centered main video resized to height 800, and a top-right logo",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Baseline uses MoviePy 1.x methods like resize() and set_position() that fail in 2.x, while treatment uses ColorClip with size and color, .resized(height=800), .with_position(\"center\"), .with_position((1820, 30)), and CompositeVideoClip([...], size=(1920,1080)) as documented for 2.x."
+      },
+      {
+        "name": "Add a fade-in/fade-out title text overlay to a video with MoviePy 2.x",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Baseline reaches for v1 method names (set_duration, set_position) which break, while treatment uses TextClip(text=, font_size=, color=, stroke_color=) chained with .with_duration(), .with_position(), .with_start(), .crossfadein()/.crossfadeout() and CompositeVideoClip as documented."
+      }
+    ]
+  }
 }

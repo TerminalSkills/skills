@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:92a3e558cd4cadc6c161a7116ed7ac8212f4f978bfecac67ff1a4fc57be939e5",
-  "scoredAt": "2026-05-13T08:41:34.800Z",
+  "scoredAt": "2026-05-13T16:16:25.419Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 6,
+    "baselineAvg": 13,
+    "treatmentAvg": 78,
+    "scenarios": [
+      {
+        "name": "nodejs-ci-pipeline-with-caching-and-secrets",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A largely satisfies the rubric, while Response B is incomplete and missing key elements."
+      },
+      {
+        "name": "convert-github-actions-to-dagger-and-run-locally",
+        "baseline": 5,
+        "treatment": 70,
+        "rationale": "Response B includes a TypeScript Dagger pipeline and shows local invocation, but lacks the required GitHub Actions YAML; Response A fails to meet any rubric criteria."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:eaf1d21b31d2aaaec624bb4c98066991e79d451db76761f276b882c14eacd096",
   "scoredAt": "2026-05-13T09:25:52.534Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 91,
+    "multiplier": 1.9,
+    "scenarios": [
+      {
+        "name": "Investigate 500 error spike in OrderService",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment establishes a chronological HH:MM:SS timeline, identifies the FIRST error (connection refused) instead of the most frequent, and produces a Root Cause + Recommended Actions block with concrete next steps; baseline groups by frequency and gives vague follow-ups."
+      },
+      {
+        "name": "Diagnose 6-hour OOM crash loop in Java service",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment traces linear heap growth over the time window, pinpoints the SessionCache.put allocation hotspot from the stack trace, and outputs the Error Distribution table plus actionable fixes (eviction policy, max-size, heap dump flag); baseline diagnoses OOM but misses the structured table and concrete remediation list."
+      }
+    ]
+  }
 }

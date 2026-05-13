@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ae66b6c340d73ebb6762102ed46429269803fb2fa93f5a142f9f9fc1dd096e0e",
   "scoredAt": "2026-05-13T09:58:30.700Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Schema evolution: safely removing a field",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline simply deletes the phone line from the message, leaving its field number free to be silently reused by a future field of a different type, while the treatment uses reserved <number> and reserved \"phone\" to lock the wire identity forever."
+      },
+      {
+        "name": "Define a paginated gRPC list endpoint",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline uses limit/offset and a free-form role string with no package versioning or UNSPECIFIED enum, while the treatment follows the skill's page_size/page_token + filter pattern, declares package myapp.v1, and starts the Role enum with ROLE_UNSPECIFIED = 0."
+      }
+    ]
+  }
 }

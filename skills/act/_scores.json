@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7a9b12fedd9e46d94e3bbd7fa6442c7dbe81fb5516d36b52ca9d37921e95ed89",
-  "scoredAt": "2026-05-12T22:21:54.334Z",
+  "scoredAt": "2026-05-13T12:05:11.049Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases such as missing Docker or network failures."
+        "detail": "The instructions do not cover error handling or edge cases, such as missing Docker or act not installed."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Installation uses brew, which is not available on Windows, limiting cross-platform compatibility."
+        "detail": "The installation step uses Homebrew, which is macOS-specific, limiting cross-platform compatibility."
       }
     ]
   },
@@ -31,5 +31,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.24,
+    "baselineAvg": 55,
+    "treatmentAvg": 68,
+    "scenarios": [
+      {
+        "name": "run-job-with-secrets",
+        "baseline": 100,
+        "treatment": 80,
+        "rationale": "Response B explicitly states the job runs locally and includes the required command and flag, while Response A omits the explicit mention of local execution without pushing."
+      },
+      {
+        "name": "list-and-dry-run",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B includes the required commands but omits the Docker image note, while Response A is empty."
+      },
+      {
+        "name": "custom-image-workflow",
+        "baseline": 65,
+        "treatment": 55,
+        "rationale": "Response A includes the command and explains image pulling, but uses the wrong workflow path; Response B has the correct path but omits the image‑download note."
+      }
+    ]
+  }
 }

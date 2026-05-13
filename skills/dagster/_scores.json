@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:2e409192ef9a44af2975e98604961c8ac2f1cdd690ce9e5f490ec799575933e3",
-  "scoredAt": "2026-05-13T08:41:41.312Z",
+  "scoredAt": "2026-05-13T16:17:13.536Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.5,
+    "baselineAvg": 0,
+    "treatmentAvg": 55,
+    "scenarios": [
+      {
+        "name": "define-analytics-asset-with-resource",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response B partially meets the rubric but fails to name the asset correctly and omit logging, whereas Response A does not meet any of the rubric requirements."
+      },
+      {
+        "name": "create-daily-schedule-and-sensor",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers the required schedule and sensor structure but omits logging the number of new files, while Response B does not meet the Dagster-specific requirements at all."
+      }
+    ]
+  }
 }

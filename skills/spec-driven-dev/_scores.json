@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ce8deb0bd7c4306cf8681d4786072e6f08867b5cc11e0fe4592e732cf022f581",
   "scoredAt": "2026-05-13T10:10:06.961Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 63,
+    "treatmentAvg": 92,
+    "multiplier": 1.46,
+    "scenarios": [
+      {
+        "name": "Spec-first plan for team invitations feature",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Baseline writes a reasonable design doc but typically omits Non-Goals, the Alternatives Considered table, and a percentage-based Rollout Plan with rollback trigger; the treatment uses the documented 10-section template with testable acceptance criteria and explicit out-of-scope items."
+      },
+      {
+        "name": "RFC for REST to tRPC migration",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Baseline covers migration phases and rollback at a high level; the treatment follows the template's Alternatives Considered table (GraphQL/gRPC with pros/cons/decision), phased Implementation Plan with parallel running, and a Rollout Plan that names a feature flag, 5%/25%/100% rollout, and a metric-based rollback trigger."
+      }
+    ]
+  }
 }

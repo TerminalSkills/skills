@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:47038a4e03e4875548acb26c6941f5554b2abc6903ef2a092f752b0344abbed2",
   "scoredAt": "2026-05-13T09:53:29.695Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 97,
+    "multiplier": 4.85,
+    "scenarios": [
+      {
+        "name": "Rank Polymarket events by 24h volume with prominence scoring",
+        "baseline": 15,
+        "treatment": 98,
+        "rationale": "Baseline guesses at a polymarket.com endpoint and uses raw volume sort, missing the scoring formula entirely; treatment hits the documented gamma-api.polymarket.com/events endpoint with order=volume24hr and reproduces the volume-tier plus uncertainty plus probability-change-24h scoring function capped at 100."
+      },
+      {
+        "name": "Detect mispriced binary markets and compute expected value",
+        "baseline": 25,
+        "treatment": 96,
+        "rationale": "Baseline does a rough Yes+No sum check with no threshold parameter, no volume context, no sort, and no EV math; treatment supplies the threshold-based deviation detector that returns volume24h and the documented EV formula probability*(1-cost) - (1-probability)*cost with cost = buy_price*(1+fees)."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:77e374d6f55682dbe4c760fe7ed13166b76ef4dcd0882dcfcc4468591dc34677",
   "scoredAt": "2026-05-13T09:18:17.369Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 61,
+    "treatmentAvg": 95,
+    "multiplier": 1.56,
+    "scenarios": [
+      {
+        "name": "BullMQ PDF report job with progress polling",
+        "baseline": 62,
+        "treatment": 95,
+        "rationale": "Baseline typically constructs Queue+Worker and may call updateProgress, but often skips graceful SIGTERM shutdown via worker.close(); treatment hits progress updates, connection config, and graceful shutdown."
+      },
+      {
+        "name": "Email queue with rate limiting and priority",
+        "baseline": 60,
+        "treatment": 95,
+        "rationale": "Baseline knows concurrency and priority exist but may guess the limiter shape wrong; treatment uses the exact { max: 100, duration: 60000 } limiter and priority: 1 patterns from the skill."
+      }
+    ]
+  }
 }

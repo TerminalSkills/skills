@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1e6d057198295d1a32874dc2698d79a42186d0ce8b2960d66910e948bf481350",
   "scoredAt": "2026-05-13T10:09:12.467Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 93,
+    "multiplier": 1.75,
+    "scenarios": [
+      {
+        "name": "Authorized phishing simulation campaign setup",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Baseline installs SET and tracks raw open/click rates but skips ROE-first emphasis, specific SET menu path, aggregate-only reporting, and the warning against client infrastructure; treatment leads with signed ROE/IR pre-brief, gives the spear-phishing menu path, uses own authorized relay, and reports click-through/credential-submission/report-to-security/time-to-report in aggregate with same-day training."
+      },
+      {
+        "name": "Cloning a login page for credential harvest training",
+        "baseline": 65,
+        "treatment": 94,
+        "rationale": "Baseline knows the Credential Harvester / Site Cloner submenu and /var/www/html drop but misses the harvester_<timestamp>.txt path and the rule that the landing domain must be one you own and ROE-listed; treatment hits the exact menu numbering, the harvester filename, the attacker-IP prompt, and the redaction/destroy-after-debrief evidence handling."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:724bcd0a0a293caa2162930c94ae3a26e3fb3a0d4374be066ae24d7b16c9d83f",
   "scoredAt": "2026-05-13T09:25:47.502Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 95,
+    "multiplier": 1.58,
+    "scenarios": [
+      {
+        "name": "E-commerce locustfile with weighted tasks and login",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Treatment subclasses HttpUser with on_start login, wait_time = between(...), and weighted @task(3)/@task(1) tasks using self.client; baseline gets the structure but commonly omits exact task weighting ratios or misuses on_start."
+      },
+      {
+        "name": "Staged LoadTestShape run headless in GitHub Actions with CSV artifacts",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Treatment defines a LoadTestShape subclass with stages and a tick() returning (users, spawn_rate) tuples, plus a CI step running locust --headless -u N -r M --run-time T --csv results and uploading results_*.csv; baseline knows --headless but typically misses the LoadTestShape tick contract."
+      }
+    ]
+  }
 }

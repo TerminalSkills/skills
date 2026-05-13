@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 87,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Posts list with Graphcache mutation update",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment correctly uses cache.updateQuery in updates.Mutation.createPost and requestPolicy network-only for refresh; baseline knows hooks but misses Graphcache update API and request policies."
+      },
+      {
+        "name": "SSR-ready urql Client with auth and subscriptions",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment composes exchanges (cacheExchange, fetchExchange, subscriptionExchange) and uses fetchOptions for bearer token plus Provider; baseline omits exchange pipeline and the SSR hydration pattern."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ed2524cfc648a4d398a643adf705f1813c43cea3181235c4380eb1952bf0c090",
   "scoredAt": "2026-05-13T10:24:28.084Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 90,
+    "multiplier": 1.55,
+    "scenarios": [
+      {
+        "name": "DOCX mail merge from CSV",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses docxtpl's DocxTemplate.render() with Jinja2 placeholders and iterates a csv.DictReader as the SKILL.md prescribes; baseline reaches for python-docx string replacement which neither handles loops nor preserves the template's table/conditional structure."
+      },
+      {
+        "name": "Bulk PDF invoice generation from JSON",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "Treatment renders a Jinja2 template via FileSystemLoader and calls weasyprint's HTML(string=...).write_pdf as the skill documents, including the per-client total computation shown in Example 2; baseline assembles raw HTML strings and uses pdfkit without the templates/ directory pattern."
+      }
+    ]
+  }
 }

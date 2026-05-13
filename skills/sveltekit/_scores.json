@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:26d7b5789a8917c0b416052f45dc16cd164e222b67b85508bfaab1716f093aa9",
   "scoredAt": "2026-05-13T10:16:33.236Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "CRUD task list with SvelteKit form actions and progressive enhancement",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment uses +page.server.ts actions returning fail()/redirect() with use:enhance and the form prop in +page.svelte; baseline uses client-side fetch that breaks without JS."
+      },
+      {
+        "name": "Hybrid prerendered marketing + authed dashboard on Vercel",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment combines prerender=true on marketing pages, adapter-vercel, and hooks.server.ts with sequence() to gate /dashboard server-side; baseline uses adapter-auto and client-side localStorage auth."
+      }
+    ]
+  }
 }

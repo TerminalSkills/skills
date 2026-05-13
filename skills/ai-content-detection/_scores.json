@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f1b7e0fd5e0a2251a67b3d9c8addc0379fb4a48e2c83553bc7fb9909f667bd92",
-  "scoredAt": "2026-05-12T22:23:26.170Z",
+  "scoredAt": "2026-05-13T13:39:48.964Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0,
+    "baselineAvg": 0,
+    "treatmentAvg": 0,
+    "scenarios": [
+      {
+        "name": "short-text-skip",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required statement about skipping automated scoring for texts under 200 words and the explanation of why short texts yield unreliable results."
+      },
+      {
+        "name": "full-detection-pipeline",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response provides the required analysis results, verdicts, or scores; both fall short of the rubric."
+      }
+    ]
+  }
 }

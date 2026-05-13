@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c5755d46206b4077c14c0a270a16345ce9840af67efbcfc8e84fc4713454d6c7",
   "scoredAt": "2026-05-13T09:07:35.812Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 91,
+    "multiplier": 3.25,
+    "scenarios": [
+      {
+        "name": "Whole-codebase circular dependency analysis",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline reaches for madge/depcruise generic tools; treatment uses gemini --model gemini-2.5-pro with the 1M-token whole-codebase prompt and GEMINI.md auto-loading from the skill."
+      },
+      {
+        "name": "Multi-modal QA screenshot triage",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline falls back to Python SDK or web UI; treatment uses the exact gemini --image bug1.png --image bug2.png one-shot pattern documented in the skill."
+      }
+    ]
+  }
 }

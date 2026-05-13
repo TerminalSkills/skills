@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1b80e82872f2664b74cbbccb884e43af2aa2fd7387f088176f07d7c049bff35f",
   "scoredAt": "2026-05-13T10:25:36.175Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 89,
+    "multiplier": 1.98,
+    "scenarios": [
+      {
+        "name": "Passive subdomain enumeration with verified hosts",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment runs theHarvester -d with -b certspotter,dnsdumpster,virustotal,shodan plus -n for DNS verification and -f for JSON output as documented; baseline invents flags or relies on unrelated tools like sublist3r."
+      },
+      {
+        "name": "Email harvest with API key sources and Python parsing",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment configures api-keys.yaml with hunter/github/securityTrails entries, calls theHarvester -b google,bing,hunter,linkedin with -l and -f, then loads the .json artifact via subprocess as the skill prescribes; baseline misses the api-keys.yaml structure entirely."
+      }
+    ]
+  }
 }

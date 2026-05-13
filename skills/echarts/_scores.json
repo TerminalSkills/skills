@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ec60e998cc038758d55a4b5571bfd857b436a3d38558cdaa00718b404802d228",
   "scoredAt": "2026-05-13T08:47:03.897Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "React donut chart with rounded slices and percent tooltip",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline produced a basic pie via raw echarts.init without the donut radius array, borderRadius, or {b}/{d}% formatter; treatment used ReactECharts with radius ['40%','70%'], itemStyle.borderRadius, and the documented tooltip formatter."
+      },
+      {
+        "name": "Streaming line chart bounded to last 60 points",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Baseline rebuilt the component state and re-rendered each tick; treatment grabbed the imperative instance via getEchartsInstance() and called setOption with slice(-60), matching the skill's live-metrics recipe."
+      }
+    ]
+  }
 }

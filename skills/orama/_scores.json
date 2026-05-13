@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1ce1bec8b09508f05350f4a4e3f3746a1d4a4e71d3f4a5716fbf83dc93eeb56a",
   "scoredAt": "2026-05-13T09:46:24.314Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 86,
+    "multiplier": 2.87,
+    "scenarios": [
+      {
+        "name": "Add faceted blog search with typo tolerance to a docs site",
+        "baseline": 32,
+        "treatment": 88,
+        "rationale": "Treatment defines a schema with enum/string[]/number types, calls create+insert+search from @orama/orama, and uses where+facets with ranges for the filter UI; baseline reaches for Algolia/Lunr or invents a generic API surface."
+      },
+      {
+        "name": "Hybrid semantic + keyword search over Kubernetes documentation",
+        "baseline": 28,
+        "treatment": 85,
+        "rationale": "Treatment uses @orama/plugin-embeddings with pluginEmbeddings, declares a vector[384] field, and calls search with mode: 'hybrid' plus a similarity threshold; baseline stitches together a separate vector DB and BM25 library without the single hybrid mode."
+      }
+    ]
+  }
 }

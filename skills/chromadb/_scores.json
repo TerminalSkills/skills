@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:09ecd7266fa38b509a845b27be32d9a44b27681634df7d026a7e4a9a9d7864a5",
-  "scoredAt": "2026-05-13T08:28:09.123Z",
+  "scoredAt": "2026-05-13T15:22:01.412Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.18,
+    "baselineAvg": 45,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "persistent-knowledge-base-ingestion",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks key elements such as PersistentClient, 5,000‑chunk upsert, and cosine distance specification."
+      },
+      {
+        "name": "cloud-product-recommendation-search",
+        "baseline": 55,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, while Response A omits the HttpClient, the search_ef HNSW setting, and the $and filter, making it only partially correct."
+      }
+    ]
+  }
 }

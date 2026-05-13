@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:070adf40a789c161797386e2eea3955bc22d92f426c306830a49781785e421fc",
   "scoredAt": "2026-05-13T09:17:52.712Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 96,
+    "multiplier": 3.43,
+    "scenarios": [
+      {
+        "name": "declarative-deploy-pipeline",
+        "baseline": 30,
+        "treatment": 96,
+        "rationale": "Baseline ran stages sequentially with raw docker push and no credential bindings; treatment used a parallel Lint/Test/Security block, docker.build + docker.withRegistry, withCredentials([file(... KUBECONFIG)]) for Helm, and an input gate guarded by when { branch 'main' }."
+      },
+      {
+        "name": "k8s-multi-container-agent",
+        "baseline": 25,
+        "treatment": 96,
+        "rationale": "Baseline used a single inbound-agent container with no container() switching; treatment defined a kubernetes pod yaml with node/docker/helm containers, set defaultContainer, and used container('docker')/container('helm') wrappers per stage."
+      }
+    ]
+  }
 }

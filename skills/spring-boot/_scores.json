@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bf58e9eaeb988d9606da27ba097956b08bbc2772b66a4e8537e488802b8278fa",
   "scoredAt": "2026-05-13T10:10:34.209Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -26,5 +26,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 96,
+    "multiplier": 1.48,
+    "scenarios": [
+      {
+        "name": "Bootstrap Spring Boot project with web/JPA/Postgres/security/actuator/validation",
+        "baseline": 60,
+        "treatment": 96,
+        "rationale": "Baseline uses starter.zip with an intermediate file and unzip; treatment uses the pipe-friendly starter.tgz curl-into-tar pattern documented in the skill."
+      },
+      {
+        "name": "Configure Spring Security with JWT, CSRF disabled, public + actuator allowlist",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Baseline relies on deprecated antMatchers/authorizeRequests; treatment uses the modern authorizeHttpRequests/requestMatchers lambda DSL exactly as the skill prescribes."
+      }
+    ]
+  }
 }

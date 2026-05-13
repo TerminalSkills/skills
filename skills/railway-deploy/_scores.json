@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ea3ec2c4d200f6ebc833a6744f6acc1c5a962cb6f2c46660714cbb929443d914",
   "scoredAt": "2026-05-13T10:00:05.598Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 34,
+    "treatmentAvg": 94,
+    "multiplier": 2.76,
+    "scenarios": [
+      {
+        "name": "Add Postgres and run Prisma migrations",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Treatment chains railway status, railway add --database postgres, railway variable list to confirm DATABASE_URL, railway run npx prisma migrate deploy to apply migrations with injected env vars, and railway redeploy; baseline knows railway add and railway up but copies DATABASE_URL manually and skips the railway run env-injection step."
+      },
+      {
+        "name": "CI deploy with health check and rollback",
+        "baseline": 28,
+        "treatment": 93,
+        "rationale": "Treatment uses railway up --detach with RAILWAY_TOKEN, polls the health URL with curl until 200 or timeout, and calls railway rollback on failure; baseline writes a generic curl polling loop, runs railway up without --detach, and does not surface railway rollback as the recovery command."
+      }
+    ]
+  }
 }

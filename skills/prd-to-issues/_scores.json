@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:94183caae56269b6a8d36965dfff3f675f70cb4a5e5ac93f9c1c0bb1aec90bbc",
   "scoredAt": "2026-05-13T09:53:06.118Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 91,
+    "multiplier": 3.25,
+    "scenarios": [
+      {
+        "name": "Convert PRD issue to tickets",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline gave generic gh issue create advice without dependency ordering, HITL/AFK tagging, or a parent-issue rule; treatment fetched the PRD with gh issue view, tagged each slice HITL/AFK, and created issues in dependency order while leaving the parent untouched."
+      },
+      {
+        "name": "Body template compliance",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline produced loosely structured issue bodies missing Parent PRD references and HITL/AFK tags; treatment followed the documented issue template with all five required sections and vertical end-to-end slices."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e1636d56a4b70327feaa63dfa0a461c9a1a5a0666bc66320b5c72c2d07a90b85",
   "scoredAt": "2026-05-13T10:11:37.531Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 90,
+    "multiplier": 3.21,
+    "scenarios": [
+      {
+        "name": "Build a serverless REST API backed by DynamoDB with SST",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline reached for raw CDK or legacy sst/constructs v2 syntax and hand-wrote IAM policies; treatment defined sst.aws.Dynamo and sst.aws.Function in sst.config.ts, used the link property to grant least-privilege access, accessed the table via Resource.Name in handlers, and ran sst dev for live local development."
+      },
+      {
+        "name": "Deploy a Next.js app on AWS with isolated per-PR preview environments",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline suggested SST OpenNext or generic CDK with no preview-stage workflow; treatment configured the sst.aws.Nextjs component with linked backend resources and wired CI to run sst deploy --stage pr-${PR_NUMBER} on open and sst remove --stage pr-${PR_NUMBER} on close as documented."
+      }
+    ]
+  }
 }

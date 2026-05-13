@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d01fd9f147b4783dcf314e444826c02bb0d5329a4cb1118628077ff0b9a2241e",
   "scoredAt": "2026-05-13T09:17:07.825Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 70,
+    "treatmentAvg": 92,
+    "multiplier": 1.31,
+    "scenarios": [
+      {
+        "name": "Scaffold Ionic React tabs app with iOS and Android",
+        "baseline": 72,
+        "treatment": 94,
+        "rationale": "Treatment uses exact CLI sequence: ionic start ... tabs --type=react, ionic cap add ios/android, ionic cap sync, then ionic cap open; baseline tends to use npx @ionic/cli or skip cap sync."
+      },
+      {
+        "name": "Capacitor Camera photo helper",
+        "baseline": 68,
+        "treatment": 90,
+        "rationale": "Treatment imports Camera/CameraResultType/CameraSource from @capacitor/camera, calls getPhoto with resultType Uri and source Prompt, returns image.webPath; baseline often uses CameraResultType.Base64 or omits the Prompt source."
+      }
+    ]
+  }
 }

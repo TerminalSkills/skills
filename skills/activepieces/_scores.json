@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:798a3823b9e1e04a89edbbbfd88ba5c18a435571e69cd0af9d12fc0b4253324c",
-  "scoredAt": "2026-05-12T22:21:59.560Z",
+  "scoredAt": "2026-05-13T11:44:43.769Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases."
       }
     ]
   },
@@ -26,5 +26,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.1,
+    "baselineAvg": 20,
+    "treatmentAvg": 82,
+    "scenarios": [
+      {
+        "name": "self-host-activepieces-docker-compose",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits required variables, port mapping, and volume naming."
+      },
+      {
+        "name": "create-order-processing-code-step",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B deviates in naming, type, and output structure."
+      },
+      {
+        "name": "build-custom-piece-my-app",
+        "baseline": 20,
+        "treatment": 45,
+        "rationale": "Response B uses createPiece (though not PieceAuth.SecretText) whereas Response A uses registerPiece, so B covers more rubric items."
+      }
+    ]
+  }
 }

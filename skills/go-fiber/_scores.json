@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0fdfd51c3865cfa116614b0463b2aeae6f9eeebed4da79b61b2ed52077a56a00",
   "scoredAt": "2026-05-13T09:08:45.540Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 93,
+    "multiplier": 1.55,
+    "scenarios": [
+      {
+        "name": "JWT-protected v1 group with Locals",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Baseline covers Fiber basics but often skips c.Locals for downstream handlers; treatment follows the skill's pattern of c.Get + c.Locals + app.Group with middleware injected at group level."
+      },
+      {
+        "name": "Production hardening with built-in middleware",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Baseline cites rate-limit and CORS but typically misses BodyLimit in fiber.Config and ShutdownWithTimeout; treatment wires recover/logger/cors/limiter via the documented imports and sets Config/Shutdown correctly."
+      }
+    ]
+  }
 }

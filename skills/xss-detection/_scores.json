@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f33689cb45cbc6d61afbed0b0a56c36bb4a4b0ff6c1c0ea607a6d82c9f26b32c",
   "scoredAt": "2026-05-13T10:39:02.400Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 93,
+    "multiplier": 1.69,
+    "scenarios": [
+      {
+        "name": "Automated scan of a search endpoint for reflected XSS using the right tools",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Baseline suggested Burp/manual payloads and never named dalfox; treatment used the skill's exact dalfox url ... --skip-bav (and dalfox file ... --output) plus XSStrike's python3 xsstrike.py -u ... --fuzzer commands."
+      },
+      {
+        "name": "Implement a strict nonce-based CSP that blocks injected scripts",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Baseline produced a reasonable CSP but lacked frame-ancestors 'none' and base-uri 'self' and was vague on per-request nonce generation; treatment matched the skill's CSP block (default-src 'self'; script-src 'self' 'nonce-{random}'; frame-ancestors 'none'; base-uri 'self'; form-action 'self') with the server-generated nonce flow."
+      }
+    ]
+  }
 }

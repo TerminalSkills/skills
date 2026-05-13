@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:74b546e9907851c6f7586f3c864dbb36d4715e9fa9baaf1e21955d88fe319d4e",
   "scoredAt": "2026-05-13T10:11:02.909Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 97,
+    "multiplier": 3.46,
+    "scenarios": [
+      {
+        "name": "Bootstrap Squad in a new repo",
+        "baseline": 25,
+        "treatment": 97,
+        "rationale": "Treatment uses the exact npm install -g @bradygaster/squad-cli, squad init, gh auth login, and copilot --agent squad --yolo sequence; baseline guesses the package name and commands and never invokes Copilot."
+      },
+      {
+        "name": "Context hygiene + export to a teammate",
+        "baseline": 30,
+        "treatment": 96,
+        "rationale": "Treatment names squad nap (with --deep / --dry-run), squad doctor, and squad export/import — the three skill-specific commands; baseline gives generic agent-framework advice without these commands."
+      }
+    ]
+  }
 }

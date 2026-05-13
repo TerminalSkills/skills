@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:aa2cc7142e5f0a79850a2cebf2d8987373ec55af782653aa64a429adbb42ed1f",
-  "scoredAt": "2026-05-13T08:41:22.063Z",
+  "scoredAt": "2026-05-13T16:14:15.031Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.38,
+    "baselineAvg": 40,
+    "treatmentAvg": 55,
+    "scenarios": [
+      {
+        "name": "shop-db-with-products-endpoint",
+        "baseline": 80,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but omits migrations, while Response B uses migrations but fails to use env.DB.prepare(...).bind(...).all() in the Worker."
+      },
+      {
+        "name": "drizzle-orm-user-posts-api",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A covers most of the rubric but uses a different insertion method than required, while Response B provides no content."
+      }
+    ]
+  }
 }

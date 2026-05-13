@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6ea34cdf66add3e1dc4c1edbdd8e697cafa51ea4ba49eb07fa3f6755b8e5428e",
   "scoredAt": "2026-05-13T09:40:43.712Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 86,
+    "multiplier": 2.87,
+    "scenarios": [
+      {
+        "name": "Avatar upload bound to authenticated user",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Treatment uses nhost.storage.upload with bucketId \"avatars\" and a per-user name, then nhost.storage.getPublicUrl({fileId}) as documented; baseline reaches for S3/Cloudinary SDKs unrelated to the Nhost client."
+      },
+      {
+        "name": "Row-level security so users only edit their own posts",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Treatment defines Hasura select/insert/update permissions with filter author_id _eq X-Hasura-User-Id and a set on insert exactly per the metadata YAML in the SKILL; baseline writes app-level checks and skips Hasura's permission model."
+      }
+    ]
+  }
 }

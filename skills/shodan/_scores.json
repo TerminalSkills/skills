@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1077cff256a44dbe45b3972512a8908acd5b3bde91fda663e12d80f5d9a0eb49",
   "scoredAt": "2026-05-13T10:07:43.419Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 92,
+    "multiplier": 1.84,
+    "scenarios": [
+      {
+        "name": "find-rdp-exposed-on-aws-and-export-csv",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses api.count() to preview totals before consuming credits, api.search_cursor() for paginated retrieval, the org:\"Amazon\" port:3389 filter combination from the skill, and writes a CSV with the skill's exact fieldnames; baseline calls api.search without cursor or count preview."
+      },
+      {
+        "name": "log4shell-facet-analysis",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Treatment uses api.search(query, facets=[...]) with the vuln:CVE-2021-44228 filter and iterates result['facets'] for top org/country/port/product breakdowns; baseline iterates raw results and ignores Shodan's built-in facets API entirely."
+      }
+    ]
+  }
 }

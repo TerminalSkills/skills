@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:001fa11cd072c064cc066cfe4dfafb8d40f1dbb084acd30ac009498272d6a20c",
   "scoredAt": "2026-05-13T09:05:43.790Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 94,
+    "multiplier": 1.71,
+    "scenarios": [
+      {
+        "name": "Migrate GKE pod off mounted JSON key Secret",
+        "baseline": 55,
+        "treatment": 94,
+        "rationale": "Treatment enables workload-pool on the cluster, binds the KSA via roles/iam.workloadIdentityUser with principal serviceAccount:PROJECT.svc.id.goog[NS/KSA] and annotates the KSA with iam.gke.io/gcp-service-account; baseline often suggests downloading a new key or storing in Secret Manager rather than eliminating the key."
+      },
+      {
+        "name": "Service A on Cloud Run calling private Service B",
+        "baseline": 55,
+        "treatment": 94,
+        "rationale": "Treatment uses google.oauth2.id_token.fetch_id_token with the service URL as audience plus gcloud run services add-iam-policy-binding role roles/run.invoker; baseline often uses access tokens or shared API keys instead of OIDC ID tokens."
+      }
+    ]
+  }
 }

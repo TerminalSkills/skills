@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f53d5d3db5a831831f98961cf9d4dd655a357f675e2a449130aec81caf27d43a",
   "scoredAt": "2026-05-13T09:12:45.336Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 94,
+    "multiplier": 2.94,
+    "scenarios": [
+      {
+        "name": "PHI encryption at rest + audit log",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reaches for Fernet (AES-128-CBC) and a minimal log dict, missing AES-256-GCM, KMS guidance, the patient_id/ip/success/hash audit fields, and the 6-year retention rule; treatment uses AESGCM with 12-byte nonces, names KMS/Vault for keys, and emits the full audit entry with SHA-256 tamper hash."
+      },
+      {
+        "name": "Pre-BAA HIPAA hardening checklist",
+        "baseline": 38,
+        "treatment": 94,
+        "rationale": "Baseline lists generic best practices without HIPAA-specific thresholds; treatment specifies TLS 1.2+/HSTS, 15-minute idle timeout, 60-day breach notification to individuals and HHS, 500-person media trigger, and calls out services not BAA-covered."
+      }
+    ]
+  }
 }

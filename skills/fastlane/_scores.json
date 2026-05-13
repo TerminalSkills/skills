@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:916bb1bc58c73482846f9f0cacee348e708611ea18b031c81d96dc101dde697b",
   "scoredAt": "2026-05-13T08:51:36.661Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 79,
+    "treatmentAvg": 98,
+    "multiplier": 1.24,
+    "scenarios": [
+      {
+        "name": "iOS TestFlight beta lane with auto build number and Slack notification",
+        "baseline": 65,
+        "treatment": 100,
+        "rationale": "Treatment used the documented build_app, upload_to_testflight with skip_waiting_for_build_processing, and the slack action with slack_url: ENV[\"SLACK_WEBHOOK\"]; baseline used legacy gym/pilot aliases and a raw curl call instead of the slack action."
+      },
+      {
+        "name": "Android staged rollout promoting internal to production at 10%",
+        "baseline": 92,
+        "treatment": 96,
+        "rationale": "Both used upload_to_play_store with track, track_promote_to, and rollout: \"0.1\" correctly; treatment added context that no aab is needed since this is a promotion, giving it a slight edge."
+      }
+    ]
+  }
 }

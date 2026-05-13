@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:36c668afdaa1f68694b2e8b6fb0d6fdde21a59e35a5bd8b0ae41278de5d3f4d9",
-  "scoredAt": "2026-05-13T08:21:18.421Z",
+  "scoredAt": "2026-05-13T14:38:43.686Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3,
+    "baselineAvg": 20,
+    "treatmentAvg": 60,
+    "scenarios": [
+      {
+        "name": "terraform-multi-region-monitor",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B partially satisfies the rubric but omits actual escalation steps, whereas Response A is absent."
+      },
+      {
+        "name": "nodejs-logtail-structured-logging",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response A logs an error and includes structured fields, whereas Response B omits an error log; both miss importing and instantiating Logtail from @logtail/node, but A is closer to the rubric."
+      }
+    ]
+  }
 }

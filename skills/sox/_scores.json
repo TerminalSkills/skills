@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:facefacce9be65d4da70ef1a68a841f5422cbf0802c9f5f6496c636d80f55a2d",
   "scoredAt": "2026-05-13T10:10:00.845Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 95,
+    "multiplier": 2.21,
+    "scenarios": [
+      {
+        "name": "Podcast batch processing: denoise, compress, normalize, fade",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline applies a partial effects chain in a loop but skips the documented two-step noiseprof/noisered workflow and uses bare `norm`; the treatment runs `sox in -n noiseprof noise.prof trim 0 0.5` then chains `highpass 80 noisered noise.prof 0.2 compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 norm -1 fade t 1 0 2` in a single sox invocation per file."
+      },
+      {
+        "name": "Whisper prep: resample to 16kHz mono with leading/trailing silence trim",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline correctly uses `-r 16000 -c 1` but misses silence trimming or reaches for ffmpeg; the treatment chains `silence 1 0.1 0.1% reverse silence 1 0.1 0.1% reverse` in the same sox command to trim both ends, then verifies with soxi."
+      }
+    ]
+  }
 }

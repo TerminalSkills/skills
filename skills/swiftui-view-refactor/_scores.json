@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0aa9dc880c2f086d81fb96bc7ef8512d0d8cec79ac3e6d766c9d5f7cef2c3c1f",
   "scoredAt": "2026-05-13T10:17:19.570Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 88,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "Split a 400-line SwiftUI screen with inline actions",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment extracts dedicated View types (not computed some View helpers), moves business logic out of body into private methods/services, and follows the documented top-to-bottom ordering; baseline relies on computed view properties and inline closures."
+      },
+      {
+        "name": "Refactor optional MVVM view model to MV with Observable",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment makes the view model non-optional, uses @State with @Observable, initializes it in init from injected dependencies, and removes bootstrapIfNeeded; baseline keeps optional view model and lifecycle bootstrapping."
+      }
+    ]
+  }
 }

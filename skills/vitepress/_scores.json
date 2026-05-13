@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e697b53a1547c1513037352da3841839c73343f30c31ed7c1a5064a6664775d8",
   "scoredAt": "2026-05-13T10:34:33.998Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 92,
+    "multiplier": 1.84,
+    "scenarios": [
+      {
+        "name": "Multi-language SDK example with code groups",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Treatment uses the `::: code-group` container with bracketed labels like ```ts [TypeScript]``` for three languages and closes with `:::`; baseline produces tabbed examples via custom components or plain fenced blocks, missing the vitepress-specific code-group syntax."
+      },
+      {
+        "name": "Docs site scaffold with sidebar and local search",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment scaffolds with `npx vitepress init` and `npx vitepress dev docs`, places config at docs/.vitepress/config.ts using `defineConfig`, structures `themeConfig.sidebar` as path-keyed objects with nested `items`, and enables `search: { provider: \"local\" }`; baseline produces generic SSG config without these vitepress-specific shapes."
+      }
+    ]
+  }
 }

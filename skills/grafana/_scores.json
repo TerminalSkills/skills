@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:92917ada58062d0a7aeb256bfbc47c60f3ac73b2594adede11babe9aa1424581",
   "scoredAt": "2026-05-13T09:09:59.245Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 93,
+    "multiplier": 2.16,
+    "scenarios": [
+      {
+        "name": "Provision Grafana with Prometheus datasource and Slack alert at 5% error rate",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline relies on UI flow and omits the provisioning YAML schema; treatment delivers exact apiVersion 1 datasource, math-expression rule with gt 0.05 threshold, and Slack contact point as documented."
+      },
+      {
+        "name": "Export UI-built dashboard via API and auto-provision via file provider",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "Baseline suggests UI export with an approximate API path; treatment uses the exact /api/dashboards/uid/<uid> endpoint, jq pipeline, and the file-provider provisioning config with the documented path."
+      }
+    ]
+  }
 }

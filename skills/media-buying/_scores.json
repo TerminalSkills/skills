@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7f15d161fd59deccc07efe27d3f7425d5fd3c587f1b5198eaf77b23f0ee9623f",
   "scoredAt": "2026-05-13T09:33:57.870Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 94,
+    "multiplier": 3.13,
+    "scenarios": [
+      {
+        "name": "B2B SaaS programmatic DV360 plan",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline mentioned DV360 and audience targeting but lacked the Campaign/IO/Line Item hierarchy, named verification vendor, and >70% viewability threshold; treatment hit all rubric items."
+      },
+      {
+        "name": "Cross-channel CPA reallocation",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline violated the 20% weekly cap and missed the marginal-CPA principle and 7-day wait; treatment explicitly applied all three guardrails."
+      }
+    ]
+  }
 }

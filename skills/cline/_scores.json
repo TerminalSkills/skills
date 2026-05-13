@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d2de22e35e5b1e9b11a98faee206d0787bed7ebe35a9387d54e3481e9a30dd71",
-  "scoredAt": "2026-05-13T08:29:45.943Z",
+  "scoredAt": "2026-05-13T15:33:21.649Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.03,
+    "baselineAvg": 95,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "migrate-express-to-hono",
+        "baseline": 90,
+        "treatment": 95,
+        "rationale": "Response A is more explicit and detailed, covering all rubric points with concrete steps, while Response B also covers them but is slightly less explicit about reading all route files."
+      },
+      {
+        "name": "debug-stale-search-results",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully cover all rubric items with correct, specific, runnable details; Response A is slightly more detailed but both meet the 100‑point criteria."
+      }
+    ]
+  }
 }

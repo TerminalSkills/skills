@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:56c5f799d3c09ba31d7e7b2e41348f08717206e145152bb8d4ed77dc02244651",
   "scoredAt": "2026-05-13T09:19:39.530Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 86,
+    "multiplier": 1.56,
+    "scenarios": [
+      {
+        "name": "Programmatically create a Keycloak user and assign a role",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Treatment matches the SKILL.md admin-API pattern: client_credentials token from /realms/master/protocol/openid-connect/token, POST to /admin/realms/{REALM}/users with enabled/emailVerified/credentials, then GET /roles/{name} and POST to /users/{id}/role-mappings/realm; baseline misses the role-mappings endpoint shape and uses ad-hoc token fetching."
+      },
+      {
+        "name": "Integrate Keycloak SSO into a Next.js app with NextAuth",
+        "baseline": 55,
+        "treatment": 87,
+        "rationale": "Treatment uses next-auth/providers/keycloak with issuer built as `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}` and persists access/refresh/id tokens in the jwt callback per SKILL.md; baseline uses a generic OAuth setup without the realm-scoped issuer pattern or token persistence callbacks."
+      }
+    ]
+  }
 }

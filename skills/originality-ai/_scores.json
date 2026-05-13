@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3ae0a0561c0d8117e136cc5c114db273c83311214e55d77397a3791345e0bdb2",
   "scoredAt": "2026-05-13T09:46:33.196Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 88,
+    "multiplier": 3.14,
+    "scenarios": [
+      {
+        "name": "Freelancer blog post audit script",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Treatment hits the exact endpoints /api/v1/scan/ai and /api/v1/scan/plag, the X-OAI-API-KEY header, the documented flagging threshold (AI >= 0.5 or plagiarism >= 20%), and runs the two scans in parallel; baseline gestures at the API but uses wrong auth scheme and invents endpoints."
+      },
+      {
+        "name": "Bulk SEO content originality run with credit budgeting",
+        "baseline": 30,
+        "treatment": 86,
+        "rationale": "Treatment uses GET /api/v1/account/credits/balance, the ~1-credit-per-100-words heuristic, storeScan: false, and handles HTTP 402/429 explicitly; baseline guesses at a balance endpoint and lacks the documented credit math."
+      }
+    ]
+  }
 }

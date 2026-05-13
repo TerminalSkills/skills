@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:ad8f23725eb7ee0365d190358a0219a5776c7e4a362867601a15550ad8a44c96",
-  "scoredAt": "2026-05-13T08:18:45.983Z",
+  "scoredAt": "2026-05-13T14:18:54.805Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.6,
+    "baselineAvg": 50,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "express-google-oauth-jwt",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers the required migration, PKCE OAuth, JWT service, middleware, and mentions tests, while Response B lacks the migration, refresh token rotation, and test coverage."
+      },
+      {
+        "name": "django-github-multi-tenant-rbac",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items (models, migration, middleware, decorator) but lacks django‑allauth integration; Response B omits middleware, decorator, tests, and migration, making it less complete."
+      }
+    ]
+  }
 }

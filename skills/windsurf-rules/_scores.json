@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:11142ebde0989952caabbe04635cab0b5873d46445dc9afdf0362e8b66334b9f",
   "scoredAt": "2026-05-13T10:37:31.553Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 85,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "Set up workspace .windsurfrules for React/TypeScript SaaS",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment created .windsurfrules at the project root with Tech Stack, Code Style, Architecture Rules, Testing sections and an explicit 'What NOT to Do' block as documented; baseline produced a generic style guide without the workspace-rules file path or section structure."
+      },
+      {
+        "name": "Distinguish global vs workspace rules and use Memories",
+        "baseline": 45,
+        "treatment": 82,
+        "rationale": "Treatment correctly placed cross-project preferences in Windsurf Settings -> General -> Rules for AI and project-specific patterns in .windsurfrules, plus showed natural-language 'Remember:' Memories trigger; baseline mixed both scopes into a single file."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:87075576d14afc2b862026798f76f55622bc38f35a159103847c3c89403a6f8d",
-  "scoredAt": "2026-05-13T08:18:29.513Z",
+  "scoredAt": "2026-05-13T14:16:04.317Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.67,
+    "baselineAvg": 15,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "sync-successful-commands-fuzzy-search",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A only provides installation steps."
+      },
+      {
+        "name": "import-history-directory-filter-stats",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits the exact --cwd search syntax, while Response B misses several key requirements."
+      }
+    ]
+  }
 }

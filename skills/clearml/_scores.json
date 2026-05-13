@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7e0792bffa6765acc4920a38df8120d54594e2f5d646b3fced7312c4443e2367",
-  "scoredAt": "2026-05-13T08:29:19.614Z",
+  "scoredAt": "2026-05-13T15:30:01.977Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 6.33,
+    "baselineAvg": 15,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "quick-experiment-tracking",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric items, while Response A lacks the two‑line auto‑capture claim and omits custom metric logging."
+      },
+      {
+        "name": "hyperparameter-optimization",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use HyperParameterOptimizer and omits required details."
+      }
+    ]
+  }
 }

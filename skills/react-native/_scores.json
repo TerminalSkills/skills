@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:08dea5a8d83f7691da488768b8d4eb4485a5513aa86e380ec6f217d3a3694361",
   "scoredAt": "2026-05-13T10:00:44.546Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 87,
+    "multiplier": 2.02,
+    "scenarios": [
+      {
+        "name": "Paginated social feed with pull-to-refresh and optimized images",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment combines the skill's documented stack (`FlatList` with `onEndReached`/`refreshControl`, React Query infinite query, `expo-image`, Reanimated for the double-tap like) while the baseline typically reaches for `ScrollView` or `Image` and fetches in `useEffect`, missing the performance patterns the rubric rewards."
+      },
+      {
+        "name": "Face ID login with secure token storage and PIN fallback for a banking app",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment uses `expo-local-authentication` for biometrics, stores tokens in `expo-secure-store`, falls back to PIN, and persists session via Zustand — exactly the skill's pattern — while baseline reaches for `AsyncStorage`, which the skill explicitly flags as unencrypted."
+      }
+    ]
+  }
 }

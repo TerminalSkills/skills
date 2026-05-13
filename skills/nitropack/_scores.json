@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:274b89e5d9775c3dbb3ed24860db39791b222f9ba667ddb448f8e155dfbb91cc",
   "scoredAt": "2026-05-13T09:41:04.391Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 88,
+    "multiplier": 2.93,
+    "scenarios": [
+      {
+        "name": "Scheduled cleanup task with Redis storage",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Treatment uses defineNitroConfig with storage.db driver redis, scheduledTasks cron, and defineTask in server/tasks/cleanup.ts using useStorage(\"db\").getKeys exactly as in the SKILL.md; baseline writes a node-cron script with ioredis and no Nitro primitives."
+      },
+      {
+        "name": "Auth middleware that bypasses /api/public",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment puts defineEventHandler in server/middleware/auth.ts using getRequestURL/getHeader, sets event.context.user, and throws createError — matching the SKILL pattern; baseline writes generic Express middleware unrelated to Nitro."
+      }
+    ]
+  }
 }

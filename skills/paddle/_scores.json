@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:dea6ba5a093f90d761756d79412fa82a47d8af3a97f772b830981abe6baa8778",
   "scoredAt": "2026-05-13T09:47:27.944Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 90,
+    "multiplier": 1.73,
+    "scenarios": [
+      {
+        "name": "Webhook handler for subscription lifecycle",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses @paddle/paddle-node-sdk with paddle.webhooks.unmarshal(body, secret, signature) verifying paddle-signature header and switching on subscription.created / subscription.canceled / transaction.completed; baseline did manual HMAC and missed the SDK unmarshal contract."
+      },
+      {
+        "name": "Overlay checkout with customer + customData",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment loads cdn.paddle.com/paddle/v2/paddle.js, calls Paddle.Initialize({token}) then Paddle.Checkout.open with items[].priceId, customer.email, and customData.userId for webhook reconciliation; baseline used Stripe-style sessions or a vague redirect without customData linkage."
+      }
+    ]
+  }
 }

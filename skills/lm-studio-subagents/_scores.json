@@ -2,8 +2,8 @@
   "version": "1.0.1",
   "skillHash": "sha256:3fc9293c6ff16f3b24998ab45f8c1811a1c6a69916ada9e17429be06a54f01b3",
   "scoredAt": "2026-05-13T09:25:24.663Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 89,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "Batch-summarize support tickets via local LM Studio",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Treatment uses AsyncOpenAI with base_url='http://localhost:1234/v1', a process_batch function with asyncio.Semaphore set to max_concurrent=1-2 (matching the skill's note that LM Studio handles one request at a time), and temperature 0.2 with the deterministic settings called out in guidelines; baseline ignores the concurrency-of-1 constraint or fails to use the OpenAI-compatible base_url pattern."
+      },
+      {
+        "name": "Build specialized local classifier and extractor subagents",
+        "baseline": 56,
+        "treatment": 88,
+        "rationale": "Treatment defines reusable LocalSubagent class with per-task system_prompt and temperature=0.0 for classification/extraction tasks as the skill prescribes, points the OpenAI client at localhost:1234/v1 with api_key='lm-studio', and uses 8B-class quantized models per guidelines; baseline doesn't apply the temperature=0 determinism rule or class abstraction."
+      }
+    ]
+  }
 }

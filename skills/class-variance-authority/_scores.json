@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:387136904025fd2f5a81d1e3c50f87143958dd5941f2b6eafd6838dd1e4da636",
-  "scoredAt": "2026-05-13T08:28:29.307Z",
+  "scoredAt": "2026-05-13T15:24:52.183Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.33,
+    "baselineAvg": 75,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "button-with-pill-variant",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, defining the pill variant, compound variant, default variants, and using cn to merge classes."
+      },
+      {
+        "name": "badge-with-error-border",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A fails to set the required defaultVariants ('active', 'md')."
+      }
+    ]
+  }
 }

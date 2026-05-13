@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ad505ee4a36e9fe6ee859a9a406929b06196f8ac237346ec3c871e0575b92e6b",
   "scoredAt": "2026-05-13T09:35:32.545Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -42,5 +42,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 84,
+    "multiplier": 1.68,
+    "scenarios": [
+      {
+        "name": "Pin Node, Python and Go versions for a polyglot project",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment created mise.toml with a [tools] table pinning node='20', python='3.12', go='1.22' and ran mise install per the skill; baseline used three separate version managers (nvm/pyenv/gvm) instead of mise."
+      },
+      {
+        "name": "Replace npm scripts with mise tasks plus environment variables",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Treatment used [tasks.dev]/[tasks.test] with run= and [env] for DATABASE_URL in mise.toml, invoked via mise run dev; baseline kept package.json scripts and used dotenv instead of mise's built-in env block."
+      }
+    ]
+  }
 }

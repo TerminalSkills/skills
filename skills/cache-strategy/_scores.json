@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:0995d4259acaa7509291495426960aee25a9394638ec58633b52a72a3409e117",
-  "scoredAt": "2026-05-13T08:25:34.195Z",
+  "scoredAt": "2026-05-13T15:01:49.887Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.35,
+    "baselineAvg": 63,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "write-through-caching",
+        "baseline": 65,
+        "treatment": 70,
+        "rationale": "Both responses implement write‑through caching with a 30‑minute TTL and namespaced keys, but neither includes explicit error handling for cache write failures; A is marginally better due to its clearer namespacing and service‑layer structure."
+      },
+      {
+        "name": "stampede-prevention",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric by using NX/EX locks, retry logic, TTL, and an Express route, whereas Response A lacks Express integration and explicit NX/EX usage."
+      }
+    ]
+  }
 }

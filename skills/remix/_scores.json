@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2f55ae7b90226edb2b0d4ef5ebe446d1f554f08687c867959f8018f81eb99ab8",
   "scoredAt": "2026-05-13T10:02:03.622Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 86,
+    "multiplier": 1.72,
+    "scenarios": [
+      {
+        "name": "Task CRUD with progressive enhancement",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "Treatment uses loader returning json(), action with <Form method='post'>, useFetcher() for inline edits, and ErrorBoundary per route; baseline reaches for useEffect/fetch and client-side onSubmit instead of Remix data APIs."
+      },
+      {
+        "name": "Cloudflare Workers deploy with streaming",
+        "baseline": 48,
+        "treatment": 84,
+        "rationale": "Treatment configures @remix-run/cloudflare adapter, uses defer() in loaders for below-the-fold data, and reads KV/D1 bindings via context; baseline picks @remix-run/node or misses defer entirely."
+      }
+    ]
+  }
 }

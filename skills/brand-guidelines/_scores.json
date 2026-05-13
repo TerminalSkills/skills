@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b322a3c293041ddd104528a57ee505e4534ab634b2dd6190e2648568397c4550",
-  "scoredAt": "2026-05-13T08:22:58.372Z",
+  "scoredAt": "2026-05-13T14:53:54.260Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.38,
+    "baselineAvg": 40,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "eco-coffee-shop-guidelines",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits explicit do’s and visual examples of correct usage."
+      },
+      {
+        "name": "saas-dark-mode-update",
+        "baseline": 0,
+        "treatment": 90,
+        "rationale": "Response B provides a detailed, ready‑to‑copy update covering all rubric items, while Response A is empty."
+      }
+    ]
+  }
 }

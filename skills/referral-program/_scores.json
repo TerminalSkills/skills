@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7ad25ed6d1681cbc91e564b1faab8a687eb563944fa152b5052799d7588dd650",
   "scoredAt": "2026-05-13T10:01:47.435Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 84,
+    "multiplier": 2.0,
+    "scenarios": [
+      {
+        "name": "meditation-app-referral-program",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Treatment maps the referral loop (trigger → share → convert → reward) with specific aha/milestone trigger moments, picks a double-sided incentive sized against LTV/CAC, prescribes in-product one-click sharing, and adds fraud-prevention rules and a launch email sequence from day one; baseline proposes a generic 'give $10 to each side' program without trigger placement, fraud rules, or launch promotion."
+      },
+      {
+        "name": "youtube-affiliate-program",
+        "baseline": 40,
+        "treatment": 82,
+        "rationale": "Treatment recommends recurring commissions (justified by LTV) with a tiered structure, recruitment of mid-tier creators with exclusive offers, disclosure/anti-fraud rules, and tracking via affiliate tooling with last-click attribution; baseline suggests a flat one-time payout with no tiers, no anti-fraud controls, and no recruitment strategy."
+      }
+    ]
+  }
 }

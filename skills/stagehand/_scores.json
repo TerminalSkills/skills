@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:873183b62d3a1ea43b0763b2dbc979948dfef9c7fff3e49fcfba63af90e31a4b",
   "scoredAt": "2026-05-13T10:11:44.327Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -23,7 +23,7 @@
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is vendor‑locked to the Stagehand library and assumes a Node.js environment, limiting cross‑platform applicability."
+        "detail": "The skill is vendor‐locked to the Stagehand library and assumes a Node.js environment, limiting cross‐platform applicability."
       }
     ]
   },
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 90,
+    "multiplier": 5.0,
+    "scenarios": [
+      {
+        "name": "Log in to a SaaS dashboard and extract the current account balance",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Baseline wrote raw Playwright with CSS selectors and hardcoded credentials in code; treatment imported Stagehand from @browserbasehq/stagehand, initialized with env: \"LOCAL\" and enableCaching: true, used stagehand.act with the variables parameter to inject %user%/%pass%, then called stagehand.extract with an instruction plus JSON schema."
+      },
+      {
+        "name": "Scrape product listings into a typed array (name, price, rating, inStock)",
+        "baseline": 15,
+        "treatment": 90,
+        "rationale": "Baseline relied on cheerio/Playwright querySelectorAll and brittle CSS selectors with no schema; treatment used stagehand.extract with the documented instruction parameter and a nested JSON schema (products array of objects with name/price/rating/inStock and required fields), as shown in the skill."
+      }
+    ]
+  }
 }

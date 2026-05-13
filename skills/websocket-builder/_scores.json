@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a95f67dc2557f57e165739985cc60428a6dcf6da08d75eede7c65b688111310a",
   "scoredAt": "2026-05-13T10:36:46.547Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 70,
+    "treatmentAvg": 94,
+    "multiplier": 1.34,
+    "scenarios": [
+      {
+        "name": "Express + ws chat server with JWT, rooms, and heartbeats",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Baseline attaches ws after upgrade and uses naive heartbeats while treatment authenticates during the HTTP upgrade with noServer:true, runs a two-step isAlive ping/pong, and has a proper RoomManager."
+      },
+      {
+        "name": "FastAPI live dashboard with Redis pub/sub across 3 servers",
+        "baseline": 70,
+        "treatment": 92,
+        "rationale": "Both use FastAPI plus Redis pub/sub, but treatment subscribes per-room (room:{id}) with dynamic subscribe/unsubscribe, authenticates at handshake, and logs connection lifecycle."
+      }
+    ]
+  }
 }

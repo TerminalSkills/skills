@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:0da72fe9b6587ba0d6ecdaac167de5da3c76e29e9205d11d01cacc7a17de1b9b",
-  "scoredAt": "2026-05-13T08:26:53.244Z",
+  "scoredAt": "2026-05-13T15:13:41.645Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "stream-chat-first-token-latency",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use cerebras.chat.completions.create or an onChunk callback and fails to meet the requirements."
+      },
+      {
+        "name": "json-structured-output",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets rubric, Response A does not."
+      }
+    ]
+  }
 }

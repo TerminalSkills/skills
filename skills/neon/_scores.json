@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c066df3deb5844ac4ea3e399199e7d70cc4aab59f9bb7de360005c623cdffc58",
   "scoredAt": "2026-05-13T09:39:50.258Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 94,
+    "multiplier": 2.09,
+    "scenarios": [
+      {
+        "name": "Cloudflare Workers driver and pooled connection string",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline often suggests node-postgres or omits the -pooler suffix and HTTP-vs-TCP rationale; treatment recommends @neondatabase/serverless plus the pooled connection string with the rationale that edge runtimes need HTTP not TCP sockets, matching the SKILL.md guidance."
+      },
+      {
+        "name": "Branch-per-PR CI workflow with cleanup",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Baseline describes generic ephemeral DBs without referencing neonctl or branch inheritance; treatment uses neonctl branches create --name pr-$PR_NUMBER, passes the branch connection string to the preview, deletes on PR close, and notes that running migrations on the main branch propagates schema to feature branches."
+      }
+    ]
+  }
 }

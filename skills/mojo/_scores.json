@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c839d5fc8659e17bf09f8057ca37c99715623053cb6f38a8dc5dfd2b0aed6450",
   "scoredAt": "2026-05-13T09:36:37.975Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 63,
     "dimensions": {
@@ -47,5 +47,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 92,
+    "multiplier": 5.11,
+    "scenarios": [
+      {
+        "name": "SIMD ReLU activation in Mojo",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Baseline answers with NumPy/C scalar code and never references vectorize, simdwidthof, or DTypePointer SIMD load/store; treatment implements the documented @parameter+vectorize pattern end to end."
+      },
+      {
+        "name": "Parallel grayscale conversion across CPU cores",
+        "baseline": 20,
+        "treatment": 92,
+        "rationale": "Baseline falls back to multiprocessing/NumPy and omits parallelize plus the cast[DType.*]() conversions; treatment uses parallelize[process_row](height) with the BT.601 luminance formula exactly as documented."
+      }
+    ]
+  }
 }

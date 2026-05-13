@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 87,
+    "multiplier": 2.07,
+    "scenarios": [
+      {
+        "name": "Team Zettelkasten vault with daily notes and Git sync",
+        "baseline": 45,
+        "treatment": 89,
+        "rationale": "Treatment builds the 0-inbox through 7-archive folder layout, writes a Templater daily template using tp.date.now and a project template with status/deadline frontmatter, supplies Dataview TABLE/LIST queries for the active-projects dashboard and orphan note finder, ignores workspace.json plus plugins/*/data.json, and installs the documented `*/30 * * * *` cron auto-commit; baseline produces generic folders and an ad-hoc daily template with no Dataview queries or Templater syntax."
+      },
+      {
+        "name": "Plugin for related notes by shared tags",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment scaffolds from obsidian-sample-plugin, implements onload registering a command via addCommand, reads tags from metadataCache against the active file, scores all markdown files by overlapping tags, takes top 5, and surfaces them through a Notice — matching the API surface (Plugin, addCommand, metadataCache, Notice) documented; baseline writes plausible TypeScript but uses invented APIs and never references metadataCache or Notice."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:ee6acf7524ea336c14aaad9f8dd184088ec6d31ad5b069fcc12076169769367f",
-  "scoredAt": "2026-05-13T08:40:54.477Z",
+  "scoredAt": "2026-05-13T16:10:59.619Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.83,
+    "baselineAvg": 90,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "create-registration-feature-file",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric requirements."
+      },
+      {
+        "name": "write-login-step-definitions-with-world",
+        "baseline": 80,
+        "treatment": 50,
+        "rationale": "Response A includes the world definition, setWorldConstructor, a Before hook, and an authenticated GET step, missing only the app property and World import; Response B lacks the world definition and constructor, so it covers fewer rubric items."
+      }
+    ]
+  }
 }

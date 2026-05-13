@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9a65c72241574b8a722cd5274491ac84863e5a525cc40367ba36e8796d0fd0d1",
   "scoredAt": "2026-05-13T08:50:18.331Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 87,
+    "multiplier": 1.67,
+    "scenarios": [
+      {
+        "name": "Monthly reimbursable expense report from CSV",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment uses pandas.read_csv plus the documented CATEGORY_RULES keyword map (airline/hotel/uber for Travel etc.), groupby summary, and an openpyxl ExcelWriter producing Summary / By Category / All Expenses sheets; baseline produces a generic pandas summary but lacks the multi-sheet output and rule-based auto-categorization."
+      },
+      {
+        "name": "Compile annual business expenses for tax filing",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment groups expenses to align with IRS Schedule C categories noted in the skill (meals at 50%, travel, supplies), flags duplicates by same vendor+amount+date, and emits Excel + markdown summaries via the documented helpers; baseline totals expenses but does not split by Schedule C lines or flag duplicates."
+      }
+    ]
+  }
 }

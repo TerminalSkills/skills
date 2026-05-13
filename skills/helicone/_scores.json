@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:05f56d085e8bece655ac2642d5255cb9916727cd75f14e417a0987767117b873",
   "scoredAt": "2026-05-13T09:12:15.092Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 90,
+    "multiplier": 3.0,
+    "scenarios": [
+      {
+        "name": "Observability with per-user cost tracking and caching",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Treatment swaps base_url to https://oai.helicone.ai/v1, sets the Helicone-Auth bearer header, attaches Helicone-User-Id for per-user attribution, and enables Helicone-Cache-Enabled: true — all three documented Helicone patterns; baseline proposes generic logging middleware and an in-process LRU cache, missing the proxy-based zero-code approach."
+      },
+      {
+        "name": "Per-user rate limit with automatic retries",
+        "baseline": 32,
+        "treatment": 88,
+        "rationale": "Treatment uses the documented Helicone-RateLimit-Policy header in the 10;w=60;s=user form scoped via Helicone-User-Id and enables retries with Helicone-Retry-Enabled/Helicone-Retry-Num/Helicone-Retry-Factor; baseline reaches for tenacity and an in-app token bucket without leveraging proxy headers."
+      }
+    ]
+  }
 }

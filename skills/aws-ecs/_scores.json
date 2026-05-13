@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:26db217b929629a52f5705ba8ba8fb159de559a338242f9a25566a8e77e3de46",
-  "scoredAt": "2026-05-13T08:19:37.582Z",
+  "scoredAt": "2026-05-13T14:25:23.354Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.6,
+    "baselineAvg": 25,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "deploy-fargate-service-with-alb",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, missing only the secrets block, while Response A lacks health checks, secrets, and deployment circuit breaker."
+      },
+      {
+        "name": "enable-ecs-service-auto-scaling",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B fails to meet key specifications."
+      }
+    ]
+  }
 }

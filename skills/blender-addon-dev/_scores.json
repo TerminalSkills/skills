@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:bb6ea94012dea2fd61472df89953dba8987e4132cf3c9d00208e2a32bb7552b3",
-  "scoredAt": "2026-05-13T08:21:46.186Z",
+  "scoredAt": "2026-05-13T14:43:17.129Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.18,
+    "baselineAvg": 38,
+    "treatmentAvg": 45,
+    "scenarios": [
+      {
+        "name": "dup-and-scale-panel",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A meets most rubric items (PropertyGroup, operator, panel, registration) but misnames the property; Response B omits the PropertyGroup, uses wrong names, and lacks required panel context."
+      },
+      {
+        "name": "menu-and-keymap-cube",
+        "baseline": 45,
+        "treatment": 20,
+        "rationale": "Response B covers more rubric items, including a keymap and register/unregister functions, whereas Response A lacks keymap integration and a proper menu class."
+      }
+    ]
+  }
 }

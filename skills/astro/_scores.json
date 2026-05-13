@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:78a573176d54de57a936baebda75e206fd9f2996b392e45e0c1d36311cc4c9a9",
-  "scoredAt": "2026-05-13T08:18:23.323Z",
+  "scoredAt": "2026-05-13T14:15:27.439Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.85,
+    "baselineAvg": 13,
+    "treatmentAvg": 63,
+    "scenarios": [
+      {
+        "name": "faq-site-with-vue-accordion",
+        "baseline": 15,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items but omits the content field and image component; Response B fails to meet Astro-specific requirements."
+      },
+      {
+        "name": "hybrid-landing-page-with-contact-form",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response B better meets the Astro-specific requirements, while Response A is a Next.js example and misses key Astro features."
+      }
+    ]
+  }
 }

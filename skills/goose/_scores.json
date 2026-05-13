@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8c42c62149e08448e4b261f007f6da0e3041c9a2785667723605701304a22322",
   "scoredAt": "2026-05-13T09:09:31.368Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 93,
+    "multiplier": 2.82,
+    "scenarios": [
+      {
+        "name": "Configure a Goose devops profile with Claude provider and Jira MCP server",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Baseline invents CLI subcommands and is vague on config location; treatment writes the documented ~/.config/goose/profiles.yaml structure with provider/model and a type: mcp Jira extension using npx, then launches with --profile devops."
+      },
+      {
+        "name": "Build and register a custom Python health-check extension for Goose",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline writes a generic requests script without the Extension/tool API; treatment subclasses Extension, decorates with @tool, and registers via type: mcp + command: python in profiles.yaml as documented."
+      }
+    ]
+  }
 }

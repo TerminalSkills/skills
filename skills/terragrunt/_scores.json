@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:cf3d1581781809c0226ff96809b2abdf855bf09bf94cc102cc66d15b1ac87ce1",
   "scoredAt": "2026-05-13T10:25:01.339Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Shared remote state and provider inheritance across accounts",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline duplicates backend.tf per module and lacks the generate/include/path_relative_to_include patterns; treatment uses all three to inherit a single root config."
+      },
+      {
+        "name": "Orchestrate VPC, database, and ECS API with dependency wiring",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline relies on terraform_remote_state and manual ordering; treatment declares dependency blocks and uses terragrunt run-all apply to deploy in dependency order."
+      }
+    ]
+  }
 }

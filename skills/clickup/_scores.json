@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:fa9fff449f67a4ca057db5895ecad16b085a47bfc9f700866690e73ef76d9ac0",
-  "scoredAt": "2026-05-13T08:29:39.581Z",
+  "scoredAt": "2026-05-13T15:32:22.922Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 8,
+    "baselineAvg": 10,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "bulk-custom-field-update",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers all ClickUp steps except the initial token validation, while Response B is about Jira and does not meet any rubric requirements."
+      },
+      {
+        "name": "urgent-task-slack-notifier",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers most ClickUp‑specific requirements (webhook creation, Express handler, signature verification, priority check, Slack notification) but omits the GET /api/v2/user token validation; Response B uses Asana instead of ClickUp and misses all rubric items."
+      }
+    ]
+  }
 }

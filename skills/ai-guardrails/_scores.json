@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:0fcdde5f998741141daeae3172f16d51d861a87a7d349e5912aed5536793cda7",
-  "scoredAt": "2026-05-12T22:23:46.796Z",
+  "scoredAt": "2026-05-13T13:43:02.126Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.73,
+    "baselineAvg": 100,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "add-chatbot-guardrails",
+        "baseline": 100,
+        "treatment": 45,
+        "rationale": "Response A fully implements all required guardrails, while Response B omits key elements such as safe fallback, proper schema validation, and complete circuit breaker logic."
+      },
+      {
+        "name": "hallucination-detection-rag",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing claim verification, marking or removal of unsupported claims, confidence scoring, and a fallback for low grounding."
+      }
+    ]
+  }
 }

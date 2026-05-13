@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:88f3a065fd8c09897b30e28d8757f41ad9506d43446f6290bae840102e9cdbf6",
   "scoredAt": "2026-05-13T09:50:26.559Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 4,
+    "treatmentAvg": 94,
+    "multiplier": 9.4,
+    "scenarios": [
+      {
+        "name": "Telegram bot with allowlist on Pi",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Baseline produces a generic python-telegram-bot script with no reference to picoclaw onboard, ~/.picoclaw/config.json, channels.telegram.allow_from, or picoclaw gateway; treatment hits all four PicoClaw-specific checks."
+      },
+      {
+        "name": "Heartbeat scheduled web search",
+        "baseline": 3,
+        "treatment": 92,
+        "rationale": "Baseline falls back to a cron loop and a generic search API with no mention of HEARTBEAT.md, heartbeat.interval, or tools.web.brave/duckduckgo config keys, whereas treatment configures all three exactly as documented."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:81bf01434f3b39504170aa0892b7f4731de910c0f5f03eb7e3fb5df420afca45",
-  "scoredAt": "2026-05-12T22:24:08.170Z",
+  "scoredAt": "2026-05-13T13:44:41.991Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 0,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "full-research-pipeline",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits explicitly stating the best hypothesis, while Response B provides no content."
+      },
+      {
+        "name": "experiment-design",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric items, including the required mention of ExperimentDesigner.design, while Response A does not mention ExperimentDesigner.design and thus fails that key requirement."
+      }
+    ]
+  }
 }

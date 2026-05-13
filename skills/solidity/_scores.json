@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a926c6c4c026745b730fb57ab72826d0c7f5900797aaa5d11c25f700fa63a84f",
   "scoredAt": "2026-05-13T10:09:54.639Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 88,
+    "multiplier": 1.47,
+    "scenarios": [
+      {
+        "name": "Mintable ERC-20 token with owner-only mint",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Treatment uses OpenZeppelin ERC20 + Ownable with the Ownable(msg.sender) v5 constructor and pragma ^0.8.20 as in the skill; baseline writes ERC-20 from scratch missing the audited inheritance pattern."
+      },
+      {
+        "name": "Deploy to Sepolia testnet with Hardhat",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Treatment runs npx hardhat compile/test then npx hardhat run scripts/deploy.ts --network sepolia with ethers v6 waitForDeployment/getAddress; baseline uses outdated deployed() or generic instructions."
+      }
+    ]
+  }
 }

@@ -1,7 +1,9 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:45772954b3e983417981993e8989dd707c083ffe6446c0aa1f5e28f2be0f39e1",
-  "scoredAt": "2026-05-12T22:05:14.334Z",
+  "scoredAt": "2026-05-13T12:02:46.968Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -16,29 +18,42 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case coverage."
+        "detail": "The skill does not cover error handling or troubleshooting scenarios for installation or configuration failures."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Assumes Linux-specific installation steps, lacking cross-platform instructions."
+        "detail": "Instructions assume a Linux environment and do not provide guidance for Windows or other operating systems."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.29,
+    "baselineAvg": 17,
+    "treatmentAvg": 73,
+    "scenarios": [
       {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for source code download."
+        "name": "multi-protocol-auth-traffic-limit",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B contains some relevant details but is incomplete, while Response A is empty."
       },
       {
-        "severity": "MEDIUM",
-        "category": "credentials",
-        "detail": "Configuration uses cleartext passwords, which is insecure."
+        "name": "proxy-chaining-rotation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is not provided and thus cannot meet the criteria."
+      },
+      {
+        "name": "port-forwarding-ssh",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits internal and auth directives, while Response B fails to use the required tcppm directive and lacks logging."
       }
     ]
-  },
-  "impact": null
+  }
 }

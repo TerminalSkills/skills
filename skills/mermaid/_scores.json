@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bd2dbdd22a556f26415d40eac2c0f185c103491ab0288e097333c119c4c57c6a",
   "scoredAt": "2026-05-13T09:34:27.106Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 95,
+    "multiplier": 2.5,
+    "scenarios": [
+      {
+        "name": "Auth flow sequence diagram",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline produces a bare sequenceDiagram missing participant declarations, alt/else branching, and proper ->>/-->> arrow syntax; treatment matches SKILL.md structure with actor, participants, and alt/else for valid vs invalid credentials."
+      },
+      {
+        "name": "E-commerce ERD",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline omits cardinality notation, PK/FK annotations, typed columns, and labeled relationships; treatment uses ||--o{ / ||--|{ with PK/FK and verb-phrase labels as shown in the SKILL.md erDiagram example."
+      }
+    ]
+  }
 }

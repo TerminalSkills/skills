@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4c945f64423ec18a9c3695f854cf65d3cc523dc08d26a5a0e47ef6c8b81d14f4",
   "scoredAt": "2026-05-13T10:10:12.772Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 90,
+    "multiplier": 4.5,
+    "scenarios": [
+      {
+        "name": "Pascal Editor JSON for 3-story R-2 apartment from BuildingData",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Baseline produces a generic JSON tree, while the treatment emits the documented site>building>level>wall>room node graph with parentId chains, default 2.74m floor-to-floor height, 1:1.5 width:depth aspect ratio yielding 7.19x10.78m Type A units, and 0.30m exterior / 0.15m interior wall thicknesses."
+      },
+      {
+        "name": "Three.js massing geometry for 3-story unit-mix building",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "Baseline uses arbitrary 3m floor heights and identical boxes, while the treatment applies the documented 2.74m R-2 floor-to-floor default, derives 7.19x10.78m / 6.32x9.48m unit footprints from the 1:1.5 aspect ratio rule, and constructs a THREE.Group of box meshes per Level3D/Unit3D for massing visualization."
+      }
+    ]
+  }
 }

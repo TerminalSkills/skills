@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:33eb74595c218e23ea8160f74e6bdd832b552c6644c78bd005d2aef3f76f6feb",
   "scoredAt": "2026-05-13T09:34:20.643Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Persistent memory for OpenAI chatbot",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reaches for generic stores or LangChain memory and misses Mem0's search-before-generate / add-after-generate pattern with user_id scoping; treatment imports Memory, calls memory.search then memory.add with user_id on every call as shown in the SKILL.md chat_with_memory pattern."
+      },
+      {
+        "name": "GDPR delete all memories for a user",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline iterates get_all and deletes each memory or invents an endpoint; treatment uses the single memory.delete_all(user_id=...) call documented in the SKILL.md as the right-to-erasure primitive."
+      }
+    ]
+  }
 }

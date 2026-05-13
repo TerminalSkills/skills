@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:23386a9861314fb66b4539c6a04f6dd18f575d823c3976561a9c4d852a4ad617",
   "scoredAt": "2026-05-13T09:19:09.735Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 88,
+    "multiplier": 2.1,
+    "scenarios": [
+      {
+        "name": "Simple platformer with coin pickup",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Baseline used a generic canvas/Phaser-style loop without the kaplay component array, body(), area(), onCollide, or isGrounded() patterns the rubric requires; treatment composed the entity from component array, used onCollide for coins, and gated jump on isGrounded()."
+      },
+      {
+        "name": "Patrolling enemy as a reusable component",
+        "baseline": 38,
+        "treatment": 86,
+        "rationale": "Baseline wrote a class with setInterval-style movement and no plug-in component shape; treatment defined a function returning {id, add, update} and mounted it inside the component array next to body()/area() with a tag, matching the documented custom-component pattern."
+      }
+    ]
+  }
 }

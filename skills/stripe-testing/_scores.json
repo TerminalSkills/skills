@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6e0820113920ffd09c5704eae3ed6d8a9fc3337dd1cf24c78d98cfe2bd5ba557",
   "scoredAt": "2026-05-13T10:15:39.136Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 93,
+    "multiplier": 1.86,
+    "scenarios": [
+      {
+        "name": "Diagnose a failed payment intent and reproduce locally",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Treatment runs stripe payment_intents retrieve, inspects last_payment_error, and maps decline codes to the specific test cards in the skill (4000000000000002, 4000000000009995), while baseline only inspects the dashboard and suggests generic checks."
+      },
+      {
+        "name": "Simulate a full subscription billing cycle to validate webhooks",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment uses stripe test_clocks create --frozen-time plus stripe test_clocks advance to fast-forward a subscription and triggers events with stripe trigger, while baseline tries to wait for real time or only triggers single events."
+      }
+    ]
+  }
 }

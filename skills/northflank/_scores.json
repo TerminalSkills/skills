@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8f7a8a6bcdf1ef9f42ece95530929f6a09a9211b666df4ab8f819dc753f099a6",
   "scoredAt": "2026-05-13T09:41:50.218Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 19,
+    "treatmentAvg": 95,
+    "multiplier": 5.0,
+    "scenarios": [
+      {
+        "name": "IaC for Node API + Postgres",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Treatment produces a valid northflank.json Workflow with BuildService/DeploymentService/Addon kinds, Nixpacks builder, health checks, nf-compute plan, nightly backup schedule, and ${database.main-db.HOST} substitution, while the baseline invents an unrelated YAML format that Northflank does not consume."
+      },
+      {
+        "name": "Daily cron job for report generation",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Treatment uses the documented `northflank create job` syntax with --type cron/manual, --git-url, --branch, --run-command, and --plan flags, while the baseline invents flag names and omits the job type and plan parameters."
+      }
+    ]
+  }
 }

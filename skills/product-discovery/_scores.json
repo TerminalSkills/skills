@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:38158115e1775f721e848ebade5ca878b9c78f17d2e51137df28573d978c8e5d",
   "scoredAt": "2026-05-13T09:57:11.556Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 47,
+    "treatmentAvg": 88,
+    "multiplier": 1.87,
+    "scenarios": [
+      {
+        "name": "Validate $200/mo enterprise reporting willingness to pay",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment named the riskiest assumption, climbed the experiment ladder from desk research and one-question survey through smoke test and landing page test before any prototype, and supplied an experiment brief with hypothesis, success metric, sample size and kill criteria; baseline jumped to interviews and a pricing survey without the ladder or brief structure."
+      },
+      {
+        "name": "Build an OST for remote-design PM tool",
+        "baseline": 44,
+        "treatment": 86,
+        "rationale": "Treatment constructed a four-layer outcome -> opportunities -> 3+ solutions -> assumption tests tree with past-behavior interview prompts and forbade solution-first opportunities; baseline produced a feature list and personas without outcome mapping or assumption tests."
+      }
+    ]
+  }
 }

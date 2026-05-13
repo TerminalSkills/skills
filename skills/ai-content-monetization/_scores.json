@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7ff64e643429eac97565d18ed17e4f5c2b6eaeb767d6d1200a91d229d07b253d",
-  "scoredAt": "2026-05-12T22:23:33.903Z",
+  "scoredAt": "2026-05-13T13:40:35.585Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.7,
+    "baselineAvg": 23,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "blog-post-with-affiliate-publish",
+        "baseline": 15,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a generate_blog_post call, placeholder replacement, REST API publish, meta description, and URL return, whereas Response A lacks these key elements."
+      },
+      {
+        "name": "newsletter-send-via-resend",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items, while Response A lacks key requirements such as calling generate_newsletter and returning the email ID."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:88a18be3eee475294a9558de92be4eac03de69b2f021a14f117bf029d4eda2a2",
-  "scoredAt": "2026-05-12T22:25:28.973Z",
+  "scoredAt": "2026-05-13T13:54:08.455Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.63,
+    "baselineAvg": 30,
+    "treatmentAvg": 79,
+    "scenarios": [
+      {
+        "name": "backtest-crypto-ema-crossover",
+        "baseline": 45,
+        "treatment": 65,
+        "rationale": "Response B better meets the rubric, covering EMA, RSI, commission/slippage, metrics, and buy‑and‑hold, whereas Response A uses SMA, lacks RSI, and misapplies commission handling."
+      },
+      {
+        "name": "deploy-live-alpaca-momentum-bot",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Response B fully implements limit orders, risk rules, logging, and stop‑trading logic, while Response A is incomplete and lacks these core elements."
+      }
+    ]
+  }
 }

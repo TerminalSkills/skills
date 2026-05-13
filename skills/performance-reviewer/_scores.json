@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a32294880da5b226e8bd2d1efb95f79a5d749d89027d66bd5a7831561f0fb2d1",
   "scoredAt": "2026-05-13T09:49:46.887Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 86,
+    "multiplier": 1.91,
+    "scenarios": [
+      {
+        "name": "Review Django PR diff for N+1 query in order listing",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment runs git diff main...HEAD, reports file/line, Critical severity, Database category, and suggests select_related/prefetch_related with concrete fix; baseline catches the N+1 conceptually but lacks the structured severity/category/fix format defined in the skill."
+      },
+      {
+        "name": "Review React PR diff for re-render and bundle size regressions",
+        "baseline": 40,
+        "treatment": 84,
+        "rationale": "Treatment flags inline style/arrow as new references, suggests useMemo/useCallback with concrete code, and calls out moment→dayjs as Info severity per skill's frontend rubric; baseline mentions memoization vaguely without per-line file:line output or severity tiers."
+      }
+    ]
+  }
 }

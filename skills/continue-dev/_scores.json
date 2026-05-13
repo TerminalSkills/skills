@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:6b079c1ccbb2d0f65144c522c6511a61fd5d4e347af0f52b52eebee3df79a148",
-  "scoredAt": "2026-05-13T08:38:29.106Z",
+  "scoredAt": "2026-05-13T15:57:05.904Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "add-claude-model",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A provides the required JSON snippet with correct fields and placeholder, while Response B uses YAML and incorrect field names, failing the rubric."
+      },
+      {
+        "name": "add-prisma-migration-command",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response B provides the required .continue/config.json snippet with correct fields and prompt, while Response A offers a script instead of the config entry."
+      }
+    ]
+  }
 }

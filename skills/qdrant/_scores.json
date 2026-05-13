@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:260e77d4ba101044f329df3fa8e8782e762abeb4985704644221a2023b69e886",
   "scoredAt": "2026-05-13T09:59:25.507Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 91,
+    "multiplier": 2.28,
+    "scenarios": [
+      {
+        "name": "Filtered semantic product search with quality threshold",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline knows Qdrant supports filters with vector search but misses the must/should structure with range and match shapes plus the score_threshold parameter; treatment uses the documented filter.must with range lte / match value plus score_threshold and with_payload."
+      },
+      {
+        "name": "Positive/negative recommendation API",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Baseline reaches for averaging embeddings or repeated similarity searches and overlooks Qdrant's dedicated recommend endpoint; treatment uses client.recommend with positive and negative point IDs plus filter.must, matching the documented API exactly."
+      }
+    ]
+  }
 }

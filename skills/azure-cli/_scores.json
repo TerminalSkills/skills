@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5485b11f7669d01dcfd839f1826220b82f88434e3f8d50ec9cd6afe972d733b8",
-  "scoredAt": "2026-05-13T08:20:30.189Z",
+  "scoredAt": "2026-05-13T14:32:29.288Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.8,
+    "baselineAvg": 50,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "storage-account-setup-with-sas",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A meets the encryption and SAS requirements but omits the blob list command, while Response B lacks the required encryption flags and also omits the blob list command."
+      },
+      {
+        "name": "function-app-deployment-and-logging",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A includes all required commands; Response B omits the appsettings set and log tail commands."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:774d47abd6f6277a0d500b2f26a66a92e160d1fec2ad3cd03cfe6f6a65702ec0",
   "scoredAt": "2026-05-13T09:41:57.819Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 91,
+    "multiplier": 2.84,
+    "scenarios": [
+      {
+        "name": "Order confirmation router with retry logic",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment implements the documented ChannelAdapter interface, the three-tier email retry schedule (1min/5min/30min), a dead letter queue, List-Unsubscribe headers, and in-app DB+WebSocket delivery, while the baseline uses a generic BullMQ retry without per-channel windows, DLQ, or unsubscribe handling."
+      },
+      {
+        "name": "Per-user preferences with security overrides",
+        "baseline": 28,
+        "treatment": 92,
+        "rationale": "Treatment matches the documented schema with composite unique (user_id, notification_type, channel), encodes the Security/Transactional/Activity/Social/Marketing category matrix with non-disableable enforcement, and exposes REST CRUD, while the baseline uses a flat per-user toggle table with no per-type granularity or security override."
+      }
+    ]
+  }
 }

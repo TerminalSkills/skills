@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5fbfecb865887c9d9d801a02a6c27e5c612a9bbe1301d4e04ba422ed811d134a",
-  "scoredAt": "2026-05-13T08:26:08.710Z",
+  "scoredAt": "2026-05-13T15:08:23.686Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.45,
+    "baselineAvg": 33,
+    "treatmentAvg": 48,
+    "scenarios": [
+      {
+        "name": "db-connection-bottleneck-scaling",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Response B fully meets all rubric items, while Response A omits cost estimates and explicit cost deltas."
+      },
+      {
+        "name": "cost-optimized-3x-traffic",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "No content provided for either response, so cannot assess rubric coverage."
+      }
+    ]
+  }
 }

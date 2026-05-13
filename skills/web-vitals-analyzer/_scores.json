@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7586a97fb8480c43fada9468773cfb2983a9c63ed156ddcc5714c4428c890821",
   "scoredAt": "2026-05-13T10:36:03.017Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 64,
+    "treatmentAvg": 94,
+    "multiplier": 1.47,
+    "scenarios": [
+      {
+        "name": "Diagnose poor LCP on a Next.js marketing landing page",
+        "baseline": 62,
+        "treatment": 95,
+        "rationale": "Both mention next/image priority and WebP, but treatment identifies the LCP element, ranks fixes with expected ms improvements, adds critical-CSS inlining, and includes a TTFB sanity check."
+      },
+      {
+        "name": "Reduce INP on a React 18 dashboard with a 30k-row grid",
+        "baseline": 65,
+        "treatment": 93,
+        "rationale": "Both suggest useMemo + virtualization, but treatment ranks root causes with per-fix ms estimates, calls out third-party scripts on the click path, and uses requestIdleCallback / scheduler.yield."
+      }
+    ]
+  }
 }

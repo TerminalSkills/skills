@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3432624c262f614ab27a2d636fcf6c547dbb7cebb38fbc493553eccd566a8127",
   "scoredAt": "2026-05-13T09:39:03.872Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 91,
+    "multiplier": 2.39,
+    "scenarios": [
+      {
+        "name": "User store with map, computed, and React hook",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment uses map() with setKey() per-key updates and computed() with $ prefix and useStore from @nanostores/react; baseline often falls back to atoms only and skips per-key updates."
+      },
+      {
+        "name": "Cached fetcher + mutator with invalidation via @nanostores/query",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Treatment uses nanoquery's createFetcherStore/createMutatorStore with invalidates option; baseline defaults to React Query or manual fetch+atom and misses the library entirely."
+      }
+    ]
+  }
 }

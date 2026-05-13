@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:74bf1e13909b0d2796bd09bd4b000cf868b1e60c9154471a3b1648253b4318f7",
-  "scoredAt": "2026-05-13T08:23:17.709Z",
+  "scoredAt": "2026-05-13T14:56:14.565Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-user-request-with-script",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A meets all rubric requirements; B does not provide a .bru file as required."
+      },
+      {
+        "name": "run-collection-ci-junit",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A exactly matches the required CLI command; Response B uses a different syntax and flags, missing the specified command."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:58ec9199b6d6c72ba566c2e9046b69d9da65fda10331dda93e60e817db99bb55",
   "scoredAt": "2026-05-13T08:52:12.263Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 90,
+    "multiplier": 1.73,
+    "scenarios": [
+      {
+        "name": "Fuzz a JSON login endpoint to find unknown POST body parameters with rate limiting",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses -X POST with -H Content-Type: application/json, a JSON -d body containing FUZZ, -w params.txt, -fc 400 and -rate 50 -t 10 exactly per SKILL.md; baseline reaches for Burp or a custom Python loop without ffuf's body-position FUZZ pattern."
+      },
+      {
+        "name": "Discover hidden admin and backup paths with extensions, filtering 404s",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment uses -u .../FUZZ -w common.txt with -e .php,.bak,.old,.env and -fc 404 or -mc 200,301,302,403 and writes JSON via -o results.json -of json as documented; baseline suggests gobuster or generic wget loops without ffuf's match/filter flags."
+      }
+    ]
+  }
 }

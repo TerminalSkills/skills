@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:23e36fec86ee3b5d1c62fec2bb6abf5884cebe7b20458d8fe724205e990ff995",
   "scoredAt": "2026-05-13T09:08:41.395Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 93,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Bind, validate, and return 201 handler",
+        "baseline": 65,
+        "treatment": 93,
+        "rationale": "Baseline knows c.Bind and c.JSON but may skip c.Validate and use plain errors; treatment chains c.Bind + c.Validate + echo.NewHTTPError + c.JSON(http.StatusCreated) as the skill prescribes."
+      },
+      {
+        "name": "echo-jwt with Skipper and claim access",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Baseline often reaches for the deprecated middleware.JWT and lacks a Skipper; treatment uses echojwt.WithConfig with SigningKey + Skipper and reads claims via c.Get(\"user\").(*jwt.Token) and jwt.MapClaims."
+      }
+    ]
+  }
 }

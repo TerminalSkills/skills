@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:4e89e82cac3fafa76cb0614aae545d6726725c51262c87ce0bc88c692dc71349",
-  "scoredAt": "2026-05-12T22:23:10.240Z",
+  "scoredAt": "2026-05-13T12:18:19.020Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover all error scenarios and edge cases, such as missing agents or network failures."
+        "detail": "The skill does not cover all error scenarios and edge cases, such as missing agents or invalid outputs."
       }
     ]
   },
@@ -26,5 +26,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.15,
+    "baselineAvg": 27,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "pipeline-data-preprocessing",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A covers shared memory, quality gates, and agents but lacks orchestrator and retry logic, while Response B is incomplete and does not meet any rubric requirements."
+      },
+      {
+        "name": "hierarchical-code-review",
+        "baseline": 0,
+        "treatment": 45,
+        "rationale": "Response B includes SharedMemory, QualityGate, and agents but lacks an Orchestrator and retry logic, whereas Response A is empty."
+      },
+      {
+        "name": "router-ticket-routing",
+        "baseline": 80,
+        "treatment": 80,
+        "rationale": "Both responses implement classification, routing, and logging, but neither includes the required retry mechanism, so they score equally."
+      }
+    ]
+  }
 }

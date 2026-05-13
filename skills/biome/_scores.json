@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:bdc121ef96af8ca44a9fae57c0936873d632f7ea498b73b37c6085a319ce4889",
-  "scoredAt": "2026-05-13T08:21:36.871Z",
+  "scoredAt": "2026-05-13T14:41:17.593Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.22,
+    "baselineAvg": 18,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "generate-biome-config",
+        "baseline": 5,
+        "treatment": 35,
+        "rationale": "Response B includes more required fields than A, but still misses many key properties, whereas A lacks almost everything."
+      },
+      {
+        "name": "migrate-eslint-to-biome",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A correctly identifies the migration command, the creation of biome.json, and removal of ESLint config files, but omits the summary of migrated rules; Response B uses an incorrect command and also lacks the summary."
+      }
+    ]
+  }
 }

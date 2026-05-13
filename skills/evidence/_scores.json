@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:35132a3812dfe8c5ba924b27927adbdd14bcbd0ccb9c8418fdf04f38e74ea560",
   "scoredAt": "2026-05-13T08:49:43.018Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 87,
+    "multiplier": 2.72,
+    "scenarios": [
+      {
+        "name": "Templated per-customer detail page from PostgreSQL",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Treatment uses pages/[param].md routing with ${params.x} in SQL fences, a sources/<name>/connection.yaml for postgres, and components like DataTable/LineChart with the documented prop shape; baseline writes generic SQL/HTML without Evidence's file conventions."
+      },
+      {
+        "name": "Cohort retention dashboard with interactive filters",
+        "baseline": 34,
+        "treatment": 86,
+        "rationale": "Treatment uses named sql blocks (```sql cohort_data), Dropdown with DropdownOption value/valueLabel, ${inputs.x.value} parameters, and the Heatmap/BigValue components per the skill; baseline lacks Evidence's input syntax and component names."
+      }
+    ]
+  }
 }

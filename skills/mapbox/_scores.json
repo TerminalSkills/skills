@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:11c558b6ad85b362fc82f50fab2cb789db0da2744e32c25fd2810a0ab0308ca0",
   "scoredAt": "2026-05-13T09:27:50.035Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 87,
+    "multiplier": 1.74,
+    "scenarios": [
+      {
+        "name": "Next.js store locator with react-map-gl and clickable markers",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment imports Map/Marker/Popup/NavigationControl from react-map-gl, sets mapboxAccessToken with initialViewState and mapStyle mapbox://styles/mapbox/light-v11, and wires onClick state to a Popup; baseline drops to vanilla mapbox-gl without the React wrapper or NavigationControl."
+      },
+      {
+        "name": "Delivery density heatmap from GeoJSON points",
+        "baseline": 50,
+        "treatment": 86,
+        "rationale": "Treatment renders a heatmap Layer inside a Source type=geojson with heatmap-weight=['get','weight'] and the documented heatmap-intensity/radius/color interpolate expressions; baseline plots individual circle markers and never configures the heatmap paint properties."
+      }
+    ]
+  }
 }

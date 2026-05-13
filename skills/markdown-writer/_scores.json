@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:54a24a8ad8c6da1b947d70524147c1621726d3c8b73010a0b893508802d0aee2",
   "scoredAt": "2026-05-13T09:28:09.956Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 92,
+    "multiplier": 1.59,
+    "scenarios": [
+      {
+        "name": "README for a Node.js CLI image converter",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment follows the full README template — H1, one-line description, Installation, Quick Start, Usage with multiple commands, Options table (flag/type/default/description), Configuration table, Contributing link, and License; baseline produces a usable but partial README missing the structured Options table and full sectioning."
+      },
+      {
+        "name": "API endpoint docs from Express routes",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment renders per-endpoint method+path code block, request-body table with Field/Type/Required/Description, curl example, 201 JSON response, and error responses table with status codes; baseline gives loose JSON snippets without per-field tables or error code tables."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:c02086540b633197590f1a5a7dd9f0ec8225a2d75a1cba47ea6c6e57c3f3944d",
-  "scoredAt": "2026-05-13T08:36:12.698Z",
+  "scoredAt": "2026-05-13T15:43:19.590Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.15,
+    "baselineAvg": 20,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "setup-coderabbit",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items except path_instructions, while Response A omits many required fields."
+      },
+      {
+        "name": "update-path-instructions",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with correct file name, draft review setting, new path instruction for drizzle/migrations/**, and unchanged path_filters, whereas Response A is incomplete and incorrectly formatted."
+      }
+    ]
+  }
 }

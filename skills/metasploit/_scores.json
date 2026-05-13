@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d6ce274949bc09d61313e0fbd0b1e52fc3f15eccd1a28e34654469b8a5a385d6",
   "scoredAt": "2026-05-13T09:34:40.127Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 97,
+    "multiplier": 1.94,
+    "scenarios": [
+      {
+        "name": "Exploit apache_mod_cgi_bash_env_exec with Meterpreter callback",
+        "baseline": 55,
+        "treatment": 97,
+        "rationale": "Baseline picked the right module but used a raw generic shell payload and skipped TARGETURI and the non-destructive check; treatment configures TARGETURI, the linux/x86/meterpreter/reverse_tcp payload, and runs check before exploit as the skill prescribes."
+      },
+      {
+        "name": "Pivot into 10.0.0.0/24 via Meterpreter session",
+        "baseline": 45,
+        "treatment": 96,
+        "rationale": "Baseline used legacy autoroute and socks4a without the internal port scanner; treatment uses route add through session 1, auxiliary/server/socks_proxy with SRVPORT and run -j, and the auxiliary/scanner/portscan/tcp module against the subnet."
+      }
+    ]
+  }
 }

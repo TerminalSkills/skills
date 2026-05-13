@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f1de622f33cafad2cf62299fa04f0f546918c3de60f94003ec95dde6ca1481f4",
-  "scoredAt": "2026-05-13T08:22:43.286Z",
+  "scoredAt": "2026-05-13T14:52:03.484Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 6.67,
+    "baselineAvg": 15,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "full-csv-categorization-report",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements with correct function calls; Response B does not use the specified functions or API calls."
+      },
+      {
+        "name": "ofx-reconciliation",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key functions and details."
+      }
+    ]
+  }
 }

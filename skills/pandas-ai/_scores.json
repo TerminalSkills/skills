@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fcb975d317b603e108d65aa08eefac4b67f86d9d6e0afa611f74a2a8ce39b479",
   "scoredAt": "2026-05-13T09:47:55.110Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 15,
+    "treatmentAvg": 95,
+    "multiplier": 6.33,
+    "scenarios": [
+      {
+        "name": "Natural-language queries across employees and departments",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline hand-codes a merge + groupby and never invokes PandasAI; treatment uses SmartDatalake with a list of DataFrames, OpenAI llm config, and .chat() to answer both questions."
+      },
+      {
+        "name": "Natural-language cleaning plus chart save",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline falls back to pandas + matplotlib with no PandasAI surface; treatment wires SmartDataframe with save_charts/save_charts_path and chains .chat() calls for cleaning and chart generation."
+      }
+    ]
+  }
 }

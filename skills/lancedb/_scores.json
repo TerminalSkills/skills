@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:303a1d9f1a039e3baa480077ad9c1ca527de34f3225199870fe695270e8a4131",
   "scoredAt": "2026-05-13T09:21:06.521Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 89,
+    "multiplier": 2.70,
+    "scenarios": [
+      {
+        "name": "Embedded vector DB with automatic embeddings for a Node CLI",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline used a generic external vector store with manual OpenAI embedding calls; treatment used lancedb.connect() with the embedding registry's sourceField()/vectorField() so .search(text) auto-embeds."
+      },
+      {
+        "name": "Hybrid keyword + vector search with metadata filter",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline merged separate keyword and vector queries manually; treatment used table.createIndex(\"text\", { config: lancedb.Index.fts() }) and .search(query, { queryType: \"hybrid\" }).where(...) per the SKILL.md."
+      }
+    ]
+  }
 }

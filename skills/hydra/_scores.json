@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:41fe9fbf26cdc6ecc7a39f6150b71b024e9c638fa1e15e8a39f4ee7facab64bf",
   "scoredAt": "2026-05-13T09:14:43.986Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 96,
+    "multiplier": 3.2,
+    "scenarios": [
+      {
+        "name": "Authorized SSH credential audit against a bastion",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline reaches for sshpass or medusa rather than hydra; treatment runs hydra -L svc-users.txt -P targeted.txt -t 2 -W 5 -f -V -o audit-ssh.log against ssh:// and mentions hydra -R for resume."
+      },
+      {
+        "name": "CTF login-form brute with a known failure string",
+        "baseline": 25,
+        "treatment": 96,
+        "rationale": "Baseline writes an ad-hoc requests loop with no Hydra; treatment recons the failure string with curl, then uses hydra http-post-form with '/login:username=^USER^&password=^PASS^:F=Login failed', -l admin -P rockyou.txt, and -f."
+      }
+    ]
+  }
 }

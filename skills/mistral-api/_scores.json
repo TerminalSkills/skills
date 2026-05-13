@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a33685310069c70a404ec8db92548a297c681ac923f2a197a48ad920893f3558",
   "scoredAt": "2026-05-13T09:35:40.632Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 89,
+    "multiplier": 1.78,
+    "scenarios": [
+      {
+        "name": "Use Codestral fill-in-the-middle to complete a function body",
+        "baseline": 42,
+        "treatment": 92,
+        "rationale": "Treatment called client.fim.complete with model=codestral-latest passing prompt and suffix parameters as documented; baseline used regular chat.complete with a description-based prompt and missed the dedicated FIM endpoint entirely."
+      },
+      {
+        "name": "Generate JSON-structured output with mistral-small",
+        "baseline": 58,
+        "treatment": 86,
+        "rationale": "Treatment used response_format={'type': 'json_object'} with mistral-small-latest and explicitly mentioned JSON in the prompt per the skill's note; baseline used chat completion and parsed the string output without response_format."
+      }
+    ]
+  }
 }

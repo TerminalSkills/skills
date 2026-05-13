@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6f13d2547ca0718fd9b7419c99cb7be214f5a842c1c055dc3ce038fb27925b8f",
   "scoredAt": "2026-05-13T10:03:47.309Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 73,
     "dimensions": {
@@ -41,5 +41,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 86,
+    "multiplier": 1.65,
+    "scenarios": [
+      {
+        "name": "Tailor a software engineer resume to a data engineering role",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment categorizes required vs preferred keywords, reports a before/after match rate (targeting 80%+), rewrites bullets only for genuine experience, and reorders sections per the skill; baseline gives generic resume advice."
+      },
+      {
+        "name": "Fix an ATS-rejected resume",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment applies the documented ATS fixes (standard section headers, no tables/columns, spell out acronyms on first use, standard date formats, exact job-title keywords); baseline lists generic resume tips."
+      }
+    ]
+  }
 }

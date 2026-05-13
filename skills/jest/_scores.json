@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:67d7110a7b6dba39dcad8d963ecfe5cd97d85ff947450c33344fe89d1e2c8e32",
   "scoredAt": "2026-05-13T09:17:56.089Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 96,
+    "multiplier": 2.91,
+    "scenarios": [
+      {
+        "name": "db-service-mocking",
+        "baseline": 35,
+        "treatment": 96,
+        "rationale": "Baseline used spyOn without auto-mock, omitted clearAllMocks, and used try/catch for the async error; treatment used jest.mock + jest.mocked, beforeEach clearAllMocks, and expect(...).rejects.toThrow for the not-found case."
+      },
+      {
+        "name": "ci-coverage-gate",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline only set a lines threshold, used wrong key, omitted --ci and artifact upload; treatment set all four coverageThresholds with ts-jest preset, ran npx jest --ci --coverage --maxWorkers, and uploaded coverage with actions/upload-artifact."
+      }
+    ]
+  }
 }

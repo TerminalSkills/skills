@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:829674e32f19e16e7ada8814411237a04c7c5dac1b3cdd26c0de15cfb3b6bf69",
   "scoredAt": "2026-05-13T09:22:36.352Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 91,
+    "multiplier": 1.82,
+    "scenarios": [
+      {
+        "name": "checkout-with-custom-data",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses createCheckout from @lemonsqueezy/lemonsqueezy.js with checkoutData.custom for user_id and productOptions.enabledVariants per skill; baseline reaches for raw REST without the SDK shape."
+      },
+      {
+        "name": "webhook-subscription-lifecycle",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment verifies the x-signature HMAC-sha256 and switches on event_name for subscription_created/updated/cancelled per skill; baseline knows webhook signing conceptually but misses Lemon Squeezy's specific header and event names."
+      }
+    ]
+  }
 }

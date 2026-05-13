@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7928f0813a472f867181f0ba0debfd41c28a0f100bfcc53fd5e51ebeac3e94c7",
-  "scoredAt": "2026-05-13T08:28:49.399Z",
+  "scoredAt": "2026-05-13T15:27:06.803Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -47,5 +47,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0,
+    "baselineAvg": 0,
+    "treatmentAvg": 0,
+    "scenarios": [
+      {
+        "name": "legacy-web-form-fill",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required screenshot and tool_use blocks, so neither meets the rubric."
+      },
+      {
+        "name": "desktop-app-data-extraction",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required screenshot, computer tool_use with mouse_move, type, and bash blocks, so neither meets the rubric."
+      }
+    ]
+  }
 }

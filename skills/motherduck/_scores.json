@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:09993a5bfc62ddde4bbca4115bf07db6df511c310c227fd2bea1b2830f680793",
   "scoredAt": "2026-05-13T09:37:36.939Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 92,
+    "multiplier": 2.04,
+    "scenarios": [
+      {
+        "name": "Hybrid local-cloud join in Python",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Treatment uses the exact md:analytics connection plus single-query JOIN of cloud table with read_parquet on local file, while baseline falls back to two-step export/import patterns."
+      },
+      {
+        "name": "Daily KPI materialization script",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment mirrors the CREATE OR REPLACE TABLE daily_kpis pattern with conditional aggregates and 90-day filter on md:analytics, while baseline writes generic SQL without MotherDuck connection idioms."
+      }
+    ]
+  }
 }

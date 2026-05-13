@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:92f647f3ca74931264bed4e06457830d949b153b42619a52edcc3a2010e6fa6d",
   "scoredAt": "2026-05-13T08:52:02.512Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 68,
+    "treatmentAvg": 90,
+    "multiplier": 1.32,
+    "scenarios": [
+      {
+        "name": "Batch-convert yt-dlp WebM downloads to iPhone-friendly MP4",
+        "baseline": 70,
+        "treatment": 92,
+        "rationale": "Treatment uses the documented for-loop with -c:v libx264 -crf 23 -preset medium -c:a aac -movflags +faststart and recommends ffprobe to check if stream copy is possible; baseline gives an ffmpeg command but typically omits +faststart and the ffprobe pre-check."
+      },
+      {
+        "name": "Create a high-quality 480px GIF from a 3-second segment",
+        "baseline": 65,
+        "treatment": 88,
+        "rationale": "Treatment uses the two-step palettegen/paletteuse filter chain with fps=15, scale=480:-1:flags=lanczos as documented; baseline produces a one-shot GIF without palette generation, yielding worse colors."
+      }
+    ]
+  }
 }

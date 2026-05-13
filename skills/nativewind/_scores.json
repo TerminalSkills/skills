@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:be3f2f53bb2189a9b22b7c515c674dbd355d47f64d2498acd4a6f8e31cd2582e",
   "scoredAt": "2026-05-13T09:39:09.658Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 91,
+    "multiplier": 2.39,
+    "scenarios": [
+      {
+        "name": "NativeWind setup in fresh Expo project",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Treatment uses the exact npx expo install command, nativewind/preset, global.css, and layout import; baseline often gives outdated v2 babel-based setup."
+      },
+      {
+        "name": "Dark mode toggle following system",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment uses useColorScheme from nativewind with toggleColorScheme; baseline typically pulls from react-native or builds a manual ThemeContext."
+      }
+    ]
+  }
 }

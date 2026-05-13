@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b1da1ddfda4dececa1a1762d82bf27c6d67fbb7c6baac300d38f0ae663e4466c",
   "scoredAt": "2026-05-13T09:42:20.783Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 91,
+    "multiplier": 2.12,
+    "scenarios": [
+      {
+        "name": "Weekly Nuclei CI scan",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline writes a generic GitHub Actions job that installs nuclei via go install and runs it with bare flags; treatment uses projectdiscovery/nuclei-action with -severity critical,high and -tags cve,misconfig and a step that fails on a non-empty report file."
+      },
+      {
+        "name": "Custom YAML template for exposed .env",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline suggests a curl-based check or a malformed template missing the matchers structure; treatment produces a valid Nuclei template with id, info.severity, http.path of {{BaseURL}}/.env, and matchers-condition:and combining a word matcher for DB_PASSWORD/API_KEY/SECRET with a status:200 matcher."
+      }
+    ]
+  }
 }

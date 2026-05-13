@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e641b40bdea7ac154dcaf645642e507ad7b2de1f9f90e41395ade75f169c4834",
   "scoredAt": "2026-05-13T10:28:33.495Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 24,
+    "treatmentAvg": 95,
+    "multiplier": 3.96,
+    "scenarios": [
+      {
+        "name": "Set up Drizzle ORM with Turso for users + posts with timestamps and relations",
+        "baseline": 25,
+        "treatment": 94,
+        "rationale": "Baseline picks the wrong adapter (better-sqlite3) and misses relations and timestamp mode; treatment uses drizzle-orm/libsql with @libsql/client, dialect:'turso' in drizzle.config.ts with authToken, sqliteTable columns with mode:'timestamp' + $defaultFn, and relations() for joins."
+      },
+      {
+        "name": "Deploy a Cloudflare Worker that queries Turso with Drizzle",
+        "baseline": 22,
+        "treatment": 95,
+        "rationale": "Baseline imports the default @libsql/client (native bindings unsupported on Workers) and commits the token to wrangler.toml; treatment uses @libsql/client/http, creates the client per-request in middleware, and sets TURSO_AUTH_TOKEN via wrangler secret put."
+      }
+    ]
+  }
 }

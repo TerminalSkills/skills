@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c319fc493b29189380fef9a39d25c4c786849828f9daecf3ae33bc5989f0af28",
   "scoredAt": "2026-05-13T10:08:37.727Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 87,
+    "multiplier": 2.07,
+    "scenarios": [
+      {
+        "name": "Add buy button to static HTML page with size variant",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment uses the documented Snipcart CDN script include, data-api-key div, and the snipcart-add-item class with data-item-* attributes including data-item-custom1-name/options for size; baseline reaches for a generic JS cart or Stripe rather than the attribute-driven pattern."
+      },
+      {
+        "name": "Track add-to-cart and order confirmation events in analytics",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment listens for the snipcart.ready DOM event and calls Snipcart.api.cart.items.added and Snipcart.api.cart.confirmed exactly as the skill documents; baseline tries to wire ecommerce events through DOM clicks or generic Stripe webhooks instead of the documented JS API."
+      }
+    ]
+  }
 }

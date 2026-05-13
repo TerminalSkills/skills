@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9c6b043fd4cbe5d1e1d8fa72e8c0023ee601a05df7f9ffefbcf364875033b0b4",
   "scoredAt": "2026-05-13T09:11:21.880Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Speed up a slow Vitest suite running on jsdom",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline tweaks vitest pool settings without solving the underlying DOM cost; treatment installs happy-dom and sets environment: 'happy-dom' in vitest.config plus the per-file @vitest-environment directive as documented."
+      },
+      {
+        "name": "Server-side HTML parsing and extraction without a browser",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline reaches for jsdom or cheerio, missing the skill entirely; treatment imports Window from happy-dom, populates document.body.innerHTML, queries with querySelector, and calls window.happyDOM.close() to release resources."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:26f5509475862305c33af0b57e1ec1ff930fe784b92f4af3d5f7e72485d64ef5",
   "scoredAt": "2026-05-13T08:50:04.735Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,24 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "impact_note": "skill is general pandas/openpyxl patterns broadly known",
+    "baselineAvg": 65,
+    "treatmentAvg": 85,
+    "multiplier": 1.31,
+    "scenarios": [
+      {
+        "name": "Deduplicate customers.xlsx and split into active/inactive sheets",
+        "baseline": 65,
+        "treatment": 85,
+        "rationale": "Treatment follows the documented 5-step flow (load + print shape, isnull/duplicated assessment, drop_duplicates(subset), and a single pd.ExcelWriter with engine='openpyxl' writing two named sheets); baseline does dedup and split correctly but skips the shape/quality preflight and writes two separate files instead of one workbook."
+      },
+      {
+        "name": "Build a region-by-month revenue pivot from sales.csv",
+        "baseline": 65,
+        "treatment": 85,
+        "rationale": "Treatment uses pd.read_csv, pd.to_datetime(errors='coerce'), and df.pivot_table with values/index/columns/aggfunc='sum' and margins=True exactly as shown, then exports via ExcelWriter; baseline produces a pivot but omits margins=True totals and the explicit to_datetime guard against bad dates."
+      }
+    ]
+  }
 }

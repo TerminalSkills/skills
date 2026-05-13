@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a9c00be48c7eb6d6f7d2149c35c957fb012ad7b4e2da76f0795b48e14747b075",
   "scoredAt": "2026-05-13T09:17:45.964Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 96,
+    "multiplier": 4.8,
+    "scenarios": [
+      {
+        "name": "flask-instrumentation",
+        "baseline": 25,
+        "treatment": 96,
+        "rationale": "Baseline used the deprecated JaegerExporter with no Resource/service.name, no FlaskInstrumentor, and a single span; treatment used OTLPSpanExporter at jaeger:4317, set service.name via Resource, called FlaskInstrumentor().instrument(), and wrapped each step in tracer.start_as_current_span with span.set_attribute."
+      },
+      {
+        "name": "adaptive-sampling-prod",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline invented a YAML format that does not match Jaeger's sampling schema; treatment produced valid JSON with service_strategies for payment (1.0) and api-gateway (0.5), default_strategy at 0.1, and operation_strategies dropping /health to 0.001."
+      }
+    ]
+  }
 }

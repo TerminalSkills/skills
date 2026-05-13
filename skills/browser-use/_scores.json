@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:c89f30573cf4ec28767d766d1f0371bfe78d2f8358bfc55beafaa99a4aa7c2ea",
-  "scoredAt": "2026-05-13T08:23:07.463Z",
+  "scoredAt": "2026-05-13T14:55:03.641Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 0,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "scrape-top-5-laptops",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response meets the rubric: both miss the required Pydantic model name, Agent instantiation, and output model specification."
+      },
+      {
+        "name": "login-and-create-post",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use BrowserConfig, Agent, or ChatOpenAI as required."
+      }
+    ]
+  }
 }

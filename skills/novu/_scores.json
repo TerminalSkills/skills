@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:55e38e06641cb3ddbdceced8e347d747779808081154e1efd79c325c3e6c1f78",
   "scoredAt": "2026-05-13T09:42:12.007Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 91,
+    "multiplier": 2.6,
+    "scenarios": [
+      {
+        "name": "Multi-channel order shipped workflow",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Baseline sends notifications via direct provider SDKs (Twilio, SendGrid) rather than composing a Novu workflow; treatment uses workflow() from @novu/framework with step.inApp, step.email, and a conditional step.sms gated on payload.status and a zod payloadSchema."
+      },
+      {
+        "name": "30-minute digest of user activity",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline proposes a cron job and manual buffering of events rather than using step.digest; treatment uses workflow() with step.digest({amount:30, unit:'minutes'}) feeding into step.email that consumes digestedEvents.events."
+      }
+    ]
+  }
 }

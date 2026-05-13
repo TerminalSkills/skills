@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8cca05a0438dd456915ebe70b25e875b689b543ca9aafaf5542604ead7645ec0",
   "scoredAt": "2026-05-13T10:25:49.811Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Render 5,000 markers on a 3D globe efficiently",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses InstancedMesh for the thousands of point markers and TubeGeometry with animated dash offsets for arcs per the SKILL.md globe example; baseline naively spawns 5,000 separate Mesh objects which the skill warns against."
+      },
+      {
+        "name": "Product configurator with R3F and HDR lighting",
+        "baseline": 60,
+        "treatment": 85,
+        "rationale": "Treatment uses useGLTF() with Draco compression, MeshStandardMaterial color/roughness swap, OrbitControls, and an HDR environment map with contact shadows as the skill prescribes; baseline writes vanilla Three.js setup without R3F or drei helpers."
+      }
+    ]
+  }
 }

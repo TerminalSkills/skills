@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:cd8d2ac0fe164d243c8371a8ed70d3ddcb69383f7f3741d2bac04964b49a2ee8",
   "scoredAt": "2026-05-13T10:06:27.705Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 96,
+    "multiplier": 1.75,
+    "scenarios": [
+      {
+        "name": "Full .releaserc.json with changelog + git plugins",
+        "baseline": 40,
+        "treatment": 97,
+        "rationale": "Treatment installs semantic-release + @semantic-release/changelog + @semantic-release/git and wires the full plugin chain (commit-analyzer, release-notes-generator, changelog, npm, git with assets, github) on main; baseline uses the legacy CLI wizard and omits the explicit plugin list and assets."
+      },
+      {
+        "name": "CI wiring with GITHUB_TOKEN and NPM_TOKEN",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Both cover CI on main with both tokens; treatment additionally spells out the feat→minor / fix→patch / BREAKING CHANGE→major conventional-commits mapping the skill teaches."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b8818e3273cf5c8ab59e74c4ba34dc9d22f3c4e760883f6e7e32a6daed639a40",
   "scoredAt": "2026-05-13T10:16:51.848Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Build 5-agent prediction swarm with confidence-weighted voting",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Treatment uses LangGraph StateGraph with distinct personas fanning into a confidence-weighted aggregator returning structured JSON; baseline runs identical agents and uses raw majority vote."
+      },
+      {
+        "name": "3-round debate swarm with cross-round visibility and synthesis",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment threads previous-round positions into each agent's next prompt and adds a final synthesis LLM call across Bull/Bear/Quant; baseline omits the third agent, cross-round context, and synthesis."
+      }
+    ]
+  }
 }

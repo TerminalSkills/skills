@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5e6697c17622b486eb18146c23122ff15e7e3727c7d268eeb30bed83c1140d53",
   "scoredAt": "2026-05-13T09:45:43.178Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 84,
+    "multiplier": 2.8,
+    "scenarios": [
+      {
+        "name": "macOS Gatekeeper block on first launch",
+        "baseline": 25,
+        "treatment": 85,
+        "rationale": "Treatment uses the exact xattr quarantine-removal command and points to System Settings Privacy & Security for Screen Recording and Accessibility permissions as described in the skill; baseline gives generic 'right-click open' advice and misses the specific permission grants."
+      },
+      {
+        "name": "Polished landing-page product demo recording",
+        "baseline": 35,
+        "treatment": 83,
+        "rationale": "Treatment recommends OpenScreen's documented automatic cursor-following zooms, motion blur, gradient backgrounds, and 16:9 1080p web export; baseline suggests external tools like OBS or ffmpeg edits and misses the post-processing zoom workflow."
+      }
+    ]
+  }
 }

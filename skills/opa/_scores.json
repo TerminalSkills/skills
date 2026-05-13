@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:086b6e799da87f25a745058807897328cc6cd63ae70d6a010539b25216bca9db",
   "scoredAt": "2026-05-13T09:44:18.109Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 91,
+    "multiplier": 2.12,
+    "scenarios": [
+      {
+        "name": "Rego API authz: admins full, users read/edit own profile, block self role change",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline produced plausible Rego but missed key idioms; treatment used package authz, import rego.v1, default allow := false, multiple allow if rules with input.user/method/path and the not input.body.role guard for self-updates."
+      },
+      {
+        "name": "Validate Terraform plan with OPA to block public S3 and unencrypted RDS",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Baseline omitted the documented plan-to-json pipeline; treatment used terraform show -json plan.tfplan > plan.json then opa eval -d policy/ -i plan.json data.terraform.deny with deny contains msg if rules over input.resource_changes."
+      }
+    ]
+  }
 }

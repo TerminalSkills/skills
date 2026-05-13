@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a23f1c65b2b5531661ac0892170e08ede4c45edeca2ef88eaef4ff1ebd79d5ae",
   "scoredAt": "2026-05-13T09:57:07.660Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 49,
+    "treatmentAvg": 87,
+    "multiplier": 1.78,
+    "scenarios": [
+      {
+        "name": "Find the aha moment for a SaaS product",
+        "baseline": 48,
+        "treatment": 88,
+        "rationale": "Treatment ran the documented aha-moment method (list week-1 actions, split did vs didn't, compare D30 retention by group) and tied the winning action to onboarding redesign; baseline suggested generic engagement scoring and feature usage tracking without the retention-gap comparison."
+      },
+      {
+        "name": "Diagnose a leaky AARRR funnel",
+        "baseline": 50,
+        "treatment": 86,
+        "rationale": "Treatment measured drop-off at each AARRR stage, identified the largest absolute drop as the bottleneck, cohorted by acquisition channel and plan tier, and refused to optimize acquisition before retention; baseline recommended broad conversion optimization without cohorting or bottleneck identification."
+      }
+    ]
+  }
 }

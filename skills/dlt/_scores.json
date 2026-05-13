@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:6d94fdc0886c28d05f1842be49eccd6d934584633ae8ae13da9c9442827c126f",
-  "scoredAt": "2026-05-13T08:45:03.286Z",
+  "scoredAt": "2026-05-13T16:39:26.522Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7.5,
+    "baselineAvg": 10,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "incremental-github-events-with-schema-contract",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A never mentions dlt or a resource; Response B defines a dlt.resource but uses the wrong incremental field and omits the required event_type column."
+      },
+      {
+        "name": "hubspot-declarative-rest-api-source",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits key details such as base_url, auth token reference, pagination, write_disposition, and primary_key."
+      }
+    ]
+  }
 }

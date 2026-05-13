@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0a899217838eff376ede68856db5a2c590ed33c0e1a72f9f7f5636717f10482c",
   "scoredAt": "2026-05-13T09:16:29.880Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Downsample raw metrics to a separate long-retention bucket",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses an `option task` block with `aggregateWindow` writing via `to(bucket: ...)` to a separate `downsampled` bucket created with `influx bucket create --retention`, matching the skill's Task E pattern; baseline used CQ syntax from InfluxDB 1.x and missed the separate-bucket retention strategy."
+      },
+      {
+        "name": "Compute per-service 5xx error rate over the last hour",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment composes two filtered/summed Flux tables with `group(columns: [\"service\"])` then `join(tables: {errors, total}, on: [\"service\"])` and a `map` for the percentage, matching the documented join pattern; baseline produced ad-hoc Flux that didn't structure errors vs total as joinable tables."
+      }
+    ]
+  }
 }

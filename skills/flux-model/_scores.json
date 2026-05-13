@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2f301811ebe42b7d4661d6c9469a296e317eca5ef4dc4b5ede843e1b91b30bb7",
   "scoredAt": "2026-05-13T08:53:57.626Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Batch logo generation with Flux Schnell on fal.ai",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline uses a default model with wasteful step counts; treatment picks fal-ai/flux/schnell with num_inference_steps=4 (its distilled sweet spot) via fal_client.subscribe."
+      },
+      {
+        "name": "Black Forest Labs direct API with polling",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline invents a wrong endpoint and Bearer auth; treatment POSTs to api.bfl.ml/v1/flux-pro-1.1 with x-key, polls get_result, handles Error/Content Moderated, then downloads result.sample."
+      }
+    ]
+  }
 }

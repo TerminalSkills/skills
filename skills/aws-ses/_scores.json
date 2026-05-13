@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b075c74216001bca274b733951476aa6df9062937922826945751f449e55d95c",
-  "scoredAt": "2026-05-13T08:19:56.616Z",
+  "scoredAt": "2026-05-13T14:27:49.402Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "verify-domain-dkim",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes the exact sesv2 commands required by the rubric, while Response B uses different SES commands and does not meet the rubric requirements."
+      },
+      {
+        "name": "setup-receipt-rule-s3-lambda",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A exactly matches the required command and JSON structure, while Response B uses a different rule set name, rule name, bucket, and Lambda ARN, failing to meet the rubric."
+      }
+    ]
+  }
 }

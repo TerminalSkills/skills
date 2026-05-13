@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:144bc26fec52d2c5ccca016dba5f1ffbb5d26c4af75f3a897e1c8964d4f4868a",
   "scoredAt": "2026-05-13T10:35:18.184Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 73,
+    "treatmentAvg": 97,
+    "multiplier": 1.33,
+    "scenarios": [
+      {
+        "name": "Bayesian hyperparameter sweep over learning rate and batch size",
+        "baseline": 75,
+        "treatment": 95,
+        "rationale": "Treatment uses skill's exact distribution syntax (log_uniform_values) and namespaced metric (val/accuracy); baseline uses plain min/max without distribution key."
+      },
+      {
+        "name": "Dataset versioning with Artifacts and downstream training run",
+        "baseline": 70,
+        "treatment": 98,
+        "rationale": "Treatment correctly distinguishes runs via job_type (data-prep/training) per the skill pattern; baseline omits job_type entirely."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:42d7ad319b207d7787753339a07e391080144d674bcaeb25ce3695f5f4f354b8",
   "scoredAt": "2026-05-13T10:34:27.242Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Component library build config",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment configures `build.lib` with entry and formats (es, cjs, umd), externalizes peer dependencies, and adds vite-plugin-dts for TypeScript declarations; baseline often relies on rollup directly or omits dts generation."
+      },
+      {
+        "name": "CRA to Vite migration",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment installs @vitejs/plugin-react, removes react-scripts, renames REACT_APP_* env vars to VITE_* (read via import.meta.env), and moves the entry module reference into index.html; baseline keeps process.env usage or skips the index.html change."
+      }
+    ]
+  }
 }

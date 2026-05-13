@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1733cad681b542c244e608e36c2840536fee412092ff2d7a6e5fcc4b9b78eed8",
   "scoredAt": "2026-05-13T10:45:27.714Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 85,
+    "multiplier": 2.43,
+    "scenarios": [
+      {
+        "name": "refactored-payment-calc-module",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment follows the 5-step process — uses git diff to scope, identifies behavior contracts, runs tests against both pre-refactor (via git stash/checkout main) and post-refactor code, and structures tests into preserved-behavior/edge-cases/error-handling describe blocks; baseline writes generic Jest tests against only the current code."
+      },
+      {
+        "name": "auth-service-bcrypt-migration",
+        "baseline": 38,
+        "treatment": 86,
+        "rationale": "Treatment categorizes the migration as internal restructuring with preserved API, generates contract + side-effect + error-path tests, and verifies equivalence by running the same suite against the old and new code via git checkout; baseline lists generic auth tests without the before/after equivalence check that defines a regression test."
+      }
+    ]
+  }
 }

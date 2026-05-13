@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b3931fd01b89f5276ec8e459465b22a71846723cc1cbed2af4c471aae0641472",
   "scoredAt": "2026-05-13T08:50:45.023Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 96,
+    "multiplier": 2.23,
+    "scenarios": [
+      {
+        "name": "Publish text+photo to Page and fetch 7-day insights",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Treatment hits the documented v19.0 endpoints (/feed with message, /photos with url+caption, /insights with the four documented metrics page_impressions/page_engaged_users/page_fans/page_views_total at period=day with since/until); baseline omits the v19.0 prefix, passes params in the query string, and requests a single metric without period/since/until."
+      },
+      {
+        "name": "Weekly engagement plan to revive a Facebook Group",
+        "baseline": 35,
+        "treatment": 96,
+        "rationale": "Treatment supplies the documented Mon-Fri framework with copy/CTAs, 3 membership screening questions, 14-day post approval for new members, and a monthly Live Q&A leveraging push notifications; baseline gives generic 'post more, run polls' advice without the specific framework or moderation settings."
+      }
+    ]
+  }
 }

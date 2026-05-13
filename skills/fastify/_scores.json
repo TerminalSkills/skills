@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3de8920b8da85a58a6697ceca342f11707b6d69af5427b845e7a5c37cc4d49c8",
   "scoredAt": "2026-05-13T08:51:28.661Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 68,
+    "treatmentAvg": 98,
+    "multiplier": 1.44,
+    "scenarios": [
+      {
+        "name": "POST /api/articles with JWT, JSON Schema validation, and Postgres insert",
+        "baseline": 55,
+        "treatment": 98,
+        "rationale": "Treatment used the fastify-plugin pattern to decorate db and authenticate, applied route-level preHandler with createArticleSchema (body + response), and replied with reply.code(201).send; baseline lacked the decorate/fastify-plugin pattern, used a global preHandler hook, and omitted the response schema."
+      },
+      {
+        "name": "Test GET /api/articles without binding a port",
+        "baseline": 80,
+        "treatment": 98,
+        "rationale": "Treatment imported buildApp, used app.inject, asserted statusCode === 200, and called app.close exactly per the documented test pattern; baseline used inject and assertions but constructed the app inline rather than from a buildApp factory."
+      }
+    ]
+  }
 }

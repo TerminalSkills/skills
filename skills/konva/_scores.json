@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:050f63249f9e779634dc567f985d66e4746e13cf78a5470fd64e2985a3310f99",
   "scoredAt": "2026-05-13T09:20:20.445Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 63,
     "dimensions": {
@@ -41,5 +41,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 93,
+    "multiplier": 1.43,
+    "scenarios": [
+      {
+        "name": "Selectable, draggable, resizable shapes",
+        "baseline": 75,
+        "treatment": 93,
+        "rationale": "Both use Stage/Layer with draggable shapes, click-to-select, empty-stage deselect via e.target === e.target.getStage(), and a conditional Transformer; treatment additionally enforces a minimum size with boundBoxFunc as the skill specifies."
+      },
+      {
+        "name": "Image annotator with drag-to-draw bounding boxes",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment wraps each annotation in a Group with a labeled Text positioned above (y - 20), uses dashed stroke on the in-progress rect, and filters tiny rects (Math.abs(width) > 10) per the skill; baseline draws plain rects without label, dash, or size filter."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7325659f8e4c489f52fd3a86255949fc6be5f6d2fcc2f4cbe25516a470d1e3b9",
   "scoredAt": "2026-05-13T10:07:33.690Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 64,
+    "treatmentAvg": 93,
+    "multiplier": 1.45,
+    "scenarios": [
+      {
+        "name": "responsive-variants-webp-and-avif",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Treatment iterates a [320,640,960,1280,1920] breakpoint array, reads metadata().width to skip upscaling, emits webp({quality:80}) primary plus progressive jpeg fallback, and adds avif({quality:50}) noting the differing quality scale; baseline writes one-off resize/webp calls without the upscale guard or quality-scale awareness."
+      },
+      {
+        "name": "avatar-upload-pipeline-with-exif-strip",
+        "baseline": 62,
+        "treatment": 93,
+        "rationale": "Treatment chains .rotate() first to apply EXIF orientation, uses resize(200,200,{fit:'cover',position:'centre'}) for the square avatar, generates the 800w display and 40x40 thumb, and strips metadata via withMetadata({orientation: undefined}); baseline commonly forgets the rotate() step and EXIF strip for user uploads."
+      }
+    ]
+  }
 }

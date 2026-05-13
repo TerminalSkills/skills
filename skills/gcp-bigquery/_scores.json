@@ -2,8 +2,8 @@
   "version": "1.1.0",
   "skillHash": "sha256:437d44f7da4174ff083e2b991b021daf6b24b7eebf82330474ab56d2ef465841",
   "scoredAt": "2026-05-13T09:05:52.118Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 93,
+    "multiplier": 1.86,
+    "scenarios": [
+      {
+        "name": "Add per-row sentiment classification on product reviews",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Treatment uses AI.GENERATE_BOOL with connection_id and endpoint => 'gemini-2.5-flash' as a single SQL statement; baseline builds a separate Python+Vertex pipeline because it doesn't know AI.GENERATE_* SQL functions exist."
+      },
+      {
+        "name": "Build a cost-safe partitioned/clustered events table",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Treatment combines PARTITION BY DATE(created_at), CLUSTER BY user_id, partition_expiration_days, --maximum_bytes_billed and --dry_run; baseline typically misses partition expiration and the maximum_bytes_billed safety cap."
+      }
+    ]
+  }
 }

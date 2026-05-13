@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7e1e5cc6516692023ccf159377c5bb1cd83d56127f27eca1685b30f529e1afcf",
-  "scoredAt": "2026-05-13T08:40:38.164Z",
+  "scoredAt": "2026-05-13T16:09:30.081Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 5,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "stream-transform-large-csv",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is a Python solution and does not use the required Node.js streams."
+      },
+      {
+        "name": "validate-csv-required-fields",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B correctly uses validateCsv with the required fields and expects the proper return structure, while Response A defines a different function and does not meet the rubric requirements."
+      }
+    ]
+  }
 }

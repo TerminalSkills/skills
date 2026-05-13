@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:e01f824bab8c77821287461a69f0b0bb74005ac225a607e4ecf099ec263e0da4",
-  "scoredAt": "2026-05-13T08:26:35.447Z",
+  "scoredAt": "2026-05-13T15:11:44.296Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.33,
+    "baselineAvg": 15,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "retry-task-with-exponential-backoff",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response A meets most rubric items (correct countdown and retry call) but has an incorrect max_retries value, whereas Response B fails on several key points including the countdown formula and default_retry_delay."
+      },
+      {
+        "name": "chain-three-tasks",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not provide any tasks or chain."
+      }
+    ]
+  }
 }

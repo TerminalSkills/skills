@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a06391e9b4c14c506a29ce5cd68ae0c184766186f02871e3f3d53f29755ad9e2",
-  "scoredAt": "2026-05-13T08:44:29.584Z",
+  "scoredAt": "2026-05-13T16:35:23.374Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.71,
+    "baselineAvg": 38,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "basic-typescript-node-config",
+        "baseline": 45,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items (image, ports, postCreateCommand, extensions, settings) but misses the required features block, while Response A fails to meet several key requirements such as using the specified image, including features, and correctly nesting extensions and settings."
+      },
+      {
+        "name": "add-postgres-database",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response B better meets the rubric, correctly defining the db service and devcontainer.json features, while Response A fails to match required service name, environment variables, and image specification."
+      }
+    ]
+  }
 }

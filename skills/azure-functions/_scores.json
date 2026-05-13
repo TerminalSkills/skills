@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:2688794282735240eb5f3f1cc91c2ad4fee3f46a24f09544353486030f858b7f",
-  "scoredAt": "2026-05-13T08:20:42.176Z",
+  "scoredAt": "2026-05-13T14:34:11.152Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4,
+    "baselineAvg": 20,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "create-hourly-timer-function",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items (Node.js code, schedule, handler, func new) but misses func init and exact naming; Response B is in C# and omits all required Node.js elements."
+      },
+      {
+        "name": "setup-order-orchestrator",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits key activities and uses the wrong starter pattern."
+      }
+    ]
+  }
 }

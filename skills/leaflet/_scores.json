@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:19ddc024bacd99e653d47d64e070d1ef1c1ad7ec028a1b9d27d2dc68516e36c8",
   "scoredAt": "2026-05-13T09:22:14.134Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 96,
+    "multiplier": 3.43,
+    "scenarios": [
+      {
+        "name": "Build a React store locator with 200+ clustered markers",
+        "baseline": 15,
+        "treatment": 96,
+        "rationale": "Treatment uses MapContainer/TileLayer/Marker/Popup with OpenStreetMap tiles, react-leaflet-cluster, CSS import, and SSR guidance per the skill; baseline reaches for Google Maps which fails the Leaflet-specific rubric."
+      },
+      {
+        "name": "Render GeoJSON delivery zones with styled polygons and popups",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Treatment uses the GeoJSON component with style callback driven by feature.properties and onEachFeature+bindPopup exactly as in the skill; baseline manually maps Polygons and misses the GeoJSON pattern."
+      }
+    ]
+  }
 }

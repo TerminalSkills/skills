@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:66cae8cd8a6e19d67b6cd9454aabcdd4dfb83c267954b036b9107cd0cc90395b",
   "scoredAt": "2026-05-13T08:48:22.720Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 15,
+    "treatmentAvg": 92,
+    "multiplier": 6.13,
+    "scenarios": [
+      {
+        "name": "Build an Encore TypeScript backend with users service, Postgres database, and CRUD endpoints",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Baseline tends to hallucinate Encore APIs (decorators, classes) or fall back to Express; treatment uses the exact api() config-object pattern and SQLDatabase constructor with migrations directory and tagged-template queries."
+      },
+      {
+        "name": "Add a daily cron job that publishes an event other services can subscribe to",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Baseline reaches for external cron and brokers or invents decorators; treatment correctly uses Encore's first-party CronJob, Topic.publish, and Subscription primitives from encore.dev/cron and encore.dev/pubsub."
+      }
+    ]
+  }
 }

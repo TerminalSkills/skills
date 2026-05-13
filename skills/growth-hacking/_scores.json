@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ae9e1ccf1632b44e98c23ddb848e8731d50f7fd5b8fb6c7f2774c29a9c11c810",
   "scoredAt": "2026-05-13T09:10:32.718Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 92,
+    "multiplier": 1.92,
+    "scenarios": [
+      {
+        "name": "Design a SaaS referral program with K-factor projection",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline suggested a generic single-sided referral; treatment proposed double-sided rewards, triggered on a qualifying action (not signup) to prevent fraud, capped rewards per user, and projected K = invites_per_user x conversion_rate_per_invite as the skill prescribes."
+      },
+      {
+        "name": "Lift onboarding activation from 23% to 35% with A/B tests",
+        "baseline": 50,
+        "treatment": 91,
+        "rationale": "Baseline proposed loose copy/UX tests; treatment identified the aha moment by comparing retained vs churned behavior, sized variants with n = (Z^2 x p x (1-p)) / MDE^2, and committed to a 1-2 week minimum with no early peeking, matching the skill's discipline."
+      }
+    ]
+  }
 }

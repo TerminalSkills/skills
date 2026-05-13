@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:36c91d95b598619c6a9d409b23aab1ed891d5c925a990e04dc608452d140746e",
-  "scoredAt": "2026-05-13T08:25:44.983Z",
+  "scoredAt": "2026-05-13T15:04:43.249Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7.5,
+    "baselineAvg": 0,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "schedule-recurring-standup-outlook",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers authentication, event creation, attendees, Teams meeting flags, and a weekly recurrence, but it uses a recurrence object instead of the exact rule string required by the rubric; Response B is empty."
+      },
+      {
+        "name": "find-free-slot-google-meet",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B implements most steps but omits creating the event and adding the third attendee, whereas Response A is missing entirely."
+      }
+    ]
+  }
 }

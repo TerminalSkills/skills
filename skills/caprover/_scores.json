@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a0a7e6c88466708fa7557e186ec386857704c0533f11f1d1b653ca01fff9afcf",
-  "scoredAt": "2026-05-13T08:26:14.933Z",
+  "scoredAt": "2026-05-13T15:09:11.157Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "deploy-nodejs-api-with-captain-definition",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits key elements such as the captain-definition file, docker run install command, and serversetup step."
+      },
+      {
+        "name": "automate-app-creation-with-caprover-api",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a caproverApi function and all required operations, while Response B omits the required caproverApi function and uses a different approach."
+      }
+    ]
+  }
 }

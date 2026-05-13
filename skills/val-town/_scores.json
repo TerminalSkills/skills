@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d319615870c431d1d65e1538787c3a92dd8a68043bc32a7d2b3b178330fe511d",
   "scoredAt": "2026-05-13T10:33:07.348Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 15,
+    "treatmentAvg": 95,
+    "multiplier": 6.33,
+    "scenarios": [
+      {
+        "name": "Tiny todo CRUD REST API with persistent storage, no infra",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline reaches for Vercel/Workers/Deno Deploy plus an external DB and misses Val Town's built-in sqlite import URL and HTTP val signature, while treatment uses the documented esm.town/v/std/sqlite import with the exact Request-in/Response-out CRUD handler."
+      },
+      {
+        "name": "Daily 9am Slack report cron without managing servers",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline defaults to GitHub Actions or Lambda+EventBridge rather than a Val Town cron val, while treatment uses the documented argumentless export default async function pattern with Deno.env.get for the Slack webhook secret."
+      }
+    ]
+  }
 }

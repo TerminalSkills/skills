@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4b3978327912fc2f98cdbd4ac5c80d5c61417f9c53a9866b5a91b36ed16d7a63",
   "scoredAt": "2026-05-13T09:21:28.338Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -42,5 +42,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 87,
+    "multiplier": 2.9,
+    "scenarios": [
+      {
+        "name": "Build a customer-support ReAct agent with tools and persistent multi-turn memory",
+        "baseline": 32,
+        "treatment": 88,
+        "rationale": "Treatment defines a State TypedDict with Annotated[list, add_messages], wires a conditional edge from agent to ToolNode and back, compiles with MemorySaver and invokes with configurable.thread_id for per-user memory; baseline writes a generic while-loop agent without StateGraph, ToolNode, or thread_id checkpointing."
+      },
+      {
+        "name": "Multi-agent research-write-review pipeline with cycle limited to 3 revisions",
+        "baseline": 28,
+        "treatment": 86,
+        "rationale": "Treatment defines ResearchState TypedDict with sources Annotated[list, add], adds nodes research/write/review/revise/publish, uses add_conditional_edges('review', should_revise, ...) with revision_count<3 guard cycling back to revise; baseline produces a linear pipeline without StateGraph cycles or add-reducer accumulation."
+      }
+    ]
+  }
 }

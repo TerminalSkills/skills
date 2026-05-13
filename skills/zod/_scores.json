@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0ace8fa2315078e7b99d788cbf677fd5a64e4759fb24b73bd7806fb19edd0ef1",
   "scoredAt": "2026-05-13T10:40:57.721Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 78,
+    "treatmentAvg": 94,
+    "multiplier": 1.21,
+    "scenarios": [
+      {
+        "name": "env-var-validation-with-coercion",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "The treatment uses `z.coerce.number().default(3000)` as the skill recommends for env vars, while the baseline reaches for `.transform(parseInt)` which works but is the older pattern Zod's coerce helpers were designed to replace."
+      },
+      {
+        "name": "discriminated-union-events",
+        "baseline": 85,
+        "treatment": 92,
+        "rationale": "Both correctly use `z.discriminatedUnion` with `z.literal` discriminators since this is widely documented Zod, but the treatment matches the skill's exact event shapes including the `modifiers` array on keypress."
+      }
+    ]
+  }
 }

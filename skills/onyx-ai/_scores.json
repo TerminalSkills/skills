@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7f56930c086a0f4b7cced0c8937a2d5629a09fae916dad41544a393e54a3097b",
   "scoredAt": "2026-05-13T09:44:06.618Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 90,
+    "multiplier": 3.21,
+    "scenarios": [
+      {
+        "name": "Deploy self-hosted Onyx with Confluence connector and Ollama LLM",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline suggested unrelated self-hosted RAG stacks; treatment used the documented git clone of onyx-dot-app/onyx, cd onyx/deployment/docker_compose, docker compose up -d, admin panel at localhost:3000, and configured Ollama plus Confluence connector with API token."
+      },
+      {
+        "name": "Create role-scoped Sales and HR Assistants in Onyx",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "Baseline answered generically about ChatGPT plugins; treatment used Admin -> Connectors to add CRM/product docs and Admin assistants flow with separate system prompts and document permissions per assistant as documented."
+      }
+    ]
+  }
 }

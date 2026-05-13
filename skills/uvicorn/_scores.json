@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:952fa754ee61c178bf02a0313d58eff51b88e003bfd8b81f652b6b86807fbc20",
   "scoredAt": "2026-05-13T10:32:49.610Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 95,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Production FastAPI deploy on a 4-core VPS",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline uses Gunicorn+UvicornWorker but only 4 workers (missed the (2*cores)+1 formula) and omits documented flags like --timeout 120, --graceful-timeout 30, and access/error logfiles; treatment uses 9 workers, all documented flags, warns against --reload in production, and configures proxy_headers behind a reverse proxy."
+      },
+      {
+        "name": "Real client IP behind a load balancer",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Baseline mentions --proxy-headers and custom middleware as one of several options; treatment anchors to the documented programmatic uvicorn.run config with proxy_headers=True and forwarded_allow_ips and notes the same pattern under Gunicorn+UvicornWorker."
+      }
+    ]
+  }
 }

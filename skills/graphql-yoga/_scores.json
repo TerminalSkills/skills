@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:adba21ff53b0604422c5841dc6f039d2f0fd6f304d67ffd2329f868011aa250c",
   "scoredAt": "2026-05-13T09:10:10.075Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 97,
+    "multiplier": 2.55,
+    "scenarios": [
+      {
+        "name": "basic-yoga-setup",
+        "baseline": 45,
+        "treatment": 96,
+        "rationale": "Treatment uses createSchema + createYoga together, wires NODE_ENV into maskedErrors and graphiql, and implements Subscription.newUser.subscribe via pubsub.subscribe; baseline uses makeExecutableSchema and an async generator without NODE_ENV gating."
+      },
+      {
+        "name": "yoga-plugins-hardening",
+        "baseline": 30,
+        "treatment": 97,
+        "rationale": "Treatment registers useResponseCache, useRateLimiter, and useDepthLimit from the Yoga plugin packages with full config; baseline reaches for incorrect package names and falls back to validationRules-style depth limiting."
+      }
+    ]
+  }
 }

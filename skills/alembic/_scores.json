@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:64614d6420d07e46357747ad7eefd430fbc131661bae1fbc3820e837f652f569",
-  "scoredAt": "2026-05-12T22:25:15.529Z",
+  "scoredAt": "2026-05-13T13:52:09.051Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.07,
+    "baselineAvg": 70,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "create-table-migration",
+        "baseline": 70,
+        "treatment": 50,
+        "rationale": "Response A meets most rubric requirements except the missing command, while Response B also omits the command and uses incorrect column definitions."
+      },
+      {
+        "name": "ci-migration-commands",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric by listing the commands and noting they belong in CI, while Response B lists the commands but omits the CI context."
+      }
+    ]
+  }
 }

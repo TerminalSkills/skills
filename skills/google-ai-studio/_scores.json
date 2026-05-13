@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6caddf9b503865c6693c8cc5ca776eb699273f190cf3802caf04f3c2857d7e76",
   "scoredAt": "2026-05-13T09:09:16.680Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 94,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "Strict-JSON extractor with response schema",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline tends to ask for JSON via prompt only and may use outdated model names; treatment sets response_mime_type and response_schema on generation_config and json.loads(response.text) as the skill prescribes."
+      },
+      {
+        "name": "Long-context security audit of codebase",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Baseline typically chunks or proposes RAG; treatment uses gemini-1.5-pro with pathlib rglob to concatenate files into a single generate_content call, matching the long-context pattern."
+      }
+    ]
+  }
 }

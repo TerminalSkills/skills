@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6a26e40692a590fb5ea6c34288ce0ab336e6b8bf1082258956be696291202f09",
   "scoredAt": "2026-05-13T09:48:51.734Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 96,
+    "multiplier": 2.53,
+    "scenarios": [
+      {
+        "name": "saq-selection-stripe",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline incorrectly suggests SAQ A for Stripe Elements; treatment correctly assigns SAQ A-EP, explains why (JS-based payment form means the page can influence card capture), and gives the medium ~191-requirement scope from the skill's SAQ table."
+      },
+      {
+        "name": "logging-and-storage-rules",
+        "baseline": 45,
+        "treatment": 96,
+        "rationale": "Baseline mentions tokenization and CVV avoidance but misses log retention and exact masking rules; treatment cites the SAD prohibition, first-6-last-4 masking, structured CHD-access logs with card_last4, and the 12-month / 3-month retention rule from Req 10."
+      }
+    ]
+  }
 }

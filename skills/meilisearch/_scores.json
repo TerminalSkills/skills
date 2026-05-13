@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f60a3c45ea4e7834e003e857afd61221856922a8194033a6691f5d4d16ff75da",
   "scoredAt": "2026-05-13T09:34:15.607Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "Product catalog with facets and filters",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline indexes documents and searches but typically skips updateFilterableAttributes (so filters silently fail) and doesn't request facetDistribution; treatment configures searchable/filterable/sortable attributes then searches with facets and reads facetDistribution per the SKILL.md."
+      },
+      {
+        "name": "Multi-tenant per-customer search",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline proposes separate indexes per tenant or server-side filtering, missing Meilisearch's tenant-token feature; treatment uses client.generateTenantToken with index-level filter rules and expiresAt exactly as the SKILL.md documents."
+      }
+    ]
+  }
 }

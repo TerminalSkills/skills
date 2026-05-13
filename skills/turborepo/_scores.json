@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:afb504c01976c507b7ca503a4c7eba0dc8813dd98eb5da7f8ddb80679e73c47b",
   "scoredAt": "2026-05-13T10:28:16.983Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 25,
+    "treatmentAvg": 91,
+    "multiplier": 3.64,
+    "scenarios": [
+      {
+        "name": "Configure turbo.json so building @app/web first builds workspace deps and caches output",
+        "baseline": 28,
+        "treatment": 92,
+        "rationale": "Baseline uses dependsOn:['build'] (non-topological) and skips outputs; treatment uses dependsOn:['^build'] with the topological prefix, declares outputs:['.next/**','dist/**'], and sets empty outputs:[] for lint."
+      },
+      {
+        "name": "Create a minimal Docker context for deploying just @app/api",
+        "baseline": 22,
+        "treatment": 90,
+        "rationale": "Baseline COPYs the whole monorepo into the image and installs everything; treatment uses turbo prune --scope=@app/api in a pruner stage so only the targeted package and its dependencies enter the Docker context."
+      }
+    ]
+  }
 }

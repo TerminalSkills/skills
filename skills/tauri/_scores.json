@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:59d3ac0d93f9a46d89af02d7e4081924f9067a75596e0f99b91fa92357a2f6b9",
   "scoredAt": "2026-05-13T10:23:31.937Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 88,
+    "multiplier": 2.75,
+    "scenarios": [
+      {
+        "name": "Command vs event IPC for file read + CPU stream",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline collapsed both flows into commands and skipped Result<T, String> conventions, while treatment correctly used #[tauri::command] with invoke() for the on-demand read and Tauri events for the push-style CPU stream."
+      },
+      {
+        "name": "Lock down filesystem access to one directory",
+        "baseline": 28,
+        "treatment": 88,
+        "rationale": "Baseline gave generic Tauri allowlist advice without the capabilities/ structure, whereas treatment scoped @tauri-apps/plugin-fs in capabilities/ with a narrow path list following least-privilege."
+      }
+    ]
+  }
 }

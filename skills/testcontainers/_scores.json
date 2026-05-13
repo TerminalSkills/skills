@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:25ec063d39c318e935983bf5507b34ec7fdc8f1b99e1b0a412b070e6158427c6",
   "scoredAt": "2026-05-13T10:25:14.809Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 92,
+    "multiplier": 1.67,
+    "scenarios": [
+      {
+        "name": "PostgreSQL integration test for a Node.js repository",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Treatment uses PostgreSqlContainer from @testcontainers/postgresql with withDatabase/withUsername/withPassword and container.getConnectionUri(), wired into beforeAll/afterAll; baseline often falls back to GenericContainer with hand-built connection strings and skips the dedicated postgres module."
+      },
+      {
+        "name": "Redis cache integration test with GenericContainer",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses GenericContainer('redis:7-alpine').withExposedPorts(6379) and builds the URL from container.getHost() + container.getMappedPort(6379); baseline frequently hardcodes localhost:6379 instead of using the mapped port helpers."
+      }
+    ]
+  }
 }

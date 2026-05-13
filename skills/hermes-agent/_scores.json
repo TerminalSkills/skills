@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ba8f3f1b6a441e9c8cab23974ff4fb01fa176cd30540bdb005d59fd54e2c712b",
   "scoredAt": "2026-05-13T09:12:23.145Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 84,
+    "multiplier": 2.63,
+    "scenarios": [
+      {
+        "name": "Self-improving Python agent with persisted preferences",
+        "baseline": 35,
+        "treatment": 86,
+        "rationale": "Treatment defines a class that persists config to a JSON file across instantiations, runs a reflection LLM call returning structured JSON with NEW_FACTS/PREFERENCES, and only updates the system prompt via the reflection pipeline rather than letting user input overwrite it; baseline shows a generic memory dict without disk persistence or a separate reflection model."
+      },
+      {
+        "name": "Avoid degrading good behavior during self-improvement",
+        "baseline": 30,
+        "treatment": 82,
+        "rationale": "Treatment applies the documented QUALITY_SCORE < 7 guard, uses claude-haiku-4-5 as a cheaper reflection model, and bumps config version on prompt merges; baseline gives generic LLM evaluation advice without the specific threshold or version bump pattern."
+      }
+    ]
+  }
 }

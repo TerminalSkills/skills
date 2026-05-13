@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:ff9a560124267b475f08a9e9b535e87d615d1403aa8420f8a778d489eb72b905",
-  "scoredAt": "2026-05-13T08:38:45.618Z",
+  "scoredAt": "2026-05-13T15:59:25.156Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 60,
+    "scenarios": [
+      {
+        "name": "real-time-todo-list",
+        "baseline": 35,
+        "treatment": 75,
+        "rationale": "Response B covers most rubric items (schema, index, auth‑guarded mutation, query, React hooks), while Response A omits key details like the index, correct field names, and proper auth usage."
+      },
+      {
+        "name": "file-upload-and-cleanup",
+        "baseline": 45,
+        "treatment": 45,
+        "rationale": "Both responses omit the required owner, path, and uploadedAt fields and fail to validate user identity, so they score similarly low."
+      }
+    ]
+  }
 }

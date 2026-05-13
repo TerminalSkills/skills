@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:250da3719ee3e489fc7a9b96d0945802cb0c59d3d5bf060bff6d6fdfab2eca95",
   "scoredAt": "2026-05-13T09:22:21.331Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 91,
+    "multiplier": 2.12,
+    "scenarios": [
+      {
+        "name": "Create lean canvas for new AI code review tool",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Treatment uses the explicit 9-box structure with existing alternatives, early adopter, the [End result] for [target customer] without [pain/cost] UVP format, and identifies the riskiest assumption with a concrete test; baseline lists generic blocks without these skill-specific patterns."
+      },
+      {
+        "name": "Review existing canvas and find riskiest assumptions",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Treatment applies the 'riskiest assumption first' discipline, flags fake Unfair Advantage, recommends weekly cadence and one-canvas-per-segment, and proposes pricing/interview experiments grounded in the skill's guidelines; baseline gives generic CRO advice."
+      }
+    ]
+  }
 }

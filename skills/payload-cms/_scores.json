@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:66b8b3ffe2e7b0b545b75fdbe1786a64cff80ee2af9570755775b240bc18e0c3",
   "scoredAt": "2026-05-13T09:48:37.546Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 86,
+    "multiplier": 1.91,
+    "scenarios": [
+      {
+        "name": "Blog CMS with categories, authors, rich text",
+        "baseline": 48,
+        "treatment": 88,
+        "rationale": "Treatment defines TypeScript collections with relationship fields, enables versions/drafts on posts, and fetches via Local API (payload.find()) in Server Components; baseline gives a generic headless-CMS sketch without versions:{drafts:true} or Local API usage."
+      },
+      {
+        "name": "Editor/reviewer/admin role permissions",
+        "baseline": 42,
+        "treatment": 84,
+        "rationale": "Treatment uses function-based access control with reusable isAdmin/isLoggedIn helpers at collection and field level (enforced across REST/GraphQL/Local API); baseline reaches for Express-style middleware that Payload would not enforce on Local API."
+      }
+    ]
+  }
 }

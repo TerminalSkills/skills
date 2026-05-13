@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bd141a1513f51a1e00277dc89caa6d06f7fc53ccc38c03af11eb4324b2f3c82f",
   "scoredAt": "2026-05-13T09:19:58.980Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 90,
+    "multiplier": 1.5,
+    "scenarios": [
+      {
+        "name": "Create an order with line items atomically and decrement the user's balance",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Treatment wrapped the three writes in db.transaction(async (trx) => ...) using trx for every statement, used .returning('*') on the order insert, and called .decrement('balance', 99.99) on users; baseline used a Promise.all without a Knex transaction and a manual UPDATE balance = balance - x."
+      },
+      {
+        "name": "Author the initial migration for users and posts with a composite index",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment used knex migrate:make and a schema.createTable with t.increments primary, foreign key via references().inTable().onDelete('CASCADE'), and t.index(['author_id','published']); baseline wrote raw CREATE TABLE SQL inside a migration without the schema builder helpers."
+      }
+    ]
+  }
 }

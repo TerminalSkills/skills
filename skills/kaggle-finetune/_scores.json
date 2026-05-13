@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e6d80bf6e0da529cee5cfbe5a6fcf1e599b07505bf31f5ed54b6708d70e8c509",
   "scoredAt": "2026-05-13T09:19:22.227Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 90,
+    "multiplier": 1.55,
+    "scenarios": [
+      {
+        "name": "Fine-tune Qwen2.5-3B-Instruct on the Bitext customer-support Kaggle dataset on a 16GB GPU",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment uses `kaggle datasets download -d bitext/bitext-gen-ai-chatbot-customer-support-dataset -p ./data --unzip`, converts CSV to JSONL with messages format, configures BitsAndBytesConfig(load_in_4bit=True, nf4, bfloat16), LoRA r=16 alpha=32 on q/k/v/o_proj, SFTTrainer with batch=2 grad_accum=8 epochs=3 lr=2e-4 fp16; baseline uses generic HF training without the 4-bit + LoRA target_modules pattern."
+      },
+      {
+        "name": "Prepare a Kaggle mental-health FAQ dataset for CPU fine-tuning",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment searches with `kaggle datasets list -s \"mental health FAQ\" --sort-by votes`, picks Qwen2.5-1.5B-Instruct for CPU, sets batch=1 grad_accum=16 max_seq_length=256 load_in_4bit=True, and converts FAQ pairs into the documented JSONL messages format; baseline picks a generic small model without the VRAM-based selection rule or the documented preprocessing function."
+      }
+    ]
+  }
 }

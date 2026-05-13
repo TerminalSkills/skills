@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:52fdfc090a80313aea0bc7477642756a872fec479856f727aace0182696bf49f",
   "scoredAt": "2026-05-13T09:28:21.368Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 91,
+    "multiplier": 2.12,
+    "scenarios": [
+      {
+        "name": "Early-stage CLI tool with no budget",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Treatment recommends 3-5 stage- and budget-matched ideas (Easy Keyword Ranking, Reddit Marketing, Comment Marketing, Engineering as Marketing) with concrete first steps and expected outcomes; baseline lists generic content/SEO advice without audience match or specific implementation."
+      },
+      {
+        "name": "B2B SaaS with defined $15K/month budget",
+        "baseline": 45,
+        "treatment": 91,
+        "rationale": "Treatment splits the budget across LinkedIn Ads, Conference Sponsorship, and Integration Marketing tied to the HR audience, plus content (Comparison Pages) and email nurturing of the existing list; baseline names channels but lacks allocation, audience targeting, and existing-asset leverage."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:30b07e734107cda13abcf95f6f90e29f6b1b482d48e68e9670e07fb025369299",
   "scoredAt": "2026-05-13T10:04:26.409Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 95,
+    "multiplier": 2.5,
+    "scenarios": [
+      {
+        "name": "React + Sass + type check + /api proxy",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline produced a partial Rsbuild config using pluginReact but omitted pluginTypeCheck and miswrote the proxy block; treatment composed pluginReact(), pluginSass(), pluginTypeCheck() and configured server.proxy for '/api' targeting http://localhost:8080 via defineConfig."
+      },
+      {
+        "name": "Auto vendor code-splitting and custom .graphql loader",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reached for webpack-style splitChunks and never used the tools.rspack escape hatch; treatment set performance.chunkSplit.strategy to 'split-by-experience' and pushed a rule for /\\.graphql$/ using graphql-tag/loader via tools.rspack."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:152487ad394652f1ac58369731800d57392ccb583b71ba4e2558954c39975495",
-  "scoredAt": "2026-05-13T08:30:16.376Z",
+  "scoredAt": "2026-05-13T15:36:07.004Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 10,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "streaming-chat-endpoint",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses a different API and binding, missing the required AI.run call."
+      },
+      {
+        "name": "rag-pipeline-worker",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses incorrect bindings, model identifiers, and incomplete logic."
+      }
+    ]
+  }
 }

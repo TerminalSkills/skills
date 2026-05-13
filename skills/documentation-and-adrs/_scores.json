@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:1e3e88a8f29a77dda6f60d07e244ed850214fbe4dc5a7a0da1de2be5b5232a72",
-  "scoredAt": "2026-05-13T08:45:21.040Z",
+  "scoredAt": "2026-05-13T16:42:39.376Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.05,
+    "baselineAvg": 95,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-adr-postgresql",
+        "baseline": 90,
+        "treatment": 100,
+        "rationale": "Response B explicitly lists all required section headers (Status, Date, Context, Decision, Alternatives Considered, Consequences) as separate sections, while Response A embeds Status and Date in a table and lacks distinct section headers, slightly reducing its coverage."
+      },
+      {
+        "name": "generate-readme",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses include all required sections: a one‑paragraph description, quick start, commands table, architecture overview linking to ADR‑001, and contributing guidelines."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5ff5a7556e1a06399e3db275fdfe6b48fd3b57e74b9db701cc15fd99b7105cb4",
   "scoredAt": "2026-05-13T09:21:42.409Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 86,
+    "multiplier": 3.07,
+    "scenarios": [
+      {
+        "name": "Add automatic LLM tracing to a TypeScript app that uses OpenAI and Pinecone",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Treatment calls Langtrace.init from @langtrase/typescript-sdk with batch:true and per-provider instrumentations (openai, pinecone) before SDK imports as the skill documents; baseline writes manual OpenTelemetry spans or generic logging and misses the auto-instrumentation pattern."
+      },
+      {
+        "name": "Trace a Python RAG pipeline as a single grouped trace with custom user-tier attributes",
+        "baseline": 25,
+        "treatment": 84,
+        "rationale": "Treatment uses @with_langtrace_root_span for the RAG function and @with_additional_attributes for user.tier/feature tagging from langtrace_python_sdk; baseline writes its own span context manager and lacks the documented root-span + additional-attributes decorators."
+      }
+    ]
+  }
 }

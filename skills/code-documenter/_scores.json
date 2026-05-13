@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:cc4f6956be30f3faeb6068167de434b0e972a49fbe882f2dc0ef59cbd61e3fa4",
-  "scoredAt": "2026-05-13T10:45:03.245Z",
+  "scoredAt": "2026-05-13T15:41:02.174Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.45,
+    "baselineAvg": 40,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "document-payment-function",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no docstring at all."
+      },
+      {
+        "name": "generate-notification-service-architecture",
+        "baseline": 80,
+        "treatment": 95,
+        "rationale": "Response B covers all rubric items, while Response A omits environment variables and design patterns."
+      }
+    ]
+  }
 }

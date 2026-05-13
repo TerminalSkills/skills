@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d3d4570a82d3d38f0b60664609c9df72bc0b52829bfefe3951ba6dab98e9d173",
-  "scoredAt": "2026-05-13T08:17:45.603Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "scoredAt": "2026-05-13T14:11:52.141Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.21,
+    "baselineAvg": 43,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "kustomize-application-with-autosync",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Treatment writes a complete `argoproj.io/v1alpha1 Application` with `syncPolicy.automated` (prune + selfHeal), the `CreateNamespace=true` syncOption, and the `resources-finalizer.argocd.argoproj.io` finalizer for cascade deletion; baseline usually omits the finalizer and the CreateNamespace syncOption."
+      },
+      {
+        "name": "applicationset-multi-cluster-prod",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment uses `kind: ApplicationSet` with a `clusters` generator selecting `environment: production` and templates the app name/server via `{{name}}`/`{{server}}`; baseline tends to suggest creating one Application per cluster manually, missing the generator pattern entirely."
+      }
+    ]
+  }
 }

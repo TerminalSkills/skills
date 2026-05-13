@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1f4a0d593727147ae3b14dfa579256f909a0e7d2c4a22ca8c6c6308ed30cf5f3",
   "scoredAt": "2026-05-13T09:05:34.433Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 92,
+    "multiplier": 1.84,
+    "scenarios": [
+      {
+        "name": "Production cluster with HA primary and read pool",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment uses gcloud alloydb clusters create then gcloud alloydb instances create --instance-type=PRIMARY --availability-type=REGIONAL with database-flags cloudsql.iam_authentication=on, plus a READ_POOL instance via --read-pool-node-count; baseline often conflates cluster+instance and skips IAM auth flag."
+      },
+      {
+        "name": "Add native vector search to a products table",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment uses CREATE EXTENSION google_ml_integration, the embedding('textembedding-gecko@003', description) function and a scann index with num_leaves; baseline typically suggests pgvector with ivfflat/hnsw and an external embedding pipeline."
+      }
+    ]
+  }
 }

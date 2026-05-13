@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bbd1005a299f29722e95d7c84d18ad25c9184b16fd39520d364109e02f6d6fe6",
   "scoredAt": "2026-05-13T09:27:37.634Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 88,
+    "multiplier": 1.69,
+    "scenarios": [
+      {
+        "name": "Mantine signup form with validated email, password, role",
+        "baseline": 55,
+        "treatment": 89,
+        "rationale": "Treatment uses useForm from @mantine/form with initialValues+validate functions and form.getInputProps wired into TextInput/PasswordInput/Select/Checkbox; baseline writes a hand-rolled useState form that bypasses @mantine/form entirely."
+      },
+      {
+        "name": "Responsive dashboard shell with collapsible navbar and user menu",
+        "baseline": 50,
+        "treatment": 87,
+        "rationale": "Treatment uses AppShell with navbar.breakpoint='sm' plus useDisclosure for collapse, MantineProvider with createTheme and defaultColorScheme='auto', and the Notifications component; baseline composes raw flexbox divs without AppShell or useDisclosure."
+      }
+    ]
+  }
 }

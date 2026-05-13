@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b1200b69a55dd7053bc69d0861c0934216d2929cd7af7d442fc82c02c50017c8",
   "scoredAt": "2026-05-13T10:00:14.443Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 24,
+    "treatmentAvg": 94,
+    "multiplier": 3.92,
+    "scenarios": [
+      {
+        "name": "Parallelize CPU-bound items",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Treatment uses ray.init plus @ray.remote, builds a list of .remote(i) futures, and collects them with ray.get exactly as the skill prescribes; baseline reaches for multiprocessing.Pool or ProcessPoolExecutor, which solves the problem but misses every Ray API the rubric requires."
+      },
+      {
+        "name": "Serve HuggingFace sentiment model",
+        "baseline": 22,
+        "treatment": 93,
+        "rationale": "Treatment declares @serve.deployment(num_replicas=2) with an async __call__(request) that reads JSON, then binds and calls serve.run(app, host, port); baseline builds a FastAPI/Flask service with gunicorn workers and does not exercise Ray Serve's deployment/bind/run pattern."
+      }
+    ]
+  }
 }

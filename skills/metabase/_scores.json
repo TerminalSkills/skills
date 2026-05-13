@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ebaffa8beb7ce4b4f475db04fa49448656c975e7b2e04a0106b18eefccb486ff",
   "scoredAt": "2026-05-13T09:34:33.101Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 25,
+    "treatmentAvg": 98,
+    "multiplier": 3.92,
+    "scenarios": [
+      {
+        "name": "Deploy Metabase with Postgres backend via docker-compose",
+        "baseline": 30,
+        "treatment": 98,
+        "rationale": "Baseline left Metabase on the default H2 backend with no Postgres service; treatment defines both services, the MB_DB_* environment variables, depends_on, and a named pg-data volume as the skill prescribes."
+      },
+      {
+        "name": "Signed JWT embed URL for a Metabase dashboard",
+        "baseline": 20,
+        "treatment": 98,
+        "rationale": "Baseline signed a flat payload and pointed at /dashboard/<token>, which Metabase rejects; treatment uses the resource/params/exp payload shape and the /embed/dashboard/<token> URL exactly as the skill specifies."
+      }
+    ]
+  }
 }

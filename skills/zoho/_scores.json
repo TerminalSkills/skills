@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d45e43b41b3296a46ea41e0b0bb2283c23bda145c3ac19eff17b67c6f6ba7bfd",
   "scoredAt": "2026-05-13T10:41:02.901Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 94,
+    "multiplier": 2.35,
+    "scenarios": [
+      {
+        "name": "coql-pipeline-report",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "The treatment uses the COQL endpoint with SUM/COUNT/GROUP BY exactly as the skill documents, whereas the baseline falls back to client-side aggregation because it does not know COQL exists in the CRM API."
+      },
+      {
+        "name": "deal-won-to-books-invoice",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "The treatment uses Deluge's `invokeurl` with the named `zoho_books` connection and the skill's search-before-create pattern, while the baseline approximates the workflow with raw HTTP calls and misses the Deluge connection syntax."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:4c707450fa703f92b9ae3f56bab4bc28340b3ed31d33429ac46fd85b1380c9c4",
-  "scoredAt": "2026-05-13T08:42:30.224Z",
+  "scoredAt": "2026-05-13T16:22:50.207Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1,
+    "baselineAvg": 43,
+    "treatmentAvg": 43,
+    "scenarios": [
+      {
+        "name": "multi-tenant-project-management-schema",
+        "baseline": 20,
+        "treatment": 0,
+        "rationale": "Response A partially meets some schema aspects but fails on UUID v7, updated_at, correct RLS variable, and idempotent migration syntax; Response B provides no content."
+      },
+      {
+        "name": "add-tenant-isolation-to-orders",
+        "baseline": 65,
+        "treatment": 85,
+        "rationale": "Response A correctly adds NOT NULL tenant_id columns, enables RLS with the required session variable, creates indexes, and is largely idempotent, whereas Response B uses the wrong session variable name and defaults, missing the exact rubric requirement."
+      }
+    ]
+  }
 }

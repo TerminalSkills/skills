@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5e95a8a038f329ece2d3b7372d18bce0e8a0611db97956c69af3519d15500e37",
-  "scoredAt": "2026-05-13T08:23:41.843Z",
+  "scoredAt": "2026-05-13T14:59:30.664Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.76,
+    "baselineAvg": 33,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "bundle-ts-browser-minify-sourcemap",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A covers most of the rubric but omits the NODE_ENV definition, while Response B uses a different build tool and misses all required bun options."
+      },
+      {
+        "name": "create-bun-serve-json-server",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Both responses miss the required 500 error handler and the exact JSON payload; A uses Response.json and logs the correct URL format, making it slightly better."
+      }
+    ]
+  }
 }

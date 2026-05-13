@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:25145e7d2abf818b525aa8558ac8c449c09541dec397d557dac698dd48dd20cc",
   "scoredAt": "2026-05-13T10:35:32.919Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Compile a Rust image-processing function to WASM and call it from the browser",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Treatment uses #[wasm_bindgen] on a Rust function, builds with wasm-pack build --target web, then awaits init() and calls the exported function on canvas ImageData; baseline reaches for emscripten or skips the wasm-bindgen/wasm-pack toolchain."
+      },
+      {
+        "name": "Run a WASM module server-side with WASI",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment uses wasmtime run my_program.wasm (or wasmer run) as documented and notes Cloudflare/Fastly edge targeting; baseline gives a generic Node.js WebAssembly.instantiate without WASI runtime."
+      }
+    ]
+  }
 }

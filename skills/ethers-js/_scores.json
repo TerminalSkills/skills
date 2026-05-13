@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0e1f515aaa387308cdcbd44dcc88c6def8878c2afca13568b2c67131b01b8116",
   "scoredAt": "2026-05-13T08:49:31.644Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 86,
+    "multiplier": 1.65,
+    "scenarios": [
+      {
+        "name": "Send a USDC transfer from a Node.js backend",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment uses ethers v6 JsonRpcProvider, Wallet(privateKey, provider), Contract with ERC20 ABI, parseUnits('100', 6), connect(wallet), and awaits tx.wait(); baseline mixes v5 syntax or skips tx.wait, which the guidelines explicitly warn against."
+      },
+      {
+        "name": "Read an account's USDC balance from a dApp frontend with MetaMask",
+        "baseline": 48,
+        "treatment": 84,
+        "rationale": "Treatment uses ethers.BrowserProvider(window.ethereum), getSigner, the ERC20 ABI with balanceOf/decimals, and formatUnits per the v6 patterns; baseline often uses deprecated Web3Provider/v5 calls and skips decimals scaling."
+      }
+    ]
+  }
 }

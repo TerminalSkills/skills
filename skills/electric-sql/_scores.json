@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2c93a39f3ebdc558934d8a39b57260a7a81e2d92b3df011848e430d42af90daa",
   "scoredAt": "2026-05-13T08:47:25.000Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "Per-user real-time todo list",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reaches for fetch + SSE and never uses Electric; treatment uses useShape with the documented params (table, where, columns) and routes writes through a normal API."
+      },
+      {
+        "name": "Offline writes with replay",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline offers a generic Background Sync recipe; treatment explains Electric's local read semantics and uses the documented online/offline queue pattern."
+      }
+    ]
+  }
 }

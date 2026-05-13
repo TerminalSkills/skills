@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2e74433ae24aabed3e6d0b1c80d777cdbd38c23b61bdd6bfb8acd260f1fd6c6f",
   "scoredAt": "2026-05-13T10:45:12.858Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "SD card photo recovery after format",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline carves the live device directly; treatment images first with dd, hashes, then carves specific types with -t jpg,png,mov,mp4 and reviews audit.txt."
+      },
+      {
+        "name": "CTF PNG with hidden embedded files",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline reaches for binwalk/strings and never actually runs foremost; treatment uses foremost -t all, parses audit.txt offsets, and extracts the carved zip."
+      }
+    ]
+  }
 }

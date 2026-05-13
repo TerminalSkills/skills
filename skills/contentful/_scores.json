@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:244b952bad1902470ad0f71887f7cc50ec31acdb14fba8b99c89e52216d31959",
-  "scoredAt": "2026-05-13T08:38:16.320Z",
+  "scoredAt": "2026-05-13T15:55:55.982Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 8,
+    "baselineAvg": 10,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "fetch-blog-posts-by-tag",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response B uses the required client.getEntries call and maps items to a RichText component, whereas Response A uses a GraphQL query and does not meet the rubric requirements."
+      },
+      {
+        "name": "preview-draft-blog-post",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A fully meets all rubric requirements; B is incomplete."
+      }
+    ]
+  }
 }

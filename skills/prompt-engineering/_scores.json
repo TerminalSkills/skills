@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c2f6b3c534b2bcb1022fb2f6f1b725cea5694911e3ba308b4e0cf349d1b818db",
   "scoredAt": "2026-05-13T09:57:53.735Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 93,
+    "multiplier": 3.32,
+    "scenarios": [
+      {
+        "name": "Reliable structured JSON extraction from receipts with Claude",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline simply asks for JSON with no Claude-specific structure or schema example; treatment uses the documented <task>/<format>/<receipt> XML pattern with a JSON schema example, missing-field rules, few-shot examples, and edge-case testing guidance."
+      },
+      {
+        "name": "Boost multi-step word problem accuracy without fine-tuning",
+        "baseline": 25,
+        "treatment": 94,
+        "rationale": "Baseline offers generic 'use a bigger model, show your work' advice without naming techniques; treatment applies zero-shot and few-shot Chain-of-Thought, adds a Self-Consistency majority-vote code snippet, and mentions Tree-of-Thought for branching problems."
+      }
+    ]
+  }
 }

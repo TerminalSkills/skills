@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:399b28906a6d48148ef8f4fa80f8db91f70577d802ccece8674eef86a13c6c03",
   "scoredAt": "2026-05-13T09:51:15.612Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 95,
+    "multiplier": 2.5,
+    "scenarios": [
+      {
+        "name": "Self-host Plausible CE with docker-compose",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Treatment uses ghcr.io/plausible/community-edition:v2 with both Postgres and ClickHouse services, sets BASE_URL/DATABASE_URL/CLICKHOUSE_DATABASE_URL, and generates SECRET_KEY_BASE via openssl rand -base64 48; baseline forgets ClickHouse or invents an unofficial image."
+      },
+      {
+        "name": "Stats API realtime visitors and top 10 pages",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Treatment hits /api/v1/stats/realtime/visitors and /api/v1/stats/breakdown with property=event:page using Bearer auth and site_id/period/metrics params; baseline guesses endpoint paths and misses the breakdown property semantics."
+      }
+    ]
+  }
 }

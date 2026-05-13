@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:fb22f8bba16fd6545fbd5cd2ce6cc3d6823ed0c53743504f95d03028c37b78c3",
-  "scoredAt": "2026-05-13T08:39:27.932Z",
+  "scoredAt": "2026-05-13T16:03:42.258Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "keyless-sign-github-actions",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric items exactly, while Response A omits the required `--yes` flag in the cosign command."
+      },
+      {
+        "name": "attach-sbom-vuln-attestation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required grype scan and uses incorrect commands and flags."
+      }
+    ]
+  }
 }

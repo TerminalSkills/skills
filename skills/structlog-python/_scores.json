@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b7e2aa613d8bab8ecf76f00ce5550620c280ecdf7aa2d761f25ab6ee0fd46c3e",
   "scoredAt": "2026-05-13T10:15:43.497Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 90,
+    "multiplier": 1.8,
+    "scenarios": [
+      {
+        "name": "Attach request_id to every log inside a request handler",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment uses structlog.contextvars.clear_contextvars and bind_contextvars in middleware so the request_id automatically threads through downstream log.info calls, while baseline manually passes request_id into each call."
+      },
+      {
+        "name": "Pretty console logs in dev, JSON in production from one config",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment selects ConsoleRenderer or JSONRenderer behind shared_processors and wires structlog.stdlib.ProcessorFormatter into a StreamHandler exactly as the skill prescribes, while baseline only swaps a basicConfig formatter."
+      }
+    ]
+  }
 }

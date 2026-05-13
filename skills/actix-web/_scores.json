@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:799b970c990b1f6c459e99b35c2453148c5c18b4d42fe5a926591cf5f25784fb",
-  "scoredAt": "2026-05-12T22:22:06.313Z",
+  "scoredAt": "2026-05-13T11:46:13.348Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9.7,
+    "baselineAvg": 10,
+    "treatmentAvg": 97,
+    "scenarios": [
+      {
+        "name": "create-article-handler",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements, while Response A uses the wrong extractor type and error handling, missing key rubric items."
+      },
+      {
+        "name": "protect-article-routes-with-auth",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A is an Express implementation that does not meet the Rust Actix‑web criteria."
+      },
+      {
+        "name": "write-integration-test-for-list-articles",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the Actix-specific rubric, while Response B is a FastAPI test and does not meet any of the required criteria."
+      }
+    ]
+  }
 }

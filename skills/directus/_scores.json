@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:1a4935549a0eafbee554e67d8b9784702e46252953416a0d93ee17335bb1faa9",
-  "scoredAt": "2026-05-13T08:44:41.944Z",
+  "scoredAt": "2026-05-13T16:37:15.821Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "deploy-posts-collection-public-role",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B fails to provide the required Docker run command and uses incorrect API endpoints."
+      },
+      {
+        "name": "sdk-fetch-published-posts",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required imports, client instantiation, or request pattern."
+      }
+    ]
+  }
 }

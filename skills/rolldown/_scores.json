@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
-  "skillHash": "sha256:6f1ed51e4d67a20b3d83c0137d7ffb9e3c643558c54c1fe4232d4981719d784e",
-  "scoredAt": "2026-05-13T10:04:20.470Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "skillHash": "sha256:2ce92f3a238118e505d90f995e09abf0359b6f2b4a4da41fd9f56b2aed361bb2",
+  "scoredAt": "2026-05-13T10:04:31.874Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "Instructions lack error handling and edge case coverage."
       }
     ]
   },
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 94,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "Migrate TS library Rollup config to Rolldown (ESM+CJS)",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Baseline kept @rollup/plugin-typescript and @rollup/plugin-node-resolve and partially renamed the config; treatment swapped rollup for rolldown in package.json, used defineConfig from rolldown with an output array for esm and cjs, and removed the now-redundant TypeScript plugin."
+      },
+      {
+        "name": "Bundle src/index.ts to ESM with watch mode",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline produced a generic Rollup-style config and used rollup --watch; treatment imported defineConfig from rolldown, set output.format to 'esm', and ran npx rolldown -c --watch as documented."
+      }
+    ]
+  }
 }

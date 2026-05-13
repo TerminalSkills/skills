@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9a022924c3785f130b72c4089e1ab86c120daa7ecbdebe9f27e84614fbd00e89",
   "scoredAt": "2026-05-13T09:35:47.600Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 54,
+    "treatmentAvg": 87,
+    "multiplier": 1.61,
+    "scenarios": [
+      {
+        "name": "Track B2B SaaS company-level events with group analytics",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment used mixpanel.set_group('company', ...), get_group(...).set({...}), and track_with_groups for company-scoped events; baseline only tracked plain user events and lacked the group analytics API."
+      },
+      {
+        "name": "Initialize JS SDK with EU residency batching and identify user",
+        "baseline": 58,
+        "treatment": 86,
+        "rationale": "Treatment configured mixpanel.init with persistence: 'localStorage', batch_requests, batch_size, batch_flush_interval_ms and used identify + people.set with $email/$name reserved props; baseline used default init and generic people.set without batching."
+      }
+    ]
+  }
 }

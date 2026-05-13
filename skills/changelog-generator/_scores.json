@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:9a2bd9abbb85e6edc9fad4405f5513cf51bc7d17b5b02d4b507918cd95b676d6",
-  "scoredAt": "2026-05-13T08:27:28.338Z",
+  "scoredAt": "2026-05-13T15:16:05.398Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7.8,
+    "baselineAvg": 8,
+    "treatmentAvg": 78,
+    "scenarios": [
+      {
+        "name": "generate-changelog-from-tags",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to provide a changelog entry."
+      },
+      {
+        "name": "create-release-notes-from-feature-list",
+        "baseline": 15,
+        "treatment": 55,
+        "rationale": "Response A meets most rubric items but misformats the Highlights section, while Response B fails the required header, Highlights, and link format."
+      }
+    ]
+  }
 }

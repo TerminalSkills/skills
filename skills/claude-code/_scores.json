@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:cf95e398e35fba99d85f8af0fafa786903610ad19773869eef0d64aaa64e8ab6",
-  "scoredAt": "2026-05-13T08:28:37.459Z",
+  "scoredAt": "2026-05-13T15:25:52.485Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 60,
+    "scenarios": [
+      {
+        "name": "setup-claude-code-project",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, while Response A is missing entirely."
+      },
+      {
+        "name": "refactor-stripe-webhook",
+        "baseline": 80,
+        "treatment": 40,
+        "rationale": "Response A covers the extraction of handlers, Zod schemas, and route dispatching, missing only tests and verification, while Response B is incomplete and repetitive, lacking full implementation details."
+      }
+    ]
+  }
 }

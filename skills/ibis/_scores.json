@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8d7bcf51f709891d60846cc01dad9ca79c68b78080c16700ca3593cd7c736044",
   "scoredAt": "2026-05-13T09:15:12.662Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 24,
+    "treatmentAvg": 94,
+    "multiplier": 3.92,
+    "scenarios": [
+      {
+        "name": "Port a pandas cohort retention script to BigQuery via Ibis",
+        "baseline": 22,
+        "treatment": 95,
+        "rationale": "Baseline keeps pandas and pulls all rows into memory; treatment uses ibis.bigquery.connect, builds a lazy expression with group_by/mutate/agg, prints ibis.to_sql, and calls .execute() so aggregation is pushed to the warehouse."
+      },
+      {
+        "name": "Portable DAU + revenue-per-plan module on DuckDB locally, Snowflake in prod",
+        "baseline": 25,
+        "treatment": 93,
+        "rationale": "Baseline writes backend-specific code with pandas; treatment factors a get_connection() helper, wires DuckDB+read_parquet for dev and ibis.snowflake.connect for prod, and reuses the same Ibis expression functions across both backends."
+      }
+    ]
+  }
 }

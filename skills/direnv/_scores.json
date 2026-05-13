@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3e89b3ebd57c5a79380ef984ea78406c5b5cdc9c7783fa981bd76ad059e8226e",
-  "scoredAt": "2026-05-13T08:44:51.075Z",
+  "scoredAt": "2026-05-13T16:37:57.580Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.86,
+    "baselineAvg": 35,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "nodejs-project-setup",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits key elements such as the correct .envrc syntax, node version specification, PATH additions, and direnv commands."
+      },
+      {
+        "name": "python-venv-setup",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric items; Response B omits adding .envrc to .gitignore."
+      }
+    ]
+  }
 }

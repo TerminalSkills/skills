@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:73b5ab2c885cd3a6303b18bdc51b220db86635838d10f03a5eb1faafa8d22f44",
-  "scoredAt": "2026-05-12T22:26:08.173Z",
+  "scoredAt": "2026-05-13T13:58:59.236Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1,
+    "baselineAvg": 50,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "playbook-with-template-and-handler",
+        "baseline": 70,
+        "treatment": 0,
+        "rationale": "Response A covers most rubric items but omits starting/enabling Nginx; Response B provides no content."
+      },
+      {
+        "name": "dynamic-aws-inventory-setup",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A omits key elements such as the correct filters, keyed_groups, and compose syntax."
+      }
+    ]
+  }
 }

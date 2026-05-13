@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:79a8afe885ff611fcbb41efaac044016954adeb0fa85ec280f561298b5e62c5d",
-  "scoredAt": "2026-05-13T08:44:57.644Z",
+  "scoredAt": "2026-05-13T16:38:38.082Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.23,
+    "baselineAvg": 73,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "setup-django-project-with-custom-user",
+        "baseline": 75,
+        "treatment": 80,
+        "rationale": "Both responses cover the required Django commands and custom user setup, but neither includes the os.environ usage for secrets; A is slightly more concise and directly addresses the key steps, giving it a marginal edge."
+      },
+      {
+        "name": "create-article-list-view-with-selectrelated",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required core/urls.py registration and myproject/urls.py inclusion."
+      }
+    ]
+  }
 }

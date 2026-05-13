@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0abcf792c4759ffdbb9990853ed6734b5914f77163057f5584cf0caff9348abf",
   "scoredAt": "2026-05-13T09:34:10.581Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 95,
+    "multiplier": 1.98,
+    "scenarios": [
+      {
+        "name": "Sprint planning transcript to structured summary",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline produces a freeform bullet summary missing the SKILL's required structure; treatment uses the exact template — Meeting Summary heading, Discussion Summary grouped by topic, and an Action Items markdown table with Task/Owner/Deadline/Priority columns."
+      },
+      {
+        "name": "Action items only, flag unassigned",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline emits a flat checklist and lumps owner-less tasks in with the rest; treatment uses the SKILL Example-2 layout of a Task/Owner/Deadline/Status table followed by a separate Unassigned items section."
+      }
+    ]
+  }
 }

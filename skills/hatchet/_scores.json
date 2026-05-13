@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:23a7dabe5beaef8aeded4427c0bdbb48d54653e0b4d2e3b6a3ba858922d094dd",
   "scoredAt": "2026-05-13T09:12:02.157Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 88,
+    "multiplier": 2.75,
+    "scenarios": [
+      {
+        "name": "DAG onboarding workflow with retries and event trigger",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment defines hatchet.workflow with on: { event: 'user:created' }, declares steps via .step() with parents arrays forming the DAG, sets per-step retries and timeout, and triggers via hatchet.event.push; baseline reaches for BullMQ or a chain of awaits without DAG semantics, parents, or per-step retries."
+      },
+      {
+        "name": "Rate-limited external API workflow with exponential backoff",
+        "baseline": 30,
+        "treatment": 86,
+        "rationale": "Treatment combines workflow-level concurrency { maxRuns, limitStrategy: 'QUEUE' }, per-step concurrency { key, maxRuns }, and backoff: { type: 'exponential', base: 2 } with retries — all documented Hatchet primitives; baseline proposes a p-limit semaphore and manual try/catch retry loop that miss durable execution and DAG-aware concurrency keys."
+      }
+    ]
+  }
 }

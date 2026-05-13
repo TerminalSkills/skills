@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8b1ec8e66ce943dfe4800bf2228af369b69a172a62ae98ac3457aef6bd6d7020",
   "scoredAt": "2026-05-13T09:34:57.848Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 97,
+    "multiplier": 2.43,
+    "scenarios": [
+      {
+        "name": "Generate quarterly business report as .docx",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline uses python-docx with generic Table Grid but omits Pt/Cm measurements and section.header/footer; treatment applies the built-in Light Grid Accent 1 style with explicit Cm page setup and section header/footer."
+      },
+      {
+        "name": "Mail merge offer letters from CSV",
+        "baseline": 30,
+        "treatment": 98,
+        "rationale": "Baseline relies on python-docx string replacement that breaks on Jinja loops/conditionals; treatment uses DocxTemplate.render with csv.DictReader exactly as the skill prescribes."
+      }
+    ]
+  }
 }

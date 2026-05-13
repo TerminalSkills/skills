@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:203901ba216964bae06174225f15a5c8dc309ba9dddd6951353cbe7bb3a53340",
   "scoredAt": "2026-05-13T09:35:07.735Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 87,
+    "multiplier": 2.07,
+    "scenarios": [
+      {
+        "name": "Review a $30K custom learning-platform build for a small course business",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment surfaces default-alive vs default-dead, the seven-question decision table, a minimalist swap (Teachable/Circle) and a one-week validation; baseline gives generic SaaS advice without the framework structure or output format."
+      },
+      {
+        "name": "Decide whether to make a $45K full-time support hire at $8K MRR",
+        "baseline": 40,
+        "treatment": 86,
+        "rationale": "Treatment runs the seven-question table, computes the 47%-of-revenue burn, recommends part-time contractor + help-center triage, and gives a this-week tagging experiment; baseline omits the default-dead math and the staged-hire minimalist version."
+      }
+    ]
+  }
 }

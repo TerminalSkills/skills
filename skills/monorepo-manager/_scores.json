@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fdbd0da3dc9588c85b108e46ece4291c9e7ee2f2ded7ecc5153bbbec259ff849",
   "scoredAt": "2026-05-13T09:37:11.662Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Audit pnpm + Turborepo monorepo for version mismatches",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment first detects monorepo type from pnpm-workspace.yaml/turbo.json, produces a per-package comparison table, and recommends workspace:* for internal deps; baseline lists versions ad hoc without the structured detection workflow."
+      },
+      {
+        "name": "Add shared date-fns and align versions",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment centralizes date-fns through packages/utils, removes direct deps from apps, and flags v2 to v3 breaking changes (named exports, dd/yy tokens), while baseline only bumps versions without consolidation or migration notes."
+      }
+    ]
+  }
 }

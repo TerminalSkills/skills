@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:10d3bd5daf50804f9fab06530f3a4098c53a8cc1d7faec417ba2751447d89cb1",
   "scoredAt": "2026-05-13T10:25:05.871Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 93,
+    "multiplier": 1.86,
+    "scenarios": [
+      {
+        "name": "Extract text from a noisy scanned receipt",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment preprocesses with cv2 grayscale + fastNlMeansDenoising + adaptiveThreshold, deskews, scales up below 1000px, and runs image_to_string with --psm 4/6; baseline typically does only basic grayscale+threshold and skips PSM tuning."
+      },
+      {
+        "name": "OCR a single-line serial number with restricted character set",
+        "baseline": 45,
+        "treatment": 93,
+        "rationale": "Treatment combines --psm 7 with -c tessedit_char_whitelist=0123456789ABCDEF in the config string as the skill prescribes; baseline rarely pairs PSM 7 with a tessedit_char_whitelist and leaves PSM at the default."
+      }
+    ]
+  }
 }

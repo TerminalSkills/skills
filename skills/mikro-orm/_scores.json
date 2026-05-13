@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:96b30ee1d4456f6ce2f448b987d827b76cd8b960668f0cf8940bb7f9d44cfa36",
   "scoredAt": "2026-05-13T09:35:03.236Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Wire MikroORM into an Express app with per-request EntityManager",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment uses `MikroORM.init` with entities/dbName/type, wraps requests in `RequestContext.create(orm.em, next)`, mutates the entity directly and calls `em.flush()`; baseline manually constructs UPDATE queries instead of leveraging Unit-of-Work change tracking."
+      },
+      {
+        "name": "Add soft-delete filter and top-author leaderboard QueryBuilder",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment applies `@Filter({ name: 'active', cond: { deletedAt: null }, default: true })` plus `em.createQueryBuilder(User,'u').leftJoin('u.posts','p').groupBy('u.id').orderBy({post_count:'DESC'})`; baseline writes raw SQL and misses the @Filter automatic application."
+      }
+    ]
+  }
 }

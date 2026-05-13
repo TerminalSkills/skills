@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:df8ef6773ec8c20df3af94f53d32e7d7223e397a5e5b558ce53c96bb22805a80",
   "scoredAt": "2026-05-13T09:28:44.779Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 5,
+    "treatmentAvg": 98,
+    "multiplier": 9.8,
+    "scenarios": [
+      {
+        "name": "Customer support agent with tools",
+        "baseline": 5,
+        "treatment": 98,
+        "rationale": "Baseline ignored Mastra entirely and hand-rolled OpenAI tool dispatch; treatment used Agent with openai('gpt-4o') from @mastra/openai, Zod-typed tool parameters, and .generate()/.stream()."
+      },
+      {
+        "name": "Onboarding workflow with conditional step",
+        "baseline": 5,
+        "treatment": 98,
+        "rationale": "Baseline wrote a plain async function with no Workflow abstraction; treatment used Workflow + Step with a when() guard reading previous.validate.isNewCustomer and .execute()."
+      }
+    ]
+  }
 }

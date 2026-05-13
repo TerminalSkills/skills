@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f4a82edd4e15636f234d296bb3ab9c5e1c892caed838f7f944cbc56b9c050f8e",
   "scoredAt": "2026-05-13T09:49:39.234Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 85,
+    "multiplier": 2.02,
+    "scenarios": [
+      {
+        "name": "Integrate Percy into existing Cypress suite with responsive widths and animation suppression",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Treatment installs @percy/cli and @percy/cypress, imports @percy/cypress in cypress/support/e2e.js, calls cy.percySnapshot, and adds .percy.yml with widths [375,768,1280] plus percy-css disabling animations; baseline references percy-cypress vaguely without the .percy.yml widths/percy-css details."
+      },
+      {
+        "name": "Wire Percy into Playwright tests and GitHub Actions CI with PERCY_TOKEN",
+        "baseline": 40,
+        "treatment": 84,
+        "rationale": "Treatment installs @percy/playwright, uses percySnapshot(page, name), wraps test command with npx percy exec -- playwright test, and configures PERCY_TOKEN from secrets in the workflow; baseline lists Percy at a high level but does not show the percy exec wrap or token wiring."
+      }
+    ]
+  }
 }

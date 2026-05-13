@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:67e1a0ddded699b194ea2e8d2e7c4bf8bd5a606e1544e00292f18149b2c49f24",
   "scoredAt": "2026-05-13T10:26:47.882Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 86,
+    "multiplier": 1.79,
+    "scenarios": [
+      {
+        "name": "Fine-tune Llama 3.1 8B on customer support transcripts",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment uploads JSONL via client.files.upload then calls client.fine_tuning.create with training_file, model=meta-llama/Llama-3.1-8B-Instruct-Reference, n_epochs, suffix; baseline tends to describe generic OpenAI fine-tuning and misses Together's specific SDK call and Reference-model naming."
+      },
+      {
+        "name": "Swap from OpenAI to a Together-hosted Llama 3.1 70B Turbo model",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment keeps the OpenAI SDK and changes base_url to https://api.together.xyz/v1 with model meta-llama/Llama-3.1-70B-Instruct-Turbo and the TOGETHER_API_KEY env var; baseline often suggests rewriting to a different SDK rather than using the documented OpenAI-compatible base_url swap."
+      }
+    ]
+  }
 }

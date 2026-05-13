@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7a3e76afa2a893dd0232c22a02de84be219c4a18654cc6f1c3a33f1e54917dd0",
   "scoredAt": "2026-05-13T10:37:15.034Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 89,
+    "multiplier": 1.71,
+    "scenarios": [
+      {
+        "name": "Batch-transcribe podcast season to SRT on GPU",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment chose faster-whisper with WhisperModel('large-v3', device='cuda', compute_type='float16') and beam_size=5 for accurate segment boundaries as the skill recommends; baseline used the slower original openai-whisper Python package without INT8/CTranslate2 optimization."
+      },
+      {
+        "name": "German interview translated to English with speaker labels",
+        "baseline": 48,
+        "treatment": 88,
+        "rationale": "Treatment combined faster-whisper task='translate' with pyannote/speaker-diarization-3.1 and merged segments by computing per-speaker overlap duration as documented; baseline transcribed in German first and did not use the documented diarization merge pattern."
+      }
+    ]
+  }
 }

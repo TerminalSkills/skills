@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:283b8e0d7a37d73bcee510138e4302ac430b0b07442d594e6b77e7ea08bb198b",
   "scoredAt": "2026-05-13T09:26:31.120Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 80,
+    "multiplier": 1.9,
+    "scenarios": [
+      {
+        "name": "Draft a first Lovable prompt for a SaaS waitlist with referral leaderboard",
+        "baseline": 44,
+        "treatment": 82,
+        "rationale": "Treatment follows the skill's detailed-first-prompt guidance, requests shadcn/ui DataTable explicitly, asks for Supabase Auth + RLS policies and a referral_code/referred_by schema; baseline writes a vague feature list without leveraging Lovable's Supabase+shadcn defaults."
+      },
+      {
+        "name": "Plan production handoff for a Lovable-generated app",
+        "baseline": 40,
+        "treatment": 78,
+        "rationale": "Treatment exports to GitHub, links the user's own Supabase project for production, reviews RLS policies before launch, and pairs with Cursor for business logic — all from the skill's Best Practices; baseline suggests generic deploy steps without Lovable-specific export/RLS review."
+      }
+    ]
+  }
 }

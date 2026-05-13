@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7e831bd60b4dd99bc8a4ff85c02746cdd78536036f68ffd5675e97cc4aa5e5cb",
-  "scoredAt": "2026-05-13T08:39:15.263Z",
+  "scoredAt": "2026-05-13T16:02:26.804Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.92,
+    "baselineAvg": 25,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "homepage-copywriting",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks headline, CTA formula, measurable benefits, alternative headlines, meta content, and annotations."
+      },
+      {
+        "name": "paid-traffic-landing-page-rewrite",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response A meets all rubric requirements with detailed copy, measurable benefits, alternative headlines, meta tags, and annotations, while Response B lacks measurable benefits, alternative headlines, meta content, and annotations."
+      }
+    ]
+  }
 }

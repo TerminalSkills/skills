@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bdda845e2c9b587f43f5b5c34997cdc820a3608db399f4d054d4a3d1dea4282c",
   "scoredAt": "2026-05-13T09:14:56.136Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 94,
+    "multiplier": 3.36,
+    "scenarios": [
+      {
+        "name": "Confirm whether 4-story V-B R-2 apartments with NFPA 13 is permitted",
+        "baseline": 30,
+        "treatment": 94,
+        "rationale": "Baseline gives vague guidance with no story/height numbers; treatment states R-2 + V-B, the 3/40 without and 4/60 with NFPA 13 limits, the +1 story / +20 ft rule, and the single-increase caveat."
+      },
+      {
+        "name": "Egress validation for an A-2 + R-2 mixed-use building",
+        "baseline": 25,
+        "treatment": 93,
+        "rationale": "Baseline lists generic egress concerns without occupancy codes; treatment classifies A-2 and R-2, references Table 508.4 separation, applies the 200 SF/7 SF occupant-load factors, and cites the 125 ft R-2 travel distance and 2-doorway rule for units > 500 SF."
+      }
+    ]
+  }
 }

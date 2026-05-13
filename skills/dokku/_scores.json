@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:8b154f3edab190a455a028a7e72e2e12e3488c822c12edbc1eefa1478b0a2963",
-  "scoredAt": "2026-05-13T08:45:49.681Z",
+  "scoredAt": "2026-05-13T16:45:02.416Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.54,
+    "baselineAvg": 65,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "deploy-node-app-with-domain-ssl",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits the required dokku domains:add and dokku letsencrypt:enable commands."
+      },
+      {
+        "name": "setup-postgres-redis-env-vars",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits the required DATABASE_URL name and thus falls short."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5e2304e0cd58f6f38661e875e00fd693bff90ec0ee439f2cec093db4d9feaca4",
-  "scoredAt": "2026-05-12T22:24:17.487Z",
+  "scoredAt": "2026-05-13T13:46:36.389Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.3,
+    "baselineAvg": 33,
+    "treatmentAvg": 43,
+    "scenarios": [
+      {
+        "name": "pitch-deck-for-enterprise-ai-tool",
+        "baseline": 35,
+        "treatment": 15,
+        "rationale": "Response A covers more of the required slides and includes key elements like market size, traction, and funding ask, whereas Response B only provides a few slides and omits many rubric requirements."
+      },
+      {
+        "name": "q4-engineering-review-deck",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but violates design limits; Response B lacks required slides, notes, and visuals."
+      }
+    ]
+  }
 }

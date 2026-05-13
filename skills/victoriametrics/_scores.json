@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:98cf0d2916c0c46d802440e369192e1161d0a68774f63ab9987fce083dcf20ba",
   "scoredAt": "2026-05-13T10:34:14.261Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 94,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "HA Prometheus long-term storage with vmagent + vmalert",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline configures VM with remote_write from Prometheus but omits vmagent, vmalert wiring, and -dedup.minScrapeInterval for HA dedup; treatment includes all rubric-checked flags and the error-rate alert expression."
+      },
+      {
+        "name": "MetricsQL topk_avg with recording rule",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline uses standard PromQL topk and misses the MetricsQL-specific topk_avg extension; treatment uses topk_avg with proper per-service error ratio and a correctly formatted recording rule."
+      }
+    ]
+  }
 }

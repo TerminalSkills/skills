@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:63da2ce31238c0c0d47c897ddf5e1784f8efb1fcbd6b8739177964414fc5c214",
   "scoredAt": "2026-05-13T09:16:23.757Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 88,
+    "multiplier": 2.1,
+    "scenarios": [
+      {
+        "name": "Replace shared .env files with Infisical for a Node service",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment uses `npm install -g @infisical/cli`, `infisical login`, `infisical init`, and runs the app with `infisical run -- npm start` (and `--env=production`) per the skill's CLI flow; baseline reached for generic vaults/dotenv-vault without the specific CLI/run-injection pattern."
+      },
+      {
+        "name": "Sync Infisical secrets into a Kubernetes Secret",
+        "baseline": 38,
+        "treatment": 86,
+        "rationale": "Treatment applies the documented `InfisicalSecret` CRD (`apiVersion: secrets.infisical.com/v1alpha1`) with `hostAPI`, `universalAuth.credentialsRef`, `managedSecretReference`, and `resyncInterval`; baseline used External Secrets Operator or stringData manifests instead of the Infisical operator."
+      }
+    ]
+  }
 }

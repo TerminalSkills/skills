@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7c0b79678bfe9e4081d7fa175846548d9ddc857b07d6004d54bf5b73f106b9f3",
   "scoredAt": "2026-05-13T08:51:51.187Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 73,
     "dimensions": {
@@ -41,5 +41,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 94,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Analyze 2,400 app store reviews for themes and product changes",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Treatment applied the 3-dimension TYPE/AREA/SEVERITY classification, LLM batch JSON schema, weighted theme frequency formula, and theme report with sample quotes and top segments; baseline only described generic topic modeling and sentiment without the structured schema or weighted-frequency theme report."
+      },
+      {
+        "name": "Prioritize 45 feature requests with RICE and churn cross-reference",
+        "baseline": 60,
+        "treatment": 95,
+        "rationale": "Treatment used the exact RICE impact scale (3/2/1/0.5/0.25) and confidence values (100/80/50%), cross-referenced churn data, and listed data sources and confidence per row, while baseline applied RICE loosely without the documented scales or churn cross-reference."
+      }
+    ]
+  }
 }

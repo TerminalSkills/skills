@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:615d651a2d3e057c37a81ffe1c3565604fbe7f31c5a3a5190dc0307f0413edb7",
   "scoredAt": "2026-05-13T09:43:32.585Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 94,
+    "multiplier": 2.69,
+    "scenarios": [
+      {
+        "name": "Private offline code assistant on a laptop",
+        "baseline": 40,
+        "treatment": 94,
+        "rationale": "One response gestures at llama.cpp / GGUF / Hugging Face downloads with no Modelfile workflow; the other installs via the official script, pulls codellama, builds a custom Modelfile with FROM/SYSTEM/PARAMETER + ollama create, and connects via the OpenAI SDK at http://localhost:11434/v1."
+      },
+      {
+        "name": "On-prem RAG pipeline with no cloud LLM dependency",
+        "baseline": 30,
+        "treatment": 93,
+        "rationale": "One response defaults to OpenAI embeddings or vague HuggingFace+FAISS code without keeping inference local; the other uses ollama.embed for embeddings and ollama.chat for generation against http://localhost:11434, with ChromaDB as a local vector store — fully on-prem."
+      }
+    ]
+  }
 }

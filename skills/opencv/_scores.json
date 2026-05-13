@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:15c8652119d911df4e7de55209bb8ad8ce90e6ca2be80baeff078c30d1084cf0",
   "scoredAt": "2026-05-13T09:45:26.981Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 82,
+    "multiplier": 1.49,
+    "scenarios": [
+      {
+        "name": "Real-time YOLO object detection on webcam with mp4 output",
+        "baseline": 55,
+        "treatment": 84,
+        "rationale": "Treatment uses cv2.dnn.readNetFromONNX with blobFromImage(1/255.0, (640,640), swapRB=True), VideoWriter with mp4v fourcc at 30 fps, and draws rectangles with cv2.putText overlays as in the skill; baseline reaches for ultralytics/torch instead of OpenCV's DNN module."
+      },
+      {
+        "name": "Shape detection pipeline for scanned form regions",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "Treatment follows the documented preprocessing order (gray -> GaussianBlur -> adaptiveThreshold -> morphologyEx OPEN/CLOSE -> findContours with RETR_EXTERNAL) and classifies shapes via approxPolyDP side count; baseline mixes Pillow and ad-hoc thresholding and skips morphology cleanup."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:43a9a56b1777524d12bc3264b62e832bc653f230b2826f472691d473ade3c422",
   "scoredAt": "2026-05-13T10:06:44.846Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 96,
+    "multiplier": 2.0,
+    "scenarios": [
+      {
+        "name": "Bulk personalized send to 8,000 users",
+        "baseline": 40,
+        "treatment": 96,
+        "rationale": "Treatment uses dynamic templates with per-recipient dynamicTemplateData and batches at the 1000 messages/call SendGrid limit; baseline loops sgMail.send with inline HTML and misses both the template approach and batching limit."
+      },
+      {
+        "name": "Event webhook for bounces and unsubscribes",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Treatment parses the events array, handles bounce, spamreport, and unsubscribe with distinct DB updates per the skill's webhook example; baseline covers bounce/unsubscribe generically but misses the spamreport branch and events-array shape."
+      }
+    ]
+  }
 }

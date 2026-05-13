@@ -2,8 +2,8 @@
   "version": "0.1.0",
   "skillHash": "sha256:c2e67cec78e33d941ef458df23ea14500fbbe4bdc73a44bc9809a957aceefcdb",
   "scoredAt": "2026-05-13T09:23:58.557Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 10,
+    "treatmentAvg": 92,
+    "multiplier": 9.2,
+    "scenarios": [
+      {
+        "name": "Search Liepin for AI product manager jobs in Shanghai with a salary band",
+        "baseline": 10,
+        "treatment": 92,
+        "rationale": "Treatment runs python3 liepin_mcp.py search-job --jobName \"AI产品经理\" --address \"上海\" --salary \"30-50k\" after ensuring LIEPIN_GATEWAY_TOKEN and LIEPIN_USER_TOKEN are set; baseline suggests scraping the site or generic job-search tactics and never invokes the MCP CLI."
+      },
+      {
+        "name": "Review the user's Liepin resume and update the work-experience section",
+        "baseline": 10,
+        "treatment": 92,
+        "rationale": "Treatment calls python3 liepin_mcp.py my-resume --json to inspect, then python3 liepin_mcp.py update-resume --module experience --data '{...}', and warns about the 90-day token expiry and 60 req/min rate limit; baseline cannot interact with Liepin at all."
+      }
+    ]
+  }
 }

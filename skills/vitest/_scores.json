@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7c6d27948580967ef8429a56961520a87819f3fa2fb2f613cc32f711ba390cc3",
   "scoredAt": "2026-05-13T10:34:45.910Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 90,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Mock payment failure rollback test",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment uses vi.mock at top level for both modules, vi.mocked(...).mockRejectedValueOnce for the failure case, and asserts sendEmail was not called; baseline mixes jest-style patterns and omits the rollback negative assertion."
+      },
+      {
+        "name": "CI coverage threshold configuration",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment configures coverage.provider v8 with thresholds for lines/branches/functions in vitest.config.ts and runs `npx vitest run --coverage` plus installs @vitest/coverage-v8; baseline gives generic coverage config without vitest-specific keys."
+      }
+    ]
+  }
 }

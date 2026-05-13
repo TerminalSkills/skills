@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0ecc0bee4f1c7633d15514ef5dc9077b915dfbea23a7a1eb240a5a8947eedb7b",
   "scoredAt": "2026-05-13T10:23:18.265Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 95,
+    "multiplier": 4.75,
+    "scenarios": [
+      {
+        "name": "Type-safe POST server function with auth middleware and Zod validation",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline writes a raw Request handler with manual auth and validation; treatment uses createServerFn({ method: 'POST' }) with .middleware([authMiddleware]), .inputValidator(z.object(...)), and context.user threaded via next({ context })."
+      },
+      {
+        "name": "Dynamic /posts/$postId route with server-side loader and notFound handling",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline reaches for Next.js getServerSideProps; treatment uses createFileRoute with loader calling a GET createServerFn, throws notFound() from @tanstack/react-router, defines notFoundComponent, and reads via Route.useLoaderData()."
+      }
+    ]
+  }
 }

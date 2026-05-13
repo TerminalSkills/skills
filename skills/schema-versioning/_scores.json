@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:834e8e8e4198bbde5ad54e8f63d8204a86254a40acbea56d7b6f26ccd579b0e6",
   "scoredAt": "2026-05-13T10:05:39.998Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 96,
+    "multiplier": 2.53,
+    "scenarios": [
+      {
+        "name": "Reversible Knex migration with backfill",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Treatment produces a timestamped file with up/down functions, batched backfill keyed on last_login_at > NOW() - INTERVAL '90 days', and a working dropColumn rollback; baseline writes only up() with no down() and no timestamp prefix."
+      },
+      {
+        "name": "CI workflow: migrate up, rollback, migrate up",
+        "baseline": 25,
+        "treatment": 96,
+        "rationale": "Treatment defines a Postgres services container and runs migrate:latest, migrate:rollback --all, then migrate:latest again to confirm clean state; baseline runs migrate:latest once with no rollback step and no Postgres service."
+      }
+    ]
+  }
 }

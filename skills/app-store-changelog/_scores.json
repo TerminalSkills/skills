@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b75034ed2472e1ac8972a13ef33460b2b52dae8537903e2e6e07f1bd52b81a47",
-  "scoredAt": "2026-05-12T22:33:23.166Z",
+  "scoredAt": "2026-05-13T14:04:36.578Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.5,
+    "baselineAvg": 20,
+    "treatmentAvg": 30,
+    "scenarios": [
+      {
+        "name": "generate-default-changelog",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the required command, title, or user‑facing bullet list as specified."
+      },
+      {
+        "name": "custom-bullet-count-changelog",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response B better meets the rubric by providing a proper title with version and user‑facing bullets, whereas Response A lacks the required title format and command."
+      }
+    ]
+  }
 }

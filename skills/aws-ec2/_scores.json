@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:aedaee1f737df0b730ba669adb8b1b0d35fa028681f67828294773294dea4c62",
-  "scoredAt": "2026-05-13T08:19:31.921Z",
+  "scoredAt": "2026-05-13T14:24:32.375Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.37,
+    "baselineAvg": 73,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "launch-instance-with-user-data",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses include all required flags and details specified in the rubric."
+      },
+      {
+        "name": "setup-auto-scaling-group-with-launch-template",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits critical details and uses incorrect commands."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8db1fa6a48b1b1fa8988a86f14bb1878ffd9beeca7dfe829fdd8b224ab32b91e",
   "scoredAt": "2026-05-13T10:26:11.295Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 95,
+    "multiplier": 2.38,
+    "scenarios": [
+      {
+        "name": "Load Tiled JSON map in Phaser with collision and spawn",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline uses Phaser tilemap basics but reaches for setCollisionBetween/findObject patterns instead of the skill's setCollisionByProperty({ collides: true }) and getObjectLayer + objects.forEach switch on obj.type."
+      },
+      {
+        "name": "Tileset with animated tiles and per-tile collision properties",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline invents flat property names and a frames array, missing the .tsj schema with tilewidth/tilecount/columns at top level, the properties array of {name, type, value}, and the animation array of {tileid, duration} frames."
+      }
+    ]
+  }
 }

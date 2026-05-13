@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4f3822d5bf9ef538662a42268606b1ba8fb6661f4539e957f1423f194c67fc83",
   "scoredAt": "2026-05-13T09:20:54.687Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 91,
+    "multiplier": 2.76,
+    "scenarios": [
+      {
+        "name": "Block pods that are privileged, use :latest, or omit resource limits",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Baseline reached for OPA/Gatekeeper or PSA; treatment delivered a single ClusterPolicy with validationFailureAction: Enforce and validate.pattern entries using Kyverno's wildcard syntax (image: \"!*:latest\", privileged: \"!true\", limits.memory/cpu: \"?*\")."
+      },
+      {
+        "name": "Auto-generate a default-deny NetworkPolicy for every new namespace",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline proposed a custom controller or post-hoc kubectl apply; treatment used a Kyverno generate rule matching Namespace with synchronize: true and namespace templated from {{ request.object.metadata.name }} containing podSelector: {} and policyTypes: [Ingress]."
+      }
+    ]
+  }
 }

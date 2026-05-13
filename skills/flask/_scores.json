@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ca7b74bdd0aec4d6ba9f9a457f4f47d7f570c35d1fa366f8843f12dd2886e247",
   "scoredAt": "2026-05-13T08:53:32.794Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 56,
+    "treatmentAvg": 84,
+    "multiplier": 1.5,
+    "scenarios": [
+      {
+        "name": "Scaffold a multi-feature Flask app with auth",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Treatment uses the application factory create_app pattern, separate extensions.py module, blueprints registered with url_prefix, and TestConfig for tests as documented; baseline often uses a single app.py with app = Flask(__name__) at module level and db.create_all(), which the skill explicitly warns against."
+      },
+      {
+        "name": "Set up database migrations for an existing Flask app",
+        "baseline": 58,
+        "treatment": 83,
+        "rationale": "Treatment uses Flask-Migrate via flask --app app db init/migrate/upgrade and rejects db.create_all() in production, plus initializes migrate via init_app inside create_app; baseline frequently recommends raw Alembic or db.create_all(), missing the skill's prescribed pattern."
+      }
+    ]
+  }
 }

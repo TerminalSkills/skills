@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:04e53ed3e6ea41ac02908c8dd38ba4d5330870a52154dfbccb1eee1752e53202",
   "scoredAt": "2026-05-13T09:43:19.233Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 9,
+    "treatmentAvg": 95,
+    "multiplier": 9.5,
+    "scenarios": [
+      {
+        "name": "Parallel agent team to fix 80 TypeScript errors",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "One response suggests opening multiple Claude Code sessions or scripting claude -p loops; the other installs the plugin via the marketplace, enables CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS in settings.json, and runs /team 3:executor 'fix all TypeScript errors' through the plan-PRD-exec-verify-fix pipeline."
+      },
+      {
+        "name": "Fuzzy-requirements API build with non-Claude review",
+        "baseline": 8,
+        "treatment": 94,
+        "rationale": "One response writes a spec by hand and tells the user to paste code into ChatGPT for review; the other chains /deep-interview to clarify requirements, autopilot: to plan-build the API, and /ccg or omc team N:codex for a tri-model Codex/Gemini review pass."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:37132731882ccb3547e296e298e90a978019b12d526568281fcf0f7cc24425ab",
-  "scoredAt": "2026-05-13T08:36:52.735Z",
+  "scoredAt": "2026-05-13T15:45:00.534Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.33,
+    "baselineAvg": 15,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "semantic-search-with-rerank",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric requirements except the top‑5 retrieval step, while Response B uses a completely different API and misses all rubric criteria."
+      },
+      {
+        "name": "rag-with-citations",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response B meets most rubric items but lacks document IDs; Response A fails to use co.chat and the required document format."
+      }
+    ]
+  }
 }

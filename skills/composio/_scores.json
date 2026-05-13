@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:594679c1d2731da7364b0f3721ba6943c6cabf6655c7885023e2e60bfb8e852c",
-  "scoredAt": "2026-05-13T08:37:35.975Z",
+  "scoredAt": "2026-05-13T15:50:17.351Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 15,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "github-issue-slack-notify",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use ComposioToolSet or the required tool calls."
+      },
+      {
+        "name": "setup-github-oauth-and-crewai-agent",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A uses the Composio toolset and gets GitHub tools, covering more rubric items, while Response B omits the required toolset calls and role specification."
+      }
+    ]
+  }
 }

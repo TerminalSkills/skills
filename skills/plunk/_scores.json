@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8122b9a4f3b0644e2fa1d5443111fe04bbdc28e6596dfd0679ce2e186e041340",
   "scoredAt": "2026-05-13T09:51:32.125Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 8,
+    "treatmentAvg": 96,
+    "multiplier": 9.6,
+    "scenarios": [
+      {
+        "name": "Send a welcome email after signup",
+        "baseline": 5,
+        "treatment": 96,
+        "rationale": "Baseline used nodemailer over SMTP and never touched Plunk; treatment POSTed to https://api.useplunk.com/v1/send with Bearer PLUNK_API_KEY and the documented {to, subject, body} payload."
+      },
+      {
+        "name": "3-day onboarding drip sequence",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Baseline built a BullMQ queue with manual delays; treatment POSTed to /v1/track with event/email/data and delegated the schedule to a Plunk dashboard automation as the skill recommends."
+      }
+    ]
+  }
 }

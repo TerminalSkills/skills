@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:c556a6b1ba6389feeecabcc2c68517720fe83a8427aa1bfdf822bd1497dcf626",
-  "scoredAt": "2026-05-13T08:46:06.676Z",
+  "scoredAt": "2026-05-13T16:46:15.977Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.33,
+    "baselineAvg": 15,
+    "treatmentAvg": 35,
+    "scenarios": [
+      {
+        "name": "setup-go-microservice-with-doppler",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B includes the required commands and CI export note, though the max‑age value is incorrect, whereas Response A omits the setup, upload flags, token options, and CI export entirely."
+      },
+      {
+        "name": "docker-compose-with-doppler-secrets",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required --no-file and --format docker flags and do not demonstrate the named pipe or env-file syntax specified in the rubric."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7c78ef29676b57ce316ba37635b065d1358e9419f0a0e54666e09fe507c4a9bc",
   "scoredAt": "2026-05-13T10:12:35.554Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 97,
+    "multiplier": 4.85,
+    "scenarios": [
+      {
+        "name": "Fetch published articles with selective populate, sort, and pagination",
+        "baseline": 15,
+        "treatment": 98,
+        "rationale": "Baseline uses populate=* anti-pattern and lacks the publishedAt filter, sort param, and Bearer token; treatment matches every documented query-string convention."
+      },
+      {
+        "name": "Custom incrementViews controller endpoint",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline misses createCoreController factory and uses strapi.db.query instead of entityService with the api::article.article uid; treatment follows the documented controller pattern exactly."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9fff073e3f5cc2f706c57e0f3b0cad0091a7e455cbcda411860a3b86d2851b9c",
   "scoredAt": "2026-05-13T10:38:42.932Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 36,
+    "treatmentAvg": 86,
+    "multiplier": 2.39,
+    "scenarios": [
+      {
+        "name": "Find similar articles using stored embeddings",
+        "baseline": 38,
+        "treatment": 87,
+        "rationale": "Treatment uses xata.db.articles.vectorSearch on the embedding column with size and a filter excluding the source id as documented; baseline reaches for pgvector SQL or a separate vector DB, missing Xata's built-in vectorSearch API."
+      },
+      {
+        "name": "Build a RAG Q&A endpoint over the articles table",
+        "baseline": 34,
+        "treatment": 85,
+        "rationale": "Treatment uses xata.db.articles.ask with searchType and rules as documented, returning answer plus source records; baseline manually wires search + an LLM call rather than using the built-in .ask() RAG method."
+      }
+    ]
+  }
 }

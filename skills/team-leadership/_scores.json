@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:801de12727aaa3c589373f54a80c00282ad2c735cdba05c0e96dabfc1e6ea610",
   "scoredAt": "2026-05-13T10:23:54.235Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 91,
+    "multiplier": 2.76,
+    "scenarios": [
+      {
+        "name": "Commander's Intent for Keycloak migration",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline produced a generic memo without the labeled SITUATION/INTENT/CONSTRAINTS structure or measurable success criteria, while treatment used the exact Commander's Intent format with explicit prohibitions and quantitative targets."
+      },
+      {
+        "name": "Reduce meeting overhead after team doubled",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline suggested generic meeting hygiene but missed the n(n-1)/2 channel calculation, two-pizza splitting, and explicit Bystander Apathy ownership rules that the treatment applied directly."
+      }
+    ]
+  }
 }

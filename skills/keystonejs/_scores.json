@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b4b06e8d624e92b8e30c4ea5a5a0b63e8427836f3544dbe44b9fa127e0d602b7",
   "scoredAt": "2026-05-13T09:19:46.117Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 90,
+    "multiplier": 2.57,
+    "scenarios": [
+      {
+        "name": "Restrict authors to editing their own posts and only admins to deleting",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Treatment defined operation.delete with hasRole('admin'), filter.query/update returning Prisma-style where clauses keyed on session.itemId, and an item.update check — exactly the three-layer model (operation/filter/item) the skill teaches; baseline wrote a single resolver guard and didn't use filter access to hide non-owned posts from list queries."
+      },
+      {
+        "name": "Revalidate the Next.js frontend when a post transitions to published",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Treatment used afterOperation.update comparing originalItem.status to item.status and POSTed to FRONTEND_URL/api/revalidate, plus a validateInput hook to block publishing empty content; baseline put the revalidation call in a custom GraphQL mutation, missing the lifecycle-hook pattern and the validation gate."
+      }
+    ]
+  }
 }

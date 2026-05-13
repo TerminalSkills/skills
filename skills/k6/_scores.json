@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ca4850576067a25382b36c84638a4e82c2717fdcb5b0162cad3f51234ceac8fd",
   "scoredAt": "2026-05-13T09:18:58.754Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 62,
+    "treatmentAvg": 92,
+    "multiplier": 1.48,
+    "scenarios": [
+      {
+        "name": "Ramped load test for /api/users with pass/fail thresholds",
+        "baseline": 65,
+        "treatment": 93,
+        "rationale": "Baseline wrote a k6 script but used flat VUs and only a single threshold, missing the staged ramp-up/steady/ramp-down and the combined http_req_duration p(95) + http_req_failed rate thresholds plus check() pattern; treatment used the stages array, both threshold types, and check() with status + duration assertions."
+      },
+      {
+        "name": "Track custom login success metrics",
+        "baseline": 58,
+        "treatment": 90,
+        "rationale": "Baseline relied solely on built-in http metrics with no business-level instrumentation; treatment imported Trend, Counter, and Rate from k6/metrics, instantiated them at module scope, and updated each inside the default function as documented."
+      }
+    ]
+  }
 }

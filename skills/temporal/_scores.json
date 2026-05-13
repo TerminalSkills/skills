@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2c6aa16856f6d621bb4de6cd64e9e79b2124713326f1c83ce314812d6daf3c64",
   "scoredAt": "2026-05-13T10:24:34.417Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Durable order workflow surviving restarts during a 2-hour wait",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline uses setTimeout and ad-hoc Redis state; treatment uses proxyActivities with startToCloseTimeout/retry plus workflow sleep so Temporal resumes after crashes."
+      },
+      {
+        "name": "Start a workflow from an API and observe status and result",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline falls back to BullMQ; treatment uses Client.workflow.start with taskQueue/workflowId/args and handle.describe()/handle.result() as documented."
+      }
+    ]
+  }
 }

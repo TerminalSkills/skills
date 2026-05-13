@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d2486ef9900cfe20ae93e8383ae3c9876f6f82feabf8c7b49d31bd0f11b2e076",
-  "scoredAt": "2026-05-12T22:22:22.183Z",
+  "scoredAt": "2026-05-13T12:06:43.832Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases, such as validation failures or missing resources."
+        "detail": "The skill file does not explicitly cover error handling or edge cases."
       }
     ]
   },
@@ -26,5 +26,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.73,
+    "baselineAvg": 48,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "scaffold-web-app-with-user-model",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric requirements, while Response A misses the required init command, migration command, and uses a different validator."
+      },
+      {
+        "name": "add-session-authentication",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with sessionGuard, sessionUserProvider, auth.use('web').login, and middleware usage, while Response A lacks the required sessionGuard/provider syntax and uses auth.attempt instead of auth.use('web').login."
+      },
+      {
+        "name": "build-token-api-with-pagination",
+        "baseline": 80,
+        "treatment": 65,
+        "rationale": "Response A covers all rubric items except the /api prefix, while Response B is incomplete and also lacks the prefix."
+      }
+    ]
+  }
 }

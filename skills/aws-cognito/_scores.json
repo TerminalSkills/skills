@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:e8419bc248f9b15fa8482a0250fedcf89dd330bd0b53e6d68c12828d96127a43",
-  "scoredAt": "2026-05-13T08:19:19.935Z",
+  "scoredAt": "2026-05-13T14:22:55.949Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2,
+    "baselineAvg": 50,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-user-pool-with-email-mfa",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B satisfies every rubric requirement, while Response A omits several key flags and settings."
+      },
+      {
+        "name": "setup-google-federation-hosted-ui",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, while Response A omits the openid scope and the name/username mappings."
+      }
+    ]
+  }
 }

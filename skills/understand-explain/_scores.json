@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b5d24c78b48b4ac84600fba0fcbeef434a490ddd7f58b89a2f173ec1be539171",
   "scoredAt": "2026-05-13T10:29:51.822Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 88,
+    "multiplier": 2.51,
+    "scenarios": [
+      {
+        "name": "explain-session-file",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline reads the source file directly but never consults .understand-anything/knowledge-graph.json, so it cannot identify the architectural layer or upstream callers; treatment follows the documented Grep-the-graph-then-read-source flow and produces all three rubric outcomes."
+      },
+      {
+        "name": "explain-require-auth-function",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline gives a generic function summary with no layer or caller context; treatment locates the func: node id, walks 1-hop edges for callers and dependencies, and resolves the layer from layers[] before explaining."
+      }
+    ]
+  }
 }

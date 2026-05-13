@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c8631e38652e0da9afea674c1f3ddbd735e950a3ad4f7bc4d799a9b5106382be",
   "scoredAt": "2026-05-13T09:10:27.898Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 93,
+    "multiplier": 1.55,
+    "scenarios": [
+      {
+        "name": "office-space-eval",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment applies the default alive/dead test, reversibility framing, and proposes the team-meetup alternative explicitly; baseline raises reasonable concerns but lacks the specific Lavingia-style framework and alternatives."
+      },
+      {
+        "name": "junior-hire-eval",
+        "baseline": 65,
+        "treatment": 93,
+        "rationale": "Treatment quantifies the default dead margin, invokes 'people is the #1 fixed cost' and the outsource->freelancer->employee ladder, and probes customer-driven vs hypothetical needs; baseline gets the math but misses the specific framework."
+      }
+    ]
+  }
 }

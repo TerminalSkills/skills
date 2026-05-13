@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ba60a68e52c2eb605535ce35e666dd4ebe76d8d1bab799e543f9cd0f66b366de",
   "scoredAt": "2026-05-13T10:22:25.176Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 87,
+    "multiplier": 1.45,
+    "scenarios": [
+      {
+        "name": "JSON User API with validation and serialization groups",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "Treatment uses #[Route] attributes, constructor-injected UserRepository/EntityManagerInterface/ValidatorInterface, ValidatorInterface->validate before persist, and #[Groups('user:list'/'user:detail')] to control serialization — all per the skill; baseline returns a generic controller without groups or validator integration."
+      },
+      {
+        "name": "Dispatch welcome email asynchronously after signup",
+        "baseline": 60,
+        "treatment": 86,
+        "rationale": "Treatment defines a Message class plus an #[AsMessageHandler] invokable handler and dispatches via $this->bus->dispatch(...) as specified in the skill; baseline reaches for raw queues or synchronous mailer without Messenger's pattern."
+      }
+    ]
+  }
 }

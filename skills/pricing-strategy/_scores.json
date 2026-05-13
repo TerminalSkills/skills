@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:af99e8d17e2cb3e19906227322fb8f553c66ccb20e958ab6f846d06596939e8d",
   "scoredAt": "2026-05-13T09:56:55.929Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 87,
+    "multiplier": 1.74,
+    "scenarios": [
+      {
+        "name": "Price increase for email marketing platform with strong unit economics",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "Treatment read the signals (>40% conversion, <3% churn) as the documented signs to raise, justified the increase via added features, grandfathered existing customers with a partial-increase ramp, and introduced a lower tier to capture price-sensitive segment; baseline suggested a flat price increase with a 30-day notice and no segmentation."
+      },
+      {
+        "name": "Design paid pricing for new project-management SaaS",
+        "baseline": 48,
+        "treatment": 86,
+        "rationale": "Treatment selected per-seat as the value metric using the scales-with-value test, built Good-Better-Best with a recommended middle anchor, planned a Van Westendorp study before locking price points, and added a 17-20% annual discount as a churn lever; baseline copied competitor prices into three tiers without value-metric justification or research plan."
+      }
+    ]
+  }
 }

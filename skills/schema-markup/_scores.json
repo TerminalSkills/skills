@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0c62eb9a244c5196103eb70f32f2b3b52fe12ea35d2344dc64edff48c2229db3",
   "scoredAt": "2026-05-13T10:05:32.873Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 96,
+    "multiplier": 2.91,
+    "scenarios": [
+      {
+        "name": "Product schema for Shopify product page",
+        "baseline": 35,
+        "treatment": 96,
+        "rationale": "Treatment produces JSON-LD with @type: Product, all required properties (name, image, offers with price/priceCurrency/availability) and an AggregateRating with ratingValue 4.6 and reviewCount 238; baseline outputs flat non-spec properties (price, inStock, rating)."
+      },
+      {
+        "name": "FAQ schema for pricing page",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment generates FAQPage with mainEntity as an array of Question items each with acceptedAnswer text, plus the schema-vs-visible-content mismatch warning; baseline uses an invented questions property and omits the content-match rule."
+      }
+    ]
+  }
 }

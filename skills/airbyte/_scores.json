@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:65011389bd1fb8d52aae0605dfbc2bf622214102daadc799bd09a6f421f22f30",
-  "scoredAt": "2026-05-12T22:24:40.557Z",
+  "scoredAt": "2026-05-13T13:49:35.585Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.66,
+    "baselineAvg": 38,
+    "treatmentAvg": 63,
+    "scenarios": [
+      {
+        "name": "stripe-to-bigquery-incremental-connection",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements with complete API calls and environment variable usage, while Response A is incomplete and missing key details."
+      },
+      {
+        "name": "custom-internal-api-connector",
+        "baseline": 55,
+        "treatment": 25,
+        "rationale": "Response A provides a more complete stream implementation (though missing the source class), whereas Response B has a source but incorrect stream logic and missing required methods."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b70b19fa5799e2847a6c1fdd30520dd0bf9d62ef31b355f95592ffe0541024e7",
-  "scoredAt": "2026-05-13T08:45:59.646Z",
+  "scoredAt": "2026-05-13T16:45:39.196Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-dokploy-yml-for-flask-app",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key elements such as source type, healthCheck, and forceHttps."
+      },
+      {
+        "name": "typescript-dokploy-api-deploy-script",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A misses key requirements such as the dokployFetch helper, correct endpoints, and env string format."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3ce31dcbf89f137678676ff12042fc91d7025d8d2dc270e113376c6ca5c14676",
   "scoredAt": "2026-05-13T09:13:48.645Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 63,
+    "treatmentAvg": 92,
+    "multiplier": 1.46,
+    "scenarios": [
+      {
+        "name": "Load a 7B model on a single GPU with limited VRAM",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Treatment uses AutoModelForCausalLM with torch_dtype=float16, device_map=\"auto\", and load_in_4bit, matching the skill's quantization pattern that baseline only partially mentioned."
+      },
+      {
+        "name": "Fine-tune DistilBERT on IMDB with the Trainer API",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment follows the skill's full Trainer recipe (TrainingArguments with eval_strategy/save_strategy/fp16, compute_metrics, tokenized dataset.map) while baseline writes a custom PyTorch loop."
+      }
+    ]
+  }
 }

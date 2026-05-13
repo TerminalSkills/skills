@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:47bb554199ff0a258c5a39b002706b06b342d82b368fb7ba1ce678fe58479c3c",
   "scoredAt": "2026-05-13T09:28:32.437Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 93,
+    "multiplier": 1.75,
+    "scenarios": [
+      {
+        "name": "SaaS pricing tier reduction",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline covers tier reduction and charm pricing but misses Decoy Effect ordering, Anchoring sequence, and Mental Accounting reframe that the treatment names explicitly."
+      },
+      {
+        "name": "Freemium-to-paid conversion lift",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Treatment applies Endowment, IKEA, Zeigarnik, Loss Aversion, Goal-Gradient and BJ Fogg's motivation+ability+prompt triad with concrete trigger moments; baseline misses the user-created-asset framing and the three-factor behavior model."
+      }
+    ]
+  }
 }

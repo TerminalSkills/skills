@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e2aeda8e2b15e796693e5c769e7314affea4379041bbc9b377b70595b754e610",
   "scoredAt": "2026-05-13T09:40:04.991Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 95,
+    "multiplier": 1.58,
+    "scenarios": [
+      {
+        "name": "NRQL slowest endpoints for payment-service",
+        "baseline": 75,
+        "treatment": 95,
+        "rationale": "Baseline produces a reasonable NRQL with FACET and SINCE but omits max/count enrichment and explicit ORDER BY; treatment exactly mirrors the SKILL.md pattern with average/max/count plus ORDER BY average(duration) DESC LIMIT 20."
+      },
+      {
+        "name": "NerdGraph alert policy + NRQL static condition",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline tends to suggest deprecated REST v2 alert endpoints rather than NerdGraph, missing alertsPolicyCreate/alertsNrqlConditionStaticCreate mutations, signal aggregation, and terms; treatment uses the exact mutations and headers from the SKILL.md."
+      }
+    ]
+  }
 }

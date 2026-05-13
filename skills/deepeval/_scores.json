@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:30a39c1b9a25b32a5c43f87c1867b97bd12313c6485e6dfa6f121b8fb10b5255",
-  "scoredAt": "2026-05-13T08:43:22.105Z",
+  "scoredAt": "2026-05-13T16:27:54.824Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "basic-relevancy-faithfulness-test",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B meets the rubric requirements (LLMTestCase, metrics, assert_test) with only a minor threshold deviation, while Response A fails to use the required classes and metrics."
+      },
+      {
+        "name": "custom-brand-voice-metric-test",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not implement the required GPTModel-based measure or the specified test case structure."
+      }
+    ]
+  }
 }

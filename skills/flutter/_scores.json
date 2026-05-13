@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0c7259228dc3b61684d95796ae8075fcf2385dd6473ed357029af0018eb1ee46",
   "scoredAt": "2026-05-13T08:53:52.713Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "Login state with Riverpod",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline relies on setState in a StatefulWidget; treatment models AuthState with isLoading/error/user, exposes AuthNotifier via StateNotifierProvider, and drives the UI through ref.watch."
+      },
+      {
+        "name": "Dio HTTP client with JWT interceptor and 401 refresh",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline uses the http package and per-call retry; treatment wires Dio BaseOptions plus an InterceptorsWrapper that reads token from secure storage on every request and retries via _dio.fetch after token refresh."
+      }
+    ]
+  }
 }

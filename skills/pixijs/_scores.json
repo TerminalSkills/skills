@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:66c509f10c4cf4215b3eb8d0d8c0d964eb401d66e68ad36ecefc579a2931cf11",
   "scoredAt": "2026-05-13T09:50:54.953Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 63,
     "dimensions": {
@@ -41,5 +41,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 94,
+    "multiplier": 3.36,
+    "scenarios": [
+      {
+        "name": "High-count particle system at 60fps",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline gives generic atlas/pooling advice and misses ParticleContainer; treatment uses ParticleContainer, pre-allocated pooling, and shared atlas batching exactly as the skill prescribes."
+      },
+      {
+        "name": "Animated water displacement filter",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline drifts to custom shaders; treatment wires DisplacementFilter with addressMode='repeat' and ticker-driven sprite motion per the skill."
+      }
+    ]
+  }
 }

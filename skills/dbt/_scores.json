@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d71d48d40adc63d7e2a46cceb460cd8b4d28bbf534c4c58ddddd1e95c82ec62d",
-  "scoredAt": "2026-05-13T08:43:00.358Z",
+  "scoredAt": "2026-05-13T16:26:39.414Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.22,
+    "baselineAvg": 68,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "setup-snowflake-project",
+        "baseline": 55,
+        "treatment": 65,
+        "rationale": "Both responses miss the required host and port fields in profiles.yml, but Response B includes the cd command and a more complete snippet, earning it a higher score."
+      },
+      {
+        "name": "create-incremental-model-with-macro",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A fails to alias the macro output as amount_dollars."
+      }
+    ]
+  }
 }

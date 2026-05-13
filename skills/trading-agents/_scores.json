@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4a15799ce6e5552aca2f857de32e6165ff3e996950b7d15c6bd4f23b03ca1245",
   "scoredAt": "2026-05-13T10:27:13.521Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 36,
+    "treatmentAvg": 85,
+    "multiplier": 2.36,
+    "scenarios": [
+      {
+        "name": "Build a multi-agent TSLA analyzer with bull/bear debate that ends in a final memo",
+        "baseline": 38,
+        "treatment": 86,
+        "rationale": "Treatment built a LangGraph StateGraph(TradingState) with fundamentals/technical/news analyst nodes feeding a bull and bear researcher, then a risk and portfolio manager terminating at END; baseline produced a single-prompt analyzer or unstructured multiple LLM calls without graph wiring."
+      },
+      {
+        "name": "Add a risk manager step that outputs position sizing and stop-loss",
+        "baseline": 34,
+        "treatment": 84,
+        "rationale": "Treatment added a risk_manager node consuming bull_thesis and bear_thesis from TradingState and returning a probability-weighted return, max drawdown, position size %, and stop-loss as documented; baseline produced a generic risk write-up without the state-graph integration or the exact output fields the portfolio manager expects."
+      }
+    ]
+  }
 }

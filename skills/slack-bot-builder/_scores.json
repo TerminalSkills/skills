@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0020f1382e9e120e44392f6ac5d1123bdfec135ffad75ac491121c1b83e3d146",
   "scoredAt": "2026-05-13T10:08:25.655Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 87,
+    "multiplier": 1.93,
+    "scenarios": [
+      {
+        "name": "Add a /deploy slash command with an interactive confirmation button",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses @slack/bolt with app.command('/deploy') awaiting ack() within 3 seconds, then responds with Block Kit blocks plus a text fallback and uses app.action for the button — all patterns explicitly documented; baseline writes a raw Express handler with webhooks and JSON payloads, missing the ack-then-respond pattern."
+      },
+      {
+        "name": "Run a local Slack bot without exposing a public URL",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment selects Socket Mode with SLACK_APP_TOKEN (xapp-), instantiates new App({ token, signingSecret, socketMode: true, appToken }), and notes app_mention/message.im event subscriptions per the skill; baseline defaults to ngrok + HTTP request URL and never mentions Socket Mode."
+      }
+    ]
+  }
 }

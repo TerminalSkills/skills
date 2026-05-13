@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:085609fe143b37ec99171f5dc1d33dc90a7a9c2d2a41bcfec0a5059291cec3ed",
   "scoredAt": "2026-05-13T09:21:37.701Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 87,
+    "multiplier": 2.72,
+    "scenarios": [
+      {
+        "name": "Add tracing and a correctness+conciseness evaluation pipeline to a LangChain RAG chatbot",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment sets LANGCHAIN_TRACING_V2/LANGCHAIN_API_KEY for auto-tracing, builds a dataset with client.create_examples, and runs langsmith.evaluate() with two custom evaluator functions returning {key, score}; baseline writes generic logging and a homegrown eval loop without the SDK's evaluate() contract."
+      },
+      {
+        "name": "Filter production traces for errors and high latency and assert minimum quality in CI",
+        "baseline": 28,
+        "treatment": 86,
+        "rationale": "Treatment uses client.list_runs with filter='and(eq(status, \"error\"), gt(latency, 5))' and a pytest that calls evaluate() asserting avg score >= threshold; baseline queries Sentry/Datadog-style metrics and writes ad-hoc assertions without LangSmith's run filter DSL."
+      }
+    ]
+  }
 }

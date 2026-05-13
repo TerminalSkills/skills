@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c9ac172c5f572ddfc743b97f70f67192f4411e473229da927437c8ed3c90a4ac",
   "scoredAt": "2026-05-13T10:12:43.565Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 97,
+    "multiplier": 2.77,
+    "scenarios": [
+      {
+        "name": "Sales dashboard with filters, KPIs, and trend chart from parquet",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline lacks wide layout, @st.cache_data, sidebar filter placement, and st.columns/st.metric KPI row; treatment applies all four documented patterns."
+      },
+      {
+        "name": "Streaming OpenAI chat with persistent history",
+        "baseline": 35,
+        "treatment": 98,
+        "rationale": "Baseline uses session_state but misses st.chat_message, st.chat_input, st.write_stream streaming, and st.secrets; treatment uses every documented chat pattern."
+      }
+    ]
+  }
 }

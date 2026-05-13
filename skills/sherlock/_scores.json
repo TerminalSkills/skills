@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e1f3005f4d376febb1739a1c1cffcb9e47c22e1fd86e3eee98d255db3a1b95f7",
   "scoredAt": "2026-05-13T10:07:38.927Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 92,
+    "multiplier": 1.67,
+    "scenarios": [
+      {
+        "name": "brand-name-csv-audit",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment uses `pip install sherlock-project` (the correct PyPI name) and `sherlock mycompanyname --csv` for trademark-style auditing; baseline often guesses the older `pip install sherlock` package name or misnames the flag."
+      },
+      {
+        "name": "targeted-multi-site-scan-via-proxy",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment combines repeated --site flags (twitter, github, instagram) with --timeout and --proxy socks5://127.0.0.1:1080 exactly as documented; baseline frequently invents comma-separated --sites or omits proxy/timeout syntax."
+      }
+    ]
+  }
 }

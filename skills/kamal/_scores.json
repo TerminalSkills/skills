@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1dc93b9a9a2257cb417d02f2548bb33bb80f0012e2b274d1d66659b5b33cb416",
   "scoredAt": "2026-05-13T09:19:34.204Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 88,
+    "multiplier": 1.76,
+    "scenarios": [
+      {
+        "name": "Deploy a Next.js app to Hetzner with SSL and zero downtime via Kamal",
+        "baseline": 52,
+        "treatment": 90,
+        "rationale": "Treatment uses `kamal init`, configures servers/web hosts with Traefik labels (certresolver: letsencrypt, websecure entrypoint), defines a healthcheck with path/port/max_attempts, stores secrets in .kamal/secrets, and runs `kamal setup` for first deploy plus `kamal deploy` for updates; baseline writes ad-hoc Docker/nginx scripts without Kamal config structure."
+      },
+      {
+        "name": "Multi-server deploy with separate web (×2) and worker (×1) roles in Kamal",
+        "baseline": 48,
+        "treatment": 86,
+        "rationale": "Treatment defines distinct `servers.web.hosts` (two hosts) and `servers.worker` with a custom `cmd`, shared env (clear + secret), and uses `kamal deploy` for rolling updates plus `kamal app logs -f` / `kamal rollback`; baseline lacks role separation and Kamal-specific commands."
+      }
+    ]
+  }
 }

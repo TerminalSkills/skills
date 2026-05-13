@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:17d49f230024e98fb3e2704978569516cbb503f61b5ebe3d554ae73ed8995697",
   "scoredAt": "2026-05-13T10:02:48.567Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 95,
+    "multiplier": 5.28,
+    "scenarios": [
+      {
+        "name": "Splitting a monolithic UserService refactor RFC",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline produced a five-step macro-plan with no interview, exploration, or structured template; treatment interviewed the user, scanned the repo, surfaced alternatives, listed tiny Fowler-style commits, and emitted a GitHub issue body with all six required sections."
+      },
+      {
+        "name": "Mongoose to Prisma migration RFC",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline gave a big-bang switch list with no coexistence plan or template; treatment interviewed, checked test coverage, presented coexistence alternatives, planned a per-model wrapper migration that stays green every commit, and wrote the full RFC issue body."
+      }
+    ]
+  }
 }

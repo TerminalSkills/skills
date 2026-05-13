@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d9d071dfd0ca3d9a72896f8a2c12bee81154f0b2eeeb1012a4f1d8a363b7af0f",
-  "scoredAt": "2026-05-12T22:26:28.444Z",
+  "scoredAt": "2026-05-13T14:01:04.206Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "etl-pipeline-parquet",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement, while Response B fails to use parquet, correct revenue calculation, and full aggregation."
+      },
+      {
+        "name": "streaming-kafka-window-count",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B uses 'complete' mode instead of the required 'update' mode."
+      }
+    ]
+  }
 }

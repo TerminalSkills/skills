@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fdc70b91aaef62260d769aeebea43aee8d99ec52b8761e9269843fcbd05abd5d",
   "scoredAt": "2026-05-13T10:04:58.765Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 94,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "presigned PUT URL for avatar + bucket CORS",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Baseline often reaches for aws-sdk v2 conventions and sets CORS via the console, while treatment uses the v3 PutObjectCommand + getSignedUrl(expiresIn) and PutBucketCorsCommand with ExposeHeaders: ETag exactly as documented."
+      },
+      {
+        "name": "MinIO local + Cloudflare R2 prod via one S3 client",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline either splits SDKs or forgets forcePathStyle for MinIO and guesses the R2 endpoint; treatment uses one @aws-sdk/client-s3 S3Client with forcePathStyle:true for MinIO and region:'auto' plus the correct r2.cloudflarestorage.com endpoint."
+      }
+    ]
+  }
 }

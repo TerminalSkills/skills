@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:36cbf976b5ca429d1eac2f4078994a89f4f18f2f612ada63e5411c2fd5a250d5",
   "scoredAt": "2026-05-13T09:21:13.172Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 90,
+    "multiplier": 1.88,
+    "scenarios": [
+      {
+        "name": "Build a RAG chain over local PDFs with MMR retrieval",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Baseline produced raw OpenAI calls with manual chunking; treatment composed an LCEL chain with PyPDFLoader, RecursiveCharacterTextSplitter (chunk_size=1000, overlap=200), Chroma + OpenAIEmbeddings, and as_retriever(search_type=\"mmr\")."
+      },
+      {
+        "name": "Build a tool-calling agent that queries DB and posts to Slack",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline relied on deprecated AgentExecutor patterns; treatment used @tool decorators and create_react_agent from langgraph.prebuilt with .invoke({\"messages\": [...]}) as required by the SKILL.md."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:94d6bcf37339b01f5ec01144c2b3948f94e10a1b6e5b73a07db7952e0afbc49c",
-  "scoredAt": "2026-05-13T08:29:12.147Z",
+  "scoredAt": "2026-05-13T15:29:19.037Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.2,
+    "baselineAvg": 25,
+    "treatmentAvg": 55,
+    "scenarios": [
+      {
+        "name": "add-lead-with-enrichment",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A meets the required POST request and body but omits enrichment details and response JSON, while Response B uses incorrect endpoints and lacks the required statements."
+      },
+      {
+        "name": "setup-icp-webhook",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response B covers most rubric items but misses the ClayWebhook interface reference and filter_matched trigger, whereas Response A lacks the required checks, interface reference, and JSON response."
+      }
+    ]
+  }
 }

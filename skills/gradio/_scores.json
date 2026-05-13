@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f72a3767c3051f4c854daf47490cb9edb6b41ba733010bf47272607b398ef87e",
   "scoredAt": "2026-05-13T09:09:49.071Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 94,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Streaming GPT-4 chatbot with conversation history via gr.ChatInterface",
+        "baseline": 50,
+        "treatment": 93,
+        "rationale": "Baseline returns a single completion without streaming; treatment iterates stream chunks with yield and reconstructs history pairs into messages as documented."
+      },
+      {
+        "name": "CSV uploader returning summary text plus downloadable summary CSV",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline misses the (text, file) tuple output and file.name access pattern; treatment matches the documented dual-output gr.Interface with pandas describe written to /tmp."
+      }
+    ]
+  }
 }

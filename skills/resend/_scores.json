@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f52bd51e8f9053fe95b8bd168d45500d699c729a662be944b1b694f5acdb702a",
   "scoredAt": "2026-05-13T10:02:54.554Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 95,
+    "multiplier": 4.75,
+    "scenarios": [
+      {
+        "name": "Welcome email via React Email template",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline defaulted to nodemailer with raw HTML strings; treatment built a typed React Email component using @react-email/components and passed it through the react: field of resend.emails.send with {data, error} handling."
+      },
+      {
+        "name": "Batched weekly digest with analytics tags",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline looped resend.emails.send 80 times without tags; treatment used resend.batch.send with a single payload and per-message tags array of {name, value} pairs for category/campaign/user_id."
+      }
+    ]
+  }
 }

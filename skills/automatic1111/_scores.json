@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:612ef2b5dde4578c2b288aa474643da0ef7036e3cdf51719dfec7f97fcb5c15d",
-  "scoredAt": "2026-05-13T08:18:59.364Z",
+  "scoredAt": "2026-05-13T14:20:00.716Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4,
+    "baselineAvg": 25,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "lora-image-generation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the required prompt tag, negative_prompt, and uses an unsupported payload structure."
+      },
+      {
+        "name": "inpainting-with-mask",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits denoising_strength and does not show saving the output image."
+      }
+    ]
+  }
 }

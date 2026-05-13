@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d6b7ec9b15b12bc4544710a6fa1c03872f53e4e3a695b8bdeab9fb33b146dc0a",
-  "scoredAt": "2026-05-13T08:42:13.045Z",
+  "scoredAt": "2026-05-13T16:20:02.446Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1,
+    "baselineAvg": 98,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "mask-emails-in-csv-with-faker",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, correctly importing csv and faker, reading the CSV, replacing the email column with faker.email(), preserving other columns, and writing to a new CSV."
+      },
+      {
+        "name": "presidio-auto-mask-pii",
+        "baseline": 95,
+        "treatment": 95,
+        "rationale": "Both responses fully implement the required Presidio pipeline, import the correct engines, analyze and anonymize with replace operators, and return the masked text; they differ only in style and placeholder choices."
+      }
+    ]
+  }
 }

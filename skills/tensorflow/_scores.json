@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2fabc5bb41180e14c6a90aa43482126316c4a625dbcd740800e5d02910494e06",
   "scoredAt": "2026-05-13T10:24:39.105Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 97,
+    "multiplier": 2.02,
+    "scenarios": [
+      {
+        "name": "Keras classifier with early stopping, LR plateau, and best checkpoint",
+        "baseline": 30,
+        "treatment": 98,
+        "rationale": "Baseline hand-rolls a per-epoch loop and lacks the three documented callbacks; treatment passes EarlyStopping, ReduceLROnPlateau, and ModelCheckpoint into model.fit."
+      },
+      {
+        "name": "TFLite conversion with quantization for mobile",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Baseline converts but omits converter.optimizations; treatment sets [tf.lite.Optimize.DEFAULT] and writes the .tflite bytes as documented."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:8e443936c77c08065babde49c147a54fd3c173c57dc2ce4829b2c0f794d470e5",
-  "scoredAt": "2026-05-13T08:30:33.680Z",
+  "scoredAt": "2026-05-13T15:38:27.199Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.86,
+    "baselineAvg": 35,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "upload-product-image-with-transformations",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A fails to use process.env variables for configuration."
+      },
+      {
+        "name": "generate-responsive-srcset-for-cloudinary-image",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully implements the required getImageUrl and getSrcSet functions with correct parameters, while Response A lacks these functions and does not meet the rubric."
+      }
+    ]
+  }
 }

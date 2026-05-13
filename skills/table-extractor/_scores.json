@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:14047c3cb1b75a7dfe6422c83f1f9d034177d847c0fc66a264a7cee1e64008f9",
   "scoredAt": "2026-05-13T10:22:43.208Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 88,
+    "multiplier": 1.76,
+    "scenarios": [
+      {
+        "name": "Borderless financial table extraction",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment correctly uses camelot with lattice-then-stream fallback, checks accuracy scores, and aggressively cleans currency symbols/commas as specified in the skill; baseline reaches for pdfplumber-only or pandas.read_html without the flavor-fallback pattern."
+      },
+      {
+        "name": "Multi-page table concatenation with repeated headers",
+        "baseline": 55,
+        "treatment": 87,
+        "rationale": "Treatment uses pages='all' with lattice, groups by column count, and removes duplicated header rows at page breaks per the skill; baseline manually loops pages and lacks the duplicated-header dedup step."
+      }
+    ]
+  }
 }

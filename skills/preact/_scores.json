@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:29881a51f5b10fb25799cc859f78f7c2a865d5aeddd2f1e0bc2b230cd1b3ce68",
   "scoredAt": "2026-05-13T09:53:23.970Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 15,
+    "treatmentAvg": 96,
+    "multiplier": 6.4,
+    "scenarios": [
+      {
+        "name": "Shared global counter without re-rendering the component tree",
+        "baseline": 20,
+        "treatment": 97,
+        "rationale": "Baseline reaches for Context plus useState, which is exactly what the skill says to avoid, and re-renders the component on every change; treatment uses @preact/signals signal()/computed()/effect() and inlines the signal in JSX so only the text node updates."
+      },
+      {
+        "name": "Use react-query and framer-motion inside a Preact app",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Baseline suggests swapping libraries or installing a deprecated preact-compat package, which is the wrong path; treatment installs preact and aliases react and react-dom to preact/compat in the bundler config so React libraries import unmodified — the documented compat pattern."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e67dc080d65604d795a1fd424f7cc9866035e1477925ed83cff4a435f3b7b4ce",
   "scoredAt": "2026-05-13T10:36:38.485Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 90,
+    "multiplier": 1.88,
+    "scenarios": [
+      {
+        "name": "Stripe webhook handler with replay protection",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment uses stripe.webhooks.constructEvent on the raw req.text() body with the stripe-signature header, plus the Redis SET NX EX 172800 processOnce pattern for idempotency; baseline parses JSON before verifying signatures and lacks a dedup store with the documented 48h TTL."
+      },
+      {
+        "name": "GitHub webhook receiver hardened against forged events",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment reads x-hub-signature-256, prepends 'sha256=' to the HMAC, compares with crypto.timingSafeEqual on the raw body, and dispatches by x-github-event; baseline uses string === comparison and parsed JSON, missing the timing-safe and raw-body requirements called out in the skill."
+      }
+    ]
+  }
 }

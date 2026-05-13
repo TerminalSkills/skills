@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c07aa3c7d6dfb31bbe2349885dac2d9a4294c313f3d8778a71879f53d1508390",
   "scoredAt": "2026-05-13T09:38:58.516Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Web server hostgroup with NRPE checks and team contactgroup",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment uses the exact nagios4 install, linux-server template, hostgroup web-servers, NRPE-based remote checks, and platform-team contactgroup; baseline often uses generic check_http and skips contactgroup structure."
+      },
+      {
+        "name": "Custom API health plugin with perfdata and config verification",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment follows the documented getopts plugin pattern with exit 0/1/2 and pipe-separated perfdata plus nagios4 -v verification; baseline writes a curl script but typically omits the perfdata format and verification step."
+      }
+    ]
+  }
 }

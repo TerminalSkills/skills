@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3b8307c9bd2edf3a7abe2a8b73d61945805a6535bd6bf8e88baca0d64600abd6",
-  "scoredAt": "2026-05-13T08:21:04.955Z",
+  "scoredAt": "2026-05-13T14:37:04.289Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.18,
+    "baselineAvg": 55,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "convert-markdown-to-pdf-parallel",
+        "baseline": 80,
+        "treatment": 60,
+        "rationale": "Response A covers almost all rubric items except the final echo, while Response B fails the single-pipeline requirement and places the echo outside the pipeline."
+      },
+      {
+        "name": "resume-csv-processing",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but lacks a named batch_with_resume() and proper KeyboardInterrupt handling, while Response B misses checkpoints, resume logic, and cleanup entirely."
+      }
+    ]
+  }
 }

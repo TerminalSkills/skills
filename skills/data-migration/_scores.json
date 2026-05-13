@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:de78b93e8e0b4757113c7b9ecc18ea3447db6ca1561a3287d4f8816014dddc41",
-  "scoredAt": "2026-05-13T08:42:17.544Z",
+  "scoredAt": "2026-05-13T16:21:04.310Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 30,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "mysql-to-postgresql-large-migration",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response A includes a detailed schema map and dependency order, while B lacks the required mapping and batch logic."
+      },
+      {
+        "name": "sqlite-consolidation-postgresql",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response A covers the schema diff, merge strategy, migration script, and logging, while Response B lacks a diff report, detailed strategy, and conflict resolution logic."
+      }
+    ]
+  }
 }

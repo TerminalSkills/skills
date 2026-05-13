@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:03280448e06e8cdc9041552544944816f13b508317bdf7cdfffd42b99437d618",
   "scoredAt": "2026-05-13T09:59:53.080Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 91,
+    "multiplier": 1.65,
+    "scenarios": [
+      {
+        "name": "ragas-baseline-eval",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment uses the exact Ragas pattern with Dataset.from_dict, the four documented metrics, and .to_pandas() output, while the baseline often omits context_recall or misses the HuggingFace Dataset wrapping step."
+      },
+      {
+        "name": "ragas-ci-pytest-thresholds",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment follows the skill's QUALITY_THRESHOLDS dict, session-scoped fixture, and baseline JSON regression check, while the baseline runs metrics ad hoc inside each test without the shared fixture or regression delta logic."
+      }
+    ]
+  }
 }

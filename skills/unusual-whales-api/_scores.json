@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:eb3f82c371a249182c2c4fc5f1c098ce4cd47f0d9c415e8052d13622c9649cdf",
   "scoredAt": "2026-05-13T10:32:00.015Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Fetch unusual TSLA flow with OTM/premium/size filters",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline likely fabricates an endpoint such as /api/options/flow and uses apiKey query params, while the treatment hits the documented /api/option-trades/flow-alerts with Authorization Bearer and the correct filter params."
+      },
+      {
+        "name": "Spot gamma exposure by strike for RIVN",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline invents a GEX URL because the path is non-obvious, while the treatment uses the exact documented /api/stock/RIVN/spot-exposures/strike endpoint with bearer auth and references call_gamma_oi/put_gamma_oi."
+      }
+    ]
+  }
 }

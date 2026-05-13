@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:685f671ca4e8fd29b6b6d70b1d5f2e59faab6ed020c63751a85ee7115b720732",
   "scoredAt": "2026-05-13T10:04:00.729Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 88,
+    "multiplier": 2.1,
+    "scenarios": [
+      {
+        "name": "Parallel review of a staged diff before merge",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment launches four read-only reviewers (intent/regression, security, performance/reliability, contracts/coverage) on the staged diff and aggregates filtered findings; baseline runs one generic review pass."
+      },
+      {
+        "name": "Synthesize findings with prioritized path forward",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment normalizes findings into file/line, category, severity, why, fix, confidence, and outputs fix now / fix soon / optional follow-up per the skill; baseline produces a flat list without dedup or severity ordering."
+      }
+    ]
+  }
 }

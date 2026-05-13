@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0027a8d01aa47c8eeb6eaba477793277b12e6f8b2ab52f9d45614492062a9412",
   "scoredAt": "2026-05-13T09:12:31.696Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 96,
+    "multiplier": 2.91,
+    "scenarios": [
+      {
+        "name": "Production server with firewall and data volume",
+        "baseline": 30,
+        "treatment": 96,
+        "rationale": "Baseline falls back to the REST API or dashboard for firewall/volume work; treatment uses hcloud server create with --type cx32 --image ubuntu-24.04 --location fsn1, then firewall add-rule with --direction in --protocol tcp --port/--source-ips, applies with apply-to-resource --type server, and attaches a volume via hcloud volume create --size 100 --server --format ext4."
+      },
+      {
+        "name": "Coolify-ready server with correct ports",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline picks the wrong type (cpx21) and opens ports with ufw on the server; treatment uses cx32 + ubuntu-24.04 and the documented Coolify firewall recipe — add-rule for 22/80/443/8000 then apply-to-resource — then hcloud server ip to fetch the address."
+      }
+    ]
+  }
 }

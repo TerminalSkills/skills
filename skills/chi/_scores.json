@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b8fd077c59b9f0ba74e9d0ab3e4ed2b081bd9b9600cf915f555aa3c212ae0db4",
-  "scoredAt": "2026-05-13T08:28:03.438Z",
+  "scoredAt": "2026-05-13T15:21:06.443Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.08,
+    "baselineAvg": 60,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "authenticated-user-crud",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Both responses omit the critical router setup and route grouping; A provides more of the required handlers and middleware, so it scores higher."
+      },
+      {
+        "name": "admin-subrouter-with-cors",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, creating the main router, applying RequestID, mounting an admin sub‑router with at least one route, and configuring CORS to allow only GET and POST from https://admin.example.com."
+      }
+    ]
+  }
 }

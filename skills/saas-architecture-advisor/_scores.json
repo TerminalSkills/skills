@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b718ffef38d07abcd553b80932de214957843e2232504174f8f7f5e8b2a10bd4",
   "scoredAt": "2026-05-13T10:05:04.957Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 94,
+    "multiplier": 1.62,
+    "scenarios": [
+      {
+        "name": "early-stage shared DB + RLS recommendation",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline mentions RLS in passing but rarely gives the exact current_setting('app.tenant_id') policy + SET LOCAL middleware pattern or the repository abstraction for later migration that treatment supplies."
+      },
+      {
+        "name": "HIPAA database-per-tenant with budget + registry routing",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Both pick DB-per-tenant for HIPAA, but treatment also costs the architecture against the $5k budget and prescribes the tenant registry DB plus per-tenant KMS keys and audit logs that the baseline only mentions in generic terms."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:920a595c58d1f6b5fe51f75564fe75e04a0aff728b7e5c4f52d489ddad11ce74",
   "scoredAt": "2026-05-13T09:03:54.452Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 47,
+    "treatmentAvg": 87,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Audit a 12-field B2B demo request form with 4% completion",
+        "baseline": 50,
+        "treatment": 89,
+        "rationale": "Treatment applied the field-count cost rule (7+ fields = 25-50% drop), recommended cutting to 5 core fields with enrichment post-submit, 2-step progressive form, action+benefit CTA copy, and a prioritized Issue/Impact/Fix/Priority audit table per the SKILL output format; baseline gave generic 'reduce fields, add trust signals' advice without structure."
+      },
+      {
+        "name": "Lead capture form for a gated DevOps report",
+        "baseline": 44,
+        "treatment": 85,
+        "rationale": "Treatment recommended minimum-viable single-email capture with post-download enrichment, action+benefit CTA, social proof near form, and 3-5x lift projection following the Lead Capture pattern in the SKILL; baseline kept 4 fields and added vague trust copy."
+      }
+    ]
+  }
 }

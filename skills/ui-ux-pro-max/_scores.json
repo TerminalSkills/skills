@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a3519c6422aba2b3cdd87661a814436b3c9e0818b71d24a2365180abe8f53944",
   "scoredAt": "2026-05-13T10:29:16.594Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 91,
+    "multiplier": 1.9,
+    "scenarios": [
+      {
+        "name": "Redesign confusing settings page",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment applies the skill's explicit sidebar-group structure, auto-save toast or floating save bar pattern, changed-field highlighting, and per-field reset — baseline only mentions generic tabs and grouping."
+      },
+      {
+        "name": "Build a button design system",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment covers the skill's 4-variant hierarchy (Primary/Secondary/Ghost/Destructive), three sizes with exact heights, all required states including scale 0.98 active and 2px focus ring, plus icon-only and verb+noun rules — baseline lists variants and states generically."
+      }
+    ]
+  }
 }

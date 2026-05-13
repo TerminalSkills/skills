@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a505fe786d6dfe6e5d966e797958556f0c20c7c2e1013c02cf070a84a8e51a77",
   "scoredAt": "2026-05-13T10:37:22.280Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 84,
+    "multiplier": 2.21,
+    "scenarios": [
+      {
+        "name": "Self-host Windmill and write an auto-UI script",
+        "baseline": 40,
+        "treatment": 86,
+        "rationale": "Treatment used the documented docker compose flow from the windmill-labs repo and wrote a typed TypeScript main() that auto-generates a UI from function parameters; baseline built a custom Express app instead of leveraging Windmill's auto-UI."
+      },
+      {
+        "name": "Internal admin tool with workflow + UI",
+        "baseline": 35,
+        "treatment": 82,
+        "rationale": "Treatment chained typed Python/TypeScript scripts with branching as documented and pointed to Windmill's drag-and-drop app builder backed by scripts; baseline proposed Retool or a hand-rolled React dashboard that misses Windmill's code-first model."
+      }
+    ]
+  }
 }

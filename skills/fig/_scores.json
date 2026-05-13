@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:80a0c34e8809e1352ad997d79859fce07ba074b70877e30b48743b2a94dcb388",
   "scoredAt": "2026-05-13T08:52:25.916Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 86,
+    "multiplier": 2.15,
+    "scenarios": [
+      {
+        "name": "Write a Fig completion spec for a custom deploy CLI with dynamic k8s suggestions",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment exports a Fig.Spec with subcommands, generators that shell out via script: [\"bash\", \"-c\", ...], postProcess to map output, and marks rollback isDangerous as shown in SKILL.md; baseline lacks the Fig.Spec shape and generator/postProcess pattern."
+      },
+      {
+        "name": "Add SSH host autocomplete from ~/.ssh/config",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment builds a Fig.Spec for ssh with args.generators that grep ~/.ssh/config and postProcess into suggestions with icon/priority exactly as documented; baseline writes a generic bash completion script instead of the Fig spec format."
+      }
+    ]
+  }
 }

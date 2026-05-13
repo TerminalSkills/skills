@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:4b61805e7ac8768d6ee2c8428e4a74fa6c4daba30f03018613f65a37846eb6ca",
-  "scoredAt": "2026-05-13T08:39:20.541Z",
+  "scoredAt": "2026-05-13T16:02:59.318Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "express-cors-whitelist",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, Response B does not provide the required configuration."
+      },
+      {
+        "name": "nextjs-api-cors-setup",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B implements the required async headers() function with the correct source and headers, while Response A uses middleware and does not satisfy the rubric."
+      }
+    ]
+  }
 }

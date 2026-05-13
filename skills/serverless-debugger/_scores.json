@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fdc06f08831b47a2fd8150b05ab4d19e4886e6bc39bd5fead4ad4584465a0ffe",
   "scoredAt": "2026-05-13T10:07:13.602Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 87,
+    "multiplier": 1.74,
+    "scenarios": [
+      {
+        "name": "Diagnose 5-second cold start on a Node Lambda",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment hits the documented priority-order fixes (AWS SDK v2 to v3 modular imports, lazy-load heavy deps, raise memory to scale CPU, arm64); baseline gives generic advice without the specific causes-then-fixes framework."
+      },
+      {
+        "name": "Trace a chained Lambda timeout across multiple functions",
+        "baseline": 50,
+        "treatment": 86,
+        "rationale": "Treatment produces the documented START/END timeline with root cause and platform fix (memorySize/provisionedConcurrency or async via SQS); baseline tells the user to check CloudWatch without correlating across invocations."
+      }
+    ]
+  }
 }

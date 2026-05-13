@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:752dc5e8bc88286864b78fd3f751830649c516fe2a3017167198b842a26a3285",
-  "scoredAt": "2026-05-13T08:17:50.621Z",
+  "scoredAt": "2026-05-13T14:12:35.925Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-phoenix-tracing",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention the required Phoenix launch, tracer registration, or OpenAI instrumentation."
+      },
+      {
+        "name": "run-rag-evaluations",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required Phoenix API usage."
+      }
+    ]
+  }
 }

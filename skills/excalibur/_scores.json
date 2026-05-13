@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f7525d40667c8e35ae25809bdfa50c8fe14163c36b0eaba6afddf27a8e15bb59",
   "scoredAt": "2026-05-13T08:49:47.859Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 36,
+    "treatmentAvg": 87,
+    "multiplier": 2.42,
+    "scenarios": [
+      {
+        "name": "Platformer player actor with sprite animations and jump",
+        "baseline": 38,
+        "treatment": 88,
+        "rationale": "Treatment uses Actor with CollisionType.Active, SpriteSheet.fromImageSource, Animation.fromSpriteSheet, onPreUpdate with engine.input.keyboard, and postcollision side detection; baseline uses generic loops without the documented lifecycle hooks or collision events."
+      },
+      {
+        "name": "Loading a Tiled map with spawn points and coin objects",
+        "baseline": 35,
+        "treatment": 86,
+        "rationale": "Treatment uses TiledResource from @excaliburjs/plugin-tiled, addToScene, getObjectsByName/getObjectsByType, and camera.strategy.elasticToActor; baseline writes generic Tiled parsing without the plugin's documented methods."
+      }
+    ]
+  }
 }

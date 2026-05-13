@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:04ef4e540cb788cc8711444183a3faa34297a05bbd61f96408718e2dbfe6e2f9",
-  "scoredAt": "2026-05-13T08:20:49.969Z",
+  "scoredAt": "2026-05-13T14:34:55.840Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "managed-identity-auth",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required AzureOpenAI client, token provider, and api_version usage."
+      },
+      {
+        "name": "function-calling-example",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the required tools array, tool_choice handling, and conversation updates."
+      }
+    ]
+  }
 }

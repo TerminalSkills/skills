@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5f327a9c474d46b5a32958450cdf4d93380fbea86e56a3a7f7df18129122d077",
-  "scoredAt": "2026-05-13T08:40:13.885Z",
+  "scoredAt": "2026-05-13T16:07:18.992Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.42,
+    "baselineAvg": 60,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "schedule-weekday-report",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy all rubric requirements."
+      },
+      {
+        "name": "system-db-backup",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but misdirects output to a file instead of the log, while Response B only sets up directories and logs, missing the cron file entirely."
+      }
+    ]
+  }
 }

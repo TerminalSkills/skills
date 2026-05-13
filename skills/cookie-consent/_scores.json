@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3b197cdf79184550159dbe7f1cb16f68ee9cdf17d3dd80be9763a0149d47f9c6",
-  "scoredAt": "2026-05-13T08:38:54.014Z",
+  "scoredAt": "2026-05-13T16:00:28.039Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.37,
+    "baselineAvg": 38,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "gdpr-cookie-banner-with-ga",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A includes GPC detection, ConsentRecord storage in localStorage and cookie, and applyConsent logic, though the UI rendering is incomplete, whereas Response B lacks GPC handling, cookie storage, and GA consent logic."
+      },
+      {
+        "name": "gpc-detection-middleware",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits the required header, cookie name, consent record creation, and saveConsent logic."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:6456f27803b6ac57460daae619b79a259956d64dfe1c688db6c1eaab0ff395a5",
-  "scoredAt": "2026-05-12T22:25:40.949Z",
+  "scoredAt": "2026-05-13T13:55:31.860Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.63,
+    "baselineAvg": 40,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "passive-json-enum",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric by providing the exact amass command, specifying the JSON output file, and listing the first ten subdomains, whereas Response A omits the actual subdomain list."
+      },
+      {
+        "name": "visual-network-graph",
+        "baseline": 10,
+        "treatment": 30,
+        "rationale": "Response B is closer to the rubric, using the correct amass viz command, whereas Response A uses the wrong command and output names."
+      }
+    ]
+  }
 }

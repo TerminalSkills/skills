@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d6af64cea8cef59fc5637c7885b34249b88365cc030cc0a3b0fda84ae2d04da4",
   "scoredAt": "2026-05-13T10:34:04.595Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Multi-speaker podcast generation with VibeVoiceTTS",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reaches for gTTS/Bark/ElevenLabs and concatenates per-speaker clips; treatment uses VibeVoiceTTS.from_pretrained with synthesize_conversation on a speaker/text list, matching the documented API."
+      },
+      {
+        "name": "Medical transcription with diarization and hotwords",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline falls back to Whisper + pyannote and approximates hotwords via initial_prompt; treatment calls VibeVoiceASR.transcribe with diarize=True, timestamps=True and hotwords kwarg, iterating result.segments as documented."
+      }
+    ]
+  }
 }

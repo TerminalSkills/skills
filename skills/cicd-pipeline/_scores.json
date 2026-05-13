@@ -1,7 +1,7 @@
 {
   "version": "1.1.0",
   "skillHash": "sha256:15b1d01f3e62ab10ec6b25f1c31888c622968f116d852c8a4a38acd6218117ae",
-  "scoredAt": "2026-05-13T08:28:23.911Z",
+  "scoredAt": "2026-05-13T15:24:16.656Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.83,
+    "baselineAvg": 30,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "go-microservice-docker-deploy",
+        "baseline": 60,
+        "treatment": 75,
+        "rationale": "Both miss the required lint stage, but B satisfies the extends/anchors requirement while A does not."
+      },
+      {
+        "name": "node-monorepo-path-filtering",
+        "baseline": 0,
+        "treatment": 95,
+        "rationale": "Response A fully satisfies the rubric with detailed configuration, while Response B is empty."
+      }
+    ]
+  }
 }

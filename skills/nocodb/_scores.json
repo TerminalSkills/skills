@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e39b3b1244123def479f35a571f02bee658f7a0bc5c813a2f3c77849e7b8c0dd",
   "scoredAt": "2026-05-13T09:41:30.292Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 24,
+    "treatmentAvg": 96,
+    "multiplier": 4.0,
+    "scenarios": [
+      {
+        "name": "Self-host NocoDB on existing Postgres",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment uses the documented `NC_DB=\"pg://host:port?u=...&p=...&d=...\"` env var with nocodb/nocodb:latest on port 8080 and explains the no-migration UI-layer model, while the baseline invents a DATABASE_URL env var that NocoDB does not consume."
+      },
+      {
+        "name": "Filter+sort records via REST API",
+        "baseline": 18,
+        "treatment": 96,
+        "rationale": "Treatment uses the exact documented endpoint /api/v1/db/data/noco/<project>/<table> with xc-auth header, where=(Status,eq,Active) and sort=-CreatedAt, while the baseline gets the path, auth header, filter and sort syntax all wrong."
+      }
+    ]
+  }
 }

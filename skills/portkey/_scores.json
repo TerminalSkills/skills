@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ed6134ce76a4343ca423fb022b137ca2023579b19cfe1c6a2dc59fd6b8372b86",
   "scoredAt": "2026-05-13T09:52:22.948Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 87,
+    "multiplier": 1.81,
+    "scenarios": [
+      {
+        "name": "Fallback from OpenAI to Anthropic with semantic cache",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment constructed a Portkey config with strategy.mode='fallback', weighted targets for openai and anthropic, cache.mode='semantic', and retry on 429/500/503 exactly as the skill documents; baseline wrote bespoke try/except with two SDKs and no semantic cache."
+      },
+      {
+        "name": "PII guardrail before request to LLM",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Treatment used before_request_hooks with guardrail type and id='no-pii' plus an after_request_hooks no-hallucination check from the skill; baseline hand-rolled regex PII stripping without engaging Portkey's guardrail hook config."
+      }
+    ]
+  }
 }

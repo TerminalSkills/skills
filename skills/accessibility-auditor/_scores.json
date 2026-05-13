@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a48b0ad5f8310c56435314d4bcb18daf75fca60ceeb4025b54d6fb03f9f01937",
-  "scoredAt": "2026-05-12T22:21:41.710Z",
+  "scoredAt": "2026-05-13T11:35:52.105Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.06,
+    "baselineAvg": 18,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "audit-image-gallery-alt-contrast",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response A gives concrete violations and fixes, though missing some details, whereas Response B only offers general guidance without identifying specific issues."
+      },
+      {
+        "name": "audit-landing-page-keyboard",
+        "baseline": 15,
+        "treatment": 75,
+        "rationale": "Response B provides specific WCAG criteria, severity, location, and fixes for issues, while Response A only offers generic testing guidance without concrete findings."
+      },
+      {
+        "name": "audit-login-form-labeling",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response A identifies violations with WCAG criteria, severity, location, fixes, and affected users, while Response B merely provides a correct example without identifying or detailing any violations."
+      }
+    ]
+  }
 }

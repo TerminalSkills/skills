@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:420b1cd327d3b0c5a8d0c1ba65a82826f8f0e669c586992851f19d648b63fd3c",
   "scoredAt": "2026-05-13T10:08:31.488Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 88,
+    "multiplier": 2.32,
+    "scenarios": [
+      {
+        "name": "Build a stock analysis agent that uses pandas and matplotlib",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Treatment imports CodeAgent and a model class from smolagents, decorates Python functions with @tool with typed signatures and docstrings, and passes additional_authorized_imports=['pandas','numpy','matplotlib'] plus max_steps, all per the skill; baseline reaches for LangChain/AutoGPT-style tool-calling and never uses smolagents' code-execution model."
+      },
+      {
+        "name": "Compose a manager agent that delegates to a web researcher and a data analyst",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment wraps two CodeAgent specialists in ManagedAgent with name and description fields and passes them via managed_agents= to a manager CodeAgent, exactly as the skill prescribes; baseline writes ad-hoc Python orchestration without the ManagedAgent abstraction."
+      }
+    ]
+  }
 }

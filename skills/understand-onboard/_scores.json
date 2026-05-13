@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8f0fec50dc43d09b56ef291b140db47a5153cbad7615c155bc36fdf3cb374744",
   "scoredAt": "2026-05-13T10:29:56.823Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 13,
+    "treatmentAvg": 95,
+    "multiplier": 7.31,
+    "scenarios": [
+      {
+        "name": "Generate onboarding guide from knowledge graph",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline writes a generic onboarding doc with no awareness of .understand-anything/knowledge-graph.json or the project/layers/tour/file-node extraction pattern; treatment grep-extracts each section and produces the six-section markdown the skill specifies."
+      },
+      {
+        "name": "Identify complexity hotspots for new hires",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Baseline cannot know that complexity is encoded on file-level nodes in the knowledge graph or that >10 is the hotspot threshold; treatment filters type:'file' nodes and applies the documented complexity>10 rule."
+      }
+    ]
+  }
 }

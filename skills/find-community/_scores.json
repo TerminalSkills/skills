@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0537985062630762d48fcd6d9237334fbeaf401c47f20420ad6c343d1513caf8",
   "scoredAt": "2026-05-13T08:52:57.380Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 86,
+    "multiplier": 1.72,
+    "scenarios": [
+      {
+        "name": "Indie hacker picking a community to serve",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment screens each community against the documented checks (genuine member, willingness to pay, reachability, niche size) and narrows to 1-3 with named persistent problems and gathering places; baseline brainstormed generic TAM-style audiences."
+      },
+      {
+        "name": "Non-technical service provider evaluating customer base",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment applies the 'already a part of' lens and rejects broad audiences, recommending a community where the user is an insider with budget access; baseline jumped to channel tactics without authenticity or pain validation."
+      }
+    ]
+  }
 }

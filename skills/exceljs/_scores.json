@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:81fb2e9efe41033c0ad0a19a58828d89ea016ea0c3bdbfe42452db01be87485d",
   "scoredAt": "2026-05-13T08:50:12.581Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Generate a styled sales report .xlsx from Node",
+        "baseline": 58,
+        "treatment": 90,
+        "rationale": "Treatment uses sheet.columns with header/key/width, getRow(1).font + fill pattern with argb, getColumn('revenue').numFmt = '$#,##0' and growth as '0.0%', then workbook.xlsx.writeFile; baseline writes a workbook but lacks the keyed columns approach and explicit numFmt strings, producing an unformatted output."
+      },
+      {
+        "name": "Stream a million-row export without OOM",
+        "baseline": 52,
+        "treatment": 85,
+        "rationale": "Treatment uses ExcelJS.stream.xlsx.WorkbookWriter with fs.createWriteStream, useStyles: true, and per-row sheet.addRow(row).commit() followed by sheet.commit()/workbook.commit() as documented; baseline suggests CSV or chunked writeFile loops and misses the streaming WorkbookWriter API."
+      }
+    ]
+  }
 }

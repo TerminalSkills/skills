@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d6e813dbaad2636654325143abf01f3451449e34f4eff07c97f4d46383abd028",
-  "scoredAt": "2026-05-13T08:45:08.818Z",
+  "scoredAt": "2026-05-13T16:40:23.966Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3,
+    "baselineAvg": 30,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "full-domain-dns-audit",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers the required record types and gives recommendations, while Response B only provides a script without analysis."
+      },
+      {
+        "name": "spf-lookup-limit-check",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with detailed counts, impact, and fixes, while Response B only offers a generic script and example counts, missing the specific total and impact for the domain."
+      }
+    ]
+  }
 }

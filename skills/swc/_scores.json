@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3241b719bf2adb0fa707176707749f68e56217eff7796454e1ea78b9f7f249ec",
   "scoredAt": "2026-05-13T10:16:56.049Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 95,
+    "multiplier": 2.5,
+    "scenarios": [
+      {
+        "name": "Replace Babel + Jest with SWC in TS+React monorepo",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Treatment uses tsx parser, react automatic runtime, and @swc/jest while dropping .babelrc; baseline keeps Babel for Jest and omits tsx/JSX config."
+      },
+      {
+        "name": "SWC production minify with console removal and source maps",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Treatment uses SWC's native jsc.minify.compress.drop_console with passes:2 and sourceMaps:true; baseline incorrectly pulls in Babel/Terser plugins for console removal."
+      }
+    ]
+  }
 }

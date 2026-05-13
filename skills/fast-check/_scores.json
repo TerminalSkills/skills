@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1156243fa378fc944b24172d3789e30b34d458dd4ac0bda7394480c3a4ca20ec",
   "scoredAt": "2026-05-13T08:51:18.332Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 29,
+    "treatmentAvg": 100,
+    "multiplier": 3.45,
+    "scenarios": [
+      {
+        "name": "Roundtrip property test for encode/decode codec",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Treatment used fc.assert(fc.property(fc.string(), ...)) with the roundtrip identity inside Vitest, exactly the documented pattern; baseline rolled its own Math.random loop and missed fast-check's arbitraries and shrinking entirely."
+      },
+      {
+        "name": "Pricing invariant: discount never produces negative amount",
+        "baseline": 28,
+        "treatment": 100,
+        "rationale": "Treatment defined a moneyArbitrary via fc.record with fc.constantFrom for currency, combined two arbitraries in fc.property, and asserted discounted.amount >= 0 per the documented example; baseline used hand-rolled Math.random without arbitraries, record types, or shrinking."
+      }
+    ]
+  }
 }

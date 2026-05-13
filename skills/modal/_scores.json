@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2e149c73538c68dac241210929940748fbe2b997eb127bbf4c50dd360764e5b6",
   "scoredAt": "2026-05-13T09:36:26.515Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 92,
+    "multiplier": 4.0,
+    "scenarios": [
+      {
+        "name": "Mistral-7B web endpoint with one-time model load",
+        "baseline": 25,
+        "treatment": 93,
+        "rationale": "Baseline reaches for FastAPI/Docker or a plain @app.function and re-loads the model per request; treatment uses @app.cls with @modal.enter() and @modal.web_endpoint plus modal deploy as documented."
+      },
+      {
+        "name": "Cron-scheduled nightly fine-tune with Volume cache",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Baseline relies on external cron + S3; treatment uses modal.Cron('0 2 * * *') with timeout and mounts a modal.Volume.from_name(create_if_missing=True) via volumes={...} exactly as the skill shows."
+      }
+    ]
+  }
 }

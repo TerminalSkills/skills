@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:381c21f8294f92d426fef047dffa86da805741e834244a42d68f901d59c9c1dd",
   "scoredAt": "2026-05-13T10:35:38.801Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 90,
+    "multiplier": 2.0,
+    "scenarios": [
+      {
+        "name": "Add tracing to a RAG pipeline using OpenAI",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment calls weave.init and decorates pipeline steps with @weave.op() relying on automatic OpenAI tracing; baseline manually logs spans or uses a different observability tool without the auto-instrumentation pattern."
+      },
+      {
+        "name": "Compare two prompt versions with an evaluation dataset",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment subclasses weave.Model with predict decorated by @weave.op() and runs weave.Evaluation(dataset, scorers).evaluate(agent) for each version; baseline writes a custom loop without weave.Model versioning or Evaluation."
+      }
+    ]
+  }
 }

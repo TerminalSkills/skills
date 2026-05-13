@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ded881186e381ebd839137cfa223c62aa7f1aea33c25919a9db9c7ce9cc66479",
   "scoredAt": "2026-05-13T09:13:03.728Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Run a Hoppscotch API collection in CI/CD against a saved environment",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment installed @hoppscotch/cli and used `hopp test -e environment.json collection.json` (and the --server/--token variant) as documented; baseline reached for newman/curl scripts and didn't use the hopp CLI."
+      },
+      {
+        "name": "Refresh an expired OAuth access token automatically before every request",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment used the documented pre-request script with pw.env.get/set and pw.api.post against /auth/token, gating on Date.now() vs TOKEN_EXPIRY; baseline wrote external bash refresh scripts and missed the pw.* sandbox."
+      }
+    ]
+  }
 }

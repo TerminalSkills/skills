@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:135f63f8afd1553196876638295c8489efd8a5ed672d8a13d1a4530f27cbfe7f",
-  "scoredAt": "2026-05-13T08:27:07.733Z",
+  "scoredAt": "2026-05-13T15:15:41.895Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.43,
+    "baselineAvg": 28,
+    "treatmentAvg": 68,
+    "scenarios": [
+      {
+        "name": "extract-invoice-tables-to-csv",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B includes the required OCR instance, read call, table iteration, DataFrame conversion, CSV writing, and row count printing (though it omits column names), whereas Response A provides only installation and command‑line usage without any code snippet that meets the rubric."
+      },
+      {
+        "name": "process-handwritten-medical-form",
+        "baseline": 55,
+        "treatment": 65,
+        "rationale": "Response A is closer to the rubric, using the correct OCR class and mixed mode, though it omits some required prints and key names; Response B uses a different API and misses several rubric items."
+      }
+    ]
+  }
 }

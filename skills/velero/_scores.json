@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8933ce45d663da6bf15fa0028bbc113ed826709d54efda0f8fadc31ed1aac394",
   "scoredAt": "2026-05-13T10:33:38.055Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 92,
+    "multiplier": 1.59,
+    "scenarios": [
+      {
+        "name": "Migrate production namespace with PVs between EKS clusters",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline covers backup/restore mechanics but misses ReadOnly access mode on destination and fs-backup config for PV data, while treatment uses the skill's exact migration recipe including backup-location ReadOnly and node-agent fs backup."
+      },
+      {
+        "name": "Daily 2am scheduled backup of production with PV data, 7-day retention",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Baseline hits the cron schedule, TTL, and namespace include but is vague on persistent volume capture, while treatment uses the documented Schedule manifest with defaultVolumesToFsBackup and node-agent setup."
+      }
+    ]
+  }
 }

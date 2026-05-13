@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:022b5d1fc1c75d129d954c98729e62d5c5c386e1d19c66fb98e461ec014926d3",
-  "scoredAt": "2026-05-13T08:39:47.425Z",
+  "scoredAt": "2026-05-13T16:05:21.086Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7.5,
+    "baselineAvg": 5,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "static-pagination-csv-export",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A fails to use CheerioCrawler and the required methods, while Response B meets all functional requirements except for the exact CSV filename, earning it partial credit."
+      },
+      {
+        "name": "js-rendered-infinite-scroll-proxy",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the required page.locator click; Response B fails to meet the PlaywrightCrawler, ProxyConfiguration, and extraction method requirements."
+      }
+    ]
+  }
 }

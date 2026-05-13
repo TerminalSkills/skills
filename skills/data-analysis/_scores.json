@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5cd3e843bf376784f111e35998522dfb22c2c561941fa9f330357ca35836393d",
-  "scoredAt": "2026-05-13T08:41:56.573Z",
+  "scoredAt": "2026-05-13T16:18:39.252Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.6,
+    "baselineAvg": 25,
+    "treatmentAvg": 65,
+    "scenarios": [
+      {
+        "name": "analyze-sales-data",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A includes more of the required outputs (e.g., saving the monthly trend chart) than Response B, but both miss several key items such as the category bar chart, correlation heatmap, missing value report, and describe statistics."
+      },
+      {
+        "name": "compare-year-over-year",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, while Response A misses key requirements."
+      }
+    ]
+  }
 }

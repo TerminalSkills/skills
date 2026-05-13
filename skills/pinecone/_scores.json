@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:06d0fdbeca5dbd308cf215d9be3d0a5d4cc68adb4f17a9d4d37cbaee4ba4d171",
   "scoredAt": "2026-05-13T09:50:31.590Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 95,
+    "multiplier": 1.98,
+    "scenarios": [
+      {
+        "name": "Serverless index with namespaced metadata upsert",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline often misses the serverless spec shape and namespace API; treatment uses createIndex with spec.serverless and index.namespace().upsert with rich metadata exactly as the skill shows."
+      },
+      {
+        "name": "Filtered semantic search for RAG",
+        "baseline": 50,
+        "treatment": 94,
+        "rationale": "Baseline filters in JS or misuses operators; treatment uses the $eq/$gte filter operators on the query call and pipes matches into an OpenAI completion per the skill's RAG example."
+      }
+    ]
+  }
 }

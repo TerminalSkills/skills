@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:32d3c5c5badeef05237b0f3b68ea8f902aadb5813739e72a28bb8a9d22974770",
   "scoredAt": "2026-05-13T09:24:53.078Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 87,
+    "multiplier": 2.72,
+    "scenarios": [
+      {
+        "name": "Build a phone-answering voice agent that uses Deepgram STT, GPT-4o, and ElevenLabs TTS",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Treatment wires up `VoiceAssistant` from livekit-agents with Silero VAD prewarm, the deepgram/openai/elevenlabs plugins, and a `cli.run_app(WorkerOptions(...))` entrypoint; baseline stitches raw WebSocket + provider APIs together and misses the Agents framework entirely."
+      },
+      {
+        "name": "Route inbound Twilio SIP calls into a LiveKit room per call so an AI agent can answer",
+        "baseline": 33,
+        "treatment": 85,
+        "rationale": "Treatment creates a `SIPInboundTrunkInfo` via `lk.sip.create_sip_inbound_trunk` and a `SIPDispatchRuleIndividual` with `room_prefix`, giving each call its own room; baseline configures Twilio TwiML/Media Streams and never touches the LiveKit SIP API."
+      }
+    ]
+  }
 }

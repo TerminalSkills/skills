@@ -1,7 +1,7 @@
 {
   "version": "2.0.0",
   "skillHash": "sha256:546e7ba431c3cca62aff3cf12e0a6f3b5e7bf0dee304a108522bc790eb1a1ce5",
-  "scoredAt": "2026-05-13T08:29:04.814Z",
+  "scoredAt": "2026-05-13T15:28:35.611Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 0,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "initialize-and-capture-session",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B covers some but not all rubric items, while A misses all."
+      },
+      {
+        "name": "search-and-list-memories",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required commands but omits config details; Response A does not mention claude-mem at all."
+      }
+    ]
+  }
 }

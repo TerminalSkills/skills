@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:474be128d86106c9af3c41eebe9bfb85b2b69ed877e744cf9206f3c54b5c5e39",
   "scoredAt": "2026-05-13T09:46:28.631Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 84,
+    "multiplier": 2.62,
+    "scenarios": [
+      {
+        "name": "Migrate 200 files from Moment.js to date-fns across a monorepo",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment runs the documented two-phase flow (parallel explorer analysis lanes, then dependency-aware plan, then worker packets with one-owner-per-file rule and packet-level validation gates); baseline jumps straight to codemods without the planning contract or ownership rules."
+      },
+      {
+        "name": "Rename a public API across server, SDKs, and tests without breaking behavior",
+        "baseline": 30,
+        "treatment": 82,
+        "rationale": "Treatment respects the safety guardrails (no worker start before plan synthesis, no parallel edits on overlapping file sets, behavior-preserving by default) and sequences packets by dependency level with packet/integration/full-project check order; baseline parallelizes prematurely and skips the planning contract."
+      }
+    ]
+  }
 }

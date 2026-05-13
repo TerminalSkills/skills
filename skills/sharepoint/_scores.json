@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:811e5d566062b5944a3e345ae8e78a08b7253e13889adc2eb6b71a84ee366d21",
   "scoredAt": "2026-05-13T10:07:26.322Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 86,
+    "multiplier": 1.79,
+    "scenarios": [
+      {
+        "name": "Upload a 50MB CSV to a SharePoint document library",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment uses the documented createUploadSession resumable pattern for >4MB files via Graph API; baseline attempts a direct PUT which would fail at this size."
+      },
+      {
+        "name": "Bulk insert 50 list items into a SharePoint list",
+        "baseline": 50,
+        "treatment": 84,
+        "rationale": "Treatment uses the documented /$batch endpoint with the 20-request batch limit honored; baseline loops individual POSTs and ignores rate-limit considerations."
+      }
+    ]
+  }
 }

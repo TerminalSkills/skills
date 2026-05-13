@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9d02cc65209391940db5e89a50d184dfb0e618819a452dd436259d92c93b8cc9",
   "scoredAt": "2026-05-13T10:34:50.220Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 97,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "Single-GPU AWQ-quantized OpenAI API server",
+        "baseline": 55,
+        "treatment": 98,
+        "rationale": "Treatment uses the modern vllm serve CLI with --host 0.0.0.0, --api-key, and --gpu-memory-utilization 0.9 per the skill; baseline uses the older python module path and omits auth and memory tuning flags."
+      },
+      {
+        "name": "Multi-GPU tensor-parallel serving of 70B model",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Treatment specifies --tensor-parallel-size 4, --pipeline-parallel-size 1, and --max-num-seqs 256 as documented; baseline only sets tensor-parallel-size without tuning concurrent sequence capacity."
+      }
+    ]
+  }
 }

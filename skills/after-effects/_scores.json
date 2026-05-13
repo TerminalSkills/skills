@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:408125f15e8b57fb1ca633005d78102e5b0978cd20870c9f23675a92a2f48a8b",
-  "scoredAt": "2026-05-12T22:22:30.827Z",
+  "scoredAt": "2026-05-13T12:18:35.971Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -18,19 +18,37 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill lacks error handling and edge case coverage."
+        "detail": "Skill does not cover error handling or edge cases, focusing mainly on happy path scenarios."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.4,
+    "baselineAvg": 62,
+    "treatmentAvg": 87,
+    "scenarios": [
       {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Uses curl to send Slack notification without verification."
+        "name": "data-driven-template-automation",
+        "baseline": 75,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B omits replaceSource and H.264 settings."
+      },
+      {
+        "name": "nightly-aerender-pipeline",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits exit‑code handling, uses an incorrect flag, and lacks a detailed Slack summary."
+      },
+      {
+        "name": "cep-panel-comp-list",
+        "baseline": 60,
+        "treatment": 60,
+        "rationale": "Both responses cover CSInterface, evalScript, JSON.stringify, and display the list, but neither uses a promise or async/await to retrieve the result, so they miss a key rubric requirement."
       }
     ]
-  },
-  "impact": null
+  }
 }

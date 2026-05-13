@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f85ddd509a5706f3be9a3c56a3148c35f261a4404a4ab539c1208433ec63606a",
   "scoredAt": "2026-05-13T10:30:03.770Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 68,
+    "treatmentAvg": 95,
+    "multiplier": 1.4,
+    "scenarios": [
+      {
+        "name": "PlayerController with CharacterController, ground check, and Animator flags",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Baseline produces working CharacterController code but typically uses string-based SetBool calls each frame and skips the Animator.StringToHash caching pattern shown in the skill; treatment uses Physics.CheckSphere and cached hash IDs."
+      },
+      {
+        "name": "WeaponData ScriptableObject for designer-driven items",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "ScriptableObject + CreateAssetMenu is widely known so baseline gets the basics, but treatment matches the skill's exact data-driven pattern (damage/attackSpeed/range, [TextArea], asset-creation explanation) more completely."
+      }
+    ]
+  }
 }

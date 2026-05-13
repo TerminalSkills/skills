@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:7206c5eedf787ca7e8d4603b25fbe308f731256a99a82963b7b96b035747a23c",
-  "scoredAt": "2026-05-13T08:27:52.647Z",
+  "scoredAt": "2026-05-13T15:19:45.148Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.71,
+    "baselineAvg": 70,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "scan-terraform-specific-checks-sarif",
+        "baseline": 100,
+        "treatment": 0,
+        "rationale": "Response B includes the exact Checkov CLI command with the required flags, while Response A only uses an action wrapper and does not show the CLI command."
+      },
+      {
+        "name": "skip-check-with-justification",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by providing the required command and inline comment, while Response B omits the inline comment and only offers a config-file alternative."
+      }
+    ]
+  }
 }

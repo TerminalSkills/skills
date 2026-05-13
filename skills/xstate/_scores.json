@@ -1,47 +1,53 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3fb8b646ce9d737b27a543203754c545516cc91639140c1435aae6978ec41c26",
-  "scoredAt": "2026-05-13T11:18:13.737Z",
+  "scoredAt": "2026-05-13T13:35:59.403Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "qwen2.5-coder:14b",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error scenarios or edge cases."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.53,
-    "baselineAvg": 60,
-    "treatmentAvg": 92,
+    "multiplier": 1.06,
+    "baselineAvg": 83,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "wizard-machine",
+        "name": "define-auth-machine",
         "baseline": 70,
-        "treatment": 75,
-        "rationale": "Both responses miss the required isValid context flag guard, but A uses context-based validation while B relies on event data, making A marginally better."
+        "treatment": 85,
+        "rationale": "Response A is more detailed and includes specific implementation details like error handling and context management, while Response B is less comprehensive in its explanation and lacks some key elements."
       },
       {
-        "name": "checkout-async",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A misses key elements such as using `setup`, naming the actor `processPayment`, and the correct context field `retries`."
+        "name": "integrate-auth-machine-react",
+        "baseline": 95,
+        "treatment": 80,
+        "rationale": "Response A is more comprehensive, covering all aspects of the rubric including detailed steps and a complete example. Response B is also correct but lacks some details such as handling form changes and retry functionality."
       },
       {
-        "name": "react-login-component",
-        "baseline": 60,
+        "name": "add-guard-to-machine",
+        "baseline": 85,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A uses a different state name ('loading' instead of 'authenticating') and omits the required disabled button for that state."
+        "rationale": "Response A fully meets the rubric by correctly implementing a guard on the 'RETRY' transition in the 'error' state, while Response B does not address the specific task of modifying an existing XState machine for authentication and instead provides a generic example."
       }
     ]
   }

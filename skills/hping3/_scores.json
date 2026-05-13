@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7e22601cd3c26e4691bc095203fed119e8dae8700f9f2ef509b1bad5dc0491a8",
   "scoredAt": "2026-05-13T09:13:31.112Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 90,
+    "multiplier": 1.8,
+    "scenarios": [
+      {
+        "name": "Verify firewall rule allows TCP/5432 from app tier to db host",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses hping3 -S -p 5432 with SA/RA/no-reply interpretation as documented; baseline mostly suggested nc/nmap and only loosely matched the rubric."
+      },
+      {
+        "name": "Measure real TCP RTT to api.example.com on port 443 when ping shows steady but app reports latency spikes",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment applied the documented hping3 -S -p 443 -c 200 -i u100000 pattern plus --traceroute -S to locate the slow hop; baseline relied on generic curl/ping timing without TCP-port-targeted probes."
+      }
+    ]
+  }
 }

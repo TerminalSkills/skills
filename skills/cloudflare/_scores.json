@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:e766413d4df594a5772f9859a335562b45f162e19175102a1e74ef94e9842efa",
-  "scoredAt": "2026-05-13T08:30:09.444Z",
+  "scoredAt": "2026-05-13T15:35:20.654Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.94,
+    "baselineAvg": 80,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "add-dns-record-via-api",
+        "baseline": 80,
+        "treatment": 60,
+        "rationale": "Response A provides a fuller, more detailed example that closely matches the required structure, while Response B is minimal but still contains the essential elements."
+      },
+      {
+        "name": "create-health-check-worker",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Response A directly exports a fetch method matching the rubric, while Response B uses an event listener pattern, slightly less aligned with the specified export requirement."
+      }
+    ]
+  }
 }

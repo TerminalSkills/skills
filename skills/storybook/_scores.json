@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fdbb4dc9c85f6c78b463c6f58e4b959daf980629744c7d787a75f50f97b6a689",
   "scoredAt": "2026-05-13T10:12:27.553Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 96,
+    "multiplier": 4.17,
+    "scenarios": [
+      {
+        "name": "Button.stories.tsx with variants and interaction test",
+        "baseline": 25,
+        "treatment": 96,
+        "rationale": "Baseline uses CSF named exports but omits args-driven controls, the autodocs tag, and a @storybook/test play function; treatment satisfies all four rubric checks."
+      },
+      {
+        "name": "Visual regression and a11y in CI",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline rolls a generic Playwright job; treatment uses @storybook/test-runner, @storybook/addon-a11y, and Chromatic exactly as documented."
+      }
+    ]
+  }
 }

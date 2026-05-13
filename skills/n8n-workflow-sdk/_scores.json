@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5d7e5f6a52e528f05d03e4472d3566f0ef70ed9375aeea4eca59f0be799d8da8",
   "scoredAt": "2026-05-13T09:38:49.668Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 22,
+    "treatmentAvg": 84,
+    "multiplier": 3.82,
+    "scenarios": [
+      {
+        "name": "Build AI support agent workflow in code",
+        "baseline": 20,
+        "treatment": 82,
+        "rationale": "Treatment uses WorkflowBuilder with node('n8n-nodes-langchain.agent', ...), .withSub(languageModel(...)), .withSub(memory(...)), and .withSub(tool(...)) per the SDK; baseline writes generic JSON or LangChain code without referencing the SDK's sub-node attachment pattern."
+      },
+      {
+        "name": "Convert existing n8n JSON workflow to TypeScript and deploy via API",
+        "baseline": 25,
+        "treatment": 86,
+        "rationale": "Treatment uses generateWorkflowCode(), validateWorkflow(), and POSTs to /api/v1/workflows with X-N8N-API-KEY then PATCHes /activate as in the skill; baseline reverse-engineers JSON manually with no validation step or correct activation endpoint."
+      }
+    ]
+  }
 }

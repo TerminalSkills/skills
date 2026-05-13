@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5acf7c37d2662e268fcb8400608bb78652d51665b2548c110ba908f97955aaa2",
   "scoredAt": "2026-05-13T10:40:30.080Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 88,
+    "multiplier": 2.93,
+    "scenarios": [
+      {
+        "name": "Trigger a Zap from a checkout backend on order completion, then segment customers in a Code step",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Baseline gets the generic webhook POST right but misses Zapier Code step semantics; treatment uses the documented hooks.zapier.com/hooks/catch URL and the inputData/output = [{...}] pattern from the skill."
+      },
+      {
+        "name": "Build a custom Zapier integration with newOrder trigger and createContact action",
+        "baseline": 20,
+        "treatment": 88,
+        "rationale": "Baseline fabricates SDK shape and misses the (z, bundle) convention; treatment uses the documented App.triggers/actions structure with z.request and bundle.meta.page pagination."
+      }
+    ]
+  }
 }

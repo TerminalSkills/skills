@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:768447f2f1851a173911a410d586222545bdb16227d011a6f806e332f28d0bbf",
   "scoredAt": "2026-05-13T09:07:27.492Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 91,
+    "multiplier": 3.25,
+    "scenarios": [
+      {
+        "name": "GDPR-compliant deletion handler with cooling-off",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Baseline hard-deletes immediately and misses third-party cascade; treatment implements the skill's 30-day cooling-off queue, cancel-link email, anonymize-over-delete, third-party cascade, and DSR audit log."
+      },
+      {
+        "name": "PII audit of Prisma schema",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline gives vague PII flags; treatment uses the skill's direct/indirect/sensitive taxonomy, recommends deletedAt + consentVersion fields, and produces the Data Flow Inventory table."
+      }
+    ]
+  }
 }

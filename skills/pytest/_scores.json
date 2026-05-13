@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5ac322057500aa1e2276b4b977db80a5234645644d647d36eb1910c6301d72e6",
   "scoredAt": "2026-05-13T09:59:12.234Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 89,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "FastAPI async SQLite test fixtures in conftest.py",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Baseline reaches for TestClient and dependency override but typically uses sync SQLite and misses the async_sessionmaker yield-and-teardown pattern; treatment places fixtures in conftest.py using create_async_engine('sqlite+aiosqlite:///:memory:'), async_sessionmaker, app.dependency_overrides[get_db] with cleanup, exactly as documented."
+      },
+      {
+        "name": "Parametrized pricing tests plus async-mocked webhook",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "Parametrize and mocking are well-known so baseline scores reasonably, but it often uses MagicMock for async functions and misses assert_called_once_with; treatment uses @pytest.mark.parametrize multi-tuple list, @pytest.mark.asyncio with patch(..., new_callable=AsyncMock), and assert_called_once_with as in the skill."
+      }
+    ]
+  }
 }

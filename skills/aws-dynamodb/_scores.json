@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:ebb984829c116bd2c8c5a1a7ce33e7d85546f86d5aa6f1ad943173ff266d7554",
-  "scoredAt": "2026-05-13T08:19:27.609Z",
+  "scoredAt": "2026-05-13T14:23:43.972Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2,
+    "baselineAvg": 50,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-orders-table-with-gsi-and-streams",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric with correct command syntax and all required parameters."
+      },
+      {
+        "name": "single-table-design-for-ecommerce-app",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a complete schema, create-table command, and sample put_item calls, while Response A is not provided and therefore cannot meet the requirements."
+      }
+    ]
+  }
 }

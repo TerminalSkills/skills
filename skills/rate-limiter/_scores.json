@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6e1e7910a9fc04a67f2e86c21a1fbb471ef42a85bf7920adc533d037b7a4b799",
   "scoredAt": "2026-05-13T10:00:10.383Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 34,
+    "treatmentAvg": 93,
+    "multiplier": 2.74,
+    "scenarios": [
+      {
+        "name": "Layered Express rate limit with Redis sliding window",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Treatment implements the sorted-set sliding window with a Redis multi pipeline (zremrangebyscore, zadd, zcard, expire), composite keys per category, and the full X-RateLimit-Limit/Remaining/Reset plus Retry-After headers on 429; baseline drops in express-rate-limit with a fixed-window store and partially covers headers, missing the per-category keyGenerator and the exact algorithm."
+      },
+      {
+        "name": "Credential-stuffing detection",
+        "baseline": 28,
+        "treatment": 90,
+        "rationale": "Treatment tracks unique usernames per IP using a Redis HyperLogLog and blocks the IP when the count exceeds 20 in a 5-minute window, with structured logging of request metadata for incident response; baseline counts failed attempts per IP fail2ban-style and does not distinguish unique usernames, missing the abuse pattern the rubric targets."
+      }
+    ]
+  }
 }

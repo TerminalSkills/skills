@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f49267c20c83f36c44acad1953a16aae9827a81abe6fe440b4ed0928f746afe9",
-  "scoredAt": "2026-05-13T08:17:22.372Z",
+  "scoredAt": "2026-05-13T14:08:49.049Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.87,
+    "baselineAvg": 15,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "deploy-appwrite-database-collection",
+        "baseline": 30,
+        "treatment": 75,
+        "rationale": "Response A covers the Docker Compose deployment, collection creation with correct permissions, and attempts an index, though the index code is incomplete; Response B lacks Docker Compose, collection creation, and index setup."
+      },
+      {
+        "name": "realtime-subscribe-messages",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with Appwrite realtime subscription and event handling, while Response B uses Firebase and does not meet the Appwrite requirement."
+      }
+    ]
+  }
 }

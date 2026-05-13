@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7a8b335fbe0712156833e23073579a3bd5cc2682df499365049db2b430642d43",
   "scoredAt": "2026-05-13T10:11:08.556Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 68,
+    "treatmentAvg": 96,
+    "multiplier": 1.41,
+    "scenarios": [
+      {
+        "name": "Server-side $29.99 payment via Web Payments SDK token",
+        "baseline": 80,
+        "treatment": 96,
+        "rationale": "Treatment uses Client + Environment.Production, paymentsApi.createPayment with BigInt(amount) and idempotencyKey via crypto.randomUUID() exactly as the skill shows; baseline omits BigInt which the Square v2 SDK requires."
+      },
+      {
+        "name": "Catalog upsert with priced variation",
+        "baseline": 55,
+        "treatment": 96,
+        "rationale": "Treatment makes a single upsertCatalogObject call with inline ITEM_VARIATION, # temp IDs, FIXED_PRICING and BigInt priceMoney; baseline splits into two calls without temp-ID linking, no pricingType, and no BigInt."
+      }
+    ]
+  }
 }

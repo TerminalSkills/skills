@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:90ac7564176c66665ba7f279f1f29cb7f7c6940b7ce9f561eea10c66e3082520",
   "scoredAt": "2026-05-13T10:37:40.438Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 89,
+    "multiplier": 1.62,
+    "scenarios": [
+      {
+        "name": "Automated peer provisioning script",
+        "baseline": 52,
+        "treatment": 90,
+        "rationale": "Treatment followed the documented add-peer.sh pattern using wg set wg0 peer with preshared-key, derived next IP from existing AllowedIPs, and emitted qrencode -t ansiutf8 output; baseline produced peer keys but lacked live wg set and QR rendering."
+      },
+      {
+        "name": "Site-to-site tunnel between two offices",
+        "baseline": 58,
+        "treatment": 88,
+        "rationale": "Treatment correctly placed both LAN CIDRs and tunnel /32 in AllowedIPs on each side, enabled IP forwarding and FORWARD iptables, and omitted PersistentKeepalive on server-to-server links per the skill's guidance; baseline used AllowedIPs = 0.0.0.0/0 which breaks site-to-site routing."
+      }
+    ]
+  }
 }

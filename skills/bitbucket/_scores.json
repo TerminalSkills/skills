@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:1a1368aeae186f32d6492c63feccf25b9da1b9900603b1fd6376a0b44a582037",
-  "scoredAt": "2026-05-13T08:21:41.941Z",
+  "scoredAt": "2026-05-13T14:42:19.389Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.44,
+    "baselineAvg": 18,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "create-repo-with-ci-and-protection",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies every rubric requirement, while Response A is incomplete or missing key elements."
+      },
+      {
+        "name": "pr-with-jira-and-slack-webhook",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies all rubric requirements with explicit POST calls, reviewers, close_source_branch, webhook registration, and Slack handler, whereas Response A lacks the required Bitbucket API calls and webhook setup."
+      }
+    ]
+  }
 }

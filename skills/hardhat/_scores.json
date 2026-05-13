@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c3cad481d4bbbd288c596f55e3c0960113c68f3b63c9f05530f47e1f27be9394",
   "scoredAt": "2026-05-13T09:11:29.943Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 93,
+    "multiplier": 2.16,
+    "scenarios": [
+      {
+        "name": "Bootstrap TypeScript Hardhat project with ERC20 tests",
+        "baseline": 30,
+        "treatment": 93,
+        "rationale": "Baseline installs bare hardhat and writes generic ethers tests; treatment installs @nomicfoundation/hardhat-toolbox, uses loadFixture for snapshot/revert, revertedWithCustomError for ERC20 errors, and runs --gas-report/coverage."
+      },
+      {
+        "name": "Deploy contract to Sepolia and verify on Etherscan",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline covers deploy script but omits verification configuration; treatment configures networks.sepolia + etherscan.apiKey via env vars and runs npx hardhat verify --network sepolia as the skill prescribes."
+      }
+    ]
+  }
 }

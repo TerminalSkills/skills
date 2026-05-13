@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:589126af5f6558829e03e23e16abe5b061bc9a253f19d298b3860aea60651399",
   "scoredAt": "2026-05-13T09:52:31.495Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 84,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "Multi-tenant RLS schema for SaaS app",
+        "baseline": 58,
+        "treatment": 86,
+        "rationale": "Treatment used UUID primary keys with gen_random_uuid(), TIMESTAMP WITH TIME ZONE, ENABLE ROW LEVEL SECURITY policies driven by current_setting('app.tenant_id'), and PgBouncer per-connection setup, matching the skill's stack; baseline relied on application-level tenant filtering and serial IDs."
+      },
+      {
+        "name": "Full-text search with ranking and highlighting on articles",
+        "baseline": 52,
+        "treatment": 82,
+        "rationale": "Treatment created a generated tsvector column with GIN index, used @@ with plainto_tsquery, ranked via ts_rank, and added ts_headline for highlights as the skill prescribes; baseline used ILIKE or non-indexed to_tsvector and skipped ts_headline."
+      }
+    ]
+  }
 }

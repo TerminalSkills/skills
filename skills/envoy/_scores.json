@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fee2bbfe46aa127b1689c58400a4c43dadca9851d3400523212d6e31a59e0de3",
   "scoredAt": "2026-05-13T08:49:15.030Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 89,
+    "multiplier": 1.62,
+    "scenarios": [
+      {
+        "name": "Configure Envoy as API gateway with prefix routing, retries, and circuit breakers",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline produces a valid listener+routes shell but commonly misses the exact retry_policy retry_on string and per-cluster circuit_breakers.thresholds fields the rubric specifies."
+      },
+      {
+        "name": "Add active health checks and zone-aware load balancing to a cluster",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Baseline adds generic http_health_check fields but often misses the specific threshold fields and the zone-aware routing/outlier detection patterns called out in the skill."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:39bd7f8f2a49f940f8b4a9c714bb7351addf5c0aa48358775ec80fbc07b05d79",
   "scoredAt": "2026-05-13T08:48:08.931Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 87,
+    "multiplier": 1.67,
+    "scenarios": [
+      {
+        "name": "SaaS welcome sequence with exit conditions and branching",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment followed the welcome-sequence blueprint (5-7 emails over 12-14 days), included exit conditions, branching for active vs inactive users at email 4-5, and per-email Subject/Preview/Body/CTA output format; baseline produced a generic schedule without exit conditions, branching, or the documented output structure."
+      },
+      {
+        "name": "B2B lead nurture after whitepaper download",
+        "baseline": 50,
+        "treatment": 86,
+        "rationale": "Treatment used the 6-8 email nurture blueprint with deliver/expand/problem/solution/case-study/differentiation/objection/offer arc, one CTA per email, and the documented Sequence Overview format; baseline gave a 3-email blast with multiple CTAs and no objection-handler or differentiation step."
+      }
+    ]
+  }
 }

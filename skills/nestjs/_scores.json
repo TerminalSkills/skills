@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:957f0c6f098cee367e293370638b8868e7b465c8691c247f08276d6273fd7bce",
   "scoredAt": "2026-05-13T09:39:55.810Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 75,
+    "treatmentAvg": 95,
+    "multiplier": 1.27,
+    "scenarios": [
+      {
+        "name": "Articles CRUD module with JWT-guarded create",
+        "baseline": 80,
+        "treatment": 95,
+        "rationale": "Baseline produces idiomatic NestJS code but often skips ParseIntPipe, class-validator decorators in DTO, or InjectRepository in the service; treatment matches the SKILL.md pattern exactly including @UseGuards(AuthGuard) on create and NotFoundException in service."
+      },
+      {
+        "name": "Bootstrap with ValidationPipe whitelist + TypeORM Postgres",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Baseline tends to enable the global ValidationPipe but omits whitelist/transform pair, autoLoadEntities, or the NODE_ENV gate on synchronize; treatment uses the exact main.ts and AppModule patterns from the SKILL.md."
+      }
+    ]
+  }
 }

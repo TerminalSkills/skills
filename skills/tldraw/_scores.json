@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d79befdfc7cfd42291b9cd3e5e516b22a2cbb3742b2a0623c67caac53419ba85",
   "scoredAt": "2026-05-13T10:26:40.817Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 36,
+    "treatmentAvg": 87,
+    "multiplier": 2.42,
+    "scenarios": [
+      {
+        "name": "Add a custom task-card shape to a tldraw kanban board",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment extends BaseBoxShapeUtil with static type, getDefaultProps, an HTMLContainer-based component(), and an indicator() for zoomed-out rendering; baseline writes a generic React component and skips tldraw's shape utility contract."
+      },
+      {
+        "name": "Persist canvas state to a backend with debounced auto-save",
+        "baseline": 38,
+        "treatment": 86,
+        "rationale": "Treatment uses editor.store.getSnapshot() and editor.store.loadSnapshot(), sets up editor.store.listen with debounce ~2s, and PUTs the snapshot to a documents endpoint; baseline relies on persistenceKey/localStorage and misses the snapshot APIs."
+      }
+    ]
+  }
 }

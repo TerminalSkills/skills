@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c6337fefef74478476b88b3e93bb344336772f9662d1f75e01e7d5f2b42e5488",
   "scoredAt": "2026-05-13T10:07:07.153Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 85,
+    "multiplier": 1.55,
+    "scenarios": [
+      {
+        "name": "Define a typed User/Post model pair with associations",
+        "baseline": 55,
+        "treatment": 86,
+        "rationale": "Treatment uses InferAttributes/InferCreationAttributes generics, hasMany/belongsTo with foreignKey+as, and the documented hook pattern; baseline writes a plain Model.init without the type-inference generics or named association aliases."
+      },
+      {
+        "name": "Wrap a multi-step create in a transaction and add a migration",
+        "baseline": 55,
+        "treatment": 84,
+        "rationale": "Treatment uses sequelize.transaction callback with the transaction option threaded through every call and sequelize-cli for migrations (not sync); baseline often uses sync() or omits the transaction option on inner calls."
+      }
+    ]
+  }
 }

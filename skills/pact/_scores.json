@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a3d6d461e04b0b11bda0fab09c7951fffec63021a4b25e3536b433fc7bfd20dd",
   "scoredAt": "2026-05-13T09:47:19.897Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 90,
+    "multiplier": 1.88,
+    "scenarios": [
+      {
+        "name": "Consumer pact test with provider states",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment uses PactV3 from @pact-foundation/pact with MatchersV3 (like, string, integer), chains given().uponReceiving().withRequest().willRespondWith().executeTest(mockServer => ...), and writes pacts to a dir; baseline used jest mocks with no pact file generation."
+      },
+      {
+        "name": "Can-i-deploy gate in CI before production deploy",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment runs npx pact-broker can-i-deploy --pacticipant --version $(git rev-parse HEAD) --to-environment production with --broker-base-url and --broker-token, plus record-deployment after deploy; baseline lacked the broker CLI gating step."
+      }
+    ]
+  }
 }

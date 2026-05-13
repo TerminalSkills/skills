@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c98d2313e38eb327fd95feed173327367560e08e4cc29e643de05dcce026dc7b",
   "scoredAt": "2026-05-13T10:39:56.879Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 68,
+    "treatmentAvg": 93,
+    "multiplier": 1.37,
+    "scenarios": [
+      {
+        "name": "Generate SRT subtitles from a YouTube lecture in English",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Baseline correctly chained yt-dlp -x with whisper but used vague model choice and missed --output_format srt; treatment matched the skill's exact two-step (yt-dlp -x --audio-format wav -o '%(id)s.%(ext)s' then whisper file.wav --model medium --language en --output_format srt)."
+      },
+      {
+        "name": "Quick draft transcription of a short YouTube video using the Python API",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Baseline used whisper.load_model and result['text'] but defaulted to the base model and missed the .en fast-path; treatment used tiny.en (or small) per the model table and iterated result['segments'] with start/end timestamps matching the Python example."
+      }
+    ]
+  }
 }

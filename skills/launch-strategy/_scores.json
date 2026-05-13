@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:21ec2b950815c523b371cad4b03a9de0a5cd5c4b9fd1e5e61e8f4189d617f7c6",
   "scoredAt": "2026-05-13T09:21:57.608Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 94,
+    "multiplier": 2.24,
+    "scenarios": [
+      {
+        "name": "Product Hunt launch plan for e-commerce analytics tool",
+        "baseline": 50,
+        "treatment": 94,
+        "rationale": "Treatment maps the ORB channel framework, 4-week pre-launch timeline matching the skill's example, and post-launch funnel of rented/borrowed traffic into owned channels with onboarding/comparison/roundup; baseline gives a generic PH playbook without ORB or owned-channel compounding."
+      },
+      {
+        "name": "Major feature launch to 5,000 paying customers",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Treatment classifies the update as major per the ongoing-launch matrix, runs the three-phase early access → beta → public rollout, and adds feature-specific onboarding emails plus a comparison page; baseline is a single-day blast with no phases or post-launch reinforcement."
+      }
+    ]
+  }
 }

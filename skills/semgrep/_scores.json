@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:656b8390a7823688eda7c6dcbc36d78d0999a51f31836c5bc4389affd3c8893a",
   "scoredAt": "2026-05-13T10:06:36.788Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 96,
+    "multiplier": 1.81,
+    "scenarios": [
+      {
+        "name": "Custom rule for SQL injection in TypeScript",
+        "baseline": 55,
+        "treatment": 96,
+        "rationale": "Treatment matches the skill's rule structure with severity ERROR, multiple concat patterns, a fix template, and CWE-89/OWASP metadata; baseline produces a thin rule at WARNING with no fix or rich metadata."
+      },
+      {
+        "name": "GitHub Actions CI with SARIF and ERROR-only gating",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Treatment wires semgrep/semgrep-action@v1 with p/security-audit + p/owasp-top-ten, emits --sarif --output=semgrep.sarif, and gates failure with --severity=ERROR --error; baseline outputs JSON and skips the documented action and ERROR-only gate."
+      }
+    ]
+  }
 }

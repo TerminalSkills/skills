@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e9a2fcf0973480b1a1290a3132f2c01ad5e9b38f1526e4c41c65b09b34a49c86",
   "scoredAt": "2026-05-13T09:24:39.414Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 88,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "Set up a proxy that load-balances between two providers under one model name and falls back if the primary fails",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment defines two `model_list` entries with the same `model_name: smart` for load balancing, uses `routing_strategy: latency-based-routing`, and adds `fallbacks: [{smart: [fast]}]` in router_settings — matching the documented proxy pattern; baseline writes a custom Python try/except wrapper."
+      },
+      {
+        "name": "Call Claude Sonnet and Gemini Flash from the same Python codebase using one function",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Treatment uses `from litellm import completion` and switches via the `provider/model` string (`gemini/gemini-2.0-flash`, `claude-sonnet-4-20250514`) returning identical `response.choices[0].message.content`; baseline calls the anthropic and google SDKs separately and writes adapter code."
+      }
+    ]
+  }
 }

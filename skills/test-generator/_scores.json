@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5647cd216ca3e4fc61e1e58a825d291f7d5f38583bbda8990470058197e22271",
   "scoredAt": "2026-05-13T10:25:10.558Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 91,
+    "multiplier": 1.4,
+    "scenarios": [
+      {
+        "name": "Generate vitest unit tests for a string-helpers utility module",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "Treatment imports from 'vitest', follows arrange-act-assert structure, and covers happy path, empty input, and boundary (exact length) cases per the skill's Example 1; baseline produces correct but less consistent coverage and sometimes omits the empty-string or boundary edge case."
+      },
+      {
+        "name": "Generate pytest tests for a Flask /api/users POST endpoint",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Treatment uses an in-memory SQLite fixture with app.test_client() inside app.app_context() and covers 201 success, 400 missing-email, and empty-body cases as in Example 2; baseline often misses the app_context setup or one of the validation paths."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3e638eed8ec849666fce9105c9d54eb26674ad7b18b67a3b9d4fe0c63a44978c",
   "scoredAt": "2026-05-13T09:18:46.057Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Replace Makefile with justfile for an npm project",
+        "baseline": 58,
+        "treatment": 89,
+        "rationale": "Baseline produced a justfile with recipes but omitted `set dotenv-load` and a `default` recipe, leaving env handling and the no-arg entrypoint missing; treatment used `set dotenv-load`, declared `default: dev`, and avoided make-style file-dependency tracking as the skill instructs."
+      },
+      {
+        "name": "Chained db-reset with post-dependencies and a parameterised deploy",
+        "baseline": 52,
+        "treatment": 87,
+        "rationale": "Baseline chained commands with `&&` inside a single recipe body and used positional args without defaults; treatment used just's post-dependency syntax `db-reset: && db-migrate db-seed`, gave `deploy env=\"staging\"` a default, and referenced `{{args}}` interpolation as documented."
+      }
+    ]
+  }
 }

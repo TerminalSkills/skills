@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:4e37e9219c1d01e19fcfb39fd5d0d67351d46f706ad8d8a936c2e8e9489eae7e",
-  "scoredAt": "2026-05-13T08:39:38.016Z",
+  "scoredAt": "2026-05-13T16:04:36.587Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9.8,
+    "baselineAvg": 3,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "llm-structured-extraction",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required AsyncWebCrawler, CrawlerRunConfig, or LLMExtractionStrategy."
+      },
+      {
+        "name": "css-extraction-with-js-scroll",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use AsyncWebCrawler, CrawlerRunConfig, or JsonCssExtractionStrategy and therefore fails to meet the rubric."
+      }
+    ]
+  }
 }

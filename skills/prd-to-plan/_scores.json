@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e16cb9d191a19cb22a98f3da7fe5de2c63c8b68465813d4ec80f5fc44721acdd",
   "scoredAt": "2026-05-13T09:53:13.278Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 89,
+    "multiplier": 3.18,
+    "scenarios": [
+      {
+        "name": "Plan a feature from PRD",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline produced horizontal layer-by-layer phases with no ./plans/ output, no architectural-decisions header, and no user quiz; treatment delivered tracer-bullet vertical slices in a saved Markdown plan with durable decisions and the granularity check."
+      },
+      {
+        "name": "Slice granularity check",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Baseline listed phases with file/function names and missed the template structure; treatment followed the plan template with per-phase user stories, end-to-end 'What to build' descriptions, and acceptance-criteria checkboxes."
+      }
+    ]
+  }
 }

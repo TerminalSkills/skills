@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b441b963530a8c2584e01098efec6b19999b7a9e895942205bed1e6772bdac58",
   "scoredAt": "2026-05-13T09:21:18.459Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 89,
+    "multiplier": 2.78,
+    "scenarios": [
+      {
+        "name": "Trace a RAG pipeline as nested spans with cost tracking",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Baseline used generic print/logging without Langfuse-specific tracing primitives; treatment used @observe and @observe(as_type=\"generation\") with langfuse_context.update_current_trace for nested spans and metadata."
+      },
+      {
+        "name": "Fetch a versioned prompt and score the resulting trace",
+        "baseline": 33,
+        "treatment": 90,
+        "rationale": "Baseline managed prompts in files with custom logging; treatment used langfuse.get_prompt(name, version=N) with prompt.compile and langfuse.score(trace_id, name, value, data_type) per the SKILL.md."
+      }
+    ]
+  }
 }

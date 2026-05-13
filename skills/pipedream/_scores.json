@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bd5e90fc23264782e98a608440750bee7a2d2c8a5519bfa4dfbaebac3112ef9f",
   "scoredAt": "2026-05-13T09:50:48.902Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 94,
+    "multiplier": 4.09,
+    "scenarios": [
+      {
+        "name": "Stripe webhook deduplication via data store",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reaches for external Postgres/Redis; treatment uses the built-in data_store prop, this.db.get/set, and $.flow.exit exactly as the skill documents."
+      },
+      {
+        "name": "HTTP endpoint with signature validation",
+        "baseline": 20,
+        "treatment": 93,
+        "rationale": "Baseline reverts to an Express server; treatment reads steps.trigger.event and uses $.respond + $.flow.exit for short-circuit responses per the skill."
+      }
+    ]
+  }
 }

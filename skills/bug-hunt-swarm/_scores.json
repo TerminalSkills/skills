@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:bd12dd9172bad15f59dfabd54b7cb83ce7eb4e0daeb853cd595c20f4438b0549",
-  "scoredAt": "2026-05-13T08:23:22.171Z",
+  "scoredAt": "2026-05-13T14:57:01.993Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.83,
+    "baselineAvg": 30,
+    "treatmentAvg": 55,
+    "scenarios": [
+      {
+        "name": "auth-test-regression-investigation",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A includes a bug packet, investigation brief, and swarm launch with agents, whereas Response B lacks these core components; thus A is more complete but still missing sub‑agent outputs and diagnosis synthesis."
+      },
+      {
+        "name": "api-500-deployment-diagnosis",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response A provides a bug packet and investigation brief, whereas Response B only gives a generic workflow without the required packet, sub-agent hypotheses, or diagnosis path."
+      }
+    ]
+  }
 }

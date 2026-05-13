@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:307d8de608a44a0da19a8e78b6a76b5a6998120825c32d565eaaa7b4219cf68c",
-  "scoredAt": "2026-05-13T08:23:33.264Z",
+  "scoredAt": "2026-05-13T14:59:05.925Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.31,
+    "baselineAvg": 65,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "bundle-typescript-library",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Both responses miss the required Bun.build() call, but B includes all necessary flags and treeshake, making it more complete."
+      },
+      {
+        "name": "write-bun-tests",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, including mock.module(), while Response A uses vi.mock instead of mock.module() and thus misses a key element."
+      }
+    ]
+  }
 }

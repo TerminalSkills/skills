@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d5e0bdb1a83ae4ea1a8708f5a27006b3fa7623de06fec6964ddd38cd4c6143ac",
-  "scoredAt": "2026-05-13T08:38:10.181Z",
+  "scoredAt": "2026-05-13T15:54:58.581Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.29,
+    "baselineAvg": 45,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "blog-post-type-script-adoption",
+        "baseline": 45,
+        "treatment": 60,
+        "rationale": "Response B better aligns with the rubric by including a hook and CTA, whereas Response A lacks both and also misses the required content brief and outline."
+      },
+      {
+        "name": "landing-page-copy-project-management",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Both responses omit the required opening content brief, but Response B explicitly outlines the landing page structure, giving it a slight edge over Response A."
+      }
+    ]
+  }
 }

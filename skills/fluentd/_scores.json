@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:82d781e7f3d94d4335433c94964b2fb2f28a9738a2e4159c785ce123ec33678e",
   "scoredAt": "2026-05-13T08:53:46.267Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 95,
+    "multiplier": 2.88,
+    "scenarios": [
+      {
+        "name": "Fan-out error logs to Elasticsearch + Slack, audit to S3",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline writes two separate matches and misses Slack specifics; treatment uses @type copy with nested <store> blocks for ES and Slack, plus @type s3 with file buffer and JSON format for audit logs."
+      },
+      {
+        "name": "Kubernetes DaemonSet with pod metadata enrichment",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline mounts /var/log and tails containers but omits cri parser, kubernetes_metadata filter, and buffering; treatment uses @type cri parsing, kubernetes_metadata filter, hostPath mounts of /var/lib/docker/containers, and a file-buffered elasticsearch sink."
+      }
+    ]
+  }
 }

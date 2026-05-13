@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4640dad1489d290f0debf31eb0ad6ee2b2859c36ef09ced6777b7bcef2d0b87a",
   "scoredAt": "2026-05-13T09:44:41.463Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 89,
+    "multiplier": 3.87,
+    "scenarios": [
+      {
+        "name": "Customer support triage with handoffs and input guardrail",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline used generic agent framework patterns and missed openai-agents SDK primitives; treatment correctly used Agent with handoffs, @function_tool, Runner.run, and InputGuardrail/GuardrailFunctionOutput with tripwire_triggered."
+      },
+      {
+        "name": "Stream agent output and surface handoff events",
+        "baseline": 20,
+        "treatment": 88,
+        "rationale": "Baseline produced generic async streaming without SDK-specific event types; treatment used Runner.run_streamed and inspected agent_updated_stream_event and raw_response_event as documented."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7b188158650d67f1dcfd5aff8f96e631c0e0f81f4bce25ecf15f612e01d4ca4c",
   "scoredAt": "2026-05-13T09:44:34.238Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 100,
+    "multiplier": 3.57,
+    "scenarios": [
+      {
+        "name": "Wire up a GitHub bot that auto-fixes labeled issues",
+        "baseline": 25,
+        "treatment": 100,
+        "rationale": "Baseline reached for PyGithub polling and a raw Anthropic call with no Open SWE primitives; treatment used SWEAgent, GitHubIntegration with the on_issue label decorator, and the documented create_pr + failure-comment flow."
+      },
+      {
+        "name": "Process multiple issues in parallel with test iteration loops",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Baseline used asyncio.gather but hand-rolled the retry loop and missed every SWEAgent.solve parameter (max_iterations, run_tests, test_command) plus the iterations introspection the rubric required."
+      }
+    ]
+  }
 }

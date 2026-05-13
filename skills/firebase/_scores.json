@@ -2,8 +2,8 @@
   "version": "1.1.0",
   "skillHash": "sha256:cebd9eb2de499a4967c3321ecad8e3f1ee39170fee1b610b04422dd711ceee6a",
   "scoredAt": "2026-05-13T08:53:05.655Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Like button with Cloud Functions and Firestore rules",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment uses onCall v2 with runTransaction and request.auth checks plus matching firestore.rules using request.auth.uid and resource.data.authorId, exactly as documented; baseline used v1 callable syntax and looser rules."
+      },
+      {
+        "name": "Scheduled cleanup of old unpublished drafts",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment uses onSchedule v2 with a compound where('published','==',false) + where('createdAt','<',cutoff) query and a batch delete, matching the skill's documented pattern; baseline used v1 pubsub.schedule and didn't mention the composite index."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:56ed6367402c50fcb30c3a095138dfc87756faafa404df59959d5d099ccb0884",
-  "scoredAt": "2026-05-13T08:43:30.149Z",
+  "scoredAt": "2026-05-13T16:28:47.746Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.93,
+    "baselineAvg": 30,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "real-time-voice-assistant-transcription",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "A fully satisfies all rubric requirements, while B lacks explicit confirmation of required options and event handling."
+      },
+      {
+        "name": "pre-recorded-meeting-transcription-with-summary",
+        "baseline": 10,
+        "treatment": 75,
+        "rationale": "Response A meets most rubric requirements using Deepgram and prints utterances with confidence, but omits overall confidence and full transcript; Response B uses a different service entirely."
+      }
+    ]
+  }
 }

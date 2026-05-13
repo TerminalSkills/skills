@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1bf4d12b770f973699a433c5aed8d792c78ca422a9c3cb63ba120950e5244ffa",
   "scoredAt": "2026-05-13T09:45:14.840Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "AAPL price + SMA(20) + RSI(14) DataFrame pipeline",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline reaches for yfinance and reimplements indicators manually, missing the obb.technical.sma/rsi helpers entirely, while treatment uses the documented obb.equity.price.historical + obb.technical.sma/rsi chain."
+      },
+      {
+        "name": "Expose OpenBB to non-Python agent via HTTP",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Baseline hand-rolls a FastAPI wrapper around yfinance, whereas treatment uses the built-in openbb-api server on port 6900 and the documented /api/v1/equity/price/historical endpoint plus MCP."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4f50707cf00eb69f1e208230d8e04f32ba83ded18e671cee520c3029fe7f09d1",
   "scoredAt": "2026-05-13T10:06:20.960Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 95,
+    "multiplier": 1.79,
+    "scenarios": [
+      {
+        "name": "headless-pytest-login",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline used time.sleep and skipped fixture teardown; treatment used WebDriverWait + EC.presence_of_element_located, --headless ChromeOptions, and a fixture that calls driver.quit()."
+      },
+      {
+        "name": "selenium-grid-compose",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline defined hub + one chrome node and omitted SE_EVENT_BUS_PUBLISH_PORT/SUBSCRIBE_PORT; treatment included hub on 4442/4443/4444 plus chrome and firefox nodes with all three SE_EVENT_BUS_* env vars."
+      }
+    ]
+  }
 }

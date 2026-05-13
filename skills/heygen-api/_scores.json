@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:10bec9b2d47cd0dd5089f3e607cc6e0cf96e50a55af8cbbd0d693ad1b973b015",
   "scoredAt": "2026-05-13T09:12:37.226Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 96,
+    "multiplier": 5.33,
+    "scenarios": [
+      {
+        "name": "Avatar video generation, poll, download",
+        "baseline": 20,
+        "treatment": 96,
+        "rationale": "Baseline invents Bearer auth and incorrect endpoint/payload shapes; treatment uses X-Api-Key, POSTs the documented video_inputs structure with character/voice/dimension to /v2/video/generate, polls /v1/video_status.get?video_id=... for status=='completed', then streams the video_url to disk."
+      },
+      {
+        "name": "Video translation with lip-sync",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline fabricates a translate endpoint and a generic language field; treatment POSTs to /v2/video_translate with video_url, output_language='es', and title, then polls /v2/video_translate/{translate_id} for completed status — exactly the documented contract."
+      }
+    ]
+  }
 }

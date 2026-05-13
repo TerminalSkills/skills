@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:61617e98107e9463bbf3be5c9154ff9549e8c280ccfc707e5a33507a9e584ac0",
-  "scoredAt": "2026-05-13T08:18:37.017Z",
+  "scoredAt": "2026-05-13T14:16:58.493Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -42,5 +42,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "generate-clip-waveform-png",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, Response B does not use audiowaveform and misses required flags."
+      },
+      {
+        "name": "convert-dat-to-json-and-png",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B follows the rubric exactly, while Response A does not use audiowaveform and misses the required steps."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e7046f19f5e25c535098bb8a470df88e3020918db4a6f547e1c083baab2765be",
   "scoredAt": "2026-05-13T10:12:16.993Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 5,
+    "treatmentAvg": 97,
+    "multiplier": 9.7,
+    "scenarios": [
+      {
+        "name": "Preview Stitch project locally and hand off to coding agent via MCP",
+        "baseline": 5,
+        "treatment": 97,
+        "rationale": "Baseline falls back to manual HTML export; treatment uses serve -p, configures the npx proxy MCP server, and invokes build_site/get_screen_code as documented."
+      },
+      {
+        "name": "Generate Astro project from Stitch with explicit route mapping",
+        "baseline": 5,
+        "treatment": 96,
+        "rationale": "Baseline scaffolds Astro manually; treatment uses the site CLI command or the build_site MCP tool with the documented routes JSON payload."
+      }
+    ]
+  }
 }

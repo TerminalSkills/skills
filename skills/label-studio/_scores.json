@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d307fdc7b1b321eab25cea49cdc654ae252eabf44af21e9666de3df79041ad19",
   "scoredAt": "2026-05-13T09:20:59.807Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 89,
+    "multiplier": 2.70,
+    "scenarios": [
+      {
+        "name": "Bootstrap a sentiment-classification project via the SDK",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Baseline used raw requests calls; treatment used label_studio_sdk Client.start_project(title, label_config=<View><Choices>...) and project.import_tasks([...]) directly from the SKILL.md."
+      },
+      {
+        "name": "Implement an ML backend for sentiment pre-labeling",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Baseline built a custom Flask predictor; treatment subclassed LabelStudioMLBase with setup()/predict() returning the exact from_name/to_name/type/value.choices schema and ran via label-studio-ml start ./ml_backend --port 9090."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:69a2d965d749d84cf66c26a95a47dad0b5f202443e4721684e68694570e5be93",
-  "scoredAt": "2026-05-13T08:44:35.914Z",
+  "scoredAt": "2026-05-13T16:36:17.927Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.3,
+    "baselineAvg": 8,
+    "treatmentAvg": 43,
+    "scenarios": [
+      {
+        "name": "generate-tsla-investment-memo",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the required ReportGenerator usage, template, sections, format, maxPages, or save/toPDF calls."
+      },
+      {
+        "name": "retrieve-aapl-10k",
+        "baseline": 15,
+        "treatment": 85,
+        "rationale": "Response B demonstrates the required EdgarClient.getFiling call, outputs riskFactors and financialStatements, and shows the financial tables, whereas Response A only provides a static JSON summary without any code or explicit use of the client."
+      }
+    ]
+  }
 }

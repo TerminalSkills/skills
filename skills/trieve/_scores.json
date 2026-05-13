@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:03314dcb83aae70442423d386a0da931f55e65debb8fd4370165a92879d49f83",
   "scoredAt": "2026-05-13T10:27:31.764Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 87,
+    "multiplier": 2.9,
+    "scenarios": [
+      {
+        "name": "Add hybrid search with highlighted snippets to a docs site backed by Trieve",
+        "baseline": 28,
+        "treatment": 88,
+        "rationale": "Treatment hit /api/chunk/search with search_type='hybrid', highlight_results, score_threshold, and the TR-Dataset header; baseline produced a generic vector or Algolia-style search without the documented endpoint and parameters."
+      },
+      {
+        "name": "Build a streaming RAG answer endpoint that cites source chunks",
+        "baseline": 32,
+        "treatment": 86,
+        "rationale": "Treatment called /api/chunk/generate with prev_messages, llm_options (system_prompt, temperature), and stream_response=true, returning answer plus source chunks; baseline rolled its own retrieval + completion against generic LLM SDKs without the Trieve RAG endpoint."
+      }
+    ]
+  }
 }

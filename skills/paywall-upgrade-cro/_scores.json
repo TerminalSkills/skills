@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b2a8e2301ec93da83a2f195c6ee14d4cc65265af656fd55f8885441f8d98b56f",
   "scoredAt": "2026-05-13T09:48:44.046Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 88,
+    "multiplier": 1.76,
+    "scenarios": [
+      {
+        "name": "SVG export feature gate redesign",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "Treatment applies value-first timing (after 3 designs), full paywall components (preview, social proof, annual-default pricing, escape hatch), and trigger A/B tests; baseline lists generic CRO tips without the value-first trigger rule or annual-default display."
+      },
+      {
+        "name": "14-day CRM trial expiration flow",
+        "baseline": 48,
+        "treatment": 87,
+        "rationale": "Treatment proposes a multi-touch sequence (Day 7/11/13/14) with personalized usage summaries, read-only takeover, and activity-based extension/discount offers; baseline lists standard reminder emails without escape hatches or activity-tiered offers."
+      }
+    ]
+  }
 }

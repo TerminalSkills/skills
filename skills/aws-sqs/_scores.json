@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f9c847c3baa27982934e7724f467235a868b36f421acc73bfe95d1b9d180ac4e",
-  "scoredAt": "2026-05-13T08:20:08.713Z",
+  "scoredAt": "2026-05-13T14:29:29.438Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.43,
+    "baselineAvg": 35,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "setup-fifo-queue-with-dlq-and-batch-send",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items except ContentBasedDeduplication, while Response A fails on queue names, attributes, and redrive policy."
+      },
+      {
+        "name": "batch-receive-process-delete-monitor",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses short polling and single deletes, missing key elements."
+      }
+    ]
+  }
 }

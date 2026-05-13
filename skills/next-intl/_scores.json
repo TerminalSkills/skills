@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4790f951ee25ea1a10a4e88ef00f4a4c3633dcb3d36035820485211b3905db09",
   "scoredAt": "2026-05-13T09:40:10.859Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 25,
+    "treatmentAvg": 97,
+    "multiplier": 3.88,
+    "scenarios": [
+      {
+        "name": "next-intl setup with en/de/fr locales, as-needed prefix, and a plural message",
+        "baseline": 25,
+        "treatment": 97,
+        "rationale": "Baseline hand-rolls dictionaries and middleware and reaches for Intl.PluralRules; treatment wires createMiddleware with localePrefix 'as-needed', getRequestConfig, useTranslations, and ICU plural syntax in messages JSON."
+      },
+      {
+        "name": "Dashboard greeting + medium-formatted last-login date via ICU",
+        "baseline": 25,
+        "treatment": 97,
+        "rationale": "Baseline relies on toLocaleDateString and a manual locale switch; treatment uses useTranslations('Dashboard') with ICU {date, date, medium}, delegating locale-aware formatting to next-intl."
+      }
+    ]
+  }
 }

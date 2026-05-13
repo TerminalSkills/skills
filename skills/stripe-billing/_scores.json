@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:10b203cee3bf7ba6f67b83b4565b2b7d8f903caa1f388375ab8740740e37601d",
   "scoredAt": "2026-05-13T10:12:50.242Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 92,
+    "multiplier": 1.67,
+    "scenarios": [
+      {
+        "name": "Bill SaaS users $29/mo plus tiered API usage",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Treatment creates a metered price with billing_scheme tiered and tiers_mode graduated plus a checkout.session with both prices, then reports usage via stripe.subscriptionItems.createUsageRecord with action increment as documented, while baseline manually invoices at month end."
+      },
+      {
+        "name": "Let paying customers cancel and update card themselves",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment opens a stripe.billingPortal.sessions.create session with the stored stripeCustomerId and a return_url, while baseline builds bespoke endpoints to call subscriptions.update and paymentMethods.attach."
+      }
+    ]
+  }
 }

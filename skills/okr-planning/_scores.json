@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d058deb5b0e47d1e44b300931f1912224d09d4076a2882e6920e954d9dc3120a",
   "scoredAt": "2026-05-13T09:43:23.823Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 94,
+    "multiplier": 2.19,
+    "scenarios": [
+      {
+        "name": "Drafting OKRs for a new product team",
+        "baseline": 45,
+        "treatment": 93,
+        "rationale": "One response mixes task-style KRs like 'launch onboarding' and skips baselines; the other produces inspiring Objectives with 3-5 quantitative KRs each, every KR phrased as a from-X-to-Y outcome metric (activation, time-to-value, conversion, NPS)."
+      },
+      {
+        "name": "Reviewing weak Q2 OKRs for anti-patterns",
+        "baseline": 40,
+        "treatment": 94,
+        "rationale": "One response flags vague wording but accepts 'launch the new dashboard' as a KR; the other rewrites the Objective, converts every output/activity KR into an outcome metric, and adds the missing baseline-to-target numbers — applying the skill's outcomes-over-outputs and 'include baselines' rules."
+      }
+    ]
+  }
 }

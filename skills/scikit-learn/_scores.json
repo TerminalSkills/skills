@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:51736cec9b932e0313345372074375ef73f36873969dc58631841a84852478d0",
   "scoredAt": "2026-05-13T10:05:55.160Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 94,
+    "multiplier": 1.57,
+    "scenarios": [
+      {
+        "name": "churn-pipeline",
+        "baseline": 60,
+        "treatment": 95,
+        "rationale": "Baseline used ColumnTransformer + GradientBoostingClassifier with GridSearchCV and pickle; treatment chose HistGradientBoostingClassifier inside a Pipeline, tuned with RandomizedSearchCV + StratifiedKFold, reported with classification_report(), and serialized via joblib.dump()."
+      },
+      {
+        "name": "customer-segmentation",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Baseline used KMeans with the elbow method and skipped pipelines; treatment built a Pipeline around StandardScaler + KMeans, selected k via silhouette score, applied PCA for visualization, and called out leakage prevention as the reason for the Pipeline."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3a448c07434a03c7acd2797d029106a12e9ce9c026068b60c67b9b9b67813850",
   "scoredAt": "2026-05-13T10:40:06.609Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 95,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Archive a YouTube playlist as MP3 with album art, resumable across runs",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline used -x --audio-format mp3 and -o template but omitted --download-archive for resumability and --embed-metadata; treatment combined --embed-thumbnail, --embed-metadata, --download-archive archive.txt, and -o '%(playlist_index)03d - %(title)s.%(ext)s' exactly per the skill."
+      },
+      {
+        "name": "Download a conference talk as 720p MP4 with embedded English subtitles",
+        "baseline": 60,
+        "treatment": 95,
+        "rationale": "Baseline knew -f 'bestvideo[height<=720]+bestaudio' and --embed-subs but missed --merge-output-format mp4 and --write-auto-sub fallback; treatment used the exact composite selector with --merge-output-format mp4, --embed-subs --sub-lang en, and --write-auto-sub from Step 5."
+      }
+    ]
+  }
 }

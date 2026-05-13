@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3c6d1d319aa251ece6f42a0ccad0fbd166f63d945a0b32a452c94a5f1d681e86",
-  "scoredAt": "2026-05-13T08:26:43.020Z",
+  "scoredAt": "2026-05-13T15:12:20.263Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3,
+    "baselineAvg": 0,
+    "treatmentAvg": 30,
+    "scenarios": [
+      {
+        "name": "export-domain-cert-hosts",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response uses the required find_hosts_by_domain_cert and export_hosts_to_json calls with the specified parameters, so both fail to meet the rubric."
+      },
+      {
+        "name": "aggregate-apache-countries",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A provides most of the required code and output but omits the port 80 filter, whereas Response B gives no relevant answer."
+      }
+    ]
+  }
 }

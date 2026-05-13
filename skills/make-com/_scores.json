@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4f9e592d9a5d057ebe2f96cdd3eb5daf8d4b57fd0ce9bde01d98074eaa07dc5d",
   "scoredAt": "2026-05-13T09:27:19.188Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 86,
+    "multiplier": 2.69,
+    "scenarios": [
+      {
+        "name": "Invoice processing scenario with conditional routing",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "Treatment lays out a Gmail trigger to Filter to Drive to OpenAI to Router branching on amount with downstream Slack/QuickBooks modules, matching the scenario structure pattern; baseline suggests generic workflow steps without Make's trigger/router/filter vocabulary."
+      },
+      {
+        "name": "Custom API call with array iteration and retryable error route",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment uses the HTTP module with {{1.field}} mapping syntax, an Iterator for array items, and a Break error route for retryable failures; baseline writes code that doesn't reflect Make's iterator/aggregator and Break/Resume/Rollback error-handler model."
+      }
+    ]
+  }
 }

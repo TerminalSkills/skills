@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:777c41e59aeed6026ba8a791df3d13f88b0a08619f9530690eec1e92cb33cbbc",
   "scoredAt": "2026-05-13T09:07:41.489Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 90,
+    "multiplier": 1.5,
+    "scenarios": [
+      {
+        "name": "Headless Ghost blog post page in Next.js App Router",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment uses @tryghost/content-api with version v5.0, ghost.posts.read with include tags/authors and formats html, generateStaticParams + generateMetadata pulling meta_title/og_image, and export const revalidate = 60 per SKILL.md; baseline writes a fetch-based call without the typed Content API client or ISR pattern."
+      },
+      {
+        "name": "Self-host Ghost via Docker with MySQL",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "Treatment runs ghost:5 Docker image with url, database__client=mysql, database__connection__host, and ghost-content volume mounted at /var/lib/ghost/content as documented; baseline often picks SQLite defaults or omits the env-var connection config."
+      }
+    ]
+  }
 }

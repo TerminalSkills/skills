@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3ffba9aff97d4e7685dc2d5344edeb883354901cb6f504b71ace4c39ca1213fd",
   "scoredAt": "2026-05-13T09:20:46.693Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 73,
+    "treatmentAvg": 91,
+    "multiplier": 1.25,
+    "scenarios": [
+      {
+        "name": "Type-safe subquery filtering published authors",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Treatment uses the typed Database<> generic, qualified column references (users.id, posts.author_id), and a direct subquery passed into .where('users.id', 'in', ...) matching the skill exactly; baseline omits the Database type and uses a callback subquery form."
+      },
+      {
+        "name": "Atomic user+post insert with transaction",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both use db.transaction().execute() with .returningAll() / .executeTakeFirstOrThrow() and reference user.id in the post insert, but treatment mirrors the skill's exact value shape and ordering."
+      }
+    ]
+  }
 }

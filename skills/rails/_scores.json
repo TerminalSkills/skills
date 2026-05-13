@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:db0de80da8e81b1104ab84eca1829c813fe8f74b6420dc4aa298ec93fcb0fe50",
   "scoredAt": "2026-05-13T09:59:57.896Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 69,
+    "treatmentAvg": 91,
+    "multiplier": 1.32,
+    "scenarios": [
+      {
+        "name": "rails-restful-controller",
+        "baseline": 72,
+        "treatment": 92,
+        "rationale": "Both produce RESTful controllers, but the treatment consistently combines before_action authentication, set_article, params.require.permit, includes(:author), and current_user.articles.build, while the baseline often omits one or two of these specific patterns."
+      },
+      {
+        "name": "rails-actioncable-chat",
+        "baseline": 65,
+        "treatment": 90,
+        "rationale": "The treatment follows the exact ApplicationCable::Channel template with stream_from, receive(data), ActionCable.server.broadcast, and the routes mount, while the baseline often forgets the cable mount in routes or uses a less idiomatic broadcast call."
+      }
+    ]
+  }
 }

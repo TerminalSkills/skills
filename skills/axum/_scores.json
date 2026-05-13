@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:aed93c6960b8e9bf4dedc0e5601419c2fd683100b5ad3b5f99c7bb47927517d4",
-  "scoredAt": "2026-05-13T08:20:17.410Z",
+  "scoredAt": "2026-05-13T14:30:55.493Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.43,
+    "baselineAvg": 70,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "product-crud-with-state-error-handling",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required State<AppState> extractor."
+      },
+      {
+        "name": "auth-middleware-with-user-extension",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by using middleware::from_fn_with_state, extracting the Bearer token, validating it, injecting the user ID, and applying it to a protected route, whereas Response B uses from_fn instead of from_fn_with_state, missing that key requirement."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:349244d02617ac3abce6448e645cf728738fa375eaf76de3761f40d7396e3ead",
   "scoredAt": "2026-05-13T09:15:32.902Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Compare Figma design to implementation screenshot",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Baseline writes a one-off pixelmatch Node script or shells out to `magick compare`; treatment runs image-compare.sh, reads mismatchPercentage from the JSON, and interprets it against the documented bands (<0.1% identical, 0.1-1% minor, etc.)."
+      },
+      {
+        "name": "Strict visual regression diff with custom threshold",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Baseline reaches for Backstop/Percy or a hand-rolled diff; treatment uses the documented positional args (image1, image2, diff path, threshold 0.05) and surfaces the red-highlighted ./changes.png alongside mismatchPercentage for pass/fail."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:350908cda7bff082ab267527a75a9249eb77d0740e9da00b5b8afa8bb6c88da2",
   "scoredAt": "2026-05-13T09:38:06.064Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 90,
+    "multiplier": 1.88,
+    "scenarios": [
+      {
+        "name": "Encode/decode a JS object containing Date fields losslessly over a WebSocket using @msgpack/msgpack",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Baseline calls encode/decode but loses Date type or converts to ISO strings, while treatment registers an ExtensionCodec with a Date encode/decode pair and sets ws.binaryType = 'arraybuffer' as documented."
+      },
+      {
+        "name": "Stream-decode a large MessagePack payload from a Node.js Readable stream",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Baseline buffers the whole stream and calls decode once, while treatment uses decodeMultiStream(readableStream) inside a for-await loop to process items incrementally as documented."
+      }
+    ]
+  }
 }

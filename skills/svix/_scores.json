@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a1c23e5d7b60a2cc677264b896babd14daa672f922749e7bcea358d024044bca",
   "scoredAt": "2026-05-13T10:16:43.658Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 23,
+    "treatmentAvg": 95,
+    "multiplier": 4.13,
+    "scenarios": [
+      {
+        "name": "Register customer and send filtered order webhooks via Svix",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Treatment uses the documented Svix SDK trio application.create + endpoint.create with filterTypes + message.create; baseline reinvents delivery with axios and a custom retry queue."
+      },
+      {
+        "name": "Verify Svix signatures and generate self-service portal link",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Treatment uses svix Webhook.verify with the svix-id/timestamp/signature header triple and authentication.appPortalAccess for the portal; baseline rolls custom HMAC and a hand-built dashboard."
+      }
+    ]
+  }
 }

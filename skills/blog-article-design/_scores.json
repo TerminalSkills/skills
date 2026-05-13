@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:6600505aad5322b5ef7ed3774813e9d610f613e077cda552be94a4a7ead5a039",
-  "scoredAt": "2026-05-13T08:22:29.305Z",
+  "scoredAt": "2026-05-13T14:50:04.296Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,17 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2,
+    "baselineAvg": 20,
+    "treatmentAvg": 40,
+    "scenarios": [
+      {
+        "name": "dark-theme-container-classes",
+        "baseline": 20,
+        "treatment": 40,
+        "rationale": "Response B correctly lists the required container classes, whereas Response A uses different classes and omits the specified ones."
+      }
+    ]
+  }
 }

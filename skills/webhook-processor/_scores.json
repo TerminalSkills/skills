@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:001367d1d4dfc8fc5b93bb2042847f94c040bb16b28f331f1b03b0a2b3e1a408",
   "scoredAt": "2026-05-13T10:36:28.494Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 90,
+    "multiplier": 2.0,
+    "scenarios": [
+      {
+        "name": "Payment webhook with retries and DLQ",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment scaffolds Express with express.raw, enqueues to a BullMQ webhookQueue with attempts:5 and exponential backoff delay:3000, verifies HMAC-SHA256 in a Worker that throws to trigger retries, and logs dead letters when attemptsMade>=5; baseline returns 200 but processes synchronously with no queue, no exponential backoff config, and no DLQ hook."
+      },
+      {
+        "name": "Repo push webhook with commit-SHA idempotency",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Treatment uses the commit SHA as BullMQ jobId for natural dedup, plus the redis.set(key,'1','EX',86400,'NX') isProcessed check with 24h TTL described in the skill; baseline uses an in-memory Set or no dedup at all and skips the BullMQ jobId pattern that prevents duplicate enqueues."
+      }
+    ]
+  }
 }

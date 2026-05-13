@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:bff678b2f0340a0346812d0525118115d15652170b90ac1a70357d01f6ce1199",
-  "scoredAt": "2026-05-13T08:18:50.789Z",
+  "scoredAt": "2026-05-13T14:19:24.060Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9.5,
+    "baselineAvg": 3,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "add-discord-provider",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses incorrect import paths and environment variable names, failing to meet the requirements."
+      },
+      {
+        "name": "protect-admin-middleware",
+        "baseline": 5,
+        "treatment": 90,
+        "rationale": "Response B meets the rubric requirements, while Response A does not."
+      }
+    ]
+  }
 }

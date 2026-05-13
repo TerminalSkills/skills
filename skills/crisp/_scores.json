@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:82b3dbc425feb8587964de7da569fc4ec4d9579656e12d2996bde93b5ded9ee1",
-  "scoredAt": "2026-05-13T08:40:07.745Z",
+  "scoredAt": "2026-05-13T16:06:43.763Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3,
+    "baselineAvg": 0,
+    "treatmentAvg": 30,
+    "scenarios": [
+      {
+        "name": "add-crisp-widget-static",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses add extra HTML elements and place the script incorrectly, violating the rubric's requirement for an exact, minimal snippet."
+      },
+      {
+        "name": "integrate-crisp-react",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B provides the CrispChat component but omits the required user data pushes, whereas Response A is empty."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b0ba034fa48ab7731ad64b5eaabcc1330918de6cf6f933d6f646681f99529b7e",
-  "scoredAt": "2026-05-13T08:18:42.213Z",
+  "scoredAt": "2026-05-13T14:17:51.465Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.69,
+    "baselineAvg": 58,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "express-hash-chain-audit",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B uses a constraint instead of a trigger to block UPDATE/DELETE, missing that key element."
+      },
+      {
+        "name": "aws-cloudtrail-immutable-s3-hipaa",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric with correct 6‑year compliance retention, log validation, and HIPAA reference, while Response A omits the 6‑year retention, validation, and HIPAA mention."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2af6391a755cfae0f6a4c815b2ef788db078cf738bb7f3141b58b13f4c805767",
   "scoredAt": "2026-05-13T10:36:55.500Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 79,
+    "treatmentAvg": 95,
+    "multiplier": 1.2,
+    "scenarios": [
+      {
+        "name": "Express webhook with verification and 3-button reply",
+        "baseline": 78,
+        "treatment": 95,
+        "rationale": "Both implement the verify handshake and button payload, but treatment uses v21.0, acks 200 first, dedupes by message.id, and respects wa_id semantics."
+      },
+      {
+        "name": "Outbound template message via Cloud API",
+        "baseline": 80,
+        "treatment": 95,
+        "rationale": "Both produce a correct template payload, but treatment uses v21.0, strips the leading '+' from the phone, and notes template approval plus status webhook correlation."
+      }
+    ]
+  }
 }

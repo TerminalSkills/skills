@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a96bb543ea1988d7f6d819eb8cfad76622db625575d5be8683692883cd08e22d",
   "scoredAt": "2026-05-13T09:11:04.965Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 15,
+    "treatmentAvg": 93,
+    "multiplier": 6.2,
+    "scenarios": [
+      {
+        "name": "Extract structured product review as guaranteed-valid JSON",
+        "baseline": 15,
+        "treatment": 92,
+        "rationale": "Baseline used a generic JSON-mode prompt with manual Pydantic parse, missing Guidance's gen_json(schema=...) constrained generation and named lm[\"review\"] capture that guarantee schema-valid output."
+      },
+      {
+        "name": "Classify review sentiment with a confidence score matching a regex",
+        "baseline": 15,
+        "treatment": 94,
+        "rationale": "Baseline relied on prompt instructions and post-hoc parsing, while treatment used select([...], name=\"sentiment\") and gen(regex=..., name=\"confidence\") so outputs are constrained at the token level and readable via lm[\"...\"] captures."
+      }
+    ]
+  }
 }

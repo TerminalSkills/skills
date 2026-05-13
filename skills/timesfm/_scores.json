@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b4f43985bedf5033e9c5975bd707f60a1ac065bb6195692e61f4e5ceab83ef73",
   "scoredAt": "2026-05-13T10:26:15.878Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "30-day demand forecast from yearly daily sales",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline knows TimesFM exists but invents a model.predict API and misses the TimesFmHparams/TimesFmCheckpoint constructor, huggingface_repo_id checkpoint, and tfm.forecast([history], freq=[1]) calling convention."
+      },
+      {
+        "name": "Anomaly detection on hourly CPU metrics",
+        "baseline": 35,
+        "treatment": 94,
+        "rationale": "Baseline has the threshold math (mean + 2*std) but misses the freq=[0] high-frequency setting and the 3x-horizon history sizing guideline that determine forecast quality."
+      }
+    ]
+  }
 }

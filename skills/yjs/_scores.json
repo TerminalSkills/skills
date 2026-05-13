@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9e14d6c14543a3c93019c87961b612c818f6d5b4ced0637b3d48374c67ffa86b",
   "scoredAt": "2026-05-13T10:39:16.634Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 95,
+    "multiplier": 1.90,
+    "scenarios": [
+      {
+        "name": "Wire up a Tiptap React editor with Yjs collaborative editing and shared cursors",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline installed Collaboration extension but missed StarterKit.configure({ history: false }) and CollaborationCursor user prop; treatment matched the skill's component verbatim including provider+doc cleanup in useEffect and WebsocketProvider construction in useMemo."
+      },
+      {
+        "name": "Add offline-first persistence so edits survive disconnect and merge on reconnect",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline mentioned IndexedDB generally but did not know y-indexeddb's IndexeddbPersistence API or that both providers attach to the same Y.Doc; treatment used new IndexeddbPersistence(name, doc) plus WebsocketProvider on the same doc and the 'synced' event exactly as Step 'Offline Support and Sync' shows."
+      }
+    ]
+  }
 }

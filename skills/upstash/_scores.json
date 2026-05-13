@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 88,
+    "multiplier": 2.2,
+    "scenarios": [
+      {
+        "name": "Sliding-window rate limit on edge route",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment uses @upstash/ratelimit with Ratelimit.slidingWindow(10, \"10 s\"), Redis.fromEnv(), and returns 429 with X-RateLimit-Limit/Remaining/Reset headers from the limit() result; baseline rolls a manual INCR+EXPIRE Redis pattern and skips the prebuilt limiter."
+      },
+      {
+        "name": "Daily QStash cron + delayed retry-able job",
+        "baseline": 35,
+        "treatment": 87,
+        "rationale": "Treatment uses @upstash/qstash Client.publishJSON with cron \"0 9 * * *\" for the daily report and a separate publishJSON with delay:\"30s\" and retries:3 for the retry-able job; baseline suggests Vercel Cron or BullMQ and omits the QStash JSON-publishing API entirely."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

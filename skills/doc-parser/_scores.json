@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:173e439c8f0e230fcdeb5e896360c100894b40e1f9ab5e0e12652fb1ec2b3fc6",
-  "scoredAt": "2026-05-13T08:45:15.558Z",
+  "scoredAt": "2026-05-13T16:41:00.986Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "extract-tables-to-csv",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully follows the rubric with docling code, while Response B uses camelot and omits all required docling steps."
+      },
+      {
+        "name": "convert-multi-column-report-to-markdown",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use DocumentConverter or the required methods."
+      }
+    ]
+  }
 }

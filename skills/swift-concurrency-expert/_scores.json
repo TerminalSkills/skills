@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:73a58260d1c3eb95e5e262458d2460a8a79d4e77eb2e48ca93ebaef158d58c50",
   "scoredAt": "2026-05-13T10:16:59.678Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 88,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Fix protocol conformance error on a @MainActor view model",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment scopes the conformance with @MainActor extension Foo: SomeProtocol (the documented isolated-conformance fix); baseline adds nonisolated to methods or wraps with Task { @MainActor in } instead of isolating the conformance."
+      },
+      {
+        "name": "Move expensive computation off the main actor in Swift 6.2",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment uses @concurrent async function (Swift 6.2+) or nonisolated with Task.detached, preserves the caller's actor on return, and avoids @unchecked Sendable; baseline reaches for Task { ... } or DispatchQueue without addressing isolation/Sendable correctly."
+      }
+    ]
+  }
 }

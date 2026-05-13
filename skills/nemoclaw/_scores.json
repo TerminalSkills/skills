@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f3becb23e6f36e0f48cad7f47cf85640784ab0e11e5fe40b3b58d6a19afe2911",
   "scoredAt": "2026-05-13T09:39:36.472Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 83,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 8,
+    "treatmentAvg": 95,
+    "multiplier": 9.5,
+    "scenarios": [
+      {
+        "name": "Install NemoClaw and bootstrap code-agent sandbox on Ubuntu",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Baseline has no knowledge of NemoClaw and either refuses or invents commands; treatment correctly verifies Ubuntu 22.04+/Node 20+/Docker prerequisites, uses the curl | bash installer from nvidia.com, runs nemoclaw code-agent connect, then openclaw tui inside the sandbox, mentioning the NVIDIA API key."
+      },
+      {
+        "name": "Deploy research-agent sandbox to remote GPU via Brev",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Baseline has no awareness of the nemoclaw deploy command or Brev integration; treatment uses nemoclaw research-agent status to verify local health, nemoclaw deploy research-agent to provision the remote GPU, and nemoclaw research-agent logs --follow to monitor, noting the same security policies apply remotely."
+      }
+    ]
+  }
 }

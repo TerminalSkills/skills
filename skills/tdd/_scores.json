@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c8bebd9ea1a7c0e944481beec5edc0389b8decc5adc018ff187a52779dddd5b7",
   "scoredAt": "2026-05-13T10:23:46.385Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 50,
     "dimensions": {
@@ -51,5 +51,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 34,
+    "treatmentAvg": 89,
+    "multiplier": 2.62,
+    "scenarios": [
+      {
+        "name": "TDD a password-reset feature in Express",
+        "baseline": 32,
+        "treatment": 90,
+        "rationale": "Baseline drifted into a horizontal-slice approach (write many tests up-front, mock collaborators) while treatment used a tracer bullet plus vertical slices with tests against the public HTTP interface and one red-green cycle at a time."
+      },
+      {
+        "name": "Fix cart total bug with red-green-refactor",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Baseline wrote unit tests against internal helpers and mixed refactor steps into the failing state, whereas treatment wrote a failing reproduction through the public cart interface, did minimal code to GREEN, then refactored, keeping tests refactor-survivable."
+      }
+    ]
+  }
 }

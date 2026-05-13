@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:530eabc54b80300431c00c97c132a244912a363c8ebaea34a101145c4363e138",
   "scoredAt": "2026-05-13T10:23:02.945Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 18,
+    "treatmentAvg": 98,
+    "multiplier": 5.44,
+    "scenarios": [
+      {
+        "name": "Optimistic-update mutation for creating a todo with rollback on error",
+        "baseline": 20,
+        "treatment": 98,
+        "rationale": "Baseline manages local useState for optimistic UI; treatment uses useMutation with onMutate calling cancelQueries + getQueryData snapshot + setQueryData, returns { previous } for onError rollback, and invalidateQueries on onSettled."
+      },
+      {
+        "name": "Cursor-based infinite-scroll feed",
+        "baseline": 15,
+        "treatment": 98,
+        "rationale": "Baseline reimplements pagination with useState + manual cursor; treatment uses useInfiniteQuery with initialPageParam, getNextPageParam consuming lastPage.nextCursor, and renders data.pages with hasNextPage / isFetchingNextPage gating the load-more button."
+      }
+    ]
+  }
 }

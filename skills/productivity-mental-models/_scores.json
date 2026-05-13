@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:15620008914fe86f6ebf52face98d88f3a7fbf9535b13d68066498e423a1e9ee",
   "scoredAt": "2026-05-13T09:57:26.991Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 86,
+    "multiplier": 1.79,
+    "scenarios": [
+      {
+        "name": "Diagnose missed sprint commitments",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment applied 5-Fold Why drilling past symptoms to a root cause (dependency mapping in sprint planning) and explicitly invoked Brooks's Law to reject adding more developers; baseline gave generic agile fixes without root-cause structure."
+      },
+      {
+        "name": "Solo founder busy but unproductive",
+        "baseline": 50,
+        "treatment": 84,
+        "rationale": "Treatment prescribed MITs set the prior evening, protected morning monoidealism blocks, batched async communication windows, and a shutdown brain-dump — all skill-specific; baseline offered standard time-blocking and Pomodoro advice."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:36986cb06305339288feea14eae79a5bf34dd0d33a042f58001daad9425f2c17",
-  "scoredAt": "2026-05-12T22:25:00.839Z",
+  "scoredAt": "2026-05-13T13:50:51.274Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -42,5 +42,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.2,
+    "baselineAvg": 25,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "taskflow-http-postgres-dag",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Both responses miss the PostgresOperator requirement, but B correctly uses the @dag decorator while A does not, giving B a slight edge."
+      },
+      {
+        "name": "docker-compose-setup-with-connection",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
+      }
+    ]
+  }
 }

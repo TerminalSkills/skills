@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:49917f30e0a999eb26355be4b4dc4d59ecec63e276eb9d6a6a1d7ab9f1b91b01",
   "scoredAt": "2026-05-13T09:13:55.629Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 93,
+    "multiplier": 1.86,
+    "scenarios": [
+      {
+        "name": "Enumerate engineering emails at a target domain",
+        "baseline": 55,
+        "treatment": 94,
+        "rationale": "Treatment hits /v2/domain-search with department=engineering and paginates via offset/limit with delays, exactly as documented, while baseline only scrapes generic Google dorks."
+      },
+      {
+        "name": "Guess and verify a person's email from a discovered pattern",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Treatment chains /email-finder with /email-verifier (checking status valid/accept_all/disposable) and uses the pattern token replacement helper from the skill."
+      }
+    ]
+  }
 }

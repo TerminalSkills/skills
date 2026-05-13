@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:998ec133c7308ce298b92fc8ff5104b0a749203739498e8e7c7a43a64b9ab928",
-  "scoredAt": "2026-05-13T08:38:40.553Z",
+  "scoredAt": "2026-05-13T15:58:23.320Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0,
+    "baselineAvg": 0,
+    "treatmentAvg": 0,
+    "scenarios": [
+      {
+        "name": "check-two-colors",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required JSON structure."
+      },
+      {
+        "name": "audit-palette",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack any content to evaluate against the rubric."
+      }
+    ]
+  }
 }

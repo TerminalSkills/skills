@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6cafaf4cc0ca081623f582ee2e31403f8e75e4871fec68076172013bb08f98b0",
   "scoredAt": "2026-05-13T09:19:05.133Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
+    "multiplier": 1.85,
+    "scenarios": [
+      {
+        "name": "Audit api-services namespace for waste",
+        "baseline": 52,
+        "treatment": 91,
+        "rationale": "Baseline ran kubectl top but did not compute efficiency = actual/requested, skipped the headroom buffer for new requests, and did not sort recommendations by estimated monthly savings; treatment combined kubectl get pods + kubectl top, computed the ratio, applied the 30% buffer with limits = requests x 1.5, and ranked by savings."
+      },
+      {
+        "name": "Find zombie deployments cluster-wide",
+        "baseline": 44,
+        "treatment": 87,
+        "rationale": "Baseline listed deployments with low CPU but did not combine the multi-day near-zero check with restart-count and staging/dev namespace patterns from the rubric; treatment filtered on CPU < 1m, restart count 0, and ns matching staging/dev/preview before emitting kubectl delete commands."
+      }
+    ]
+  }
 }

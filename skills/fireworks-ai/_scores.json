@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f0279c454fa69f514f9c2459e692b83e9785f9c60eaa12e92de80a6f3055c4b6",
   "scoredAt": "2026-05-13T08:53:18.040Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 42,
+    "treatmentAvg": 87,
+    "multiplier": 2.07,
+    "scenarios": [
+      {
+        "name": "Add Fireworks streaming chat to a Next.js app",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment uses the OpenAI SDK with baseURL https://api.fireworks.ai/inference/v1 and a fully-qualified model id like accounts/fireworks/models/llama-v3p3-70b-instruct with stream:true as documented; baseline often invents a fireworks-only SDK or uses bare model names that won't resolve on the platform."
+      },
+      {
+        "name": "Tool-calling agent that returns structured JSON",
+        "baseline": 38,
+        "treatment": 86,
+        "rationale": "Treatment selects firefunction-v2 for tool use and uses response_format with a JSON schema (sentiment/confidence/keywords pattern) as the skill documents; baseline defaults to a generic 70B model and free-form prompt JSON, missing the Fireworks-specific function-calling-optimized model and schema-constrained output."
+      }
+    ]
+  }
 }

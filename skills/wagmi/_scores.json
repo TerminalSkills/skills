@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4d66de7581e29e2f01318a14e874bace7ed77a79e12bfcf1e0c5544d0a970ac0",
   "scoredAt": "2026-05-13T10:35:04.774Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 98,
+    "multiplier": 2.18,
+    "scenarios": [
+      {
+        "name": "wagmi v2 multi-chain config with provider tree",
+        "baseline": 50,
+        "treatment": 98,
+        "rationale": "Treatment uses v2 functional connectors (injected/walletConnect) and wraps with both WagmiProvider and QueryClientProvider; baseline uses outdated v1 class connectors and omits the React Query provider entirely."
+      },
+      {
+        "name": "ERC-20 balance display and transfer with receipt tracking",
+        "baseline": 40,
+        "treatment": 97,
+        "rationale": "Treatment uses v2 hooks (useReadContract, useWriteContract, useWaitForTransactionReceipt) with erc20Abi from viem; baseline uses v1 API hooks and lacks transaction receipt confirmation tracking."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a115be0c6351595f517b01f1245f3b73d5699dc9917e048308296a25b2fb0d54",
   "scoredAt": "2026-05-13T10:35:12.867Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 63,
+    "treatmentAvg": 95,
+    "multiplier": 1.51,
+    "scenarios": [
+      {
+        "name": "Native File menu with Cmd/Ctrl+N and SQLite in user home",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Treatment uses the skill's exact menu.NewMenu/AddSubmenu/keys.CmdOrCtrl/runtime.EventsEmit pattern and the modernc.org/sqlite driver; baseline omits the runtime event emission and uses a different sqlite driver."
+      },
+      {
+        "name": "Expose typed Go method to React frontend",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Treatment includes JSON struct tags, imports the auto-generated models namespace from wailsjs/go/models, and shows the Bind option in wails.Run — all absent from the baseline."
+      }
+    ]
+  }
 }

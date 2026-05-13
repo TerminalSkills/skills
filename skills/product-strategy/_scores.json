@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7f8195286d8c387b585068ecbbc5345d6759d54924eff1b3db1ddd134aa839db",
   "scoredAt": "2026-05-13T09:57:20.156Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 94,
+    "multiplier": 3.36,
+    "scenarios": [
+      {
+        "name": "Create product vision and strategy for a remote-design PM tool",
+        "baseline": 25,
+        "treatment": 93,
+        "rationale": "Baseline collapses into feature lists with no pillars or DHM test; treatment builds the full top-down Strategy Stack (Mission, Vision, Pillars, quarterly Outcomes, Features last) and applies DHM (Delight, Hard-to-copy, Margin-enhancing) to each pillar."
+      },
+      {
+        "name": "Differentiate a B2B analytics platform against Amplitude and Mixpanel",
+        "baseline": 30,
+        "treatment": 94,
+        "rationale": "Baseline gives generic comparison-table differentiation; treatment applies all five Dunford components including indirect alternatives (spreadsheets, in-house data hire), maps unique attributes to value outcomes, and produces a positioning statement using the documented For/Unlike template."
+      }
+    ]
+  }
 }

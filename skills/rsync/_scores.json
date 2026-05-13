@@ -1,35 +1,42 @@
 {
   "version": "1.0.0",
-  "skillHash": "sha256:d6e6f51abf86d98eae01dc8f17e168728f318905d8fd69c749232e76402dd2d9",
-  "scoredAt": "2026-05-13T10:04:38.737Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "skillHash": "sha256:3b60dba4a7b335a8afb0886863de807af78855daab36b9d3a22528395b35007b",
+  "scoredAt": "2026-05-13T10:04:13.833Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not explicitly cover error handling or edge cases such as permission errors or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes rsync is available on Linux/macOS, limiting compatibility with other platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 94,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "Space-efficient daily snapshot backups",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline created a dated backup directory but did not use --link-dest hard-linking, so snapshots were not space-efficient; treatment used --link-dest=/backups/latest, dated destination, and updated the latest symlink with ln -snf."
+      },
+      {
+        "name": "Deploy build to prod with safe exclusions and pruning",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Baseline mentioned --delete and one exclude but omitted a dry-run pass; treatment combined --delete, both --exclude patterns for node_modules and .env, and a -n dry-run step before the destructive sync."
+      }
+    ]
+  }
 }

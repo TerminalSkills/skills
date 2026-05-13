@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0ffab6435715e22e0a91a645c0fc4fcf7ab0341f0805b7a584f7b6dab9a6262f",
   "scoredAt": "2026-05-13T10:37:53.560Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 39,
+    "treatmentAvg": 91,
+    "multiplier": 2.33,
+    "scenarios": [
+      {
+        "name": "Diagnose slow API via 60s capture + retransmission analysis",
+        "baseline": 38,
+        "treatment": 90,
+        "rationale": "Baseline uses tcpdump and eyeballs the GUI; treatment uses tshark -a duration:60 with BPF host+port filter, then -z io,stat retransmission stats, -Y tcp.analysis.retransmission field extraction, and -z conv,tcp to rank conversations."
+      },
+      {
+        "name": "Extract FTP-transferred file from CTF pcap",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Baseline opens GUI and clicks Export Objects; treatment triages with -z io,phs and -z conv,tcp, locates the transfer with -Y 'ftp.request.command == \"RETR\"' extracting ftp.request.arg, then --export-objects ftp-data and verifies with file."
+      }
+    ]
+  }
 }

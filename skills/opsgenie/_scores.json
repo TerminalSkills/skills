@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d7412476dea650e7f7f616bc38abf38fdd5ccf7c7789d8500c90ab04987f4aac",
   "scoredAt": "2026-05-13T09:46:11.452Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 87,
+    "multiplier": 2.64,
+    "scenarios": [
+      {
+        "name": "Stand up a weekly on-call rotation with a tiered escalation policy for the Platform team",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment calls /v2/schedules with a weekly rotation, timeRestriction, and ownerTeam, then /v2/escalations with if-not-acked rules at 5/15/30 minutes plus a repeat block, and uses the GenieKey auth header; baseline gestures at the UI or invents endpoints."
+      },
+      {
+        "name": "Wire Prometheus Alertmanager into Opsgenie so critical alerts page the right team",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Treatment supplies the opsgenie_configs Alertmanager receiver with priority templating tied to severity, responders.team, entity/source, plus a /v2/teams/{team}/routing-rules rule using match-all-conditions on priority=P1 and tags contains production; baseline gives generic webhook config and misses the routing-rules contract."
+      }
+    ]
+  }
 }

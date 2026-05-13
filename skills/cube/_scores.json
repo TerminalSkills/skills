@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:4f72c5c94dd25d322dc18137d3852c69b5da97eebb7540211e3f07153d1c12af",
-  "scoredAt": "2026-05-13T08:40:45.748Z",
+  "scoredAt": "2026-05-13T16:10:21.663Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.2,
+    "baselineAvg": 25,
+    "treatmentAvg": 55,
+    "scenarios": [
+      {
+        "name": "define-products-cube",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response A covers most required elements (cube name, sql_table, measures, dimensions, pre‑aggregation, segment) with a few inaccuracies, while Response B fails to meet several key specifications (sql_table, dimension names, pre‑aggregation dimensions, join, and segment naming)."
+      },
+      {
+        "name": "build-active-users-bar-chart",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response A uses useCubeQuery and Recharts correctly but omits the required timeDimension, while Response B uses CubeProvider/CubeChart and wrong measures, missing all rubric requirements."
+      }
+    ]
+  }
 }

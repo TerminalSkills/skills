@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3ffdefd511ab156e4d3214016afdbf0767a6d27b5138d0c6b5a4a80403d8984f",
   "scoredAt": "2026-05-13T09:07:20.902Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 95,
+    "multiplier": 2.88,
+    "scenarios": [
+      {
+        "name": "Cloud Run + Cloud SQL hardening review",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline gives generic HTTPS/IAM advice; treatment delivers the skill's prescription — Cloud Armor OWASP + rate-based-ban, IAP for admin, CMEK on Cloud SQL, and a VPC Service Controls perimeter with exact gcloud commands."
+      },
+      {
+        "name": "Enforce signed-only image deploys to GKE",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline reaches for Cosign/Kyverno/Trivy (non-GCP); treatment uses the skill's GCP-native chain: gcloud artifacts docker images scan/list-vulnerabilities/sign in Cloud Build plus Binary Authorization REQUIRE_ATTESTATION + ENFORCED_BLOCK_AND_AUDIT_LOG."
+      }
+    ]
+  }
 }

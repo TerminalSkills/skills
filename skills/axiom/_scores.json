@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f5d8b7ea469c4860e67faaf4ddf623d46fa6c3ac0889df1f280182fcf738318c",
-  "scoredAt": "2026-05-13T08:20:12.792Z",
+  "scoredAt": "2026-05-13T14:30:00.103Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 10,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "ingest-logs-using-js-sdk",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with code, while Response A provides no code and is incomplete."
+      },
+      {
+        "name": "run-cli-query-errors",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B includes the required query, the -f json flag, and implies JSON output, while Response A lacks the flag and explicit JSON format."
+      }
+    ]
+  }
 }

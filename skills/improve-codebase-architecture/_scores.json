@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d4a8709925d051f3922ac5babf27bae8f9681a134c5539b5f0daa434e6bb505b",
   "scoredAt": "2026-05-13T09:16:05.471Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 87,
+    "multiplier": 2.29,
+    "scenarios": [
+      {
+        "name": "Identify refactoring opportunities to deepen shallow modules",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Treatment uses subagent_type=Explore to surface friction, presents a numbered list of candidate clusters (modules, coupling reason, dependency category, test impact) and pauses for user selection without yet proposing interfaces, matching the skill's Process steps 1-2; baseline jumped straight to refactoring suggestions without the deep-module framing or candidate-presentation step."
+      },
+      {
+        "name": "Design multiple interface options for a chosen module and file an RFC",
+        "baseline": 35,
+        "treatment": 86,
+        "rationale": "Treatment spawns 3+ parallel sub-agents with the documented different design constraints (minimize interface, maximize flexibility, optimize common caller), frames the problem space first, compares designs with an opinionated recommendation, then creates the RFC via `gh issue create`; baseline produced a single design and didn't open a GitHub issue."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:13e29083fd8c94bcca093c7df6e619f180a8e24dee00075b16a8e0ebac1b286b",
   "scoredAt": "2026-05-13T08:53:11.372Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 86,
+    "multiplier": 2.26,
+    "scenarios": [
+      {
+        "name": "Build docs RAG pipeline from a website",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment uses crawlUrl with limit and scrapeOptions formats=['markdown'], then chunks markdown for vector DB ingestion as documented; baseline writes a custom Puppeteer crawler with HTML parsing that doesn't match the Firecrawl-specific pattern."
+      },
+      {
+        "name": "Extract typed product data from a product page",
+        "baseline": 40,
+        "treatment": 84,
+        "rationale": "Treatment calls scrapeUrl with formats=['extract'] and an extract.schema (Zod) returning a typed object as the skill documents; baseline scrapes raw HTML and parses with regex/cheerio, missing the LLM-powered structured extract feature."
+      }
+    ]
+  }
 }

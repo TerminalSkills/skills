@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7988766ef6a61fe17caf2ffad280c9e00126da4ed9fde1624e2582cc292be725",
   "scoredAt": "2026-05-13T09:25:10.488Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 56,
+    "treatmentAvg": 88,
+    "multiplier": 1.57,
+    "scenarios": [
+      {
+        "name": "RAG over internal docs with citations",
+        "baseline": 58,
+        "treatment": 90,
+        "rationale": "Treatment uses SimpleDirectoryReader, IngestionPipeline with title/summary metadata extractors and deduplication, SentenceSplitter at 1024 tokens with 200 overlap, VectorStoreIndex, and CitationQueryEngine for source attribution — all named in the skill; baseline writes a generic LangChain-style or hand-rolled RAG that misses CitationQueryEngine and metadata extractor pattern."
+      },
+      {
+        "name": "Multi-source ReAct agent across docs, SQL, and web",
+        "baseline": 54,
+        "treatment": 86,
+        "rationale": "Treatment wraps each source as QueryEngineTool, builds a ReActAgent that routes, and uses SubQuestionQueryEngine for multi-part queries plus CorrectnessEvaluator/FaithfulnessEvaluator on a test set as instructed; baseline implements a generic tool-using agent without QueryEngineTool/SubQuestionQueryEngine or the named evaluators."
+      }
+    ]
+  }
 }

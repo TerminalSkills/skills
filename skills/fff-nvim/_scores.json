@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d5afe03c7af324b7d37d19715e765995b4fa30534bcddf03a779dff8a1589f4a",
   "scoredAt": "2026-05-13T08:51:56.730Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 25,
+    "treatmentAvg": 85,
+    "multiplier": 3.4,
+    "scenarios": [
+      {
+        "name": "Wire fff as a file-search tool for an AI agent with filename and content modes",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "Treatment imports FffSearch from fff-search, instantiates with rootDir and respectGitignore, and routes to searcher.find vs searcher.grep with extensions/maxResults as documented; baseline reaches for fd/ripgrep or generic glob, missing the fff-search API entirely."
+      },
+      {
+        "name": "Add fff.nvim with lazy.nvim, gitignore-aware config, and Telescope-style keymaps",
+        "baseline": 25,
+        "treatment": 82,
+        "rationale": "Treatment uses the documented lazy.nvim spec for fff-nvim/fff.nvim with build = \"cargo build --release\", require(\"fff\").setup with respect_gitignore/fuzzy_threshold, and the FffFind/FffGrep/FffRecent keymaps; baseline configures Telescope or a fictional plugin."
+      }
+    ]
+  }
 }

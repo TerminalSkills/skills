@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bac3bfa9aa720dd7d5d4ecef705c8b3d49759eda326a9be186a6d0e29dcb2b04",
   "scoredAt": "2026-05-13T09:08:08.035Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 90,
+    "multiplier": 1.55,
+    "scenarios": [
+      {
+        "name": "Diagnose failing CI on current PR",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment uses gh pr view with statusCheckRollup JSON projection and gh run view --log-failed pattern from SKILL.md; baseline relies on web UI navigation and generic gh commands without the targeted failure-log flow."
+      },
+      {
+        "name": "Search before filing duplicate issue",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Treatment combines gh search issues and gh issue list --search --state all per the skill's dedup pattern; baseline only runs one search and misses the cross-repo + closed-issue coverage."
+      }
+    ]
+  }
 }

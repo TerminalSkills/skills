@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:1a4c62d7b386ae8ea0965f53592d61ddbacff69452631ad992afd6b67984ffc5",
   "scoredAt": "2026-05-13T09:41:12.759Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 85,
+    "multiplier": 2.43,
+    "scenarios": [
+      {
+        "name": "Django app with native deps via nixpacks.toml",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Treatment uses nixpacks.toml with [phases.setup] nixPkgs for postgresql, pythonVersion pin, and collectstatic in [phases.build] exactly as documented; baseline writes a generic Dockerfile and never invokes nixpacks."
+      },
+      {
+        "name": "GitHub Actions build/push with Nixpacks",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment installs nixpacks via the documented curl install, uses nixpacks build with --name and --env per the SKILL.md workflow, and pushes to GHCR; baseline uses docker/build-push-action and a hand-written Dockerfile."
+      }
+    ]
+  }
 }

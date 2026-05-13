@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:148d25c091b84a1561da13afcf2f0a0636bdab736c80c39d945386a994617f26",
   "scoredAt": "2026-05-13T09:41:40.807Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 31,
+    "treatmentAvg": 95,
+    "multiplier": 3.06,
+    "scenarios": [
+      {
+        "name": "Web service job with canary deploys and autoscaling",
+        "baseline": 32,
+        "treatment": 95,
+        "rationale": "Treatment supplies the full HCL with update{canary=1, auto_revert=true}, service{provider=\"consul\"} health checks, and a scaling policy with target-value strategy against Prometheus, while the baseline omits canary updates, the consul provider, and autoscaling entirely."
+      },
+      {
+        "name": "Nightly batch backup with Vault secrets",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment uses periodic{crons=[...], prohibit_overlap=true, time_zone=\"UTC\"} with a Vault template rendering database/creds/backup into env vars, while the baseline uses the deprecated cron field, hardcodes the password, and misses overlap and timezone controls."
+      }
+    ]
+  }
 }

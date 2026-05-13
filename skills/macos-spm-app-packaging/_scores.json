@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:210de2417cef37aaaf73a2ae7caf10df4ee75db4a25ea841cadd99e84c58405c",
   "scoredAt": "2026-05-13T09:26:48.358Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 83,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 86,
+    "multiplier": 2.26,
+    "scenarios": [
+      {
+        "name": "Package and validate a SwiftPM app bundle for distribution",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment uses the skill's Scripts/package_app.sh, version.env, build/<App>.app/Contents inspection with file and codesign/spctl checks; baseline reinvents an xcodebuild flow without the skill's two-step bootstrap and validation checkpoints."
+      },
+      {
+        "name": "Diagnose and fix a hardened runtime notarization failure",
+        "baseline": 40,
+        "treatment": 84,
+        "rationale": "Treatment matches the skill's Common Notarization Failures table (add --options runtime, bump BUILD_NUMBER, xcrun notarytool history, stapler validate retry), while baseline gives a generic codesign answer missing version.env bump and xcrun notarytool history."
+      }
+    ]
+  }
 }

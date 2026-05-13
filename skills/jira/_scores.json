@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c42e8c195cea801455132eb37ae84195f3f7344a94a91bc918fb197a1bae71f2",
   "scoredAt": "2026-05-13T09:18:03.944Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 94,
+    "multiplier": 3.13,
+    "scenarios": [
+      {
+        "name": "bulk-stale-report",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "Baseline used v2 search without pagination or >30d flag; treatment paginated POST /rest/api/3/search with status!=Done and updated<=-14d JQL, grouped by assignee, and flagged >30 days as critical."
+      },
+      {
+        "name": "epic-cascade-webhook",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline skipped webhook registration, hardcoded transition IDs, and used parent= instead of Epic Link; treatment registered via POST /webhook, inspected changelog status->Done, used \"Epic Link\" JQL, and fetched transitions dynamically per child."
+      }
+    ]
+  }
 }

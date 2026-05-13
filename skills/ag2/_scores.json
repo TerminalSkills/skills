@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:288e992d8abcf0a237c91d0d84330db7907aa50f65aebfa0680404a5ee283428",
-  "scoredAt": "2026-05-12T22:22:47.163Z",
+  "scoredAt": "2026-05-13T12:21:09.800Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error scenarios and edge cases."
+        "detail": "The skill examples focus on happy path scenarios and do not address error handling or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes Unix-like environment due to grep usage, limiting cross-platform compatibility."
+        "detail": "The skill relies on Unix-specific tools like grep and Docker, limiting compatibility on non-Unix platforms."
       }
     ]
   },
@@ -32,10 +32,39 @@
     "issues": [
       {
         "severity": "HIGH",
-        "category": "command_injection",
-        "detail": "Potential command injection via unvalidated user input in subprocess.run."
+        "category": "subprocess_injection",
+        "detail": "search_codebase uses unsanitized user input in subprocess.run, enabling command injection."
+      },
+      {
+        "severity": "HIGH",
+        "category": "subprocess_injection",
+        "detail": "run_tests uses unsanitized test_path in subprocess.run, enabling command injection."
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 5,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "two-agent-code-execution",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not include the required agent definitions or execution evidence."
+      },
+      {
+        "name": "group-chat-notification-service",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the required elements."
+      },
+      {
+        "name": "tool-use-code-search-tests",
+        "baseline": 15,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with proper function signatures, register_function calls, caller/executor, and tester usage; Response B lacks required registration, signatures, and workflow details."
+      }
+    ]
+  }
 }

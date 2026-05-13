@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:13118fd4f89a8b44f5639b23222e06880a11c1bab64752b347b8090c16d8ed87",
   "scoredAt": "2026-05-13T10:26:20.761Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 94,
+    "multiplier": 2.85,
+    "scenarios": [
+      {
+        "name": "TinaCMS blog posts with live visual editing in Next.js",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline points to defineConfig generally but misses the isTitle/isBody/format: 'mdx' field markers, the useTina({ query, variables, data }) live-editing hook, and the npx tinacms dev -c 'next dev' wrapping command."
+      },
+      {
+        "name": "Visual page builder with Hero and Features blocks",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Baseline understands the blocks pattern but misses Tina's specific object + list: true + templates schema, the per-template fields definition, and rendering via the generated @/tina/__generated__/client + TinaMarkdown."
+      }
+    ]
+  }
 }

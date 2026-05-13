@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d8db430cc08cf65ca8556f9d0102830a0e80c87f71318f1fe47e20a5d580516d",
-  "scoredAt": "2026-05-13T08:44:07.106Z",
+  "scoredAt": "2026-05-13T16:32:51.606Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "build-saas-landing-page",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A partially meets the rubric by referencing DESIGN.md and listing design elements, but it omits the required descriptions of the feature grid, pricing table, and CTA sections; Response B fails to address the rubric at all."
+      },
+      {
+        "name": "create-notification-dropdown",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A references DESIGN.md variables and design elements, while Response B does not mention DESIGN.md or design system details."
+      }
+    ]
+  }
 }

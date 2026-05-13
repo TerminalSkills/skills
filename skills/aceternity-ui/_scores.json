@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:0ed66731099935ea565a5645a28cba02e07e7056e4bfed904b688762cfa4f1d8",
-  "scoredAt": "2026-05-12T22:21:48.815Z",
+  "scoredAt": "2026-05-13T11:37:30.294Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only covers happy path and does not address error handling or edge cases."
+        "detail": "The skill does not cover error scenarios or edge cases, focusing only on happy path usage."
       }
     ]
   },
@@ -26,5 +26,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.58,
+    "baselineAvg": 12,
+    "treatmentAvg": 67,
+    "scenarios": [
+      {
+        "name": "3d-card-tilt",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits all required components and logic."
+      },
+      {
+        "name": "spotlight-follow-cursor",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the SpotlightCard example, while Response B lacks key hooks, motion, Tailwind, and the required example."
+      },
+      {
+        "name": "wavy-animated-background",
+        "baseline": 5,
+        "treatment": 20,
+        "rationale": "Response B includes some prop usage and hints at a component, while Response A only provides a CSS-based solution with no canvas or animation logic."
+      }
+    ]
+  }
 }

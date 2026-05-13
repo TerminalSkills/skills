@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4e663bee11d7e7f58742ee27909b9b8ebcf152609a9d71ba30ab5f0d37284a58",
   "scoredAt": "2026-05-13T09:48:23.269Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 92,
+    "multiplier": 1.84,
+    "scenarios": [
+      {
+        "name": "Enumerate subdomains of acquisitions.example.com without alerting their IDS",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment queries crt.sh with %.domain JSON output, Wayback CDX with *.domain/* filter, and free passive DNS via HackerTarget + CIRCL, all third-party so the target never sees a request; baseline suggests dnsrecon/sublist3r-style active brute-force which would contact the target."
+      },
+      {
+        "name": "Build a complete pre-engagement profile of a target domain",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Treatment combines python-whois, dnspython for A/MX/NS/TXT/SOA, HackerTarget reverse IP plus ipapi.co IP info, and the documented dork set (admin/login/filetype/credential exposure); baseline covers WHOIS and DNS but lacks the dork catalog and reverse-IP enrichment."
+      }
+    ]
+  }
 }

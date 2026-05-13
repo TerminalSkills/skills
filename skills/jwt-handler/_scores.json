@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3eade7358efc670d07380ecec0c1690ca93627b456293edae0e832769a1a3f6f",
   "scoredAt": "2026-05-13T09:18:51.180Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 91,
+    "multiplier": 1.82,
+    "scenarios": [
+      {
+        "name": "Token service with refresh rotation for Express",
+        "baseline": 52,
+        "treatment": 92,
+        "rationale": "Baseline used HS256 with a shared secret and stored refresh tokens in plaintext with no family tracking; treatment used RS256 with 15-min access tokens, SHA-256 hashed refresh tokens, family IDs, and revoked the whole family on reuse detection per the skill's rotation pattern."
+      },
+      {
+        "name": "Debug an expired JWT",
+        "baseline": 48,
+        "treatment": 90,
+        "rationale": "Baseline decoded the token and noted expiration but did not flag the missing iat/iss/aud claims the skill specifically calls out; treatment decoded header + payload, identified expiration by comparing exp to now, and recommended adding iat for audit logging plus iss/aud for multi-service setups."
+      }
+    ]
+  }
 }

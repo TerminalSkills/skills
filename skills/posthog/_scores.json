@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d7522e4d5e1a5c407228d9e37bd6f0c7994b593c507196a07ce62f2b1e9a5769",
   "scoredAt": "2026-05-13T09:52:37.823Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 86,
+    "multiplier": 1.65,
+    "scenarios": [
+      {
+        "name": "Server-side feature flag evaluation for paid users",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment used Posthog Python client with personal_api_key for local evaluation and feature_enabled/get_feature_flag with person_properties, matching the skill's documented pattern; baseline missed local evaluation and the personal_api_key requirement."
+      },
+      {
+        "name": "Onboarding funnel via PostHog API",
+        "baseline": 48,
+        "treatment": 84,
+        "rationale": "Treatment hit the documented POST /api/projects/{id}/insights endpoint with insight=FUNNELS, ordered event steps and funnel_window_days, mirroring the skill exactly; baseline produced a generic analytics narrative without the funnel insight API call."
+      }
+    ]
+  }
 }

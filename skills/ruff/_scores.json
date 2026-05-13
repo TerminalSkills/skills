@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:46cf364e4bd73620bd2aa9ab0350e9cdeabee465276c0e4566715780a2df513e",
   "scoredAt": "2026-05-13T10:04:45.999Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 63,
+    "treatmentAvg": 92,
+    "multiplier": 1.46,
+    "scenarios": [
+      {
+        "name": "migrate flake8+black+isort to Ruff with pre-commit",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Baseline tends to use the older [tool.ruff] top-level select rather than the [tool.ruff.lint] namespace and may skip ruff-format, whereas treatment matches the documented config and the ruff-pre-commit repo wiring with both ruff (--fix) and ruff-format hooks."
+      },
+      {
+        "name": "Ruff in CI with PR annotations",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Baseline knows ruff check and ruff format --check but typically omits the --output-format=github flag that produces PR-annotated failures; treatment uses the exact CI snippet from the skill."
+      }
+    ]
+  }
 }

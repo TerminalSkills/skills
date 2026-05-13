@@ -1,15 +1,15 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f02d337441e6e9cabf8681de1302566f64c5a76caa2bfe3646293ba87a64f6ca",
-  "scoredAt": "2026-05-12T22:19:33.795Z",
+  "scoredAt": "2026-05-13T12:00:56.655Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
-    "score": 63,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
       "examples": "WEAK"
@@ -18,22 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not address error handling or edge cases for rendering failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains verbose sections that could be trimmed for brevity."
+        "detail": "The skill does not cover error handling or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "examples",
-        "detail": "The skill file lacks concrete, step-by-step example scenarios demonstrating usage."
+        "detail": "The skill provides code snippets but lacks realistic usage demonstrations."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is specific to 3ds Max with V-Ray and Corona, limiting applicability to other platforms."
+        "detail": "The skill is specific to 3ds Max and V-Ray, limiting compatibility with other AI agents."
       }
     ]
   },
@@ -41,5 +36,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.13,
+    "baselineAvg": 23,
+    "treatmentAvg": 72,
+    "scenarios": [
+      {
+        "name": "configure-vray-interior-production",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits many required settings."
+      },
+      {
+        "name": "setup-corona-production",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response A covers more of the required settings, while Response B omits several key parameters."
+      },
+      {
+        "name": "batch-network-render",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response B covers most of the required API calls and logic, though it omits camera enumeration, whereas Response A is incomplete and stops short of implementing the core loop."
+      }
+    ]
+  }
 }

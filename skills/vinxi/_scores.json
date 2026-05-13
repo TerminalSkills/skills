@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:855f754145bf6392c45187a0651d9ef9d6afdfcac3d272c2627f39a79faafdb9",
   "scoredAt": "2026-05-13T10:34:23.517Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 90,
+    "multiplier": 2.57,
+    "scenarios": [
+      {
+        "name": "Multi-router app.config.ts (static + api + client + ssr)",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment uses `createApp` from `vinxi` with a `routers` array containing static, http API (with `base: \"/api\"`), client, and ssr entries each with handler paths; baseline typically falls back to Express/Vite scaffolding because Vinxi is niche."
+      },
+      {
+        "name": "Server functions RPC for todos",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment puts `\"use server\"` at the top of the feature module, exports plain async functions, and shows client components importing them directly so Vinxi handles serialization; baseline writes a fetch-based API layer instead."
+      }
+    ]
+  }
 }

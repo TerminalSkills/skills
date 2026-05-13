@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3c871f83fda6d2ff0600cfa0e85cae784939268942a558026fc7a5ad1afb57a7",
   "scoredAt": "2026-05-13T09:48:58.243Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 63,
+    "treatmentAvg": 95,
+    "multiplier": 1.51,
+    "scenarios": [
+      {
+        "name": "invoice-line-items-csv",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Baseline uses extract_tables and csv.writer but conflates header and data rows; treatment splits headers from rows and writes a clean CSV with a header row, exactly as the skill's extract_tables helper does."
+      },
+      {
+        "name": "paper-metadata-and-text",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline switches to PyPDF2 instead of the skill-recommended pdfplumber; treatment reads pdf.metadata, iterates pdf.pages, and prints text keyed by 1-based page numbers per the skill."
+      }
+    ]
+  }
 }

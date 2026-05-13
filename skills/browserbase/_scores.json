@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:676122e10e978832b9608f769d655c096fc6ffae7643cabd8fcc5bc4ac119900",
-  "scoredAt": "2026-05-13T08:23:11.463Z",
+  "scoredAt": "2026-05-13T14:55:43.378Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-proxy-session",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not use Browserbase SDK or the required connection method."
+      },
+      {
+        "name": "persistent-login-context",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention Browserbase contexts or the required session reuse steps."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a3aff20e185a144f5d20d2f3ec0cc819d215cdab6b19bc032bacc84e55443490",
   "scoredAt": "2026-05-13T09:50:38.543Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 95,
+    "multiplier": 2.21,
+    "scenarios": [
+      {
+        "name": "Type-safe auth store with computed flags",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline defaults to options-store; treatment uses the setup-store form with ref/computed and returns the full surface, matching the skill's recommended pattern."
+      },
+      {
+        "name": "Destructure store state preserving reactivity",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline likely uses plain destructure that breaks reactivity; treatment uses storeToRefs for state/getters and calls actions off the store instance per the skill."
+      }
+    ]
+  }
 }

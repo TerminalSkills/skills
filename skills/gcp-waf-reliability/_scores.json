@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:55547ebde6b12b398aadf7bf7762f3d5d3d1da0b814bbfde59151b21a0572968",
   "scoredAt": "2026-05-13T09:07:16.684Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 83,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 95,
+    "multiplier": 2.71,
+    "scenarios": [
+      {
+        "name": "Payments API production readiness review",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline gives generic HA/backup checklist; treatment specifies 99.95% SLO, regional GKE/Cloud SQL, HPA min=3 PDB minAvailable=2, readiness probe with DB check, SLO burn-rate alerts, and quarterly Backup-and-DR restore drills per the skill's Example 1."
+      },
+      {
+        "name": "Diagnose checkout failures with green dashboards",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline reaches for RUM and 5xx logs; treatment names the cause-vs-symptom anti-pattern, prescribes the 14.4x/6x/3x/1x multi-window burn-rate alerts, and adds circuit breaker + retries-with-jitter for downstream flakiness as the skill prescribes."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4c8f63b7c11d36b42f1b7df39b1a6a83f2564edbeadd3fae114e0d4139267f19",
   "scoredAt": "2026-05-13T10:22:35.519Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 87,
+    "multiplier": 1.58,
+    "scenarios": [
+      {
+        "name": "Diagnose stalled SaaS growth",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment maps the funnel, identifies activation as THE single constraint via Theory of Constraints, and runs a second-order check on support load — all required by the rubric; baseline lists generic tactics without isolating one constraint."
+      },
+      {
+        "name": "Pre-decision second-order analysis on a price cut",
+        "baseline": 55,
+        "treatment": 86,
+        "rationale": "Treatment explicitly walks first/second/third-order effects and warns about LTV/segment drift per the skill's traps table; baseline lists pros/cons but does not chain order-effects or reference systems thinking patterns."
+      }
+    ]
+  }
 }

@@ -1,30 +1,48 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3fe2cfbff0c6089ce6fdd3912f826fc0f173746162030713a12c336e6d6bad73",
-  "scoredAt": "2026-05-12T22:22:14.203Z",
+  "scoredAt": "2026-05-13T12:15:47.503Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack coverage of certain error scenarios and edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.28,
+    "baselineAvg": 57,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "multi-platform-campaign-structure",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A covers the required campaign structure, CBO, exclusions, UTM links, and a creative brief, but fails to provide at least three ads per ad set and leaves retention ad sets incomplete; Response B lacks ad‑set detail, CBO, exclusions, UTM links, and a full creative brief."
+      },
+      {
+        "name": "declining-roas-bid-optimization",
+        "baseline": 75,
+        "treatment": 95,
+        "rationale": "Response A covers all rubric items with detailed actions, while Response B lacks explicit weekly targets and frequency control."
+      },
+      {
+        "name": "cross-platform-attribution-framework",
+        "baseline": 75,
+        "treatment": 65,
+        "rationale": "Response A provides a more comprehensive UTM scheme, holdout plan, and weekly template, but both lack an attribution model and explicit double‑counting adjustment; A covers more rubric items overall."
+      }
+    ]
+  }
 }

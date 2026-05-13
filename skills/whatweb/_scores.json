@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:03f46f06100f35cf389be185e03e01689f7b01f083c2bc321f2e1050f8c49b21",
   "scoredAt": "2026-05-13T10:37:06.702Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 44,
+    "treatmentAvg": 94,
+    "multiplier": 2.14,
+    "scenarios": [
+      {
+        "name": "Bulk subdomain fingerprinting with JSON output",
+        "baseline": 42,
+        "treatment": 95,
+        "rationale": "Baseline loops manually with grep filtering while treatment uses -i/--log-json/--wait/--max-threads/-a 3 plus a targeted jq pipeline over .plugins.WordPress."
+      },
+      {
+        "name": "Stealthy WAF + security headers compliance scan",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline offloads WAF and header checks to other tools while treatment runs whatweb -a 1 across all targets with --log-json and post-processes via jq."
+      }
+    ]
+  }
 }

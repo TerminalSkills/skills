@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:71b40eb1f6b2e27640316161e9610ec12d67753b9bdff5d332e487f08938961a",
   "scoredAt": "2026-05-13T08:51:14.323Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 98,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Custom rule for shell spawn in container",
+        "baseline": 45,
+        "treatment": 98,
+        "rationale": "Treatment uses the skill's exact rule (spawned_process+container macros, full shell name list with parent allowlist, mitre_execution tag, and the documented output template); baseline drops to raw evt.type=execve, misses several shells and tags, and omits container.image.repository / proc.pname fields."
+      },
+      {
+        "name": "Helm install on Kubernetes with Slack alerting",
+        "baseline": 55,
+        "treatment": 97,
+        "rationale": "Treatment uses the documented chart name and bundled falcosidekick subchart with --set driver.kind=modern_ebpf and slack.webhookurl; baseline installs falcosidekick as a separate chart and omits the modern_ebpf driver flag."
+      }
+    ]
+  }
 }

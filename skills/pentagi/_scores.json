@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9870cae6d7686f8640c48c1fb0c8ec931f0ce584ca7e20b78294e07c165546b8",
   "scoredAt": "2026-05-13T09:49:35.041Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 22,
+    "treatmentAvg": 86,
+    "multiplier": 3.91,
+    "scenarios": [
+      {
+        "name": "Self-host PentAGI with local Ollama for an authorized internal pentest",
+        "baseline": 20,
+        "treatment": 88,
+        "rationale": "Treatment clones github.com/vxcontrol/pentagi, configures .env with OLLAMA_SERVER_URL and LLM_PROVIDER=ollama, runs docker compose up -d, then opens localhost:3000 and stresses written authorization; baseline guesses a generic pentest stack without the actual repo, env keys, or web UI."
+      },
+      {
+        "name": "Trigger an engagement via PentAGI GraphQL API with rules of engagement",
+        "baseline": 25,
+        "treatment": 84,
+        "rationale": "Treatment POSTs to http://localhost:3000/graphql with the createTask mutation and scope/constraints fields (no-dos, no-data-exfil) then polls the task query for findings; baseline fabricates a generic REST API and misses the GraphQL schema."
+      }
+    ]
+  }
 }

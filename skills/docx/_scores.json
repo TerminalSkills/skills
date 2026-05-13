@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:6e8b04dcd0f3c81a68186a5abc93f1741bdd11a015936a5bfe324ebf4645002c",
-  "scoredAt": "2026-05-13T08:45:36.427Z",
+  "scoredAt": "2026-05-13T16:44:06.332Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 20,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "sales-table-report",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks the specified classes and methods."
+      },
+      {
+        "name": "header-footer-page-numbers",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A lacks the required classes and page number implementation."
+      }
+    ]
+  }
 }

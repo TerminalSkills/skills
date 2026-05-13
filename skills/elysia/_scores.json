@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:aa21520009f7233d0f66bbed44d398bca2b4ddc2e07ea6fe12f20852d5c4a4dc",
   "scoredAt": "2026-05-13T08:47:50.105Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 88,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Type-safe CRUD API with JWT auth, validation, and Swagger",
+        "baseline": 45,
+        "treatment": 89,
+        "rationale": "Treatment used t.Object schemas for body/query/params, the @elysiajs/jwt plugin with .derive for auth context, beforeHandle guards on mutations, @elysiajs/swagger plugin, and exported `type App = typeof app` per the skill; baseline produced an Express-style sketch or omitted the derive/beforeHandle pattern and the App type export."
+      },
+      {
+        "name": "WebSocket chat server with rooms and typed messages",
+        "baseline": 45,
+        "treatment": 87,
+        "rationale": "Treatment used .ws() with a t.Object body schema, ws.subscribe/ws.publish for room pub/sub, t.Union of t.Literal for message types, and ws.unsubscribeAll on close — all documented patterns; baseline reached for Socket.io or raw WebSocket without Elysia's typed message body or built-in pub/sub."
+      }
+    ]
+  }
 }

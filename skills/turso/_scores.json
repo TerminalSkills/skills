@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:6a2d5205b41f463d352bad7f7732a291cd4601e9d4a91a404098a63438096b50",
   "scoredAt": "2026-05-13T10:28:24.085Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 14,
+    "treatmentAvg": 95,
+    "multiplier": 6.79,
+    "scenarios": [
+      {
+        "name": "Vector similarity search over document embeddings in Turso",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Baseline stores embeddings as TEXT/JSON and computes cosine in JavaScript; treatment uses the F32_BLOB(1536) column type, vector32(?) for inserts, and ORDER BY vector_distance_cos(embedding, vector32(?))."
+      },
+      {
+        "name": "Embedded replica with atomic 2-account transfer",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Baseline reaches for better-sqlite3 with manual BEGIN/COMMIT and no cloud sync; treatment uses createClient with url:'file:...', syncUrl, syncInterval, and db.batch([...], 'write') with parameterized args."
+      }
+    ]
+  }
 }

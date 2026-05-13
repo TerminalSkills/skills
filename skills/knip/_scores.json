@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:13fd4ea12d9a0dbf19270a1cc25e859e7f6a365e56a8c423971fc15c85a52c92",
   "scoredAt": "2026-05-13T09:20:06.945Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 92,
+    "multiplier": 2.3,
+    "scenarios": [
+      {
+        "name": "Audit a Next.js codebase for unused files, exports, and dependencies",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Treatment ran npx knip with a knip.json that declared the next plugin entry (pages/**, app/**) and ignored test files, distinguishing unused files/exports/deps/unlisted as separate categories; baseline reached for depcheck and ts-prune separately without the Next.js entry handling."
+      },
+      {
+        "name": "Add a CI gate that blocks PRs introducing unused code",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Treatment added a GitHub Actions pull_request workflow running npx knip with framework-aware entry points and used --fix / --allow-remove-files only locally; baseline wired up a custom grep/depcheck step that misses unused exports and orphan files."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a17753bd0888401a51324a84ef8ab314a6036907f86ef24591286fd48299ecbe",
-  "scoredAt": "2026-05-13T08:20:36.962Z",
+  "scoredAt": "2026-05-13T14:33:27.158Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4,
+    "baselineAvg": 25,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "create-global-account-with-database",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses an incorrect syntax for specifying regions, missing a key detail."
+      },
+      {
+        "name": "process-change-feed-with-python",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses a ChangeFeedProcessor instead of query_items_change_feed and thus fails the rubric."
+      }
+    ]
+  }
 }

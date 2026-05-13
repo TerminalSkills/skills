@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:655cb5f6f9251d479d90f4154c278a5ea328bafcbdef07394c62538fc9d47533",
-  "scoredAt": "2026-05-13T08:37:19.872Z",
+  "scoredAt": "2026-05-13T15:47:50.491Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-commitlint-with-husky",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A omits key steps and details."
+      },
+      {
+        "name": "custom-commitlint-config",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required extend clause and uses a different file name."
+      }
+    ]
+  }
 }

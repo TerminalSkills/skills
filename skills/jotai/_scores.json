@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5141c3f1ee6004f356d6000ce94407873ae88d3e91f7df37f076320d53a67aeb",
   "scoredAt": "2026-05-13T09:18:31.473Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 94,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "Shopping cart with derived total and add-to-cart action",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline uses primitive atoms and likely a derived total but typically misses the atom(null, write) write-only action pattern and useSetAtom optimization; treatment matches all rubric checks."
+      },
+      {
+        "name": "Async user profile with Suspense loading",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "Baseline tends toward useEffect+useState or React Query rather than Jotai async atoms with Suspense and useAtomValue; treatment cleanly implements the prescribed async atom pattern."
+      }
+    ]
+  }
 }

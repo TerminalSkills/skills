@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:cee28aad0e501a23f5ee96ce7a74f92f7ec7bf19adc1a740dd1df2b8b6b13299",
-  "scoredAt": "2026-05-13T08:18:03.872Z",
+  "scoredAt": "2026-05-13T14:13:02.452Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 10,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "blog-post-schema-with-morphs",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B lacks .pipe usage, .infer, and error handling, covering only a few points."
+      },
+      {
+        "name": "migrate-zod-to-arktype",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not provide any conversion."
+      }
+    ]
+  }
 }

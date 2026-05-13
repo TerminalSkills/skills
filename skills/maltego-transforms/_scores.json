@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8116870b2de3de0e844a6191ded88d52bb1e943de39c012550d53f6a1415dda0",
   "scoredAt": "2026-05-13T09:27:32.447Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 89,
+    "multiplier": 3.18,
+    "scenarios": [
+      {
+        "name": "Build a domain-to-subdomains transform using crt.sh",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Treatment subclasses DiscoverableTransform from maltego_trx.transform with create_entities(cls, request, response), reads request.Value, calls response.addEntity('maltego.Domain', ...) and addUIMessage on failure with messageType='PartialError'; baseline writes a plain Python crt.sh scraper with no Maltego entity emission."
+      },
+      {
+        "name": "Local TRX server exposing Hunter.io transform with per-user API key",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "Treatment uses register_transform_function and maltego_trx.server.application.run on port 8080, reads the key via request.getTransformSetting('hunter_api_key'), and adds confidence/firstname properties on EmailAddress entities; baseline starts a generic Flask endpoint and hardcodes the API key, never registering with maltego_trx."
+      }
+    ]
+  }
 }

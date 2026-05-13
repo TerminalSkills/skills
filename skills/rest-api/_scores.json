@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:88f32172a4fab4a0cb503dae957b1f02260ba7b03c13b97310ac5e18c5e8bb0c",
   "scoredAt": "2026-05-13T10:02:59.548Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Express CRUD with JWT, Zod, paginated list",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline skipped helmet/cors and Zod and used a non-standard response shape; treatment hit every rubric item — helmet/cors/JSON parsing, Zod safeParse middleware, {data, meta} pagination envelope, and a {error:{code,message}} global handler."
+      },
+      {
+        "name": "FastAPI blog API with auto OpenAPI docs",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline used loose str fields and ad-hoc error returns with no versioned prefix; treatment used EmailStr/Field validators, mounted versioned routers via include_router with tags, configured docs_url, and raised HTTPException(409) for duplicates."
+      }
+    ]
+  }
 }

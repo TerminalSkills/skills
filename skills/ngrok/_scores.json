@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ec30e056ed993219888b0a61e64c0bc866f52a3feece46bd624557fbaa85369b",
   "scoredAt": "2026-05-13T09:40:37.256Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 96,
+    "multiplier": 2.53,
+    "scenarios": [
+      {
+        "name": "Stable demo URL with basic auth for Next.js client review",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline exposes the port but skips the --domain and --basic-auth flags and the localhost:4040 inspector; treatment chains --domain=, --basic-auth=, and the inspector workflow exactly as documented."
+      },
+      {
+        "name": "Stripe webhook signature verification with replay debugging on :8080",
+        "baseline": 40,
+        "treatment": 96,
+        "rationale": "Baseline relies on app-level SDK verification and ignores ngrok's edge features; treatment uses --verify-webhook=stripe with the matching secret, traffic-policy.yml, and the inspector's replay/API for debugging."
+      }
+    ]
+  }
 }

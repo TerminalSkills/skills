@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a0d6b12317851f5fd88699f891d86d85ad874ecbefd3ba26d0bf61e0b2c05a2c",
-  "scoredAt": "2026-05-12T22:33:33.424Z",
+  "scoredAt": "2026-05-13T14:06:19.605Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.5,
+    "baselineAvg": 20,
+    "treatmentAvg": 70,
+    "scenarios": [
+      {
+        "name": "setup-appium-environment",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B includes all required commands, while Response A omits the driver installs, list, and doctor commands."
+      },
+      {
+        "name": "webdriverio-login-test",
+        "baseline": 20,
+        "treatment": 40,
+        "rationale": "Response B better meets the rubric, using the required selector syntax and assertion method, though it still lacks the second test and proper describe name."
+      }
+    ]
+  }
 }

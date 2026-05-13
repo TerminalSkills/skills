@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d90fffe57f60f8b6dfa9dcea792078f7932a2742a0b6c0f06981430bb2aa6844",
   "scoredAt": "2026-05-13T09:44:02.138Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 91,
+    "multiplier": 1.72,
+    "scenarios": [
+      {
+        "name": "Export PyTorch model to ONNX with dynamic batch and run CUDA-with-CPU-fallback inference",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Baseline knew torch.onnx.export but skipped dynamic_axes and provider ordering; treatment exported with opset_version=17 and dynamic_axes, then created ort.InferenceSession with providers=[CUDAExecutionProvider, CPUExecutionProvider]."
+      },
+      {
+        "name": "Quantize ONNX model to INT8 and validate the result",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Baseline reached for generic compression suggestions; treatment used quantize_dynamic from onnxruntime.quantization with QuantType.QInt8 and validated via onnx.checker.check_model as documented."
+      }
+    ]
+  }
 }

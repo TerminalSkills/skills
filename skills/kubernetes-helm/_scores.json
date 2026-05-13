@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:cda43ea44976325f0d9fb22d69bb3d2555b16418a781f88664fbfe7695fe3c6b",
   "scoredAt": "2026-05-13T09:20:39.705Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 78,
+    "treatmentAvg": 93,
+    "multiplier": 1.19,
+    "scenarios": [
+      {
+        "name": "Zero-downtime Deployment with secret env",
+        "baseline": 70,
+        "treatment": 92,
+        "rationale": "Both use RollingUpdate with maxUnavailable: 1, secretKeyRef and both probes, but only treatment adds preStop sleep, terminationGracePeriodSeconds: 30, and resource requests/limits as recommended in the skill."
+      },
+      {
+        "name": "Helm upgrade with preview and rollback",
+        "baseline": 85,
+        "treatment": 93,
+        "rationale": "Both invoke helm diff upgrade, helm upgrade --install with --set image.tag, and helm rollback; treatment matches the skill's exact flag set (-n app, --create-namespace, helm template debug) more completely."
+      }
+    ]
+  }
 }

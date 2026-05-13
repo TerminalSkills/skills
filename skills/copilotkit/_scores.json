@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b8640e4001f5cb0420538137c06d6a26ae35b4f97fc5d5ae1aaafdec8f5c60d2",
-  "scoredAt": "2026-05-13T08:39:01.232Z",
+  "scoredAt": "2026-05-13T16:01:11.366Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-chat-sidebar",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the required CopilotKit wrapper, sidebar, and runtime setup."
+      },
+      {
+        "name": "define-project-actions",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required Copilot hooks."
+      }
+    ]
+  }
 }

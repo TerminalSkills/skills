@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d31ec387aef2236c6087cac42327c687bb3c6155e0b77060b690c64433f35e3f",
   "scoredAt": "2026-05-13T10:12:57.641Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 92,
+    "multiplier": 1.67,
+    "scenarios": [
+      {
+        "name": "Onboard a freelancer to accept payouts on a marketplace",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment creates an Express account via stripe.accounts.create with card_payments and transfers capabilities, then redirects via stripe.accountLinks.create with refresh_url/return_url and confirms onboarding through details_submitted + requirements.currently_due, while baseline glosses over capabilities and onboarding state."
+      },
+      {
+        "name": "Charge a buyer $100 and route net to seller after a 15% platform fee",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses stripe.paymentIntents.create with transfer_data.destination and application_fee_amount set to the 15% fee (a destination charge) per the skill, while baseline uses transfers.create after the fact and miscomputes the split."
+      }
+    ]
+  }
 }

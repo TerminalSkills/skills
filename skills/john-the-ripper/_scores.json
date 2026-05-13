@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a70604c093f6b1ba18390ee48132d972828b9b74e905a62b82f9333d221f398c",
   "scoredAt": "2026-05-13T09:18:25.771Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 70,
+    "treatmentAvg": 94,
+    "multiplier": 1.34,
+    "scenarios": [
+      {
+        "name": "Crack a CTF password-protected ZIP",
+        "baseline": 75,
+        "treatment": 95,
+        "rationale": "Baseline likely hits zip2john and a rockyou wordlist attack since these are well-known, but may overlook john --show; treatment satisfies all three rubric checks confidently."
+      },
+      {
+        "name": "Audit local /etc/shadow password strength",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Baseline knows unshadow and wordlist attacks but often omits --rules and --fork; treatment uses the documented pipeline including --rules=Single and --fork=N."
+      }
+    ]
+  }
 }

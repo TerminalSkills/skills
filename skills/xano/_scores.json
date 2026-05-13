@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:704a66034381ed9689f48a6cbbddd979b53b7a77f2771b3080ba48850bf8f096",
   "scoredAt": "2026-05-13T10:38:37.983Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 82,
+    "multiplier": 2.05,
+    "scenarios": [
+      {
+        "name": "Wire a Next.js frontend to Xano signup/login/me endpoints",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment hits the documented /api:auth/auth/signup, /auth/login, and /auth/me routes on the instance URL and forwards the returned authToken as a Bearer token; baseline often invents endpoint paths or assumes a different auth scheme."
+      },
+      {
+        "name": "Build a 'create post' function stack with free-plan limit",
+        "baseline": 35,
+        "treatment": 79,
+        "rationale": "Treatment describes the function stack steps from the skill (precondition auth, conditional on plan/post_count, Add Record, Return) rather than writing server code; baseline writes a generic Express handler that ignores Xano's visual function-stack model."
+      }
+    ]
+  }
 }

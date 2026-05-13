@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:936198f9d49aea644ccf30e7ca458bb04ec1adf5a1539f2d42166f288ad8e88d",
   "scoredAt": "2026-05-13T10:06:55.548Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 51,
+    "treatmentAvg": 96,
+    "multiplier": 1.88,
+    "scenarios": [
+      {
+        "name": "Next.js source map setup tied to release",
+        "baseline": 72,
+        "treatment": 95,
+        "rationale": "Treatment explicitly sets dsn/environment/release together and ties source map upload via @sentry/nextjs webpack plugin to that release; baseline covers source maps but omits release association as core requirement."
+      },
+      {
+        "name": "Production sampling + session replay configuration",
+        "baseline": 30,
+        "treatment": 96,
+        "rationale": "Treatment hits the 0.1-0.2 tracesSampleRate guidance, both replaysOnErrorSampleRate: 1.0 and replaysSessionSampleRate: 0.1, plus Web Vitals (LCP/CLS/INP) and Sentry.startSpan(); baseline defaults to 1.0 and lacks Web Vitals."
+      }
+    ]
+  }
 }

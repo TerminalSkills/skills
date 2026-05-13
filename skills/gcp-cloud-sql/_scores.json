@@ -31,5 +31,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 95,
+    "multiplier": 2.38,
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6",
+    "scenarios": [
+      {
+        "name": "HA private Postgres 15 with PITR and IAM auth",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline omitted --no-assign-ip, set the IAM flag via console, and added IAM users in the UI; treatment used the full create command with --no-assign-ip, --enable-point-in-time-recovery, cloudsql.iam_authentication=on, and gcloud sql users create --type=cloud_iam_service_account."
+      },
+      {
+        "name": "Passwordless GKE connection via Auth Proxy sidecar",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline used a key Secret and lacked the proxy flags; treatment ran cloud-sql-proxy sidecar with --auto-iam-authn and --private-ip using project:region:instance, bound the KSA via Workload Identity to a GSA with roles/cloudsql.client, and pointed the app at 127.0.0.1:5432."
+      }
+    ]
+  }
 }

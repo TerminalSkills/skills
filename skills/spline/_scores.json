@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5946d425584b1e6870c369d170a5d436b6f417621326cbc301f6be77505ffa8e",
   "scoredAt": "2026-05-13T10:10:27.357Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 65,
+    "treatmentAvg": 95,
+    "multiplier": 1.46,
+    "scenarios": [
+      {
+        "name": "React 3D hero with object navigation and load-time positioning",
+        "baseline": 75,
+        "treatment": 95,
+        "rationale": "Both wire up @splinetool/react-spline correctly, but only the treatment uses the documented onMouseDown prop with e.target.name and onLoad findObjectByName('HeroCube') exactly as shown in the skill."
+      },
+      {
+        "name": "Vanilla JS canvas Spline scene with click event logging",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline imports Application and loads the scene but attaches a DOM click handler to the canvas; only the treatment uses app.addEventListener('mouseDown', e => e.target.name) per the documented runtime event API."
+      }
+    ]
+  }
 }

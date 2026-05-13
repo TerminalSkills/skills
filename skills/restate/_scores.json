@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:082f9773ea73dbcbac6cba466f62d966e172fe7520726f1fee6641c35f2406bd",
   "scoredAt": "2026-05-13T10:03:08.585Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 95,
+    "multiplier": 2.38,
+    "scenarios": [
+      {
+        "name": "Crash-safe payment workflow",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline used BullMQ with a hand-rolled DB state table for idempotency; treatment used restate.service with each side effect in ctx.run and restate.endpoint().bind(...).listen(...) as the skill prescribes."
+      },
+      {
+        "name": "Trip-booking saga with compensation",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline structured try/catch correctly but lacked durability primitives; treatment wrapped every booking and compensation in ctx.run inside a restate.service handler matching the skill's saga pattern."
+      }
+    ]
+  }
 }

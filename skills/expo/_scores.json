@@ -2,8 +2,8 @@
   "version": "1.1.0",
   "skillHash": "sha256:c4fc9ffa0873b849346389adbfd9cff46792d668e786ee68ff5bc66e4d9b8c05",
   "scoredAt": "2026-05-13T08:50:32.379Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 90,
+    "multiplier": 1.8,
+    "scenarios": [
+      {
+        "name": "Scaffold tabs + dynamic post route with Expo Router",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Treatment uses npx create-expo-app --template tabs, the app/(tabs)/_layout.tsx Tabs container, app/post/[slug].tsx with useLocalSearchParams, and Stack root layout exactly as documented; baseline scaffolds react-navigation manually and does not use Expo Router file-based routing or route groups."
+      },
+      {
+        "name": "Ship an OTA bug fix and configure deep links",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "Treatment runs eas update --branch production with the scheme set in app.json and notes the auto-URL mapping (myapp://post/hello-world) plus EAS Build/Submit commands from the skill; baseline references CodePush or generic OTA without the eas update --branch flag or scheme-based deep link auto-mapping."
+      }
+    ]
+  }
 }

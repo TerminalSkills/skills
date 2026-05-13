@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:d1f565fb1e56c7427b35410afcde4af9010fc86627da4f441eb4b4b1968b8595",
   "scoredAt": "2026-05-13T09:15:53.139Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -26,5 +26,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 26,
+    "treatmentAvg": 91,
+    "multiplier": 3.5,
+    "scenarios": [
+      {
+        "name": "Meeting prep across Contacts, Calendar, and Messages",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Baseline reaches for AppleScript/osascript and custom MCP code, missing the iMCP bridge; treatment installs the Homebrew cask, configures the imcp mcpServers entry with --mcp, and walks through menu-bar permissions."
+      },
+      {
+        "name": "Morning planning across Reminders, Calendar, and Weather",
+        "baseline": 27,
+        "treatment": 90,
+        "rationale": "Baseline cobbles together reminders-cli, ical exports, and a weather API; treatment activates the iMCP services from the menu bar, grants Calendar/Reminders/Location permissions, and wires the single mcpServers block into Claude Desktop."
+      }
+    ]
+  }
 }

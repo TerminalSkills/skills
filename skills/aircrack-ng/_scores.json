@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:86180df57a15ea8bd45d265558487bad8ad5a298cfd53198ef19cc4b94aecae0",
-  "scoredAt": "2026-05-12T22:24:49.741Z",
+  "scoredAt": "2026-05-13T13:50:01.269Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.67,
+    "baselineAvg": 15,
+    "treatmentAvg": 25,
+    "scenarios": [
+      {
+        "name": "capture-wpa2-handshake",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response B includes more of the required commands (airmon-ng check kill, airmon-ng start, airodump-ng with channel and BSSID, and airmon-ng stop) but still omits the interface type check and handshake verification step, whereas Response A lacks even more of the specified commands."
+      },
+      {
+        "name": "gpu-crack-hc22000",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to include the exact required commands as specified in the rubric."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3597f27ad24beec1312213154d7694bbd972d8ca1a0b555e23a89f69fd18d455",
   "scoredAt": "2026-05-13T08:51:22.438Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 96,
+    "multiplier": 1.66,
+    "scenarios": [
+      {
+        "name": "Paginated CRUD router with validation",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Treatment uses APIRouter with prefix/tags, Pydantic Field(gt=0) for price, Query(ge=0/le=100) for pagination bounds, and status.HTTP_201_CREATED; baseline relies on a flat FastAPI app, no Field/Query constraints, and missing 201 status."
+      },
+      {
+        "name": "Auth-protected route with async DB dependency",
+        "baseline": 60,
+        "treatment": 96,
+        "rationale": "Treatment matches the skill's exact pattern (Header(...) + removeprefix('Bearer '), async with async_session() yielding AsyncSession, both Depends in route); baseline uses HTTPBearer/Security and a try/finally session instead of async with."
+      }
+    ]
+  }
 }

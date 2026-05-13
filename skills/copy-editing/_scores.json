@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:ce6c96a9fee33e80a55b1d6494b4b278c618c28da4d63a05c75c619694dd0da8",
-  "scoredAt": "2026-05-13T08:39:06.866Z",
+  "scoredAt": "2026-05-13T16:01:37.098Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2,
+    "baselineAvg": 45,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "seven-sweeps-landing-page-edit",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A better applies the sweeps and annotations, but lacks explicit recheck statement; Response B fails to apply the framework."
+      },
+      {
+        "name": "quick-pass-tweet-polish",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B fully meets all rubric criteria with detailed explanations, while Response A lacks the required edit explanations."
+      }
+    ]
+  }
 }

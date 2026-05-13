@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b299e14b3292456e9dfa2fce7a9d8120682f004b9647efe1c7a2315ca1599ce6",
-  "scoredAt": "2026-05-13T08:22:24.406Z",
+  "scoredAt": "2026-05-13T14:49:42.132Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "image-sequence-with-audio-fade-and-color-correction",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric item, while Response B uses ffmpeg and omits all Blender-specific requirements."
+      },
+      {
+        "name": "cross-dissolve-speed-effect-render",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, while Response A is missing or incomplete."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:39e428cd83d742009ff76af41e21b29b608cab1c3b288759b915b6dd653f1aea",
-  "scoredAt": "2026-05-13T08:25:28.009Z",
+  "scoredAt": "2026-05-13T15:00:52.859Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.98,
+    "baselineAvg": 48,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "saaS-health-check",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric items—calculates LTV, LTV/CAC, flags churn, ranks levers, and warns about cash flow—while Response A omits churn priority, lever ranking, and cash‑flow caution."
+      },
+      {
+        "name": "price-increase-impact-model",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits the required scenarios and key details."
+      }
+    ]
+  }
 }

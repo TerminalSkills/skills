@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:378094f042ccafea8f55334d26608aba1f87b8d61cad5576f412c5d8df47f6bb",
-  "scoredAt": "2026-05-13T08:46:12.983Z",
+  "scoredAt": "2026-05-13T16:46:56.382Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.86,
+    "baselineAvg": 35,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "orbit-controls-auto-rotate",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B exactly matches the rubric’s JSX <OrbitControls> syntax, while Response A uses a plain Three.js instance and thus misses the required JSX component format."
+      },
+      {
+        "name": "gpu-instancing-boxes",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not use <Instances> or the required JSX tags."
+      }
+    ]
+  }
 }

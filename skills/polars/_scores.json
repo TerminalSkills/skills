@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a2cc192078cd0f2dbeb3b5f57ece7e60983cd1888dd2e68afed23752feae52a8",
   "scoredAt": "2026-05-13T09:52:02.105Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 94,
+    "multiplier": 2.47,
+    "scenarios": [
+      {
+        "name": "Optimize a slow CSV aggregation",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline used eager pl.read_csv and stepwise reassignment; treatment used scan_csv with a single chained lazy pipeline ending in collect() and proper str.to_date()/dt.year() expressions."
+      },
+      {
+        "name": "Translate slow pandas apply to Polars",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline kept a Python lambda via map_elements (still row-by-row); treatment used the vectorized pl.when/then/otherwise pattern documented in the skill."
+      }
+    ]
+  }
 }

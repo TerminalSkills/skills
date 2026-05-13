@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5a1f67256798ee569f9c8d3550bdb2348662b55c35862170578350132ab8e815",
   "scoredAt": "2026-05-13T09:10:04.007Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 40,
+    "treatmentAvg": 97,
+    "multiplier": 2.43,
+    "scenarios": [
+      {
+        "name": "blog-api-cursor-pagination",
+        "baseline": 25,
+        "treatment": 96,
+        "rationale": "Treatment uses Relay-style PostConnection/PostEdge/PageInfo with base64-encoded id cursors and throws GraphQLError with extensions.code UNAUTHENTICATED; baseline invents a flat PostFeed shape, uses raw ids as cursors, and throws a generic Error."
+      },
+      {
+        "name": "dataloader-n-plus-1",
+        "baseline": 55,
+        "treatment": 97,
+        "rationale": "Treatment builds a Map then remaps ids to preserve input order, exposes the loader via dataSources in context, and calls it from Post.author; baseline uses DataLoader but acknowledges ordering is unreliable and never fixes it."
+      }
+    ]
+  }
 }

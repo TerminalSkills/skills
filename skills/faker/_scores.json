@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:245da9a073c3a54c850c6c2bae25518d42fc7742c1b33a8748421c96b4157145",
   "scoredAt": "2026-05-13T08:50:56.937Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 39,
+    "treatmentAvg": 96,
+    "multiplier": 2.46,
+    "scenarios": [
+      {
+        "name": "Database seeder for users, products, and orders",
+        "baseline": 40,
+        "treatment": 97,
+        "rationale": "Treatment uses @faker-js/faker with faker.seed for reproducibility, faker.person.fullName, faker.commerce.* and faker.helpers.arrayElement/number.int for relationships; baseline uses the deprecated faker package and old name.findName API with no seed or helpers."
+      },
+      {
+        "name": "Localized fake users (DE/FR/JA)",
+        "baseline": 38,
+        "treatment": 95,
+        "rationale": "Treatment imports fakerDE/fakerFR/fakerJA from @faker-js/faker and uses helpers.multiple with per-locale person.fullName/location.streetAddress; baseline relies on the old global faker.locale switch and address.city which don't exist in the modern API."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e004d94b10185f03f87d4c5f57bc42a8ea7ea0bb6b598af0f010cb38cf45e26e",
   "scoredAt": "2026-05-13T08:52:30.479Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 88,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "Export icon nodes as 2x SVG from a Figma file",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses the documented /v1/images/{fileKey} endpoint with ids, format=svg, scale=2 and X-Figma-Token header exactly as in SKILL.md; baseline picks a plausible but incorrect endpoint shape and omits the scale param."
+      },
+      {
+        "name": "Extract color and typography design tokens from a Figma file",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment walks figmaFile.document recursively, reads node.styles.fill / node.fills[0].color, converts rgba->hex, and pulls TEXT node.style fields per SKILL.md; baseline produces vague pseudocode without the styles-map indirection."
+      }
+    ]
+  }
 }

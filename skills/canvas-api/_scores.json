@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:fd5515c70d2b64dc7eed35825e75ddf72e75c0650cb3fc376450fc8c4992e906",
-  "scoredAt": "2026-05-13T08:25:56.655Z",
+  "scoredAt": "2026-05-13T15:06:04.295Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.31,
+    "baselineAvg": 65,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "gradient-title-watermark",
+        "baseline": 90,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B is almost complete but has minor implementation omissions."
+      },
+      {
+        "name": "grayscale-filter",
+        "baseline": 40,
+        "treatment": 70,
+        "rationale": "Response B meets the canvas requirement but still uses simple averaging instead of the weighted formula, whereas Response A uses sharp and omits canvas entirely."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b337e090c2c0a8896ead14a29f4ca35d47479fe4459766729e9835cd52f5c3df",
-  "scoredAt": "2026-05-13T08:17:41.758Z",
+  "scoredAt": "2026-05-13T14:11:42.641Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 3,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "add-token-bucket-rate-limiter",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use Arcjet at all."
+      },
+      {
+        "name": "protect-signup-from-bots",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not mention Arcjet or the required Next.js implementation."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:91b15c75e5bde9d78e519176d1cc3a4bcd0f591bed307c74f794869c26dcf619",
-  "scoredAt": "2026-05-13T08:37:05.404Z",
+  "scoredAt": "2026-05-13T15:46:34.333Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 20,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "controlnet-cityscape-workflow",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
+      },
+      {
+        "name": "docker-compose-comfyui-gpu",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses the wrong image, omits models/output volumes, and lacks the required deploy GPU reservation details."
+      }
+    ]
+  }
 }

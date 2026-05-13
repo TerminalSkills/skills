@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:1e1c0ba99ec5b6581599b9c15b72a73d4bdaeedb1bca13a284cdf7b2525d8c1c",
-  "scoredAt": "2026-05-13T08:42:46.542Z",
+  "scoredAt": "2026-05-13T16:25:11.085Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.33,
+    "baselineAvg": 15,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "create-auto-project-render",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key steps such as timeline creation, LUT application, rendering, and project saving."
+      },
+      {
+        "name": "import-bin-markers-fusion-overlay",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Unable to assess responses because their content is not provided."
+      }
+    ]
+  }
 }

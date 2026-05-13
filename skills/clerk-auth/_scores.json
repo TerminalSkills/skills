@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:dd0370fadb1d90bd7e96c61d7d93e0413faa6a441c44d50f6b1f72b7ceedbafc",
-  "scoredAt": "2026-05-13T08:29:26.597Z",
+  "scoredAt": "2026-05-13T15:30:49.820Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 7.5,
+    "baselineAvg": 5,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "nextjs-protect-routes-with-middleware",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements; Response B is not provided for evaluation."
+      },
+      {
+        "name": "nextjs-clerk-webhook-sync-user",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "A covers most rubric items while B is incomplete."
+      }
+    ]
+  }
 }

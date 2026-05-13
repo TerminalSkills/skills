@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3fb6f734f0b96925554019e6d0879e94b2749b76ee18c3540e68f4d1835c2617",
   "scoredAt": "2026-05-13T08:50:40.055Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 88,
+    "multiplier": 1.83,
+    "scenarios": [
+      {
+        "name": "Install ExternalDNS on EKS with Route 53",
+        "baseline": 50,
+        "treatment": 90,
+        "rationale": "Treatment uses the documented Helm repo, the AWS provider values (provider.name=aws, --aws-zone-type, --txt-owner-id, --registry=txt, --policy=upsert-only) and IRSA service account annotation; baseline references generic kubectl/helm install but omits the txt-owner-id registry pattern and the IAM policy resource scoping."
+      },
+      {
+        "name": "Auto-register DNS for a LoadBalancer Service on Cloudflare",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Treatment provides the exact external-dns.alpha.kubernetes.io/hostname and cloudflare-proxied annotations along with the CF_API_TOKEN secret wiring shown in the skill; baseline mentions annotations generically but misses the proxied flag and TXT-registry ownership pattern."
+      }
+    ]
+  }
 }

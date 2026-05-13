@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c3fb0668e34bb680c451c89cefdb2b83ed8ec1fdebcb8bef786ccb03c2bbf62d",
   "scoredAt": "2026-05-13T09:25:32.615Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 89,
+    "multiplier": 1.62,
+    "scenarios": [
+      {
+        "name": "Nginx reverse proxy with SSL, WebSocket, and per-endpoint rate limits",
+        "baseline": 58,
+        "treatment": 90,
+        "rationale": "Treatment uses limit_req_zone for both api and login zones with differentiated burst, proper proxy_set_header X-Forwarded-For/X-Real-IP/X-Forwarded-Proto, Upgrade/Connection 'upgrade' for WebSocket, proxy_next_upstream for failover, and certbot --nginx command from the skill; baseline misses one or more of the rate limit/header/failover details."
+      },
+      {
+        "name": "HAProxy with active health checks, sticky sessions, and stats dashboard",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "Treatment matches the skill's HAProxy patterns: option httpchk GET /health with http-check expect status 200, server lines with check inter 5s fall 3 rise 2, cookie SERVERID insert indirect nocache, and a stats frontend on 8404 with stats enable/uri/refresh; baseline gives generic HAProxy config missing the sticky cookie + active probe combo."
+      }
+    ]
+  }
 }

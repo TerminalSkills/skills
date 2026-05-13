@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:8e0d5380545f6a75f45f71b23d7e8c1308137c4b7b72542b0696e14ec62bfe97",
-  "scoredAt": "2026-05-13T08:38:04.001Z",
+  "scoredAt": "2026-05-13T15:54:11.510Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.76,
+    "baselineAvg": 63,
+    "treatmentAvg": 48,
+    "scenarios": [
+      {
+        "name": "launch-saas-content-strategy",
+        "baseline": 70,
+        "treatment": 90,
+        "rationale": "Response B fully meets all rubric requirements, while Response A lacks explicit buyer stages, keyword details, research backing, and a clear topic cluster map."
+      },
+      {
+        "name": "revamp-existing-blog-strategy",
+        "baseline": 55,
+        "treatment": 5,
+        "rationale": "Response A gives pillars and clusters but misses detailed topic prioritization, keyword, buyer stage, and a cluster map; Response B only requests more information and does not provide a strategy."
+      }
+    ]
+  }
 }

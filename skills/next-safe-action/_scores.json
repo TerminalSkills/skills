@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:021737d29928b035dfe0f403e483e85ccc3713dc1cd34a762773d837577b3fba",
   "scoredAt": "2026-05-13T09:40:16.744Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 97,
+    "multiplier": 2.94,
+    "scenarios": [
+      {
+        "name": "Type-safe createProject server action with Zod and auth middleware",
+        "baseline": 35,
+        "treatment": 97,
+        "rationale": "Baseline hand-rolls FormData + safeParse and an inline session check, missing the action client and revalidatePath; treatment builds an authAction with middleware returning ctx.user, chains .schema().action({ parsedInput, ctx }), and calls revalidatePath."
+      },
+      {
+        "name": "Edit form using next-safe-action hooks with validation and isExecuting state",
+        "baseline": 30,
+        "treatment": 96,
+        "rationale": "Baseline reaches for useTransition and a custom errors state and never imports the library hook; treatment uses useAction from next-safe-action/hooks, renders result.validationErrors and result.serverError, and gates the submit button on isExecuting."
+      }
+    ]
+  }
 }

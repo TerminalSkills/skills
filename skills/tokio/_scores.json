@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:75420d0c7fcf7bbdfa40af9f0270abc7493476e665023ed73db4be8e4b905a9b",
   "scoredAt": "2026-05-13T10:26:53.088Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 87,
+    "multiplier": 1.58,
+    "scenarios": [
+      {
+        "name": "Limit concurrent outbound HTTP requests in a Rust crawler",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment uses tokio::sync::Semaphore with Arc to cap concurrency and acquires permits before work; baseline likely uses ad-hoc join handles or futures::stream::buffer_unordered and misses Tokio's documented backpressure pattern."
+      },
+      {
+        "name": "Offload a CPU-heavy job from an async TCP server without stalling",
+        "baseline": 60,
+        "treatment": 85,
+        "rationale": "Treatment correctly routes heavy computation through task::spawn_blocking and uses tokio::select! to race a timeout; baseline often calls the sync function directly inside async, blocking the runtime as the skill warns against."
+      }
+    ]
+  }
 }

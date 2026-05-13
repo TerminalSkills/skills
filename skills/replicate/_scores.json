@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f2d48ffe4d41104b6f086e09e7e6d3cdc16007ad16466dba2b1867900c99db68",
   "scoredAt": "2026-05-13T10:02:30.588Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 88,
+    "multiplier": 2.32,
+    "scenarios": [
+      {
+        "name": "Non-blocking SDXL with webhook",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment correctly uses replicate.predictions.create with webhook and webhook_events_filter=['completed'] to avoid polling; baseline polls in a loop instead."
+      },
+      {
+        "name": "Package and deploy a custom HF model",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "Treatment uses Cog with cog.yaml, a BasePredictor subclass, and cog push r8.im/<user>/<model>; baseline suggests generic Docker/HF Spaces without Cog."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e8643c24c6ea6ceb1f2e63258fa45dc2dd546e0b16f8c103ac1da8cf4b8af5dc",
   "scoredAt": "2026-05-13T09:10:50.770Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 25,
+    "treatmentAvg": 95,
+    "multiplier": 3.8,
+    "scenarios": [
+      {
+        "name": "Wire Grype into a GitHub Actions pipeline with SBOM generation and SARIF upload",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline reached for a generic scanner step without the Anchore actions; treatment used anchore/sbom-action@v0, anchore/scan-action@v4 with fail-build and severity-cutoff, and uploaded SARIF via github/codeql-action/upload-sarif@v3 exactly as documented."
+      },
+      {
+        "name": "Suppress a known non-exploitable CVE with documented justification",
+        "baseline": 20,
+        "treatment": 94,
+        "rationale": "Baseline suggested CLI flags or grep-filtering output; treatment authored a .grype.yaml ignore entry with vulnerability, package, and reason fields plus fail-on-severity, which is the skill's prescribed audit-friendly approach."
+      }
+    ]
+  }
 }

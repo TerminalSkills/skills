@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7beab74a7589fbd2b7300b276b73ab9569be06686a9c5c1e6d7ec3025fe48fc2",
   "scoredAt": "2026-05-13T09:28:51.586Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 20,
+    "treatmentAvg": 97,
+    "multiplier": 4.85,
+    "scenarios": [
+      {
+        "name": "Discover all capabilities of an MCP server",
+        "baseline": 15,
+        "treatment": 98,
+        "rationale": "Baseline spawned a raw child_process with hand-rolled JSON-RPC and missed prompts/list and client.close(); treatment used the Client + StdioClientTransport SDK with all three discovery methods and cleanup."
+      },
+      {
+        "name": "Anthropic agent loop using MCP tools",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline used a fake mcpClient API and terminated on a text-block flag instead of stop_reason end_turn, and dropped tool_use_id; treatment followed the documented loop with proper id mapping and callTool."
+      }
+    ]
+  }
 }

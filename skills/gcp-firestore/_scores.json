@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 95,
+    "multiplier": 1.98,
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6",
+    "scenarios": [
+      {
+        "name": "Real-time pending-order listener with change types",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline used onSnapshot but iterated snapshot.forEach without docChanges branching; treatment used docChanges() to differentiate added/modified/removed and exposed an unsubscribe handle."
+      },
+      {
+        "name": "Atomic balance transfer + composite index",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline used @firestore.transactional but omitted the insufficient-funds guard and the composite firestore.indexes.json entry; treatment included both and added the firebase deploy command."
+      }
+    ]
+  }
 }

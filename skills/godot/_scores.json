@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e1846c158fb0774a17aac93aa207b44b28d13ed337d64d7eb6e664c0eb15a0be",
   "scoredAt": "2026-05-13T09:09:07.961Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 93,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "CharacterBody2D platformer with coyote time",
+        "baseline": 55,
+        "treatment": 93,
+        "rationale": "Baseline covers Godot 4 basics but commonly omits proper coyote-time wiring or slips into Godot 3 names; treatment uses @export/@onready, Timer-based coyote logic, Input.get_axis, and move_and_slide as documented."
+      },
+      {
+        "name": "Decoupled coin -> manager via signals + groups",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Baseline uses signals but often skips groups for discovery; treatment declares typed signal collected(value: int), emits on body_entered filtered by is_in_group(\"player\"), and connects via get_nodes_in_group(\"coins\") as the skill prescribes."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:87ddc420e4bc15f277fb451f55b5bb62eb3b6929a0ab30ffac1d689308292b94",
   "scoredAt": "2026-05-13T10:10:51.667Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 96,
+    "multiplier": 1.92,
+    "scenarios": [
+      {
+        "name": "Node.js SQLite with WAL, foreign keys, and transactional bulk insert",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Baseline reaches for node-sqlite3 with manual BEGIN/COMMIT rather than the better-sqlite3 driver + db.transaction() pattern the skill prescribes."
+      },
+      {
+        "name": "Add FTS5 full-text search to a posts table",
+        "baseline": 55,
+        "treatment": 96,
+        "rationale": "Baseline creates an FTS5 table but omits content=posts/content_rowid=id and orders by bm25() instead of rank; treatment uses the external-content pattern with rank as the skill documents."
+      }
+    ]
+  }
 }

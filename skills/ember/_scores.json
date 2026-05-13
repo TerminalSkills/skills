@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:950bae54658002208bfb1720ae3d814c57acf6e381db1357d879fde18764d6e6",
   "scoredAt": "2026-05-13T08:48:13.887Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 86,
+    "multiplier": 1.72,
+    "scenarios": [
+      {
+        "name": "Glimmer component with tracked state and service injection",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Treatment uses @glimmer/component, @tracked, @action, and @service injection per the skill; baseline mixed classic Ember patterns and lacked the modern decorator stack."
+      },
+      {
+        "name": "Nested routes with model hook and Ember Data store",
+        "baseline": 45,
+        "treatment": 84,
+        "rationale": "Treatment used Router.map with nested this.route(..., function() {}) and a model() hook calling this.store.findAll per the skill; baseline produced a flat routing structure without the documented nested pattern."
+      }
+    ]
+  }
 }

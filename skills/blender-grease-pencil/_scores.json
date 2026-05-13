@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:6620f221215807367b9d369571be68c4bb4a6f92a097a5991ab02eccdb9fae96",
-  "scoredAt": "2026-05-13T08:22:05.306Z",
+  "scoredAt": "2026-05-13T14:45:48.085Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 3.6,
+    "baselineAvg": 25,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "build-stroke-with-thickness-modifier",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response B meets more rubric requirements, correctly setting the GP_THICK and GP_BUILD modifiers and scene frame range, while Response A uses incorrect modifier properties and mode."
+      },
+      {
+        "name": "array-stroke-with-noise-and-fill",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A provides no content."
+      }
+    ]
+  }
 }

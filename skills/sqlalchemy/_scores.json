@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:fdba6005a91eaa8a30ec3528af0c118dec17237c357d2ec78ff436da6db3eb73",
   "scoredAt": "2026-05-13T10:10:46.901Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 59,
+    "treatmentAvg": 94,
+    "multiplier": 1.59,
+    "scenarios": [
+      {
+        "name": "Define async User/Project models and fetch projects without N+1",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline drops back to legacy declarative_base/Column and lazy='joined' instead of SQLAlchemy 2.0 Mapped/mapped_column with selectinload and async_sessionmaker(expire_on_commit=False)."
+      },
+      {
+        "name": "Generate and apply an Alembic migration for a new tasks table",
+        "baseline": 88,
+        "treatment": 93,
+        "rationale": "Both walk through init/autogenerate/upgrade/downgrade; treatment additionally surfaces the review-before-apply guideline and the env.py target_metadata wiring."
+      }
+    ]
+  }
 }

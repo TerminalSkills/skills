@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7ea3247bb98faa0082a03d0093b59f90380bcec5cf96a518385366909220688b",
   "scoredAt": "2026-05-13T09:38:00.583Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 83,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 88,
+    "multiplier": 1.69,
+    "scenarios": [
+      {
+        "name": "Write Access SQL to find customers inactive for 90 days and an action query to flag old pending orders as Overdue",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Baseline produces generic SQL that may not use Access-specific date functions, while treatment uses DateAdd(\"d\", -90, Date()), NOT IN with a correlated subquery on OrderDate, and an UPDATE Orders SET Status = \"Overdue\" matching the documented pattern."
+      },
+      {
+        "name": "Write a VBA button handler that exports rptMonthlySales to a dated PDF",
+        "baseline": 50,
+        "treatment": 86,
+        "rationale": "Baseline outlines exporting a report but may miss the precise DoCmd syntax, while treatment uses DoCmd.OutputTo acOutputReport, \"rptMonthlySales\", acFormatPDF with Format(Date, \"yyyy-mm-dd\") in the filename as documented."
+      }
+    ]
+  }
 }

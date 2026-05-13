@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 89,
+    "multiplier": 2.54,
+    "scenarios": [
+      {
+        "name": "Authenticated avatar upload writes user.avatarUrl",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Treatment defines a FileRouter with createUploadthing(), f({ image: { maxFileSize: '2MB', maxFileCount: 1 } }), session-checking .middleware, and .onUploadComplete that calls db.user.update, then renders UploadButton<OurFileRouter, 'avatarUploader'>; baseline proposes manual S3 presigned URLs and misses the FileRouter DSL."
+      },
+      {
+        "name": "Drag-and-drop PDF dropzone with 5x10MB limit",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment uses f({ pdf: { maxFileSize: '10MB', maxFileCount: 5 } }) with a session-guarded .middleware and .onUploadComplete persisting via db.document.create, plus UploadDropzone with the typed endpoint; baseline reaches for react-dropzone + raw S3 multipart and never wires UploadThing's typed components."
+      }
+    ],
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6"
+  }
 }

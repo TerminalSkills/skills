@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3d0a807c3e097a34cb9f3cf7178644cbd3788cb755a9e259946543ffb8e68081",
   "scoredAt": "2026-05-13T09:04:59.487Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 84,
+    "multiplier": 1.45,
+    "scenarios": [
+      {
+        "name": "Design a SaaS hero section that avoids common AI-generated UI tells",
+        "baseline": 60,
+        "treatment": 86,
+        "rationale": "Treatment uses the documented hero pattern (badge + headline + subhead + dual CTA with max-w-4xl text-center), Tailwind tinted neutrals instead of pure gray, avoids the flagged purple gradient default, and uses ease-out transitions; baseline produces a generic centered hero often with the purple gradient anti-pattern."
+      },
+      {
+        "name": "Design a responsive dashboard stats row with metric cards and trend indicators",
+        "baseline": 56,
+        "treatment": 82,
+        "rationale": "Treatment matches the documented grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 layout, uses rounded-xl border bg-white p-6 cards with text-3xl semibold values and conditional text-green-600/text-red-600 trend coloring; baseline tends to ship a flat row without the documented responsive breakpoints or trend-color mapping."
+      }
+    ]
+  }
 }

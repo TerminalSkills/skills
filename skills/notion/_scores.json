@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9087f9b13ff4ecf7163a66688ccc52c19112c600f2f902f95a345a30ce6772ec",
   "scoredAt": "2026-05-13T09:42:04.463Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 91,
+    "multiplier": 1.82,
+    "scenarios": [
+      {
+        "name": "Sync GitHub issues into Notion database",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Baseline calls Notion endpoints but typically mis-shapes property values (plain strings instead of nested title/rich_text arrays) and forgets the Notion-Version header; treatment queries /v1/databases/{id}/query for existing pages, then create/update with correct title, number, select, multi_select, and url property shapes plus Bearer token and Notion-Version: 2022-06-28."
+      },
+      {
+        "name": "Paginated query of in-progress pages",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline hits the endpoint once and misses the has_more/next_cursor loop and the version header; treatment posts a filter to /v1/databases/{id}/query, iterates with start_cursor while has_more is true, and includes Notion-Version: 2022-06-28."
+      }
+    ]
+  }
 }

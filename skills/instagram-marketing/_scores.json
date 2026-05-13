@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:349d11f76dd1f23b0a8af320ce1f42760c6fbba1a5f3beb7046380bad13621b1",
   "scoredAt": "2026-05-13T09:16:47.874Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 52,
+    "treatmentAvg": 89,
+    "multiplier": 1.71,
+    "scenarios": [
+      {
+        "name": "Publish a 5-image carousel to an Instagram Business account via the Graph API",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment follows the documented two-step container/publish flow — POST /{ig-account-id}/media with is_carousel_item:true for each image, then a CAROUSEL container with children:[...mediaIds], then POST /media_publish with creation_id; baseline conflates carousels into a single multipart upload or invents endpoints."
+      },
+      {
+        "name": "Plan a 2-week Reels-first content strategy for a small fitness coach account",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment applies the documented 40/30/20/10 content mix, posts 9:16 Reels with hooks in the first 1-2s and mandatory captions/subtitles, uses 4:5 carousels with a slide-1 hook and CTA last slide, and recommends 5-15 hashtags (niche/medium/broad split); baseline gives a generic 'post 3x a week with hashtags' plan."
+      }
+    ]
+  }
 }

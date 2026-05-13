@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:123bde8ecde6404dcf425be7f5bc933d354695569242a5536db34d18313167a2",
-  "scoredAt": "2026-05-13T08:44:24.213Z",
+  "scoredAt": "2026-05-13T16:34:32.231Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.91,
+    "baselineAvg": 33,
+    "treatmentAvg": 63,
+    "scenarios": [
+      {
+        "name": "api-best-practices-talk",
+        "baseline": 20,
+        "treatment": 45,
+        "rationale": "Response B better meets the rubric by including the required frontmatter and theme, whereas Response A lacks these and also misses several other key elements."
+      },
+      {
+        "name": "docker-outline-slides",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items with code blocks, a Mermaid diagram, and a best‑practice checklist, but misses the default theme and build command; Response B lacks the diagram, checklist slide, theme, and build command."
+      }
+    ]
+  }
 }

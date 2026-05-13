@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:86600970d7cc0c07bbcca1de92585262401bff54838008ee5fc9b6d7b5d79cdc",
   "scoredAt": "2026-05-13T10:01:15.799Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 96,
+    "multiplier": 2.23,
+    "scenarios": [
+      {
+        "name": "Three-series revenue line chart with dollar formatting",
+        "baseline": 45,
+        "treatment": 96,
+        "rationale": "Baseline skips ResponsiveContainer, tickFormatter, CartesianGrid and tooltip formatter; treatment uses every documented pattern for a responsive, currency-formatted line chart."
+      },
+      {
+        "name": "Area chart with linearGradient fill",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline uses fillOpacity instead of the documented <defs><linearGradient> with two <stop> elements referenced via fill=url(#id); treatment follows the exact gradient pattern inside ResponsiveContainer."
+      }
+    ]
+  }
 }

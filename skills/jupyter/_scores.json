@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:221beb8c5645a934fb26617952b5eb228744cab0b4363494c8f0d62ac230a41e",
   "scoredAt": "2026-05-13T09:18:38.955Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 43,
+    "treatmentAvg": 94,
+    "multiplier": 2.19,
+    "scenarios": [
+      {
+        "name": "Parameterized weekly EDA notebook",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline suggests generic pandas EDA and may mention nbconvert but omits papermill, --no-input, and jupytext/nbstripout; treatment hits all three rubric checks."
+      },
+      {
+        "name": "Reproducible kernel environment for shared notebooks",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline reaches for requirements.txt/Docker but misses the ipykernel install command, %pip in first cell, and Restart-and-Run-All workflow that the skill prescribes."
+      }
+    ]
+  }
 }

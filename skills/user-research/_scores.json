@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:aa3bf8e4618eb3cfd0f190892e6ff1bfc7f65f13416c246cb20e83a692ee98fb",
   "scoredAt": "2026-05-13T10:32:36.804Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 95,
+    "multiplier": 2.5,
+    "scenarios": [
+      {
+        "name": "Interview script for remote design teams",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Baseline uses future-intent questions like 'Would you pay for' and recommends 10-15 participants, violating the past-behavior rule and 5-8 sample guidance; treatment uses 'walk me through the last time', includes the documented sections with timing, the anything-I-should-have-asked closing, and the 5 interviews = 80% insights rule."
+      },
+      {
+        "name": "Feature-priority survey for SaaS users",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline frames the survey as discovery (asking which features to build) and mixes satisfaction, ranking, NPS, and open-ended in one survey, violating one-topic and discover-vs-quantify rules; treatment opens with surveys-quantify-not-discover, enforces under-5-minutes/one-topic, uses specific CES + forced ranking + 1-2 open questions, and gives 30/100/200 sample-size guidance."
+      }
+    ]
+  }
 }

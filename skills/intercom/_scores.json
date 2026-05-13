@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:5fbc88e34f19098175bcaf336537f55f8390899ce91768f7f26a4c9435a1c47b",
   "scoredAt": "2026-05-13T09:17:02.189Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 60,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Boot Intercom Messenger in Next.js with authenticated user",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment correctly uses Intercom('boot') with app_id and user identification fields (user_id, email, name, created_at) from the documented snippet; baseline boots without created_at and misses the SPA update('last_request_at') pattern."
+      },
+      {
+        "name": "Server-side create contact and send in-app message via Intercom REST API",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Treatment uses the documented POST https://api.intercom.io/contacts with role/external_id/custom_attributes and POST /messages with message_type 'inapp' and from.type 'admin'; baseline guesses endpoint shapes and omits the inapp message_type."
+      }
+    ]
+  }
 }

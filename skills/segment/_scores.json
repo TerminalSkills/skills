@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e2539ea50e6c0db6d72b5734433b6a7a397b9194f51e084603e7783519135e7a",
   "scoredAt": "2026-05-13T10:06:17.282Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "clarity",
-        "detail": "The Setup section is incomplete and lacks step‑by‑step guidance, making the instructions ambiguous."
+        "detail": "The Setup section is incomplete and lacks step‐by‐step guidance, making the instructions ambiguous."
       },
       {
         "severity": "MEDIUM",
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 94,
+    "multiplier": 1.77,
+    "scenarios": [
+      {
+        "name": "node-track-order",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline tracked an order but skipped identify and used lowercase event names; treatment instantiated Analytics with writeKey, called identify with traits, then track with event 'Order Completed' carrying orderId/total/currency/products in properties."
+      },
+      {
+        "name": "anon-to-known-alias",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Baseline mentioned alias but mixed up argument order and omitted the follow-up identify; treatment called analytics.alias({ userId, previousId }) and chained analytics.identify with traits, framing alias as anonymous→identified linking."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:dc596fcc00cbf73b54695785314885a9c97d55c0492d77fe14b68dc2e0b647ce",
-  "scoredAt": "2026-05-13T08:43:52.559Z",
+  "scoredAt": "2026-05-13T16:31:12.473Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0,
+    "baselineAvg": 30,
+    "treatmentAvg": 0,
+    "scenarios": [
+      {
+        "name": "node-dependency-audit",
+        "baseline": 50,
+        "treatment": 0,
+        "rationale": "Response A offers no audit details, while Response B outlines a generic workflow but omits critical CVE listings, file‑level breaking change info, batch‑update commands, and explicit test steps after each upgrade."
+      },
+      {
+        "name": "python-dependency-audit",
+        "baseline": 10,
+        "treatment": 0,
+        "rationale": "Response B offers a generic audit workflow but fails to provide the specific CVE details, breaking‑change file references, batch‑update list, and ordered upgrade plan required by the rubric."
+      }
+    ]
+  }
 }

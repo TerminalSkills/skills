@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:df8cc2222255af69856b49c8779eb346f347659017fad64ccf491d6f72e579e1",
   "scoredAt": "2026-05-13T10:22:57.924Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "scenarios": [
+      {
+        "name": "Tailwind v4 + Vite setup with brand color tokens and Inter font via @theme",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline produces a v3 setup (tailwind.config.js, @tailwind directives, postcss); treatment installs @tailwindcss/vite, imports via @import \"tailwindcss\", and defines --color-brand-* and --font-family-sans in an @theme block with no JS config."
+      },
+      {
+        "name": "Shimmer skeleton plus staggered fade-in-from-bottom list",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline writes raw CSS keyframes and inline animations; treatment registers --animate-shimmer in @theme with a matching @keyframes block, uses bg-[length:200%_100%] animate-shimmer, and installs tailwindcss-animate to apply animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards with per-item animationDelay."
+      }
+    ]
+  }
 }

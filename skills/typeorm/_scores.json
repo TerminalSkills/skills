@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b05202ca20adddbf06cb6a5bc636f6fc996605e15f4edcc5d2c4525d10b28738",
   "scoredAt": "2026-05-13T10:29:00.201Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 89,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "Define User entity with OneToMany Posts and email normalization",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Treatment uses @PrimaryGeneratedColumn(\"uuid\"), @OneToMany with inverse side, explicit authorId @Column on Post, and @BeforeInsert hook for normalizeEmail — baseline typically omits the lifecycle hook approach and the explicit FK column."
+      },
+      {
+        "name": "Generate and run a TypeORM migration",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "Treatment uses the exact npx typeorm migration:generate <path> -d src/data-source.ts and migration:run -d src/data-source.ts commands and warns against synchronize:true in production — baseline typically forgets the -d data-source flag."
+      }
+    ]
+  }
 }

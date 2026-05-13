@@ -2,8 +2,8 @@
   "version": "1.1.0",
   "skillHash": "sha256:c3fee6d9ac7560ce2dee1d3691dca2528b6ff678da8dc69f40deab7c9fd7d716",
   "scoredAt": "2026-05-13T10:33:45.785Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 95,
+    "multiplier": 3.17,
+    "scenarios": [
+      {
+        "name": "Legacy SDK to unified google-genai migration",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline tends to stay on google-cloud-aiplatform or pick google-generativeai and misses the GOOGLE_GENAI_USE_VERTEXAI=true toggle plus genai.Client/models.generate_content surface the rubric requires."
+      },
+      {
+        "name": "5M-row batch translation pipeline",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline proposes parallel streaming calls or Dataflow; treatment uses BatchPredictionJob.submit with the documented JSONL request shape, GCS output, and bq load round-trip with cost rationale."
+      }
+    ]
+  }
 }

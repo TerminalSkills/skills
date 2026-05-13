@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:798da12e7446e7c0e5d25ff7d44f41cded26b7bcba9c10caa44a9827573d6358",
   "scoredAt": "2026-05-13T09:43:41.068Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 92,
+    "multiplier": 2.63,
+    "scenarios": [
+      {
+        "name": "B2B SaaS 7-step setup wizard activation audit",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "One response gives generic 'shorten the wizard, add a progress bar' advice without naming the activation event or the email cadence; the other defines the aha moment, reorders so create-first-project becomes step 1, defers theme/notifications/permissions, and prescribes 24h and 72h trigger emails plus per-step funnel tracking."
+      },
+      {
+        "name": "Mobile fitness app first-workout dropoff",
+        "baseline": 35,
+        "treatment": 92,
+        "rationale": "One response generically suggests shorter forms and push notifications; the other collapses setup to one question, adds a Start-a-Workout-Now empty-state CTA, and lays out a Day 0/1/3 re-engagement sequence keyed to actions taken — applying the skill's one-goal-per-session, do-don't-show, and trigger-based email patterns."
+      }
+    ]
+  }
 }

@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:05d939d56906f46d2aaac180ea9c4bd294e5d68629e5fc6af5e5123eda133f4e",
   "scoredAt": "2026-05-13T08:49:06.695Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 91,
+    "multiplier": 2.02,
+    "scenarios": [
+      {
+        "name": "Audit codebase for missing or undocumented environment variables",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Baseline suggests grepping process.env but typically produces a single list; treatment matches the skill's three-category report (undocumented, no validation, stale) using the exact grep+sed+sort pipeline."
+      },
+      {
+        "name": "Compare staging vs production env vars before launch",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Baseline diffs variable names but misses the identical-secret-as-security-risk flag and the NEXT_PUBLIC_/VITE_ client-exposure check that the skill explicitly enforces."
+      }
+    ]
+  }
 }

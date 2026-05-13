@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0e9ad9b1942b5dcc1a932ceac5d4a965a4955b890c26efc66e3fa71d22dcc5d9",
   "scoredAt": "2026-05-13T10:28:55.327Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 45,
+    "treatmentAvg": 89,
+    "multiplier": 1.98,
+    "scenarios": [
+      {
+        "name": "Write a 7-tweet thread about scaling a Next.js app",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "Treatment opens with a stand-alone hook tweet, numbers 7-12 tweets, keeps 0-2 hashtags, puts any link in a self-reply, and ends with a follow + bookmark CTA — baseline produces a generic thread that often puts links inline and over-uses hashtags."
+      },
+      {
+        "name": "Post a thread programmatically with the X API v2",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment uses twitter-api-sdk Client with auth.OAuth2User and tweet.write/offline.access scopes, chains tweets via reply.in_reply_to_tweet_id using previousTweetId from data.id, and inserts a delay between calls — baseline usually omits the explicit reply chain or SDK scope setup."
+      }
+    ]
+  }
 }

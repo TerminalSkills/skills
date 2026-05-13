@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:0d4c1ef2856fb653ead141377d4680c1992926a23ac72e681d8b02078060653a",
   "scoredAt": "2026-05-13T09:12:50.341Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 31,
+    "treatmentAvg": 93,
+    "multiplier": 3.0,
+    "scenarios": [
+      {
+        "name": "Workers API with CORS, JWT, and RPC client",
+        "baseline": 32,
+        "treatment": 91,
+        "rationale": "Baseline hand-rolls CORS/JWT middleware and uses plain fetch on the client, missing built-ins; treatment imports hono/cors, hono/jwt, and logger, reads c.get('jwtPayload'), exports AppType = typeof routes, and consumes with hc<AppType> from hono/client."
+      },
+      {
+        "name": "JSX HTML response + streamText endpoint",
+        "baseline": 30,
+        "treatment": 94,
+        "rationale": "Baseline returns a raw HTML string and a hand-rolled ReadableStream; treatment uses c.html(<jsx/>) and c.streamText with stream.write/stream.sleep exactly as the skill documents."
+      }
+    ]
+  }
 }

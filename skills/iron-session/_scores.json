@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b850b14586cbb019742be69e8fec05f607b90163a942b30ec7849c7c7cbe4242",
   "scoredAt": "2026-05-13T09:17:33.635Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 62,
+    "treatmentAvg": 90,
+    "multiplier": 1.45,
+    "scenarios": [
+      {
+        "name": "Next.js login route with iron-session",
+        "baseline": 65,
+        "treatment": 92,
+        "rationale": "Treatment uses getIronSession with cookies() from next/headers, sets password from env, configures httpOnly and maxAge 604800, and calls session.save(); baseline references iron-session generically but misses await cookies() pattern and exact maxAge."
+      },
+      {
+        "name": "Protect dashboard server component",
+        "baseline": 58,
+        "treatment": 88,
+        "rationale": "Treatment calls getIronSession<SessionData>(await cookies(), options), checks isLoggedIn, and uses redirect('/login'); baseline often uses middleware-only checks or omits the typed SessionData and the await on cookies()."
+      }
+    ]
+  }
 }

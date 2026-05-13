@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:4b5410d6c2f150da3ce0bf5b54a1e3873356b24af809b59e3d451dbc09b7df0b",
   "scoredAt": "2026-05-13T09:45:55.859Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 100,
+    "multiplier": 2.63,
+    "scenarios": [
+      {
+        "name": "Measure text width and bounding box for layout",
+        "baseline": 55,
+        "treatment": 100,
+        "rationale": "Baseline derived height from ascender/descender and skipped the bounding box object; treatment used getPath + getBoundingBox plus getAdvanceWidth and returned the full shape."
+      },
+      {
+        "name": "Subset a font to embed only the glyphs used by a banner string",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Baseline reached for pyftsubset rather than opentype.js, missing .notdef inclusion, dedup via seen indices, the new opentype.Font constructor, and download()+Buffer write; treatment matched every step."
+      }
+    ]
+  }
 }

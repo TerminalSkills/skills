@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b78770a69a827270936dadbdebe561eeabd98d82f3e052aa359590b6d8a77cf9",
-  "scoredAt": "2026-05-13T08:46:41.801Z",
+  "scoredAt": "2026-05-13T16:47:22.695Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "cli-top-countries",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a single CLI command, while Response B lacks the required -c flag and uses a different CSV reading method."
+      },
+      {
+        "name": "python-pandas-sql",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by using duckdb.sql with the required SQL syntax and .fetchdf(), whereas Response B uses pandasql and does not meet the duckdb requirement."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:5480da4784753923ccea194fb6a78e63359b751d47192361cc6a9762882b685f",
-  "scoredAt": "2026-05-12T22:24:34.511Z",
+  "scoredAt": "2026-05-13T13:48:39.714Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 6,
+    "baselineAvg": 15,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "autonomous-paginate-fix",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response B includes the required aider flags, lint and test commands, and a commit message, whereas Response A only provides a manual patch and lacks the automated tooling steps."
+      },
+      {
+        "name": "python-scripting-pagination",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B is empty."
+      }
+    ]
+  }
 }

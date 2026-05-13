@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a52eaef2fe7d06c37f758fb352994653c12ddff192cc226ff1a3bb376bce2524",
-  "scoredAt": "2026-05-12T22:18:39.028Z",
+  "scoredAt": "2026-05-13T12:09:37.551Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.71,
+    "baselineAvg": 35,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "create-vray-physical-camera",
+        "baseline": 15,
+        "treatment": 85,
+        "rationale": "Response A satisfies almost all rubric items except white_balance_preset, while Response B uses incorrect property names and omits many required settings."
+      },
+      {
+        "name": "batch-process-scenes",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required use of cameras.count and resetMaxFile, using a manual camera count and clearScene instead."
+      },
+      {
+        "name": "audit-scene-with-python",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits key requirements such as using rt.getNumFaces, checking obj.renderable, and returning a list of issue strings."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3959a86e0dd32f87fb45bb2a934e7d517c10ba2e2ffcc71c8c847c8e92b0de3b",
-  "scoredAt": "2026-05-13T08:47:15.025Z",
+  "scoredAt": "2026-05-13T16:48:08.102Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.61,
+    "baselineAvg": 18,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "create-products-index-with-custom-analyzers",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A fails on index name, analyzer names, and field structure."
+      },
+      {
+        "name": "search-products-with-boosting-and-aggregations",
+        "baseline": 25,
+        "treatment": 65,
+        "rationale": "Response A meets most rubric requirements but lacks should clauses and name highlighting, whereas Response B fails on many core aspects such as URL, fuzziness, price range, boosts, highlighting, size, and aggregation details."
+      }
+    ]
+  }
 }

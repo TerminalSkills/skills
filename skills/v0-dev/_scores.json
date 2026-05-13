@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:8b3d3f1982f7fd29c1b6a9df15cef1fec113045cdb80aa25ac3fd3aaeb5e9df9",
   "scoredAt": "2026-05-13T10:32:58.589Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 95,
+    "multiplier": 1.79,
+    "scenarios": [
+      {
+        "name": "Pricing page generation with v0.dev",
+        "baseline": 50,
+        "treatment": 95,
+        "rationale": "Baseline gives a vague prompt without real prices and only loosely references shadcn; treatment uses a concrete shadcn-targeted prompt with real tier prices, the documented setup chain (npx create-next-app, npx shadcn@latest init, npx shadcn@latest add card button badge), and notes the no-vendor-lock-in property of v0 output."
+      },
+      {
+        "name": "Iterating on a v0 admin dashboard",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline mentions iterating in v0 chat but suggests jumping to manual edits and omits the use-client review and limitation list; treatment explicitly says iterate inside the same conversation, follows the documented 5-step iteration pattern, lists v0 strengths vs limitations, and covers use client placement and mock-to-real data replacement."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:9990d703b475090078e5dfe0a98e81778e760b97bde9abae5add179d80613d89",
-  "scoredAt": "2026-05-13T08:17:26.159Z",
+  "scoredAt": "2026-05-13T14:09:55.114Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.52,
+    "baselineAvg": 33,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "generate-2-bedroom-apartment",
+        "baseline": 20,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items but fails the 10% window area requirement for some rooms, while Response B lacks key specifications such as ceiling height, wall thickness, door dimensions, and window area details."
+      },
+      {
+        "name": "validate-floor-plan",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Response B addresses all rubric items with specific calculations, while Response A misses several key requirements and provides incomplete stair geometry."
+      }
+    ]
+  }
 }

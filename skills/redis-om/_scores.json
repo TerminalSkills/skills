@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ea1aef51090ee3704fd54c89d6c65c02187f49dcc6b5d960ddc0980d9272f9bd",
   "scoredAt": "2026-05-13T10:01:38.477Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 86,
+    "multiplier": 2.69,
+    "scenarios": [
+      {
+        "name": "product-catalog-fulltext-geo",
+        "baseline": 33,
+        "treatment": 87,
+        "rationale": "Treatment defines a `Schema` with `text`, `number` (sortable), `string[]`, and `point` field types, creates a `Repository`, calls `createIndex()` once, and queries with `.where('description').matches(...)`, `.is.between(...)`, and `.where('location').inRadius(...)`; baseline drops to raw FT.CREATE/FT.SEARCH commands or recommends a different stack like Elasticsearch."
+      },
+      {
+        "name": "article-vector-similarity-search",
+        "baseline": 30,
+        "treatment": 84,
+        "rationale": "Treatment stores embeddings as `number[]` in the Schema and runs `.where('embedding').nearest(queryEmbedding, k)` through the Repository's search builder against Redis Stack; baseline reaches for pgvector or a separate vector DB and doesn't use the Redis OM Schema/Repository abstraction documented in the skill."
+      }
+    ]
+  }
 }

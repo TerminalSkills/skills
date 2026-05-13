@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:9988d4ab0785f559a09ecf572918d0b4ebbeb51b45247eec22aae5d603ad1c72",
-  "scoredAt": "2026-05-12T22:22:36.364Z",
+  "scoredAt": "2026-05-13T12:09:36.968Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.28,
+    "baselineAvg": 18,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "server-streaming-text-tool-call-chart",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B does not meet the specified AG‑UI server structure at all."
+      },
+      {
+        "name": "react-agent-ui-with-suggestions",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Response A covers more rubric items, including status, progress, toolCalls, suggestions, and input disabling, whereas Response B omits state.status/progress and the required AgentProvider wrapper."
+      },
+      {
+        "name": "react-tool-call-result-list",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric by emitting the required tool calls and rendering the result, whereas Response A does not emit tool calls and does not process toolCalls in the React component."
+      }
+    ]
+  }
 }

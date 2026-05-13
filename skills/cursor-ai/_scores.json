@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:399ed619e5c012b935062b15d6debacbe63b50a5b58cb7853c57d15a93b65137",
-  "scoredAt": "2026-05-13T08:41:05.264Z",
+  "scoredAt": "2026-05-13T16:11:42.790Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.12,
+    "baselineAvg": 25,
+    "treatmentAvg": 53,
+    "scenarios": [
+      {
+        "name": "create-api-rules-file",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response B better meets the rubric by providing frontmatter and a .mdc file, though it lacks explicit rule definitions and has a different filename; Response A fails to provide frontmatter or the required .mdc file."
+      },
+      {
+        "name": "composer-refactor-function",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response A references the required @file and @codebase directives but lacks a full Composer prompt, while Response B omits those directives entirely."
+      }
+    ]
+  }
 }

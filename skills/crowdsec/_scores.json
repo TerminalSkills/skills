@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:b6e8ee2fcb95e189e18004e3fb38ec9c0bcce09a68d57d1edf6d817b1570a49b",
-  "scoredAt": "2026-05-13T08:40:31.186Z",
+  "scoredAt": "2026-05-13T16:08:45.000Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -42,5 +42,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.5,
+    "baselineAvg": 50,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "docker-compose-crowdsec-nginx-bouncer",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A partially meets the rubric but uses incorrect COLLECTIONS values, while Response B provides no content."
+      },
+      {
+        "name": "list-blocked-ips-and-alerts",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses correctly mention the required commands, explain their outputs, and note sudo usage; A offers more detail but both satisfy the rubric fully."
+      }
+    ]
+  }
 }

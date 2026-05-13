@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:856dbfa74ec33976e47fb7bba9a683c89eb691c5adabeab9b2c14eca54d83a80",
   "scoredAt": "2026-05-13T09:39:17.043Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 91,
+    "multiplier": 2.39,
+    "scenarios": [
+      {
+        "name": "Durable JetStream ORDERS stream with explicit ack",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Treatment correctly uses jetstreamManager.streams.add, AckPolicy.Explicit, and msg.ack(); baseline mixes patterns and often omits durable consumer creation."
+      },
+      {
+        "name": "NATS KV session store with watch",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Treatment uses js.views.kv with put/get/delete plus kv.watch() iterator, while baseline tends to default to Redis or pub/sub workarounds."
+      }
+    ]
+  }
 }

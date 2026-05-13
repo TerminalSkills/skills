@@ -1,7 +1,9 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a3ede63973cd0ddd7a1b812b1fe03d920316be8b1cfc81976789aa699321b642",
-  "scoredAt": "2026-05-12T22:04:02.055Z",
+  "scoredAt": "2026-05-13T12:12:35.296Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -18,5 +20,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.6,
+    "baselineAvg": 53,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "landing-page-cta-color-test",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric items, while Response B lacks hypothesis, sample size, metrics, and traffic split details."
+      },
+      {
+        "name": "product-page-mvt-headline-image",
+        "baseline": 35,
+        "treatment": 55,
+        "rationale": "Response B covers more rubric items (hypothesis, metrics, server‑side, checklist) but still misses MVT and the exact sample‑size calculation; Response A lacks hypothesis, metrics, and sample‑size, so it scores lower."
+      },
+      {
+        "name": "analyze-checkout-form-test",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric items, including pre‑launch checklist references, while Response B omits explicit mention of the pre‑launch checklist and guardrail significance."
+      }
+    ]
+  }
 }

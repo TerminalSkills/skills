@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:d62f8506f329882e2f563911246fa264a958f789db7317389885af532a40692b",
-  "scoredAt": "2026-05-13T08:36:57.431Z",
+  "scoredAt": "2026-05-13T15:45:42.828Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "setup-experiment-tracking",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses MLflow and omits comet_ml-specific calls."
+      },
+      {
+        "name": "register-and-compare-models",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, missing only the api.query comparison, while Response A omits key API calls and registry steps."
+      }
+    ]
+  }
 }

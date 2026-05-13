@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:9accda3610e4cca100330fbe2bb98ff50544ac8835a00fe6a948e99ac2e1340f",
-  "scoredAt": "2026-05-13T08:29:51.584Z",
+  "scoredAt": "2026-05-13T15:33:51.295Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 4.3,
+    "baselineAvg": 8,
+    "treatmentAvg": 43,
+    "scenarios": [
+      {
+        "name": "clone-dashboard-page",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric."
+      },
+      {
+        "name": "clone-landing-page",
+        "baseline": 15,
+        "treatment": 85,
+        "rationale": "Response A covers most rubric items with detailed steps, while Response B only downloads the page and misses all required tasks."
+      }
+    ]
+  }
 }

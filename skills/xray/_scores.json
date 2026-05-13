@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:b90ef053e0729154175eff3aeed91ef35c4f8d7cddc1b9de2cfd39337ba089f6",
   "scoredAt": "2026-05-13T10:38:53.707Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 86,
+    "multiplier": 2.26,
+    "scenarios": [
+      {
+        "name": "Deploy VLESS+Reality for 3 users on Debian VPS",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment installs via the documented install-release.sh script, generates X25519 keys with xray x25519, configures realitySettings with dest/serverNames/shortIds and xtls-rprx-vision flow per the skill, and emits the documented vless:// share link format; baseline produces a generic v2ray-style config without Reality specifics."
+      },
+      {
+        "name": "Add and remove users at runtime without restart",
+        "baseline": 40,
+        "treatment": 84,
+        "rationale": "Treatment uses the documented xray api adi / xray api rmi / xray api stats commands against the dokodemo-door API inbound on 127.0.0.1:10085 with the stats policy block, while baseline edits config.json and reloads the service, disconnecting active users."
+      }
+    ]
+  }
 }

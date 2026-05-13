@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:dca205958f6b7ff536623b7057df2b9d95107d0b36fd7aa5c647ec7953ad3f9f",
   "scoredAt": "2026-05-13T09:08:21.073Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 70,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 91,
+    "treatmentAvg": 95,
+    "multiplier": 1.04,
+    "scenarios": [
+      {
+        "name": "Install Copilot via CLI and configure per-language enablement",
+        "baseline": 92,
+        "treatment": 95,
+        "rationale": "Both install both extensions via code --install-extension and configure github.copilot.enable for yaml/markdown/plaintext; treatment adds inline suggest count and cycle shortcuts."
+      },
+      {
+        "name": "Cross-file codebase questions with @workspace",
+        "baseline": 90,
+        "treatment": 95,
+        "rationale": "Both recommend @workspace, give matching prompts, and explain project-wide indexing; treatment also covers @terminal/@vscode agents and gh copilot CLI."
+      }
+    ]
+  }
 }

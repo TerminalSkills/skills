@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c73988edec0969e658e726e945667ade496463cce8b1a93e34573b75a5dcdbf3",
   "scoredAt": "2026-05-13T09:26:14.012Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 95,
+    "multiplier": 2.88,
+    "scenarios": [
+      {
+        "name": "Send welcome transactional email on signup",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Treatment hits the exact /api/v1/transactional endpoint with transactionalId and dataVariables keys; baseline guesses generic template/data fields and may use the wrong endpoint."
+      },
+      {
+        "name": "Trigger plan-upgrade automation via event",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Treatment posts to /api/v1/events/send with eventName and eventProperties matching the documented schema; baseline invents a /track or /events endpoint with non-matching field names."
+      }
+    ]
+  }
 }

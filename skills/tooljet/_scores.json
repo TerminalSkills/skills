@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:c71d8d5b127670af4d6e49e0f8cf49aa162151e5ab3d14e6aabb5f048df3aa1e",
   "scoredAt": "2026-05-13T10:27:01.655Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 32,
+    "treatmentAvg": 84,
+    "multiplier": 2.63,
+    "scenarios": [
+      {
+        "name": "Build an orders refund admin tool with chained button actions",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment shows a PostgreSQL query using {{components.statusFilter.value}} bindings, a JavaScript transformation, and a chained onClick that runs queries.processRefund.run(), shows an alert via actions.showAlert, and refreshes data; baseline gives generic CRUD app advice without ToolJet-specific bindings."
+      },
+      {
+        "name": "Self-host ToolJet with environments and app version control",
+        "baseline": 30,
+        "treatment": 82,
+        "rationale": "Treatment uses the documented docker compose up -d (or the helm chart from tooljet/helm-charts), mentions ToolJet environments for dev/staging/prod, and recommends exporting apps as JSON for Git versioning; baseline gives generic Docker self-host steps without environments or JSON export."
+      }
+    ]
+  }
 }

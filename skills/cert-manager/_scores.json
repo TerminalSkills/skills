@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a50b719256c0e0ee8e3f57120c9117ab90eb60c287b4eb39726cd424ff9b2dbb",
-  "scoredAt": "2026-05-13T08:26:57.449Z",
+  "scoredAt": "2026-05-13T15:14:26.050Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.86,
+    "baselineAvg": 35,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-letsencrypt-dns01-wildcard",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the 15‑day renewBefore, the ECDSA private key specification, and the api.example.com host in the Ingress."
+      },
+      {
+        "name": "manual-renewal-and-status-check",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes both required cmctl commands, while Response B does not include either of them."
+      }
+    ]
+  }
 }

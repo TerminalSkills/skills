@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:61006a652562b8fe00250dab3022fb86e075347fda2e6ec1124ee186e789f240",
   "scoredAt": "2026-05-13T10:31:52.755Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 60,
+    "treatmentAvg": 95,
+    "multiplier": 1.58,
+    "scenarios": [
+      {
+        "name": "C++ ACharacter with Blueprint-exposed health and overridable OnDeath",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline gets UCLASS/UPROPERTY right but tends to miss the BlueprintNativeEvent + _Implementation pattern for Blueprint-overridable C++ events; treatment uses the documented UFUNCTION(BlueprintNativeEvent) with OnDeath_Implementation."
+      },
+      {
+        "name": "Open-world rendering and streaming recommendation",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Baseline usually names Nanite and Lumen but often omits World Partition's auto-streaming role; treatment follows the skill and recommends all three with their specific roles."
+      }
+    ]
+  }
 }

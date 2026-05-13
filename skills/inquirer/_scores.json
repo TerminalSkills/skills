@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:bb7bb11860d0991ddf27b2c67f8be4732f66a4c0f49a999ad2467f9c7d96a3fa",
   "scoredAt": "2026-05-13T09:16:41.713Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
+    "multiplier": 1.6,
+    "scenarios": [
+      {
+        "name": "Build a project scaffolder CLI that asks name, template, features, and confirms",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Treatment imports input/select/checkbox/confirm from '@inquirer/prompts' (v2 modular API), uses validate returning true-or-string on input, and passes choices as {name, value, description}; baseline uses the legacy inquirer.prompt([{type,...}]) API which the skill explicitly tells you to avoid."
+      },
+      {
+        "name": "Add a password prompt and dynamic choices that change based on a prior answer",
+        "baseline": 50,
+        "treatment": 85,
+        "rationale": "Treatment uses password({ message, mask: '*' }) and computes the next checkbox's choices from the prior select() result inside an async wizard function; baseline uses legacy when/when-function callbacks tied to the old inquirer.prompt schema."
+      }
+    ]
+  }
 }

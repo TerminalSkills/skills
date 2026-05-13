@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f4fea9b670b98017c3f83821dcd00947953600a120c68a25c2cab3c7ebc5370f",
   "scoredAt": "2026-05-13T09:58:37.522Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 35,
+    "treatmentAvg": 95,
+    "multiplier": 2.71,
+    "scenarios": [
+      {
+        "name": "Reusable VPC ComponentResource",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline implements the VPC as a plain function returning resources without extending pulumi.ComponentResource or registering outputs, while the treatment subclasses ComponentResource, parents child resources, and exposes outputs for cross-stack consumption."
+      },
+      {
+        "name": "Per-environment config with secrets",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline creates dev/staging/prod stacks but stores the database password with plain pulumi config set instead of pulumi config set --secret, whereas the treatment uses --secret for every stack and reads it via requireSecret in code."
+      }
+    ]
+  }
 }

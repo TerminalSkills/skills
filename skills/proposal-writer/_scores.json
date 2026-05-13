@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:9d161f89b51e06ae37e0bfbc59762f89f815bbdb2a7dbd9753a558ee0540742d",
   "scoredAt": "2026-05-13T09:58:24.345Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 24,
+    "treatmentAvg": 91,
+    "multiplier": 3.79,
+    "scenarios": [
+      {
+        "name": "Web redesign proposal for GreenLeaf Organics",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Baseline produces a single-page quote with one total price and no structured sections; treatment delivers the full 10-section proposal with a phased pricing table summing to $25K, python-docx generation, and [TO BE COMPLETED] placeholders."
+      },
+      {
+        "name": "3-month fintech data strategy consulting proposal with tiered pricing",
+        "baseline": 22,
+        "treatment": 90,
+        "rationale": "Baseline gives a single flat fee and a thin three-month outline; treatment provides three tiered pricing options, a phased Audit/Strategy/Roadmap plan with week ranges, and case-study placeholders inside the full section structure."
+      }
+    ]
+  }
 }

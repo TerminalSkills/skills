@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:124a0dab102f4fafab514f0ca715639f438fbb8fb03dd331ca79fd7b348c670d",
   "scoredAt": "2026-05-13T09:25:02.288Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -37,5 +37,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 86,
+    "multiplier": 2.26,
+    "scenarios": [
+      {
+        "name": "Package a custom GGUF model as a distributable single-file binary",
+        "baseline": 35,
+        "treatment": 88,
+        "rationale": "Treatment uses the documented `./llamafile --model <gguf> --create <output>.llamafile` pattern with a baked-in system prompt; baseline suggests llama.cpp/Docker wrappers and misses the single-file packaging command."
+      },
+      {
+        "name": "Batch-summarize a directory of log files using a local llamafile with no server",
+        "baseline": 40,
+        "treatment": 84,
+        "rationale": "Treatment uses the documented `--cli` mode piping stdin with `--system` and `--temp`, matching the skill's batch-processing pattern; baseline spins up the HTTP server and curls it, which works but ignores the simpler one-shot CLI path."
+      }
+    ]
+  }
 }

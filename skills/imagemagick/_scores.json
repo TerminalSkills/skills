@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:180d26aeb58929d3b4cace9bed50b9a75fcb71b03f22f7d7c76ea06212146f7a",
   "scoredAt": "2026-05-13T09:15:45.146Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 90,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Batch generate 200x200 center-cropped thumbnails",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline typically uses plain `-resize 200x200` which letterboxes or distorts; treatment combines `-resize 200x200^` with `-gravity center -extent 200x200` in a for-loop writing to thumbnails/, matching the documented fill-then-crop recipe."
+      },
+      {
+        "name": "Build a 1200x630 OG image with gradient and centered text",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Baseline scripts two-stage backgrounds or external tools; treatment renders the card in a single `magick -size 1200x630 gradient:...` command using `-font`, `-pointsize`, `-gravity center`, and stacked `-annotate +0-50` / `+0+30` calls."
+      }
+    ]
+  }
 }

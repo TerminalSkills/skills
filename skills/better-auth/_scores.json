@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:c089a9d4d845d7f2aec160cc8d0a0c93fcb3c49b258998e680713d43bb7f75ad",
-  "scoredAt": "2026-05-13T08:21:10.317Z",
+  "scoredAt": "2026-05-13T14:37:57.076Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.63,
+    "baselineAvg": 38,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-email-password-auth",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key elements such as the correct install command, session settings, and proper API/SDK usage."
+      },
+      {
+        "name": "add-google-oauth-and-migrations",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B covers all rubric items, while Response A omits the migration command, toNextJsHandler, client SDK signIn.social, and 7‑day session expiry."
+      }
+    ]
+  }
 }

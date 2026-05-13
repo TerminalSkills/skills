@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:0ca841089d1623e9f27ee5905f53826339318492f921d8d4e17f9da79467dd80",
-  "scoredAt": "2026-05-13T08:43:58.019Z",
+  "scoredAt": "2026-05-13T16:32:06.604Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.4,
+    "baselineAvg": 20,
+    "treatmentAvg": 28,
+    "scenarios": [
+      {
+        "name": "design-cache-interface",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric: they provide only two designs, lack usage examples, hidden complexity, trade‑offs, comparison, recommendation, and mention of the Task tool."
+      },
+      {
+        "name": "design-notification-interface",
+        "baseline": 40,
+        "treatment": 55,
+        "rationale": "Both responses lack the required three designs and Task tool mention; A covers more rubric items than B."
+      }
+    ]
+  }
 }

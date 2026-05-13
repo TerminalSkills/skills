@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:493553807edd8b0175dcf97255971a82590f5d88a3de8673d1a54d14bd84c52e",
   "scoredAt": "2026-05-13T10:05:10.666Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 94,
+    "multiplier": 1.96,
+    "scenarios": [
+      {
+        "name": "high-value opportunity trigger + fiscal-year pipeline SOQL",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "Baseline writes a working trigger but performs DML inside the loop and uses THIS_YEAR rather than THIS_FISCAL_YEAR; treatment matches the bulk-safe collect-then-insert pattern and the exact aggregate SOQL."
+      },
+      {
+        "name": "CDC opportunity sync + Stripe webhook to SF",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "Baseline reaches for outbound messages or generic polling and misses the exact /data/OpportunityChangeEvent channel and ChangeEventHeader payload shape, while treatment matches CDC subscription and PATCH-by-custom-external-id flow."
+      }
+    ]
+  }
 }

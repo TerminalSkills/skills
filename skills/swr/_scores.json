@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:85eab6dee4e206b4d71f411c0d357d5727bfd81e77ffa76fa4e284f52cdb4670",
   "scoredAt": "2026-05-13T10:45:52.039Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 62,
+    "treatmentAvg": 89,
+    "multiplier": 1.44,
+    "scenarios": [
+      {
+        "name": "Todo list with optimistic add and rollback",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Treatment uses useSWR + mutate with optimisticData, rollbackOnError, and revalidate options exactly as the skill documents; baseline uses local useState or naive fetch without SWR's optimistic mutate signature."
+      },
+      {
+        "name": "Infinite scroll feed using SWR",
+        "baseline": 65,
+        "treatment": 88,
+        "rationale": "Treatment uses useSWRInfinite with the (index) => key function, setSize for pagination, and flatMap to accumulate pages as per the skill; baseline reaches for manual page state with useSWR rather than useSWRInfinite."
+      }
+    ]
+  }
 }

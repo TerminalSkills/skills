@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
-  "skillHash": "sha256:2ce92f3a238118e505d90f995e09abf0359b6f2b4a4da41fd9f56b2aed361bb2",
-  "scoredAt": "2026-05-13T10:04:31.874Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "skillHash": "sha256:6f1ed51e4d67a20b3d83c0137d7ffb9e3c643558c54c1fe4232d4981719d784e",
+  "scoredAt": "2026-05-13T10:04:20.470Z",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on happy path scenarios."
       }
     ]
   },
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 38,
+    "treatmentAvg": 94,
+    "multiplier": 2.47,
+    "scenarios": [
+      {
+        "name": "Migrate webpack config (babel/css/file loaders) to Rspack",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "Baseline renamed the config and installed Rspack but kept babel-loader, css-loader/style-loader, and file-loader; treatment switched to builtin:swc-loader, type: 'css', and type: 'asset' as documented."
+      },
+      {
+        "name": "New Rspack + React + TypeScript + Tailwind project",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Baseline used ts-loader and ad-hoc CSS rules; treatment scaffolded with npm create rspack@latest, configured builtin:swc-loader with TSX and React automatic runtime, and used postcss-loader with type: 'css' for Tailwind."
+      }
+    ]
+  }
 }

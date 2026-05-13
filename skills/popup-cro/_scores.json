@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:34d2d02fa0daf83bf5fa026e3d3d0419aed428971f7b3608e072f0929c75c64b",
   "scoredAt": "2026-05-13T09:52:07.168Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 85,
+    "multiplier": 1.7,
+    "scenarios": [
+      {
+        "name": "Cart-abandonment exit-intent popup for DTC store",
+        "baseline": 52,
+        "treatment": 86,
+        "rationale": "Treatment specified exit-intent trigger excluding checkout, once-per-session with 14-30 day dismissal suppression, value-focused first-person CTA, polite decline copy, and a mobile bottom-slide-up variant per the skill's framework; baseline gave a generic discount popup with no frequency rules or mobile alternative."
+      },
+      {
+        "name": "Blog newsletter signup popup without hurting reading UX",
+        "baseline": 48,
+        "treatment": 84,
+        "rationale": "Treatment used scroll-depth trigger (25-50%) restricted to blog pages, slide-in format that doesn't block content, single email field, social-proof headline, and dismissal suppression as the skill prescribes; baseline proposed a centered modal at page load with no frequency capping or content-context targeting."
+      }
+    ]
+  }
 }

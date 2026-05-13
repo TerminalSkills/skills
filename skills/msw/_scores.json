@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:7cf26171c974cab158a30ec8be4d68f30d2083ae2f0d96a7ce2e5dcb11564d3b",
   "scoredAt": "2026-05-13T09:38:09.428Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 90,
+    "multiplier": 1.64,
+    "scenarios": [
+      {
+        "name": "Set up MSW for Jest with React Testing Library to mock /api/users with a 500 error override per test",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Baseline uses older v1-style res/ctx handlers and partial lifecycle, while treatment uses the exact http.get + HttpResponse.json pattern with setupServer listen/resetHandlers/close and server.use override."
+      },
+      {
+        "name": "Mock a GraphQL GetPosts query in the browser for local dev with realistic latency",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Baseline omits the msw init step and uses generic graphql mocks, while treatment uses graphql.query + HttpResponse.json with setupWorker, npx msw init ./public, and delay(300) as documented."
+      }
+    ]
+  }
 }

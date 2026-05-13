@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:0366cba7b04ffec85150eecc7717d9ce0ae781c38dd7f3f8029ccae5f63cd1eb",
-  "scoredAt": "2026-05-13T08:25:52.488Z",
+  "scoredAt": "2026-05-13T15:05:25.529Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 5,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "embed-feedback-widget",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes the required data attributes and exact Tailwind classes, while Response B lacks the data attributes and uses different styling."
+      },
+      {
+        "name": "create-feature-request-api",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses different endpoints and headers, missing the required calls."
+      }
+    ]
+  }
 }

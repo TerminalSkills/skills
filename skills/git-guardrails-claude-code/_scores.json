@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:ac9c812f870ec241a12086d5d9225521ee7caddbbe8478232bc673fe07ee8bec",
   "scoredAt": "2026-05-13T09:07:57.446Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 25,
+    "treatmentAvg": 92,
+    "multiplier": 3.68,
+    "scenarios": [
+      {
+        "name": "Block git push and reset --hard in Claude Code project",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Treatment configures .claude/settings.json PreToolUse hook with Bash matcher pointing at block-dangerous-git.sh and uses $CLAUDE_PROJECT_DIR per SKILL.md; baseline suggests git hooks or shell aliases that do not intercept Claude's tool calls."
+      },
+      {
+        "name": "Globally prevent destructive git ops across all projects",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Treatment installs the script to ~/.claude/hooks and wires the global ~/.claude/settings.json PreToolUse Bash hook, plus verifies with the documented stdin JSON test producing exit code 2; baseline reaches for pre-commit/global git hooks that do not stop Claude's Bash tool."
+      }
+    ]
+  }
 }

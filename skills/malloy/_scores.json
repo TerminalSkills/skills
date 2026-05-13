@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:a4b8a1c069b2a12ab357c87fd29b41e20141fb2f1d3927bcddfcb164d19858bf",
   "scoredAt": "2026-05-13T09:27:28.340Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -32,5 +32,23 @@
       }
     ]
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 30,
+    "treatmentAvg": 88,
+    "multiplier": 2.93,
+    "scenarios": [
+      {
+        "name": "Ecommerce model with nested monthly and customer breakdowns",
+        "baseline": 25,
+        "treatment": 90,
+        "rationale": "Treatment defines a reusable source with dimensions/measures and uses nest to produce per-segment monthly trend and top-customer breakdowns in one query; baseline writes generic SQL with separate CTEs that lack Malloy's nested-result structure."
+      },
+      {
+        "name": "Pipeline filtering reusing a named view",
+        "baseline": 35,
+        "treatment": 85,
+        "rationale": "Treatment chains transformations with -> and reuses a named view (revenue_by_month) plus a post-filter on aggregated results, matching the skill's pipeline pattern; baseline produces standalone SQL queries that don't compose."
+      }
+    ]
+  }
 }

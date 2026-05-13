@@ -1,7 +1,7 @@
 {
   "version": "1.1.0",
   "skillHash": "sha256:2a944c129418472c0a21adafb47ad1e1ed6e5884854a7345ea7f170dfdd124d6",
-  "scoredAt": "2026-05-13T08:22:19.204Z",
+  "scoredAt": "2026-05-13T14:48:54.676Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 0.85,
+    "baselineAvg": 68,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "create-beveled-cylinder-and-export",
+        "baseline": 35,
+        "treatment": 45,
+        "rationale": "Response B applies the bevel modifier and uses a /tmp path, while Response A does not apply the modifier and uses a different export operator; B covers more rubric items."
+      },
+      {
+        "name": "batch-process-blend-files-add-material",
+        "baseline": 100,
+        "treatment": 70,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a different material name and thus misses a key requirement."
+      }
+    ]
+  }
 }

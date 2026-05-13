@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2747ffb92e990df2ee72af8960f49bac9b579d09588b439df44a187b1d300aa4",
   "scoredAt": "2026-05-13T10:08:02.042Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 58,
+    "treatmentAvg": 89,
+    "multiplier": 1.53,
+    "scenarios": [
+      {
+        "name": "instrument-node-traces-with-correlated-logs",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment uses the exact NodeSDK Resource pattern with ATTR_SERVICE_NAME/deployment.environment, OTLP exporters to :4318, getNodeAutoInstrumentations with fs disabled, and a pino mixin that injects trace_id/span_id/trace_flags from trace.getSpan(context.active()) — baseline covers OTel basics but misses the pino correlation pattern."
+      },
+      {
+        "name": "tail-sampling-and-clickhouse-retention",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Treatment cites the skill's tail-based sampling in the OTel Collector for high-traffic services, ClickHouse retention tuning, and per-service RED dashboards; baseline gives generic tail_sampling advice without skill-specific guidance."
+      }
+    ]
+  }
 }

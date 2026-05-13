@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:3aba04ff3599cc95112a97af0a1bccc6d0ae9cbfa458ad93bdea624f26e1c3a0",
   "scoredAt": "2026-05-13T10:09:22.198Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 53,
+    "treatmentAvg": 89,
+    "multiplier": 1.68,
+    "scenarios": [
+      {
+        "name": "Cross-platform username search with Wayback archives",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Baseline mentions Sherlock and the simpler wayback/available endpoint but misses the CDX search API with documented params; treatment uses Sherlock with --print-found/--csv and calls the CDX endpoint with the exact params from the skill."
+      },
+      {
+        "name": "Instagram public profile stats and post locations",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "Baseline gets the right Instaloader API surface but omits exception handling and max_posts limiting; treatment uses Profile.from_username, iterates get_posts with a cap, extracts location/tagged_users, and handles ProfileNotExistsException and PrivateProfileNotFollowedException."
+      }
+    ]
+  }
 }

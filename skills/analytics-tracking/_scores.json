@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:dc2b591b130798fc329f7fc72636fa00f921f38213d6bf5f7ed47f4725b6da43",
-  "scoredAt": "2026-05-12T22:25:52.885Z",
+  "scoredAt": "2026-05-13T13:57:41.208Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 2.42,
+    "baselineAvg": 33,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "create-marketing-site-tracking-plan",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response A meets the rubric requirements with a detailed table, code snippets, and UTM strategy, while Response B uses different event names and lacks the required events and UTM details."
+      },
+      {
+        "name": "shopify-funnel-audit",
+        "baseline": 45,
+        "treatment": 70,
+        "rationale": "Response A covers the required funnel events, provides Shopify‑specific GTM data‑layer pushes for each, and includes a detailed plan table, whereas Response B omits several key events, lacks enhanced e‑commerce mention, and does not provide a validation checklist."
+      }
+    ]
+  }
 }

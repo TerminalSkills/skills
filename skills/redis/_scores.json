@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:f2bb395404ea3085ad323ca2da5c818a0b559449dc8a4ef2c3683e153017167f",
   "scoredAt": "2026-05-13T10:01:34.116Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 48,
+    "treatmentAvg": 87,
+    "multiplier": 1.81,
+    "scenarios": [
+      {
+        "name": "sliding-window-rate-limiter",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "Treatment uses a sorted set with a pipeline of `zremrangebyscore`, `zadd`, `zcard`, and `expire` keyed on the API key for a true sliding window; baseline uses a fixed-window `INCR`+`EXPIRE` counter which is a different (and burstier) algorithm than the one the skill documents."
+      },
+      {
+        "name": "distributed-invoice-lock",
+        "baseline": 45,
+        "treatment": 86,
+        "rationale": "Treatment acquires with `SET key token NX EX timeout` using a `secrets.token_urlsafe` token and releases via a Lua script that atomically checks ownership before `DEL`; baseline uses plain `SETNX`/`DEL` without an owner token, so any worker can release another's lock — the exact failure mode the skill prevents."
+      }
+    ]
+  }
 }

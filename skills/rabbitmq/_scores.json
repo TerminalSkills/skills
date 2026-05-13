@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:11d7a5f6d1a137a266c47f01e3215633c3aebe1a680a9eae05bac1d42c2d8991",
   "scoredAt": "2026-05-13T09:59:41.566Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 55,
+    "treatmentAvg": 92,
+    "multiplier": 1.67,
+    "scenarios": [
+      {
+        "name": "rabbitmq-task-queue-with-dlq",
+        "baseline": 50,
+        "treatment": 92,
+        "rationale": "Treatment wires prefetch, durable queue with x-dead-letter-exchange, persistent publishes, and ack/nack handling exactly as the skill teaches, while the baseline often misses the DLX queue argument or the persistent flag."
+      },
+      {
+        "name": "rabbitmq-topic-routing",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Treatment uses assertExchange('events','topic'), bindQueue with order.created/payment.*/# routing keys, and channel.publish with routing keys exactly as documented, while the baseline gets the topology mostly right but may bind the wrong patterns or omit durability."
+      }
+    ]
+  }
 }

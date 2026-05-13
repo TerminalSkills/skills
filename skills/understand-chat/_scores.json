@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:07838d12c91efbeb1120114267c12ff37d663fe9a7fb7f6dc241739b609c8aba",
   "scoredAt": "2026-05-13T10:29:31.374Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -36,5 +36,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 41,
+    "treatmentAvg": 88,
+    "multiplier": 2.15,
+    "scenarios": [
+      {
+        "name": "auth-flow-explanation",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Baseline greps raw source files and yields a generic flow without layer context or graph-grounded node ids; treatment searches the knowledge graph for name/summary/tags matches, walks 1-hop edges, and cites concrete file paths and layers."
+      },
+      {
+        "name": "payment-service-callers",
+        "baseline": 42,
+        "treatment": 88,
+        "rationale": "Baseline does a free-text repo search and may miss callers in jobs or webhooks; treatment finds payment node ids in the graph, queries edges where target matches, and enumerates upstream callers with file paths and layer info."
+      }
+    ]
+  }
 }

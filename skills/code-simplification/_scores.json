@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:195b68f55b68c17b70ef838fa267c6a907ade6230b45ce4edd38d76bbdc860bc",
-  "scoredAt": "2026-05-13T08:36:07.299Z",
+  "scoredAt": "2026-05-13T15:42:34.347Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5,
+    "baselineAvg": 0,
+    "treatmentAvg": 50,
+    "scenarios": [
+      {
+        "name": "simplify-ternary-to-if",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric by providing a correct, simplified implementation, whereas Response A merely requests the original code and offers no solution."
+      },
+      {
+        "name": "refactor-python-nested-ifs",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide any refactoring and simply request the original code, so neither meets the rubric."
+      }
+    ]
+  }
 }

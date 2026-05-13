@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:65d59804cb553177db8075530288f7fdbfc5abd65fd16671d67b395d2ca5457d",
-  "scoredAt": "2026-05-13T08:17:37.894Z",
+  "scoredAt": "2026-05-13T14:10:58.215Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.2,
+    "baselineAvg": 25,
+    "treatmentAvg": 30,
+    "scenarios": [
+      {
+        "name": "zip-directory-with-progress",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses do not call the required createZipWithProgress function, so neither meets the rubric."
+      },
+      {
+        "name": "stream-zip-to-http",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Response A uses the required streamZipResponse but omits the explicit headers, while Response B correctly sets headers and finalizes the archive but does not use streamZipResponse as mandated."
+      }
+    ]
+  }
 }

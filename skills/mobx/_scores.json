@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:2053d90bba28ff900751e40fbac479cf9f5a0f715f7dd6c57bdb6769e35f52c7",
   "scoredAt": "2026-05-13T09:36:10.839Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -31,5 +31,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 33,
+    "treatmentAvg": 93,
+    "multiplier": 2.82,
+    "scenarios": [
+      {
+        "name": "Async fetchTodos with loading state",
+        "baseline": 35,
+        "treatment": 93,
+        "rationale": "Baseline tends to use legacy @observable/@action decorators or skips runInAction after await; treatment uses makeAutoObservable, runInAction in both success and catch branches, and direct mutation as the skill prescribes."
+      },
+      {
+        "name": "Observer component with document.title side effect",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Baseline writes a plain React component with useEffect and often destructures observables outside observer, breaking tracking; treatment wraps the component in observer(), accesses store.stats.remaining directly, and uses reaction() for the title side effect."
+      }
+    ]
+  }
 }

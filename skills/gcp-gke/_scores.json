@@ -26,5 +26,25 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 95,
+    "multiplier": 3.39,
+    "backend": "subagent",
+    "model": "claude-sonnet-4-6",
+    "scenarios": [
+      {
+        "name": "Hardened production cluster with Cloud SQL access",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Baseline created a Standard cluster and stored Cloud SQL credentials in a Secret; treatment used create-auto with private nodes, master authorized networks, --workload-pool, and KSA->GSA binding with roles/iam.workloadIdentityUser."
+      },
+      {
+        "name": "Cheap interruptible vLLM L4 inference",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Baseline mentioned GPUs and preemptible generically; treatment created a Spot L4 node pool with autoscaling 0->10 and used the gke-accelerator nodeSelector with matching inference toleration."
+      }
+    ]
+  }
 }

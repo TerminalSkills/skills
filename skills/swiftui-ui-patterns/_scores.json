@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:e67de0a38ca7095261e5a76d7ce7af1d5ee5d3be5805f2586706428c10c90c3f",
   "scoredAt": "2026-05-13T10:17:15.417Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 83,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 50,
+    "treatmentAvg": 86,
+    "multiplier": 1.72,
+    "scenarios": [
+      {
+        "name": "Build a SwiftUI editor screen presenting an item via a sheet",
+        "baseline": 52,
+        "treatment": 86,
+        "rationale": "Treatment uses .sheet(item:) with the selected model, lets the sheet own dismiss() internally, avoids if let inside the sheet body, and uses @State with @Observable per the state-ownership table; baseline forwards onCancel/onConfirm closures and uses isPresented + if let."
+      },
+      {
+        "name": "Implement a search screen with cancellation and debouncing",
+        "baseline": 48,
+        "treatment": 86,
+        "rationale": "Treatment uses .task(id:) tied to the search input for restart/cancellation, models explicit loading/error states, and keeps the view small with explicit injection; baseline uses .onChange + manual Task management without .task(id:)."
+      }
+    ]
+  }
 }

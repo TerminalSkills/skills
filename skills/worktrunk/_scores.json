@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "skillHash": "sha256:cb41e0b43807c4c59060d3b1529359b1adaf736fbe328c55d8bcc85daff62537",
   "scoredAt": "2026-05-13T10:38:16.555Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "backend": "subagent",
+  "model": "claude-sonnet-4-6",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -26,5 +26,23 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "baselineAvg": 28,
+    "treatmentAvg": 89,
+    "multiplier": 3.18,
+    "scenarios": [
+      {
+        "name": "Launch 3 parallel Claude agents with auto-setup",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Baseline uses raw git worktree add + manual npm install per directory; treatment uses .worktrunk.toml on_create hook plus wt switch -c -x to create and launch the agent in one command, then wt list to monitor."
+      },
+      {
+        "name": "Share node_modules across worktrees",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "Baseline suggests symlinks or pnpm; treatment uses the documented [create] copy = [\"node_modules\", \".next\", \"dist\"] block in .worktrunk.toml plus [paths] template for predictable naming."
+      }
+    ]
+  }
 }
