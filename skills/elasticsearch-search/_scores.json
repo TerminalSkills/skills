@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3959a86e0dd32f87fb45bb2a934e7d517c10ba2e2ffcc71c8c847c8e92b0de3b",
+  "scoredAt": "2026-05-13T08:47:15.025Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

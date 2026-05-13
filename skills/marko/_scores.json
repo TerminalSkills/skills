@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:fa6758c696bb6cd409021fd94214fe3cb8b010dd57a0faf1f6de032adcfc42e3",
+  "scoredAt": "2026-05-13T09:28:37.988Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "The skill file lacks explicit, step-by-step instructions for the AI agent, making it ambiguous."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover all error scenarios or edge cases beyond the provided examples."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7ad25ed6d1681cbc91e564b1faab8a687eb563944fa152b5052799d7588dd650",
+  "scoredAt": "2026-05-13T10:01:47.435Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill references a vendor-specific file path (.claude/product-marketing-context.md), limiting compatibility with other AI agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

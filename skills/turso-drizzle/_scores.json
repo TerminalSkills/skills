@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e641b40bdea7ac154dcaf645642e507ad7b2de1f9f90e41395ade75f169c4834",
+  "scoredAt": "2026-05-13T10:28:33.495Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Does not cover error handling or edge cases such as missing environment variables or connection failures."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "setup",
+        "detail": "Uses curl|bash from official source without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

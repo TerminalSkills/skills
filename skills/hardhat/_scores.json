@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c3cad481d4bbbd288c596f55e3c0960113c68f3b63c9f05530f47e1f27be9394",
+  "scoredAt": "2026-05-13T09:11:29.943Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling for missing environment variables or network failures."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

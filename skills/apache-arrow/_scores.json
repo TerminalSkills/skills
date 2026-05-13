@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:fc75f0c9bed16b9b76ca33df173fdd74e9b6e3b1cf8103ab4408f115888d34ab",
+  "scoredAt": "2026-05-12T22:26:22.761Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill examples lack coverage of error handling and edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "setup",
+        "detail": "Installation commands lack checksum verification, increasing risk of tampered packages."
+      }
+    ]
+  },
+  "impact": null
+}

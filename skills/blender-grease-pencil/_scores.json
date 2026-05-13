@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:6620f221215807367b9d369571be68c4bb4a6f92a097a5991ab02eccdb9fae96",
+  "scoredAt": "2026-05-13T08:22:05.306Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Does not cover error handling or edge cases, only happy path."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to Blender, not applicable to other AI agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

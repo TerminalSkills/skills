@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8867fe7f31fa985cc1c9f06d55efd504763c63e270a0d6c15dc48d6caf82df32",
+  "scoredAt": "2026-05-13T09:40:53.174Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Linux/macOS environment and does not support Windows."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "credentialHardcoding",
+        "detail": "Hardcoded credentials are present in the skill file."
+      }
+    ]
+  },
+  "impact": null
+}

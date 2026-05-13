@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ac9c812f870ec241a12086d5d9225521ee7caddbbe8478232bc673fe07ee8bec",
+  "scoredAt": "2026-05-13T09:07:57.446Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases such as missing script or permission errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Claude Code and does not support other AI agents."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only one example is provided; additional realistic demonstrations are missing."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

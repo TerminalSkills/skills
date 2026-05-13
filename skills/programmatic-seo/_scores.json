@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:776e379dc086c9290a2ad0dc317dbe1d67fc910d4caab1f8a6952e3f6ed7f2dc",
+  "scoredAt": "2026-05-13T09:57:33.574Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not address error handling or edge cases such as missing data or low search volume scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill references a Claude-specific file path, limiting applicability to other AI platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

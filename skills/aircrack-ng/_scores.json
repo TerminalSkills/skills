@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:86180df57a15ea8bd45d265558487bad8ad5a298cfd53198ef19cc4b94aecae0",
+  "scoredAt": "2026-05-12T22:24:49.741Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases such as missing adapters or failed commands."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to Linux environments and does not support other operating systems."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

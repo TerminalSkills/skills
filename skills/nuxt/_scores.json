@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e337583e6ed38f9b8ab8dd75890c851b0ddcce2a18fe6ede46fdac7a65fd5499",
+  "scoredAt": "2026-05-13T09:42:29.326Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "The skill file lacks explicit usage instructions, making it less actionable."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover all error scenarios and edge cases for Nuxt usage."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill file provides examples but lacks step-by-step actionable procedures for common tasks."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

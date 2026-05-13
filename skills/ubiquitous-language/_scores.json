@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3889b412c4caeda78981ffd4e1532e819d484b95bea464680cab2e555a5cb80e",
+  "scoredAt": "2026-05-13T10:29:13.050Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not specify how to handle missing domain terms or ambiguous definitions."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only one example dialogue is provided, not the required two or more realistic demonstrations."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

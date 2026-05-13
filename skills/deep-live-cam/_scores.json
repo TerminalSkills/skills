@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f36ae0702214baee9e0ca451b408f582b4750647771992502f55a7704595b16d",
+  "scoredAt": "2026-05-13T08:43:12.930Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions do not cover error handling or edge cases such as missing source/target files or GPU unavailability."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill assumes GPU acceleration and specific execution providers, limiting compatibility with non-GPU or non-CUDA environments."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Model file downloaded via wget without checksum verification."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "commitVerification",
+        "detail": "Code cloned from GitHub without commit hash verification."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "packageIntegrity",
+        "detail": "Packages installed via pip without specifying exact versions or verifying integrity."
+      }
+    ]
+  },
+  "impact": null
+}

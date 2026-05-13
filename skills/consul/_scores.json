@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3a0d523fc89ffc83a0009fa55078bb56b3bac1ba059106d88b63bd5ec9aee9da",
+  "scoredAt": "2026-05-13T08:37:58.491Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Does not cover error handling or troubleshooting scenarios"
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Installation instructions assume Linux apt, not cross-platform"
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Missing checksum verification for HashiCorp GPG key download"
+      }
+    ]
+  },
+  "impact": null
+}

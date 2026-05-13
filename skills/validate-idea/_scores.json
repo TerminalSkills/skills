@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:83902341b47fdd5c1e6a71b9bdb97f5e2ccc3a0cec93d7ecf5c91ec89cf62e0d",
+  "scoredAt": "2026-05-13T10:33:11.600Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:bdda845e2c9b587f43f5b5c34997cdc820a3608db399f4d054d4a3d1dea4282c",
+  "scoredAt": "2026-05-13T09:14:56.136Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "FAIL",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "actionability",
+        "detail": "Skill lacks runnable code or concrete procedures, making it non-actionable."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover error scenarios or edge cases, limiting its completeness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

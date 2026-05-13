@@ -1,0 +1,40 @@
+{
+  "version": "2.9.5",
+  "skillHash": "sha256:11565b69cb9a8344854baa0491c965b1c1034cccf5e8f0a7304336639848f702",
+  "scoredAt": "2026-05-13T09:21:51.826Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly handle error scenarios such as missing API keys or script failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions contain verbose sections that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific environment variables and paths tied to Claude, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

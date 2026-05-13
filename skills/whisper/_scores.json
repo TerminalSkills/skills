@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7a3e76afa2a893dd0232c22a02de84be219c4a18654cc6f1c3a33f1e54917dd0",
+  "scoredAt": "2026-05-13T10:37:15.034Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Missing error handling for common failure scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes Unix-like environment for bash scripts."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Model download script lacks checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

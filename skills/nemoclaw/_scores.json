@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f3becb23e6f36e0f48cad7f47cf85640784ab0e11e5fe40b3b58d6a19afe2911",
+  "scoredAt": "2026-05-13T09:39:36.472Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 83,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to NVIDIA NemoClaw, not cross-platform."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "installer",
+        "detail": "Installer uses curl | bash from nvidia.com without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

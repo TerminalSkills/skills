@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:98cf0d2916c0c46d802440e369192e1161d0a68774f63ab9987fce083dcf20ba",
+  "scoredAt": "2026-05-13T10:34:14.261Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions do not cover error scenarios or edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "curl",
+        "detail": "Uses curl without checksum verification for API queries."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Docker images are used without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

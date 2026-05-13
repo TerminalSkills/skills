@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f60a3c45ea4e7834e003e857afd61221856922a8194033a6691f5d4d16ff75da",
+  "scoredAt": "2026-05-13T09:34:15.607Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not address error handling or edge cases such as network failures or invalid API keys."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory comments that may be considered verbose."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Linux/macOS environments and does not provide instructions for Windows."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d1805c894486662647e652303ae0e89109014af1cc343d31fbe5677239cc7054",
+  "scoredAt": "2026-05-13T08:38:21.860Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 67,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill provides guidelines but lacks runnable code or concrete procedures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific file naming conventions that may not exist in all projects."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only one realistic demonstration is provided, lacking multiple examples."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

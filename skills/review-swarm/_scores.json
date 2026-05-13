@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:685f671ca4e8fd29b6b6d70b1d5f2e59faab6ed020c63751a85ee7115b720732",
+  "scoredAt": "2026-05-13T10:04:00.729Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not specify how to handle sub-agent failures or empty diffs, missing error handling."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill lists specific agent names, limiting compatibility to those agents."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "No examples are provided to illustrate usage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

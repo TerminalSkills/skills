@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:399ed619e5c012b935062b15d6debacbe63b50a5b58cb7853c57d15a93b65137",
+  "scoredAt": "2026-05-13T08:41:05.264Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error scenarios or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill lacks step-by-step actionable procedures for the agent."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Cursor and does not work with other AI agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

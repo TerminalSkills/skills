@@ -1,0 +1,56 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:324671198ade7315d3c31cac92dcb1eb5c795b49607edc3f931be21d0cf1c797",
+  "scoredAt": "2026-05-13T09:38:28.140Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover error handling or edge cases for installation and replication steps."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Installation instructions for Windows are missing, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "hardcodedPassword",
+        "detail": "Docker run command hardcodes MYSQL_ROOT_PASSWORD as 'secret', exposing a credential."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "hardcodedPassword",
+        "detail": "Node.js connection pool defaults to password 'secret' if environment variable is not set, exposing a credential."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "hardcodedPassword",
+        "detail": "Python connection pool defaults to password 'secret', exposing a credential."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "hardcodedPassword",
+        "detail": "Replication setup SQL creates user 'repl' with password 'repl_password', exposing a credential."
+      }
+    ]
+  },
+  "impact": null
+}

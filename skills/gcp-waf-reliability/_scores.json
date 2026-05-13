@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:55547ebde6b12b398aadf7bf7762f3d5d3d1da0b814bbfde59151b21a0572968",
+  "scoredAt": "2026-05-13T09:07:16.684Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 83,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to GCP, not cross-platform."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

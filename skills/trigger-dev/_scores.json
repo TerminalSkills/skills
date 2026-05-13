@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3e373b2c6a301b1ff75536885fb6e91e95a6bcc5f36dc9506ece47e89d6f0d81",
+  "scoredAt": "2026-05-13T10:27:40.069Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover all possible error scenarios and edge cases, such as network failures or data validation errors beyond the provided examples."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is tightly coupled to Trigger.dev, making it vendor-locked and not applicable to other AI agents or background job platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

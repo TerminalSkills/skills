@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:90ac7564176c66665ba7f279f1f29cb7f7c6940b7ce9f561eea10c66e3082520",
+  "scoredAt": "2026-05-13T10:37:40.438Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Does not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes Debian/Ubuntu and iptables, not cross-platform."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "curl|bash",
+        "detail": "Installs Pi-hole via curl piped to bash without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

@@ -1,0 +1,35 @@
+{
+  "version": "1.1.0",
+  "skillHash": "sha256:2a944c129418472c0a21adafb47ad1e1ed6e5884854a7345ea7f170dfdd124d6",
+  "scoredAt": "2026-05-13T08:22:19.204Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not address error handling or edge cases such as missing files or Blender not being installed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Linux or macOS installation methods and does not cover Windows or other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

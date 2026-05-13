@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2f55ae7b90226edb2b0d4ef5ebe446d1f554f08687c867959f8018f81eb99ab8",
+  "scoredAt": "2026-05-13T10:02:03.622Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill provides high-level guidance but lacks concrete code examples or step-by-step procedures for implementation."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

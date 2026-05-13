@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7ea3247bb98faa0082a03d0093b59f90380bcec5cf96a518385366909220688b",
+  "scoredAt": "2026-05-13T09:38:00.583Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 83,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is Windows-only, not cross-platform."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "MALICIOUS",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "credentialExposure",
+        "detail": "Hardcoded SQL Server credentials in code expose sensitive information."
+      }
+    ]
+  },
+  "impact": null
+}

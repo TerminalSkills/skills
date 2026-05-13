@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:71b40eb1f6b2e27640316161e9610ec12d67753b9bdff5d332e487f08938961a",
+  "scoredAt": "2026-05-13T08:51:14.323Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly cover error handling or edge cases beyond the provided examples."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "The GPG key download uses curl without verifying a checksum."
+      }
+    ]
+  },
+  "impact": null
+}

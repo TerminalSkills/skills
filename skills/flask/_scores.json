@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ca7b74bdd0aec4d6ba9f9a457f4f47d7f570c35d1fa366f8843f12dd2886e247",
+  "scoredAt": "2026-05-13T08:53:32.794Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Skill file lacks at least two realistic usage examples."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

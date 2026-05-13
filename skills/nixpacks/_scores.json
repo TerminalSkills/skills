@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:1a4c62d7b386ae8ea0965f53592d61ddbacff69452631ad992afd6b67984ffc5",
+  "scoredAt": "2026-05-13T09:41:12.759Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not fully cover error scenarios and edge cases, limiting robustness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "setup",
+        "detail": "Installation script fetched via curl and piped to bash without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

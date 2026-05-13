@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e7636afc1c9cba011ae877d60ffdeaeb108957fdb0733aa8161b25204dbcd722",
+  "scoredAt": "2026-05-13T08:28:14.134Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "FAIL",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "clarity",
+        "detail": "The skill file lacks clear, actionable instructions for the AI agent to follow, making it ambiguous."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The examples do not cover error handling or edge cases, limiting the skill's robustness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

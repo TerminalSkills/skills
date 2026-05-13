@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f2d48ffe4d41104b6f086e09e7e6d3cdc16007ad16466dba2b1867900c99db68",
+  "scoredAt": "2026-05-13T10:02:30.588Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions are not fully explicit, lacking context for some steps."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Examples cover only happy paths, missing error handling and edge cases."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to Replicate, not platform-agnostic."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3e638eed8ec849666fce9105c9d54eb26674ad7b18b67a3b9d4fe0c63a44978c",
+  "scoredAt": "2026-05-13T09:18:46.057Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases, only the happy path."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The installation step uses brew, which is not available on all platforms, limiting cross-platform compatibility."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "No example usages of the skill are provided, making it difficult to understand expected behavior."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

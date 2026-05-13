@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ceefe41e791195cda25442a2d95cc343667e01a5c1f6d8bcb4c0fe1677dc7e33",
+  "scoredAt": "2026-05-13T09:48:07.283Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions lack error handling and edge case coverage."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to PartyKit, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

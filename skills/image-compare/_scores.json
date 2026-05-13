@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:349244d02617ac3abce6448e645cf728738fa375eaf76de3761f40d7396e3ead",
+  "scoredAt": "2026-05-13T09:15:32.902Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not describe error handling or edge cases such as missing images or invalid thresholds."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill references an external script but does not provide its implementation, making it non-runnable without additional files."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill relies on a bash script, limiting compatibility on non-Unix platforms like Windows without WSL."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

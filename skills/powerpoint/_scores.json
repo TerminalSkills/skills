@@ -1,0 +1,30 @@
+{
+  "version": "1.1.0",
+  "skillHash": "sha256:6f5e71b665bffb524bf601d21c0444264c7da5931b4df54a70819684f7c77a11",
+  "scoredAt": "2026-05-13T09:52:53.821Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases for file operations and unsupported features."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4d93611fc1e7befb2700f2389b561735db4ead193bdffcc7787740e58e5b9133",
+  "scoredAt": "2026-05-13T09:57:02.464Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions are not explicit, lacking step-by-step guidance."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Examples do not cover error handling or edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

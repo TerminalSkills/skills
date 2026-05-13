@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:bec5c9c50ae4dcb270fa85145d0c027c99d6bd3c6b13cef02d13791015ff8985",
+  "scoredAt": "2026-05-13T09:56:50.465Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases such as missing dependencies or configuration conflicts."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The skill lacks concrete, realistic usage examples beyond code snippets."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

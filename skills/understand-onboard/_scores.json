@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8f0fec50dc43d09b56ef291b140db47a5153cbad7615c155bc36fdf3cb374744",
+  "scoredAt": "2026-05-13T10:29:56.823Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not handle missing or malformed sections of the knowledge graph, such as absent layers or tour data."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The instructions lack concrete code snippets or command examples, making it harder for users to implement the steps directly."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

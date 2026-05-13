@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:6f13d2547ca0718fd9b7419c99cb7be214f5a842c1c055dc3ce038fb27925b8f",
+  "scoredAt": "2026-05-13T10:03:47.309Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 73,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions lack handling for missing or malformed input documents, leading to potential failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions contain verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The guidance provides high-level steps but lacks detailed, executable procedures for all steps."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes optional Python usage and specific agent capabilities, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

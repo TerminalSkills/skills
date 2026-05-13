@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:152487ad394652f1ac58369731800d57392ccb583b71ba4e2558954c39975495",
+  "scoredAt": "2026-05-13T08:30:16.376Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not handle error scenarios or edge cases."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Cloudflare Workers AI and cannot run on other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ad505ee4a36e9fe6ee859a9a406929b06196f8ac237346ec3c871e0575b92e6b",
+  "scoredAt": "2026-05-13T09:35:32.545Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions do not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill specifies compatibility only for Linux, macOS, WSL, not Windows."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "Skill lacks separate realistic examples section."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "setup",
+        "detail": "Installation uses curl piped to sh without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

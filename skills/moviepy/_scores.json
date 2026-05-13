@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8c21156a60a7e60125248f0fc69ce60b95d400e125dff63b8b041c65f947869e",
+  "scoredAt": "2026-05-13T09:37:50.064Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Some method names like with_effects are not standard MoviePy, causing ambiguity for users unfamiliar with the agent's custom wrappers."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions lack error handling guidance for missing files, ffmpeg installation failures, or unsupported formats."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Installation steps assume a Debian-based Linux environment, limiting applicability on Windows or macOS."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

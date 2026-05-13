@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:37ec38219f9593d1ef295cd04fbfa3f1f84aa530d505b1fc71e229f60085b007",
+  "scoredAt": "2026-05-13T09:22:27.578Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases, such as installation failures or missing configuration files."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The installation steps assume the presence of npm or Homebrew, which may not be available on all platforms."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only a single YAML configuration example is provided, lacking multiple realistic demonstrations."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

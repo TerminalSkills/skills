@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:9093dd97ddd83b993dc103585cf9c99d5456708754abd3d2e3e76a3da48814c3",
+  "scoredAt": "2026-05-13T09:17:41.391Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Does not cover error handling or edge cases for installation and configuration."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes Linux/macOS environment, not Windows."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "setup",
+        "detail": "Executing downloaded script without checksum verification during installation."
+      }
+    ]
+  },
+  "impact": null
+}

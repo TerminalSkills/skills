@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:585571c738a5ca27568295a961f39f9f049ceb731b37d9ab510576175591e77a",
+  "scoredAt": "2026-05-13T10:41:09.540Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases such as network failures or invalid input."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only one code example is provided, lacking multiple realistic demonstrations."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

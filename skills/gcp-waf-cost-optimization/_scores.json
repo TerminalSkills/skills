@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:dd3b033b9b6fb0af300040457b2b98c433a545d6a179c2f6ef105c2eac10c2b3",
+  "scoredAt": "2026-05-13T09:07:08.944Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill file does not cover error scenarios or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Skill file contains verbose explanatory sections beyond necessary instructions."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to GCP and relies on GCP-specific tools."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7c0b79678bfe9e4081d7fa175846548d9ddc857b07d6004d54bf5b73f106b9f3",
+  "scoredAt": "2026-05-13T08:51:51.187Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 73,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions are high-level and lack specific steps for implementation, making them ambiguous for users."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not address error handling or edge cases, focusing only on happy path scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The file contains extensive explanatory text that could be trimmed without losing essential information."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "While code snippets are provided, the instructions lack concrete, step-by-step procedures for execution."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c8bebd9ea1a7c0e944481beec5edc0389b8decc5adc018ff187a52779dddd5b7",
+  "scoredAt": "2026-05-13T10:23:46.385Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 50,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions are not specific or unambiguous, lacking concrete steps for the agent."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover error scenarios or edge cases, focusing only on happy path."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Content includes verbose explanations that could be trimmed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Skill lacks runnable code or concrete procedures for the agent to execute."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill lists specific agents, implying minor platform assumptions."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "Skill provides no realistic demonstrations, only placeholders."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

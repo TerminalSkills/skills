@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:288e992d8abcf0a237c91d0d84330db7907aa50f65aebfa0680404a5ee283428",
+  "scoredAt": "2026-05-12T22:22:47.163Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill assumes Unix-like environment due to grep usage, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "MALICIOUS",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "command_injection",
+        "detail": "Potential command injection via unvalidated user input in subprocess.run."
+      }
+    ]
+  },
+  "impact": null
+}

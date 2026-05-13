@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:594679c1d2731da7364b0f3721ba6943c6cabf6655c7885023e2e60bfb8e852c",
+  "scoredAt": "2026-05-13T08:37:35.975Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only one realistic code example is provided, but two or more are required."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

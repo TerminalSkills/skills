@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:5461f96b1604dcfe31a3c730344da8f22165b69762726a1bcb48ee15e835532f",
+  "scoredAt": "2026-05-13T09:40:30.556Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases such as missing certificates or syntax errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill lacks concrete configuration snippets or runnable code, making it less directly actionable."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

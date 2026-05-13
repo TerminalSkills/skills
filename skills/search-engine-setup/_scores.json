@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:de803bca81effaf1ba2485365e4d5d3169b260c024782c9b79b27ee4ca91bb3e",
+  "scoredAt": "2026-05-13T10:06:02.365Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 73,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all potential error scenarios such as network failures, index mapping errors, or rate limiting, limiting robustness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains explanatory text that could be trimmed for brevity, leading to verbosity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "While code snippets are provided, the instructions lack step-by-step actionable procedures for setting up the environment and executing the steps."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill references Node.js/Python examples and assumes specific runtime environments, limiting portability across all AI agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

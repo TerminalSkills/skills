@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f275fa5ec9b55fe5e72f2b2bbd0bcb905f51cea018d0321c355d19b7e2feb428",
+  "scoredAt": "2026-05-13T10:16:21.630Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill file lacks error handling and edge case coverage."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill assumes Docker and bash, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "download",
+        "detail": "Uses git clone from official source without checksum verification."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "imagePull",
+        "detail": "Pulls Docker images without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

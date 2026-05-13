@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:49a26eef7a65e4acd93b4dcd0c9fd2b06ac5269cbbdc757013c7fdf283ce9b57",
+  "scoredAt": "2026-05-13T10:27:27.486Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Missing error handling for failures during git log or gh issue create, leading to incomplete workflow."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes availability of subagent_type=Explore and gh CLI, limiting compatibility across agents."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "No example demonstrations provided, making it hard to understand expected usage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

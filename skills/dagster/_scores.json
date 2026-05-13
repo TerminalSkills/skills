@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2e409192ef9a44af2975e98604961c8ac2f1cdd690ce9e5f490ec799575933e3",
+  "scoredAt": "2026-05-13T08:41:41.312Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases for asset execution and resource usage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "credentials",
+        "detail": "Hardcoded database credentials in DatabaseResource connection_string expose sensitive information."
+      }
+    ]
+  },
+  "impact": null
+}

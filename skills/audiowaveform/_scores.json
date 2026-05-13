@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:61617e98107e9463bbf3be5c9154ff9549e8c280ccfc707e5a33507a9e584ac0",
+  "scoredAt": "2026-05-13T08:18:37.017Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and multiple examples."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Linux/macOS and does not support Windows."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksumMissing",
+        "detail": "Installation steps clone source code without verifying checksums."
+      }
+    ]
+  },
+  "impact": null
+}

@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:798da12e7446e7c0e5d25ff7d44f41cded26b7bcba9c10caa44a9827573d6358",
+  "scoredAt": "2026-05-13T09:43:41.068Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Missing coverage of error scenarios and edge cases in onboarding process."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Excessive verbosity leads to potential confusion and longer reading time."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes presence of .claude/product-marketing-context.md, limiting compatibility to Claude-based agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

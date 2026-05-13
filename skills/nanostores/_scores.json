@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3432624c262f614ab27a2d636fcf6c547dbb7cebb38fbc493553eccd566a8127",
+  "scoredAt": "2026-05-13T09:39:03.872Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "The skill file lacks explicit instructions for the agent, making it unclear how to apply the knowledge."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The examples do not cover error handling or edge cases, limiting guidance for robust usage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,36 @@
+{
+  "version": "0.1.0",
+  "skillHash": "sha256:c2e67cec78e33d941ef458df23ea14500fbbe4bdc73a44bc9809a957aceefcdb",
+  "scoredAt": "2026-05-13T09:23:58.557Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "curl",
+        "detail": "Script fetched via curl without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

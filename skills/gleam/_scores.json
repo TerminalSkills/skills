@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:dba41149959f63da15fdec80b752458a300e50e73e25f71c1f61ff0c93f140d0",
+  "scoredAt": "2026-05-13T09:08:37.306Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Installation instructions only cover macOS and Linux, lacking Windows support."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "curl",
+        "detail": "Uses curl to download and execute a script from gleam.run without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

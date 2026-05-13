@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e8643c24c6ea6ceb1f2e63258fa45dc2dd546e0b16f8c103ac1da8cf4b8af5dc",
+  "scoredAt": "2026-05-13T09:10:50.770Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill assumes macOS and Linux environments, lacking Windows support."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "installScript",
+        "detail": "Uses curl to download and pipe to sh without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

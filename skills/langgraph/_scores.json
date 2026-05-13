@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4b3978327912fc2f98cdbd4ac5c80d5c61417f9c53a9866b5a91b36ed16d7a63",
+  "scoredAt": "2026-05-13T09:21:28.338Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling for tool failures or network errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered verbose for a concise skill file."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to LangGraph and does not support other AI agent frameworks."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "evalUsage",
+        "detail": "The calculate tool uses eval, which can execute arbitrary code."
+      }
+    ]
+  },
+  "impact": null
+}

@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c6337fefef74478476b88b3e93bb344336772f9662d1f75e01e7d5f2b42e5488",
+  "scoredAt": "2026-05-13T10:07:07.153Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "The skill file lacks specific actionable instructions for the agent, providing only a role description without concrete tasks."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Error handling and edge case scenarios are not addressed in the examples or best practices."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is tailored to Node.js and Sequelize, limiting applicability to other runtime environments."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

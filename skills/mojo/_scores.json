@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c839d5fc8659e17bf09f8057ca37c99715623053cb6f38a8dc5dfd2b0aed6450",
+  "scoredAt": "2026-05-13T09:36:37.975Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 63,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions are primarily code examples without explicit textual guidance, making it unclear how to apply the skill."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not address error handling or edge cases, focusing only on happy paths."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "File contains extensive comments and explanations, adding unnecessary verbosity."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to Modular's Mojo language, limiting compatibility with other AI agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "setup",
+        "detail": "Installation script uses curl piped to sh without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

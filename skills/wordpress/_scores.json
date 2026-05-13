@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4cff5cbdd0958584dc4f59c1f78f01b8e35cc85d9061520a0b5acada6973e19f",
+  "scoredAt": "2026-05-13T10:38:10.533Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file lacks error handling and edge case coverage, focusing only on happy paths."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "publicEndpoint",
+        "detail": "The custom WooCommerce REST endpoint is publicly accessible and returns product data without authentication."
+      }
+    ]
+  },
+  "impact": null
+}

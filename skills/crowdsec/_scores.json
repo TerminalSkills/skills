@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:b6e8ee2fcb95e189e18004e3fb38ec9c0bcce09a68d57d1edf6d817b1570a49b",
+  "scoredAt": "2026-05-13T08:40:31.186Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Completeness: does not cover error scenarios or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "CrossPlatform: assumes Linux environment, not cross-platform."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "Examples: lacks realistic examples beyond code snippets."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "curl|bash",
+        "detail": "Uses curl piped to bash without checksum verification."
+      }
+    ]
+  },
+  "impact": null
+}

@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:589126af5f6558829e03e23e16abe5b061bc9a253f19d298b3860aea60651399",
+  "scoredAt": "2026-05-13T09:52:31.495Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases such as missing extensions or unsupported features."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The instructions lack concrete runnable SQL code or scripts, making it harder to directly implement the guidance."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

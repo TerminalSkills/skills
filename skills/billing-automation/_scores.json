@@ -1,0 +1,30 @@
+{
+  "version": "1.1.0",
+  "skillHash": "sha256:2e26f244fc2294fc563e1c34ea33145f1b48c032a4b2aa6ad250162589946585",
+  "scoredAt": "2026-05-13T08:21:32.760Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill is limited to Node.js or Python environments, not fully cross-platform."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

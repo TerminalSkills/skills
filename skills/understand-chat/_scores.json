@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:07838d12c91efbeb1120114267c12ff37d663fe9a7fb7f6dc241739b609c8aba",
+  "scoredAt": "2026-05-13T10:29:31.374Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly handle JSON parsing errors or missing fields in the knowledge graph, potentially leading to failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The instructions use placeholders like $ARGUMENTS and lack concrete command examples, making it harder to execute directly."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill relies on Unix grep commands, which may not be available or behave differently on Windows environments."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

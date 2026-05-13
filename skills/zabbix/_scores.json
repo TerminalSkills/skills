@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c522660c0f52c03f3188e9a57769eff05f7434303a7f45b325ac89b55d1d51f7",
+  "scoredAt": "2026-05-13T10:40:25.910Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 73,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on the happy path."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Placeholders like TEMPLATE_ID and DISCOVERY_RULE_ID are used without guidance on how to replace them, reducing immediate usability."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume Ubuntu and Docker environments, limiting applicability to other platforms."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The skill lacks a dedicated examples section with realistic demonstrations, making it harder to validate the steps."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "The wget command downloads the Zabbix release package without verifying its checksum."
+      }
+    ]
+  },
+  "impact": null
+}

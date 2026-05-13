@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d71eba41523f5e23aafb9e78377c921dd68582f72a4b0046832015d36518cdfd",
+  "scoredAt": "2026-05-13T09:58:56.119Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 60,
+    "dimensions": {
+      "clarity": "FAIL",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "clarity",
+        "detail": "The skill file lacks explicit instructions for the agent, making it vague and ambiguous."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is tailored to Node.js and React, limiting applicability to other platforms."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios or edge cases, such as network failures or authentication errors beyond a simple 403."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

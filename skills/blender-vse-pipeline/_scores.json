@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:b299e14b3292456e9dfa2fce7a9d8120682f004b9647efe1c7a2315ca1599ce6",
+  "scoredAt": "2026-05-13T08:22:24.406Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions contain undefined variables like clip_a, making them ambiguous."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill lacks error handling for missing files or invalid paths."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to Blender, not platform-agnostic."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

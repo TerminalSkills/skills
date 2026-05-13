@@ -1,0 +1,30 @@
+{
+  "version": "1.0.1",
+  "skillHash": "sha256:3fc9293c6ff16f3b24998ab45f8c1811a1c6a69916ada9e17429be06a54f01b3",
+  "scoredAt": "2026-05-13T09:25:24.663Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Instructions lack error handling and edge case coverage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

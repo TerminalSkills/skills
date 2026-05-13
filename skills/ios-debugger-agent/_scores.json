@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:68b47ec9029a71ce71a4e3145a9fbb60ce7359bf7005477c9bc8d57e07215a72",
+  "scoredAt": "2026-05-13T09:17:13.456Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 60,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all potential error scenarios and edge cases, such as missing scheme or project path, leading to incomplete guidance."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to macOS with Xcode and XcodeBuildMCP, making it vendor-locked and not cross-platform."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "No realistic examples are provided to illustrate usage, making it difficult to understand how to apply the skill."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,30 @@
+{
+  "version": "1.1.0",
+  "skillHash": "sha256:cebd9eb2de499a4967c3321ecad8e3f1ee39170fee1b610b04422dd711ceee6a",
+  "scoredAt": "2026-05-13T08:53:05.655Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover all error scenarios and edge cases, such as network failures or invalid input handling."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

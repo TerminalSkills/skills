@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:f33a59e4b76267ea7862e8d314eaa5952ca9e3744f16f806414aa8e96814ee90",
+  "scoredAt": "2026-05-13T09:57:40.569Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 77,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill relies on the $CODEX_HOME environment variable, which is specific to Codex, limiting cross-platform applicability."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "The skill file lacks any realistic example demonstrations of its usage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

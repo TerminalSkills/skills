@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:124a0dab102f4fafab514f0ca715639f438fbb8fb03dd331ca79fd7b348c670d",
+  "scoredAt": "2026-05-13T09:25:02.288Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions lack error handling and edge case coverage, such as download failures or port conflicts."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions rely on bash commands (wget, chmod) that may not work on non-Unix platforms, limiting cross-platform usability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Downloads are performed without checksum verification, which could allow tampered files."
+      }
+    ]
+  },
+  "impact": null
+}

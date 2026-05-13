@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:21fd53955283094321db20f2b7575e360e1b94f0f65145a3921873a52d86c982",
+  "scoredAt": "2026-05-13T09:26:56.101Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Installer is downloaded via curl without checksum verification."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "credentialExposure",
+        "detail": "Credentials are passed as environment variables in the command line, potentially exposing them to other processes."
+      }
+    ]
+  },
+  "impact": null
+}

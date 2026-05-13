@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ab3d247f05a6db10b119e83a7bd56cf2b532acfc26f453ea65d2eec95943f490",
+  "scoredAt": "2026-05-13T09:36:01.249Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill only covers happy path scenarios and lacks error handling or edge case coverage."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "credentials",
+        "detail": "Example includes hardcoded PostgreSQL credentials in the connection string."
+      }
+    ]
+  },
+  "impact": null
+}

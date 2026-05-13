@@ -1,24 +1,20 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:a52eaef2fe7d06c37f758fb352994653c12ddff192cc226ff1a3bb376bce2524",
-  "scoredAt": "2026-05-12T22:05:03.800Z",
+  "scoredAt": "2026-05-12T22:18:39.028Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not explicitly cover error handling for script failures or missing file scenarios."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7928f0813a472f867181f0ba0debfd41c28a0f100bfcc53fd5e51ebeac3e94c7",
+  "scoredAt": "2026-05-13T08:28:49.399Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Skill contains verbose sections that could be trimmed."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to Anthropic's Claude API."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "subprocess_shell",
+        "detail": "Code executes arbitrary bash commands via subprocess.run with shell=True, which can be dangerous if not sandboxed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "missing_checksum",
+        "detail": "Pip packages are installed without checksum verification, potentially allowing tampered packages."
+      }
+    ]
+  },
+  "impact": null
+}

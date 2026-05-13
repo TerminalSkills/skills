@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:94183caae56269b6a8d36965dfff3f675f70cb4a5e5ac93f9c1c0bb1aec90bbc",
+  "scoredAt": "2026-05-13T09:53:06.118Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not address error handling or edge cases such as missing PRD or failed GitHub API calls."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions include verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "The skill lacks any realistic example demonstrations of the process."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

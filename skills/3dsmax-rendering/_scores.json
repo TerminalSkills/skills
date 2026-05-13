@@ -1,7 +1,9 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f02d337441e6e9cabf8681de1302566f64c5a76caa2bfe3646293ba87a64f6ca",
-  "scoredAt": "2026-05-12T22:04:56.604Z",
+  "scoredAt": "2026-05-12T22:19:33.795Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
   "quality": {
     "score": 63,
     "dimensions": {
@@ -16,22 +18,22 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not address error handling or edge cases, limiting robustness."
+        "detail": "The skill file does not address error handling or edge cases for rendering failures."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The documentation contains verbose explanations that could be trimmed for brevity."
+        "detail": "The documentation contains verbose sections that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "examples",
-        "detail": "Only a few code snippets are provided, lacking multiple realistic usage examples."
+        "detail": "The skill file lacks concrete, step-by-step example scenarios demonstrating usage."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to 3ds Max and its specific renderers, making it vendor-locked."
+        "detail": "The skill is specific to 3ds Max with V-Ray and Corona, limiting applicability to other platforms."
       }
     ]
   },

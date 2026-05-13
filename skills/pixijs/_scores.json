@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:66c509f10c4cf4215b3eb8d0d8c0d964eb401d66e68ad36ecefc579a2931cf11",
+  "scoredAt": "2026-05-13T09:50:54.953Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 63,
+    "dimensions": {
+      "clarity": "FAIL",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "clarity",
+        "detail": "The skill file lacks specific instructions, making it vague."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Only happy path examples are provided, missing error handling and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Excessive explanatory text leads to verbosity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill lacks step-by-step actionable instructions for the agent."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

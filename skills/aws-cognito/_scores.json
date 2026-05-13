@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e8419bc248f9b15fa8482a0250fedcf89dd330bd0b53e6d68c12828d96127a43",
+  "scoredAt": "2026-05-13T08:19:19.935Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Does not cover error scenarios or edge cases."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "credentialHardcoding",
+        "detail": "Hardcoded client_secret in provider-details."
+      }
+    ]
+  },
+  "impact": null
+}

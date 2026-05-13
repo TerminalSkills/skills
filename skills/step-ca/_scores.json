@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:033987e00a27483ed919c8b4124cba6f3c2382c96fe1ac4c87f7fbc12465cdbd",
+  "scoredAt": "2026-05-13T10:12:03.704Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 67,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions reference platform-specific commands like 'brew' without clarifying cross-platform alternatives, leading to ambiguity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill omits error handling and edge case scenarios, such as failed certificate issuance or renewal failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The provided commands lack context and prerequisites, making it difficult to execute them successfully."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill relies on macOS-specific package manager 'brew' and assumes Node.js environment, limiting cross-platform applicability."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only a single Node.js example is provided, lacking diverse realistic demonstrations for other environments."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

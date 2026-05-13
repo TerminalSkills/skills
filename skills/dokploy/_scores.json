@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:b70b19fa5799e2847a6c1fdd30520dd0bf9d62ef31b355f95592ffe0541024e7",
+  "scoredAt": "2026-05-13T08:45:59.646Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover error scenarios or edge cases, focusing only on happy path deployment."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "installationScript",
+        "detail": "Installation script is fetched via curl piped to sh without checksum verification, posing a potential risk."
+      }
+    ]
+  },
+  "impact": null
+}

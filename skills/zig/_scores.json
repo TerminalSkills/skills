@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d310f36afb365c9bbe5c83c0d7adf979f51d3e6629533379c9b1f019e7796d76",
+  "scoredAt": "2026-05-13T10:40:47.551Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Downloaded Zig binaries are not verified with checksums, increasing risk of tampering."
+      }
+    ]
+  },
+  "impact": null
+}

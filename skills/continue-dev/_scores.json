@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:6b079c1ccbb2d0f65144c522c6511a61fd5d4e347af0f52b52eebee3df79a148",
+  "scoredAt": "2026-05-13T08:38:29.106Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not cover error scenarios or edge cases for configuration and usage."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only a single usage example is provided, lacking multiple realistic demonstrations."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Continue and does not work with any AI agent, making it vendor-locked."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

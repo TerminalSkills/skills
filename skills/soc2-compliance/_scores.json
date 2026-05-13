@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:78c87f3b17e95282f215f4d13f1fb1f691a699ba1c693e063f9ca453db45eebf",
+  "scoredAt": "2026-05-13T10:08:50.912Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 73,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions are not fully specific and lack unambiguous guidance."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The guide does not cover error scenarios or edge cases for SOC 2 controls."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The document contains verbose sections that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Procedures are high-level and do not provide step-by-step runnable code."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

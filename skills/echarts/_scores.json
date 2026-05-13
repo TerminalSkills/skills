@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ec60e998cc038758d55a4b5571bfd857b436a3d38558cdaa00718b404802d228",
+  "scoredAt": "2026-05-13T08:47:03.897Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Instructions lack explicit step-by-step guidance, making them somewhat ambiguous."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Error handling and edge cases are not addressed in the examples."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The file contains explanatory text that could be trimmed for brevity."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

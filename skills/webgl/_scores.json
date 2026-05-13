@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:37dea501f666e86a411416d1e1e53cdaad1baa0d3090be38f2b8ed4ca509368e",
+  "scoredAt": "2026-05-13T10:36:22.708Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 63,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "The skill file lacks explicit usage instructions, making it ambiguous how to integrate the provided functions."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Error handling is limited; the init function throws on WebGL2 absence and does not implement the described WebGL1 fallback."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The code snippets are not tied together with a usage example, so users cannot see how to orchestrate initialization, shader compilation, geometry creation, and rendering."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "No realistic example is provided to demonstrate how to use the functions together to render a scene."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4e3878c3a5cf38ff532c213d771ccb43aaa7f5c8c826b70829c38f4b1e3e1859",
+  "scoredAt": "2026-05-13T09:58:47.264Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill lacks error handling and edge case coverage, focusing mainly on happy path scenarios."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Installation steps use npm install without verifying package integrity via checksums."
+      }
+    ]
+  },
+  "impact": null
+}

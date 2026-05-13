@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:474be128d86106c9af3c41eebe9bfb85b2b69ed877e744cf9206f3c54b5c5e39",
+  "scoredAt": "2026-05-13T09:46:28.631Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "FAIL"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios and edge cases, such as detailed failure handling for worker agents."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific agents (claude-code, openai-codex, gemini-cli, cursor), limiting cross-platform applicability."
+      },
+      {
+        "severity": "HIGH",
+        "category": "examples",
+        "detail": "No realistic examples are provided to illustrate the workflow."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

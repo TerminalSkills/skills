@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:eaf1d21b31d2aaaec624bb4c98066991e79d451db76761f276b882c14eacd096",
+  "scoredAt": "2026-05-13T09:25:52.534Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly address handling malformed or corrupted log entries, which are common edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The instructions lack runnable code snippets or concrete command examples, limiting immediate execution."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

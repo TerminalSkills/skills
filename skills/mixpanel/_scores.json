@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:9a022924c3785f130b72c4089e1ab86c120daa7ecbdebe9f27e84614fbd00e89",
+  "scoredAt": "2026-05-13T09:35:47.600Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "The skill file lacks explicit usage instructions, making it ambiguous for new users."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The examples do not handle error scenarios or edge cases, limiting robustness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

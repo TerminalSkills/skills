@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:58ec9199b6d6c72ba566c2e9046b69d9da65fda10331dda93e60e817db99bb55",
+  "scoredAt": "2026-05-13T08:52:12.263Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Missing explicit error handling for network failures, timeouts, and unexpected HTTP responses."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Assumes Linux commands (wget, tar, git) which may not be available on Windows or other non-Unix systems."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Missing checksum verification for the downloaded ffuf binary."
+      }
+    ]
+  },
+  "impact": null
+}

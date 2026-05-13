@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:36986cb06305339288feea14eae79a5bf34dd0d33a042f58001daad9425f2c17",
+  "scoredAt": "2026-05-12T22:25:00.839Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill does not cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill assumes macOS/Linux and does not support Windows."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "checksum",
+        "detail": "Docker images are referenced without checksums, which could allow tampering."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "credentials",
+        "detail": "Hardcoded credentials in environment variables may expose secrets."
+      }
+    ]
+  },
+  "impact": null
+}
