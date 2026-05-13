@@ -1,14 +1,16 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:f3ac9196846437d9030d991e234d9fe1d70a0dc505bf0d96b709c552d20521a6",
-  "scoredAt": "2026-05-12T22:05:55.183Z",
+  "scoredAt": "2026-05-13T11:21:57.459Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -16,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "The instructions lack coverage of error handling and edge cases for data fetching and mutations."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill does not provide runnable code snippets or concrete procedures for implementation."
       }
     ]
   },
@@ -24,5 +31,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 5.5,
+    "baselineAvg": 10,
+    "treatmentAvg": 55,
+    "scenarios": [
+      {
+        "name": "blog-page-ssg-ssr",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response A covers most rubric items but lacks error.tsx and generateMetadata, while Response B omits the required files and ISR syntax entirely."
+      },
+      {
+        "name": "contact-form-server-action",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric: neither uses a server‑only form component with <form action={submitContact}>, calls revalidatePath('/') after a successful mutation, nor omits 'use client'."
+      },
+      {
+        "name": "admin-auth-middleware",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a Next.js middleware file, matcher, cookie check, and redirect, while Response A is an Express example and does not meet the specified requirements."
+      }
+    ]
+  }
 }

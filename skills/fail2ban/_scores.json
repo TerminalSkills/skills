@@ -1,34 +1,29 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:6755a402eeca6c2b6ea013691fcbe707e93e368631c53c570bcdb56a385c6f9f",
-  "scoredAt": "2026-05-13T08:50:50.536Z",
+  "scoredAt": "2026-05-13T11:20:40.570Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
-    "score": 70,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack error handling and edge case considerations."
+        "detail": "Missing error handling and edge case scenarios in the instructions."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Linux environments, not cross-platform."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No realistic examples are provided to illustrate usage."
+        "detail": "Skill is limited to Linux, not cross-platform."
       }
     ]
   },
@@ -36,5 +31,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.17,
+    "baselineAvg": 77,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "install-fail2ban",
+        "baseline": 70,
+        "treatment": 70,
+        "rationale": "Both responses include the required install and enable commands but neither explicitly states that the service is enabled after installation, so they receive a moderate score."
+      },
+      {
+        "name": "configure-sshd-jail",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A omits the required jail.local location and the note about not editing jail.conf."
+      },
+      {
+        "name": "monitor-and-unban",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing the required commands and explanatory comments."
+      }
+    ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:3fb8b646ce9d737b27a543203754c545516cc91639140c1435aae6978ec41c26",
-  "scoredAt": "2026-05-13T10:39:10.346Z",
+  "scoredAt": "2026-05-13T11:18:13.737Z",
   "backend": "ollama",
   "model": "gpt-oss:20b",
   "quality": {
@@ -20,5 +20,29 @@
     "verdict": "SAFE",
     "issues": []
   },
-  "impact": null
+  "impact": {
+    "multiplier": 1.53,
+    "baselineAvg": 60,
+    "treatmentAvg": 92,
+    "scenarios": [
+      {
+        "name": "wizard-machine",
+        "baseline": 70,
+        "treatment": 75,
+        "rationale": "Both responses miss the required isValid context flag guard, but A uses context-based validation while B relies on event data, making A marginally better."
+      },
+      {
+        "name": "checkout-async",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A misses key elements such as using `setup`, naming the actor `processPayment`, and the correct context field `retries`."
+      },
+      {
+        "name": "react-login-component",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a different state name ('loading' instead of 'authenticating') and omits the required disabled button for that state."
+      }
+    ]
+  }
 }
