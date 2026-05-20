@@ -3764,19 +3764,6 @@
       ]
     },
     {
-      "name": "hermes-tweet",
-      "slug": "hermes-tweet",
-      "description": "Provides Hermes Agent workflows for X/Twitter through Hermes Tweet and Xquik. Use when tasks mention searching tweets, reading tweet replies, looking up users, exporting followers, monitoring tweets, posting tweets or replies, sending DMs, Hermes Agent X automation, or approval-gated Twitter actions.",
-      "category": "automation",
-      "tags": [
-        "hermes",
-        "twitter",
-        "x",
-        "automation",
-        "social-media"
-      ]
-    },
-    {
       "name": "hetzner-cloud",
       "slug": "hetzner-cloud",
       "description": "Manage Hetzner Cloud infrastructure from the terminal. Use when a user asks to create a Hetzner server, manage VPS instances, set up firewalls, configure networks, manage volumes, create snapshots, handle SSH keys, or provision infrastructure on Hetzner. Covers the hcloud CLI for all resource types. For deploying applications on top of Hetzner servers, see coolify.",
@@ -9607,6 +9594,19 @@
       ]
     },
     {
+      "name": "xquik-twitter",
+      "slug": "xquik-twitter",
+      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, exporting followers, monitoring tweets, posting tweets or replies, sending DMs, Xquik Twitter automation, or approval-gated Twitter actions.",
+      "category": "automation",
+      "tags": [
+        "xquik",
+        "twitter",
+        "x",
+        "automation",
+        "social-media"
+      ]
+    },
+    {
       "name": "xray",
       "slug": "xray",
       "description": "Deploy and configure Xray proxy servers. Use when a user asks to set up VLESS, VMess, Trojan, or Shadowsocks proxies, configure Reality or TLS transport, deploy Xray with XTLS, set up fallback routing, manage multi-user access, configure traffic routing rules, set up CDN-based tunneling, build subscription links for client apps, monitor Xray traffic, or bypass network restrictions. Covers all major Xray protocols, transports, and deployment patterns.",
@@ -9782,5 +9782,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-05-12T20:05:14.811Z"
+  "updatedAt": "2026-05-20T10:57:41.807Z"
 }

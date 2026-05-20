@@ -1,26 +1,26 @@
 ---
-name: hermes-tweet
+name: xquik-twitter
 description: >-
-  Provides Hermes Agent workflows for X/Twitter through Hermes Tweet and Xquik.
+  Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet.
   Use when tasks mention searching tweets, reading tweet replies, looking up
   users, exporting followers, monitoring tweets, posting tweets or replies,
-  sending DMs, Hermes Agent X automation, or approval-gated Twitter actions.
+  sending DMs, Xquik Twitter automation, or approval-gated Twitter actions.
 license: Apache-2.0
 compatibility: "Hermes Agent, hermes-tweet 0.1.6+, Python 3.11+, XQUIK_API_KEY for network reads"
 metadata:
   author: kriptoburak
   version: "1.0.0"
   category: automation
-  tags: [hermes, twitter, x, automation, social-media]
+  tags: [xquik, twitter, x, automation, social-media]
 ---
 
-# Hermes Tweet
+# Xquik Twitter
 
 ## Overview
 
-Hermes Tweet is a Hermes Agent plugin for X/Twitter automation through Xquik. It
-adds a least-privilege tool split for endpoint discovery, read-only X/Twitter
-queries, and approval-gated write actions.
+Xquik Twitter covers Hermes Tweet workflows for X/Twitter automation through
+Xquik. It adds a least-privilege tool split for endpoint discovery, read-only
+X/Twitter queries, and approval-gated write actions.
 
 Use this skill for operational X/Twitter workflows where the agent needs to
 search tweets, read replies, look up users, monitor tweets, export followers, or
@@ -127,7 +127,7 @@ Expected response:
 
 ```text
 Found 8 recent tweets for "Hermes Agent plugins". The most relevant thread is
-from @agentbuilder, posted at 2026-05-12T14:20:00Z. Replies focus on install
+an illustrative result from a plugin builder account. Replies focus on install
 friction, plugin discovery, and tool permission scopes. No write actions were
 taken.
 ```
@@ -137,7 +137,7 @@ taken.
 User input:
 
 ```text
-Reply to tweet 1840000000000000000 thanking the author and linking the Hermes Tweet guide.
+Reply to tweet 1840000000000000000 thanking the author and linking the Xquik Twitter guide.
 ```
 
 Agent workflow:
@@ -154,7 +154,7 @@ Approval prompt:
 
 ```text
 Proposed reply:
-"Thanks for sharing this. Hermes Tweet adds X/Twitter search, reply reading,
+"Thanks for sharing this. Xquik adds X/Twitter search, reply reading,
 monitoring, and approval-gated posting for Hermes Agent:
 https://docs.xquik.com/guides/hermes-tweet"
 
