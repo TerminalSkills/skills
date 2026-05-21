@@ -9594,6 +9594,19 @@
       ]
     },
     {
+      "name": "xquik-twitter",
+      "slug": "xquik-twitter",
+      "description": "Provides Xquik-backed X/Twitter workflows for Hermes Agent through Hermes Tweet. Use when tasks mention searching tweets, reading tweet replies, looking up users, exporting followers, monitoring tweets, posting tweets or replies, sending DMs, Xquik Twitter automation, or approval-gated Twitter actions.",
+      "category": "automation",
+      "tags": [
+        "xquik",
+        "twitter",
+        "x",
+        "automation",
+        "social-media"
+      ]
+    },
+    {
       "name": "xray",
       "slug": "xray",
       "description": "Deploy and configure Xray proxy servers. Use when a user asks to set up VLESS, VMess, Trojan, or Shadowsocks proxies, configure Reality or TLS transport, deploy Xray with XTLS, set up fallback routing, manage multi-user access, configure traffic routing rules, set up CDN-based tunneling, build subscription links for client apps, monitor Xray traffic, or bypass network restrictions. Covers all major Xray protocols, transports, and deployment patterns.",
@@ -9769,5 +9782,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-05-04T12:54:04.280Z"
+  "updatedAt": "2026-05-20T10:57:41.807Z"
 }
