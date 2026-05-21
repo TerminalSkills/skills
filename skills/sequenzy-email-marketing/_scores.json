@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:73d983b8742bc7aa4b2ed95c584b3c2eeb22c6e43b1fa97aa9fca008ef90409f",
+  "scoredAt": "2026-05-21T09:18:37.833Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly handle API errors, rate limits, or network failures, leaving edge cases unaddressed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill lacks concrete code snippets or API call examples, making it harder for agents to implement the described workflows directly."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.5,
+    "baselineAvg": 3,
+    "treatmentAvg": 95,
+    "scenarios": [
+      {
+        "name": "send-password-reset-email",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to provide any relevant command."
+      },
+      {
+        "name": "create-onboarding-sequence",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response B includes the required CLI command, draft status, preview URL, and segment verification steps, while Response A lacks any command or draft/preview details."
+      },
+      {
+        "name": "add-subscriber-and-verify-segment",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets rubric, A does not."
+      }
+    ]
+  }
+}
