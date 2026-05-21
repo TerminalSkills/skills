@@ -7623,6 +7623,19 @@
       "tags": []
     },
     {
+      "name": "sequenzy-email-marketing",
+      "slug": "sequenzy-email-marketing",
+      "description": "Operate Sequenzy email marketing from an AI agent. Use when a user asks to manage SaaS email campaigns, subscribers, lists, segments, templates, lifecycle sequences, transactional email, delivery stats, or AI-generated email copy with Sequenzy. Prefer the Sequenzy CLI or API, inspect before mutation, and surface dashboard review URLs for created campaigns or sequences.",
+      "category": "business",
+      "tags": [
+        "email-marketing",
+        "saas",
+        "automation",
+        "campaigns",
+        "lifecycle-email"
+      ]
+    },
+    {
       "name": "serverless-debugger",
       "slug": "serverless-debugger",
       "description": "Debug and optimize serverless functions (AWS Lambda, Vercel Functions, Cloudflare Workers). Use when someone asks to \"debug Lambda\", \"trace serverless request\", \"fix cold starts\", \"analyze CloudWatch logs\", \"optimize Lambda performance\", \"reduce init duration\", or \"troubleshoot function timeout\". Correlates logs across invocations and generates fixes.",
