@@ -14,6 +14,32 @@ metadata:
   version: "1.0.0"
   category: content
   tags: ["video", "html", "ffmpeg", "animation", "rendering"]
+evals:
+  - name: render-gsap-to-mp4
+    prompt: I have an index.html with a GSAP animation and some text. How do I turn it into an MP4 video that comes out identical every time I render it?
+    rubric: |
+      Pass criteria: (1) names HyperFrames and uses `npx hyperframes render`;
+      (2) explains rendering is via headless Chrome seeking each frame + FFmpeg encoding;
+      (3) ties determinism to binding animation progress to the timeline (paused/seekable),
+      not real time — warns against Date.now()/Math.random()/wall-clock motion;
+      (4) mentions previewing (`hyperframes preview`) and/or `lint` before render.
+      Score higher for concrete commands over prose.
+  - name: ci-launch-video-pipeline
+    prompt: Set up an automated pipeline that renders a product launch video from an HTML file on every release, with no manual editor step.
+    rubric: |
+      Pass criteria: (1) uses HyperFrames non-interactive CLI (`lint` then `render`) in CI;
+      (2) lists the real prerequisites — Node.js 22+ and FFmpeg installed on the runner;
+      (3) leverages deterministic output so the artifact only changes when the composition does;
+      (4) shows or describes a concrete CI job (e.g. GitHub Actions) producing an MP4 artifact.
+      Score higher for a runnable workflow over generic CI advice.
+  - name: composition-timing-and-audio
+    prompt: In a programmatic HTML video, how do I control exactly when each element appears and disappears, set the canvas size, and add background music at reduced volume?
+    rubric: |
+      Pass criteria: (1) uses `data-start` and `data-duration` in seconds on elements;
+      (2) sets canvas via `data-width`/`data-height` on the stage element;
+      (3) uses an <audio> element with `data-volume` (0.0-1.0) for the music bed;
+      (4) optionally references `data-track-index` for layering and `data-composition-id`.
+      Score higher for a correct HTML snippet over a prose description.
 ---
 
 # HyperFrames
