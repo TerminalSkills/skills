@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2a415ad45182e09134f9c22a1cfaed730e68ea9b9d2f8ffcf7567797e156adec",
+  "scoredAt": "2026-06-09T10:44:46Z",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      { "severity": "MEDIUM", "category": "completeness", "detail": "render-time flags (fps, output path, codec) are deferred to `--help` rather than enumerated, because exact flag names vary by CLI version and were not verified against a pinned release." }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": null
+}

@@ -3914,6 +3914,19 @@
       "tags": []
     },
     {
+      "name": "hyperframes",
+      "slug": "hyperframes",
+      "description": "Generate deterministic MP4 videos from HTML, CSS, media, and seekable animations using HeyGen's HyperFrames framework. Use when someone asks to \"render HTML to video\", \"make a video with HyperFrames\", \"create a programmatic video\", \"turn an animation into MP4\", \"build a launch/product video from HTML\", \"render GSAP/Lottie/Three.js to video\", or set up an agent-driven video pipeline. Covers init/preview/render/add/lint/inspect commands, data-* timing attributes, animation adapters, and the component catalog.",
+      "category": "content",
+      "tags": [
+        "video",
+        "html",
+        "ffmpeg",
+        "animation",
+        "rendering"
+      ]
+    },
+    {
       "name": "i18next",
       "slug": "i18next",
       "description": "Internationalize JavaScript apps with i18next. Use when adding translations, handling plurals, loading locale files dynamically, or i18n for React/Vue/Node.",
@@ -9795,5 +9808,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-05-20T10:57:41.807Z"
+  "updatedAt": "2026-06-09T10:44:11.901Z"
 }
