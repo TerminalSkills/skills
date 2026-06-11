@@ -18,7 +18,7 @@ Sofia is building a freelance marketplace — clients post jobs, freelancers com
 
 ## What You'll Build
 
-- Seller onboarding with Stripe Express accounts
+- Seller onboarding with Stripe Accounts v2 (Express dashboard)
 - Checkout flow that splits payment (seller + platform fee)
 - Webhook handling for payment events
 - Payout management for sellers
@@ -33,26 +33,41 @@ npm install stripe
 ```typescript
 import Stripe from "stripe";
 
+// Accounts v2 needs the Stripe Node SDK >= 20.2.0 and a recent API version.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2026-05-27.dahlia",
 });
 ```
 
-## Step 2: Onboard Sellers (Express Accounts)
+## Step 2: Onboard Sellers (Accounts v2)
 
-Express accounts are the easiest — Stripe hosts the onboarding UI.
+The **Accounts v2 API** is Stripe's recommended path for new platforms. Instead of a
+v1 account `type`, you assign **configurations**: `merchant` (accept payments) and
+`recipient` (receive payouts). `dashboard: "express"` keeps Stripe's hosted onboarding UI.
 
 ```typescript
+// (Legacy Accounts v1 — still GA: stripe.accounts.create({ type: "express" }) +
+//  stripe.accountLinks.create({ type: "account_onboarding" }). Use if not registered for v2.)
+
 // POST /api/sellers/onboard
 async function createSellerAccount(sellerId: string) {
-  // Create Connected Account
-  const account = await stripe.accounts.create({
-    type: "express",
-    country: "US",
-    capabilities: {
-      transfers: { requested: true },
+  // Create a connected account (Accounts v2)
+  const account = await stripe.v2.core.accounts.create({
+    dashboard: "express",
+    identity: { country: "us", entity_type: "individual" },
+    configuration: {
+      merchant: { capabilities: { card_payments: { requested: true } } },
+      recipient: {
+        capabilities: { stripe_balance: { stripe_transfers: { requested: true } } },
+      },
     },
-    business_type: "individual",
+    defaults: {
+      currency: "usd",
+      responsibilities: {
+        fees_collector: "application",   // platform collects fees
+        losses_collector: "application", // platform covers negative balances
+      },
+    },
   });
 
   // Save account ID to your DB
@@ -61,21 +76,28 @@ async function createSellerAccount(sellerId: string) {
     data: { stripeAccountId: account.id },
   });
 
-  // Generate onboarding link
-  const accountLink = await stripe.accountLinks.create({
+  // Generate onboarding link (Account Links v2)
+  const accountLink = await stripe.v2.core.accountLinks.create({
     account: account.id,
-    refresh_url: `${process.env.APP_URL}/sellers/onboard?retry=true`,
-    return_url: `${process.env.APP_URL}/sellers/dashboard`,
-    type: "account_onboarding",
+    use_case: {
+      type: "account_onboarding",
+      account_onboarding: {
+        configurations: ["merchant", "recipient"],
+        refresh_url: `${process.env.APP_URL}/sellers/onboard?retry=true`,
+        return_url: `${process.env.APP_URL}/sellers/dashboard`,
+      },
+    },
   });
 
-  return accountLink.url; // Redirect seller here
+  return accountLink.url; // Redirect seller here (link expires in ~10 min)
 }
 
-// Check onboarding status
+// Check onboarding status — no outstanding requirements means done
 async function isSellerOnboarded(stripeAccountId: string): Promise<boolean> {
-  const account = await stripe.accounts.retrieve(stripeAccountId);
-  return account.charges_enabled && account.payouts_enabled;
+  const account = await stripe.v2.core.accounts.retrieve(stripeAccountId, {
+    include: ["requirements"],
+  });
+  return (account.requirements?.currently_due?.length ?? 0) === 0;
 }
 ```
 
@@ -206,6 +228,9 @@ export async function POST(req: NextRequest) {
       break;
     }
 
+    // v2 accounts report onboarding via the thin event
+    // "v2.core.account[requirements].updated" on a v2 event destination —
+    // fetch the account and check requirements.currently_due. (v1 shown below.)
     case "account.updated": {
       // Seller onboarding completed
       const account = event.data.object as Stripe.Account;
@@ -274,7 +299,7 @@ async function refundOrder(paymentIntentId: string, reason: string) {
 
 ## Key Tips
 
-- Use **Express accounts** for most marketplaces — fastest onboarding
+- Use **`dashboard: "express"`** (Accounts v2) for most marketplaces — fastest onboarding; register for Accounts v2 in the Dashboard first
 - Set `transfer_data.destination` for automatic splits at payment time
 - Store `stripeAccountId` on your seller model — you'll use it constantly
 - Test with Stripe's test onboarding: use `000000000` for SSN, `0000` for zip

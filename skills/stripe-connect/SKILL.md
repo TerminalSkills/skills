@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Requires Node.js 18+, Stripe account with Connect enabled"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["stripe", "stripe-connect", "marketplace", "payments", "platform"]
   use-cases:
@@ -25,21 +25,32 @@ metadata:
 
 ## Overview
 
-Stripe Connect enables platforms to route payments between buyers, sellers, and your platform. It handles regulatory compliance (KYC), payouts, and tax reporting for connected accounts.
+Stripe Connect routes payments between buyers, sellers, and your platform — handling regulatory compliance (KYC), payouts, and tax reporting for connected accounts.
 
-**Account types:**
-| Type | Onboarding | Branding | Best for |
-|------|------------|----------|----------|
-| **Express** | Stripe-hosted | Stripe UI | Marketplaces (recommended) |
-| **Standard** | OAuth redirect | Seller's branding | Platforms where sellers have existing Stripe accounts |
-| **Custom** | Fully custom | Your UI | Large platforms needing full control |
+This skill uses the **Accounts v2 API** (`/v2/core/accounts`), Stripe's recommended path for new Connect platforms. A v2 account is shaped by the **configurations** you assign to it instead of a v1 account *type* + flat capabilities:
 
-**Charge types:**
-| Type | Who pays Stripe fees | Use when |
-|------|---------------------|----------|
-| Direct | Connected account | Seller wants full control |
-| Destination | Platform | Platform manages UX |
-| Separate charges + transfers | Platform | Complex routing |
+| Configuration | Enables | Key capability |
+|---------------|---------|----------------|
+| **merchant** | Accept payments (direct charges) | `card_payments` |
+| **recipient** | Receive transfers / destination payouts | `stripe_balance.stripe_transfers` |
+| **customer** | Be billed as a customer (subscriptions, invoices) | `automatic_indirect_tax` |
+
+Dashboard access is a separate `dashboard` field that replaces the old standard/express/custom *type*:
+
+| `dashboard` | ≈ v1 type | Onboarding | Best for |
+|-------------|-----------|------------|----------|
+| `"express"` | Express | Stripe-hosted | Marketplaces (recommended) |
+| `"full"` | Standard | Stripe-hosted / OAuth | Sellers wanting a full Stripe dashboard |
+| `"none"` | Custom | Embedded / your UI | Platforms needing full control |
+
+> **Accounts v2 requires opt-in registration** in the Dashboard (Connect settings). Accounts v1 (`stripe.accounts.create({ type: "express" })`) is still fully GA — see the legacy note in step 1 if you haven't registered.
+
+**Charge types** (the payment APIs are v1 and reference the connected account by id):
+| Type | Who pays Stripe fees | Seller config needed | Use when |
+|------|---------------------|----------------------|----------|
+| Direct | Connected account | `merchant` | Seller wants full control |
+| Destination | Platform | `recipient` | Platform manages UX |
+| Separate charges + transfers | Platform | `recipient` | Complex routing |
 
 ## Setup
 
@@ -51,57 +62,88 @@ npm install stripe
 // lib/stripe.ts
 import Stripe from "stripe";
 
+// Accounts v2 needs the Stripe Node SDK >= 20.2.0 and a recent API version.
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2026-05-27.dahlia",
 });
 
-// Platform account key (your Stripe account)
-// Connected accounts are identified by their account ID
+// Platform account key (your Stripe account).
+// Connected accounts are identified by their account ID (acct_...).
 ```
 
 ---
 
-## Express Accounts (Recommended)
+## Onboard Sellers (Accounts v2)
 
 ### 1. Create a connected account
+
+Assign `merchant` (accept payments) and `recipient` (receive payouts/transfers). `dashboard: "express"` gives sellers Stripe's hosted Express dashboard.
 
 ```ts
 // POST /api/sellers/onboard
 import { stripe } from "@/lib/stripe";
 
-export async function createExpressAccount(email: string) {
-  const account = await stripe.accounts.create({
-    type: "express",
-    email,
-    capabilities: {
-      card_payments: { requested: true },
-      transfers: { requested: true },
+export async function createSellerAccount(email: string) {
+  const account = await stripe.v2.core.accounts.create({
+    contact_email: email,
+    display_name: email,
+    dashboard: "express",
+    identity: {
+      country: "us",
+      entity_type: "individual",
     },
-    business_type: "individual",
+    configuration: {
+      merchant: {
+        capabilities: { card_payments: { requested: true } },
+      },
+      recipient: {
+        capabilities: {
+          stripe_balance: { stripe_transfers: { requested: true } },
+        },
+      },
+    },
+    defaults: {
+      currency: "usd",
+      responsibilities: {
+        fees_collector: "application",   // platform collects application fees
+        losses_collector: "application", // platform covers negative balances (Express behavior)
+      },
+    },
   });
 
-  return account.id; // Store this as seller.stripeAccountId in your DB
+  return account.id; // acct_... — store as seller.stripeAccountId
 }
+
+// Legacy (Accounts v1, still GA — use if not registered for Accounts v2):
+//   const account = await stripe.accounts.create({
+//     type: "express", email,
+//     capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
+//   });
 ```
 
-### 2. Generate onboarding link
+### 2. Generate onboarding link (Account Links v2)
 
 ```ts
 export async function createOnboardingLink(accountId: string, userId: string) {
-  const accountLink = await stripe.accountLinks.create({
+  const accountLink = await stripe.v2.core.accountLinks.create({
     account: accountId,
-    refresh_url: `${process.env.BASE_URL}/sellers/onboard/refresh?userId=${userId}`,
-    return_url: `${process.env.BASE_URL}/sellers/onboard/complete?userId=${userId}`,
-    type: "account_onboarding",
+    use_case: {
+      type: "account_onboarding",
+      account_onboarding: {
+        configurations: ["merchant", "recipient"],
+        refresh_url: `${process.env.BASE_URL}/sellers/onboard/refresh?userId=${userId}`,
+        return_url: `${process.env.BASE_URL}/sellers/onboard/complete?userId=${userId}`,
+      },
+    },
   });
 
-  return accountLink.url; // Redirect seller here
+  return accountLink.url; // Redirect seller here (link expires in ~10 min)
 }
 
 // Full flow:
 app.post("/api/sellers/onboard", async (req, res) => {
   const { email, userId } = req.body;
-  const accountId = await createExpressAccount(email);
+  const accountId = await createSellerAccount(email);
 
   // Save accountId to your DB
   await db.sellers.update(userId, { stripeAccountId: accountId });
@@ -115,8 +157,11 @@ app.post("/api/sellers/onboard", async (req, res) => {
 
 ```ts
 export async function isSellerOnboarded(accountId: string): Promise<boolean> {
-  const account = await stripe.accounts.retrieve(accountId);
-  return account.details_submitted && !account.requirements?.currently_due?.length;
+  const account = await stripe.v2.core.accounts.retrieve(accountId, {
+    include: ["requirements"],
+  });
+  // No outstanding requirements => onboarding complete
+  return (account.requirements?.currently_due?.length ?? 0) === 0;
 }
 
 app.get("/sellers/onboard/complete", async (req, res) => {
@@ -137,6 +182,8 @@ app.get("/sellers/onboard/complete", async (req, res) => {
 ---
 
 ## Charging Buyers
+
+> Destination charges and transfers require the seller's `recipient` configuration; direct charges require `merchant`. The PaymentIntents / Transfers APIs themselves are unchanged.
 
 ### Destination Charges (Platform collects, sends to seller)
 
@@ -243,14 +290,7 @@ export async function payoutToSeller(
 
 ### Automatic payouts (default)
 
-By default, Stripe automatically pays out to sellers based on their payout schedule. No extra code needed.
-
-```ts
-// Check payout schedule for a connected account
-const account = await stripe.accounts.retrieve(sellerAccountId);
-console.log(account.settings?.payouts?.schedule);
-// { interval: "daily" | "weekly" | "monthly", ... }
-```
+By default, Stripe pays out to sellers on their payout schedule — no extra code needed. The schedule is configured on the connected account (its Express dashboard or the Accounts API).
 
 ### Manual / triggered payouts
 
@@ -394,6 +434,33 @@ const webhookEndpoint = await stripe.webhookEndpoints.create({
 });
 ```
 
+### Accounts v2 events (thin events)
+
+v2 accounts emit *thin events* to an **event destination** (configured in the Dashboard or via the API), not the classic v1 webhook. Listen for `v2.core.account[requirements].updated` to track onboarding:
+
+```ts
+// POST /webhooks/stripe/v2
+app.post("/webhooks/stripe/v2", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"] as string;
+
+  // Thin events carry only a reference to what changed (older SDKs: parseThinEvent)
+  const notification = stripe.parseEventNotification(
+    req.body, sig, process.env.STRIPE_V2_WEBHOOK_SECRET!
+  );
+
+  if (notification.type === "v2.core.account[requirements].updated") {
+    const account = await notification.fetchRelatedObject(); // full v2 Account
+    const done = (account.requirements?.currently_due?.length ?? 0) === 0;
+    await db.sellers.update(
+      { stripeAccountId: account.id },
+      { status: done ? "active" : "onboarding" }
+    );
+  }
+
+  res.json({ received: true });
+});
+```
+
 ---
 
 ## Refunds
@@ -419,6 +486,8 @@ export async function refundPayment(
 ---
 
 ## OAuth for Standard Accounts
+
+> If you authenticate connected accounts with OAuth, keep using the v1 Accounts API — Accounts v2 does not replace the OAuth flow.
 
 ```ts
 // 1. Redirect seller to Stripe OAuth
@@ -464,7 +533,8 @@ stripe trigger payment_intent.succeeded
 ```env
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_WEBHOOK_SECRET=whsec_...           # v1 webhook endpoint
+STRIPE_V2_WEBHOOK_SECRET=whsec_...         # v2 event destination (Accounts v2)
 STRIPE_CLIENT_ID=ca_...  # Only for Standard OAuth
 BASE_URL=http://localhost:3000
 ```
