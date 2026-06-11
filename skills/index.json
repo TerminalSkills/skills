@@ -9547,6 +9547,19 @@
       "tags": []
     },
     {
+      "name": "wix-to-react",
+      "slug": "wix-to-react",
+      "description": "Convert a Wix website into a React or Next.js application. Use when a user asks to migrate off Wix, rebuild a Wix site in React, export a Wix site to code, escape Wix's no-code editor, or move from Wix to a custom frontend. Wix has no native code export, so this covers inventorying the site, extracting content/design/assets, scaffolding a React/Next.js app, rebuilding pages and components, and migrating dynamic features (Wix CMS collections, Stores, Blog, Forms) — either fully off Wix or by keeping Wix as a headless backend via @wix/sdk. Trigger words: Wix to React, migrate off Wix, export Wix, Wix to Next.js, rebuild Wix site, Wix headless.",
+      "category": "development",
+      "tags": [
+        "wix",
+        "react",
+        "nextjs",
+        "migration",
+        "web-scraping"
+      ]
+    },
+    {
       "name": "woocommerce",
       "slug": "woocommerce",
       "description": "Build e-commerce stores with WooCommerce for WordPress. Use when a user asks to add a shop to WordPress, manage products and orders, customize checkout, integrate payment gateways, or build a WordPress-based online store.",
@@ -9815,5 +9828,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-06-11T18:05:14.438Z"
+  "updatedAt": "2026-06-11T19:27:57.390Z"
 }

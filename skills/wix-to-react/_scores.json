@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d548b04ea67ae9ae5b4c314f51d8ff600446e10e22a4931d6a722581383a0d80",
+  "scoredAt": "2026-06-11T19:27:41.076Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly address error handling or edge cases such as network failures or missing assets."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume a Node.js environment with Playwright and Next.js, limiting portability to other platforms."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.19,
+    "baselineAvg": 32,
+    "treatmentAvg": 70,
+    "scenarios": [
+      {
+        "name": "full-migration-team-page",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response A covers more of the required steps (curl, extraction script, scaffolding, static pages) than Response B, which focuses on CSV export and dynamic routing but omits curl, extraction, Tailwind, SEO, and redirects."
+      },
+      {
+        "name": "headless-wix-store",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response A covers most of the required steps but omits the stores module, checkout redirect, and static marketing pages; Response B provides no content."
+      },
+      {
+        "name": "extract-assets-tokens",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response A is closer to the rubric, covering most required steps and using the correct Wix asset domain, while Response B omits key elements like the _assets.txt file and proper token extraction."
+      }
+    ]
+  }
+}
