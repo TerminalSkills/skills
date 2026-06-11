@@ -1,20 +1,25 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d31ec387aef2236c6087cac42327c687bb3c6155e0b77060b690c64433f35e3f",
-  "scoredAt": "2026-05-13T10:12:57.641Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fdbe859bd0fe1164f41eb69950618186e13d6c3f20cafee8025b621efa38c110",
+  "scoredAt": "2026-06-11T19:30:42.308Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios and edge cases for its functions."
+      },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 92,
-    "multiplier": 1.67,
+    "multiplier": 3.03,
+    "baselineAvg": 33,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Onboard a freelancer to accept payouts on a marketplace",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment creates an Express account via stripe.accounts.create with card_payments and transfers capabilities, then redirects via stripe.accountLinks.create with refresh_url/return_url and confirms onboarding through details_submitted + requirements.currently_due, while baseline glosses over capabilities and onboarding state."
+        "name": "onboard-seller-accounts-v2",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully matches the rubric, while Response B uses the wrong API calls and omits required fields."
       },
       {
-        "name": "Charge a buyer $100 and route net to seller after a 15% platform fee",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses stripe.paymentIntents.create with transfer_data.destination and application_fee_amount set to the 15% fee (a destination charge) per the skill, while baseline uses transfers.create after the fact and miscomputes the split."
+        "name": "destination-charge-with-fee",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A meets all rubric requirements; B uses the wrong API."
+      },
+      {
+        "name": "handle-connect-webhooks",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric requirements."
       }
     ]
   }
