@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:94f96e54e54ba60a1616092808ffb70bbfdf9c8729c12e8da1ae7a2d71eeb387",
+  "scoredAt": "2026-06-11T09:20:56.482Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "full-geo-audit",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but omits the required llms.txt mention, whereas Response A fails entirely."
+      },
+      {
+        "name": "ai-crawler-access-check",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a detailed table, score calculation, and specific robots.txt recommendations, while Response B fails to provide any of the required content."
+      },
+      {
+        "name": "generate-llms-txt",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric with header, description, and Docs section, while Response A lacks all required elements."
+      }
+    ]
+  }
+}

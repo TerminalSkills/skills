@@ -3404,6 +3404,13 @@
       "tags": []
     },
     {
+      "name": "generative-engine-optimization",
+      "slug": "generative-engine-optimization",
+      "description": "Optimize a website to be discovered, cited, and recommended by AI search engines — ChatGPT, Claude, Perplexity, Google AI Overviews, and Gemini. Use this for Generative Engine Optimization (GEO / AEO / \"AI SEO\"): scoring content citability, checking AI crawler access in robots.txt (GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot), auditing or generating an llms.txt file, validating schema for entity recognition, assessing brand authority signals, and producing a GEO audit report. Trigger on \"GEO,\" \"AI search optimization,\" \"get cited by ChatGPT/Perplexity,\" \"llms.txt,\" \"AI crawlers,\" \"AI Overviews,\" \"citability.\" This is about generative AI search visibility, NOT geographic/geolocation. For traditional keyword ranking see seo-audit; for structured data see schema-markup.",
+      "category": "business",
+      "tags": []
+    },
+    {
       "name": "ghost",
       "slug": "ghost",
       "description": "You are an expert in Ghost, the open-source publishing platform for blogs, newsletters, and membership sites. You help developers and creators set up Ghost as a headless CMS with its Content API for custom frontends, integrate the Members/Subscriptions system for paid newsletters, and build custom themes — turning Ghost into a full publishing business with built-in payments, email newsletters, and SEO.",
@@ -9808,5 +9815,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-06-09T10:44:11.901Z"
+  "updatedAt": "2026-06-11T09:13:30.995Z"
 }
