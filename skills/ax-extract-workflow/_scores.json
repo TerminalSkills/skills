@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:b44c2a88207fa8eb044fd3527e543fd7c65ef556793de92fd9b6c8684ff072be",
+  "scoredAt": "2026-06-26T09:36:00.154Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 83,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to ax, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5.8,
+    "baselineAvg": 2,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "reconstruct-from-commit",
+        "baseline": 5,
+        "treatment": 90,
+        "rationale": "Response B fully follows the rubric with ax commands, session IDs, workflow, and evidence, while Response A only provides generic git steps and no ax usage."
+      },
+      {
+        "name": "reconstruct-from-date",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response B provides the required commands, session IDs, workflow, and evidence, while Response A offers no relevant information."
+      },
+      {
+        "name": "reconstruct-from-topic",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric: A is generic and does not provide any ax commands, while B does not start with the required recall command, does not list candidate commits, nor provide the detailed workflow and evidence required."
+      }
+    ]
+  }
+}
