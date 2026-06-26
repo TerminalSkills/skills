@@ -48,6 +48,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [excel-processor](skills/excel-processor/) | Data & AI | Read, transform, analyze, and generate Excel/CSV files |
 | [code-reviewer](skills/code-reviewer/) | Development | Perform thorough code reviews with actionable feedback |
 | [git-commit-pro](skills/git-commit-pro/) | Development | Write conventional, well-structured git commit messages |
+| [ax-extract-workflow](skills/ax-extract-workflow/) | Productivity | Reconstruct past coding workflows from local ax session and commit history |
 | [api-tester](skills/api-tester/) | Development | Test REST and GraphQL API endpoints with assertions |
 | [docker-helper](skills/docker-helper/) | DevOps | Build, debug, and optimize Docker configurations |
 | [web-scraper](skills/web-scraper/) | Automation | Extract structured data from web pages reliably |

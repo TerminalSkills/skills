@@ -757,6 +757,18 @@
       "tags": []
     },
     {
+      "name": "ax-extract-workflow",
+      "slug": "ax-extract-workflow",
+      "description": "Reconstructs the workflow behind a past artifact by querying local ax session, recall, and commit history data. Use when a user asks \"what made X work\", \"how was Y shipped/built\", \"extract workflow from <date|sha>\", \"workflow around <topic>\", \"recipe for this feature\", or similar. It finds the anchor session or commit, inspects ax sessions, ax recall, and ax sessions show, and returns an ordered read-only narrative with decisions and evidence.",
+      "category": "productivity",
+      "tags": [
+        "ax",
+        "workflow-reconstruction",
+        "sessions",
+        "developer-productivity"
+      ]
+    },
+    {
       "name": "axiom",
       "slug": "axiom",
       "description": "Expert guidance for Axiom, the serverless log management and analytics platform that stores and queries unlimited data at fixed cost. Helps developers ingest logs, traces, and events from any source, query them with APL (Axiom Processing Language), build dashboards, and set up alerts — all without managing infrastructure or worrying about per-GB pricing.",
@@ -9828,5 +9840,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-06-11T19:27:57.390Z"
+  "updatedAt": "2026-06-20T11:16:20.896Z"
 }
