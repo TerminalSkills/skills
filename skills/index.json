@@ -7648,6 +7648,19 @@
       "tags": []
     },
     {
+      "name": "seog",
+      "slug": "seog",
+      "description": "Manage local SEO from your terminal via the SEOG MCP server — Google Business Profile businesses, keyword rank tracking, review monitoring and reply drafts, and competitor intelligence. Use when: connecting an agent to seog.ai, tracking map-pack rankings, automating local SEO reports, monitoring competitors near a business, drafting review responses, or when the user mentions \"SEOG\", \"local SEO\", \"map pack\", \"Google Business Profile rankings\", or \"keyword positions\" for a physical business.",
+      "category": "business",
+      "tags": [
+        "local-seo",
+        "google-business-profile",
+        "mcp",
+        "rank-tracking",
+        "reviews"
+      ]
+    },
+    {
       "name": "sequelize",
       "slug": "sequelize",
       "description": "You are an expert in Sequelize, the promise-based ORM for Node.js supporting PostgreSQL, MySQL, MariaDB, SQLite, and MS SQL. You help developers define models, build queries, manage migrations, handle associations, use transactions, and configure connection pooling — providing a mature, battle-tested data access layer for production Node.js applications.",
@@ -9840,5 +9853,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-06-20T11:16:20.896Z"
+  "updatedAt": "2026-07-02T06:53:27.881Z"
 }
