@@ -7425,6 +7425,19 @@
       ]
     },
     {
+      "name": "routerbase-gateway",
+      "slug": "routerbase-gateway",
+      "description": "Integrate AI applications with RouterBase as an OpenAI-compatible gateway. Use when a user wants to migrate OpenAI SDK calls to RouterBase, configure ROUTERBASE_API_KEY, choose model IDs, design model fallback routes, call chat completions, stream responses, use tool calling or JSON mode, or generate image, video, or audio media through RouterBase endpoints.",
+      "category": "data-ai",
+      "tags": [
+        "routerbase",
+        "openai-compatible",
+        "model-routing",
+        "llm",
+        "media-generation"
+      ]
+    },
+    {
       "name": "rsbuild",
       "slug": "rsbuild",
       "description": "You are an expert in Rsbuild, the Rspack-based build tool for web applications. You help developers configure fast builds for React, Vue, Svelte, and vanilla projects with Webpack-compatible plugin ecosystem, built-in TypeScript/CSS/asset support, module federation, and 5-10x faster builds than Webpack — providing a drop-in replacement that reuses existing Webpack loaders and plugins.",
@@ -9866,5 +9879,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-07-06T21:21:09.831Z"
+  "updatedAt": "2026-07-06T21:29:31.021Z"
 }

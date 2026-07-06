@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:72d1dce72d2db42c676ee941442ea1c78171f4946d4099d1123aaa29bb02094d",
+  "scoredAt": "2026-07-06T21:29:13.686Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 97,
+    "scenarios": [
+      {
+        "name": "migrate-openai-to-routerbase",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required client initialization, base URL, API key handling, and smoke test."
+      },
+      {
+        "name": "design-fallback-routing",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response A meets almost all rubric requirements, only deviating slightly by using a custom retry check instead of the specified isRetryableRouterBaseError, whereas Response B lacks the required array, retry logic, and smoke test."
+      },
+      {
+        "name": "generate-image-with-routerbase",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses a different endpoint and omits required fields."
+      }
+    ]
+  }
+}
