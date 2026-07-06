@@ -170,6 +170,19 @@
       "tags": []
     },
     {
+      "name": "agent-workflow-packager",
+      "slug": "agent-workflow-packager",
+      "description": "Converts repeated AI coding-agent workflows into reusable skill packages with triggers, guardrails, examples, and verification checks. Use when a user wants to turn a prompt, checklist, AGENTS.md section, Claude/Codex workflow, or recurring agent task into a portable SKILL.md.",
+      "category": "development",
+      "tags": [
+        "ai-agents",
+        "skills",
+        "workflow",
+        "codex",
+        "claude-code"
+      ]
+    },
+    {
       "name": "agentscope",
       "slug": "agentscope",
       "description": "Build transparent, observable AI agents using AgentScope — agents you can see, understand, and trust with full execution tracing and debugging. Use when: building production agents that need observability, debugging complex agent behaviors, creating agents with audit trails.",
@@ -9853,5 +9866,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-07-02T06:53:27.881Z"
+  "updatedAt": "2026-07-06T21:21:09.831Z"
 }

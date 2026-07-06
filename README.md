@@ -49,6 +49,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [code-reviewer](skills/code-reviewer/) | Development | Perform thorough code reviews with actionable feedback |
 | [git-commit-pro](skills/git-commit-pro/) | Development | Write conventional, well-structured git commit messages |
 | [ax-extract-workflow](skills/ax-extract-workflow/) | Productivity | Reconstruct past coding workflows from local ax session and commit history |
+| [agent-workflow-packager](skills/agent-workflow-packager/) | Development | Convert repeated AI coding-agent workflows into reusable skill packages |
 | [api-tester](skills/api-tester/) | Development | Test REST and GraphQL API endpoints with assertions |
 | [docker-helper](skills/docker-helper/) | DevOps | Build, debug, and optimize Docker configurations |
 | [web-scraper](skills/web-scraper/) | Automation | Extract structured data from web pages reliably |
@@ -75,6 +76,7 @@ Step-by-step guides for common workflows:
 - [Process Excel Data](use-cases/process-excel-data.md)
 - [Automate Code Reviews](use-cases/automate-code-reviews.md)
 - [Write Better Commits](use-cases/write-better-commits.md)
+- [Package Repeated AI Agent Workflows into Skills](use-cases/package-repeated-ai-agent-workflows.md)
 - [Test API Endpoints](use-cases/test-api-endpoints.md)
 - [Manage Docker Containers](use-cases/manage-docker-containers.md)
 - [Scrape Web Data](use-cases/scrape-web-data.md)

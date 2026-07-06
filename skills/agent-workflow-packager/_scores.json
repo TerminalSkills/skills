@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:b49f4af877108de8b33e7bb4d7fe7da6edf1642f7e65dcc513da9f2cd05816a6",
+  "scoredAt": "2026-07-06T09:39:40.354Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples show only the generated frontmatter block plus a prose description of the skill's contents, rather than a full input -> action -> complete output -> verification triple. Realistic and non-placeholder, but thin on the output artifact itself."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "package-payment-pr-reviewer",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with YAML frontmatter, trigger, examples, and verification checklist; Response B lacks these required elements."
+      },
+      {
+        "name": "package-release-checklist-runner",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with frontmatter, triggers, examples, and verification, while Response A lacks frontmatter, triggers, examples, and a verification checklist."
+      },
+      {
+        "name": "package-github-actions-debugger",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B includes the required YAML frontmatter, trigger phrases, two realistic examples, and verification steps, whereas Response A lacks frontmatter, clear triggers, and a verification checklist."
+      }
+    ]
+  }
+}
