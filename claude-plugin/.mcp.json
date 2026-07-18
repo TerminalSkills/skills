@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "terminal-skills": {
+      "type": "http",
+      "url": "https://api.terminalskills.io/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.api_token}"
+      }
+    }
+  }
+}

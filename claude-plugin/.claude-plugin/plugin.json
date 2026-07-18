@@ -1,0 +1,23 @@
+{
+  "name": "terminal-skills",
+  "displayName": "Terminal Skills",
+  "version": "0.1.0",
+  "description": "Routes specialized tasks to 1000+ audited agent skills. When your Claude hits a task outside its comfort zone — a deployment platform, a document pipeline, a third-party API — it consults the Terminal Skills agent and executes with proven instructions.",
+  "author": {
+    "name": "AIEmployees",
+    "url": "https://aiemployees.us"
+  },
+  "homepage": "https://terminalskills.io",
+  "repository": "https://github.com/TerminalSkills/skills",
+  "license": "Apache-2.0",
+  "keywords": ["skills", "mcp", "agent", "task-planning", "automation"],
+  "userConfig": {
+    "api_token": {
+      "type": "string",
+      "title": "Terminal Skills API key",
+      "description": "Needed only for plan_task (skill routing). Search and browsing work without it. Get one free at terminalskills.io/account — every account includes free plan calls each day.",
+      "sensitive": true,
+      "required": false
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "terminal-skills",
+  "owner": {
+    "name": "AIEmployees",
+    "email": "support@terminalskills.io"
+  },
+  "plugins": [
+    {
+      "name": "terminal-skills",
+      "source": "./claude-plugin",
+      "description": "Connect Claude Code to the Terminal Skills agent: 1000+ audited skills, routed to your task on demand. Ask for anything specialized — deployments, documents, data pipelines, third-party APIs — and get proven instructions instead of improvisation.",
+      "category": "productivity",
+      "tags": ["skills", "marketplace", "mcp", "agent", "automation"]
+    }
+  ]
+}
