@@ -2,14 +2,11 @@ name: Sync skills to production DB
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    types: [closed]
-    branches: [main]
+    branches: [production]
+  workflow_dispatch: {}
 
 jobs:
   sync:
-    if: github.event_name == 'push' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Sync skills and use cases to production DB
