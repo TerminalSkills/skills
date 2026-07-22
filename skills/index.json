@@ -1760,6 +1760,19 @@
       ]
     },
     {
+      "name": "codex-skin-pack-installer",
+      "slug": "codex-skin-pack-installer",
+      "description": "Install, validate, apply, switch, and restore public-safe Codex desktop skin packs. Use when a user asks to customize OpenAI Codex Desktop, install a Codex theme or skin pack, verify that a skin package is safe to apply, fix a readability problem after applying a skin, or restore the default Codex appearance.",
+      "category": "productivity",
+      "tags": [
+        "codex",
+        "themes",
+        "desktop",
+        "skins",
+        "restore"
+      ]
+    },
+    {
       "name": "coding-agent",
       "slug": "coding-agent",
       "description": "Run Codex CLI, Claude Code, or other coding agents as background processes for programmatic control. Use when a user asks to run a coding agent, delegate a task to another AI, spawn a sub-agent, run Claude Code in the background, or orchestrate multiple coding agents on separate tasks.",
@@ -9879,5 +9892,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-07-06T21:29:31.021Z"
+  "updatedAt": "2026-07-22T01:35:08.196Z"
 }
