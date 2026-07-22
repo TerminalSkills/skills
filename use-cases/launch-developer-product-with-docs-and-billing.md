@@ -6,7 +6,8 @@ skills:
   - mintlify
   - polar
   - infisical
-  - formbrickscategory: development
+  - formbricks
+category: development
 tags:
   - developer-tools
   - documentation

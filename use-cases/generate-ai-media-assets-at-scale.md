@@ -4,7 +4,8 @@ slug: generate-ai-media-assets-at-scale
 description: "Create consistent, brand-aligned images and videos using Vertex AI media generation with systematically tested and optimized prompts."
 skills:
   - vertex-media-generation
-  - prompt-testercategory: data-ai
+  - prompt-tester
+category: data-ai
 tags:
   - image-generation
   - video-generation

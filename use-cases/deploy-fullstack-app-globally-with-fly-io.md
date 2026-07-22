@@ -5,7 +5,8 @@ description: Deploy a Next.js application with PostgreSQL to multiple Fly.io reg
 skills:
   - fly-io
   - neon
-  - docker-helpercategory: devops
+  - docker-helper
+category: devops
 tags:
   - deployment
   - multi-region

@@ -6,7 +6,8 @@ skills:
   - code-reviewer
   - code-complexity-scanner
   - performance-reviewer
-  - tech-debt-analyzercategory: development
+  - tech-debt-analyzer
+category: development
 tags:
   - code-quality
   - complexity

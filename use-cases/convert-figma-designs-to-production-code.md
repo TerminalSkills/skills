@@ -5,7 +5,8 @@ description: Take a Figma design file and generate pixel-perfect React component
 skills:
   - figma-to-code
   - tailwindcss
-  - react-nativecategory: design
+  - react-native
+category: design
 tags:
   - figma
   - react

@@ -4,7 +4,8 @@ slug: self-host-automation-and-proxy-services
 description: "Deploy n8n for workflow automation and 3proxy for network proxy access on your own infrastructure, avoiding SaaS costs and retaining full control over data and routing."
 skills:
   - n8n-self-host
-  - 3proxycategory: devops
+  - 3proxy
+category: devops
 tags:
   - self-hosted
   - automation

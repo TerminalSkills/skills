@@ -5,7 +5,8 @@ description: Instrument a microservices architecture with OpenTelemetry to trace
 skills:
   - opentelemetry
   - error-monitoring
-  - docker-helpercategory: devops
+  - docker-helper
+category: devops
 tags:
   - tracing
   - monitoring

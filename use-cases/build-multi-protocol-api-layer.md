@@ -5,7 +5,8 @@ description: "Design an API that serves REST for public clients, GraphQL for fro
 skills:
   - grpc
   - rest-api
-  - graphqlcategory: development
+  - graphql
+category: development
 tags:
   - api-design
   - grpc

@@ -5,7 +5,8 @@ description: Instrument a multi-service Node.js backend with OpenTelemetry traci
 skills:
   - otel-js
   - nats-messaging
-  - nitrocategory: devops
+  - nitro
+category: devops
 tags:
   - observability
   - tracing

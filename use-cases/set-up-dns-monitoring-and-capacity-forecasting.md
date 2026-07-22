@@ -4,7 +4,8 @@ slug: set-up-dns-monitoring-and-capacity-forecasting
 description: "Monitor DNS health and propagation across providers, then use traffic data to forecast infrastructure capacity needs and plan scaling events ahead of demand."
 skills:
   - dns-record-analyzer
-  - capacity-plannercategory: devops
+  - capacity-planner
+category: devops
 tags:
   - dns
   - capacity-planning

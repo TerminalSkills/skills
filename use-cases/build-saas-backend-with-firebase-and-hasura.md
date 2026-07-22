@@ -4,7 +4,8 @@ slug: build-saas-backend-with-firebase-and-hasura
 description: Combine Firebase Authentication for user management with Hasura's instant GraphQL API on PostgreSQL to build a production SaaS backend with real-time subscriptions, row-level security, and event-driven workflows — without writing backend CRUD code.
 skills:
   - firebase
-  - hasuracategory: development
+  - hasura
+category: development
 tags:
 - saas
 - baas

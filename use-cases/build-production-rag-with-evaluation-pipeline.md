@@ -7,7 +7,8 @@ skills:
   - ragas
   - deepeval
   - braintrust
-  - portkeycategory: data-ai
+  - portkey
+category: data-ai
 tags:
 - rag
 - evaluation

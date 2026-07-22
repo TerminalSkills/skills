@@ -4,7 +4,8 @@ slug: stress-test-and-validate-email-infrastructure
 description: "Load test API endpoints to find breaking points, then verify that transactional email delivery remains reliable under high traffic using deliverability diagnostics."
 skills:
   - api-load-tester
-  - email-deliverability-debuggercategory: devops
+  - email-deliverability-debugger
+category: devops
 tags:
   - load-testing
   - email-deliverability

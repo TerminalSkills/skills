@@ -2,7 +2,7 @@
 title: "Build an AI Companion with Voice"
 slug: build-ai-companion-with-voice
 description: "Create a personal AI companion with real-time voice chat, persistent memory, and a customizable personality — it remembers you across sessions."
-skills: [openai-realtime-api, elevenlabs-sdk, supermemory, anthropic-sdk]
+skills: [openai-realtime, elevenlabs, supermemory, anthropic-sdk]
 category: data-ai
 difficulty: advanced
 time_estimate: "10 hours"

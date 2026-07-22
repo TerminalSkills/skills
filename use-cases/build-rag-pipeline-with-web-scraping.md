@@ -5,7 +5,8 @@ description: Crawl a documentation site with Firecrawl, store embeddings in pgve
 skills:
   - firecrawl
   - pgvector
-  - crawleecategory: data-ai
+  - crawlee
+category: data-ai
 tags:
   - rag
   - vector-search

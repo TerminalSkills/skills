@@ -5,7 +5,8 @@ description: Create a production REST API with Bun, Elysia, and Drizzle ORM — 
 skills:
   - elysia
   - drizzle-orm
-  - test-generatorcategory: development
+  - test-generator
+category: development
 tags:
   - bun
   - elysia

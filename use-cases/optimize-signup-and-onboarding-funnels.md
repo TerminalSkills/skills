@@ -5,7 +5,8 @@ description: "Audit and fix the signup flow, forms, and onboarding experience to
 skills:
   - signup-flow-cro
   - onboarding-cro
-  - form-crocategory: marketing
+  - form-cro
+category: marketing
 tags:
   - CRO
   - onboarding

@@ -5,7 +5,8 @@ description: "Model, animate, and render product showcase videos in Blender usin
 skills:
   - blender-3d-modeling
   - blender-animation
-  - blender-grease-pencilcategory: design
+  - blender-grease-pencil
+category: design
 tags:
   - blender
   - 3d-modeling

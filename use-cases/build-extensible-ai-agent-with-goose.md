@@ -4,7 +4,7 @@ description: >-
   Build an AI-powered incident response agent using Goose that can SSH into
   servers, check logs, restart services, and create Jira tickets from one
   chat interface. Reduce incident response time from 45 minutes to 8 minutes.
-skills: [goose, mcp-server]
+skills: [goose, mcp-server-builder]
 difficulty: intermediate
 time: "45 minutes"
 metadata:

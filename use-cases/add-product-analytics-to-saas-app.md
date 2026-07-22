@@ -5,7 +5,8 @@ description: Deploy PostHog self-hosted, instrument event tracking for a Next.js
 skills:
   - posthog
   - nextjs
-  - docker-helpercategory: data-ai
+  - docker-helper
+category: data-ai
 tags:
   - product-analytics
   - posthog

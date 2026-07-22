@@ -5,7 +5,8 @@ description: "Train a custom LLM on real-world Kaggle data using parameter-effic
 skills:
   - kaggle-finetune
   - peft-fine-tuning
-  - pytorchcategory: data-ai
+  - pytorch
+category: data-ai
 tags:
   - fine-tuning
   - kaggle

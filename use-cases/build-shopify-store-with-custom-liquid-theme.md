@@ -3,7 +3,8 @@ title: Build a Shopify Store with Custom Liquid Theme and Staff-Editable Section
 slug: build-shopify-store-with-custom-liquid-theme
 description: Create a Shopify store with custom Liquid sections and blocks that staff can edit through the Online Store Editor — no developer needed for day-to-day content updates.
 skills:
-  - shopifycategory: ecommerce
+  - shopify
+category: ecommerce
 tags:
   - shopify
   - liquid

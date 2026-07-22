@@ -4,7 +4,8 @@ slug: track-industry-trends-from-reddit-communities
 description: "Monitor Reddit communities to detect emerging technology trends, shifting developer preferences, and early signals of tool adoption or decline."
 skills:
   - reddit-insights
-  - web-researchcategory: research
+  - web-research
+category: research
 tags:
   - trend-analysis
   - reddit

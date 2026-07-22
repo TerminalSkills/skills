@@ -11,7 +11,8 @@ skills:
   - restic
   - minio
   - traefik
-  - docker-helpercategory: devops
+  - docker-helper
+category: devops
 tags:
   - backup
   - self-hosted

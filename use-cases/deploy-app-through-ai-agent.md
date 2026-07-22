@@ -5,7 +5,8 @@ description: Set up conversational deployment — tell your AI agent "deploy to 
 skills:
   - smart-deployer
   - cicd-pipeline
-  - test-generatorcategory: devops
+  - test-generator
+category: devops
 tags:
   - deployment
   - ci-cd

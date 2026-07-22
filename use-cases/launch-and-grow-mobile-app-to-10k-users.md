@@ -6,7 +6,8 @@ skills:
   - app-store-optimization
   - growth-hacking
   - ad-campaign-optimization
-  - feedback-analysiscategory: business
+  - feedback-analysis
+category: business
 tags:
   - mobile
   - growth

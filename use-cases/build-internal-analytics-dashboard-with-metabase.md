@@ -5,7 +5,8 @@ description: Deploy Metabase with Docker Compose, connect it to PostgreSQL, and 
 skills:
   - metabase
   - postgresql
-  - docker-helpercategory: data-ai
+  - docker-helper
+category: data-ai
 tags:
   - business-intelligence
   - dashboards

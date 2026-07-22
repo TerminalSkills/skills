@@ -9,7 +9,8 @@ skills:
   - zustand
   - jotai
   - xstate
-  - tanstack-querycategory: development
+  - tanstack-query
+category: development
 tags:
   - react
   - state-management

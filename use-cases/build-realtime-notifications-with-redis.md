@@ -5,7 +5,8 @@ description: "Implement push notifications, in-app alerts, and real-time updates
 skills:
   - notification-system
   - realtime-database
-  - websocket-buildercategory: development
+  - websocket-builder
+category: development
 tags:
   - notifications
   - websocket

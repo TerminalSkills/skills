@@ -10,7 +10,8 @@ skills:
   - cloudinary
   - imgix
   - sharp
-  - s3-storagecategory: content
+  - s3-storage
+category: content
 tags:
   - images
   - uploads

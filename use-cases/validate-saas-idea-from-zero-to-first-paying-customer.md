@@ -7,7 +7,8 @@ skills:
   - product-discovery
   - user-research
   - product-analytics
-  - go-to-marketcategory: business
+  - go-to-market
+category: business
 tags:
 - validation
 - startup

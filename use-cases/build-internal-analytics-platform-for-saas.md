@@ -7,7 +7,8 @@ skills:
   - ibis
   - cube
   - evidence
-  - panderacategory: data-ai
+  - pandera
+category: data-ai
 tags:
 - analytics
 - dashboards

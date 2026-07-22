@@ -5,7 +5,8 @@ description: Set up an event-driven order processing architecture using SQS queu
 skills:
   - aws-sqs
   - aws-sns
-  - aws-lambdacategory: devops
+  - aws-lambda
+category: devops
 tags:
   - event-driven
   - aws

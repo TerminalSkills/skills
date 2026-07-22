@@ -10,7 +10,8 @@ skills:
   - systemd
   - ssh
   - iptables
-  - rsynccategory: devops
+  - rsync
+category: devops
 tags:
   - server
   - provisioning

@@ -12,7 +12,8 @@ skills:
   - pydantic
   - pytest
   - uvicorn
-  - docker-multi-stagecategory: development
+  - docker-multi-stage
+category: development
 tags:
   - fastapi
   - python

@@ -9,7 +9,8 @@ skills:
   - react-email
   - resend
   - postmark
-  - job-queuecategory: productivity
+  - job-queue
+category: productivity
 tags:
   - email
   - transactional

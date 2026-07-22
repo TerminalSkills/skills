@@ -5,7 +5,8 @@ description: "Generate accurate API documentation from code, test endpoints syst
 skills:
   - api-doc-generator
   - api-tester
-  - stripe-testingcategory: development
+  - stripe-testing
+category: development
 tags:
   - api-documentation
   - api-testing

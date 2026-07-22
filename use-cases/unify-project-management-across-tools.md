@@ -5,7 +5,8 @@ description: "Synchronize project tracking across Jira, Linear, and ClickUp to g
 skills:
   - jira
   - linear
-  - clickupcategory: productivity
+  - clickup
+category: productivity
 tags:
   - project-management
   - agile

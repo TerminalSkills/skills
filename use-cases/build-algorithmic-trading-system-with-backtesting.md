@@ -5,7 +5,8 @@ description: Design, backtest, and deploy a crypto trading bot with momentum str
 skills:
   - algo-trading
   - prediction-markets
-  - dspycategory: data-ai
+  - dspy
+category: data-ai
 tags:
   - trading
   - backtesting

@@ -12,7 +12,8 @@ skills:
   - letsencrypt
   - cloudflare
   - trivy
-  - hashicorp-vaultcategory: development
+  - hashicorp-vault
+category: development
 tags:
   - server-hardening
   - security

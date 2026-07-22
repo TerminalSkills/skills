@@ -4,7 +4,8 @@ slug: run-local-llm-stack-for-private-ai
 description: Set up a completely private AI stack using LocalAI as the self-hosted OpenAI-compatible API server and llamafile for portable single-file model distribution, enabling chat, embeddings, and audio transcription without any data leaving your network.
 skills:
   - localai
-  - llamafilecategory: data-ai
+  - llamafile
+category: data-ai
 tags:
 - local-llm
 - privacy

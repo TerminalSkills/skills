@@ -9,7 +9,8 @@ skills:
   - n8n-sdk
   - n8n
   - zod
-  - vitestcategory: automation
+  - vitest
+category: automation
 tags:
   - n8n
   - workflow

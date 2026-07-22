@@ -9,7 +9,8 @@ description: >-
 skills:
   - cheerio
   - puppeteer
-  - postgresqlcategory: automation
+  - postgresql
+category: automation
 tags:
   - scraping
   - monitoring

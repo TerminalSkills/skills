@@ -8,7 +8,8 @@ skills:
   - openai-sdk
   - langchain
   - chromadb
-  - langfusecategory: data-ai
+  - langfuse
+category: data-ai
 tags:
   - chatbot
   - rag

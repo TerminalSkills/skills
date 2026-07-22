@@ -6,7 +6,8 @@ skills:
   - storybook
   - vitest
   - cypress
-  - shadcn-uicategory: development
+  - shadcn-ui
+category: development
 tags:
   - components
   - testing

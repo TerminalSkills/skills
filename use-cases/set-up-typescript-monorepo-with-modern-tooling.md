@@ -6,7 +6,8 @@ skills:
   - moonrepo
   - tsup
   - oxlint
-  - knipcategory: devops
+  - knip
+category: devops
 tags:
   - monorepo
   - typescript

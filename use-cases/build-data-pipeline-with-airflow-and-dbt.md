@@ -5,7 +5,8 @@ description: Build an ETL pipeline that extracts data from APIs, loads it into P
 skills:
   - airflow
   - dbt
-  - postgresqlcategory: data-ai
+  - postgresql
+category: data-ai
 tags:
   - etl
   - data-pipeline

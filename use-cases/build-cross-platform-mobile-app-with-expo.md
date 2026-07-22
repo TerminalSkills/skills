@@ -5,7 +5,8 @@ description: Build and ship an iOS and Android app from a single TypeScript code
 skills:
   - expo
   - react-native
-  - supabasecategory: development
+  - supabase
+category: development
 tags:
   - mobile
   - ios

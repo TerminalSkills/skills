@@ -4,7 +4,8 @@ slug: build-cross-platform-desktop-app
 description: "Ship a native desktop application for Windows, macOS, and Linux using your existing web development skills and a single codebase."
 skills:
   - electron
-  - tauricategory: development
+  - tauri
+category: development
 tags:
   - desktop
   - cross-platform

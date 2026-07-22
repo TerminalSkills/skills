@@ -4,7 +4,8 @@ slug: optimize-database-performance-sql-and-nosql
 description: "Identify and fix slow queries, missing indexes, and inefficient aggregation pipelines across PostgreSQL and MongoDB in a single optimization pass."
 skills:
   - sql-optimizer
-  - mongodbcategory: data-ai
+  - mongodb
+category: data-ai
 tags:
   - database-optimization
   - sql

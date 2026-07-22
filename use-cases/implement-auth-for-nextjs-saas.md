@@ -10,7 +10,8 @@ skills:
   - jose-jwt
   - iron-session
   - authjs
-  - better-authcategory: development
+  - better-auth
+category: development
 tags:
   - authentication
   - nextjs

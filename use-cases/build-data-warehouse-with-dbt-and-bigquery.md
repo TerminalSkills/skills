@@ -3,7 +3,7 @@ title: Build a Data Warehouse with dbt and BigQuery
 slug: build-data-warehouse-with-dbt-and-bigquery
 description: Build a production data warehouse using dbt Core and BigQuery for SaaS analytics — model MRR, churn, and user funnels from Stripe and Postgres sources, with tests, docs, and automated scheduling.
 skills:
-  - dbt-core
+  - dbt
 difficulty: intermediate
 time_estimate: "8 hours"
 category: data

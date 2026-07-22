@@ -5,7 +5,8 @@ description: "Ship serverless apps to AWS with SST, debug cold starts and timeou
 skills:
   - sst
   - serverless-debugger
-  - railway-deploycategory: devops
+  - railway-deploy
+category: devops
 tags:
   - serverless
   - aws-lambda

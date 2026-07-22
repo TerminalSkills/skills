@@ -9,7 +9,8 @@ description: >-
 skills:
   - meilisearch
   - postgresql
-  - nextjscategory: development
+  - nextjs
+category: development
 tags:
   - search
   - meilisearch

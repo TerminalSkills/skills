@@ -1,7 +1,7 @@
 ---
 title: "Build a Guided Meditation App with AI-Personalized Sessions"
 description: "Build a Calm alternative with AI-generated meditation scripts, ElevenLabs voice narration, mood-based personalization, background sound mixing, and streak tracking."
-skills: [elevenlabs-sdk, anthropic-sdk, prisma]
+skills: [elevenlabs, anthropic-sdk, prisma]
 difficulty: advanced
 time_estimate: "12 hours"
 tags: [meditation, wellness, ai, tts, audio, mindfulness, personalization, streaks]

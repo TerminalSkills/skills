@@ -3,7 +3,8 @@ title: "Automate SAP ERP Reporting and Workflows"
 slug: automate-sap-erp-reporting-and-workflows
 description: "Streamline SAP S/4HANA operations by automating purchase order creation, inventory threshold alerts, financial period-end reports, and master data validation."
 skills:
-  - sapcategory: business
+  - sap
+category: business
 tags:
   - erp
   - sap

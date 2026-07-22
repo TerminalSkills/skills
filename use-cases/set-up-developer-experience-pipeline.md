@@ -11,7 +11,8 @@ skills:
   - commitlint
   - husky
   - semantic-release
-  - devcontainerscategory: development
+  - devcontainers
+category: development
 tags:
   - monorepo
   - dx

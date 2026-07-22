@@ -6,7 +6,8 @@ skills:
   - auth-system-setup
   - clerk-auth
   - lucia-auth
-  - jwt-handlercategory: development
+  - jwt-handler
+category: development
 tags:
   - authentication
   - jwt

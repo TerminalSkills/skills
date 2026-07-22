@@ -4,7 +4,8 @@ slug: build-api-with-deno-and-drizzle
 description: "Create a production API using Deno's secure runtime and Drizzle ORM for type-safe database queries with zero code generation."
 skills:
   - deno
-  - drizzle-ormcategory: development
+  - drizzle-orm
+category: development
 tags:
   - deno
   - drizzle

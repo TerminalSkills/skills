@@ -3,7 +3,8 @@ title: "Streamline Legal Contract Review"
 slug: streamline-legal-contract-review
 description: "Accelerate contract review by automatically identifying risky clauses, comparing terms against company standards, and generating redline summaries for legal teams."
 skills:
-  - contract-reviewcategory: documents
+  - contract-review
+category: documents
 tags:
   - legal
   - contracts

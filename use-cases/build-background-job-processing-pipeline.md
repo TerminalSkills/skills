@@ -6,7 +6,8 @@ skills:
   - job-queue
   - webhook-processor
   - file-upload-processor
-  - media-transcodercategory: development
+  - media-transcoder
+category: development
 tags:
   - background-jobs
   - queues

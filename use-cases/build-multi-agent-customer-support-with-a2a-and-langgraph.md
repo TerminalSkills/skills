@@ -5,7 +5,8 @@ description: Design a production customer support system where specialized AI ag
 skills:
   - a2a-protocol
   - langchain
-  - langgraphcategory: data-ai
+  - langgraph
+category: data-ai
 tags:
 - multi-agent
 - a2a

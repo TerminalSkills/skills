@@ -6,7 +6,8 @@ skills:
   - signoz
   - vector
   - checkly
-  - gatuscategory: devops
+  - gatus
+category: devops
 tags:
 - observability
 - monitoring

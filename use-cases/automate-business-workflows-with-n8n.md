@@ -8,7 +8,8 @@ description: >-
 skills:
   - n8n
   - docker-helper
-  - postgresqlcategory: automation
+  - postgresql
+category: automation
 tags:
   - automation
   - workflow

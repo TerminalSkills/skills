@@ -7,7 +7,7 @@ description: >-
 skills:
   - supermemory
   - anthropic-sdk
-  - mcp-server
+  - mcp-server-builder
 category: data-ai
 tags:
   - memory

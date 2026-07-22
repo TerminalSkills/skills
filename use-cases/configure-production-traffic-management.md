@@ -5,7 +5,8 @@ description: "Set up a production traffic stack with Caddy as a reverse proxy, w
 skills:
   - caddy
   - load-balancer
-  - rate-limitercategory: devops
+  - rate-limiter
+category: devops
 tags:
   - reverse-proxy
   - load-balancing

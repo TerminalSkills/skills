@@ -4,7 +4,8 @@ slug: deploy-fullstack-app-to-production-on-own-server
 description: Deploy a Next.js application with PostgreSQL, Redis, and background workers on a VPS using Dokploy for self-hosted PaaS management and Nixpacks for zero-config builds.
 skills:
   - dokploy
-  - nixpackscategory: devops
+  - nixpacks
+category: devops
 tags:
 - self-hosted
 - deployment

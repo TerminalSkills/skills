@@ -6,7 +6,8 @@ skills:
   - k6
   - pact
   - mockoon
-  - vitestcategory: devops
+  - vitest
+category: devops
 tags:
   - api-testing
   - contract-testing

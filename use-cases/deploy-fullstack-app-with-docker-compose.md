@@ -6,7 +6,8 @@ skills:
   - docker-helper
   - nginx
   - postgresql
-  - github-actionscategory: devops
+  - github-actions
+category: devops
 tags:
   - docker
   - deployment

@@ -4,7 +4,8 @@ slug: centralize-app-secrets-management
 description: "Replace scattered .env files with a centralized secrets management system using Doppler and env-manager to eliminate secret sprawl and accidental leaks."
 skills:
   - doppler
-  - env-managercategory: devops
+  - env-manager
+category: devops
 tags:
   - secrets-management
   - environment-variables

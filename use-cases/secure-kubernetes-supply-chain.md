@@ -7,7 +7,8 @@ skills:
   - checkov
   - grype
   - cosign
-  - kyvernocategory: devops
+  - kyverno
+category: devops
 tags:
 - supply-chain
 - kubernetes

@@ -5,7 +5,8 @@ description: Create a fully type-safe API layer using tRPC, Zod, and Prisma wher
 skills:
   - trpc
   - zod
-  - prismacategory: development
+  - prisma
+category: development
 tags:
   - typescript
   - api

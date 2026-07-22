@@ -5,7 +5,8 @@ description: "Build a cross-platform content strategy for Twitter/X and YouTube 
 skills:
   - twitter-x-marketing
   - youtube-marketing
-  - social-contentcategory: marketing
+  - social-content
+category: marketing
 tags:
   - Twitter
   - YouTube

@@ -4,7 +4,8 @@ slug: create-technical-documentation-and-presentations
 description: "Extract documentation from an undocumented codebase and generate presentation slides for architecture reviews and team onboarding."
 skills:
   - code-documenter
-  - dev-slidescategory: development
+  - dev-slides
+category: development
 tags:
   - documentation
   - presentations

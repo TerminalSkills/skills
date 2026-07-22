@@ -9,7 +9,8 @@ skills:
   - commander
   - inquirer
   - chalk-advanced
-  - oracategory: development
+  - ora
+category: development
 tags:
   - cli
   - developer-tools

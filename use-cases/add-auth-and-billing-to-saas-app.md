@@ -6,7 +6,8 @@ skills:
   - authjs
   - stripe-billing
   - nextjs
-  - neoncategory: business
+  - neon
+category: business
 tags:
   - authentication
   - billing

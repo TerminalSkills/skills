@@ -9,7 +9,8 @@ description: >-
 skills:
   - twilio
   - sendgrid
-  - nextjscategory: development
+  - nextjs
+category: development
 tags:
   - sms
   - 2fa

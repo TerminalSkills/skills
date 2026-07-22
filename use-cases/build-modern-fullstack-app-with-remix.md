@@ -5,7 +5,8 @@ description: "Create a performant fullstack application using Remix with server-
 skills:
   - remix
   - zustand
-  - ssr-migrationcategory: development
+  - ssr-migration
+category: development
 tags:
   - remix
   - ssr

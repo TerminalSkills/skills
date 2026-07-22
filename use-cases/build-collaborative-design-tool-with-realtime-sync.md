@@ -6,7 +6,8 @@ skills:
   - liveblocks
   - yjs
   - tldraw
-  - arcjetcategory: development
+  - arcjet
+category: development
 tags:
 - collaboration
 - real-time

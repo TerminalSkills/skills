@@ -4,7 +4,8 @@ slug: manage-multi-service-monorepo-architecture
 description: "Organize a monorepo containing multiple services with shared packages and set up agent-to-agent protocol for cross-service coordination."
 skills:
   - monorepo-manager
-  - a2a-protocolcategory: development
+  - a2a-protocol
+category: development
 tags:
   - monorepo
   - microservices

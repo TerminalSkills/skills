@@ -4,7 +4,8 @@ slug: build-mcp-tools-for-ai-data-access
 description: "Create MCP servers that let AI agents query your databases and APIs directly, replacing manual data lookups with natural language tool calls."
 skills:
   - mcp-server-builder
-  - langchaincategory: data-ai
+  - langchain
+category: data-ai
 tags:
   - mcp
   - langchain

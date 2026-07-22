@@ -1,7 +1,7 @@
 ---
 title: "Build Internal Tools with Retool"
 description: "Build a full suite of internal tools in a week — customer admin panel, data pipeline dashboard, and ops automation — connected to Postgres, Stripe, and your REST API simultaneously."
-skills: [retool-sdk]
+skills: [retool]
 difficulty: intermediate
 time_estimate: "10 hours"
 tags: [internal-tools, retool, admin, ops, postgres, stripe, automation, dashboard]

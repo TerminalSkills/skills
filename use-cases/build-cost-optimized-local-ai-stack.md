@@ -5,7 +5,8 @@ description: "Run a multi-model AI system locally with smart routing so simple t
 skills:
   - ollama
   - lm-studio-subagents
-  - litellmcategory: data-ai
+  - litellm
+category: data-ai
 tags:
   - local-llm
   - cost-optimization

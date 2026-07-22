@@ -5,7 +5,8 @@ description: "Pull tables and fields from PDF reports into validated datasets, c
 skills:
   - table-extractor
   - data-extractor
-  - data-validatorcategory: data-ai
+  - data-validator
+category: data-ai
 tags:
   - pdf-extraction
   - data-validation

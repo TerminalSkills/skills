@@ -5,7 +5,8 @@ description: Extract design tokens from Figma, generate CSS custom properties an
 skills:
   - figma-api
   - chromajs
-  - tailwindcsscategory: design
+  - tailwindcss
+category: design
 tags:
   - design-tokens
   - figma

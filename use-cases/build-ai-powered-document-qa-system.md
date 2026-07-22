@@ -10,7 +10,8 @@ skills:
   - anthropic-sdk
   - openai-sdk
   - ollama
-  - chromadbcategory: data-ai
+  - chromadb
+category: data-ai
 tags:
   - rag
   - embeddings

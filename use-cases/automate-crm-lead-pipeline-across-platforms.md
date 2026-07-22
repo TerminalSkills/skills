@@ -5,7 +5,8 @@ description: "Build an automated lead qualification and routing pipeline that sc
 skills:
   - salesforce
   - zoho
-  - lead-qualificationcategory: business
+  - lead-qualification
+category: business
 tags:
   - crm
   - lead-scoring

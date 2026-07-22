@@ -10,7 +10,8 @@ description: >-
 skills:
   - job-queue
   - redis
-  - docusauruscategory: development
+  - docusaurus
+category: development
 tags:
   - webhooks
   - queues

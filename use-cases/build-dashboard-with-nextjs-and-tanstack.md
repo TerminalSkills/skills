@@ -6,7 +6,8 @@ skills:
   - nextjs
   - tanstack
   - zod
-  - neoncategory: development
+  - neon
+category: development
 tags:
   - dashboard
   - react

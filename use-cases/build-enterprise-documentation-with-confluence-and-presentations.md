@@ -4,7 +4,8 @@ slug: build-enterprise-documentation-with-confluence-and-presentations
 description: "Create and maintain Confluence knowledge bases alongside PowerPoint presentations that stay synchronized for quarterly business reviews and onboarding materials."
 skills:
   - confluence
-  - powerpointcategory: documents
+  - powerpoint
+category: documents
 tags:
   - confluence
   - presentations

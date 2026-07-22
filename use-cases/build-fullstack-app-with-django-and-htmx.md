@@ -5,7 +5,8 @@ description: Build an interactive web application with Django backend and HTMX f
 skills:
   - django
   - htmx
-  - postgresqlcategory: development
+  - postgresql
+category: development
 tags:
   - python
   - fullstack

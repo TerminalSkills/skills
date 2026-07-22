@@ -5,7 +5,8 @@ description: Set up a local development environment with Stripe webhooks, Telegr
 skills:
   - ngrok
   - telegram-bot-builder
-  - shopifycategory: development
+  - shopify
+category: development
 tags:
   - webhooks
   - tunneling

@@ -6,7 +6,8 @@ skills:
   - tanstack-table
   - swr
   - valtio
-  - umamicategory: development
+  - umami
+category: development
 tags:
   - admin
   - dashboard

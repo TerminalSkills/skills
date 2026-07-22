@@ -4,7 +4,8 @@ slug: define-cloud-infrastructure-with-pulumi
 description: "Use Pulumi for type-safe infrastructure provisioning and Ansible for configuration management to build reproducible, testable cloud environments."
 skills:
   - pulumi
-  - ansiblecategory: devops
+  - ansible
+category: devops
 tags:
   - infrastructure-as-code
   - pulumi

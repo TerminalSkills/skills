@@ -6,7 +6,8 @@ skills:
   - pandas
   - scikit-learn
   - jupyter
-  - postgresqlcategory: data-ai
+  - postgresql
+category: data-ai
 tags:
   - machine-learning
   - churn

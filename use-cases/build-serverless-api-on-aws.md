@@ -5,7 +5,8 @@ description: Build a production-ready serverless REST API using AWS Lambda, API 
 skills:
   - aws-lambda
   - aws-dynamodb
-  - aws-cognitocategory: devops
+  - aws-cognito
+category: devops
 tags:
   - serverless
   - aws

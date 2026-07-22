@@ -4,7 +4,8 @@ slug: generate-legal-contracts-with-open-source-tools
 description: "Draft, assemble, and customize legal contracts using open source clause libraries instead of expensive legal software."
 skills:
   - openclaw
-  - picoclawcategory: automation
+  - picoclaw
+category: automation
 tags:
   - legal
   - contracts

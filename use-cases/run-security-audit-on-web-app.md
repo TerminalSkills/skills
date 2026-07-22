@@ -5,7 +5,8 @@ description: Perform a comprehensive security assessment of a web app using Nucl
 skills:
   - nuclei-scanner
   - ffuf
-  - security-auditcategory: devops
+  - security-audit
+category: devops
 tags:
   - security
   - pentest

@@ -4,7 +4,8 @@ slug: monitor-production-security-with-sentry
 description: "Combine static security analysis with runtime error monitoring to catch vulnerabilities before deploy and detect exploitation attempts in production."
 skills:
   - security-audit
-  - sentrycategory: development
+  - sentry
+category: development
 tags:
   - security
   - monitoring

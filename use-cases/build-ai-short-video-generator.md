@@ -8,7 +8,7 @@ category: content
 persona: >-
   Content creator building a faceless video channel generating $2k/month in
   ad revenue and affiliate income within 6 months.
-skills: [ai-video-generator, elevenlabs-sdk, anthropic-sdk, ffmpeg]
+skills: [ai-video-generator, elevenlabs, anthropic-sdk, ffmpeg]
 tags: [video, tiktok, youtube-shorts, faceless-channel, automation, passive-income]
 ---
 

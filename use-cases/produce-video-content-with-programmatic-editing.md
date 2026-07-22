@@ -5,7 +5,8 @@ description: "Automate video editing with MoviePy, generate audio waveform visua
 skills:
   - moviepy
   - audiowaveform
-  - ffmpegcategory: content
+  - ffmpeg
+category: content
 tags:
   - video-editing
   - moviepy

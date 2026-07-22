@@ -5,7 +5,8 @@ description: "Plan and execute a product launch that drives signups, press cover
 skills:
   - launch-strategy
   - pricing-strategy
-  - product-marketing-contextcategory: marketing
+  - product-marketing-context
+category: marketing
 tags:
   - product-launch
   - SaaS

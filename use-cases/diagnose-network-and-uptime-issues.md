@@ -4,7 +4,8 @@ slug: diagnose-network-and-uptime-issues
 description: "Combine Uptime Kuma monitoring with Xray network diagnostics to detect outages, trace packet paths, and pinpoint whether failures are DNS, routing, or application-level."
 skills:
   - uptime-kuma
-  - xraycategory: devops
+  - xray
+category: devops
 tags:
   - monitoring
   - network-diagnostics

@@ -9,7 +9,8 @@ skills:
   - github-actions
   - docker-multi-stage
   - terraform-iac
-  - sentrycategory: devops
+  - sentry
+category: devops
 tags:
   - deployment
   - zero-downtime

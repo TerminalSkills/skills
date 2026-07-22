@@ -4,7 +4,8 @@ slug: build-headless-cms-content-workflow
 description: "Set up Payload CMS as a headless content backend and use structured markdown writing to create, manage, and publish content across websites, docs, and newsletters."
 skills:
   - payload-cms
-  - markdown-writercategory: content
+  - markdown-writer
+category: content
 tags:
   - cms
   - headless

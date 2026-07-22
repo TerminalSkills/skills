@@ -5,7 +5,8 @@ description: Build a multi-tenant SaaS application using SvelteKit for the full-
 skills:
   - sveltekit
   - turso
-  - upstashcategory: development
+  - upstash
+category: development
 tags:
   - saas
   - svelte

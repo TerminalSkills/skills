@@ -4,7 +4,8 @@ slug: build-llm-evaluation-and-comparison-pipeline
 description: "Systematically test prompts across multiple models to find the best cost-quality tradeoff before committing to a provider for production."
 skills:
   - langgraph
-  - langsmithcategory: data-ai
+  - langsmith
+category: data-ai
 tags:
   - llm-evaluation
   - langgraph

@@ -7,7 +7,8 @@ skills:
   - e2b-sandbox
   - composio
   - promptfoo
-  - litellmcategory: data-ai
+  - litellm
+category: data-ai
 tags:
   - ai-agent
   - tool-use

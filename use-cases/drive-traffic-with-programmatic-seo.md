@@ -5,7 +5,8 @@ description: "Generate hundreds of search-optimized pages from structured data t
 skills:
   - programmatic-seo
   - schema-markup
-  - seo-auditcategory: marketing
+  - seo-audit
+category: marketing
 tags:
   - programmatic-SEO
   - schema-markup

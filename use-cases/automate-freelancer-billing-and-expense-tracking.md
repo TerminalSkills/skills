@@ -5,7 +5,8 @@ description: "Build an end-to-end system that tracks billable hours, generates i
 skills:
   - billing-automation
   - expense-report
-  - invoice-generatorcategory: business
+  - invoice-generator
+category: business
 tags:
   - freelancing
   - invoicing

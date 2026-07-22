@@ -8,7 +8,8 @@ description: >-
 skills:
   - istio
   - kubernetes-helm
-  - docker-helpercategory: devops
+  - docker-helper
+category: devops
 tags:
   - istio
   - service-mesh

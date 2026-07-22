@@ -4,7 +4,8 @@ slug: automate-professional-video-post-production
 description: "Script After Effects and DaVinci Resolve to automate motion graphics templates, color grading pipelines, and batch rendering for professional video production."
 skills:
   - after-effects
-  - davinci-resolvecategory: content
+  - davinci-resolve
+category: content
 tags:
   - after-effects
   - davinci-resolve

@@ -4,7 +4,8 @@ slug: automate-meeting-capture-and-follow-up
 description: "Transform meeting recordings into structured notes, action items, and follow-up emails using voice transcription and intelligent summarization."
 skills:
   - meeting-notes
-  - whispercategory: productivity
+  - whisper
+category: productivity
 tags:
   - meetings
   - transcription

@@ -10,7 +10,8 @@ skills:
   - otel-js
   - autocannon
   - lighthouse-ci
-  - grafanacategory: devops
+  - grafana
+category: devops
 tags:
   - performance
   - profiling

@@ -10,7 +10,8 @@ description: >-
 skills:
   - novu
   - inngest
-  - nextjscategory: development
+  - nextjs
+category: development
 tags:
   - notifications
   - events

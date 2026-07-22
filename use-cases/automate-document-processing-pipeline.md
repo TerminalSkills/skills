@@ -4,7 +4,8 @@ slug: automate-document-processing-pipeline
 description: "Build an automated pipeline that parses, splits, merges, and reorganizes large document collections based on content type and metadata extraction."
 skills:
   - doc-parser
-  - pdf-merge-splitcategory: documents
+  - pdf-merge-split
+category: documents
 tags:
   - document-processing
   - pdf

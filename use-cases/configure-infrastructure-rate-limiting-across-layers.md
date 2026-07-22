@@ -4,7 +4,8 @@ slug: configure-infrastructure-rate-limiting-across-layers
 description: "Set up layered rate limiting at Nginx, API gateway, and CDN levels to protect APIs from abuse without touching application code."
 skills:
   - rate-limiter
-  - load-balancercategory: devops
+  - load-balancer
+category: devops
 tags:
   - rate-limiting
   - nginx

@@ -4,7 +4,8 @@ slug: extract-intelligence-from-pdf-archives
 description: "Process large collections of scanned and digital PDFs to extract structured data, answer questions across documents, and build searchable knowledge bases."
 skills:
   - pdf-analyzer
-  - pdf-ocrcategory: documents
+  - pdf-ocr
+category: documents
 tags:
   - pdf
   - ocr

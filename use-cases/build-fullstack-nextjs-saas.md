@@ -11,7 +11,8 @@ skills:
   - react-hook-form
   - next-safe-action
   - prisma
-  - stripecategory: development
+  - stripe
+category: development
 tags:
   - nextjs
   - saas

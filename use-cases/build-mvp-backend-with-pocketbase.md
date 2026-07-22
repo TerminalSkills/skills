@@ -4,7 +4,8 @@ slug: build-mvp-backend-with-pocketbase
 description: Ship a full backend for a SaaS MVP in a single afternoon using PocketBase — authentication, real-time data, file uploads, and API rules — deployed as one binary with zero infrastructure.
 skills:
   - pocketbase
-  - cloudflare-workerscategory: development
+  - cloudflare-workers
+category: development
 tags:
   - mvp
   - backend

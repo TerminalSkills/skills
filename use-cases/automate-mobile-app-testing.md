@@ -5,7 +5,8 @@ description: Set up mobile end-to-end testing using Maestro for quick YAML-based
 skills:
   - maestro
   - detox
-  - react-nativecategory: devops
+  - react-native
+category: devops
 tags:
   - mobile-testing
   - e2e-testing
