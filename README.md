@@ -61,6 +61,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [test-generator](skills/test-generator/) | Development | Generate unit, integration, and e2e tests for existing code |
 | [security-audit](skills/security-audit/) | Development | Scan code for vulnerabilities, secrets, and dependency CVEs |
 | [code-migration](skills/code-migration/) | Development | Migrate codebases between frameworks, languages, and API versions |
+| [codex-skin-pack-installer](skills/codex-skin-pack-installer/) | Productivity | Install, validate, apply, switch, and restore public-safe Codex desktop skin packs |
 | [cicd-pipeline](skills/cicd-pipeline/) | DevOps | Generate and optimize CI/CD pipelines for testing, building, and deployment |
 | [mcp-server-builder](skills/mcp-server-builder/) | Data & AI | Build MCP servers to connect AI agents to external services |
 | [routerbase-gateway](skills/routerbase-gateway/) | Data & AI | Integrate OpenAI-compatible apps with [routerbase](https://routerbase.com/) model routing and media generation |
@@ -90,6 +91,7 @@ Step-by-step guides for common workflows:
 - [Validate ETL Data Quality](use-cases/validate-etl-data-quality.md)
 - [Automate Release Notes](use-cases/automate-release-notes.md)
 - [Debug Production Incidents](use-cases/debug-production-incident.md)
+- [Customize Codex Desktop with Safe Skin Packs](use-cases/customize-codex-desktop-with-skin-packs.md)
 
 ## Contributing
 
