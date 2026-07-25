@@ -30,7 +30,9 @@ jobs:
           echo "Response ($http_code):"
           echo "$body" | jq . 2>/dev/null || echo "$body"
 
-          if [ "$http_code" -ne 200 ]; then
+          # The backend answers 201 Created on a successful sync; only 200 was
+          # accepted, so a sync that WORKED was reported as a failed run.
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
             echo "::error::Sync failed with HTTP $http_code"
             exit 1
           fi
