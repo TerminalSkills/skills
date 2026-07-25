@@ -1,0 +1,23 @@
+{
+  "name": "seog",
+  "displayName": "SEOG — Local SEO",
+  "version": "1.0.0",
+  "description": "Run local SEO from Claude Code: Google Business Profile management, map-pack rank tracking and geo-grid scans, review sync and replies, competitor intelligence, AI-visibility and citation checks, website + Search Console audits, Google posts and PDF reports — 90 tools against your own seog.ai account.",
+  "author": {
+    "name": "AIEmployees",
+    "url": "https://aiemployees.us"
+  },
+  "homepage": "https://seog.ai",
+  "repository": "https://github.com/TerminalSkills/skills",
+  "license": "Apache-2.0",
+  "keywords": ["local-seo", "google-business-profile", "mcp", "rank-tracking", "reviews", "maps"],
+  "userConfig": {
+    "mcp_token": {
+      "type": "string",
+      "title": "SEOG MCP token",
+      "description": "Personal token from app.seog.ai → Settings → MCP access. Required: every tool runs as your SEOG account, and paid tools spend that account's credits. Sign up free at app.seog.ai.",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}

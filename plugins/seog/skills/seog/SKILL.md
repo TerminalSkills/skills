@@ -81,15 +81,7 @@ token (shown once). Install either way:
 /plugin install seog@terminal-skills
 ```
 
-Claude Code asks for the token during install and stores it in the credential store.
-Non-interactively (scripts, CI):
-
-```bash
-claude plugin marketplace add TerminalSkills/skills
-claude plugin install seog@terminal-skills --config mcp_token="$SEOG_MCP_TOKEN"
-```
-
-Verify with `/plugin list` (seog → enabled) and `/mcp` (seog → connected).
+Claude Code prompts for the token and stores it in your OS keychain.
 
 **As a skill + manually registered MCP server** (any client):
 

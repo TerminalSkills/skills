@@ -7676,7 +7676,7 @@
     {
       "name": "seog",
       "slug": "seog",
-      "description": "Manage local SEO from your terminal via the SEOG MCP server — Google Business Profile businesses, keyword rank tracking, review monitoring and reply drafts, and competitor intelligence. Use when: connecting an agent to seog.ai, tracking map-pack rankings, automating local SEO reports, monitoring competitors near a business, drafting review responses, or when the user mentions \"SEOG\", \"local SEO\", \"map pack\", \"Google Business Profile rankings\", or \"keyword positions\" for a physical business.",
+      "description": "Run local SEO from your terminal via the SEOG MCP server — Google Business Profile management, map-pack rank tracking and geo-grid scans, review sync and replies published to Google, competitor intelligence, AI-visibility and citation checks, website + Search Console audits, GBP posts, and PDF reports. Use when: connecting an agent to seog.ai, tracking map-pack rankings, automating local SEO reports, monitoring competitors near a business, replying to Google reviews, publishing Google posts, or when the user mentions \"SEOG\", \"local SEO\", \"map pack\", \"Google Business Profile\", or \"keyword positions\" for a physical business.",
       "category": "business",
       "tags": [
         "local-seo",
@@ -9879,5 +9879,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-07-06T21:29:31.021Z"
+  "updatedAt": "2026-07-25T11:03:13.282Z"
 }
