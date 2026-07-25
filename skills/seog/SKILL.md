@@ -106,8 +106,9 @@ For Codex / Gemini CLI / Cursor, register an HTTP MCP server with the same URL a
 ### Account, plan and credits — read before running paid tools
 
 - The token identifies a **SEOG account**; tools act only on that account's data.
-- SEOG bills in **credits (CR)**. Free tools read stored data; paid tools cost the same
-  as the equivalent click in the app.
+- SEOG bills in **credits (CR)** on one rule: **anything that calls an external API is
+  paid**, at the same price as the equivalent click in the app. Reads of already-stored
+  data are free. That includes undo and delete — each replays a call against Google.
 - `get_credit_balance` returns balance + plan; `list_feature_prices` prices every paid
   tool. **Check both before a multi-business sweep.**
 - A paid tool that fails is **not** charged (deliver-or-refund), so a failed run never
@@ -122,14 +123,14 @@ Full parameter schemas and pricing notes: `references/mcp-tools.md`.
 |---|---|
 | Businesses | `list_businesses`, `get_business`, `search_places`💳, `import_business`💳, `update_business`, `delete_business` |
 | Profile health | `get_business_audit`, `get_action_plan`, `list_recommendations`, `analyze_business_profile`, `set_recommendation_status` |
-| Profile editing (writes to Google) | `apply_profile_fix`💳, `undo_profile_fix`, `draft_business_description`💳, `apply_business_description`💳, `undo_business_description`, `list_profile_photos`, `delete_profile_photo`, `get_profile_fix_options`, `list_recent_profile_edits` |
+| Profile editing (writes to Google) | `apply_profile_fix`💳, `undo_profile_fix`💳, `draft_business_description`💳, `apply_business_description`💳, `undo_business_description`💳, `list_profile_photos`, `delete_profile_photo`💳, `get_profile_fix_options`, `list_recent_profile_edits` |
 | Rankings | `list_keywords`, `add_keyword`💳, `check_keyword`💳, `refresh_rankings`💳, `keyword_history`, `keyword_recommendations`💳, `keyword_recommendations_cache`, `toggle_keyword`, `remove_keyword` |
 | Map grid + AI answers | `run_grid_scan`💳, `get_latest_grid_scan`, `get_keyword_grid_scan`, `get_grid_history`, `get_grid_snapshot`, `check_ai_overview`💳, `get_ai_overview` |
 | Reviews | `list_reviews`, `review_stats`, `sync_reviews`💳, `draft_review_response`, `generate_review_reply`💳, `publish_review_reply`💳, `verify_review_reply`💳 |
 | Competitors | `discover_competitors`💳, `get_discovered_competitors`, `list_competitors`, `add_competitor`💳, `remove_competitor`, `set_competitor_watchlist`, `snapshot_competitor`💳, `refresh_competitors`💳, `compare_competitors`, `list_competitor_alerts`, `mark_competitor_alerts_read`, `scan_competitor_spam` |
 | AI visibility | `get_ai_visibility`, `get_ai_visibility_pillars`, `get_ai_presence_matrix`, `check_ai_visibility`💳, `list_citations`, `check_citations`💳 |
 | Website + Search Console | `get_website_analysis`, `refresh_website_analysis`💳, `refresh_website_all`💳, `get_search_performance`, `get_search_console_status`, `load_search_performance`💳 |
-| Google posts | `list_posts`, `get_post_templates`, `validate_post`, `draft_post_content`💳, `publish_post`💳, `refresh_posts`, `delete_post` |
+| Google posts | `list_posts`, `get_post_templates`, `validate_post`, `draft_post_content`💳, `publish_post`💳, `refresh_posts`💳, `delete_post`💳 |
 | Google connection | `get_google_connection_status`, `get_gbp_performance`, `load_gbp_performance`💳, `load_gbp_keyword_history`💳, `list_gbp_import_locations`, `import_gbp_business`💳 |
 | Account + reports | `get_dashboard`, `get_credit_balance`, `list_feature_prices`, `get_metrics_history`, `list_reports`, `create_report`, `get_report`, `delete_report`, `refresh_business_profile`💳, `refresh_business_overview`💳 |
 

@@ -5,7 +5,9 @@ Auth: `Authorization: Bearer <personal MCP token>` (issued in app Settings → M
 All IDs are UUIDs scoped to the token's account. `businessId` is required by every
 per-business tool. Results return as JSON text content.
 
-💳 = spends credits (same price as the equivalent click in the app). A failed paid tool
+💳 = spends credits (same price as the equivalent click in the app). The rule is simple:
+**anything that calls an external API is paid** — including undoing a fix and deleting a
+photo or post, because each replays a write against Google. A failed paid tool
 is refunded automatically, so a failure never costs anything. `list_feature_prices`
 returns the live price of every 💳 tool; `get_credit_balance` returns what is left.
 
@@ -39,12 +41,12 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | Tool | Params | Notes |
 |---|---|---|
 | `apply_profile_fix` 💳 | `businessId`, `fixId` ∈ `name\|phone\|website\|status\|hours`, `value?`, `periods?`, `attributes?` | Public on Google. `name` can trigger re-verification |
-| `undo_profile_fix` | `businessId`, `fixId` | Reverts the last apply (free) |
+| `undo_profile_fix` 💳 | `businessId`, `fixId` | Reverts the last apply — replays the write on Google, so it bills like one |
 | `draft_business_description` 💳 | `businessId` | Returns text only; writes nothing |
 | `apply_business_description` 💳 | `businessId`, `text` (≤750 ch) | Public on Google |
-| `undo_business_description` | `businessId` | Restores the previous description |
+| `undo_business_description` 💳 | `businessId` | Restores the previous description on Google |
 | `list_profile_photos` | `businessId` | `{name, url}` of live profile photos |
-| `delete_profile_photo` | `businessId`, `photoName`, **`confirm: true`** | Removes it publicly; the bytes are not held anywhere, so it cannot be restored |
+| `delete_profile_photo` 💳 | `businessId`, `photoName`, **`confirm: true`** | Removes it publicly; the bytes are not held anywhere, so it cannot be restored |
 | `get_profile_fix_options` | `businessId`, `fixId` | Options Google's catalog offers for an attribute fix |
 | `list_recent_profile_edits` | `businessId` | Edits since the last profile refresh (may still be in Google review) |
 
@@ -134,8 +136,8 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `validate_post` | `businessId`, draft fields | Free rule check — always run before publishing |
 | `draft_post_content` 💳 | `businessId`, `topicType`, `templateKey?`, `instructions?` | AI copy; publishes nothing |
 | `publish_post` 💳 | `businessId`, `topicType` ∈ `STANDARD\|EVENT\|OFFER`, `summary?` (≤1500 ch), `ctaType?`, `ctaUrl?`, `eventTitle?` (≤58 ch), `eventStart/EndDate`, `eventStart/EndTime`, `photoUrl?`, `scheduledAt?` | **Public on Google.** `scheduledAt` uses Google-native scheduling |
-| `refresh_posts` | `businessId` | Re-sync LIVE/REJECTED states |
-| `delete_post` | `businessId`, `postId`, **`confirm: true`** | Removes it publicly; republishing costs a new `publish_post` |
+| `refresh_posts` 💳 | `businessId` | Re-sync LIVE/REJECTED states (one Google read) |
+| `delete_post` 💳 | `businessId`, `postId`, **`confirm: true`** | Removes it publicly; republishing costs a new `publish_post` |
 
 ## Google connection
 
