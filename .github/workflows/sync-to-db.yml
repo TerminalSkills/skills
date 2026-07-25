@@ -11,11 +11,16 @@ jobs:
     steps:
       - name: Sync skills and use cases to production DB
         env:
-          PLATFORM_URL: ${{ secrets.PLATFORM_URL }}
+          # The sync endpoint lives on the NestJS BACKEND (api.terminalskills.io),
+          # not the website — the Next app has no /api routes since the migration.
+          # PLATFORM_URL still pointed at the site, so every run 404'd. Default to
+          # the public backend (same value the site itself defaults to) and let
+          # API_URL override it for a staging host.
+          API_URL: ${{ secrets.API_URL || 'https://api.terminalskills.io' }}
           SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
         run: |
           response=$(curl -s -w "\n%{http_code}" -X POST \
-            "${PLATFORM_URL}/api/sync" \
+            "${API_URL}/api/sync" \
             -H "Authorization: Bearer ${SYNC_SECRET}" \
             -H "Content-Type: application/json")
 
