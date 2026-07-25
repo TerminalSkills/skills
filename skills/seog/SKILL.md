@@ -202,8 +202,11 @@ retry in a loop), and finish the digest from free reads — `list_keywords`,
   `apply_profile_fix` and `apply_business_description` write to the live Google
   listing. Quote the exact text and get approval first. Changing the business NAME can
   put the listing into Google re-verification — say so before doing it.
-- **`delete_business` is irreversible** — it cascades reviews, keywords, rankings and
-  competitors. Prefer `toggle_keyword` when the user only wants to stop tracking.
+- **Irreversible tools require `confirm: true`** — `delete_business`, `delete_profile_photo`,
+  `delete_post`, `remove_keyword`, `remove_competitor`, `delete_report`. Without the flag they
+  refuse to run, by design: quote exactly what will be deleted, get a yes, then pass it.
+  `delete_business` cascades reviews, keywords, rankings and competitors; deleted photos and
+  posts cannot be restored. Prefer `toggle_keyword` when the user only wants to pause tracking.
 - **Read the error instead of retrying.** Tool errors are self-describing:
   `INSUFFICIENT_CREDITS` gives price, balance and the top-up URL; `PLAN_REQUIRED` means
   the trial ended or no plan exists; `FEATURE_NOT_IN_PLAN` names the feature and plan.
