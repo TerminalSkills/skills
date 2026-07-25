@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "seog": {
+      "type": "http",
+      "url": "https://api.seog.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.mcp_token}"
+      }
+    }
+  }
+}

@@ -40,6 +40,25 @@ curl -sL https://raw.githubusercontent.com/terminal-skills/skills/main/skills/pd
 
 Replace `pdf-analyzer` with the skill name you want to install.
 
+### Claude Code plugins
+
+Some skills ship as a plugin that bundles the skill **and** its MCP server, so one
+install wires up everything (Claude Code prompts for any credentials and stores them in
+your OS keychain):
+
+```
+/plugin marketplace add TerminalSkills/skills
+/plugin install <plugin>@terminal-skills
+```
+
+| Plugin | What it adds |
+|--------|--------------|
+| `terminal-skills` | Skill routing across the whole catalog (`plan_task`, `search_skills`, `get_skill`) |
+| `seog` | Local SEO against your own [seog.ai](https://seog.ai) account — 90 tools: GBP management, map-pack + geo-grid rank tracking, review replies, competitors, AI visibility, website/Search Console audits, Google posts, PDF reports |
+
+Both plugins work as plain skills too — `npx terminal-skills install seog` installs the
+instructions, and you register the MCP server yourself.
+
 ## Skills Catalog
 
 | Skill | Category | Description |
@@ -58,6 +77,7 @@ Replace `pdf-analyzer` with the skill name you want to install.
 | [markdown-writer](skills/markdown-writer/) | Content | Generate well-structured technical documentation |
 | [sql-optimizer](skills/sql-optimizer/) | Data & AI | Analyze and optimize SQL queries for performance |
 | [sequenzy-email-marketing](skills/sequenzy-email-marketing/) | Business | Operate Sequenzy email marketing campaigns, subscribers, segments, sequences, and stats from an AI agent |
+| [seog](skills/seog/) | Business | Run local SEO via the SEOG MCP server: Google Business Profile, map-pack and geo-grid rank tracking, review replies, competitors, AI visibility, website audits |
 | [test-generator](skills/test-generator/) | Development | Generate unit, integration, and e2e tests for existing code |
 | [security-audit](skills/security-audit/) | Development | Scan code for vulnerabilities, secrets, and dependency CVEs |
 | [code-migration](skills/code-migration/) | Development | Migrate codebases between frameworks, languages, and API versions |
@@ -90,6 +110,7 @@ Step-by-step guides for common workflows:
 - [Validate ETL Data Quality](use-cases/validate-etl-data-quality.md)
 - [Automate Release Notes](use-cases/automate-release-notes.md)
 - [Debug Production Incidents](use-cases/debug-production-incident.md)
+- [Automate Local SEO Monitoring for Client Businesses](use-cases/automate-local-seo-agency-reporting.md)
 
 ## Contributing
 

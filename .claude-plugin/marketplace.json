@@ -11,6 +11,13 @@
       "description": "Connect Claude Code to the Terminal Skills agent: 1000+ audited skills, routed to your task on demand. Ask for anything specialized — deployments, documents, data pipelines, third-party APIs — and get proven instructions instead of improvisation.",
       "category": "productivity",
       "tags": ["skills", "marketplace", "mcp", "agent", "automation"]
+    },
+    {
+      "name": "seog",
+      "source": "./plugins/seog",
+      "description": "Local SEO from Claude Code: Google Business Profile management, map-pack rank tracking and geo-grid scans, review replies published to Google, competitor intelligence, AI-visibility checks, website + Search Console audits, Google posts and PDF reports — 90 tools against your own seog.ai account.",
+      "category": "business",
+      "tags": ["local-seo", "google-business-profile", "mcp", "rank-tracking", "reviews"]
     }
   ]
 }
