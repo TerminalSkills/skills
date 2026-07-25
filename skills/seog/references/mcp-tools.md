@@ -160,7 +160,7 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `get_metrics_history` | `businessId`, `days?` (1–365, default 90) | Daily snapshots for trends |
 | `list_reports` / `get_report` | `businessId` (+ `reportId`) | PDF reports |
 | `delete_report` | `businessId`, `reportId`, **`confirm: true`** | Deletes the stored PDF |
-| `create_report` | `businessId` | Queues generation; poll `get_report` until ready |
+| `create_report` 💳 | `businessId` | Queues generation; poll `get_report` until ready. The charge lands when the PDF is generated (queue-side), not at enqueue — and is refunded automatically if generation fails |
 | `refresh_business_profile` 💳🔒 | `businessId` | Re-pull the GBP profile |
 | `refresh_business_overview` 💳🔒 | `businessId` | Profile **and** reviews in one charge |
 

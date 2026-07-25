@@ -112,7 +112,9 @@ For Codex / Gemini CLI / Cursor, register an HTTP MCP server with the same URL a
 - `get_credit_balance` returns balance + plan; `list_feature_prices` prices every paid
   tool. **Check both before a multi-business sweep.**
 - A paid tool that fails is **not** charged (deliver-or-refund), so a failed run never
-  silently costs money.
+  silently costs money. `create_report` is the one asynchronous case: it returns a QUEUED
+  report immediately and the charge lands when the PDF generates (refunded if it fails),
+  so poll `get_report` rather than assuming the credits moved at enqueue.
 
 ### Tool map
 
@@ -132,7 +134,7 @@ Full parameter schemas and pricing notes: `references/mcp-tools.md`.
 | Website + Search Console | `get_website_analysis`, `refresh_website_analysis`💳, `refresh_website_all`💳, `get_search_performance`, `get_search_console_status`, `load_search_performance`💳 |
 | Google posts | `list_posts`, `get_post_templates`, `validate_post`, `draft_post_content`💳, `publish_post`💳, `refresh_posts`💳, `delete_post`💳 |
 | Google connection | `get_google_connection_status`, `get_gbp_performance`, `load_gbp_performance`💳, `load_gbp_keyword_history`💳, `list_gbp_import_locations`, `import_gbp_business`💳 |
-| Account + reports | `get_dashboard`, `get_credit_balance`, `list_feature_prices`, `get_metrics_history`, `list_reports`, `create_report`, `get_report`, `delete_report`, `refresh_business_profile`💳, `refresh_business_overview`💳 |
+| Account + reports | `get_dashboard`, `get_credit_balance`, `list_feature_prices`, `get_metrics_history`, `list_reports`, `create_report`💳, `get_report`, `delete_report`, `refresh_business_profile`💳, `refresh_business_overview`💳 |
 
 ### Core workflows
 
