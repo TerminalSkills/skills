@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Requires LM Studio installed and running locally"
 metadata:
   author: terminal-skills
-  version: "1.0.1"
+  version: "1.0.2"
   category: data-ai
   tags: ["lm-studio", "local-llm", "subagent", "inference", "cost-saving"]
   use-cases:
@@ -24,7 +24,7 @@ metadata:
 
 ## Overview
 
-Offload LLM tasks to local models running in LM Studio to save API costs and maintain privacy. LM Studio provides an OpenAI-compatible API for local models, making it a drop-in replacement for cloud LLM calls. Use local models for high-volume, lower-complexity tasks like summarization, extraction, classification, and reformatting while reserving cloud APIs for complex reasoning.
+Offload LLM tasks to local models running in LM Studio to save API costs and maintain privacy. LM Studio provides a native REST API and OpenAI-compatible endpoints. Prefer the native `/api/v1/chat` API for long-form work because it exposes output-token, reasoning, context-length, streaming, and stateful-continuation controls. Use local models for high-volume, lower-complexity tasks like summarization, extraction, classification, and reformatting while reserving cloud APIs for complex reasoning.
 
 ## Instructions
 
@@ -49,7 +49,82 @@ When a user wants to use local models via LM Studio, determine the task:
 curl http://localhost:1234/v1/models
 ```
 
-### Task B: Call LM Studio from Python (OpenAI-compatible)
+### Response-length strategy
+
+For summarization, extraction, and other tasks where a complete answer matters:
+
+1. Prefer `/api/v1/chat` with `max_output_tokens` set to at least 4096, `reasoning: "off"` unless reasoning is explicitly useful, and an explicit `context_length` appropriate for the loaded model.
+2. Use `store: true` when a continuation may be needed. If the response ends because of a length limit, continue it with `previous_response_id` instead of resending the entire source packet.
+3. Always inspect the stop/finish reason and usage metadata. A response ending with `length` is incomplete even if it contains readable prose.
+4. For long outputs, use streaming and assemble message deltas. Streaming prevents client-side display truncation, but it does not remove a model generation limit.
+5. Give the HTTP request a generous timeout (for example, 15 minutes) for slow local models; do not add an artificial delay after a response has already completed.
+
+### Task B: Call LM Studio from Python (native v1 API, preferred)
+
+```python
+import requests
+
+LM_STUDIO_URL = "http://localhost:1234"
+
+def ask_local(prompt: str, system: str = "You are a helpful assistant.",
+              model: str = "loaded-model", max_output_tokens: int = 4096) -> dict:
+    response = requests.post(
+        f"{LM_STUDIO_URL}/api/v1/chat",
+        headers={"Authorization": "Bearer lm-studio"},
+        json={
+            "model": model,
+            "input": prompt,
+            "system_prompt": system,
+            "temperature": 0.3,
+            "max_output_tokens": max_output_tokens,
+            "reasoning": "off",
+            "context_length": 32768,
+            "stream": False,
+            "store": True,
+        },
+        timeout=900,
+    )
+    response.raise_for_status()
+    data = response.json()
+    message = next(item for item in data["output"] if item["type"] == "message")
+    return {
+        "text": message["content"],
+        "response_id": data.get("response_id"),
+        "stats": data.get("stats", {}),
+    }
+
+result = ask_local("Summarize this text in 2 sentences: ...")
+print(result["text"])
+```
+
+For a continuation, use the saved response ID so LM Studio retains the prior context:
+
+```python
+def continue_local(response_id: str, instruction: str =
+                   "Continue exactly where you stopped. Do not repeat prior text.") -> dict:
+    response = requests.post(
+        f"{LM_STUDIO_URL}/api/v1/chat",
+        headers={"Authorization": "Bearer lm-studio"},
+        json={
+            "model": "loaded-model",
+            "previous_response_id": response_id,
+            "input": instruction,
+            "max_output_tokens": 4096,
+            "reasoning": "off",
+            "stream": False,
+            "store": True,
+        },
+        timeout=900,
+    )
+    response.raise_for_status()
+    data = response.json()
+    message = next(item for item in data["output"] if item["type"] == "message")
+    return {"text": message["content"], "response_id": data.get("response_id")}
+```
+
+If the native API is unavailable, use the OpenAI-compatible fallback. For LM Studio, `max_tokens: -1` avoids imposing a small fixed completion cap; still inspect `finish_reason` and continue when it is `length`:
+
+### OpenAI-compatible fallback
 
 ```python
 from openai import OpenAI
@@ -68,8 +143,11 @@ def ask_local(prompt: str, system: str = "You are a helpful assistant.") -> str:
             {"role": "user", "content": prompt},
         ],
         temperature=0.3,
-        max_tokens=1024,
+        max_tokens=-1,
+        stream=False,
     )
+    if response.choices[0].finish_reason == "length":
+        raise RuntimeError("LM Studio truncated the response; use the native API continuation flow.")
     return response.choices[0].message.content
 
 # Example usage
@@ -97,8 +175,11 @@ class LocalSubagent:
                 {"role": "user", "content": user_input},
             ],
             temperature=self.temperature,
-            max_tokens=2048,
+            max_tokens=-1,
+            stream=False,
         )
+        if response.choices[0].finish_reason == "length":
+            raise RuntimeError("Response truncated; retry through the native API continuation flow.")
         return response.choices[0].message.content
 
 # Define specialized subagents
@@ -142,8 +223,11 @@ async def process_batch(items: list[str], system_prompt: str, max_concurrent: in
                     {"role": "user", "content": text},
                 ],
                 temperature=0.2,
-                max_tokens=512,
+                max_tokens=-1,
+                stream=False,
             )
+            if response.choices[0].finish_reason == "length":
+                raise RuntimeError("Batch item was truncated; process it through a continuation-aware path.")
             return response.choices[0].message.content
 
     tasks = [process_one(item) for item in items]
@@ -229,6 +313,12 @@ for doc in contracts:
 ## Guidelines
 
 - LM Studio processes one request at a time by default. Set `max_concurrent=1-2` for batch jobs.
+- Prefer the native `/api/v1/chat` endpoint for long-form requests; use `/v1/chat/completions` as a compatibility fallback.
+- For summaries and extraction, use `reasoning: "off"` unless hidden reasoning is specifically needed; reasoning tokens consume generation budget without appearing in the returned text.
+- Do not hard-code small positive output limits such as `512`, `1024`, or `2048` for long-form tasks. Use native `max_output_tokens` (usually 4096-8192) or compatible `max_tokens: -1`.
+- Detect `finish_reason: "length"` or the native API's equivalent and automatically continue with the saved response ID. Never present a length-terminated response as complete.
+- Discover the loaded model's `context_length` before choosing a prompt size. Increase it at model-load time only when the loaded configuration is too small; context length and output length are separate limits.
+- Stream long outputs and assemble the deltas, while still checking the final stop reason and usage statistics.
 - Use quantized models (Q4_K_M or Q5_K_M) for best speed-to-quality ratio on consumer hardware.
 - 8B parameter models are the sweet spot for most extraction and classification tasks.
 - Set `temperature=0.0` for deterministic tasks like classification and extraction.
