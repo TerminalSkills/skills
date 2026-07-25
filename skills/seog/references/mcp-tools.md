@@ -21,8 +21,8 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `get_business` | `businessId` | One business |
 | `search_places` 💳🔒 | `query` (2–200 ch), `lat?`, `lng?` | Google Places candidates for import |
 | `import_business` 💳🔒 | `placeId` | Idempotent per place |
-| `update_business` | `businessId`, `name?`, `phone?`, `website?` | Local record only — see `apply_profile_fix` to write to Google |
-| `delete_business` | `businessId` | **Irreversible** — cascades reviews/keywords/rankings/competitors |
+| `update_business` | `businessId`, `name?`, `phone?`, `website?` | SEOG's own record only. The next profile pull overwrites it with Google's values — use `apply_profile_fix` to change what customers see |
+| `delete_business` | `businessId`, **`confirm: true`** | **Irreversible** — cascades reviews/keywords/rankings/competitors |
 
 ## Profile health
 
@@ -44,7 +44,7 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `apply_business_description` 💳 | `businessId`, `text` (≤750 ch) | Public on Google |
 | `undo_business_description` | `businessId` | Restores the previous description |
 | `list_profile_photos` | `businessId` | `{name, url}` of live profile photos |
-| `delete_profile_photo` | `businessId`, `photoName` | Removes it publicly |
+| `delete_profile_photo` | `businessId`, `photoName`, **`confirm: true`** | Removes it publicly; the bytes are not held anywhere, so it cannot be restored |
 | `get_profile_fix_options` | `businessId`, `fixId` | Options Google's catalog offers for an attribute fix |
 | `list_recent_profile_edits` | `businessId` | Edits since the last profile refresh (may still be in Google review) |
 
@@ -60,7 +60,7 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `keyword_recommendations` 💳 | `businessId` | Suggestions with search volume |
 | `keyword_recommendations_cache` | `businessId` | The last run's result, free |
 | `toggle_keyword` | `businessId`, `keywordId`, `isActive` | Pause/resume scheduled checks |
-| `remove_keyword` | `businessId`, `keywordId` | Deletes the keyword + its history |
+| `remove_keyword` | `businessId`, `keywordId`, **`confirm: true`** | Deletes the keyword + its whole rank history; `toggle_keyword` pauses instead |
 
 ## Map grid + AI answers
 
@@ -94,7 +94,7 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `get_discovered_competitors` | `businessId` | Last discovery result, free |
 | `list_competitors` | `businessId` | Tracked, with threat score + movement |
 | `add_competitor` 💳🔒 | `businessId`, `placeId` | Takes an initial snapshot |
-| `remove_competitor` | `businessId`, `competitorId` | |
+| `remove_competitor` | `businessId`, `competitorId`, **`confirm: true`** | Also drops its snapshot history |
 | `set_competitor_watchlist` | `businessId`, `competitorId`, `isWatchListed` | Watched rivals raise alerts on snapshots |
 | `snapshot_competitor` 💳🔒 | `businessId`, `competitorId` | Refresh metrics + raise alerts |
 | `refresh_competitors` 💳 | `businessId` | Snapshots every tracked rival in one charge |
@@ -135,7 +135,7 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `draft_post_content` 💳 | `businessId`, `topicType`, `templateKey?`, `instructions?` | AI copy; publishes nothing |
 | `publish_post` 💳 | `businessId`, `topicType` ∈ `STANDARD\|EVENT\|OFFER`, `summary?` (≤1500 ch), `ctaType?`, `ctaUrl?`, `eventTitle?` (≤58 ch), `eventStart/EndDate`, `eventStart/EndTime`, `photoUrl?`, `scheduledAt?` | **Public on Google.** `scheduledAt` uses Google-native scheduling |
 | `refresh_posts` | `businessId` | Re-sync LIVE/REJECTED states |
-| `delete_post` | `businessId`, `postId` | Removes it publicly |
+| `delete_post` | `businessId`, `postId`, **`confirm: true`** | Removes it publicly; republishing costs a new `publish_post` |
 
 ## Google connection
 
@@ -156,10 +156,19 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 | `get_credit_balance` | — | Buckets, total CR, plan status |
 | `list_feature_prices` | — | Live CR price of every paid feature |
 | `get_metrics_history` | `businessId`, `days?` (1–365, default 90) | Daily snapshots for trends |
-| `list_reports` / `get_report` / `delete_report` | `businessId` (+ `reportId`) | PDF reports |
+| `list_reports` / `get_report` | `businessId` (+ `reportId`) | PDF reports |
+| `delete_report` | `businessId`, `reportId`, **`confirm: true`** | Deletes the stored PDF |
 | `create_report` | `businessId` | Queues generation; poll `get_report` until ready |
 | `refresh_business_profile` 💳🔒 | `businessId` | Re-pull the GBP profile |
 | `refresh_business_overview` 💳🔒 | `businessId` | Profile **and** reviews in one charge |
+
+## Irreversible tools
+
+Six tools take a required **`confirm: true`**: `delete_business`, `delete_profile_photo`,
+`delete_post`, `remove_keyword`, `remove_competitor`, `delete_report`. Omitting it (or
+passing `false`) is a validation error and nothing is touched — MCP has no confirmation
+channel of its own, so the schema is where intent gets enforced. Show the user exactly
+what will be deleted, get a yes, then pass the flag.
 
 ## Errors
 
