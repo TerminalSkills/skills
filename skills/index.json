@@ -1241,6 +1241,19 @@
       "tags": []
     },
     {
+      "name": "canva",
+      "slug": "canva",
+      "description": "Automate Canva from an agent — via the AI Connector MCP server (generate, find, edit, export designs in natural language) or the Connect REST API (OAuth 2.0 + PKCE, brand template autofill, asset uploads, exports, folders, comments). Use when: connecting an agent to Canva, batch-producing social posts or decks from a brand template and a spreadsheet, exporting designs to PDF/PNG/PPTX/MP4, uploading assets into a Canva account, building a Canva integration, or when the user mentions \"Canva\", \"brand template\", \"autofill\", \"Connect API\", or \"mcp.canva.com\".",
+      "category": "design",
+      "tags": [
+        "canva",
+        "design-automation",
+        "brand-templates",
+        "oauth",
+        "mcp"
+      ]
+    },
+    {
       "name": "canvas-api",
       "slug": "canvas-api",
       "description": "Draw 2D graphics with the HTML5 Canvas API — shapes, text, images, gradients, transformations, pixel manipulation, and offscreen rendering. Use when tasks involve generating images server-side (with node-canvas), creating charts, image compositing, watermarking, or browser-based drawing applications.",
@@ -9892,5 +9905,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-09-04T19:25:05.751Z"
+  "updatedAt": "2026-09-04T19:39:41.502Z"
 }
