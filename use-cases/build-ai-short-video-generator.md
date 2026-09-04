@@ -8,7 +8,7 @@ category: content
 persona: >-
   Content creator building a faceless video channel generating $2k/month in
   ad revenue and affiliate income within 6 months.
-skills: [ai-video-generator, elevenlabs, anthropic-sdk, ffmpeg]
+skills: [ai-video-generator, elevenlabs, anthropic-sdk, ffmpeg, vidvibe]
 tags: [video, tiktok, youtube-shorts, faceless-channel, automation, passive-income]
 ---
 
@@ -21,6 +21,16 @@ Creating short-form video content at scale for YouTube Shorts, TikTok, and Insta
 ## The Solution
 
 Build an automated pipeline that generates faceless short-form videos — from trending topic research through script writing, narration, stock footage selection, subtitle generation, assembly, and upload. Target: 50 videos/day at ~$0.05/video cost. No camera, no face, no editing skills needed — just AI + automation.
+
+### If you'd rather not own the pipeline
+
+Everything below is the build-it-yourself route: you own the models, the FFmpeg
+assembly, the storage and every breakage when a model version changes. The hosted
+alternative is the **vidvibe** skill — an MCP server whose tools price a run
+(`get_flow_price`), launch it (`launch_flow`), render it server-side and publish the cut
+to YouTube or TikTok, billed per video in credits instead of per API. Build the pipeline
+when the per-video cost at 50/day is the thing that matters; connect VidVibe when
+time-to-first-video is.
 
 ## Architecture
 
@@ -189,3 +199,5 @@ A creator launches a faceless "AI Tools Nobody Talks About" YouTube Shorts chann
 - `ai-video-generator` — core video generation pipeline
 - `ai-content-monetization` — broader monetization strategies
 - `anthropic-sdk` — Claude API for script generation
+- `vidvibe` — hosted alternative: generate, render and publish the same shorts through
+  an MCP server instead of maintaining your own pipeline

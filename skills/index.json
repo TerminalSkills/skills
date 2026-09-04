@@ -9321,6 +9321,19 @@
       ]
     },
     {
+      "name": "vidvibe",
+      "slug": "vidvibe",
+      "description": "Produce video with AI from the terminal via the VidVibe MCP server — price and launch flows, generate videos and images, create and lip-sync characters, edit a flow canvas, manage brands and styles, upload assets, and publish finished cuts to YouTube and TikTok. Use when: connecting an agent to vidvibe.io, generating short-form or marketing video, batch-producing branded clips, driving a video pipeline that keeps running server-side, publishing to a connected channel, or when the user mentions \"VidVibe\", \"flow run\", \"character\", \"Joiner\", or spending \"credits\" on video.",
+      "category": "content",
+      "tags": [
+        "video-generation",
+        "mcp",
+        "ai-video",
+        "youtube",
+        "characters"
+      ]
+    },
+    {
       "name": "viem",
       "slug": "viem",
       "description": "You are an expert in Viem, the TypeScript interface for Ethereum that provides low-level, type-safe primitives for interacting with the blockchain. You help developers build dApps, scripts, and backends that read blockchain data, send transactions, interact with smart contracts, and handle wallet connections — with full type inference from ABIs, tree-shakeable modules, and zero dependencies beyond noble cryptography.",
@@ -9879,5 +9892,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-07-25T13:11:31.441Z"
+  "updatedAt": "2026-09-04T19:25:05.751Z"
 }

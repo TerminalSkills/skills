@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:808674fdd4c8cca7b48b3fe5109a795e23696b0a046a7195bac18f15cda4e307",
+  "scoredAt": "2026-09-04T19:24:59.756Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.7,
+    "baselineAvg": 3,
+    "treatmentAvg": 67,
+    "scenarios": [
+      {
+        "name": "price-and-publish-youtube",
+        "baseline": 5,
+        "treatment": 20,
+        "rationale": "Response A includes some of the required API calls and a clear workflow, whereas Response B omits all required calls and focuses on unrelated video editing steps."
+      },
+      {
+        "name": "generate-and-save-hero-image",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required tools or workflow."
+      },
+      {
+        "name": "create-and-activate-character",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most required steps but omits the get_character confirmation, while Response B provides no content."
+      }
+    ]
+  }
+}
