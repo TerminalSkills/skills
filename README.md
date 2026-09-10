@@ -88,6 +88,7 @@ instructions, and you register the MCP server yourself.
 | [monorepo-manager](skills/monorepo-manager/) | Development | Manage dependencies and workspaces in monorepos |
 | [data-validator](skills/data-validator/) | Data & AI | Validate data quality in CSV, JSON, and database exports |
 | [log-analyzer](skills/log-analyzer/) | DevOps | Analyze application logs to identify root causes and incident timelines |
+| [ledger-tasks-yylo](skills/ledger-tasks-yylo/) | Development | Operate YYLO Ledger task management and source-of-truth boundaries for coding agents |
 
 ## Use Cases
 
@@ -111,6 +112,7 @@ Step-by-step guides for common workflows:
 - [Automate Release Notes](use-cases/automate-release-notes.md)
 - [Debug Production Incidents](use-cases/debug-production-incident.md)
 - [Automate Local SEO Monitoring for Client Businesses](use-cases/automate-local-seo-agency-reporting.md)
+- [Run a Kanban Task Board for AI Coding Agents](use-cases/run-kanban-tasks-for-coding-agents.md)
 
 ## Contributing
 
