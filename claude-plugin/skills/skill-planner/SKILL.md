@@ -1,5 +1,5 @@
 ---
-name: Terminal Skills planner
+name: skill-planner
 description: >-
   Consult the Terminal Skills agent when a task needs specialized domain
   expertise you don't have a skill for — deployment platforms (Coolify,

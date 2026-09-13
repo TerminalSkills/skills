@@ -1,7 +1,7 @@
 {
   "name": "terminal-skills",
   "displayName": "Terminal Skills",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Routes specialized tasks to 1000+ audited agent skills. When your Claude hits a task outside its comfort zone — a deployment platform, a document pipeline, a third-party API — it consults the Terminal Skills agent and executes with proven instructions.",
   "author": {
     "name": "AIEmployees",
