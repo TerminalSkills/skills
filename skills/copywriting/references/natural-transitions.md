@@ -6,6 +6,27 @@ Adapted from: University of Manchester Academic Phrasebank (2023), Plain English
 
 ---
 
+## Contents
+
+- [Previewing Content Structure](#previewing-content-structure)
+- [Introducing a New Topic](#introducing-a-new-topic)
+- [Referring Back](#referring-back)
+- [Moving Between Sections](#moving-between-sections)
+- [Indicating Addition](#indicating-addition)
+- [Indicating Contrast](#indicating-contrast)
+- [Indicating Similarity](#indicating-similarity)
+- [Indicating Cause and Effect](#indicating-cause-and-effect)
+- [Giving Examples](#giving-examples)
+- [Emphasising Key Points](#emphasising-key-points)
+- [Providing Evidence](#providing-evidence)
+- [Summarising Sections](#summarising-sections)
+- [Concluding Content](#concluding-content)
+- [Question-Based Transitions](#question-based-transitions)
+- [List Introductions](#list-introductions)
+- [Hedging Language](#hedging-language)
+- [Best Practice Guidelines](#best-practice-guidelines)
+- [Transitions to Avoid (AI Tells)](#transitions-to-avoid-ai-tells)
+
 ## Previewing Content Structure
 
 Use to orient readers and set expectations:

@@ -2,6 +2,17 @@
 
 Detailed guide for implementing tracking via Google Tag Manager.
 
+## Contents
+
+- [Container Structure](#container-structure)
+- [Naming Conventions](#naming-conventions)
+- [Data Layer Patterns](#data-layer-patterns)
+- [Common Tag Configurations](#common-tag-configurations)
+- [Preview and Debug](#preview-and-debug)
+- [Workspaces and Versioning](#workspaces-and-versioning)
+- [Consent Management](#consent-management)
+- [Advanced Patterns](#advanced-patterns)
+
 ## Container Structure
 
 ### Tags

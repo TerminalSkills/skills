@@ -4,6 +4,18 @@ Distilled guidance for deciding whether a SwiftUI feature should stay as plain M
 
 Inspired by the user's provided source, "SwiftUI in 2025: Forget MVVM" (Thomas Ricouard), but rewritten here as a practical refactoring reference.
 
+## Contents
+
+- [Default stance](#default-stance)
+- [When to avoid a view model](#when-to-avoid-a-view-model)
+- [When a view model may be justified](#when-a-view-model-may-be-justified)
+- [Preferred pattern: local state plus environment](#preferred-pattern-local-state-plus-environment)
+- [Preferred pattern: use modifiers as lightweight orchestration](#preferred-pattern-use-modifiers-as-lightweight-orchestration)
+- [SwiftData note](#swiftdata-note)
+- [Testing guidance](#testing-guidance)
+- [Refactor checklist](#refactor-checklist)
+- [Bottom line](#bottom-line)
+
 ## Default stance
 
 - Default to MV: views are lightweight state expressions and orchestration points.

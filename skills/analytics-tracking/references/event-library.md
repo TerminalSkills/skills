@@ -2,6 +2,16 @@
 
 Comprehensive list of events to track by business type and context.
 
+## Contents
+
+- [Marketing Site Events](#marketing-site-events)
+- [Product/App Events](#productapp-events)
+- [Monetization Events](#monetization-events)
+- [E-commerce Events](#e-commerce-events)
+- [B2B / SaaS Specific Events](#b2b--saas-specific-events)
+- [Event Properties (Parameters)](#event-properties-parameters)
+- [Funnel Event Sequences](#funnel-event-sequences)
+
 ## Marketing Site Events
 
 ### Navigation & Engagement

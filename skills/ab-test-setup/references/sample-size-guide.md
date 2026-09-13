@@ -2,6 +2,18 @@
 
 Reference for calculating sample sizes and test duration.
 
+## Contents
+
+- [Sample Size Fundamentals](#sample-size-fundamentals)
+- [Sample Size Quick Reference Tables](#sample-size-quick-reference-tables)
+- [Duration Calculator](#duration-calculator)
+- [Online Calculators](#online-calculators)
+- [Adjusting for Multiple Variants](#adjusting-for-multiple-variants)
+- [Common Sample Size Mistakes](#common-sample-size-mistakes)
+- [When Sample Size Requirements Are Too High](#when-sample-size-requirements-are-too-high)
+- [Sequential Testing](#sequential-testing)
+- [Quick Decision Framework](#quick-decision-framework)
+
 ## Sample Size Fundamentals
 
 ### Required Inputs

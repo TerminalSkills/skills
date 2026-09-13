@@ -1,3 +1,11 @@
+## Contents
+
+- [Concurrent programming updates in Swift 6.2](#concurrent-programming-updates-in-swift-62)
+- [Data-race safety](#data-race-safety)
+- [Global State](#global-state)
+- [Offloading work to the background](#offloading-work-to-the-background)
+- [Summary](#summary)
+
 ## Concurrent programming updates in Swift 6.2
 
 Concurrent programming is hard because sharing memory between multiple tasks is prone to mistakes that lead to unpredictable behavior.

@@ -2,6 +2,22 @@
 
 Beyond mixing and matching data point permutations, these are the proven playbooks for programmatic SEO.
 
+## Contents
+
+- [1. Templates](#1-templates)
+- [2. Curation](#2-curation)
+- [3. Conversions](#3-conversions)
+- [4. Comparisons](#4-comparisons)
+- [5. Examples](#5-examples)
+- [6. Locations](#6-locations)
+- [7. Personas](#7-personas)
+- [8. Integrations](#8-integrations)
+- [9. Glossary](#9-glossary)
+- [10. Translations](#10-translations)
+- [11. Directory](#11-directory)
+- [12. Profiles](#12-profiles)
+- [Choosing Your Playbook](#choosing-your-playbook)
+
 ## 1. Templates
 
 **Pattern**: "[Type] template" or "free [type] template"

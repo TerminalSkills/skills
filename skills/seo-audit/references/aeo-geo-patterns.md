@@ -4,6 +4,31 @@ Reusable content block patterns optimized for answer engines and AI citation.
 
 ---
 
+## Contents
+
+- [Answer Engine Optimization (AEO) Patterns](#answer-engine-optimization-aeo-patterns)
+  - [Definition Block](#definition-block)
+  - [Step-by-Step Block](#step-by-step-block)
+  - [Comparison Table Block](#comparison-table-block)
+  - [Pros and Cons Block](#pros-and-cons-block)
+  - [FAQ Block](#faq-block)
+  - [Listicle Block](#listicle-block)
+- [Generative Engine Optimization (GEO) Patterns](#generative-engine-optimization-geo-patterns)
+  - [Statistic Citation Block](#statistic-citation-block)
+  - [Expert Quote Block](#expert-quote-block)
+  - [Authoritative Claim Block](#authoritative-claim-block)
+  - [Self-Contained Answer Block](#self-contained-answer-block)
+  - [Evidence Sandwich Block](#evidence-sandwich-block)
+- [Domain-Specific GEO Tactics](#domain-specific-geo-tactics)
+  - [Technology Content](#technology-content)
+  - [Health/Medical Content](#healthmedical-content)
+  - [Financial Content](#financial-content)
+  - [Legal Content](#legal-content)
+  - [Business/Marketing Content](#businessmarketing-content)
+- [Voice Search Optimization](#voice-search-optimization)
+  - [Question Formats for Voice](#question-formats-for-voice)
+  - [Voice-Optimized Answer Structure](#voice-optimized-answer-structure)
+
 ## Answer Engine Optimization (AEO) Patterns
 
 These patterns help content appear in featured snippets, AI Overviews, voice search results, and answer boxes.

@@ -2,6 +2,17 @@
 
 Detailed implementation guide for Google Analytics 4.
 
+## Contents
+
+- [Configuration](#configuration)
+- [Custom Events](#custom-events)
+- [Conversions Setup](#conversions-setup)
+- [Custom Dimensions and Metrics](#custom-dimensions-and-metrics)
+- [Audiences](#audiences)
+- [Debugging](#debugging)
+- [Data Quality](#data-quality)
+- [Integration with Google Ads](#integration-with-google-ads)
+
 ## Configuration
 
 ### Data Streams

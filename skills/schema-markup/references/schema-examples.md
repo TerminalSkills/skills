@@ -2,6 +2,21 @@
 
 Complete JSON-LD examples for common schema types.
 
+## Contents
+
+- [Organization](#organization)
+- [WebSite (with SearchAction)](#website-with-searchaction)
+- [Article / BlogPosting](#article--blogposting)
+- [Product](#product)
+- [SoftwareApplication](#softwareapplication)
+- [FAQPage](#faqpage)
+- [HowTo](#howto)
+- [BreadcrumbList](#breadcrumblist)
+- [LocalBusiness](#localbusiness)
+- [Event](#event)
+- [Multiple Schema Types](#multiple-schema-types)
+- [Implementation Example (Next.js)](#implementation-example-nextjs)
+
 ## Organization
 
 For company/brand homepage or about page.

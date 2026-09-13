@@ -1,5 +1,18 @@
 # Implementing Liquid Glass Design in SwiftUI
 
+## Contents
+
+- [Overview](#overview)
+- [Basic Implementation](#basic-implementation)
+- [Customizing Liquid Glass Effects](#customizing-liquid-glass-effects)
+- [Working with Multiple Glass Effects](#working-with-multiple-glass-effects)
+- [Morphing Effects and Transitions](#morphing-effects-and-transitions)
+- [Button Styling with Liquid Glass](#button-styling-with-liquid-glass)
+- [Advanced Techniques](#advanced-techniques)
+- [Best Practices](#best-practices)
+- [Example: Custom Badge with Liquid Glass](#example-custom-badge-with-liquid-glass)
+- [References](#references)
+
 ## Overview
 
 Liquid Glass is a dynamic material introduced in iOS that combines the optical properties of glass with a sense of fluidity. It blurs content behind it, reflects color and light from surrounding content, and reacts to touch and pointer interactions in real time. This guide covers how to implement and customize Liquid Glass effects in SwiftUI applications. You should always seek guides on Liquid Glass when asked for help adopting new Apple design.

@@ -2,6 +2,16 @@
 
 A comprehensive guide to lifecycle and campaign emails. Use this as an audit checklist and implementation reference.
 
+## Contents
+
+- [Onboarding Emails](#onboarding-emails)
+- [Retention Emails](#retention-emails)
+- [Billing Emails](#billing-emails)
+- [Usage Emails](#usage-emails)
+- [Win-Back Emails](#win-back-emails)
+- [Campaign Emails](#campaign-emails)
+- [Email Audit Checklist](#email-audit-checklist)
+
 ## Onboarding Emails
 
 ### New Users Series

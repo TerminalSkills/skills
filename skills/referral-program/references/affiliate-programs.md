@@ -2,6 +2,15 @@
 
 Detailed guidance for building and managing affiliate programs.
 
+## Contents
+
+- [Commission Structures](#commission-structures)
+- [Cookie Duration](#cookie-duration)
+- [Affiliate Recruitment](#affiliate-recruitment)
+- [Affiliate Enablement](#affiliate-enablement)
+- [Tools & Platforms](#tools--platforms)
+- [Fraud Prevention](#fraud-prevention)
+
 ## Commission Structures
 
 **Percentage of sale:**

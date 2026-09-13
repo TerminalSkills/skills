@@ -2,6 +2,30 @@
 
 Headline formulas, page section types, and structural templates.
 
+## Contents
+
+- [Headline Formulas](#headline-formulas)
+  - [Outcome-Focused](#outcome-focused)
+  - [Problem-Focused](#problem-focused)
+  - [Audience-Focused](#audience-focused)
+  - [Differentiation-Focused](#differentiation-focused)
+  - [Proof-Focused](#proof-focused)
+  - [Additional Formulas](#additional-formulas)
+- [Landing Page Section Types](#landing-page-section-types)
+  - [Core Sections](#core-sections)
+  - [Supporting Sections](#supporting-sections)
+- [Page Structure Templates](#page-structure-templates)
+  - [Feature-Heavy Page (Weak)](#feature-heavy-page-weak)
+  - [Varied, Engaging Page (Strong)](#varied-engaging-page-strong)
+  - [Compact Landing Page](#compact-landing-page)
+  - [Enterprise/B2B Landing Page](#enterpriseb2b-landing-page)
+  - [Product Launch Page](#product-launch-page)
+- [Section Writing Tips](#section-writing-tips)
+  - [Problem Section](#problem-section)
+  - [Benefits Section](#benefits-section)
+  - [How It Works Section](#how-it-works-section)
+  - [Testimonial Selection](#testimonial-selection)
+
 ## Headline Formulas
 
 ### Outcome-Focused

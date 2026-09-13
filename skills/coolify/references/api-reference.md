@@ -2,6 +2,23 @@
 
 Base URL: `https://<your-coolify-instance>/api/v1`
 
+## Contents
+
+- [Authentication](#authentication)
+- [Endpoints](#endpoints)
+  - [Applications](#applications)
+  - [Databases](#databases)
+  - [Services](#services)
+  - [Servers](#servers)
+  - [Deployments](#deployments)
+  - [Projects & Environments](#projects--environments)
+  - [Security Keys](#security-keys)
+  - [Teams](#teams)
+  - [System](#system)
+- [Common Patterns](#common-patterns)
+  - [Deploy and wait for completion](#deploy-and-wait-for-completion)
+  - [Bulk sync env vars from .env file](#bulk-sync-env-vars-from-env-file)
+
 ## Authentication
 
 All requests require a Bearer token in the `Authorization` header:

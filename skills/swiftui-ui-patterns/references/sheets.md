@@ -1,5 +1,19 @@
 # Sheets
 
+## Contents
+
+- [Intent](#intent)
+- [Core architecture](#core-architecture)
+- [Example: item-driven local sheet](#example-item-driven-local-sheet)
+- [Example: SheetDestination enum](#example-sheetdestination-enum)
+- [Example: withSheetDestinations modifier](#example-withsheetdestinations-modifier)
+- [Example: presenting from a child view](#example-presenting-from-a-child-view)
+- [Required wiring](#required-wiring)
+- [Example: sheets that need their own navigation](#example-sheets-that-need-their-own-navigation)
+- [Example: sheet owns its actions](#example-sheet-owns-its-actions)
+- [Design choices to keep](#design-choices-to-keep)
+- [Pitfalls](#pitfalls)
+
 ## Intent
 
 Use a centralized sheet routing pattern so any view can present modals without prop-drilling. This keeps sheet state in one place and scales as the app grows.

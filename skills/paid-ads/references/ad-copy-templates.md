@@ -2,6 +2,14 @@
 
 Detailed formulas and templates for writing high-converting ad copy.
 
+## Contents
+
+- [Primary Text Formulas](#primary-text-formulas)
+- [Headline Formulas](#headline-formulas)
+- [CTA Variations](#cta-variations)
+- [Platform-Specific Copy Guidelines](#platform-specific-copy-guidelines)
+- [Copy Testing Priority](#copy-testing-priority)
+
 ## Primary Text Formulas
 
 ### Problem-Agitate-Solve (PAS)

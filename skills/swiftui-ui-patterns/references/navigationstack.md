@@ -1,5 +1,16 @@
 # NavigationStack
 
+## Contents
+
+- [Intent](#intent)
+- [Core architecture](#core-architecture)
+- [Example: custom router with per-tab stack](#example-custom-router-with-per-tab-stack)
+- [Example: centralized destination mapping](#example-centralized-destination-mapping)
+- [Example: binding per tab (tabs with independent history)](#example-binding-per-tab-tabs-with-independent-history)
+- [Example: generic tabs with per-tab NavigationStack](#example-generic-tabs-with-per-tab-navigationstack)
+- [Design choices to keep](#design-choices-to-keep)
+- [Pitfalls](#pitfalls)
+
 ## Intent
 
 Use this pattern for programmatic navigation and deep links, especially when each tab needs an independent navigation history. The key idea is one `NavigationStack` per tab, each with its own path binding and router object.

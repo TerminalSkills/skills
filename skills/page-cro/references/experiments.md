@@ -2,6 +2,16 @@
 
 Comprehensive list of A/B tests and experiments organized by page type.
 
+## Contents
+
+- [Homepage Experiments](#homepage-experiments)
+- [Pricing Page Experiments](#pricing-page-experiments)
+- [Demo Request Page Experiments](#demo-request-page-experiments)
+- [Resource/Blog Page Experiments](#resourceblog-page-experiments)
+- [Landing Page Experiments](#landing-page-experiments)
+- [Feature Page Experiments](#feature-page-experiments)
+- [Cross-Page Experiments](#cross-page-experiments)
+
 ## Homepage Experiments
 
 ### Hero Section

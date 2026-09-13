@@ -1,5 +1,15 @@
 # Tier Structure and Packaging
 
+## Contents
+
+- [How Many Tiers?](#how-many-tiers)
+- [Good-Better-Best Framework](#good-better-best-framework)
+- [Tier Differentiation Strategies](#tier-differentiation-strategies)
+- [Example Tier Structure](#example-tier-structure)
+- [Packaging for Personas](#packaging-for-personas)
+- [Freemium vs. Free Trial](#freemium-vs-free-trial)
+- [Enterprise Pricing](#enterprise-pricing)
+
 ## How Many Tiers?
 
 **2 tiers:** Simple, clear choice

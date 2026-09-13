@@ -2,6 +2,16 @@
 
 Detailed guide to each type of marketing tool you can build.
 
+## Contents
+
+- [Calculators](#calculators)
+- [Generators](#generators)
+- [Analyzers/Auditors](#analyzersauditors)
+- [Testers/Validators](#testersvalidators)
+- [Libraries/Resources](#librariesresources)
+- [Interactive Educational](#interactive-educational)
+- [Tool Concept Examples by Industry](#tool-concept-examples-by-industry)
+
 ## Calculators
 
 **Best for**: Decisions involving numbers, comparisons, estimates

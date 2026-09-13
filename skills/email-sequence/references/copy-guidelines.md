@@ -1,5 +1,16 @@
 # Email Copy Guidelines
 
+## Contents
+
+- [Structure](#structure)
+- [Formatting](#formatting)
+- [Tone](#tone)
+- [Length](#length)
+- [CTA Buttons vs. Links](#cta-buttons-vs-links)
+- [Personalization](#personalization)
+- [Segmentation Strategies](#segmentation-strategies)
+- [Testing and Optimization](#testing-and-optimization)
+
 ## Structure
 
 1. **Hook**: First line grabs attention

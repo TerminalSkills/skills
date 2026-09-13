@@ -2,6 +2,16 @@
 
 Detailed targeting strategies for each major ad platform.
 
+## Contents
+
+- [Google Ads Audiences](#google-ads-audiences)
+- [Meta Audiences](#meta-audiences)
+- [LinkedIn Audiences](#linkedin-audiences)
+- [Twitter/X Audiences](#twitterx-audiences)
+- [TikTok Audiences](#tiktok-audiences)
+- [Audience Size Guidelines](#audience-size-guidelines)
+- [Exclusion Strategy](#exclusion-strategy)
+
 ## Google Ads Audiences
 
 ### Search Campaign Targeting

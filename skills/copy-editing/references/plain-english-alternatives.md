@@ -6,6 +6,25 @@ Source: Plain English Campaign A-Z of Alternative Words (2001), Australian Gover
 
 ---
 
+## Contents
+
+- [A](#a)
+- [B](#b)
+- [C](#c)
+- [D](#d)
+- [E](#e)
+- [F](#f)
+- [G-H](#g-h)
+- [I](#i)
+- [L-M](#l-m)
+- [N-O](#n-o)
+- [P](#p)
+- [R](#r)
+- [S](#s)
+- [T-U](#t-u)
+- [V-Z](#v-z)
+- [Phrases to Remove Entirely](#phrases-to-remove-entirely)
+
 ## A
 
 | Complex | Plain Alternative |

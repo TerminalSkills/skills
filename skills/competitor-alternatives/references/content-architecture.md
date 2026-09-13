@@ -2,6 +2,15 @@
 
 How to structure and maintain competitor data for scalable comparison pages.
 
+## Contents
+
+- [Centralized Competitor Data](#centralized-competitor-data)
+- [Competitor Data Template](#competitor-data-template)
+- [Your Product Data](#your-product-data)
+- [Page Generation](#page-generation)
+- [Index Page Structure](#index-page-structure)
+- [Footer Navigation](#footer-navigation)
+
 ## Centralized Competitor Data
 
 Create a single source of truth for each competitor:

@@ -2,6 +2,16 @@
 
 Templates for planning, documenting, and analyzing experiments.
 
+## Contents
+
+- [Test Plan Template](#test-plan-template)
+- [Results Documentation Template](#results-documentation-template)
+- [Test Repository Entry Template](#test-repository-entry-template)
+- [Quick Test Brief Template](#quick-test-brief-template)
+- [Stakeholder Update Template](#stakeholder-update-template)
+- [Experiment Prioritization Scorecard](#experiment-prioritization-scorecard)
+- [Hypothesis Bank Template](#hypothesis-bank-template)
+
 ## Test Plan Template
 
 ```markdown

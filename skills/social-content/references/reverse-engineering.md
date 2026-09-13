@@ -2,6 +2,18 @@
 
 Instead of guessing what works, systematically analyze top-performing content in your niche and extract proven patterns.
 
+## Contents
+
+- [The 6-Step Framework](#the-6-step-framework)
+  - [1. NICHE ID — Find Top Creators](#1-niche-id--find-top-creators)
+  - [2. SCRAPE — Collect Posts at Scale](#2-scrape--collect-posts-at-scale)
+  - [3. ANALYZE — Extract What Actually Works](#3-analyze--extract-what-actually-works)
+  - [4. PLAYBOOK — Codify Patterns](#4-playbook--codify-patterns)
+  - [5. LAYER VOICE — Apply Direct Response Principles](#5-layer-voice--apply-direct-response-principles)
+  - [6. CONVERT — Turn Attention into Action](#6-convert--turn-attention-into-action)
+- [The Formula](#the-formula)
+- [Reverse Engineering Checklist](#reverse-engineering-checklist)
+
 ## The 6-Step Framework
 
 ### 1. NICHE ID — Find Top Creators

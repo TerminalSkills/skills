@@ -15,6 +15,23 @@ returns the live price of every 💳 tool; `get_credit_balance` returns what is 
 (standalone customers and admins). White-label / agency tokens never see these tools —
 `tools/list` omits them and naming one returns "not found".
 
+## Contents
+
+- [Businesses](#businesses)
+- [Profile health](#profile-health)
+- [Profile editing — writes to the live Google listing](#profile-editing--writes-to-the-live-google-listing)
+- [Rankings](#rankings)
+- [Map grid + AI answers](#map-grid--ai-answers)
+- [Reviews](#reviews)
+- [Competitors](#competitors)
+- [AI visibility + citations](#ai-visibility--citations)
+- [Website + Search Console](#website--search-console)
+- [Google posts](#google-posts)
+- [Google connection](#google-connection)
+- [Account + reports](#account--reports)
+- [Irreversible tools](#irreversible-tools)
+- [Errors](#errors)
+
 ## Businesses
 
 | Tool | Params | Notes |

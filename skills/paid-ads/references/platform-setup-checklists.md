@@ -2,6 +2,15 @@
 
 Complete setup checklists for major ad platforms.
 
+## Contents
+
+- [Google Ads Setup](#google-ads-setup)
+- [Meta Ads Setup](#meta-ads-setup)
+- [LinkedIn Ads Setup](#linkedin-ads-setup)
+- [Twitter/X Ads Setup](#twitterx-ads-setup)
+- [TikTok Ads Setup](#tiktok-ads-setup)
+- [Universal Pre-Launch Checklist](#universal-pre-launch-checklist)
+
 ## Google Ads Setup
 
 ### Account Foundation
