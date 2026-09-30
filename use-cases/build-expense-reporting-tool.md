@@ -4,7 +4,7 @@ slug: build-expense-reporting-tool
 description: Build a custom expense management system — submit expenses with receipt photos, AI-powered OCR auto-fill, multi-level approval workflow, Stripe payouts for reimbursement, and per-team budget tracking — replacing $50/user/month expense software.
 skills:
   - anthropic-sdk
-  - stripe
+  - stripe-billing
   - prisma
 category: business
 tags:

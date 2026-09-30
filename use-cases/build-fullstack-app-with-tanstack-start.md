@@ -8,7 +8,6 @@ description: >-
 skills:
   - tanstack-start
   - tanstack-router
-  - tanstack
   - drizzle-orm
   - zod
 category: development

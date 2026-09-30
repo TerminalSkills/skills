@@ -6,7 +6,7 @@ skills:
   - typescript
   - nextjs
   - redis
-  - docker
+  - docker-helper
   - tailwindcss
 category: devops
 tags:

@@ -11,7 +11,7 @@ skills:
   - redis
   - hono
   - zod
-  - kafka-js
+  - kafka
 category: development
 tags:
   - websocket

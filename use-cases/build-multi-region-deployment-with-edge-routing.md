@@ -10,7 +10,7 @@ skills:
   - hono
   - redis
   - postgresql
-  - docker
+  - docker-helper
   - terraform-iac
   - cloudflare-workers
 category: devops

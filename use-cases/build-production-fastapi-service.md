@@ -12,7 +12,7 @@ skills:
   - pydantic
   - pytest
   - uvicorn
-  - docker-multi-stage
+  - docker-helper
 category: development
 tags:
   - fastapi

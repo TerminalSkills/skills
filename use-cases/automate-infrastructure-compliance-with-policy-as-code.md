@@ -8,7 +8,7 @@ description: >
 skills:
   - typescript
   - terraform-iac
-  - docker
+  - docker-helper
   - github-actions
   - postgresql
   - zod

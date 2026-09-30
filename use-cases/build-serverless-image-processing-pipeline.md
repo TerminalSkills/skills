@@ -11,7 +11,7 @@ skills:
   - redis
   - zod
   - hono
-  - docker
+  - docker-helper
 category: development
 tags:
   - image-processing

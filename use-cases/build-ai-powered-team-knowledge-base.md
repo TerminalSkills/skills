@@ -3,7 +3,7 @@ title: Build an AI-Powered Team Knowledge Base
 slug: build-ai-powered-team-knowledge-base
 description: >-
   Build an internal RAG knowledge base that ingests Notion, Confluence, Slack, and GitHub docs into pgvector, letting team members ask questions and get cited answers.
-skills: [pgvector, crawlee, openai-sdk, vercel-ai-sdk]
+skills: [pgvector, crawlee, openai-sdk, ai-sdk]
 category: data-ai
 tags: [rag, knowledge-base, vector-search, embeddings, internal-tools]
 ---

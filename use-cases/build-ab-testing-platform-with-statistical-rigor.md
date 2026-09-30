@@ -12,7 +12,7 @@ skills:
   - postgresql
   - hono
   - zod
-  - vercel-ai-sdk
+  - ai-sdk
 category: development
 tags:
   - ab-testing

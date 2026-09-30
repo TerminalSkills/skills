@@ -7,7 +7,7 @@ description: >
   6 weeks while generating audit-ready compliance reports.
 skills:
   - typescript
-  - kafka-js
+  - kafka
   - postgresql
   - redis
   - bull-mq

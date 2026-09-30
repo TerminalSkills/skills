@@ -5,7 +5,7 @@ description: Build an automated PostgreSQL backup system with continuous WAL arc
 skills:
   - typescript
   - postgresql
-  - docker
+  - docker-helper
   - github-actions
 category: devops
 tags:

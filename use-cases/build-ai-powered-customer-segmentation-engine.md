@@ -4,7 +4,7 @@ slug: build-ai-powered-customer-segmentation-engine
 description: Build a customer segmentation system that uses embeddings and clustering to automatically discover user segments from behavioral data, enabling targeted marketing and product decisions.
 skills:
   - typescript
-  - openai
+  - openai-sdk
   - postgresql
   - redis
   - hono

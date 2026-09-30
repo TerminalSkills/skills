@@ -9,7 +9,7 @@ skills:
   - typescript
   - qdrant
   - redis
-  - vercel-ai-sdk
+  - ai-sdk
   - hono
   - zod
   - postgresql

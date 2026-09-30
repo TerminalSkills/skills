@@ -6,7 +6,6 @@ description: >-
   dependencies from runtime, cache layers efficiently, use distroless base
   images, and speed up CI/CD pipelines.
 skills:
-  - docker-multi-stage
   - docker-helper
   - github-actions
 category: devops

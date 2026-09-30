@@ -10,7 +10,7 @@ skills:
   - bull-mq
   - redis
   - postgresql
-  - kafka-js
+  - kafka
   - zod
   - hono
 category: development

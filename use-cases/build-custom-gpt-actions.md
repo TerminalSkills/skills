@@ -3,7 +3,7 @@ title: Build Custom GPT Actions
 slug: build-custom-gpt-actions
 description: Connect ChatGPT to your API or internal tools using Custom GPT Actions — define an OpenAPI schema, add authentication, handle database queries and record creation, and publish to the GPT Store.
 skills:
-  - openai
+  - openai-sdk
 difficulty: intermediate
 time_estimate: "4 hours"
 category: ai

@@ -7,7 +7,7 @@ description: >
   SOX, HIPAA, and GDPR audit requirements while handling 50K events/second.
 skills:
   - typescript
-  - kafka-js
+  - kafka
   - postgresql
   - redis
   - hono

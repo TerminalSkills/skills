@@ -4,7 +4,7 @@ slug: build-interactive-3d-product-configurator
 description: Build a real-time 3D product configurator using Three.js (React Three Fiber) where customers customize colors, materials, and components of a product — with smooth animations and a "share your design" feature.
 skills:
   - threejs
-  - framer-motion
+  - motion
   - nextjs
   - tailwindcss
 category: development

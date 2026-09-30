@@ -7,11 +7,11 @@ description: >-
   forms, and next-safe-action for type-safe server mutations.
 skills:
   - authjs
-  - tanstack
+  - tanstack-query
   - react-hook-form
   - next-safe-action
   - prisma
-  - stripe
+  - stripe-billing
 category: development
 tags:
   - nextjs

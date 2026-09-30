@@ -1,7 +1,7 @@
 ---
 title: "Build In-App Purchases for iOS and Android"
 description: "Add subscriptions, one-time purchases, and consumables to your React Native app using RevenueCat — with paywall UI, entitlement gating, and receipt validation."
-skills: [expo-router]
+skills: [expo]
 difficulty: intermediate
 time_estimate: "8 hours"
 tags: [mobile, ios, android, monetization, revenuecat, subscriptions, expo, react-native]

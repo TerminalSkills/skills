@@ -6,7 +6,7 @@ description: >-
   reactivity, server functions, streaming SSR, and zero virtual DOM for
   a fast-by-default experience.
 skills:
-  - solid
+  - solid-js
   - drizzle-orm
   - tailwindcss
   - zod

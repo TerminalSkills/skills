@@ -1,7 +1,7 @@
 ---
 title: "Build a Video Streaming Platform"
 description: "Launch a paid video membership site with adaptive bitrate streaming, paywalled content, auto-generated captions, and detailed watch analytics — using Mux or Cloudflare Stream."
-skills: [stripe, prisma]
+skills: [stripe-billing, prisma]
 difficulty: advanced
 time_estimate: "12 hours"
 tags: [video, streaming, monetization, hls, membership, mux, captions, analytics]

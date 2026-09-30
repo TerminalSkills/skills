@@ -7,7 +7,7 @@ description: >
   platform $400K/year in chargebacks.
 skills:
   - typescript
-  - kafka-js
+  - kafka
   - redis
   - postgresql
   - zod

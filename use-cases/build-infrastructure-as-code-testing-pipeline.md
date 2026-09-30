@@ -9,7 +9,7 @@ skills:
   - typescript
   - terraform-iac
   - github-actions
-  - docker
+  - docker-helper
   - vitest
   - zod
 category: devops

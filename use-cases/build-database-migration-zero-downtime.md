@@ -9,7 +9,7 @@ skills:
   - typescript
   - postgresql
   - redis
-  - kafka-js
+  - kafka
   - zod
   - vitest
 category: devops

@@ -4,7 +4,7 @@ slug: build-rag-pipeline-with-vector-search
 description: Build a Retrieval-Augmented Generation pipeline with document chunking, embedding generation, vector search, and contextual answer generation — turning company knowledge into an intelligent Q&A system.
 skills:
   - typescript
-  - openai
+  - openai-sdk
   - postgresql
   - redis
   - hono

@@ -3,7 +3,7 @@ title: Build a Video Course Platform with Chapters, Quizzes, and Progress Tracki
 slug: build-course-platform-with-video
 description: Build a coding bootcamp platform with adaptive video streaming, module-based course structure, per-student progress tracking, completion certificates, and Stripe one-time + subscription access — all in Next.js.
 skills:
-  - stripe
+  - stripe-billing
   - prisma
   - mux
 category: business

@@ -4,7 +4,7 @@ slug: build-ai-powered-log-anomaly-detector
 description: Build a system that uses embeddings and statistical analysis to detect anomalous log patterns in real-time, alerting on novel errors before they become outages.
 skills:
   - typescript
-  - openai
+  - openai-sdk
   - redis
   - postgresql
   - hono

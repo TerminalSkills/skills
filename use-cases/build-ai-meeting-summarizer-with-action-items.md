@@ -7,7 +7,7 @@ description: >
   hours/week per team and ensuring nothing falls through the cracks.
 skills:
   - typescript
-  - vercel-ai-sdk
+  - ai-sdk
   - bull-mq
   - redis
   - postgresql

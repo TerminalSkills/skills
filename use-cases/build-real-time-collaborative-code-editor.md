@@ -10,7 +10,7 @@ skills:
   - yjs
   - hono
   - redis
-  - docker
+  - docker-helper
   - e2b
   - zod
 category: development

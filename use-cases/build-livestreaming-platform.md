@@ -1,7 +1,7 @@
 ---
 title: "Build a Live Streaming Platform"
 description: "Build a self-hosted live streaming platform with RTMP ingest, HLS playback, WebSocket chat, real-time emoji reactions, and paid membership gating via Stripe."
-skills: [stripe, prisma]
+skills: [stripe-billing, prisma]
 difficulty: advanced
 time_estimate: "12 hours"
 tags: [livestream, rtmp, hls, websocket, chat, stripe, video, membership]

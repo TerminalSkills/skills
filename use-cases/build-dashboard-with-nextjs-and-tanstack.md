@@ -4,7 +4,7 @@ slug: build-dashboard-with-nextjs-and-tanstack
 description: Build a real-time analytics dashboard using Next.js App Router for the server-rendered shell, TanStack Query for live data updates, and TanStack Table for sortable, filterable data grids — handling 50,000 rows without freezing the browser.
 skills:
   - nextjs
-  - tanstack
+  - tanstack-query
   - zod
   - neon
 category: development

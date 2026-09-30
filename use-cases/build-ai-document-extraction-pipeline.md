@@ -7,7 +7,7 @@ description: >
   replacing 3 manual data entry operators.
 skills:
   - typescript
-  - vercel-ai-sdk
+  - ai-sdk
   - bull-mq
   - redis
   - postgresql

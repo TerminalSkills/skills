@@ -2,7 +2,7 @@
 title: Build a Linktree Alternative — Link-in-Bio with Analytics and Custom Domains
 slug: build-link-in-bio-tool
 description: "Build a self-hosted Linktree alternative with custom domains via CNAME, per-link click analytics, geo/device tracking, theme customization, and a Stripe-powered Pro plan."
-skills: [stripe, prisma, nextjs]
+skills: [stripe-billing, prisma, nextjs]
 category: saas
 tags: [link-in-bio, linktree, creator, analytics, custom-domain, stripe, nextjs, monetization]
 ---

@@ -7,7 +7,7 @@ description: >-
   middleware, and connect to a REST gateway.
 skills:
   - grpc
-  - docker-compose
+  - docker-helper
   - zod
 category: development
 tags:

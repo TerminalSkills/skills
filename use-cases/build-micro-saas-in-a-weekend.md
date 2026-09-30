@@ -4,7 +4,7 @@ description: "Go from idea to paying customers in 48 hours — Next.js, Clerk au
 skills:
   - nextjs
   - stripe-billing
-  - clerk
+  - clerk-auth
 difficulty: intermediate
 time_estimate: "8 hours"
 tags: [micro-saas, weekend-project, nextjs, clerk, stripe, vercel, mvp, indiehacker]

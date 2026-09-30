@@ -7,7 +7,7 @@ description: >
   automated contract testing across 30 microservices.
 skills:
   - typescript
-  - kafka-js
+  - kafka
   - postgresql
   - zod
   - hono

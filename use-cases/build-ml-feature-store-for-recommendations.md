@@ -9,7 +9,7 @@ skills:
   - typescript
   - redis
   - postgresql
-  - kafka-js
+  - kafka
   - zod
   - hono
   - vitest

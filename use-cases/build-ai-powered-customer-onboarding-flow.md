@@ -8,7 +8,7 @@ description: >
 skills:
   - typescript
   - nextjs
-  - vercel-ai-sdk
+  - ai-sdk
   - prisma
   - redis
   - zod

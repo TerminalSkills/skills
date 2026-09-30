@@ -3,7 +3,7 @@ title: Prototype a SaaS UI with AI in One Weekend
 slug: prototype-saas-ui-with-ai-in-one-weekend
 description: >-
   Go from idea to deployed SaaS prototype in 48 hours using v0 for UI generation, Cursor for backend integration, and Vercel for deployment.
-skills: [v0-dev, cursor-ai, vercel-ai-sdk, shadcn-ui]
+skills: [v0-dev, cursor-ai, ai-sdk, shadcn-ui]
 category: development
 tags: [ai-prototyping, rapid-development, vibe-coding, ui-generation, saas]
 ---

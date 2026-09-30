@@ -1,7 +1,7 @@
 ---
 title: "Build a Web Scraper with AI Data Extraction"
 description: "Scrape any website with Playwright for JS rendering, clean content automatically, and use Claude to extract structured data matching your schema — no brittle CSS selectors."
-skills: [playwright, anthropic-sdk, firecrawl]
+skills: [playwright-testing, anthropic-sdk, firecrawl]
 difficulty: intermediate
 time_estimate: "4 hours"
 tags: [web-scraping, playwright, ai, claude, data-extraction, firecrawl, json, csv, automation]

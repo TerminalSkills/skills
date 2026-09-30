@@ -1,7 +1,7 @@
 ---
 title: "Build a Customer Win-Back Campaign"
 description: "Re-engage churned users with a personalized automated campaign — identify churned segments, send a timed email sequence, offer Stripe discount codes, and track how many you win back."
-skills: [stripe, resend, prisma]
+skills: [stripe-billing, resend, prisma]
 difficulty: intermediate
 time_estimate: "6 hours"
 tags: [retention, churn, win-back, email, stripe, saas, automation, lifecycle]

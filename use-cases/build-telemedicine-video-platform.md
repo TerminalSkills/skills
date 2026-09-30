@@ -1,7 +1,7 @@
 ---
 title: "Build a Telemedicine Video Platform"
 description: "Launch a direct-to-patient telemedicine practice with HIPAA-compliant video calls, appointment booking with Stripe payments, in-call symptom forms, e-prescription PDF generation, and automated post-visit follow-up emails."
-skills: [stripe, resend, hipaa-compliance]
+skills: [stripe-billing, resend, hipaa-compliance]
 difficulty: advanced
 time_estimate: "10 hours"
 tags: [healthcare, hipaa, telemedicine, video, stripe, payments, eprescription]

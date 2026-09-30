@@ -11,7 +11,7 @@ skills:
   - postgresql
   - hono
   - zod
-  - vercel-ai-sdk
+  - ai-sdk
 category: data-ai
 tags:
   - llm-gateway

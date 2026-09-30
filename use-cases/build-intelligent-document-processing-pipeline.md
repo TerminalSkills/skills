@@ -13,7 +13,7 @@ skills:
   - postgresql
   - zod
   - hono
-  - vercel-ai-sdk
+  - ai-sdk
 category: data-ai
 tags:
   - document-processing

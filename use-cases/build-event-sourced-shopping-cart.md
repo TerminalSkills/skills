@@ -7,7 +7,7 @@ description: >
   that resolved $45K in disputed transactions.
 skills:
   - typescript
-  - kafka-js
+  - kafka
   - redis
   - postgresql
   - hono

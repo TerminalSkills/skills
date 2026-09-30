@@ -10,7 +10,7 @@ skills:
   - qdrant
   - redis
   - postgresql
-  - vercel-ai-sdk
+  - ai-sdk
   - hono
   - zod
 category: data-ai

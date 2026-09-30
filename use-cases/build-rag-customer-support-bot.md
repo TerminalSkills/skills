@@ -3,7 +3,7 @@ title: Build a RAG-Powered Customer Support Bot
 slug: build-rag-customer-support-bot
 description: Build an AI customer support assistant that answers questions from your documentation, knowledge base, and past support tickets — with source citations, structured ticket classification, and human handoff when confidence is low.
 skills:
-  - vercel-ai-sdk
+  - ai-sdk
   - llamaindex
   - chromadb
   - instructor

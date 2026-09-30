@@ -7,7 +7,7 @@ description: >
   publishing automatically with every release.
 skills:
   - typescript
-  - vercel-ai-sdk
+  - ai-sdk
   - github-actions
   - zod
   - hono

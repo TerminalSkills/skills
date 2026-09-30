@@ -4,7 +4,7 @@ slug: build-ai-agent-with-tool-calling
 description: Build a production AI agent with structured tool calling, conversation memory, retry logic, and guardrails — handling multi-step workflows like research, data analysis, and customer support autonomously.
 skills:
   - typescript
-  - openai
+  - openai-sdk
   - redis
   - postgresql
   - zod

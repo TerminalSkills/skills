@@ -4,7 +4,7 @@ slug: secure-api-with-oauth-and-rate-limiting
 description: Harden a production API with OAuth 2.0 + PKCE authentication, tiered rate limiting, secrets management with Vault, and automated security scanning in CI — a complete security posture for a SaaS API.
 skills:
   - oauth2-oidc
-  - rate-limiting
+  - rate-limiter
   - hashicorp-vault
   - owasp-zap
 category: development

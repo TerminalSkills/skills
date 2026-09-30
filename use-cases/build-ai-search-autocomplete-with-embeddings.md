@@ -4,7 +4,7 @@ slug: build-ai-search-autocomplete-with-embeddings
 description: Build a search-as-you-type experience that combines traditional prefix matching with semantic embeddings to surface relevant results even when users don't know the exact keywords.
 skills:
   - typescript
-  - openai
+  - openai-sdk
   - redis
   - postgresql
   - hono

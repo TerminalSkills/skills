@@ -3,7 +3,7 @@ title: Launch an AI Wrapper SaaS with Usage-Based Billing
 slug: launch-ai-wrapper-saas-with-usage-based-billing
 description: >-
   Build an AI SaaS with metered billing using Stripe for usage-based pricing, Upstash for rate limiting, Vercel AI SDK for streaming, and Clerk for auth.
-skills: [stripe-billing, upstash, vercel-ai-sdk, clerk-auth]
+skills: [stripe-billing, upstash, ai-sdk, clerk-auth]
 category: business
 tags: [ai-saas, usage-based-billing, metered-pricing, stripe, rate-limiting]
 ---

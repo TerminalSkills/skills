@@ -7,10 +7,10 @@ description: >
   visual consistency across 200+ components.
 skills:
   - typescript
-  - playwright
+  - playwright-testing
   - vitest
   - github-actions
-  - docker
+  - docker-helper
   - storybook
 category: development
 tags:

@@ -2,7 +2,7 @@
 title: Build a Viral Referral Program with Reward Tiers
 slug: build-viral-referral-system
 description: "Add a viral referral loop to your SaaS — unique codes, share pages with OG images, tiered rewards (1 referral = 1 month free, 5 = forever free), fraud prevention, and Stripe reward automation."
-skills: [stripe, prisma, resend]
+skills: [stripe-billing, prisma, resend]
 category: growth
 tags: [referral, viral, growth, stripe, rewards, fraud-prevention, saas]
 ---

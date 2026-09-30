@@ -8,7 +8,7 @@ description: >
 skills:
   - typescript
   - github-actions
-  - docker
+  - docker-helper
   - vitest
   - zod
 category: devops

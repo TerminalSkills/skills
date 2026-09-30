@@ -3,7 +3,7 @@ title: Build an Event Ticketing Platform — Create Events, Sell Tickets, Check 
 slug: build-event-ticketing-platform
 description: Build an end-to-end ticketing platform — event creation with ticket tiers, Stripe checkout with QR code generation, mobile check-in app, organizer sales dashboard, and automated email reminders — replacing Eventbrite's 6% fee with a system you own.
 skills:
-  - stripe
+  - stripe-billing
   - resend
   - prisma
 category: business

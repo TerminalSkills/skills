@@ -4,7 +4,7 @@ slug: build-ai-powered-code-migration-tool
 description: Build a CLI tool that uses LLMs to automatically migrate codebases between frameworks, APIs, and language versions — handling pattern recognition, AST transforms, and validation at scale.
 skills:
   - typescript
-  - openai
+  - openai-sdk
   - vitest
   - zod
 category: data-ai

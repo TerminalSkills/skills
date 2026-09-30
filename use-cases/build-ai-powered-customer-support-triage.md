@@ -8,7 +8,7 @@ description: >
   they become crises.
 skills:
   - typescript
-  - vercel-ai-sdk
+  - ai-sdk
   - redis
   - postgresql
   - bull-mq

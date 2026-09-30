@@ -3,7 +3,7 @@ title: Build an AI Phone Agent with Twilio and OpenAI
 description: "Build an AI phone agent that handles inbound calls — greet callers, understand intent, answer questions, look up orders, and transfer to a human when needed."
 skills:
   - twilio
-  - openai
+  - openai-sdk
 difficulty: advanced
 time_estimate: "16 hours"
 tags: [ai-agent, phone, twilio, openai, voice, realtime-api, customer-support, twiml]

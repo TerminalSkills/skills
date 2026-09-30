@@ -1,7 +1,7 @@
 ---
 title: "Build a High-Converting Trial-to-Paid Conversion Flow"
 description: "Set up a 14-day free trial with activation tracking, usage-based nudge emails, in-app upgrade prompts, and an offboarding survey — to take conversion from 15% to 30%."
-skills: [stripe, resend, prisma]
+skills: [stripe-billing, resend, prisma]
 difficulty: intermediate
 time_estimate: "5 hours"
 tags: [saas, conversion, trial, email, stripe, onboarding, growth]

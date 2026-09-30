@@ -1,7 +1,7 @@
 ---
 title: "Build a Bug Bounty Submission Portal"
 description: "Launch your company's first bug bounty program. Researchers register, submit vulnerabilities with CVSS scores, security teams triage and validate, Stripe pays out rewards, and a public hall of fame celebrates top hunters."
-skills: [stripe, prisma, resend]
+skills: [stripe-billing, prisma, resend]
 difficulty: intermediate
 time_estimate: "6 hours"
 tags: [security, bug-bounty, vulnerability, stripe-payouts, infosec, saas]

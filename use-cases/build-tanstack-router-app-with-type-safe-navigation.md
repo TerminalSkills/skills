@@ -7,7 +7,6 @@ description: >-
   dashboard application.
 skills:
   - tanstack-router
-  - tanstack
   - tailwindcss
   - zod
 category: development

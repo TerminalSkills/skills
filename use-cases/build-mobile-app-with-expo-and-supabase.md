@@ -4,7 +4,7 @@ slug: build-mobile-app-with-expo-and-supabase
 description: Build and ship a full-stack React Native mobile app in 2 weeks — Expo Router navigation, Supabase Auth with magic link and OAuth, Realtime subscriptions, file storage, push notifications, and App Store + Google Play deployment via EAS Build.
 skills:
   - supabase
-  - expo-router
+  - expo
 category: mobile
 tags:
   - expo

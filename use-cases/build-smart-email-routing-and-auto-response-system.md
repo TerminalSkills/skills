@@ -7,7 +7,7 @@ description: >
   response time from 12 hours to 45 minutes.
 skills:
   - typescript
-  - vercel-ai-sdk
+  - ai-sdk
   - redis
   - postgresql
   - bull-mq

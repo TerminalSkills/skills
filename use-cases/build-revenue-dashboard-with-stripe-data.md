@@ -1,7 +1,7 @@
 ---
 title: "Build a Revenue Dashboard with Stripe Data"
 description: "Stop checking Stripe 20 times a day. Build a real-time revenue dashboard — MRR, churn rate, LTV, cohort retention, and 3-month MRR forecast — powered by Stripe webhooks streaming into your own database."
-skills: [stripe, prisma]
+skills: [stripe-billing, prisma]
 difficulty: intermediate
 time_estimate: "7 hours"
 tags: [stripe, dashboard, mrr, saas-metrics, analytics, churn, cohort, forecasting]

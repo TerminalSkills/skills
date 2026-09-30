@@ -7,7 +7,7 @@ description: >-
   and blue-green deployments with automated rollback.
 skills:
   - github-actions
-  - docker-multi-stage
+  - docker-helper
   - terraform-iac
   - sentry
 category: devops

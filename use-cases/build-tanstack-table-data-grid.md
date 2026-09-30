@@ -7,7 +7,6 @@ description: >-
   handling thousands of rows in admin dashboards.
 skills:
   - tanstack-table
-  - tanstack
   - tailwindcss
 category: development
 tags:

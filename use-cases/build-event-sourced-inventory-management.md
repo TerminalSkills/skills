@@ -6,7 +6,7 @@ skills:
   - typescript
   - postgresql
   - redis
-  - kafka-js
+  - kafka
   - hono
 category: development
 tags:

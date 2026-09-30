@@ -4,7 +4,7 @@ slug: build-ai-agent-with-tool-use-and-code-execution
 description: Create an autonomous AI agent that browses the web, executes code in a sandbox, connects to external tools, and evaluates its own output quality.
 skills:
   - browser-use
-  - e2b-sandbox
+  - e2b
   - composio
   - promptfoo
   - litellm

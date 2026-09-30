@@ -6,7 +6,7 @@ description: >-
   reveals, staggered lists, drag interactions with Framer Motion, and complex
   timeline animations with GSAP for landing pages.
 skills:
-  - framer-motion
+  - motion
   - gsap
   - tailwindcss
 category: development

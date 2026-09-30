@@ -3,7 +3,7 @@ title: Add Distributed Tracing with OpenTelemetry
 slug: add-distributed-tracing-with-opentelemetry
 description: Instrument a microservices architecture with OpenTelemetry to trace requests across services, correlate logs with traces, and identify the exact service causing latency spikes — reducing mean time to resolution from 2 hours to 15 minutes.
 skills:
-  - opentelemetry
+  - otel-js
   - error-monitoring
   - docker-helper
 category: devops

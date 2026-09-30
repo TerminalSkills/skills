@@ -2,7 +2,7 @@
 title: Build an AI Cold Email Personalization Engine
 description: "Build an AI-powered cold email engine — research prospects with Firecrawl, write hyper-personalized openers with GPT-4o, A/B test subject lines, and scale to 1000 prospects/week."
 skills:
-  - openai
+  - openai-sdk
   - resend
   - firecrawl
 difficulty: advanced

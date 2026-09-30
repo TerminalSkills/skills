@@ -7,7 +7,7 @@ description: >
   that found $4.2K/month in savings on the first run.
 skills:
   - typescript
-  - commander-cli
+  - commander
   - zod
 category: devops
 tags:

@@ -4,7 +4,7 @@ slug: build-automated-linkedin-content
 description: Build an AI LinkedIn content pipeline — pull trending topics from RSS/Reddit, generate posts in your writing style with Claude, create carousel images with DALL-E, schedule via LinkedIn API, and track performance.
 skills:
   - anthropic-sdk
-  - openai
+  - openai-sdk
 difficulty: intermediate
 time_estimate: "6 hours"
 category: marketing

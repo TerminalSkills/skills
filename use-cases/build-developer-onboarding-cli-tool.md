@@ -7,8 +7,8 @@ description: >
   dev databases, configuring SSO, and running health checks.
 skills:
   - typescript
-  - commander-cli
-  - docker
+  - commander
+  - docker-helper
   - zod
   - github-actions
 category: development

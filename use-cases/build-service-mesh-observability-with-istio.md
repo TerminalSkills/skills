@@ -4,7 +4,7 @@ slug: build-service-mesh-observability-with-istio
 description: Deploy Istio service mesh on Kubernetes to get automatic mTLS, traffic observability, request tracing, and circuit breaking across microservices — without changing application code.
 skills:
   - typescript
-  - docker
+  - docker-helper
   - kubernetes-helm
   - prometheus
 category: devops

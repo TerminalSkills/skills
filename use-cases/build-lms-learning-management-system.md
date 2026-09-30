@@ -5,7 +5,7 @@ description: Build a custom Learning Management System — course builder with v
 skills:
   - prisma
   - resend
-  - stripe
+  - stripe-billing
 category: business
 tags:
   - lms

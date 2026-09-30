@@ -8,7 +8,7 @@ description: >
 skills:
   - typescript
   - postgresql
-  - kafka-js
+  - kafka
   - prisma
   - redis
   - drizzle-orm

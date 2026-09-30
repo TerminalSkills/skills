@@ -3,7 +3,7 @@ title: Build a Time Tracking System with Invoicing
 slug: build-time-tracking-system
 description: Track billable hours across projects and clients, generate PDF invoices from logged time, and charge clients via Stripe — built for freelancers and agencies billing by the hour.
 skills:
-  - stripe
+  - stripe-billing
   - prisma
   - resend
 category: business

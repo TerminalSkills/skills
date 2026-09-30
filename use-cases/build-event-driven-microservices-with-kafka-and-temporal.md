@@ -2,7 +2,7 @@
 title: Build Event-Driven Microservices with Kafka and Temporal
 slug: build-event-driven-microservices-with-kafka-and-temporal
 description: Build a resilient order processing system using KafkaJS for event streaming between microservices, Temporal for durable workflow orchestration with saga compensation, BullMQ for background jobs, and EventBridge for cross-service routing — handling 10,000 orders/day with zero data loss and automatic failure recovery.
-skills: [kafka-js, temporal-sdk, bull-mq, eventbridge]
+skills: [kafka, temporal, bull-mq, eventbridge]
 category: development
 tags: [microservices, event-driven, kafka, temporal, saga, reliability]
 ---

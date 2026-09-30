@@ -10,7 +10,7 @@ skills:
   - postgresql
   - redis
   - bull-mq
-  - kafka-js
+  - kafka
   - zod
   - hono
 category: data-ai

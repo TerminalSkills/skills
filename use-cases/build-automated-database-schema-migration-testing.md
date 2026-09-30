@@ -8,7 +8,7 @@ description: >
 skills:
   - typescript
   - postgresql
-  - docker
+  - docker-helper
   - github-actions
   - vitest
   - zod

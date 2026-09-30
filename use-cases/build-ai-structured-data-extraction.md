@@ -4,7 +4,7 @@ slug: build-ai-structured-data-extraction
 description: Build an AI-powered data extraction pipeline that converts unstructured documents (invoices, contracts, emails) into structured JSON using LLMs with Zod schema validation and human-in-the-loop correction.
 skills:
   - typescript
-  - openai
+  - openai-sdk
   - zod
   - postgresql
   - hono

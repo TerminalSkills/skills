@@ -6,7 +6,7 @@ skills:
   - typescript
   - remix
   - postgresql
-  - shopify-api
+  - shopify
 category: development
 tags:
   - shopify

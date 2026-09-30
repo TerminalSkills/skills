@@ -1,7 +1,7 @@
 ---
 title: "Build a Digital Downloads Store"
 description: "Sell ebooks, templates, presets, and courses with Stripe checkout, secure signed S3 download links, license key generation, and a built-in affiliate program."
-skills: [stripe, s3-storage, resend]
+skills: [stripe-billing, s3-storage, resend]
 difficulty: intermediate
 time_estimate: "10 hours"
 tags: [ecommerce, digital-products, stripe, s3, affiliate, creators]
