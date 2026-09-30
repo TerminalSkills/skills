@@ -6,6 +6,7 @@ skills:
   - localai
   - llamafile
   - llama-cpp
+  - open-webui
 category: data-ai
 tags:
 - local-llm
@@ -296,3 +297,4 @@ Total monthly cost: $500 for the GPU server. Compared to estimated OpenAI costs 
 - [localai](../skills/localai/) -- Self-hosted OpenAI-compatible API for running open-source models locally
 - [llamafile](../skills/llamafile/) -- Single-file executable LLMs that run on any platform without dependencies
 - [llama-cpp](/skills/llama-cpp) — the inference engine itself: build or install it, then serve any GGUF model through its OpenAI-compatible llama-server
+- [open-webui](/skills/open-webui) — a chat interface for the whole team on top of the local models, with accounts, shared prompts and document chat
