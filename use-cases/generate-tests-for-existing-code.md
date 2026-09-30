@@ -2,7 +2,7 @@
 title: "Generate Tests for Existing Code with AI"
 slug: generate-tests-for-existing-code
 description: "Add comprehensive test suites to untested codebases, review test quality, and set up CI to run them automatically."
-skills: [test-generator, code-reviewer, cicd-pipeline]
+skills: [test-generator, code-reviewer, cicd-pipeline, hypothesis]
 category: development
 tags: [testing, test-generation, coverage, code-review, ci-cd]
 ---
@@ -150,3 +150,7 @@ A backend lead at a 25-person fintech startup faced a SOC 2 audit in 8 weeks wit
 After fixes, the cicd-pipeline skill deployed GitHub Actions with 65% coverage gates. By Thursday: 230 tests, 73% coverage, every PR automatically checked. The team went from "deploy and pray" to "merge with confidence" in four days.
 
 The SOC 2 auditors reviewed the setup two weeks later. Comprehensive test suites, a documented quality review process showing that generated tests were audited for correctness, and automated CI gates blocking uncovered code -- all three satisfied the change management controls. The startup passed without testing-related findings, avoiding an estimated $40,000 in remediation costs and a 3-month delay in their enterprise sales pipeline.
+
+## Related Skills
+
+- [hypothesis](/skills/hypothesis) — property-based tests for Python: state what must always hold and let it generate the inputs, which finds edge cases that example tests miss
