@@ -5,6 +5,7 @@ description: "Process large collections of scanned and digital PDFs to extract s
 skills:
   - pdf-analyzer
   - pdf-ocr
+  - markitdown
 category: documents
 tags:
   - pdf
@@ -72,3 +73,7 @@ A due diligence package pulls from 40-60 documents across multiple types. The su
 The firm is evaluating whether to sell a 12-property industrial portfolio. Previously, the analyst would spend 3 days opening 180 PDFs to compile the data. With the automated pipeline, the OCR pass processes 87 scanned documents in under an hour, the structured extraction pulls appraisal data from all 12 properties and lease terms from 34 active tenants, and the cross-document query identifies that 3 properties have cap rates below the target threshold and 8 leases expire within 14 months.
 
 The due diligence package that took 3 days now takes an afternoon, and the analyst spends their time analyzing the data rather than hunting for it. The portfolio analysis reveals that one property has an inspection report flagging $120,000 in deferred roof maintenance that was not reflected in the operating budget, a finding that adjusts the asking price downward by $400,000.
+
+## Related Skills
+
+- [markitdown](/skills/markitdown) — converts PDFs, Word, Excel and PowerPoint files to Markdown in one pass, which makes a mixed archive searchable before any extraction

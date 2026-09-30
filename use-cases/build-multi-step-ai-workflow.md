@@ -1,7 +1,7 @@
 ---
 title: "Build a Multi-Step AI Workflow with LangGraph"
 description: "Chain multiple AI agents into a DAG-based workflow with parallel execution, state management, and human-in-the-loop approvals."
-skills: [langchain, langgraph, anthropic-sdk]
+skills: [langchain, langgraph, anthropic-sdk, langflow, dify]
 difficulty: advanced
 time_estimate: "5 hours"
 tags: [ai, agents, langgraph, workflow, automation, langchain, anthropic]
@@ -244,3 +244,8 @@ await workflow.invoke(
 - **Sub-graphs:** Encapsulate the research loop as a reusable sub-workflow
 - **Webhook-based human review:** Replace CLI prompt with Slack approval button
 - **Cost tracking:** Log token usage per node to optimize expensive steps
+
+## Related Skills
+
+- [langflow](/skills/langflow) — build the same kind of multi-step flow visually, then run it over its HTTP API or expose it as an MCP server
+- [dify](/skills/dify) — a self-hosted platform for the same workflows with a visual builder, knowledge bases and an API for each app

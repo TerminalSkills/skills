@@ -5,6 +5,7 @@ description: Build a developer documentation site with Astro that scores 100 on 
 skills:
   - astro
   - vite
+  - hugo
 category: development
 tags:
   - static-site
@@ -475,3 +476,7 @@ Ravi migrated the docs site over one weekend. The content (120+ Markdown files) 
 - **Build time: 45 seconds** for 120 pages with syntax highlighting, sitemap generation, and Pagefind indexing. Incremental builds during development are instant.
 - **SEO improvement**: organic search traffic increased 40% in the first month — faster pages rank higher, and the sitemap integration got new pages indexed within days.
 - **Content errors caught at build time**: three docs had invalid frontmatter (wrong category names, missing descriptions) that had been silently broken for months. Zod schemas caught them on the first build.
+
+## Related Skills
+
+- [hugo](/skills/hugo) — a single-binary static site generator for Markdown content; pick it when the site needs no component framework and build speed matters

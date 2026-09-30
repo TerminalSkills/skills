@@ -6,6 +6,7 @@ skills:
   - fly-io
   - neon
   - docker-helper
+  - vercel
 category: devops
 tags:
   - deployment
@@ -292,3 +293,7 @@ Jonas deployed the multi-region setup in one evening. The changes after switchin
 - **Cold start: ~400ms** for suspended machines (memory snapshot resume). The `min_machines_running = 1` setting keeps one machine hot per region for the first request.
 - **Deploy time: 45 seconds** — Fly builds the Docker image remotely and rolls out machines with zero downtime. No CI/CD pipeline needed for a side project.
 - **Zero operational overhead** — no Kubernetes, no load balancer configuration, no health check routing. Fly's Anycast IP handles global routing, and `fly-replay` handles write routing to the primary region.
+
+## Related Skills
+
+- [vercel](/skills/vercel) — a managed alternative for the same deployment: preview URLs per commit, promote and rollback from the CLI, no containers to run

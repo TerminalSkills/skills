@@ -6,6 +6,7 @@ skills:
   - firecrawl
   - pgvector
   - crawlee
+  - trafilatura
 category: data-ai
 tags:
   - rag
@@ -338,3 +339,7 @@ export async function incrementalSync() {
 ## The Outcome
 
 Kai's Q&A bot indexes 800 pages from three documentation sites in 12 minutes (initial crawl + embedding). Weekly syncs take 2-3 minutes because only changed pages are re-embedded. The bot answers questions with cited sources in under 2 seconds — vector search is 15ms (pgvector HNSW), LLM generation is the bottleneck at 1.5s. The team uses it 40-50 times per day, mostly for "how do I configure X" and "what changed in the last release" questions. Total infrastructure cost: $0 additional — pgvector runs on their existing Supabase instance, Firecrawl self-hosted, and OpenAI embeddings cost about $3/month for weekly re-indexing.
+
+## Related Skills
+
+- [trafilatura](/skills/trafilatura) — extracts the main article text and metadata from fetched pages without a browser; use it for the cleaning step when the pages are articles or documentation

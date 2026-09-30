@@ -6,6 +6,7 @@ skills:
   - data-pipeline
   - supabase
   - playwright-testing
+  - scrapling
 category: data-ai
 tags:
   - etl
@@ -485,3 +486,7 @@ Nadia's pipeline runs every 6 hours across 12 competitor sites. Each source is i
 Price changes are tracked automatically. When a competitor drops their price on a popular product, the price_history table records it and Supabase real-time pushes a notification to the dashboard. Nadia's customers see updated pricing within hours, not days.
 
 The separation of extract/validate/transform/load means each stage is testable. Mock data goes through the transformer to verify price parsing handles every currency format. The loader is tested against a staging database. When something breaks, the error logs show exactly which stage, which source, and which product failed.
+
+## Related Skills
+
+- [scrapling](/skills/scrapling) — a Python scraper for sites that change layout or block bots: adaptive selectors, stealth fetchers and a spider with pause and resume

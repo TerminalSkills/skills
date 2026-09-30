@@ -5,6 +5,8 @@ description: Build a feature from a reviewed specification, plan and task list s
 skills:
   - spec-kit
   - code-reviewer
+  - openspec
+  - spec-driven-dev
 category: development
 tags:
   - spec-kit
@@ -162,3 +164,5 @@ The two problems that would have reached staging under the old process were both
 
 - [spec-kit](/skills/spec-kit) — provides the specify, plan, tasks, implement and converge steps and keeps their artifacts in the repository
 - [code-reviewer](/skills/code-reviewer) — reviews the finished diff against the specification and the constitution before the pull request
+- [openspec](/skills/openspec) — a lighter spec-first workflow kept in the repository: a proposal, a design and tasks per change, archived when the change ships
+- [spec-driven-dev](/skills/spec-driven-dev) — the method without any tool: spec templates, validation checklists and an implementation plan the agent follows
