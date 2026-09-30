@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:67057126f26324fd00615524c5758a5be3d3c82d34736c60ce03baa1a0726ad3",
+  "scoredAt": "2026-09-30T11:09:20.067Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.48,
+    "baselineAvg": 25,
+    "treatmentAvg": 87,
+    "scenarios": [
+      {
+        "name": "init-vite-react-compiler-project",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B correctly includes the exact command verbatim, while Response A provides no content."
+      },
+      {
+        "name": "booking-form-with-useactionstate",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response B meets most rubric items (defaultValue, role attributes, SubmitButton pending state) but incorrectly imports useFormStatus from 'react' instead of 'react-dom', whereas Response A lacks defaultValue, role attributes, and useFormStatus import, making it less complete."
+      },
+      {
+        "name": "optimistic-toggle-with-useoptimistic",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items, missing only the second startTransition call, while Response B omits startTransition and the required state names."
+      }
+    ]
+  }
+}

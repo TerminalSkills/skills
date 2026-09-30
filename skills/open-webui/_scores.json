@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:a9384f0ec316dff8b6441ed541df38614089db3ec98ad277b57856e016d1bc9e",
+  "scoredAt": "2026-09-30T11:06:33.743Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions lack explicit error handling for common failure scenarios such as Docker pull failures or missing environment variables."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill includes extensive tables and explanations that may be more detailed than necessary for quick deployment."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.92,
+    "baselineAvg": 25,
+    "treatmentAvg": 98,
+    "scenarios": [
+      {
+        "name": "deploy-with-docker-compose-ollama",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B lacks the required docker-compose setup and API interactions."
+      },
+      {
+        "name": "upload-pdf-knowledge-base",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets rubric, A does not."
+      },
+      {
+        "name": "export-import-models-sync",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "Response B includes the required API calls (export, sync, list) and verification, while Response A only copies files and lacks the necessary API interactions."
+      }
+    ]
+  }
+}

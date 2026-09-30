@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:0ced58d6df386003b89fd2152e222335e9b601a1aeb593992de1c3c0e25cca6c",
+  "scoredAt": "2026-09-30T11:25:12.657Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 77,
+    "scenarios": [
+      {
+        "name": "serve-qwen2.5-7b-local-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses vLLM instead of llama serve and omits the required command."
+      },
+      {
+        "name": "download-quantize-extract-json",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B provides no content."
+      },
+      {
+        "name": "benchmark-qwen2.5-7b-quantized",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response B provides a command but omits the required flags, while Response A contains no content."
+      }
+    ]
+  }
+}

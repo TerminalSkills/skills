@@ -2,7 +2,7 @@
 title: Set Up AI Terminal Coding Agents for Your Team
 slug: set-up-ai-terminal-coding-agents-for-your-team
 description: Configure a team-wide AI coding workflow using Claude Code for complex architecture tasks, OpenAI Codex CLI for autonomous issue resolution in CI, and Gemini CLI for codebase-wide analysis — standardizing how a 6-person engineering team delegates work to AI agents while maintaining code quality and security.
-skills: [claude-code, openai-codex-cli, gemini-cli]
+skills: [claude-code, openai-codex-cli, gemini-cli, openspec]
 category: development
 tags: [ai-coding, terminal, cli, team-workflow, autonomous-agent, developer-productivity]
 ---
@@ -199,3 +199,7 @@ Save as docs/ARCHITECTURE.md"
 - **Documentation**: Architecture docs auto-generated and kept up-to-date by Gemini
 - **Security**: 3 medium-severity issues found by Gemini audit that human review missed
 - **AI cost**: ~$180/month across all three tools for a 6-person team
+
+## Related Skills
+
+- [openspec](/skills/openspec) — choose it when Claude Code, Codex CLI and Gemini CLI should all plan work the same way: one spec folder in the repository and the same propose, apply and archive steps in every agent, reviewed before code is written

@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3eb3fdf84f42d51345e1695eaaab81e0052f6f155febe28c79b4bea18aefdafc",
+  "scoredAt": "2026-09-30T11:20:52.168Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Linux environment and Docker Engine, limiting cross-platform applicability."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.54,
+    "baselineAvg": 52,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "install-homeassistant-container",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "Response B covers more rubric items, including privileged, logs tail, and config check, while Response A omits privileged, logs tail, and config check."
+      },
+      {
+        "name": "add-automation-and-reload",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response B covers most rubric items but omits the 3‑minute delay/turn‑off and config inclusion, while Response A lacks almost all required details."
+      },
+      {
+        "name": "websocket-state-subscription",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A meets most but uses hardcoded URL/token instead of environment variables."
+      }
+    ]
+  }
+}

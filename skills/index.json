@@ -1925,6 +1925,19 @@
       ]
     },
     {
+      "name": "context7",
+      "slug": "context7",
+      "description": "Context7 fetches current, version-specific documentation and code examples for software libraries and hands them to an AI coding agent, so generated code matches the library version in use instead of stale training data. Use when someone says \"use context7\", \"get the latest docs for this library\", \"look up the current API\", \"the agent keeps using a deprecated method\", \"set up Context7 in Claude Code or Cursor\", or asks how to call a framework whose API changed recently. Covers the ctx7 CLI, the MCP server and its two tools, library IDs and version pinning, API keys and rate limits, and the REST API.",
+      "category": "development",
+      "tags": [
+        "context7",
+        "library-docs",
+        "mcp",
+        "documentation-lookup",
+        "code-generation"
+      ]
+    },
+    {
       "name": "continue-dev",
       "slug": "continue-dev",
       "description": "You are an expert in Continue, the open-source AI code assistant for VS Code and JetBrains. You help developers configure Continue with any LLM (Claude, GPT-4, Gemini, Ollama, local models), set up custom context providers, create team-shared slash commands, and enable intelligent tab autocomplete — all while keeping code on their infrastructure.",
@@ -2459,6 +2472,19 @@
       "description": "Build autonomous financial research agents that analyze stocks, SEC filings, earnings calls, and market data to produce investment reports. Use when: automating investment research, building AI-powered stock analysis, creating financial due diligence agents.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "dify",
+      "slug": "dify",
+      "description": "Dify is an open-source platform for building LLM apps such as chatbots, agents, workflows and RAG knowledge bases, and it exposes every published app as a REST API. Use when a user asks to self-host Dify with Docker Compose, configure Dify environment variables, call a Dify app or workflow API, upload documents to a Dify knowledge base, export or import a Dify DSL file, run a Dify app from the terminal with difyctl, or upgrade and back up a Dify instance.",
+      "category": "data-ai",
+      "tags": [
+        "dify",
+        "llm-apps",
+        "rag",
+        "workflow-api",
+        "self-hosted"
+      ]
     },
     {
       "name": "directus",
@@ -3007,6 +3033,19 @@
       ]
     },
     {
+      "name": "fastmcp",
+      "slug": "fastmcp",
+      "description": "FastMCP is a Python framework for building Model Context Protocol (MCP) servers and clients: a decorated Python function becomes a tool, resource or prompt that an AI agent can call, with the schema generated from type hints. Use when someone asks to \"build an MCP server in Python\", \"create a FastMCP server\", \"expose this function to Claude as a tool\", \"turn our OpenAPI spec into MCP tools\", \"test my MCP server\", \"call an MCP server from Python\", or \"install my server into Claude Code or Cursor\". Covers tools, resources and prompts, stdio and HTTP transports, the fastmcp CLI, in-memory tests, token authentication, and generation from OpenAPI.",
+      "category": "development",
+      "tags": [
+        "fastmcp",
+        "mcp",
+        "python",
+        "mcp-server",
+        "agent-tools"
+      ]
+    },
+    {
       "name": "feature-flag-manager",
       "slug": "feature-flag-manager",
       "description": "When the user needs to implement feature flags, gradual rollouts, or experiment bucketing. Use when the user mentions \"feature flag,\" \"feature toggle,\" \"gradual rollout,\" \"canary release,\" \"percentage rollout,\" \"kill switch,\" \"user bucketing,\" \"experiment assignment,\" or \"dark launch.\" Covers flag evaluation, deterministic user assignment, targeting rules, and flag lifecycle management. For experiment design, see ab-test-setup. For event tracking, see analytics-tracking.",
@@ -3449,6 +3488,19 @@
       "tags": []
     },
     {
+      "name": "ghidra",
+      "slug": "ghidra",
+      "description": "Ghidra is an open-source reverse engineering suite from the NSA that disassembles and decompiles compiled programs so their behaviour can be read and scripted. Use when a user asks to analyze a binary with Ghidra from the command line, run analyzeHeadless, batch-import firmware or malware samples into a Ghidra project, decompile functions to C, write a Ghidra script in Java or Python, or automate analysis with PyGhidra. For authorized work only: malware analysis, vulnerability research, firmware the user owns, CTF challenges.",
+      "category": "development",
+      "tags": [
+        "reverse-engineering",
+        "decompiler",
+        "malware-analysis",
+        "headless-analysis",
+        "pyghidra"
+      ]
+    },
+    {
       "name": "ghost",
       "slug": "ghost",
       "description": "You are an expert in Ghost, the open-source publishing platform for blogs, newsletters, and membership sites. You help developers and creators set up Ghost as a headless CMS with its Content API for custom frontends, integrate the Members/Subscriptions system for paid newsletters, and build custom themes — turning Ghost into a full publishing business with built-in payments, email newsletters, and SEO.",
@@ -3848,6 +3900,19 @@
       ]
     },
     {
+      "name": "home-assistant",
+      "slug": "home-assistant",
+      "description": "Home Assistant is an open-source home automation server that controls lights, sensors, thermostats and other smart devices locally, without a cloud account. Use when a user asks to install Home Assistant with Docker, edit configuration.yaml, write or debug a YAML automation, check the configuration before a restart, call the Home Assistant REST API or WebSocket API with a long-lived access token, read sensor history, or run `ha` commands on Home Assistant OS.",
+      "category": "automation",
+      "tags": [
+        "home-automation",
+        "smart-home",
+        "iot",
+        "yaml-automations",
+        "rest-api"
+      ]
+    },
+    {
       "name": "hono",
       "slug": "hono",
       "description": "You are an expert in Hono, the ultrafast web framework for the edge. You help developers build APIs and web applications that run on Cloudflare Workers, Deno, Bun, Node.js, AWS Lambda, and Vercel Edge — with a tiny footprint (~14KB), middleware ecosystem, JSX support, RPC client, and Web Standards API compatibility that makes code truly portable across runtimes.",
@@ -3932,6 +3997,19 @@
       "tags": []
     },
     {
+      "name": "hugo",
+      "slug": "hugo",
+      "description": "Hugo is a static site generator that turns Markdown content and templates into a complete HTML website in seconds, with no database or server runtime. Use when a user asks to create a Hugo site or blog, add a theme, write posts with front matter, preview with hugo server, configure hugo.toml, build the site for production, find unpublished drafts, or deploy a Hugo site to GitHub Pages or a cloud bucket.",
+      "category": "development",
+      "tags": [
+        "hugo",
+        "static-site-generator",
+        "markdown",
+        "blog",
+        "github-pages"
+      ]
+    },
+    {
       "name": "hunter-io",
       "slug": "hunter-io",
       "description": "Hunter.io API for finding and verifying corporate email addresses by domain. Use when: finding contact emails for a target domain, discovering email naming patterns, verifying whether an email address is deliverable, or bulk-searching emails for lead generation or OSINT.",
@@ -3969,6 +4047,19 @@
         "ffmpeg",
         "animation",
         "rendering"
+      ]
+    },
+    {
+      "name": "hypothesis",
+      "slug": "hypothesis",
+      "description": "Hypothesis is a Python library for property-based testing: a test states a rule that must hold for all inputs, and Hypothesis generates hundreds of inputs, including edge cases, then reports the simplest one that breaks the rule. Use when a user asks to write property-based tests, fuzz a Python function, find edge cases, test a round trip such as encode and decode, write stateful tests, reproduce a failing Hypothesis example, or tune Hypothesis settings and profiles for pytest and CI.",
+      "category": "development",
+      "tags": [
+        "property-based-testing",
+        "python",
+        "testing",
+        "pytest",
+        "fuzzing"
       ]
     },
     {
@@ -4540,6 +4631,19 @@
       "tags": []
     },
     {
+      "name": "langflow",
+      "slug": "langflow",
+      "description": "Langflow is a visual builder for AI agents and workflows that serves every flow as a REST API endpoint and as an MCP tool. Use when a user asks to install or run Langflow, deploy Langflow with Docker Compose and PostgreSQL, run a flow through the Langflow API, pass tweaks or a session id, export or import flow JSON, create a Langflow API key, run a flow file without the server using lfx, connect Langflow flows to an MCP client, or upgrade Langflow without losing flows.",
+      "category": "data-ai",
+      "tags": [
+        "langflow",
+        "ai-agents",
+        "flow-api",
+        "mcp-server",
+        "self-hosted"
+      ]
+    },
+    {
       "name": "langfuse",
       "slug": "langfuse",
       "description": "You are an expert in Langfuse, the open-source LLM engineering platform. You help developers trace LLM calls, evaluate output quality, manage prompts, track costs and latency, run experiments, and build evaluation datasets — providing full observability into AI applications from development through production.",
@@ -4600,6 +4704,19 @@
       "description": "Manage feature flags with LaunchDarkly. Use when a user asks to implement feature flags, roll out features gradually, do A/B testing, control feature access by user segment, or implement kill switches for features.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "lazygit",
+      "slug": "lazygit",
+      "description": "lazygit is a keyboard-driven terminal interface for Git that makes staging single lines, interactive rebase, cherry-picking, bisecting and undoing mistakes a matter of a few keypresses. Use when a user asks to install lazygit, configure its config.yml, add custom commands or change keybindings, set up delta as its diff renderer, or wants to know which keys to press to squash, amend, cherry-pick or undo commits in lazygit.",
+      "category": "productivity",
+      "tags": [
+        "git",
+        "terminal-ui",
+        "interactive-rebase",
+        "lazygit",
+        "developer-tools"
+      ]
     },
     {
       "name": "lead-qualification",
@@ -4760,6 +4877,19 @@
         "voice",
         "video",
         "streaming"
+      ]
+    },
+    {
+      "name": "llama-cpp",
+      "slug": "llama-cpp",
+      "description": "llama.cpp runs large language and vision models locally from GGUF files on CPUs, Apple Silicon and GPUs, and serves them over an OpenAI-compatible HTTP API. Use when a user asks to run a model locally with llama.cpp, start llama-server or \"llama serve\", download a GGUF model from Hugging Face, host a local OpenAI-compatible endpoint, offload layers to the GPU, get embeddings or schema-constrained JSON from a local model, quantize a model to Q4_K_M, or benchmark tokens per second.",
+      "category": "data-ai",
+      "tags": [
+        "llama-cpp",
+        "gguf",
+        "local-llm",
+        "inference-server",
+        "openai-compatible"
       ]
     },
     {
@@ -5074,6 +5204,19 @@
       "description": "When the user wants to apply psychological principles, mental models, or behavioral science to marketing. Also use when the user mentions 'psychology,' 'mental models,' 'cognitive bias,' 'persuasion,' 'behavioral science,' 'why people buy,' 'decision-making,' or 'consumer behavior.' This skill provides 70+ mental models organized for marketing application.",
       "category": "business",
       "tags": []
+    },
+    {
+      "name": "markitdown",
+      "slug": "markitdown",
+      "description": "Converts PDF, Word, Excel, PowerPoint, HTML, CSV, EPUB, ZIP and other files into Markdown text that language models and search indexes can read. Use when a user asks to convert a document to Markdown, turn a PDF or DOCX into text for an LLM, export spreadsheet tables as Markdown, prepare files for RAG ingestion, batch-convert a folder of office documents, or mentions MarkItDown, \"markitdown\", or \"document to markdown\".",
+      "category": "documents",
+      "tags": [
+        "markdown-conversion",
+        "pdf-to-markdown",
+        "office-documents",
+        "rag-ingestion",
+        "llm-preprocessing"
+      ]
     },
     {
       "name": "marko",
@@ -5951,6 +6094,19 @@
       ]
     },
     {
+      "name": "open-webui",
+      "slug": "open-webui",
+      "description": "Open WebUI is a self-hosted web chat interface for local and cloud language models that connects to Ollama and any OpenAI-compatible API. Use when a user asks to install or deploy Open WebUI with Docker or pip, connect Open WebUI to Ollama, llama.cpp, vLLM or OpenAI, configure it with environment variables, create the admin account without a browser, call the Open WebUI API for chat completions or RAG, upload files to a knowledge base, export or sync custom models, or update and back up an Open WebUI instance.",
+      "category": "data-ai",
+      "tags": [
+        "open-webui",
+        "self-hosted",
+        "chat-interface",
+        "ollama",
+        "rag"
+      ]
+    },
+    {
       "name": "openai-agents",
       "slug": "openai-agents",
       "description": "You are an expert in the OpenAI Agents SDK (formerly Swarm), the official framework for building multi-agent systems. You help developers create agents with tool calling, guardrails, agent handoffs, streaming, tracing, and MCP integration — building production-grade AI agents that coordinate, delegate tasks, and execute tools with built-in safety controls.",
@@ -6049,6 +6205,19 @@
         "video",
         "marketing",
         "open-source"
+      ]
+    },
+    {
+      "name": "openspec",
+      "slug": "openspec",
+      "description": "OpenSpec is a command-line tool plus a set of slash commands that make an AI coding agent write a reviewable plan — proposal, requirements with scenarios, design and task list — before it changes any code. Use when a user asks to set up spec-driven development, run openspec init, propose a change with /opsx:propose, write a spec before coding, validate or archive an OpenSpec change, or keep requirements in the repository for Claude Code, Codex, Gemini CLI or Cursor.",
+      "category": "development",
+      "tags": [
+        "spec-driven-development",
+        "ai-coding-agents",
+        "requirements",
+        "planning",
+        "cli"
       ]
     },
     {
@@ -6562,6 +6731,19 @@
         "web-analytics",
         "gdpr",
         "self-hosted"
+      ]
+    },
+    {
+      "name": "playwright-mcp",
+      "slug": "playwright-mcp",
+      "description": "Playwright MCP is a Model Context Protocol server that lets an AI agent drive a real browser: it reads each page as a structured accessibility snapshot and clicks, types, and fills forms by element reference instead of guessing at pixels. Use when someone asks to \"let the agent use a browser\", \"add the Playwright MCP server\", \"open the site and check it\", \"log in and click through the app\", \"reproduce this UI bug in the browser\", \"fill out this web form\", or \"keep the browser logged in between sessions\". Covers client setup, the snapshot-and-ref workflow, opt-in capabilities, profiles and saved login state, headless, HTTP and Docker runs, and security limits.",
+      "category": "automation",
+      "tags": [
+        "playwright",
+        "mcp",
+        "browser-automation",
+        "accessibility-snapshot",
+        "web-testing"
       ]
     },
     {
@@ -7085,6 +7267,19 @@
       "tags": []
     },
     {
+      "name": "react",
+      "slug": "react",
+      "description": "Builds and debugs React user interfaces: components, state, effects, forms and data loading, written the way React 19 expects. Use when someone asks to \"create a React app\", \"build a React component\", \"fix a useEffect bug\", \"stop unnecessary re-renders\", \"upgrade to React 19\", \"turn on the React Compiler\", \"use Server Components\", \"handle a form with Actions\" or \"test a React component\". Covers Actions, use, useActionState, useOptimistic, ref as a prop, Server and Client Components, Suspense, error boundaries, keys, and project setup with Vite now that Create React App is deprecated.",
+      "category": "development",
+      "tags": [
+        "react",
+        "react-19",
+        "hooks",
+        "server-components",
+        "react-compiler"
+      ]
+    },
+    {
       "name": "react-aria",
       "slug": "react-aria",
       "description": "Build accessible UI components with React Aria. Use when creating accessible form controls, implementing ARIA patterns, building design systems, or fixing accessibility issues.",
@@ -7588,6 +7783,19 @@
       ]
     },
     {
+      "name": "scrapling",
+      "slug": "scrapling",
+      "description": "Fetches web pages and extracts structured data from them with Python, from a single HTTP request to a full crawl, including pages rendered by JavaScript and selectors that keep working after a site redesign. Use when a user asks to scrape a website, build a crawler or spider, extract product or listing data, follow pagination, scrape a JavaScript-rendered page, save a page as Markdown, or mentions Scrapling, \"scrape this URL\", or \"my scraper keeps breaking\".",
+      "category": "automation",
+      "tags": [
+        "web-scraping",
+        "crawler",
+        "python",
+        "browser-automation",
+        "data-extraction"
+      ]
+    },
+    {
       "name": "search-engine-setup",
       "slug": "search-engine-setup",
       "description": "Set up and optimize search engines for applications. Use when someone asks to \"add search to my app\", \"set up Elasticsearch\", \"configure Algolia\", \"fix search relevance\", \"add autocomplete\", \"fuzzy search\", or \"faceted filtering\". Covers index design, data sync, search API, autocomplete, relevance tuning, and query analysis.",
@@ -7947,6 +8155,19 @@
       ]
     },
     {
+      "name": "spec-kit",
+      "slug": "spec-kit",
+      "description": "Spec Kit is GitHub's open-source toolkit that installs a set of agent commands into a project so a coding agent builds features from a written specification: specify, plan, tasks, implement, then converge against the spec. It also ships optional processes for bug fixing and for assessing an idea. Use when someone asks to \"set up Spec Kit\", \"run specify init\", \"use spec-driven development on this repo\", \"write the spec before the code\", \"run /speckit-specify or /speckit-plan\", \"fix this bug with a recorded diagnosis\", or \"assess whether this idea is worth building\". Covers installation, per-agent command syntax, the artifact layout, extensions, and upgrades.",
+      "category": "development",
+      "tags": [
+        "spec-kit",
+        "spec-driven-development",
+        "specify-cli",
+        "requirements",
+        "agent-workflow"
+      ]
+    },
+    {
       "name": "spec-to-3d",
       "slug": "spec-to-3d",
       "description": "Generate 3D building models from architectural specifications, parsed drawings, or building code data. Outputs Three.js geometry, Pascal Editor JSON, or plain JSON for IFC conversion. Use when: converting floor plans to 3D, building spec-driven 3D models, generating architectural visualizations from structured data.",
@@ -8120,6 +8341,19 @@
       "description": "You are an expert in AWS Step Functions, the serverless orchestration service for building workflows as state machines. You help developers coordinate Lambda functions, API calls, and AWS services using visual workflows with branching, parallel execution, error handling, retries, and human approval steps — building reliable, observable distributed systems without custom orchestration code.",
       "category": "Cloud & Serverless",
       "tags": []
+    },
+    {
+      "name": "stirling-pdf",
+      "slug": "stirling-pdf",
+      "description": "Stirling PDF is a self-hosted web application with an HTTP API that merges, splits, compresses, converts, OCRs, watermarks and password-protects PDF files on your own server. Use when a user asks to deploy Stirling PDF with Docker, configure it with environment variables or settings.yml, call the Stirling PDF API from curl or Python, batch-process PDFs without uploading them to a cloud service, or chain several operations with the pipeline endpoint.",
+      "category": "documents",
+      "tags": [
+        "pdf",
+        "self-hosted",
+        "docker",
+        "rest-api",
+        "ocr"
+      ]
     },
     {
       "name": "stitch-mcp",
@@ -8855,6 +9089,19 @@
       "tags": []
     },
     {
+      "name": "trafilatura",
+      "slug": "trafilatura",
+      "description": "Downloads web pages and extracts the main article text and metadata (title, author, date) without menus, ads, footers or other boilerplate, as plain text, Markdown, JSON, CSV or XML. Use when a user asks to extract article text from a URL, get clean text from HTML, turn a web page into Markdown for an LLM, build a text corpus from a site, list URLs from a sitemap or RSS feed, scrape blog posts with their publication dates, or mentions Trafilatura.",
+      "category": "data-ai",
+      "tags": [
+        "text-extraction",
+        "web-scraping",
+        "boilerplate-removal",
+        "corpus-building",
+        "html-to-markdown"
+      ]
+    },
+    {
       "name": "triage-issue",
       "slug": "triage-issue",
       "description": "Triage a bug or issue by exploring the codebase to find root cause, then create a GitHub issue with a TDD-based fix plan. Use when: user reports a bug, wants to file an issue, mentions \"triage\", or wants to investigate and plan a fix for a problem.",
@@ -8989,6 +9236,19 @@
       "description": "You are an expert in TypeORM, the ORM for TypeScript and JavaScript that supports PostgreSQL, MySQL, SQLite, MS SQL, and Oracle. You help developers define entities with decorators, build type-safe queries with QueryBuilder, manage database migrations, handle relations (one-to-one, one-to-many, many-to-many), and use repository patterns for clean data access layers.",
       "category": "Backend Development",
       "tags": []
+    },
+    {
+      "name": "typescript",
+      "slug": "typescript",
+      "description": "Sets up and repairs TypeScript projects: picks tsconfig.json settings for a Node.js service, an npm library or a bundled web app, runs type-checking in CI, and replaces `any` and unsafe casts with types the compiler can verify. Use when someone asks to \"set up TypeScript\", \"fix this tsconfig\", \"fix a TypeScript error\", \"upgrade to TypeScript 6 or 7\", \"migrate JavaScript to TypeScript\", \"publish types for a package\", \"run .ts files in Node\" or \"make this type-safe\". Covers the changed defaults in TypeScript 6.0 and 7.0, module and moduleResolution, strict mode, project references, declaration output, narrowing, satisfies and common compiler errors.",
+      "category": "development",
+      "tags": [
+        "typescript",
+        "tsconfig",
+        "type-checking",
+        "type-safety",
+        "javascript-migration"
+      ]
     },
     {
       "name": "typesense",
@@ -9189,6 +9449,19 @@
       ]
     },
     {
+      "name": "uv",
+      "slug": "uv",
+      "description": "Installs Python packages, creates virtual environments, locks dependencies and manages Python versions with one fast command-line tool that replaces pip, pip-tools, pipx, poetry, pyenv and virtualenv. Use when a user asks to set up a Python project, add or upgrade a dependency, create a lockfile, migrate from requirements.txt, run a script with inline dependencies, install a Python version, run a tool with uvx, or speed up installs in CI and Docker.",
+      "category": "development",
+      "tags": [
+        "python",
+        "package-manager",
+        "lockfile",
+        "virtual-environments",
+        "dependency-management"
+      ]
+    },
+    {
       "name": "uvicorn",
       "slug": "uvicorn",
       "description": "Deploy Python ASGI apps with Uvicorn. Use when a user asks to run FastAPI in production, configure an ASGI server, set up Gunicorn with Uvicorn workers, or optimize Python web server performance.",
@@ -9273,6 +9546,19 @@
       "description": "Velero for Kubernetes backup and disaster recovery. Use when the user needs to back up cluster resources and persistent volumes, restore workloads, migrate between clusters, or schedule automated backups.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "vercel",
+      "slug": "vercel",
+      "description": "Vercel CLI deploys websites, web apps and serverless functions to the Vercel platform from a terminal or CI job, and manages their environment variables, domains and logs. Use when a user asks to deploy to Vercel, create a preview deployment, ship to production, promote or roll back a deployment, add or pull Vercel environment variables, write a vercel.json, read build or runtime logs, or deploy from GitHub Actions with a Vercel token.",
+      "category": "devops",
+      "tags": [
+        "vercel",
+        "deployment",
+        "serverless",
+        "preview-deployments",
+        "ci-cd"
+      ]
     },
     {
       "name": "vertex-ai-gemini",
@@ -9905,5 +10191,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-09-13T11:49:39.869Z"
+  "updatedAt": "2026-09-30T11:50:56.559Z"
 }

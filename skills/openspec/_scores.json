@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8b531cd434d6a489cc990b2703f517c35a6f1659439ff23219991f2cac5cb9a5",
+  "scoredAt": "2026-09-30T11:26:09.269Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all possible error scenarios, such as missing configuration or network failures."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "initialize-openspec-multi-tools",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B includes the required init command, explains the creation of the openspec/ folder and its contents, and confirms setup, while Response A omits the init command and folder structure."
+      },
+      {
+        "name": "propose-and-validate-change",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A follows the exact openspec workflow and includes validation, while Response B only provides a design document and omits all required openspec commands."
+      },
+      {
+        "name": "archive-approved-change",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A includes the required command and notes the merge and archive steps, while Response B uses unrelated git commands."
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@
 title: Build an AI Agent System with MCP Tools and A2A Delegation
 slug: build-ai-agent-with-mcp-tools-and-a2a-delegation
 description: Build a multi-agent system where a coordinator agent uses MCP servers for local tool access (database, files, APIs) and delegates specialized tasks to external agents via A2A protocol — creating a composable AI architecture where agents discover, communicate, and collaborate across organizational boundaries.
-skills: [mcp-sdk, a2a-sdk, openai-agents, langfuse]
+skills: [mcp-server-builder, a2a-protocol, openai-agents, langfuse, fastmcp]
 category: data-ai
 tags: [mcp, a2a, multi-agent, tools, interoperability, protocol]
 ---
@@ -189,3 +189,7 @@ After deploying the coordinator agent, the DevOps team reduces context switching
 - **Ticket creation**: Agent auto-creates Jira tickets for 85% of identified issues
 - **Security scans**: Automated on every flagged PR via A2A; 12 vulnerabilities caught in first month
 - **Agent composability**: Adding new capabilities = adding new MCP server or A2A endpoint; zero code changes to coordinator
+
+## Related Skills
+
+- [fastmcp](/skills/fastmcp) — choose it to write the Jira, GitHub and Datadog tool servers from Step 1 in Python, the same language as the coordinator, instead of the TypeScript SDK

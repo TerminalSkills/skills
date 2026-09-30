@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c368b13c768973b615afca9a0b173c20d2067a89fc5f1dd2380f6d69e63c4aec",
+  "scoredAt": "2026-09-30T11:11:12.341Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.7,
+    "baselineAvg": 3,
+    "treatmentAvg": 77,
+    "scenarios": [
+      {
+        "name": "initialize-spec-kit-existing-repo",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required commands and output, but omits the mandatory '--script sh' flag; Response A does not mention any of the required steps."
+      },
+      {
+        "name": "add-csv-export-feature",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response B includes the required slash commands and plan details, while Response A does not mention any Spec Kit workflow."
+      },
+      {
+        "name": "fix-order-total-bug",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with installation, slash commands, slug, and verified verdict, while Response A lacks all required Spec Kit commands and verdict."
+      }
+    ]
+  }
+}

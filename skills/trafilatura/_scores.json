@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:dd1fcfa46edf848d1ce4ffd01ef7495024882a063e2fbd626c46fb71b36a7c14",
+  "scoredAt": "2026-09-30T11:35:40.669Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 0,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "extract-markdown-with-metadata",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B provides the required trafilatura command and mentions metadata, but writes to a .md file instead of a .txt file, whereas Response A gives no relevant content."
+      },
+      {
+        "name": "batch-json-corpus-with-backup",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A does not use trafilatura or the specified options."
+      },
+      {
+        "name": "python-extract-with-error-handling",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use the required functions or format."
+      }
+    ]
+  }
+}

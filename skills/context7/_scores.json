@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2b28208106c8458137d0158399171de1e3e4644e36d021e58ea0c659d4eaf2db",
+  "scoredAt": "2026-09-30T11:00:38.416Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes specific AI agents and Node.js environments, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6,
+    "baselineAvg": 3,
+    "treatmentAvg": 60,
+    "scenarios": [
+      {
+        "name": "protect-dashboard-route",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A includes the required ctx7 library and docs commands, while Response B omits them entirely."
+      },
+      {
+        "name": "setup-context7-in-claude",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A outlines the setup steps but omits the required MCP URL and Authorization header, while Response B provides no content."
+      },
+      {
+        "name": "fetch-react-docs-rest-api",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B is closer to the rubric, providing the correct endpoint, headers, and JSON example, but it uses the wrong libraryId; Response A fails to meet any of the rubric requirements."
+      }
+    ]
+  }
+}

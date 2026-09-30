@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:c0ac49c8d12ece698623bba7ab16f8b0fbb5fa2454b0b4d252b8bdecf7f6dad3",
+  "scoredAt": "2026-09-30T11:04:05.255Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that may be considered padded."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The instructions assume a Unix-like environment and may not work on Windows."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.85,
+    "baselineAvg": 20,
+    "treatmentAvg": 97,
+    "scenarios": [
+      {
+        "name": "deploy-with-docker-compose-postgres",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A covers all rubric items with detailed steps, while Response B omits cloning, .env setup, correct env vars, and server defaults."
+      },
+      {
+        "name": "run-flow-api-session-tweak",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B lacks the required curl endpoint, headers, JSON body, and env variable references."
+      },
+      {
+        "name": "export-import-flows",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response A covers almost all rubric items, missing only the folder_id/project ID detail, while Response B uses different endpoints and omits the required download/upload steps."
+      }
+    ]
+  }
+}

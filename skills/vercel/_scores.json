@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4dde0fd7584943b19488455e767281fd3111ff1a40bc25ab6829c8420ce79462",
+  "scoredAt": "2026-09-30T11:50:45.978Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 80,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file lacks explicit handling for error scenarios such as authentication failures or missing project links."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The file contains extensive explanatory text that may be considered verbose for a skill file."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js environment and may not work on agents without Node.js support."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "deploy-feature-branch-preview",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully follows the rubric, while Response B omits the required git-branch flag, the exact deploy command, and the inspect step."
+      },
+      {
+        "name": "rollback-production-after-500",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required Vercel commands; Response A only asks for more context and provides no commands."
+      },
+      {
+        "name": "add-custom-domain-and-alias",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A uses Netlify commands and fails to meet the rubric, while Response B uses Vercel commands but does not include the exact alias command required by the rubric."
+      }
+    ]
+  }
+}

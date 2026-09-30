@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:2833ad5e03abdabe2e4f15f3e9450441a29330344ae3ec8b4f13cd95432daba1",
+  "scoredAt": "2026-09-30T11:01:50.354Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.44,
+    "baselineAvg": 27,
+    "treatmentAvg": 93,
+    "scenarios": [
+      {
+        "name": "setup-dify-docker-compose",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits the .env copying/editing steps."
+      },
+      {
+        "name": "call-chat-messages-api",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits explicit answer extraction, while Response B fails to meet key requirements such as the correct JSON structure, variables, and answer extraction."
+      },
+      {
+        "name": "upload-and-retrieve-kb",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with all required curl commands and steps, while Response A provides no relevant content."
+      }
+    ]
+  }
+}

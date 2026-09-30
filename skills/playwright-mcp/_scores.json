@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:47566e2baaef33963ea9d5762ba92494f7d330a8d1d5cf24ed3f676e8ddb75e3",
+  "scoredAt": "2026-09-30T11:07:42.393Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all error scenarios and edge cases, such as network failures or timeouts."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions are verbose and contain many explanatory sections that could be trimmed for brevity."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.2,
+    "baselineAvg": 2,
+    "treatmentAvg": 82,
+    "scenarios": [
+      {
+        "name": "storage-login-session",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric requirements; Response B does not provide any relevant content."
+      },
+      {
+        "name": "block-analytics-and-list-requests",
+        "baseline": 5,
+        "treatment": 45,
+        "rationale": "Response B includes the required server start and blocking logic, whereas Response A does not mention the server or the specific API calls, making B the better answer."
+      },
+      {
+        "name": "draw-line-with-vision",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A provides no content."
+      }
+    ]
+  }
+}

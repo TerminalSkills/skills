@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:36fbdad6945652b9fa8c51a73db199aee0b62cc9958655f822d3111eac4039f0",
+  "scoredAt": "2026-09-30T11:29:48.635Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "zip-to-markdown-keep-data-uris",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response B includes the required command and claims data URIs, while Response A omits the command and does not demonstrate a data:image/ URI."
+      },
+      {
+        "name": "ocr-pdf-with-plugin",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not include the required imports or configuration."
+      },
+      {
+        "name": "batch-convert-docx-with-error-report",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A uses the required markitdown command and logs failures to failed.txt, while Response B uses pandoc instead of markitdown and does not meet the rubric."
+      }
+    ]
+  }
+}

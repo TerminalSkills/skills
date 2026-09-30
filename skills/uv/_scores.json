@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:fbccc7dc46d292498f93f89ab1cab2770dc3100294b924d84a1bfb62a5b65450",
+  "scoredAt": "2026-09-30T11:44:28.092Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly cover error scenarios or edge cases, limiting completeness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that reduce conciseness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.38,
+    "baselineAvg": 13,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "migrate-requirements-to-uv",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A includes all required uv init, add, and test commands and notes the lockfile, while Response B omits uv init/add and does not meet the rubric."
+      },
+      {
+        "name": "single-file-script-with-inline-deps",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A partially meets the rubric by including the required shebang and metadata block, but omits the uv commands; Response B fails to meet any rubric requirements."
+      },
+      {
+        "name": "ci-job-with-uv",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required uv commands and references uv.lock, while Response B omits the uv python install, uses a different sync flag, and does not reference uv.lock."
+      }
+    ]
+  }
+}

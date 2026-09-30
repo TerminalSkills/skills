@@ -6,6 +6,7 @@ skills:
   - mcp-server-builder
   - rest-api
   - test-generator
+  - fastmcp
 category: data-ai
 tags:
   - mcp
@@ -301,3 +302,7 @@ describe("MCP Tool Integration", () => {
 The MCP server ships as a 200-line TypeScript file plus the tool mapping configuration. Any AI agent that supports MCP can now discover the API's capabilities and call them through natural conversation. Customers say "create a project called Q1 Roadmap" to their agent and it just works — no API docs, no HTTP clients, no authentication dance.
 
 The setup takes five minutes: install the package, add the config with an API key, and the agent has full access. Support tickets about "how do I use this with Claude" turn into a one-line answer.
+
+## Related Skills
+
+- [fastmcp](/skills/fastmcp) — choose it when the team works in Python or the API already has an OpenAPI spec: it generates the MCP tools from the spec instead of mapping each endpoint by hand

@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4b1c190875380f05a52ffafc8257fd7eb9d63537340c352e5338401654a85c92",
+  "scoredAt": "2026-09-30T11:22:43.972Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3,
+    "baselineAvg": 30,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "property-test-installments",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric requirements, including the example, while Response B omits the required @example decorator."
+      },
+      {
+        "name": "stateful-cart-test",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A does not use the required strategies or invariant."
+      },
+      {
+        "name": "ghostwriter-roundtrip-test",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Response B includes the required command and a test skeleton, while Response A provides the correct assertion but omits the command."
+      }
+    ]
+  }
+}

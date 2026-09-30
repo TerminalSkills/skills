@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:a08b918a608b4ee258e91c5dd54809d05c74fbf21f34e064efb637c7182e69b8",
+  "scoredAt": "2026-09-30T11:23:32.901Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.7,
+    "baselineAvg": 47,
+    "treatmentAvg": 80,
+    "scenarios": [
+      {
+        "name": "install-lazygit-macos",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses include the correct brew install command, mention running lazygit --version, and state that the output should contain a version string."
+      },
+      {
+        "name": "configure-lazygit-delta-vscode-commits",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A covers almost all rubric items except the validation mention, while Response B fails to meet most requirements."
+      },
+      {
+        "name": "squash-commits-lazygit",
+        "baseline": 10,
+        "treatment": 55,
+        "rationale": "Response A covers most of the required key sequence but omits the reword step and undo key, while Response B provides an entirely different workflow that does not match the rubric."
+      }
+    ]
+  }
+}

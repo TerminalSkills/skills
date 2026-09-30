@@ -8,6 +8,7 @@ skills:
   - postgresql
   - hono
   - zod
+  - stirling-pdf
 category: development
 tags:
   - pdf
@@ -268,3 +269,7 @@ export async function getFormFields(buffer: Buffer): Promise<Array<{ name: strin
 - **Terms update: 3 days → 5 minutes** — new T&C pages replace old in merge template; all future policies use updated terms automatically; no manual page replacement
 - **Batch processing** — 500 renewal policies generated overnight; each customized with customer name, coverage amounts, dates; ops team reviews, not creates
 - **Template marketplace** — legal team creates templates with placeholder fields; operations fills them with data; templates versioned and reusable across products
+
+## Related Skills
+
+- [stirling-pdf](/skills/stirling-pdf) — choose it when you would rather deploy a ready-made self-hosted service than maintain your own PDF code: its HTTP API already covers merging, form filling, watermarking and certificate signing

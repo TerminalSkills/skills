@@ -2,7 +2,7 @@
 title: "Automate RFC and Design Document Workflow with AI"
 slug: automate-rfc-design-document-workflow
 description: "Streamline the creation, review, and tracking of RFC and design documents using AI-powered templates and automation."
-skills: [markdown-writer, github, template-engine]
+skills: [markdown-writer, github, template-engine, openspec]
 category: productivity
 tags: [rfc, design-docs, workflow, documentation, engineering-process]
 ---
@@ -125,3 +125,7 @@ Priya leads backend engineering at a 35-person SaaS company. New engineers const
 She asks the agent to create an RFC template and generates the first RFC from rough notes about a storage migration. Three minutes later, she has a polished document with problem statement, alternatives, cost analysis, and migration plan. The PR goes up, reviewers are assigned, and the review completes in 4 days instead of the usual 3 weeks — because there's a deadline and a dashboard showing who's blocking.
 
 After a month, the team has 12 merged RFCs indexed and searchable. When a new hire asks about the Postgres decision, Priya points them to the decision log. The conversation takes 30 seconds instead of 30 minutes, and the answer is the actual reasoning from the time of the decision — not a reconstruction from fading memory. The "why did we pick X?" question, which used to derail entire afternoons, becomes a link.
+
+## Related Skills
+
+- [openspec](/skills/openspec) — choose it when the RFC describes a change to one codebase that an AI agent will implement: the proposal, design and requirement changes live in the repository, are reviewed in the same pull request and are archived by date

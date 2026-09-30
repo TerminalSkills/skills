@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:dd8f238a5c039752935f627abfcf945f6cf97f6530ae4d5ea858b792aea7ed40",
+  "scoredAt": "2026-09-30T11:21:48.581Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.77,
+    "baselineAvg": 47,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "create-blog-with-theme-and-draft",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response B covers most required commands and build output, missing only theme config and public dir confirmation, while Response A has correct theme config but uses incorrect commands."
+      },
+      {
+        "name": "publish-draft-post",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response B covers more rubric items, including separate list commands, locating the draft file, editing its front matter, rebuilding with the correct flags, whereas Response A omits several required steps and confirmations."
+      },
+      {
+        "name": "deploy-to-github-pages",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits submodule checkout, the configure-pages step, the required build flags, and the HUGO_VERSION variable."
+      }
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:56f5e4ad55b5e5b748944df3be75d1f91a0e02dead34f5b53e13fce03dab9c90",
+  "scoredAt": "2026-09-30T11:27:16.775Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 6.54,
+    "baselineAvg": 13,
+    "treatmentAvg": 85,
+    "scenarios": [
+      {
+        "name": "deploy-with-env-vars",
+        "baseline": 30,
+        "treatment": 75,
+        "rationale": "Response A correctly sets the required environment variables, generates a 32‑hex key, exposes 127.0.0.1:8080, and calls the correct status endpoint, but omits the X‑API‑KEY header; Response B uses wrong env names, wrong port binding, wrong endpoint, and missing header, so it fails most rubric items."
+      },
+      {
+        "name": "ocr-with-python",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items but misses explicit 401 handling, while Response B fails to meet the core API and payload requirements."
+      },
+      {
+        "name": "pipeline-merge-compress-watermark",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A provides no usable content."
+      }
+    ]
+  }
+}
