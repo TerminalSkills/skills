@@ -197,7 +197,7 @@ Name sources the way readers recognise them (r/selfhosted, @handle, a channel or
 - `--drill "cluster 3"` (or a cluster title), with no topic, digs into one cluster from the cached report; the cache lives one hour (`LAST30DAYS_REPORT_CACHE_TTL_SECONDS`).
 - `python3 "$ENGINE" library search "replication lag"` searches saved briefs offline.
 - `--emit=html --synthesis-file brief.md` renders a self-contained page from that cache.
-- Recurring topics: `--store`, then `scripts/watchlist.py add "Kestrelbase" --weekly`, a scheduler calling `scripts/watchlist.py run-all`, and `scripts/briefing.py generate --weekly` for the digest.
+- Recurring topics: run `--store`, then `python3 "$(dirname "$ENGINE")/watchlist.py" add "Kestrelbase" --weekly`, have a scheduler call `watchlist.py run-all`, and use `briefing.py generate --weekly` (same directory as the engine) for the digest.
 
 ## Examples
 
