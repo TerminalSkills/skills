@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3c0a1617b32a93acfa4f9ad90fda960b88e76b8fa7069f3c81bd01a669b2d43f",
+  "scoredAt": "2026-10-01T08:53:14.510Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 10,
+    "baselineAvg": 10,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-python-lsp-format-on-save",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a different plugin manager and does not meet the specified requirements."
+      },
+      {
+        "name": "fix-lspconfig-deprecation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully replaces require('lspconfig') with vim.lsp.config and vim.lsp.enable, while Response B still uses require('lspconfig') and does not meet the rubric."
+      },
+      {
+        "name": "headless-rename-class",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric criteria; Response A does not use nvim."
+      }
+    ]
+  }
+}
