@@ -141,7 +141,7 @@ Requirements that are cheap now and expensive later:
 
 ### 7. Define the measurement before launch
 
-Four events are enough. The first two are custom names; `generate_lead` is a GA4 recommended event.
+Four events are enough. Three are custom names; `generate_lead` is a GA4 recommended event.
 
 ```js
 gtag('event', 'tool_start',    { tool_name: 'reorder_point_calculator' });   // first input changed
