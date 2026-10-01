@@ -108,7 +108,7 @@ python3 sf.py -T        # List all event types
 # Passive DNS and infrastructure
 PASSIVE_DNS_MODULES="sfp_dnsresolve,sfp_dnsdumpster,sfp_certspotter,sfp_crt,sfp_securitytrails"
 
-# Subdomain discovery (sfp_dnsbrute sends guesses to the target's DNS servers)
+# Subdomain discovery (sfp_dnsbrute brute-forces hostnames, so it is not passive)
 SUBDOMAIN_MODULES="sfp_dnsbrute,sfp_dnsdumpster,sfp_certspotter,sfp_virustotal,sfp_shodan"
 
 # Social media and people
