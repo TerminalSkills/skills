@@ -174,7 +174,7 @@ the price resets `quantity` to 1 unless the request repeats it.
 | California, Bus. & Prof. Code 17602 | Cancelling online when the purchase was online; a retention offer may be shown only together with a direct "click to cancel" link; 7 to 30 days' notice before a fee change |
 
 The FTC's 2024 "click-to-cancel" amendments were vacated by a federal appeals court in July 2025
-and the agency reopened the rulemaking in March 2026; ROSCA and state laws apply in the meantime.
+and the agency restarted the rulemaking in 2026; ROSCA and state laws apply in the meantime.
 The EU requires an online withdrawal function for distance contracts from 19 June 2026. Flag
 these to the user as items for their counsel, not as legal advice.
 
