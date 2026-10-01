@@ -164,7 +164,8 @@ wt -C "$dir" list     # JSON keys: action, branch, path, created_branch, base_br
 
 `wt list` prints one row per worktree: `@` marks the current one, `^` the main one. Status uses
 `+` staged, `!` modified, `?` untracked, `↑` ahead of the default branch, `↓` behind,
-`↕` diverged, `✗` would conflict, `_` identical to it, `⊂` already contained in it.
+`↕` diverged, `✗` would conflict, `_` same commit as it with a clean tree, `–` same commit with
+uncommitted changes, `⊂` already contained in it.
 `--full` adds CI status and needs `gh` or `glab`; `--branches` includes branches without a
 worktree.
 
@@ -186,7 +187,8 @@ Know these before running it:
 - By default **untracked files are staged too**. Check `git status --short` first, or pass
   `--stage tracked`.
 - The commit message comes from the command in `[commit.generation]` of the user config. With
-  none configured the message is a plain `Changes to round.js`; if that is not acceptable,
+  none configured the message is a plain `Changes to round.js` (`Squash commits from BRANCH`
+  when several commits are squashed); if that is not acceptable,
   commit by hand first and run `wt merge --no-commit`, which requires a clean working tree.
 - It merges into the local target and never fetches or pushes. Update the target beforehand and
   push afterwards if a remote should see it.
@@ -224,7 +226,7 @@ wt list
 @ main                    ^             .                                   http://localhost:12107
 + fix/csv-export          ↑      ↑2     ../ledger-api.fix-csv-export        http://localhost:13130
 + fix/invoice-rounding  ! ↑      ↑1     ../ledger-api.fix-invoice-rounding  http://localhost:15280
-+ feat/audit-log        ?               ../ledger-api.feat-audit-log        http://localhost:16726
++ feat/audit-log        ?–              ../ledger-api.feat-audit-log        http://localhost:16726
 ```
 
 `fix/csv-export` is clean and ahead, so it goes first. She reads `git -C
