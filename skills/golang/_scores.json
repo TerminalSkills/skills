@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7472832c5a7d0efadf37dfe762abfe0eb1d1e8f221d3bab2e5879734cfbe7a52",
+  "scoredAt": "2026-09-30T22:00:47.794Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling or edge cases for installation and dependency management."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and repeated code blocks that could be trimmed for brevity."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.67,
+    "baselineAvg": 33,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "cross-compile-static-binary",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing loops that set GOOS/GOARCH, enable CGO_ENABLED=0, use go build with -trimpath and the required ldflags, and output binaries named with OS-ARCH suffixes."
+      },
+      {
+        "name": "add-dependency-test-race-vuln",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response B includes most required commands but omits go vet and the -count=1 flag for tests, whereas Response A is empty."
+      },
+      {
+        "name": "dockerize-go-api-static",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses the wrong base images and does not meet the specified requirements."
+      }
+    ]
+  }
+}

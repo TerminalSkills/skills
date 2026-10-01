@@ -2,7 +2,7 @@
 title: "Build a Custom Internal CLI Tool for Your Dev Team"
 slug: build-internal-cli-tool
 description: "Scaffold, implement, and distribute an internal CLI that automates repetitive team workflows like environment setup, deployments, and data seeding."
-skills: [coding-agent, test-generator, git-commit-pro]
+skills: [coding-agent, test-generator, git-commit-pro, golang]
 category: development
 tags: [cli, developer-tools, automation, internal-tooling, productivity]
 ---
@@ -122,3 +122,7 @@ A postinstall hook prints a one-line message if a newer version is available, so
 A lead engineer at a 25-person SaaS company notices developers waste 2-3 hours on their first day setting up local environments, and senior devs maintain personal shell scripts that nobody else can use or find. She builds `dx` with 5 subcommands covering the most common workflows.
 
 The setup command reduces first-day onboarding from 3 hours to 12 minutes -- clone the repo, run `dx setup`, answer 4 prompts for environment-specific values, and everything is running. Destructive operations now have safety prompts that show exactly what will happen before proceeding, so the monthly "someone accidentally reset staging" incident stops happening entirely. Over the next month the team adds 4 more commands (`dx lint-fix`, `dx create-migration`, `dx rotate-keys`, `dx open-pr`), each one replacing a workflow that used to live in someone's head or a Slack thread. New developer survey scores for "tooling satisfaction" climb from 3.1 to 4.6 out of 5, and the senior engineer who used to field setup questions every week gets two hours back.
+
+## Related Skills
+
+- [golang](/skills/golang) — Choose golang when the team CLI should ship as one static binary per OS (CGO_ENABLED=0 GOOS/GOARCH go build) instead of requiring Node and a private npm registry on every laptop.
