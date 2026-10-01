@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b108be8b3f7f2d6a15c58b1d5681527793b90d48b64a604305532f4c97cd0bae",
-  "scoredAt": "2026-05-13T15:07:26.789Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:5771909da5323e03761bb0042bd9aa888afb80439bce46a234e65b9d4352ef2e",
+  "scoredAt": "2026-10-01T11:26:55.852Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for plugin failures or build errors."
+        "detail": "The skill does not cover all possible error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.21,
-    "baselineAvg": 28,
-    "treatmentAvg": 90,
+    "multiplier": 2.82,
+    "baselineAvg": 33,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "convert-vue-app-with-camera-file-upload",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but omits native platform detection; Response B lacks Filesystem.writeFile and platform detection, so A scores higher."
+        "name": "convert-react-app-to-mobile",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric."
       },
       {
-        "name": "add-push-notifications-and-prep-app-store",
-        "baseline": 5,
+        "name": "add-camera-file-upload",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items but omits Filesystem.writeFile, whereas Response A misses all items."
+      },
+      {
+        "name": "setup-push-notifications",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not mention Capacitor push notifications or the required steps."
+        "rationale": "Response A fully satisfies all rubric items, while Response B fails to meet the required plugin, permission check, and listener specifications."
       }
     ]
   }
