@@ -98,17 +98,24 @@ export function splitBill(totalCents: number, people: number): number[] {
 }
 ```
 
-Cycle 2, red. The next test asserts `splitBill(10000, 3)` equals `[3334, 3333, 3333]`:
+Cycle 2, red. The next test asserts `splitBill(10000, 3)` equals `[3334, 3333, 3333]`. Output, trimmed to the lines that matter (durations, the other counters and stack frames left out):
 
 ```text
 ✔ splits an evenly divisible bill into equal shares
 ✖ hands leftover cents to the first payers so shares add up to the bill
-  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
-  + actual - expected
-  +   3333.3333333333335,
-  -   3334,
 ℹ pass 1
 ℹ fail 1
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   3333.3333333333335,
+  +   3333.3333333333335,
+  +   3333.3333333333335
+  -   3334,
+  -   3333,
+  -   3333
+    ]
 ```
 
 The naive division is now shown to be wrong. Green: floor the base share and hand out the remainder with a loop. Cycle 3, red: `assert.throws(() => splitBill(5000, 0), /at least one person/)` fails with `Missing expected exception`, because zero people currently yields an empty list. Green: add the guard. With three tests passing, refactor: the loop becomes one expression, and the suite is run again.
