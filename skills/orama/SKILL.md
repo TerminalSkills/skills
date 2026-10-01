@@ -1,11 +1,18 @@
 ---
 name: orama
-description: Expert guidance for Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. Helps developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.
+description: >-
+  Orama is an in-process search engine for JavaScript and TypeScript: full-text,
+  vector and hybrid search that runs in the browser, on a server or at the edge
+  with no external service. Use when someone asks to "add search to my docs
+  site", "client-side search", "typo-tolerant search", "faceted search in
+  JavaScript", "vector search without a database", or mentions Orama or
+  @orama/orama. Covers schemas, filters, facets, sorting, embeddings, React, and
+  saving an index to a file.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: Any JavaScript runtime (browser, Node.js, Deno, Bun, edge workers). Written for @orama/orama 3.x.
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
   tags:
   - search
@@ -13,230 +20,184 @@ metadata:
   - vector-search
   - browser
   - edge
+  repository: https://github.com/oramasearch/orama
 ---
 
 # Orama — Full-Text & Vector Search Engine
 
-
 ## Overview
 
+Orama is an open-source search engine written in TypeScript with zero dependencies. The index lives in memory inside your own process — browser tab, Node.js server, or edge worker — so there is no search server to run. It supports full-text search (BM25 ranking, typo tolerance, prefix matching), filters, facets, sorting, geosearch, and vector or hybrid search over embeddings you provide.
 
-Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. Helps developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.
-
+Since v3.0.0 `create`, `insert` and `search` are synchronous; they only return promises when a plugin with async hooks is installed. Their TypeScript return type is a union of both, so `await` the call (harmless when it is sync) to get a typed result. This skill covers the open-source `@orama/orama` library, not the hosted Orama Cloud product, which uses a different SDK (`@orama/core`).
 
 ## Instructions
 
 ### Basic Full-Text Search
 
-Set up a search index and query it:
-
 ```typescript
 // src/search/index.ts — Create and populate a search index
-import { create, insert, search, count } from "@orama/orama";
+import { create, insertMultiple, search } from "@orama/orama";
 
-// Define the schema — Orama infers types and builds indexes automatically
-const db = await create({
+// Only "string" and "string[]" properties are full-text searchable; the rest are for filters, facets and sorting
+export const db = create({
   schema: {
     title: "string",
     content: "string",
-    category: "enum",              // Filterable enum values
-    tags: "string[]",              // Array of strings (searchable)
+    category: "enum",              // Exact-match filter value (not searchable)
+    tags: "enum[]",                // Filterable list of values
     publishedAt: "number",         // Unix timestamp for range filters
     author: "string",
     views: "number",
   },
 });
 
-// Insert documents
-await insert(db, {
-  title: "Getting Started with Orama Search",
-  content: "Orama is a blazing-fast full-text search engine that works in the browser, on the server, and at the edge. No external dependencies required.",
-  category: "tutorial",
-  tags: ["search", "javascript", "performance"],
-  publishedAt: Date.now(),
-  author: "Alex Chen",
-  views: 1250,
-});
+await insertMultiple(db, [
+  {
+    title: "Getting Started with Orama Search",
+    content: "Orama is a full-text search engine that works in the browser, on the server, and at the edge.",
+    category: "tutorial", tags: ["search", "javascript", "performance"],
+    publishedAt: Date.parse("2026-09-12"), author: "Alex Chen", views: 1250,
+  },
+  {
+    title: "Building Real-Time Search with React",
+    content: "Implement instant search in a React application with typo tolerance.",
+    category: "tutorial", tags: ["react", "search", "ui"],
+    publishedAt: Date.parse("2026-09-25"), author: "Marta Lopez", views: 890,
+  },
+]);
 
-await insert(db, {
-  title: "Building Real-Time Search with React",
-  content: "Learn how to implement instant search in your React application using Orama. Sub-millisecond results with typo tolerance.",
-  category: "tutorial",
-  tags: ["react", "search", "ui"],
-  publishedAt: Date.now(),
-  author: "Marta Lopez",
-  views: 890,
-});
-
-// Search with typo tolerance (default: enabled)
 const results = await search(db, {
-  term: "serch engne",            // Typos handled automatically
-  properties: ["title", "content"], // Which fields to search
-  limit: 10,
+  term: "serch engne",
+  tolerance: 1,                     // Max edit distance per word. Default is 0: typos match nothing
+  properties: ["title", "content"], // Which fields to search (default: all string fields)
+  boost: { title: 2 },              // Matches in the title count double
+  limit: 10,                        // Default 10
   offset: 0,
 });
 
-console.log(`Found ${results.count} results in ${results.elapsed.formatted}`);
-// "Found 2 results in 0.12ms"
-
+console.log(`Found ${results.count} results in ${results.elapsed.formatted}`); // "Found 2 results in 380μs"
 for (const hit of results.hits) {
-  console.log(`${hit.score.toFixed(2)} | ${hit.document.title}`);
+  console.log(`${hit.score.toFixed(2)} | ${hit.document.title}`);          // "0.62 | Getting Started with Orama Search"
 }
 ```
 
-### Filters and Facets
+Other calls from the same package: `insert`, `update`, `upsert`, `remove`, `getByID`, `count`. Omitting `term` matches every document. `exact: true` matches whole words only and overrides `tolerance`.
 
-Combine full-text search with structured filtering:
+### Filters and Facets
 
 ```typescript
 // src/search/filtered.ts — Search with filters, facets, and sorting
 import { search } from "@orama/orama";
+import { db } from "./index.js";
 
-// Search with filters
 const filtered = await search(db, {
   term: "search",
   where: {
-    category: { eq: "tutorial" },          // Exact match on enum
-    publishedAt: { gt: Date.now() - 30 * 24 * 60 * 60 * 1000 }, // Last 30 days
-    views: { gte: 100, lte: 10000 },      // Range filter
-    tags: { containsAll: ["react"] },      // Array contains all
+    category: { eq: "tutorial" },                       // enum: eq, in, nin
+    publishedAt: { gt: Date.parse("2026-09-01") },      // number: gt, gte, lt, lte, eq, between
+    views: { between: [100, 10000] },                   // One operator per property — use between for a range
+    tags: { containsAll: ["react"] },                   // enum[]: containsAll, containsAny
   },
-  sortBy: {
-    property: "views",
-    order: "DESC",                         // Sort by most popular
-  },
+  sortBy: { property: "views", order: "DESC" },         // Most popular first
   limit: 20,
 });
 
 // Faceted search — get aggregated counts for filters
 const faceted = await search(db, {
-  term: "javascript",
+  term: "search",
   facets: {
-    category: {
-      limit: 10,                           // Top 10 categories
-    },
-    tags: {
-      limit: 20,
-    },
-    views: {
-      ranges: [
-        { from: 0, to: 100 },             // 0-100 views
-        { from: 100, to: 1000 },           // 100-1000 views
-        { from: 1000, to: Infinity },      // 1000+ views
-      ],
-    },
+    category: { limit: 10 },               // Top 10 categories
+    tags: { limit: 20 },
+    views: { ranges: [{ from: 0, to: 100 }, { from: 100, to: 1000 }, { from: 1000, to: 100000 }] },
   },
 });
-
-// Facet results for building filter UIs
 console.log(faceted.facets);
 // {
-//   category: { count: 2, values: { tutorial: 2, guide: 1 } },
-//   tags: { count: 5, values: { javascript: 3, react: 2, search: 2 } },
-//   views: { count: 3, values: { "0-100": 1, "100-1000": 2, "1000+": 1 } },
+//   category: { count: 1, values: { tutorial: 2 } },
+//   tags: { count: 5, values: { react: 1, search: 2, ui: 1, javascript: 1, performance: 1 } },
+//   views: { count: 3, values: { "0-100": 0, "100-1000": 1, "1000-100000": 1 } },
 // }
 ```
 
+`string` properties are filtered with a plain value or a list of alternatives (`author: "Chen"`, `author: ["Chen", "Lopez"]`), matched token by token. Boolean properties take `true` or `false`. Conditions on different properties are ANDed.
+
 ### Hybrid Search (Keyword + Vector)
 
-Combine traditional text search with semantic vector search:
+Orama stores and compares vectors but does not create them. Generate embeddings with any model, declare the dimension in the schema, and pass the query vector at search time:
 
 ```typescript
 // src/search/hybrid.ts — Hybrid search combining BM25 and vector similarity
-import { create, insert, search } from "@orama/orama";
-import { pluginEmbeddings } from "@orama/plugin-embeddings";
-import { OramaCloud } from "@orama/plugin-embeddings/dist/models";
+import { create, insertMultiple, search } from "@orama/orama";
+import { embed } from "./embed.js"; // Your function: (text: string) => Promise<number[]>, 384 numbers here
 
-// Create index with vector support
-const db = await create({
-  schema: {
-    title: "string",
-    content: "string",
-    category: "enum",
-    embedding: "vector[384]",     // 384-dimensional vector field
-  },
-  plugins: [
-    pluginEmbeddings({
-      embeddings: {
-        model: OramaCloud,        // Built-in embedding model (no API key needed)
-        // Or use OpenAI: { model: "openai", apiKey: process.env.OPENAI_API_KEY }
-        documentProperties: ["title", "content"],  // Which fields to embed
-        defaultProperty: "embedding",               // Store embeddings here
-      },
-    }),
-  ],
+const db = create({
+  // The vector size must equal the model's output size, or insert and search throw
+  schema: { title: "string", content: "string", category: "enum", embedding: "vector[384]" },
 });
 
-// Insert — embeddings are generated automatically from title + content
-await insert(db, {
-  title: "Kubernetes Pod Scheduling",
-  content: "Understanding how the Kubernetes scheduler assigns pods to nodes based on resource requests, affinity rules, and taints.",
-  category: "devops",
-});
+const docs = [
+  { title: "Kubernetes Pod Scheduling", content: "How the scheduler assigns pods to nodes based on resource requests, affinity rules, and taints.", category: "devops" },
+  { title: "Rolling Deployments", content: "Replace container instances gradually so the service stays available during a release.", category: "devops" },
+];
+await insertMultiple(db, await Promise.all(
+  docs.map(async (doc) => ({ ...doc, embedding: await embed(`${doc.title}. ${doc.content}`) })),
+));
 
-// Hybrid search — combines keyword relevance (BM25) with semantic similarity
+const question = "how to deploy containers";
 const results = await search(db, {
-  term: "how to deploy containers",     // Keyword search
-  mode: "hybrid",                        // "fulltext" | "vector" | "hybrid"
-  similarity: 0.8,                       // Minimum vector similarity threshold
+  mode: "hybrid",                        // "fulltext" (default) | "vector" | "hybrid"
+  term: question,
+  vector: { value: await embed(question), property: "embedding" },
+  similarity: 0.8,                       // Minimum cosine similarity for the vector half. Default 0.8
+  hybridWeights: { text: 0.5, vector: 0.5 }, // Default weights
   limit: 10,
 });
 
-// Pure vector search (semantic only, no keyword matching)
+// Pure vector search (semantic only, no keyword matching); filters still apply
 const semantic = await search(db, {
-  term: "container orchestration best practices",
   mode: "vector",
+  vector: { value: await embed("container orchestration best practices"), property: "embedding" },
   similarity: 0.75,
+  where: { category: { eq: "devops" } },
 });
 ```
 
+Hits come back with the vector property set to `null` unless `includeVectors: true` is set. On 3.1.18 a vector or hybrid search without that flag also sets it to `null` on the stored document (the index keeps working), so later `getByID` calls and `includeVectors` searches return `null` — keep your own copy of embeddings you need again.
+
 ### React Integration
 
-Build a search UI with React hooks:
+No extra package is needed: `search` is fast enough to call on every keystroke.
 
 ```tsx
 // src/components/SearchBox.tsx — Instant search with React
-import { useSearch } from "@orama/react-components";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { search, type AnyOrama, type Results } from "@orama/orama";
 
-export function SearchBox({ db }: { db: any }) {
+type Article = { title: string; content: string; category: string };
+
+export function SearchBox({ db }: { db: AnyOrama }) {
   const [query, setQuery] = useState("");
 
-  // useSearch automatically debounces and handles loading state
-  const { results, loading } = useSearch(db, {
-    term: query,
-    limit: 10,
-    properties: ["title", "content"],
-    facets: { category: { limit: 5 } },
-  });
+  // Synchronous and in memory, so there is no loading state to manage
+  const results = useMemo(
+    () => search(db, { term: query, tolerance: 1, limit: 10, facets: { category: { limit: 5 } } }) as Results<Article>,
+    [db, query],
+  );
 
   return (
     <div>
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search articles..."
-      />
-
-      {loading && <div className="spinner" />}
-
-      {results?.hits.map((hit) => (
+      <input type="search" value={query} placeholder="Search articles..."
+        onChange={(e) => setQuery(e.target.value)} />
+      {results.hits.map((hit) => (
         <article key={hit.id}>
           <h3>{hit.document.title}</h3>
           <p>{hit.document.content.slice(0, 150)}...</p>
-          <span>Score: {hit.score.toFixed(2)}</span>
         </article>
       ))}
-
-      {/* Facet filters */}
-      {results?.facets?.category && (
-        <div className="filters">
-          {Object.entries(results.facets.category.values).map(([cat, count]) => (
-            <button key={cat}>{cat} ({count})</button>
-          ))}
-        </div>
-      )}
+      {Object.entries(results.facets?.category?.values ?? {}).map(([cat, count]) => (
+        <button key={cat}>{cat} ({count})</button>
+      ))}
     </div>
   );
 }
@@ -244,71 +205,95 @@ export function SearchBox({ db }: { db: any }) {
 
 ### Persistence and Serialization
 
-Save and restore indexes:
-
 ```typescript
 // src/search/persistence.ts — Persist search index to disk or storage
 import { create, save, load } from "@orama/orama";
-import { persistToFile, restoreFromFile } from "@orama/plugin-data-persistence";
-import fs from "fs";
+import { persist, restore } from "@orama/plugin-data-persistence";
+import { persistToFile, restoreFromFile } from "@orama/plugin-data-persistence/server"; // Node, Deno, Bun only
+import { db } from "./index.js";
 
-// Save index to a file (server-side)
-const serialized = await save(db);
-fs.writeFileSync("search-index.json", JSON.stringify(serialized));
+// Core only: save() returns a plain object, load() fills an instance created with the same schema
+const snapshot = save(db);
+const copy = create({ schema: db.schema });
+load(copy, snapshot);
 
-// Restore index from file
-const data = JSON.parse(fs.readFileSync("search-index.json", "utf-8"));
-const restored = await load(data);
+// Plugin: one string or buffer that also carries the schema — works in the browser
+const json = await persist(db, "json");            // formats: "json", "binary", "seqproto"
+const restored = await restore("json", json);
 
-// Binary format — smaller and faster to load
-const binary = await persistToFile(db, "binary", "search-index.msp");
-const fromBinary = await restoreFromFile("binary", "search-index.msp");
+// Plugin, server side: write straight to a file
+const filePath = await persistToFile(db, "binary", "./search-index.msp");
+const fromFile = await restoreFromFile("binary", filePath);
 ```
 
 ## Installation
 
 ```bash
-# Core library
 npm install @orama/orama
-
-# Plugins (optional)
-npm install @orama/plugin-embeddings       # Vector/hybrid search
-npm install @orama/plugin-data-persistence # Save/load indexes
-npm install @orama/react-components        # React hooks
+npm install @orama/plugin-data-persistence   # Optional: save and restore indexes
+npm pkg set type=module                      # The snippets use top-level await, which needs an ESM project
 ```
-
 
 ## Examples
 
+### Example 1: Ship a prebuilt index with a static site
 
-### Example 1: Integrating Orama into an existing application
+**User request:** "Add search to my blog. It's a static site, so I don't want a search server."
 
-**User request:**
+Build the index once at build time, then load the file in the browser.
 
+```typescript
+// scripts/build-search-index.ts — run with: npx tsx scripts/build-search-index.ts
+import { readFileSync, writeFileSync } from "node:fs";
+import { create, insertMultiple, count } from "@orama/orama";
+import { persist } from "@orama/plugin-data-persistence";
+
+const articles = JSON.parse(readFileSync("content/articles.json", "utf-8"));
+const db = create({
+  schema: { title: "string", content: "string", category: "enum", tags: "enum[]", publishedAt: "number", views: "number" },
+});
+await insertMultiple(db, articles);
+
+const index = (await persist(db, "json")) as string;
+writeFileSync("public/search-index.json", index);
+console.log(`Indexed ${count(db)} articles → public/search-index.json (${(index.length / 1024).toFixed(1)} kB)`);
+// Indexed 3 articles → public/search-index.json (7.5 kB)
 ```
-Add Orama to my Next.js app for the AI chat feature. I want streaming responses.
+
+```typescript
+// src/search/client.ts — in the browser
+import { search } from "@orama/orama";
+import { restore } from "@orama/plugin-data-persistence";
+
+const db = await restore("json", await (await fetch("/search-index.json")).text());
+const results = await search(db, { term: "serch", tolerance: 1 });
+// results.hits → "Building Real-Time Search with React", "Getting Started with Orama Search", ...
 ```
 
-The agent installs the SDK, creates an API route that initializes the Orama client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
+### Example 2: Fix "no results for typos, too many results for long queries"
 
-### Example 2: Optimizing filters and facets performance
+**User request:** "Searching 'serch engne' finds nothing, but 'instant search react' returns almost every article."
 
-**User request:**
+Both are defaults: `tolerance` is 0, and `threshold` is 1, which keeps every document containing any one of the words. With the three articles from Example 1:
 
+```typescript
+await search(db, { term: "serch engne" });                          // count: 0
+await search(db, { term: "serch engne", tolerance: 1 });            // count: 3
+
+await search(db, { term: "instant search react" });                 // count: 3 (any word)
+await search(db, { term: "instant search react", threshold: 0 });   // count: 1 (all words)
 ```
-My Orama calls are slow and expensive. Help me optimize the setup.
-```
 
-The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Orama's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
-
+Values between 0 and 1 keep a share of the partial matches; here `threshold: 0.5` returns 2.
 
 ## Guidelines
 
-1. **Define schema upfront** — Orama builds optimized indexes based on your schema; don't use generic `string` for everything
-2. **Use enums for filters** — Fields you filter by exact match should be `enum`, not `string` — much faster
+1. **Define schema upfront** — Orama builds its indexes from the schema; properties missing from it are stored but cannot be searched or filtered
+2. **Use enums for filters** — Fields you filter by exact match should be `enum` or `enum[]`; they are not full-text searchable, so keep searchable text in `string` fields
 3. **Limit search properties** — Specify which fields to search in; searching all fields is slower and less relevant
-4. **Pre-build indexes** — For static content (docs, blog), build the index at build time and ship it as a JSON file
-5. **Hybrid for best results** — Pure keyword search misses synonyms; pure vector misses exact terms; hybrid combines both
-6. **Serialize for SSR** — Build the index server-side, serialize it, and hydrate on the client for instant search
-7. **Use facets for filter UIs** — Let Orama compute filter counts instead of running separate queries
-8. **Binary persistence for large indexes** — JSON serialization is fine for <10K docs; use binary format for larger datasets
+4. **Pre-build indexes** — For static content (docs, blog), build the index at build time and ship it as a file
+5. **Stemming is off by default** — "searching" does not match "search" unless you pass `components: { tokenizer: { stemming: true } }` to `create`; prefix matching ("sear") works out of the box
+6. **Embeddings plugin caveat** — `@orama/plugin-embeddings` (TensorFlow.js, `vector[512]`) is documented to embed at insert and search time, but with 3.1.18 its search hook is not awaited and vector search throws `Cannot read properties of undefined (reading 'property')` (open issue #925); pass vectors explicitly as shown above
+7. **Keep API keys out of the browser** — If embeddings come from a paid API, call it from your server and send only the vector to the client
+8. **Memory is the limit** — The whole index sits in RAM and a browser must download it; for millions of documents, frequent writes from several processes, or durable storage, use a search server such as Meilisearch, Typesense or Elasticsearch
+9. **Plugins are not saved** — A restored database has no plugins or custom components; pass them again when you rebuild the instance
