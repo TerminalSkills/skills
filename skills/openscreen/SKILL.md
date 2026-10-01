@@ -46,7 +46,7 @@ brew install --cask getopenscreen/openscreen/openscreen
 
 Or download the `.dmg` (Apple Silicon or Intel) from [GitHub Releases](https://github.com/getopenscreen/openscreen/releases). Builds from 1.9.0 on are signed and notarized, so Gatekeeper needs no terminal workaround.
 
-Permissions depend on the macOS version: on 15.2+ you pick the screen in Apple's system picker and no Screen Recording permission is needed; on 13–15.1 grant **Screen Recording** in **System Settings → Privacy & Security**. **Accessibility** is needed for the editable cursor (shape and clicks). Microphone recording needs macOS 15+.
+Grant **Screen Recording** and **Accessibility** in **System Settings → Privacy & Security**: Screen Recording lets it capture, Accessibility is needed for the editable cursor (shape and clicks). macOS 15 and later asks again for Screen Recording from time to time; that prompt comes from the system. Microphone recording needs macOS 15+.
 
 #### Windows
 
@@ -94,7 +94,7 @@ Recording needs `xdg-desktop-portal` and PipeWire; system audio needs PipeWire a
 - **Motion blur**, frame shadow, padding and corner roundness
 - **Background options** — wallpapers, solid colors, gradients, or custom images, with optional animation
 - **Annotations** — text, arrows, images and blur masks on top of recordings
-- **Speed control** — 0.25× to 16× per segment (`S`), **trimming** (`T`)
+- **Speed control** — per segment (`S`): presets from 0.25× to 5×, or any value from 0.1× to 100×; **trimming** (`T`)
 - **Captions** — transcribed on the machine with Whisper (one-time model download of about 264 MB), burned into the video
 - **AI editing assistant** — off by default; needs your own provider key and sends the timeline and transcript to that provider
 
