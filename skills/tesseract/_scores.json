@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:10d3bd5daf50804f9fab06530f3a4098c53a8cc1d7faec417ba2751447d89cb1",
-  "scoredAt": "2026-05-13T10:25:05.871Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a2d150fb2266616f00cf4e0341c4f3a9ac37dad77e3af13613c46cb9701defba",
+  "scoredAt": "2026-10-01T12:36:28.017Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for OCR failures or missing language data."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 93,
-    "multiplier": 1.86,
+    "multiplier": 1.83,
+    "baselineAvg": 53,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "Extract text from a noisy scanned receipt",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment preprocesses with cv2 grayscale + fastNlMeansDenoising + adaptiveThreshold, deskews, scales up below 1000px, and runs image_to_string with --psm 4/6; baseline typically does only basic grayscale+threshold and skips PSM tuning."
+        "name": "convert-pdf-to-searchable",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B meets the rubric by explaining the need to convert PDF pages to images and providing a tesseract command with the required options and output formats, while Response A does not mention Tesseract or its limitations and uses different tools."
       },
       {
-        "name": "OCR a single-line serial number with restricted character set",
-        "baseline": 45,
-        "treatment": 93,
-        "rationale": "Treatment combines --psm 7 with -c tessedit_char_whitelist=0123456789ABCDEF in the config string as the skill prescribes; baseline rarely pairs PSM 7 with a tessedit_char_whitelist and leaves PSM at the default."
+        "name": "extract-total-from-receipt",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "A fully meets rubric, B misses required regex."
+      },
+      {
+        "name": "browser-ocr-single-line",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A explicitly creates a worker, sets PSM and whitelist, recognizes a PNG, and logs the text, fully meeting the rubric; Response B omits explicit worker creation, though it otherwise satisfies the other requirements."
       }
     ]
   }
