@@ -1,15 +1,16 @@
 ---
 name: powerpoint
 description: >-
-  Create, edit, and manipulate PowerPoint (.pptx) files programmatically using
-  python-pptx. Use when a user asks to generate a PPTX, modify slides, extract
+  Creates, edits, and reads PowerPoint (.pptx) files programmatically with the
+  python-pptx library. Use when a user asks to generate a PPTX, modify slides, extract
   text from a presentation, add charts or tables to PowerPoint, build slides
   from data, convert content to PPTX, or automate PowerPoint file creation.
 license: Apache-2.0
-compatibility: "Requires Python 3.7+ and python-pptx (`pip install python-pptx`)"
+compatibility: "Requires Python 3.8+ and python-pptx 1.0 or later (`pip install python-pptx`)"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
+  repository: https://github.com/scanny/python-pptx
   category: documents
   tags: ["powerpoint", "pptx", "presentations", "slides", "python-pptx"]
   use-cases:
@@ -33,7 +34,7 @@ Create, read, and edit PowerPoint (.pptx) files programmatically using the pytho
 pip install python-pptx
 ```
 
-**Alternative — AI-generated PPTX:** For fully automated slide generation from text prompts, Presenton (`github.com/presenton/presenton`) is an open-source tool that produces PPTX using OpenAI, Gemini, Claude, or Ollama. Runs locally via Docker. Use python-pptx (below) when you need precise control over content, formatting, and programmatic data-driven generation.
+The current release is 1.0.2 (August 2024). The 1.x line needs Python 3.8 or later and ships type annotations. Only `.pptx` files open — convert a legacy `.ppt` first (`soffice --headless --convert-to pptx quarterly.ppt`).
 
 ### Object model
 
@@ -54,7 +55,17 @@ for i, layout in enumerate(prs.slide_layouts):
     print(i, layout.name)
 ```
 
-Common defaults: 0 = Title Slide, 1 = Title and Content, 5 = Title Only, 6 = Blank.
+In the built-in template: 0 = Title Slide, 1 = Title and Content, 5 = Title Only, 6 = Blank. `prs.slide_layouts.get_by_name("Title Only")` looks a layout up by name and returns `None` when it is missing.
+
+### Slide size
+
+`Presentation()` opens a built-in 4:3 template (10 × 7.5 in). For 16:9, load a widescreen `.pptx` saved from PowerPoint, or resize the blank deck before adding slides:
+
+```python
+prs = Presentation()
+prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
+# Layout placeholders keep their 4:3 positions (9 in wide): after a resize use Blank or Title Only and place your own shapes.
+```
 
 ### Creating a presentation
 
@@ -86,14 +97,27 @@ prs.save("report.pptx")
 ### Editing existing files (template fill)
 
 ```python
+from pptx import Presentation
+
+def replace_text(paragraph, old, new):
+    """Replace across runs: PowerPoint often splits one phrase ({{COM + PANY}}) into several runs."""
+    runs = paragraph.runs
+    if old not in "".join(r.text for r in runs):
+        return False
+    for r in runs:                          # phrase inside one run: every run keeps its formatting
+        r.text = r.text.replace(old, new)
+    if old in "".join(r.text for r in runs):    # split across runs: merge into the first run (its formatting wins)
+        runs[0].text = "".join(r.text for r in runs).replace(old, new)
+        for r in runs[1:]:
+            r.text = ""
+    return True
+
 prs = Presentation("template.pptx")
 for slide in prs.slides:
     for shape in slide.shapes:
         if shape.has_text_frame:
             for paragraph in shape.text_frame.paragraphs:
-                for run in paragraph.runs:
-                    if "{{COMPANY}}" in run.text:
-                        run.text = run.text.replace("{{COMPANY}}", "Acme Corp")
+                replace_text(paragraph, "{{COMPANY}}", "Northwind Logistics")
 prs.save("filled.pptx")
 ```
 
@@ -106,8 +130,9 @@ slide.shapes.add_picture("photo.png", Inches(1), Inches(1.5), width=Inches(8))
 
 **Table:**
 ```python
-tbl = slide.shapes.add_table(rows, cols, Inches(1), Inches(2), Inches(8), Inches(3)).table
-tbl.cell(0, 0).text = "Header"
+tbl = slide.shapes.add_table(4, 3, Inches(1), Inches(2), Inches(8), Inches(3)).table
+tbl.cell(0, 0).text = "Product"
+tbl.columns[0].width = Inches(4)   # widths are never auto-sized
 ```
 
 **Chart:**
@@ -118,7 +143,8 @@ from pptx.enum.chart import XL_CHART_TYPE
 chart_data = CategoryChartData()
 chart_data.categories = ["Q1", "Q2", "Q3", "Q4"]
 chart_data.add_series("Revenue", (3.2, 3.8, 4.2, 5.1))
-slide.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(1), Inches(2), Inches(8), Inches(4.5), chart_data)
+frame = slide.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(1), Inches(2), Inches(8), Inches(4.5), chart_data)
+frame.chart.replace_data(chart_data)   # later: refresh an existing chart (shape.has_chart) in place
 ```
 
 **Speaker notes:**
@@ -138,17 +164,11 @@ paragraph.alignment = PP_ALIGN.CENTER
 
 ### Design principles for generated slides
 
-Apply these rules when building presentations programmatically:
+**Typography:** One font family per presentation. Titles minimum 36pt, body minimum 24pt. Set `paragraph.line_spacing` to 1.2–1.3 for body text, 0.8–0.9 for large display text.
 
-**Typography:** Use Inter, Poppins, or Montserrat instead of default Calibri. One font family per presentation. Titles minimum 36pt, body minimum 24pt. Set line spacing to 1.2–1.3 for body text, 0.8–0.9 for large display text.
+**Layout:** Left-align body text (center only for short titles). Use generous margins — `Inches(1)` minimum on all sides, at least `Inches(0.3)` of padding inside boxes and shapes. One idea per slide. Maximum 6 lines of text, 6 words per line. Split dense content across multiple slides (~30 seconds each).
 
-**Layout:** Left-align body text (center only for short titles). Use generous margins — `Inches(1)` minimum on all sides. Use multi-column layouts for readability. Vary slide designs while keeping a consistent style.
-
-**Content density:** One idea per slide. Maximum 6 lines of text, 6 words per line. Split dense content across multiple slides (~30 seconds each). Replace bullet lists with visual hierarchy using font size, weight, and spacing.
-
-**Whitespace:** Treat empty space as a design element, not wasted space. Apply padding inside boxes and shapes — at least `Inches(0.3)` internal margin.
-
-**Visuals:** One hero image or chart per slide. Use high-contrast text on backgrounds. SVG icons from Noun Project (thenounproject.com) enhance slides without clutter. For professional templates as starting points, download PPTX files from Slidesgo (slidesgo.com) and load them with `Presentation("template.pptx")`.
+**Visuals:** One hero image or chart per slide. Use high-contrast text on backgrounds. For professional templates as starting points, download PPTX files from Slidesgo (slidesgo.com) and load them with `Presentation("template.pptx")`.
 
 ## Examples
 
@@ -171,17 +191,7 @@ prs = Presentation()
 # Title slide
 slide = prs.slides.add_slide(prs.slide_layouts[0])
 slide.shapes.title.text = f"Sales Report — {data['period']}"
-slide.placeholders[1].text = f"Generated {data['generated_date']}"
-
-# Summary slide
-slide = prs.slides.add_slide(prs.slide_layouts[1])
-slide.shapes.title.text = "Executive Summary"
-tf = slide.placeholders[1].text_frame
-tf.text = f"Total Revenue: ${data['total_revenue']:,.0f}"
-p = tf.add_paragraph()
-p.text = f"Units Sold: {data['units_sold']:,}"
-p = tf.add_paragraph()
-p.text = f"Top Region: {data['top_region']}"
+slide.placeholders[1].text = f"Total revenue ${data['total_revenue']:,.0f} · generated {data['generated_date']}"
 
 # Chart slide — revenue by region
 chart_data = CategoryChartData()
@@ -189,10 +199,7 @@ chart_data.categories = [r["name"] for r in data["regions"]]
 chart_data.add_series("Revenue ($M)", [r["revenue"] for r in data["regions"]])
 slide = prs.slides.add_slide(prs.slide_layouts[5])
 slide.shapes.title.text = "Revenue by Region"
-slide.shapes.add_chart(
-    XL_CHART_TYPE.COLUMN_CLUSTERED,
-    Inches(1), Inches(2), Inches(8), Inches(4.5), chart_data
-)
+slide.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(1), Inches(2), Inches(8), Inches(4.5), chart_data)
 
 # Table slide — product breakdown
 products = data["products"]
@@ -209,38 +216,38 @@ for i, prod in enumerate(products):
 prs.save("sales_report.pptx")
 ```
 
+Result: `sales_report.pptx` with three slides — title, a clustered column chart that stays editable in PowerPoint (the data is embedded as a worksheet), and a product table.
+
 ### Example 2: Batch-update branding across PPTX templates
 
 **User request:** "Update the company name and logo across all our PPTX templates"
 
 ```python
-import glob
+import glob, os
 from pptx import Presentation
-from pptx.util import Inches
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 
-old_name, new_name = "OldCorp Inc.", "NewBrand Technologies"
-new_logo = "assets/newbrand_logo.png"
+old_name, new_name = "Brightpath Consulting", "Northwind Logistics"
+new_logo = "assets/northwind_logo.png"
+os.makedirs("updated", exist_ok=True)
 
 for filepath in glob.glob("templates/*.pptx"):
     prs = Presentation(filepath)
     for slide in prs.slides:
-        to_remove = []
-        for shape in slide.shapes:
+        for shape in list(slide.shapes):          # copy: the loop adds and removes shapes
             if shape.has_text_frame:
                 for para in shape.text_frame.paragraphs:
-                    for run in para.runs:
-                        if old_name in run.text:
-                            run.text = run.text.replace(old_name, new_name)
-            if shape.shape_type == 13 and shape.name.startswith("Logo"):
-                to_remove.append((shape, shape.left, shape.top, shape.width, shape.height))
+                    replace_text(para, old_name, new_name)   # helper from "Editing existing files"
+            if shape.shape_type == MSO_SHAPE_TYPE.PICTURE and shape.name.startswith("Logo"):
                 slide.shapes.add_picture(new_logo, shape.left, shape.top, shape.width, shape.height)
-        for shape, *_ in to_remove:
-            shape._element.getparent().remove(shape._element)
+                shape._element.getparent().remove(shape._element)   # no public delete API
 
-    output = filepath.replace("templates/", "updated/")
+    output = os.path.join("updated", os.path.basename(filepath))
     prs.save(output)
     print(f"Updated: {output}")
 ```
+
+Result: one `Updated: updated/onboarding.pptx` line per file; the originals in `templates/` are untouched. A logo that sits on the slide master or a layout is not in `slide.shapes` — run the same loop over `prs.slide_master.shapes` and each `layout.shapes` in `prs.slide_layouts`. Text in table cells is not reached either (`shape.has_text_frame` is false for a table): loop over `shape.table.iter_cells()` and each `cell.text_frame.paragraphs`.
 
 ### Example 3: Extract presentation content to markdown
 
@@ -264,23 +271,29 @@ for i, slide in enumerate(prs.slides):
                     md_lines.append(f"\n### {text}")
                 else:
                     md_lines.append(f"{'  ' * para.level}- {text}")
+        elif shape.has_table:
+            for row in shape.table.rows:
+                md_lines.append("| " + " | ".join(c.text for c in row.cells) + " |")
     if slide.has_notes_slide:
         notes = slide.notes_slide.notes_text_frame.text.strip()
         if notes:
             md_lines.append(f"\n> **Notes:** {notes}")
 
-with open("extracted.md", "w") as f:
+with open("extracted.md", "w", encoding="utf-8") as f:
     f.write("\n".join(md_lines))
 ```
+
+Result: `extracted.md` with a `## Slide N` heading per slide, the title as `###`, body text as nested bullets, table rows as pipe-separated lines and speaker notes as a quote. Text inside grouped shapes needs a recursive walk over `shape.shapes` when `shape.shape_type == MSO_SHAPE_TYPE.GROUP`.
 
 ## Guidelines
 
 - Always use `from pptx.util import Inches, Pt` for positioning — never raw EMU values unless doing precise math.
-- When editing existing files, iterate `paragraph.runs` to preserve formatting. Setting `text_frame.text` directly destroys all existing font styles.
-- Check available layouts with `enumerate(prs.slide_layouts)` before using hardcoded indices — they vary by template.
+- When editing existing files, change text through `paragraph.runs` to preserve formatting. Setting `text_frame.text` directly destroys all existing font styles.
+- Check available layouts with `enumerate(prs.slide_layouts)` before using hardcoded indices — they vary by template. `slide.shapes.title` is `None` on layouts without a title placeholder (Blank).
 - For template-based generation, use placeholder shapes (`slide.placeholders[idx]`) rather than adding new shapes. This preserves the template's design.
-- Start from professional templates (e.g., Slidesgo PPTX downloads) rather than blank presentations — the design quality will be significantly higher.
-- python-pptx does not support animations, transitions, or embedded video. Create the base PPTX and instruct the user to add those in PowerPoint.
-- When building tables, set column widths explicitly — auto-sizing is not supported and defaults produce uneven columns.
-- Set `font.name` explicitly on every run when generating from scratch — default Calibri looks generic. Inter, Poppins, and Montserrat are free alternatives available via Google Fonts.
+- Animations and slide transitions are not supported. Video can be embedded with `shapes.add_movie()`, which the library marks experimental: the size must be given, the MIME type should be (`mime_type="video/mp4"`), and without `poster_frame_image` a generic speaker icon is shown.
+- There is no public API to delete, duplicate or reorder slides, or to delete a shape; removing the underlying XML element (as in Example 2) is the usual workaround. Charts and tables are built from the data you pass in — nothing is auto-sized, so set column widths explicitly.
+- Text does not shrink to fit. `MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE` only writes the autofit flag; the library calculates no font size. `text_frame.fit_text(font_family="DejaVu Sans", max_size=18, font_file="/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")` computes one at generation time — on Linux `font_file` is required, without it the call raises `OSError: unsupported operating system`.
+- The file stores a font name, not the font. A deck set in Inter, Poppins or Montserrat falls back to a default on a machine without that font — stay with fonts the audience has, or confirm the font is installed where the deck is shown.
+- Check the output before sending it: `soffice --headless --convert-to pdf sales_report.pptx` (LibreOffice) renders the deck so overflowing text and misplaced shapes are visible.
 - Save to a new filename when editing to avoid corrupting the source file during development.
