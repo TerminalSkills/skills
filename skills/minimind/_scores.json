@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a842468eb4bcdb259495c1d2bfc558909f52b407263db91a108bfcf809c1b1b5",
-  "scoredAt": "2026-05-13T09:35:11.269Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a9995e52e5c299d125ee0bd9ddd0e8e9f7b636356a4d2caaa94bb7a463f7c0fe",
+  "scoredAt": "2026-10-01T12:57:44.678Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "category": "crossPlatform",
+        "detail": "Instructions assume Unix shell activation and may not work on Windows without modifications."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 88,
-    "multiplier": 2.93,
+    "multiplier": 2.74,
+    "baselineAvg": 23,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "Train a small GPT from scratch in ~2 hours on one GPU",
+        "name": "train-from-scratch",
         "baseline": 30,
-        "treatment": 90,
-        "rationale": "Treatment clones jingyaogong/minimind, runs `download_data.py`, then `train_pretrain.py` → `train_sft.py` → `train_dpo.py` with the documented flags; baseline writes a generic nanoGPT-style loop and misses the SFT/DPO pipeline."
+        "treatment": 75,
+        "rationale": "Response A covers most required steps but omits log and speed details, while Response B lacks the essential training and evaluation commands."
       },
       {
-        "name": "LoRA-fine-tune the base model on medical Q&A",
+        "name": "lora-finetune-and-serve",
         "baseline": 30,
         "treatment": 85,
-        "rationale": "Treatment invokes `train_lora.py --base_model ./checkpoints/sft/best.pt --data_path ./data/medical_qa.jsonl --lora_rank 8 --lora_alpha 16` and uses the documented `conversations` JSONL format; baseline reaches for peft/HuggingFace instead of MiniMind's script."
+        "rationale": "Response A covers the required steps except evaluation, while Response B omits the key commands and dataset format specified in the rubric."
+      },
+      {
+        "name": "dpo-training-and-evaluation",
+        "baseline": 10,
+        "treatment": 30,
+        "rationale": "Response A covers more of the required steps and mentions the output directory, whereas Response B omits the default dataset path, output file name, reward model, and eval script details."
       }
     ]
   }
