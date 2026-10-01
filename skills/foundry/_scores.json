@@ -1,53 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:984f8cf8990bedeb6e73e70d3dc912100a22aafe9052cb7b186faa08ba4a96e1",
-  "scoredAt": "2026-05-13T09:04:44.171Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:caec8680647b34e554d7071060a7fbd9877f813c4d29454cb0e6b9fec4c0149e",
+  "scoredAt": "2026-10-01T11:44:08.020Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases in its instructions."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl|bash",
-        "detail": "Installation script uses curl piped to bash without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
+    "multiplier": 1.51,
     "baselineAvg": 55,
-    "treatmentAvg": 89,
-    "multiplier": 1.62,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Write fuzz and fork tests for an ERC-4626 vault",
-        "baseline": 58,
-        "treatment": 91,
-        "rationale": "Treatment used Foundry-native patterns (testFuzz_ prefix with bound(), vm.createSelectFork, vm.startPrank/stopPrank, makeAddr, forge-std Test import) per the SKILL; baseline wrote Hardhat-style or generic Solidity tests without the cheatcodes."
+        "name": "setup-foundry-project-with-fuzz-test",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A covers most rubric items with correct commands and a bound fuzz test, missing only the explicit snapshot command; Response B fails on version, test function, and gas reporting requirements."
       },
       {
-        "name": "Set up reproducible deployment script and CLI interactions",
-        "baseline": 52,
-        "treatment": 87,
-        "rationale": "Treatment used forge script with vm.startBroadcast/vm.envUint plus cast call/cast send for interactions and forge snapshot for gas regression as documented; baseline used a JavaScript deploy script without scripted broadcast or cast follow-up."
+        "name": "fork-mainnet-test-with-cast",
+        "baseline": 70,
+        "treatment": 75,
+        "rationale": "Both answers cover most rubric items, but neither includes the required skip line; B uses the exact fork syntax requested, giving it a slight edge."
+      },
+      {
+        "name": "deploy-and-verify-contract-with-etherscan",
+        "baseline": 75,
+        "treatment": 90,
+        "rationale": "Response A includes the exact forge script command with verification and uses vm.startBroadcast()/vm.stopBroadcast(), plus cast call/send; Response B omits the combined verify flag and uses a separate verify command, missing the rubric's exact command."
       }
     ]
   }
