@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d0df7b7307290fec6c75b39d75385bc84deac7f4b18a3e1cd319a74edf1869f5",
-  "scoredAt": "2026-05-13T10:29:26.068Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:aa895a65897cf166fb474dec51d7ee108ada63fd42e81b1b225054c4657b548c",
+  "scoredAt": "2026-10-01T12:41:25.017Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes specific environments (Docker, Next.js) limiting cross-platform applicability."
+        "category": "conciseness",
+        "detail": "The skill file contains excessive narrative and padding, reducing conciseness."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "bash",
-        "detail": "Setup uses git clone and docker compose without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 91,
-    "multiplier": 1.82,
+    "multiplier": 5.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "add-cookieless-analytics-nextjs",
-        "baseline": 65,
-        "treatment": 92,
-        "rationale": "Baseline knows of Umami but may forget the data-website-id attribute or custom event API; treatment uses next/script with defer, src=.../script.js and data-website-id, adds umami.track(name, data) plus data-umami-event, and notes the no-consent-banner outcome."
+        "name": "self-host-umami-docker-compose",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements, while Response B omits the APP_SECRET variable, the .env creation command for it, and the heartbeat curl test."
       },
       {
-        "name": "umami-api-dashboard",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Baseline cannot reliably recall the exact /api/websites/{id}/pageviews and /api/websites/{id}/metrics?type=url endpoints with startAt/endAt/unit params; treatment uses both endpoints with the Authorization: Bearer header as documented."
+        "name": "add-umami-tracking-nextjs",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a complete <script> tag inside <head>, while Response A is incomplete and does not provide the required snippet."
+      },
+      {
+        "name": "umami-api-weekly-report",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is a Python script and does not meet the Node.js requirement."
       }
     ]
   }
