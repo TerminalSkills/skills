@@ -182,7 +182,7 @@ gh api "repos/{owner}/{repo}/issues/214/dependencies/blocked_by" -F issue_id="$b
 - **Reference, do not copy.** Link to the PRD's section instead of pasting it into six issues that will drift apart when the PRD is edited.
 - **Keep file names and function names out of the outcome and criteria.** They belong, sparingly, in the implementer notes; criteria describe behaviour.
 - **Labels, milestones and issue types must exist.** `gh issue create` fails on an unknown label or milestone. Create the label first; never create milestones or types without asking.
-- **Relationship limits.** Sub-issues and issue types work on GitHub.com and GitHub Enterprise Server 3.17+, blocked-by relationships need 3.19+, and a sub-issue must belong to the same owner as its parent. Where they are unavailable, the "Depends on" section of each body is the record.
+- **Relationship limits.** Sub-issues and issue types work on GitHub.com and GitHub Enterprise Server 3.18+, blocked-by relationships need 3.19+, and a sub-issue must belong to the same owner as its parent. Where they are unavailable, the "Depends on" section of each body is the record.
 - **Authentication is the user's.** Use the session `gh` already has (or `GH_TOKEN` from the environment). If `gh auth status` reports no login, stop and ask; do not look for tokens on disk.
 - **Other trackers.** For Jira, Linear or GitLab, stop after step 6 and hand over the approved table and the body files; do not guess another tool's commands.
 - **When not to use it.** A PRD small enough for one pull request needs one issue, not a breakdown. A PRD whose open questions outnumber its requirements needs another round with its author first; offer the list of questions instead.
