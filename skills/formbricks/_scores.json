@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f9bac53a30b604cb5eba2b3e9d8eeb47f38c8681155353ee4c819922b959269b",
-  "scoredAt": "2026-05-13T09:04:11.087Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5d421066620a580302eb77106274327c0dc429e3d7d26ee3c41f57b7d16e21a5",
+  "scoredAt": "2026-10-01T11:42:56.295Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing environment variables or API failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a React/Next.js environment, limiting its applicability to other frameworks or platforms."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered padded, reducing conciseness."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 87,
-    "multiplier": 2.29,
+    "multiplier": 6.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Trigger NPS survey after onboarding in a Next.js app",
-        "baseline": 40,
-        "treatment": 89,
-        "rationale": "Treatment used @formbricks/js/app with formbricks.init, setUserId, setAttributes for targeting, and formbricks.track('onboarding_completed') as the action trigger per the SKILL; baseline reached for Typeform embed or hand-rolled modal with no targeting hooks."
+        "name": "setup-nps-survey-after-onboarding",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention Formbricks at all."
       },
       {
-        "name": "Create a targeted post-purchase survey via REST API",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment POSTed to /api/v1/surveys with x-api-key header, type:'app', NPS+openText questions, triggers[].actionClass, and segment.filters on plan attribute exactly as documented; baseline guessed a generic survey-API shape without the actionClass/segment structure."
+        "name": "feature-request-button-with-webhook",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B does not address any of the Formbricks-specific steps."
+      },
+      {
+        "name": "api-list-and-create-surveys",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses do not meet the rubric requirements."
       }
     ]
   }
