@@ -6,6 +6,7 @@ skills:
   - pdf-analyzer
   - pdf-ocr
   - markitdown
+  - mineru
 category: documents
 tags:
   - pdf
@@ -77,3 +78,4 @@ The due diligence package that took 3 days now takes an afternoon, and the analy
 ## Related Skills
 
 - [markitdown](/skills/markitdown) — converts PDFs, Word, Excel and PowerPoint files to Markdown in one pass, which makes a mixed archive searchable before any extraction
+- [mineru](/skills/mineru) — Choose mineru when the archive mixes scanned and digital PDFs with tables and multi-column pages and must stay local: one `mineru-kit parse ./dir --tier basic` pass OCRs the scans and keeps tables as Markdown, and the `mineru` library (after managed parse-server setup) gives page/block locators for cited answers.
