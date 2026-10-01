@@ -2,7 +2,7 @@
 title: "Build an Async SWE Coding Bot"
 slug: build-async-swe-coding-bot
 description: "Create an autonomous coding bot that picks up GitHub issues labeled 'ai-fix', writes code, runs tests, and submits pull requests — with human review in the loop."
-skills: [open-swe, github-actions, anthropic-sdk]
+skills: [open-swe, github-actions, anthropic-sdk, openhands]
 category: automation
 difficulty: advanced
 time_estimate: "10 hours"
@@ -233,6 +233,7 @@ Your team's open-source Python SDK has 43 open bug reports. You label 15 of them
 - [open-swe](/skills/open-swe) — Open-source software engineering agent framework
 - [github-actions](/skills/github-actions) — CI/CD workflow automation with GitHub Actions
 - [anthropic-sdk](/skills/anthropic-sdk) — Claude API for code generation and reasoning
+- [openhands](/skills/openhands) — Choose openhands as the agent inside the bot when you want a ready-made headless coding agent with JSONL event output and exit codes for CI, instead of assembling the loop from open-swe and the Anthropic SDK.
 
 ## What You'll Learn
 
