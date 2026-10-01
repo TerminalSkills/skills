@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "No external dependencies. Works with any text editor or document format."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["cover-letter", "job-application", "career", "writing", "hiring"]
   use-cases:
@@ -54,7 +54,7 @@ Create a mapping between the candidate's experience and job requirements:
 
 ```
 Requirement: "5+ years Python experience"
-  -> Match: "7 years building Python microservices at Acme Corp"
+  -> Match: "7 years building Python microservices at Shopify"
 
 Requirement: "Experience with distributed systems"
   -> Match: "Designed event-driven architecture processing 2M events/day"
@@ -165,7 +165,7 @@ Best regards,
 
 ## Guidelines
 
-- Keep the letter to one page (300-400 words). Hiring managers spend 30 seconds on average reading cover letters.
+- Keep the letter to one page (300-400 words). In a 2023 Resume Genius survey of 625 U.S. hiring managers, 84% said they spend two minutes or less on a cover letter.
 - Never use generic phrases like "I am writing to apply for..." as an opener. Start with something specific and engaging.
 - Every sentence should either demonstrate a qualification or show knowledge of the company. Remove filler.
 - Use the same keywords from the job description naturally in the letter to pass ATS screening.
