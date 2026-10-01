@@ -10,9 +10,10 @@ license: Apache-2.0
 compatibility: "Self-hosted (Docker) or cloud. REST + GraphQL API. TypeScript."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["crm", "twenty", "sales", "customer", "open-source"]
+  repository: https://github.com/twentyhq/twenty
 ---
 
 # Twenty CRM
@@ -23,7 +24,7 @@ Twenty is an open-source CRM shaped by the community — a modern alternative to
 
 ## When to Use
 
-- Need a CRM without Salesforce pricing ($75-300/user/month)
+- Need a CRM without per-seat Salesforce pricing
 - Want self-hosted CRM for data sovereignty
 - Building custom CRM integrations via API
 - Need custom objects beyond standard contacts/deals
@@ -31,25 +32,36 @@ Twenty is an open-source CRM shaped by the community — a modern alternative to
 
 ## Instructions
 
-### Setup
+### Setup (self-hosted, Docker Compose)
 
 ```bash
-# Docker Compose (recommended)
-curl -fsSL https://raw.githubusercontent.com/twentyhq/twenty/main/packages/twenty-docker/docker-compose.yml -o docker-compose.yml
+# Download the compose file and the example env
+base=https://raw.githubusercontent.com/twentyhq/twenty/main/packages/twenty-docker
+curl -fsSL $base/docker-compose.yml -o docker-compose.yml
+curl -fsSL $base/.env.example -o .env
+
+# Edit .env: uncomment and set these three
+#   ENCRYPTION_KEY         -> generate with: openssl rand -base64 32
+#   PG_DATABASE_PASSWORD   -> a strong password (no special characters)
+#   SERVER_URL             -> http://localhost:3000 locally, your domain in prod
 docker compose up -d
 
-# Access at http://localhost:3000
+# First run creates the schema; open http://localhost:3000 and create the first account
 ```
 
 ### GraphQL API
 
+The core GraphQL endpoint is `/graphql` (no `/api` prefix). `emails`, `phones`,
+and `domainName` are composite fields — write them as nested objects, not
+scalars.
+
 ```typescript
 // crm-client.ts — Interact with Twenty CRM via GraphQL
-const TWENTY_URL = "http://localhost:3000/api/graphql";
+const TWENTY_URL = "http://localhost:3000/graphql";
 const API_KEY = process.env.TWENTY_API_KEY;
 
-async function graphql(query: string, variables?: Record<string, any>) {
-  const res = await fetch(TWENTY_URL, {
+async function graphql(query: string, variables?: Record<string, any>, url = TWENTY_URL) {
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -66,46 +78,45 @@ const company = await graphql(`
     createCompany(data: $input) {
       id
       name
-      domainName
+      domainName { primaryLinkUrl }
     }
   }
 `, {
   input: {
-    name: "Acme Corp",
-    domainName: "acme.com",
-    employees: 50,
-    idealCustomerProfile: true,
+    name: "Riverside Labs",
+    domainName: { primaryLinkUrl: "https://riverside.io" },
   },
 });
 
-// Create a contact (person)
+// Create a contact (person) — emails/phones are composite
 const person = await graphql(`
   mutation CreatePerson($input: PersonCreateInput!) {
     createPerson(data: $input) {
       id
       name { firstName lastName }
-      email
+      emails { primaryEmail }
     }
   }
 `, {
   input: {
     name: { firstName: "Kai", lastName: "Chen" },
-    email: "kai@acme.com",
-    phone: "+1234567890",
+    emails: { primaryEmail: "kai@riverside.io" },
+    phones: { primaryPhoneNumber: "4155550142", primaryPhoneCallingCode: "+1" },
     companyId: company.data.createCompany.id,
     jobTitle: "CTO",
   },
 });
 
-// Query deals pipeline
+// Query deals pipeline (stages are workspace-defined; the defaults are
+// NEW, SCREENING, MEETING, PROPOSAL, CUSTOMER)
 const deals = await graphql(`
   query GetDeals {
-    opportunities(filter: { stage: { eq: NEGOTIATION } }) {
+    opportunities(filter: { stage: { in: [SCREENING, PROPOSAL] } }) {
       edges {
         node {
           id
           name
-          amount
+          amount { amountMicros currencyCode }
           stage
           closeDate
           company { name }
@@ -119,53 +130,70 @@ const deals = await graphql(`
 
 ### REST API
 
+The core REST endpoint is `/rest` (no `/api` prefix). Filters use
+`?filter=field[comparator]:value`; comparators include `eq`, `neq`, `in`,
+`gt`/`gte`/`lt`/`lte`, `like`, `ilike`, `is`, `startsWith`, `endsWith`. Combine
+with `and(...)`, `or(...)`, `not(...)`. Other params: `order_by`, `limit`,
+`depth` (0 or 1), and the cursors `starting_after` / `ending_before`.
+
 ```typescript
 // rest-example.ts — REST API for simpler operations
-// List all companies
-const companies = await fetch("http://localhost:3000/api/rest/companies", {
-  headers: { Authorization: `Bearer ${API_KEY}` },
-}).then(r => r.json());
+const base = "http://localhost:3000/rest";
+const headers = { Authorization: `Bearer ${API_KEY}` };
 
-// Search contacts
+// List companies, newest first
+const companies = await fetch(
+  `${base}/companies?order_by=createdAt[DescNullsLast]&limit=20`,
+  { headers }
+).then(r => r.json());
+
+// Search people by email domain (composite field, % is URL-encoded as %25)
 const contacts = await fetch(
-  "http://localhost:3000/api/rest/people?filter[email][contains]=acme.com",
-  { headers: { Authorization: `Bearer ${API_KEY}` } }
+  `${base}/people?filter=emails.primaryEmail[ilike]:%25@riverside.io`,
+  { headers }
 ).then(r => r.json());
 ```
 
 ### Custom Objects
 
+Custom objects and fields are defined through the **Metadata API** at a
+separate `/metadata` endpoint, or in Settings → Data model. The input is
+wrapped in `object:` / `field:`, and SELECT option values must be UPPER_CASE.
+
 ```typescript
-// custom-objects.ts — Define your own data types
-// Create a custom "Support Ticket" object via API
-const customObject = await graphql(`
+// custom-objects.ts — Define your own data types via the Metadata API
+const graphqlMetadata = (query: string) =>
+  graphql(query, undefined, "http://localhost:3000/metadata");
+
+// Create a custom "Support Ticket" object
+const customObject = await graphqlMetadata(`
   mutation CreateCustomObject {
-    createOneObject(input: {
+    createOneObject(input: { object: {
       nameSingular: "supportTicket"
       namePlural: "supportTickets"
       labelSingular: "Support Ticket"
       labelPlural: "Support Tickets"
       icon: "IconHeadset"
-    }) {
+    } }) {
       id
     }
   }
 `);
 
-// Add fields to the custom object
-await graphql(`
+// Add a SELECT field to the object (objectMetadataId ties it to the object)
+await graphqlMetadata(`
   mutation AddField {
-    createOneField(input: {
-      objectId: "${customObject.data.createOneObject.id}"
+    createOneField(input: { field: {
+      objectMetadataId: "${customObject.data.createOneObject.id}"
       name: "priority"
       label: "Priority"
       type: SELECT
       options: [
-        { value: "low", label: "Low", color: "green" },
-        { value: "medium", label: "Medium", color: "yellow" },
-        { value: "high", label: "High", color: "red" }
+        { value: "LOW", label: "Low", color: "green", position: 0 },
+        { value: "MEDIUM", label: "Medium", color: "yellow", position: 1 },
+        { value: "HIGH", label: "High", color: "red", position: 2 }
       ]
-    }) { id }
+    } }) { id }
   }
 `);
 ```
@@ -186,13 +214,15 @@ The agent will use Twenty's GraphQL API to sync contacts, set up webhooks for de
 
 ## Guidelines
 
+- **No `/api` prefix** — core API is `/rest` and `/graphql`; metadata is `/metadata`
 - **GraphQL for complex queries** — relations, filters, nested data
 - **REST for simple CRUD** — list, create, update operations
-- **Custom objects** — don't force data into contacts/companies if it doesn't fit
+- **Composite fields** — `emails`, `phones`, `domainName`, and `amount` are objects, not scalars; write and read their sub-fields (`primaryEmail`, `primaryLinkUrl`, `amountMicros`)
+- **Custom objects** — use the Metadata API at `/metadata`; don't force data into contacts/companies if it doesn't fit
 - **Self-host for data sovereignty** — your data stays on your servers
-- **API keys for integrations** — generate in Settings > API
+- **API keys** — Settings → APIs & Webhooks → Create key; the token is shown once
 - **Pipeline stages are customizable** — match your actual sales process
 - **Webhooks for real-time sync** — trigger actions on record changes
 - **Import via CSV** — bulk import from existing CRM/spreadsheets
 - **PostgreSQL underneath** — can run custom queries if needed
-- **Active community** — 25K+ GitHub stars, weekly releases
+- **Actively developed** — open-source, with frequent releases
