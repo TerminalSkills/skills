@@ -3,21 +3,21 @@
     {
       "name": "3dsmax-rendering",
       "slug": "3dsmax-rendering",
-      "description": "Configure and optimize rendering in 3ds Max — V-Ray and Corona render settings, render elements, light mix, batch rendering, network rendering, denoising, and post-production workflows. Use when tasks involve setting up production renders, optimizing render times, batch rendering multiple views, or configuring render farms for archviz and product visualization.",
+      "description": "Scripts and configures production rendering in Autodesk 3ds Max with the V-Ray and Corona renderers: output size and files, render elements, denoising, light mix, batch and command-line rendering, and network rendering. Use when a user asks to set up a production render, render several cameras in one batch, render from the command line or on a render farm, add render passes for compositing, or cut render time for archviz and product shots.",
       "category": "design",
       "tags": []
     },
     {
       "name": "3dsmax-scripting",
       "slug": "3dsmax-scripting",
-      "description": "Automate 3ds Max with MAXScript and Python — scene manipulation, object creation, material assignment, camera setup, batch operations, UI tools, and file I/O. Use when tasks involve automating repetitive 3ds Max workflows, batch processing scenes, creating custom tools, or scripting scene setup for archviz, product visualization, or VFX.",
+      "description": "Covers scripting Autodesk 3ds Max, the 3D modeling and rendering application, with MAXScript and Python (pymxs): scene manipulation, object creation, material assignment, camera and light setup, batch operations, and file I/O. Use when tasks involve automating repetitive 3ds Max workflows, batch processing scenes, running scripts headless with 3dsmaxbatch, creating custom tools, or scripting scene setup for archviz, product visualization, or VFX.",
       "category": "design",
       "tags": []
     },
     {
       "name": "3proxy",
       "slug": "3proxy",
-      "description": "Deploy and configure 3proxy — a lightweight universal proxy server. Use when a user asks to set up HTTP, HTTPS, SOCKS4, SOCKS5, or transparent proxies, build proxy chains, configure authentication, set bandwidth limits, manage access control lists, set up proxy rotation, create multi-port proxy servers, configure logging and traffic accounting, or deploy a lightweight proxy without heavy VPN overhead. Covers all 3proxy features including proxy chaining, ACLs, traffic shaping, and multi-protocol support.",
+      "description": "3proxy is a small open-source proxy server that runs HTTP/HTTPS, SOCKS4/5, SNI and TCP/UDP port-mapping proxies from one config file. Use when a user asks to set up an HTTP or SOCKS5 proxy, add proxy users and passwords, write 3proxy access rules, chain or rotate upstream (parent) proxies, limit bandwidth, connections or monthly traffic per user, run 3proxy in Docker, or fix a 3proxy.cfg that will not start.",
       "category": "devops",
       "tags": []
     },
@@ -43,8 +43,8 @@
     {
       "name": "ably",
       "slug": "ably",
-      "description": "You are an expert in Ably, the enterprise-grade realtime messaging platform. You help developers add pub/sub messaging, presence, chat, live updates, and event streaming to applications with guaranteed message ordering, exactly-once delivery, automatic reconnection, and global edge infrastructure — handling millions of messages per second with 99.999% uptime SLA.",
-      "category": "Backend Development",
+      "description": "Ably is a hosted realtime messaging service: clients publish and subscribe to named channels over WebSockets, see who is present, replay message history, and resume after a dropped connection. Use when a user asks to \"add realtime updates\", \"push live notifications to the browser\", \"show who is online\", \"add a chat room with typing indicators\", \"publish from a serverless function\", or \"authenticate Ably clients without exposing the API key\". Covers the ably 2.x JavaScript SDK (Realtime and REST), JWT token authentication, presence, history and rewind, batch publishing, and the @ably/chat 1.x SDK.",
+      "category": "development",
       "tags": []
     },
     {
@@ -313,7 +313,7 @@
     {
       "name": "airtable",
       "slug": "airtable",
-      "description": "Build integrations with the Airtable Web API — bases, tables, records, fields, views, webhooks, and OAuth. Use when tasks involve reading or writing Airtable data, syncing external sources with Airtable bases, building automations triggered by record changes, or migrating data to/from Airtable.",
+      "description": "Airtable is a hosted spreadsheet-database; its Web API reads and writes records, table schema, attachments and webhooks over REST. Use when tasks involve reading or writing Airtable data, importing or upserting rows from a CSV or another system, syncing external sources with Airtable bases, reacting to record changes with webhooks, connecting users through Airtable OAuth, or debugging 422 and 429 responses from api.airtable.com.",
       "category": "productivity",
       "tags": [
         "airtable",
@@ -515,7 +515,7 @@
     {
       "name": "appsmith",
       "slug": "appsmith",
-      "description": "Build internal tools, admin panels, and dashboards with Appsmith. Use when a user asks to create CRUD interfaces, connect to databases or APIs with drag-and-drop widgets, write JSObjects for business logic, or self-host Appsmith with Docker or Kubernetes.",
+      "description": "Appsmith is an open-source low-code platform for building internal tools, admin panels, and dashboards. Use when a user asks to create CRUD interfaces, connect to databases or APIs with drag-and-drop widgets, write JSObjects for business logic, or self-host Appsmith with Docker or Kubernetes.",
       "category": "development",
       "tags": [
         "internal-tools",
@@ -615,7 +615,7 @@
     {
       "name": "assemblyai",
       "slug": "assemblyai",
-      "description": "AssemblyAI API for speech recognition, transcription, and audio intelligence. Use when transcribing audio or video files, performing speaker diarization, running sentiment analysis on calls, detecting unsafe content in audio, or asking LLM-powered questions about recorded content with LeMUR.",
+      "description": "AssemblyAI is a hosted speech-to-text API that transcribes audio and video files or live streams and adds speaker labels, sentiment, entity detection, PII redaction and LLM analysis of the transcript. Use when a user asks to transcribe a recording, label who said what, analyze call sentiment, redact personal data, stream live transcription, or summarize and question a transcript with LLM Gateway (the replacement for LeMUR).",
       "category": "data-ai",
       "tags": [
         "assemblyai",
@@ -764,7 +764,7 @@
     {
       "name": "aws-ses",
       "slug": "aws-ses",
-      "description": "Send transactional and marketing emails with Amazon SES. Verify domains and identities, create reusable email templates, configure receipt rules for incoming mail, and handle bounces and complaints with SNS notifications.",
+      "description": "Amazon SES (Simple Email Service) sends and receives email through AWS: transactional and marketing mail, templates, bounce and complaint tracking, and inbound mail processing. Use when a user asks to send email with SES, verify a domain or set up DKIM, move an SES account out of the sandbox, create or bulk-send email templates, add an attachment or unsubscribe header, handle bounces and complaints with SNS, manage the suppression list, or store incoming mail in S3 with receipt rules. Covers the SES v2 API (aws sesv2, boto3 sesv2).",
       "category": "devops",
       "tags": []
     },
@@ -959,7 +959,7 @@
     {
       "name": "blender-compositing",
       "slug": "blender-compositing",
-      "description": "Automate Blender compositing and post-processing with Python. Use when the user wants to set up compositor nodes, add post-processing effects, color correct renders, combine render passes, apply blur or glare, key green screens, create node-based VFX pipelines, or script the Blender compositor.",
+      "description": "Blender's compositor post-processes renders with a node graph, and this skill scripts it from Python (bpy) in Blender 5.x. Use when the user wants to set up compositor nodes, add post-processing effects, color correct renders, combine render passes, apply blur or glare, key green screens, write passes to multilayer EXR, or port a compositing script that broke after Blender 5.0 (scene.node_tree, CompositorNodeComposite, glare_type and file_slots are gone).",
       "category": "automation",
       "tags": [
         "blender",
@@ -1070,8 +1070,8 @@
     {
       "name": "braintrust",
       "slug": "braintrust",
-      "description": "You are an expert in Braintrust, the evaluation and observability platform for AI applications. You help developers run systematic evaluations, compare model versions, track experiments, log production traces, and measure quality metrics — with a focus on making AI development as rigorous as traditional software testing.",
-      "category": "AI & Machine Learning",
+      "description": "Braintrust is a hosted platform for evaluating and tracing LLM applications: it runs a task over a dataset, scores the outputs, stores each run as an experiment and logs production traces. Use when a user asks to write or run a Braintrust eval, score LLM outputs with autoevals, compare prompt or model versions as experiments, run evals in CI and fail on regressions, trace OpenAI or Anthropic calls with Braintrust, manage evaluation datasets, or use the bt CLI.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -1222,7 +1222,7 @@
     {
       "name": "caddy",
       "slug": "caddy",
-      "description": "Configure Caddy as a web server and reverse proxy — automatic HTTPS, reverse proxy, load balancing, file server, redirects, headers, rate limiting, and API configuration. Use when tasks involve serving websites, proxying to backend services, automatic TLS certificate management, or replacing Nginx with a simpler configuration.",
+      "description": "Caddy is a web server and reverse proxy that obtains and renews HTTPS certificates automatically. Covers reverse proxying, load balancing, file serving, redirects, headers, rate limiting, and configuration through the admin API. Use when tasks involve serving websites, proxying to backend services, automatic TLS certificate management, or replacing Nginx with a simpler configuration.",
       "category": "devops",
       "tags": [
         "caddy",
@@ -1282,7 +1282,7 @@
     {
       "name": "capacitor",
       "slug": "capacitor",
-      "description": "Turn web apps into native mobile apps with Capacitor — access native device APIs from JavaScript. Use when someone asks to \"convert my website to a mobile app\", \"Capacitor\", \"web to native app\", \"access camera from JavaScript\", \"deploy web app to App Store\", \"hybrid mobile app\", or \"Ionic Capacitor\". Covers native API access, plugin system, web-to-native bridge, and app store deployment.",
+      "description": "Capacitor is a runtime that packages a web app as a native iOS and Android app and exposes native device APIs to JavaScript. Use when someone asks to \"convert my website to a mobile app\", \"Capacitor\", \"web to native app\", \"access camera from JavaScript\", \"deploy web app to App Store\", \"hybrid mobile app\", or \"Ionic Capacitor\". Covers native API access, plugin system, web-to-native bridge, and app store deployment.",
       "category": "development",
       "tags": [
         "mobile",
@@ -1434,7 +1434,7 @@
     {
       "name": "chatwoot",
       "slug": "chatwoot",
-      "description": "Self-host customer support with Chatwoot. Use when a user asks to set up open-source customer support, add live chat without SaaS costs, build a multi-channel inbox, or deploy a free Intercom alternative.",
+      "description": "Deploys and integrates Chatwoot, an open-source customer support platform with live chat and a shared multi-channel inbox. Use when a user asks to set up open-source customer support, add live chat without SaaS costs, build a multi-channel inbox, or deploy a free Intercom alternative.",
       "category": "business",
       "tags": []
     },
@@ -1775,7 +1775,7 @@
     {
       "name": "coderabbit",
       "slug": "coderabbit",
-      "description": "Automate code reviews with CodeRabbit, the AI-powered review tool. Use when a user asks to set up automated PR reviews, configure review rules, integrate with GitHub or GitLab, customize review instructions, or manage CodeRabbit settings.",
+      "description": "CodeRabbit reviews pull requests with AI on GitHub, GitLab, Azure DevOps and Bitbucket, and reviews local changes from a CLI before they are pushed. Use when a user asks to set up automated PR reviews, write or validate a .coderabbit.yaml, add path-specific review instructions, control a review with @coderabbitai commands, or run coderabbit review from the terminal or a coding agent.",
       "category": "development",
       "tags": [
         "code-review",
@@ -1861,7 +1861,7 @@
     {
       "name": "competitor-alternatives",
       "slug": "competitor-alternatives",
-      "description": "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables.",
+      "description": "Plans and writes competitor comparison and alternative pages for SEO and sales enablement. Use when the user asks for an 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables.",
       "category": "business",
       "tags": []
     },
@@ -1882,7 +1882,7 @@
     {
       "name": "conform",
       "slug": "conform",
-      "description": "Build progressive forms with Conform. Use when creating forms that work without JavaScript, implementing server-validated forms in Remix/Next.js, or building accessible forms with progressive enhancement.",
+      "description": "Conform is a React form validation library that progressively enhances native HTML forms: it validates FormData against a Zod, Valibot or Yup schema on the server and, optionally, on the client, so a form works before JavaScript loads. Use when a user asks to build a form with Conform, validate a Next.js Server Action or a React Router / Remix action, share one schema between client and server, add or remove rows in a field list, or move to Conform's future API.",
       "category": "development",
       "tags": [
         "conform",
@@ -2025,9 +2025,15 @@
     {
       "name": "copilotkit",
       "slug": "copilotkit",
-      "description": "You are an expert in CopilotKit, the open-source framework for building in-app AI copilots. You help developers add AI-powered features to React applications — chat sidebars, AI-assisted text editing, contextual suggestions, and autonomous agents that can read app state, call actions, and modify the UI — turning any React app into an AI-native experience.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "CopilotKit is an open-source framework for putting AI agents inside React apps: a chat sidebar or popup, tools the agent can call in the browser or on the server, app state shared with the agent, and human-in-the-loop approvals. Use when a user asks to add an AI assistant or chat sidebar to a React or Next.js app, let an agent read app state or trigger UI actions, connect a LangGraph or other AG-UI agent to a frontend, or migrate CopilotKit v1 code (useCopilotAction, useCopilotReadable, OpenAIAdapter) to the v2 API.",
+      "category": "data-ai",
+      "tags": [
+        "copilotkit",
+        "react",
+        "ai-agents",
+        "ag-ui",
+        "chat-ui"
+      ]
     },
     {
       "name": "copy-editing",
@@ -2148,7 +2154,7 @@
     {
       "name": "cucumber",
       "slug": "cucumber",
-      "description": "When the user wants to write behavior-driven development (BDD) tests using Gherkin syntax and Cucumber step definitions. Also use when the user mentions \"cucumber,\" \"BDD,\" \"Gherkin,\" \"feature files,\" \"given-when-then,\" \"step definitions,\" or \"behavior-driven.\" For contract testing, see pact.",
+      "description": "Cucumber runs behavior-driven (BDD) tests written as plain-language Gherkin feature files and matches each Given/When/Then step to code. Use when the user wants to write feature files, implement step definitions in JavaScript or TypeScript with cucumber-js, share state through a World, add hooks, tags and profiles, or run BDD scenarios in CI. Also use when the user mentions \"cucumber,\" \"BDD,\" \"Gherkin,\" \"feature files,\" \"given-when-then,\" \"step definitions,\" or \"behavior-driven.\" For contract testing, see pact.",
       "category": "development",
       "tags": []
     },
@@ -2329,15 +2335,13 @@
     {
       "name": "datadog",
       "slug": "datadog",
-      "description": "Configure and manage Datadog for infrastructure monitoring, application performance monitoring (APM), log management, and alerting. Use when a user needs to set up Datadog agents, create dashboards, configure monitors and alerts, integrate services, or query metrics and logs through Datadog's API.",
+      "description": "Datadog is a hosted observability platform for infrastructure monitoring, application performance monitoring (APM), log management, and alerting. Use when a user needs to set up Datadog agents, create dashboards, configure monitors and alerts, integrate services, or query metrics and logs through Datadog's API.",
       "category": "devops",
       "tags": [
         "datadog",
         "monitoring",
         "apm",
         "logs",
-        "dashboards",
-        "alerts",
         "observability"
       ]
     },
@@ -2455,9 +2459,14 @@
     {
       "name": "detox",
       "slug": "detox",
-      "description": "When the user wants to write end-to-end tests for React Native apps using Detox's gray-box testing approach. Also use when the user mentions \"detox,\" \"React Native testing,\" \"React Native E2E,\" \"gray-box testing,\" or \"Wix Detox.\" For general mobile testing, see appium. For simpler mobile UI flows, see maestro.",
+      "description": "Detox is a gray-box end-to-end testing framework for React Native apps: it runs Jest tests against the app on an iOS simulator or Android emulator and waits for the app to go idle before each step. Use when the user wants to set up Detox, write or fix React Native E2E tests, debug a test that hangs or cannot find an element, or run Detox in CI. Also use when the user mentions \"detox,\" \"React Native E2E,\" \"gray-box testing,\" \"detox build,\" or \"Wix Detox.\" For black-box testing of any mobile app, see appium; for simple YAML UI flows, see maestro.",
       "category": "development",
-      "tags": []
+      "tags": [
+        "react-native",
+        "e2e-testing",
+        "mobile",
+        "gray-box"
+      ]
     },
     {
       "name": "dev-slides",
@@ -2523,8 +2532,8 @@
     {
       "name": "dlt",
       "slug": "dlt",
-      "description": "You are an expert in dlt, the open-source Python library for building data pipelines. You help developers load data from any API, file, or database into warehouses and lakes using simple Python decorators — with automatic schema inference, incremental loading, and built-in data contracts. dlt is the \"requests library for data pipelines.\"",
-      "category": "Data Engineering",
+      "description": "dlt (data load tool) is an open-source Python library that loads data from APIs, files and databases into warehouses and lakes, inferring the schema and tracking incremental state for you. Use when a user asks to build a data pipeline in Python, load a REST API into DuckDB, BigQuery, Snowflake or Postgres, set up incremental or merge loading, enforce a schema contract, or replace a hand-written ETL script or a hosted ELT connector.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -2599,7 +2608,7 @@
     {
       "name": "dokku",
       "slug": "dokku",
-      "description": "Deploy apps with Dokku — self-hosted Heroku alternative on any VPS. Use when: self-hosting web apps without Kubernetes, setting up git-push deployments, running PaaS on your own server.",
+      "description": "Dokku is an open-source, single-server platform-as-a-service: it builds an app from a git push (buildpacks or a Dockerfile), runs it in Docker containers behind nginx, and manages domains, TLS, config and datastores through one CLI. Use when a user asks to \"self-host a Heroku alternative\", \"set up git push deploys on a VPS\", \"deploy my app with Dokku\", \"add Postgres or Redis to a Dokku app\", \"get Let's Encrypt on Dokku\", or \"fix ports for a Dockerfile app on Dokku\". Covers installation from the apt repository, deploys, environment variables, plugins, zero-downtime checks, storage and the k3s scheduler.",
       "category": "devops",
       "tags": [
         "dokku",
@@ -3146,7 +3155,7 @@
     {
       "name": "figma-to-code",
       "slug": "figma-to-code",
-      "description": "Convert Figma designs into production-ready frontend code. Use when someone shares a Figma URL, design screenshot, or exported design tokens and needs React/Vue/HTML components, responsive layouts, or design system code. Trigger words: Figma, design to code, mockup, wireframe, UI implementation, pixel perfect, design handoff, component from design.",
+      "description": "Converts Figma designs into production-ready frontend code. Use when someone shares a Figma URL, design screenshot, or exported design tokens and needs React/Vue/HTML components, responsive layouts, or design system code. Trigger words: Figma, design to code, mockup, wireframe, UI implementation, pixel perfect, design handoff, component from design.",
       "category": "design",
       "tags": [
         "figma",
@@ -3312,7 +3321,7 @@
     {
       "name": "formbricks",
       "slug": "formbricks",
-      "description": "Collect user feedback and run in-app surveys with Formbricks — open-source experience management platform. Use when someone asks to \"add surveys to my app\", \"Formbricks\", \"in-app feedback\", \"NPS survey\", \"user research\", \"product feedback tool\", or \"open-source Typeform alternative\". Covers in-app surveys, website popups, link surveys, targeting, and analytics.",
+      "description": "Formbricks is an open-source survey and experience management platform that shows in-app and website surveys to targeted users and collects their feedback. Use when someone asks to \"add surveys to my app\", \"Formbricks\", \"in-app feedback\", \"NPS survey\", \"user research\", \"product feedback tool\", or \"open-source Typeform alternative\". Covers the JavaScript SDK, action triggers, user identification, the management API, webhooks and self-hosting.",
       "category": "development",
       "tags": [
         "surveys",
@@ -3338,8 +3347,8 @@
     {
       "name": "foundry",
       "slug": "foundry",
-      "description": "You are an expert in Foundry, the blazing-fast Ethereum development toolkit written in Rust. You help developers write, test, deploy, and debug Solidity smart contracts using Forge (testing), Cast (CLI interactions), Anvil (local node), and Chisel (Solidity REPL) — with native Solidity testing (no JavaScript), fuzz testing, gas optimization, and fork testing against mainnet state.",
-      "category": "Blockchain & Web3",
+      "description": "Foundry is a command-line toolkit for Ethereum smart-contract development: forge compiles, tests, fuzzes and deploys Solidity contracts, cast calls contracts and sends transactions, anvil runs a local node, and chisel is a Solidity REPL. Use when a user asks to set up a Foundry project, write Solidity unit or fuzz tests, fork mainnet in a test, deploy with forge script, verify a contract on Etherscan, track gas with forge snapshot, or read and write chain state with cast.",
+      "category": "development",
       "tags": []
     },
     {
@@ -3595,14 +3604,14 @@
     {
       "name": "gitnexus",
       "slug": "gitnexus",
-      "description": "Build client-side code knowledge graphs with built-in Graph RAG for code exploration. Use when: analyzing large codebases in the browser, building zero-server code intelligence tools, creating interactive code exploration UIs.",
+      "description": "GitNexus indexes a codebase into a local knowledge graph of symbols, calls, imports, clusters and execution flows, and serves it to AI coding agents through an MCP server and a CLI. Use when a user asks to index a repo with GitNexus, set up the GitNexus MCP server for Claude Code, Cursor or Codex, check what breaks before changing a function (impact, blast radius), see how a feature flows through the code, review the impact of uncommitted changes, run Cypher queries on a code graph, or explore a repository in the GitNexus web UI.",
       "category": "development",
       "tags": [
         "knowledge-graph",
         "code-analysis",
         "graph-rag",
-        "browser",
-        "visualization"
+        "mcp",
+        "ai-agents"
       ]
     },
     {
@@ -3643,8 +3652,8 @@
     {
       "name": "godot",
       "slug": "godot",
-      "description": "You are an expert in Godot Engine, the free and open-source game engine for 2D and 3D games. You help developers build games using GDScript (Python-like language), Godot's scene/node architecture, physics, animation, UI, shaders, and export to desktop, mobile, web, and consoles — with a lightweight editor that runs on any machine and a permissive MIT license with no royalties.",
-      "category": "Game Development",
+      "description": "Godot is a free, open-source engine for 2D and 3D games, built around scenes and nodes and scripted in GDScript or C#. Use when a user asks to build a game in Godot 4, write GDScript for player movement, signals or state machines, write a Godot shader, check or test a project headless from the command line, or export builds for desktop, mobile and web in CI.",
+      "category": "development",
       "tags": []
     },
     {
@@ -3808,8 +3817,8 @@
     {
       "name": "hapi",
       "slug": "hapi",
-      "description": "You are an expert in Hapi.js, the configuration-centric enterprise framework for Node.js. You help developers build production APIs with built-in input validation (Joi), authentication strategies, plugin architecture, caching, rate limiting, and comprehensive request lifecycle hooks — designed for teams that need structure, security, and testability without third-party middleware sprawl.",
-      "category": "Backend Development",
+      "description": "hapi is a Node.js web framework for building HTTP APIs from configuration: routes declare their validation, authentication, caching and CORS rules, and the framework enforces them before the handler runs. Use when a user asks to build or fix a hapi server, validate request payloads or responses with Joi, protect routes with JWT through @hapi/jwt, split an API into hapi plugins, cache results with server methods, hook into the request lifecycle, return errors with @hapi/boom, or test routes with server.inject().",
+      "category": "development",
       "tags": []
     },
     {
@@ -3855,7 +3864,7 @@
     {
       "name": "hasura",
       "slug": "hasura",
-      "description": "Expert guidance for Hasura, the GraphQL engine that gives the agent instant, real-time GraphQL APIs over PostgreSQL (and other databases). Helps developers set up Hasura, configure permissions, write custom business logic with Actions and Event Triggers, and optimize GraphQL queries for production.",
+      "description": "Hasura GraphQL Engine v2 generates a real-time GraphQL API (queries, mutations, subscriptions) over PostgreSQL and other databases, with row-level permissions per role. Use when a user asks to set up or self-host Hasura with Docker, write permission rules, add Actions or Event Triggers for business logic, or manage migrations and metadata with the Hasura CLI. Covers Hasura v2 (graphql-engine), not Hasura DDN (v3).",
       "category": "development",
       "tags": []
     },
@@ -4257,7 +4266,7 @@
     {
       "name": "infisical",
       "slug": "infisical",
-      "description": "Manage application secrets and environment variables with Infisical — open-source secrets management platform. Use when someone asks to \"manage secrets\", \"Infisical\", \"centralize environment variables\", \"secrets manager\", \"replace .env files\", \"rotate API keys\", or \"sync secrets to CI/CD\". Covers secret storage, team sharing, auto-rotation, CI/CD injection, and Kubernetes integration.",
+      "description": "Infisical is an open-source secrets management platform that stores API keys, database URLs and other secrets centrally and delivers them to apps, CI/CD pipelines and Kubernetes. Use when someone asks to \"manage secrets\", \"Infisical\", \"centralize environment variables\", \"secrets manager\", \"replace .env files\", \"rotate API keys\", \"scan for leaked secrets\", or \"sync secrets to CI/CD\".",
       "category": "devops",
       "tags": [
         "secrets",
@@ -4270,14 +4279,13 @@
     {
       "name": "influxdb",
       "slug": "influxdb",
-      "description": "Set up and manage InfluxDB for time-series data storage, querying, and analysis. Use when a user needs to configure InfluxDB buckets, write Flux queries, set up retention policies, create tasks for data downsampling, or build dashboards for time-series metrics.",
+      "description": "InfluxDB is an open-source time-series database for metrics, events and sensor data. Use when a user needs to run InfluxDB 2 or InfluxDB 3 Core, create buckets, databases and API tokens, write line protocol, query with Flux, SQL or InfluxQL, set retention periods, downsample data with tasks, or alert on thresholds.",
       "category": "devops",
       "tags": [
         "influxdb",
         "time-series",
         "flux",
         "metrics",
-        "retention",
         "monitoring"
       ]
     },
@@ -4393,7 +4401,7 @@
     {
       "name": "jenkins-pipelines",
       "slug": "jenkins-pipelines",
-      "description": "Builds and manages Jenkins CI/CD pipelines. Use when the user wants to write Jenkinsfiles, configure declarative or scripted pipelines, set up multibranch pipelines, manage Jenkins agents and nodes, configure shared libraries, integrate with Docker/Kubernetes/cloud providers, set up webhooks and triggers, manage credentials and secrets, or troubleshoot build failures. Trigger words: jenkins, jenkinsfile, jenkins pipeline, jenkins agent, jenkins node, jenkins shared library, jenkins docker, jenkins kubernetes, multibranch pipeline, jenkins credentials, jenkins webhook, jenkins groovy, jenkins blue ocean, jenkins job dsl.",
+      "description": "Jenkins is an open-source automation server that runs CI/CD pipelines defined as code in a Jenkinsfile. Use when the user wants to write or fix a Jenkinsfile (declarative or scripted), set up multibranch pipelines, run stages in Docker or Kubernetes agents, create shared libraries, bind credentials and secrets, run stages in parallel, gate a deployment behind an approval, validate a Jenkinsfile with the linter, or troubleshoot build failures. Trigger words: jenkins, jenkinsfile, jenkins pipeline, jenkins agent, jenkins shared library, jenkins docker, jenkins kubernetes, multibranch pipeline, jenkins credentials, jenkins groovy.",
       "category": "devops",
       "tags": [
         "jenkins",
@@ -4980,7 +4988,7 @@
     {
       "name": "llamaindex",
       "slug": "llamaindex",
-      "description": "Assists with building RAG pipelines, knowledge assistants, and data-augmented LLM applications using LlamaIndex. Use when ingesting documents, configuring retrieval strategies, building query engines, or creating multi-step agents. Trigger words: llamaindex, rag, retrieval augmented generation, vector index, query engine, document loader, knowledge base.",
+      "description": "LlamaIndex is an open-source Python framework for connecting LLMs to your own data: it loads and chunks documents, indexes them in a vector store, and answers questions over them with retrieval (RAG) and tool-calling agents. Use when ingesting documents, configuring retrieval strategies, building query engines, creating multi-step agents, or evaluating answer quality. Trigger words: llamaindex, llama-index, rag, retrieval augmented generation, vector index, query engine, document loader, knowledge base.",
       "category": "data-ai",
       "tags": [
         "llamaindex",
@@ -5080,7 +5088,7 @@
     {
       "name": "lottie",
       "slug": "lottie",
-      "description": "Play After Effects animations on web and mobile with Lottie — load JSON animation files, control playback, listen to events, and integrate animations into React, Vue, or vanilla JS apps. Use when tasks involve adding motion graphics, animated icons, loading indicators, or micro-interactions exported from After Effects or other animation tools.",
+      "description": "Lottie plays vector animations exported from After Effects and other motion tools as JSON, rendered in the browser by the lottie-web player. Use when tasks involve adding motion graphics, animated icons, loading indicators, or micro-interactions to a web app: loading JSON or .lottie animation files, controlling playback, listening to events, recoloring at runtime, or integrating animations into React, Vue, or vanilla JS.",
       "category": "design",
       "tags": [
         "lottie",
@@ -5100,14 +5108,14 @@
     {
       "name": "lucia-auth",
       "slug": "lucia-auth",
-      "description": "You are an expert in Lucia, the lightweight authentication library for TypeScript. You help developers implement session-based authentication with email/password, OAuth (Google, GitHub, Discord), magic links, and two-factor authentication — providing a simple, database-agnostic auth layer that you understand and control, without the complexity of full auth platforms.",
-      "category": "Backend Development",
+      "description": "Lucia was a TypeScript library for database-backed session authentication. Its npm package was deprecated in March 2025 and the project now ships one reference file for writing the session code yourself. Use when a project imports `lucia` or `@lucia-auth/adapter-*`, when npm prints the lucia deprecation warning, or when someone asks to \"add Lucia auth\", \"migrate off Lucia v3\", \"implement sessions like Lucia\", or \"replace Arctic\". Covers the project's current status, a hand-written session module (create, validate, invalidate, cookies, CSRF), password hashing, and a replacement that keeps existing Lucia v3 sessions valid.",
+      "category": "development",
       "tags": []
     },
     {
       "name": "macos-menubar-tuist-app",
       "slug": "macos-menubar-tuist-app",
-      "description": "Build macOS menubar apps with Tuist and SwiftUI. Use when: creating LSUIElement menubar utilities, defining Tuist manifests, or building menubar apps without Xcode-first workflows.",
+      "description": "Builds macOS menubar apps with Tuist and SwiftUI. Use when: creating LSUIElement menubar utilities, defining Tuist manifests, or building menubar apps without Xcode-first workflows.",
       "category": "development",
       "tags": [
         "macos",
@@ -5233,7 +5241,7 @@
     {
       "name": "markdown-writer",
       "slug": "markdown-writer",
-      "description": "Generate well-structured technical documentation in Markdown. Use when a user asks to write docs, create a README, document an API, write a how-to guide, generate technical documentation, create a changelog, write a project wiki, or produce any structured Markdown content. Follows documentation best practices for clarity and completeness.",
+      "description": "Generates well-structured technical documentation in Markdown. Use when a user asks to write docs, create a README, document an API, write a how-to guide, generate technical documentation, create a changelog, write a project wiki, or produce any structured Markdown content. Follows documentation best practices for clarity and completeness.",
       "category": "content",
       "tags": [
         "markdown",
@@ -5358,7 +5366,7 @@
     {
       "name": "medusa",
       "slug": "medusa",
-      "description": "Build headless e-commerce backends with Medusa.js. Use when a user asks to build an online store backend, create a headless e-commerce platform, set up product management and checkout, build a custom storefront, add payment processing to an e-commerce app, manage inventory and orders, or replace Shopify with an open-source alternative. Covers products, carts, orders, payments (Stripe), shipping, plugins, and Next.js storefront integration.",
+      "description": "Medusa is an open-source headless commerce platform (Node.js, TypeScript, PostgreSQL) that serves products, carts, orders, payments and an admin dashboard over a REST API. Use when a user asks to build an online store backend, create a headless e-commerce platform, set up product management and checkout, build a custom storefront, add Stripe payments to a store, manage inventory and orders, upgrade Medusa v1 code to v2, or replace Shopify with an open-source alternative. Covers Medusa v2: products, carts, checkout, Stripe, custom API routes, subscribers and the Next.js storefront.",
       "category": "development",
       "tags": []
     },
@@ -5477,7 +5485,7 @@
     {
       "name": "minimind",
       "slug": "minimind",
-      "description": "Train a small GPT model from scratch in 2 hours — understand LLM architecture by building one. Use when: learning how LLMs work internally, training custom small language models, educational AI projects, fine-tuning experiments.",
+      "description": "MiniMind is an open-source PyTorch project that trains a 64M-parameter GPT-style language model from scratch on one GPU in about two hours. Use when a user wants to learn how LLMs work by building one, pretrain and fine-tune a tiny model, run LoRA, DPO or PPO/GRPO experiments on a small model, or serve a MiniMind checkpoint through an OpenAI-compatible API.",
       "category": "data-ai",
       "tags": []
     },
@@ -5576,7 +5584,7 @@
     {
       "name": "mockoon",
       "slug": "mockoon",
-      "description": "When the user wants to create mock API servers locally using Mockoon with its GUI or CLI. Also use when the user mentions \"mockoon,\" \"API mocking,\" \"mock server,\" \"mock API,\" \"OpenAPI mock,\" or \"local API simulation.\" For programmatic HTTP mocking, see wiremock.",
+      "description": "Mockoon runs mock REST APIs on your machine from a JSON environment file: a desktop app designs them and a CLI serves them without a GUI. Use when the user wants to fake a backend for frontend work, mock an OpenAPI spec, return dynamic responses with templating and rules, or start a mock server in CI or Docker. Also use when the user mentions \"mockoon,\" \"API mocking,\" \"mock server,\" \"mock API,\" \"OpenAPI mock,\" or \"local API simulation.\" For programmatic HTTP mocking, see wiremock.",
       "category": "development",
       "tags": []
     },
@@ -5610,8 +5618,8 @@
     {
       "name": "mongoose",
       "slug": "mongoose",
-      "description": "You are an expert in Mongoose, the elegant MongoDB object modeling library for Node.js. You help developers define schemas with validation, build queries with a fluent API, use middleware hooks, populate references, create virtual fields, and handle transactions — providing structure and type safety on top of MongoDB's flexible document model.",
-      "category": "Backend Development",
+      "description": "Mongoose is an object modeling library (ODM) for MongoDB in Node.js: schemas declare fields, validation, and defaults, and models built from them run typed queries, middleware hooks, population, and transactions. Use when a user asks to define a Mongoose schema or model, validate MongoDB documents, add pre/post hooks, populate references, run a transaction, type models in TypeScript, or migrate code to Mongoose 9.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5663,7 +5671,7 @@
     {
       "name": "ms-access",
       "slug": "ms-access",
-      "description": "Build and manage Microsoft Access databases, queries, forms, reports, and VBA automation. Use when someone asks to \"create Access database\", \"write Access queries\", \"build Access forms\", \"Access VBA macro\", \"migrate from Access\", \"Access report\", \"link Access to SQL Server\", or \"convert Access to web app\". Covers table design, relationships, SQL queries, forms, reports, VBA automation, and migration strategies to modern platforms.",
+      "description": "Builds and manages Microsoft Access databases, queries, forms, reports, and VBA automation. Use when someone asks to \"create Access database\", \"write Access queries\", \"build Access forms\", \"Access VBA macro\", \"migrate from Access\", \"Access report\", \"link Access to SQL Server\", \"read an .accdb file\", or \"convert Access to web app\". Covers table design, relationships, Access SQL, forms, reports, VBA automation, reading .accdb/.mdb files from scripts, and migration to SQL Server, Dataverse or an open-source database.",
       "category": "development",
       "tags": []
     },
@@ -5896,7 +5904,7 @@
     {
       "name": "nextra",
       "slug": "nextra",
-      "description": "Build documentation and content sites with Nextra, the Next.js-based static site generator. Use when a user asks to create docs sites, configure Nextra themes, add MDX content, set up search, or deploy Nextra projects.",
+      "description": "Builds documentation and content sites with Nextra, the Next.js-based static site generator. Use when a user asks to create docs sites, configure Nextra themes, add MDX content, set up search, or deploy Nextra projects.",
       "category": "development",
       "tags": [
         "documentation",
@@ -5969,7 +5977,7 @@
     {
       "name": "nixpacks",
       "slug": "nixpacks",
-      "description": "Expert guidance for Nixpacks, the build system created by Railway that automatically detects your application's language and framework, installs dependencies, and produces optimized Docker images — all without writing a Dockerfile. Helps developers configure Nixpacks for custom build steps, multi-language projects, and CI/CD integration.",
+      "description": "Nixpacks builds a container image from an application's source directory without a Dockerfile: it detects the language, installs dependencies from Nix and produces an OCI image with Docker. The project is in maintenance mode and its maintainers recommend Railpack for new work. Use when a user asks to build an image with Nixpacks, write or fix a nixpacks.toml, debug a Nixpacks build on Railway, Coolify or Dokploy, pin a Node or Python version for Nixpacks, add system packages such as ffmpeg to a Nixpacks build, or decide whether to move from Nixpacks to Railpack.",
       "category": "devops",
       "tags": []
     },
@@ -6134,14 +6142,14 @@
     {
       "name": "okr-planning",
       "slug": "okr-planning",
-      "description": "Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. Applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.",
+      "description": "Guides OKR (Objectives and Key Results) planning: writing ambitious objectives with measurable key results, aligning teams, running the quarterly cycle, and scoring results. Use when a user asks to \"write OKRs for next quarter\", \"review our OKRs\", \"turn these goals into key results\", \"run OKR planning\", or \"score our OKRs\". Applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google and Intel.",
       "category": "business",
       "tags": []
     },
     {
       "name": "ollama",
       "slug": "ollama",
-      "description": "Run LLMs locally with Ollama. Use when a user asks to run AI models locally, self-host a language model, use LLaMA or Mistral on their machine, run offline AI, build a local chatbot, avoid sending data to cloud AI providers, generate text without API costs, fine-tune or customize local models, or set up a private AI inference server. Covers model management, API usage, Modelfile customization, GPU acceleration, and integration with LangChain and other frameworks.",
+      "description": "Runs LLMs locally with Ollama. Use when a user asks to run AI models locally, self-host a language model, use Gemma, Qwen, Llama or Mistral on their machine, run offline AI, build a local chatbot, avoid sending data to cloud AI providers, generate text without API costs, customize local models, or set up a private AI inference server. Covers model management, the native and OpenAI-compatible APIs, structured output, embeddings, Modelfile customization, context length and GPU configuration.",
       "category": "data-ai",
       "tags": []
     },
@@ -6200,7 +6208,7 @@
     {
       "name": "open-swe",
       "slug": "open-swe",
-      "description": "Build asynchronous coding agents using LangChain's Open SWE framework — agents that plan, code, test, and iterate on software engineering tasks. Use when: building coding bots, automating issue resolution, creating SWE agents that work on repos asynchronously.",
+      "description": "Open SWE is LangChain's open-source asynchronous coding agent: a self-hosted service that takes tasks from a dashboard, GitHub, Slack or Linear, works in an isolated sandbox and opens pull requests. Use when a user asks to deploy or run Open SWE, set up its GitHub App and Slack bot, trigger it with @openswe, have it review pull requests, call it from CI with the oswe CLI, or customize its model, sandbox and prompts.",
       "category": "development",
       "tags": [
         "swe-agent",
@@ -6307,7 +6315,7 @@
     {
       "name": "opendataloader-pdf",
       "slug": "opendataloader-pdf",
-      "description": "Parse PDFs into AI-ready structured data — extract text, tables, images, and metadata with high accuracy. Use when: processing PDF documents for RAG, extracting data from invoices/contracts, building document processing pipelines.",
+      "description": "OpenDataLoader PDF converts PDF files into Markdown, JSON with bounding boxes, HTML or plain text, and can add accessibility tags to untagged PDFs. It runs locally on Java with a CLI and Python, Node.js and Java APIs. Use when a user asks to parse PDFs for RAG, convert a PDF to Markdown, extract tables or headings with page coordinates, OCR scanned PDFs, or produce Tagged PDFs.",
       "category": "data-ai",
       "tags": [
         "pdf",
@@ -6399,7 +6407,7 @@
     {
       "name": "openvpn",
       "slug": "openvpn",
-      "description": "Deploy and manage OpenVPN servers and clients. Use when a user asks to set up a VPN server, create client certificates, configure site-to-site tunnels, set up split tunneling, manage PKI with EasyRSA, harden OpenVPN security, automate client provisioning, configure routing and NAT, set up MFA for VPN, monitor connected clients, or troubleshoot VPN connectivity. Covers server deployment, PKI management, client configuration, and production hardening.",
+      "description": "OpenVPN is an open-source VPN daemon that builds encrypted TLS tunnels for remote access and site-to-site links. Use when a user asks to set up a VPN server, create client certificates, configure site-to-site tunnels, set up split tunneling, manage PKI with EasyRSA, harden OpenVPN security, automate client provisioning, configure routing and NAT, set up MFA for VPN, monitor connected clients, revoke a client, or troubleshoot VPN connectivity.",
       "category": "devops",
       "tags": []
     },
@@ -6432,7 +6440,7 @@
     {
       "name": "orama",
       "slug": "orama",
-      "description": "Expert guidance for Orama, the fast full-text and vector search engine that runs everywhere — browser, server, and edge. Helps developers implement search with typo tolerance, facets, filters, and hybrid (keyword + vector) search without external infrastructure.",
+      "description": "Orama is an in-process search engine for JavaScript and TypeScript: full-text, vector and hybrid search that runs in the browser, on a server or at the edge with no external service. Use when someone asks to \"add search to my docs site\", \"client-side search\", \"typo-tolerant search\", \"faceted search in JavaScript\", \"vector search without a database\", or mentions Orama or @orama/orama. Covers schemas, filters, facets, sorting, embeddings, React, and saving an index to a file.",
       "category": "data-ai",
       "tags": []
     },
@@ -6525,7 +6533,7 @@
     {
       "name": "paddle",
       "slug": "paddle",
-      "description": "Accept payments with Paddle as merchant of record. Use when a user asks to add subscription billing without handling tax compliance, accept international payments, implement a payment system where Paddle handles VAT/sales tax, or build a SaaS billing system.",
+      "description": "Paddle is a merchant-of-record payments platform that sells software on a company's behalf and handles checkout, subscriptions, sales tax, VAT and invoicing. Use when a user asks to add subscription billing without handling tax compliance, accept international payments, integrate Paddle Checkout or Paddle webhooks, build a SaaS billing system on Paddle Billing, or let customers manage and cancel subscriptions.",
       "category": "business",
       "tags": []
     },
@@ -6912,7 +6920,7 @@
     {
       "name": "plotly",
       "slug": "plotly",
-      "description": "Create interactive scientific and statistical charts with Plotly. Use when a user asks to build data visualizations, scatter plots, 3D charts, statistical graphs, or dashboards using Plotly.js or react-plotly.js.",
+      "description": "Plotly is an open-source charting library that draws interactive charts (hover, zoom, pan, export) from Python with plotly.py and Plotly Express, or in the browser with plotly.js. Use when a user asks to plot data with Plotly, make a scatter plot, line chart, bar chart, heatmap, choropleth map, 3D chart or subplot grid, export a chart to HTML or PNG, build a Dash dashboard, add a chart to a React app with react-plotly.js, or fix a chart that broke after upgrading to plotly.py 6/7 or plotly.js 3/4.",
       "category": "data-ai",
       "tags": [
         "charts",
@@ -7021,7 +7029,7 @@
     {
       "name": "powerpoint",
       "slug": "powerpoint",
-      "description": "Create, edit, and manipulate PowerPoint (.pptx) files programmatically using python-pptx. Use when a user asks to generate a PPTX, modify slides, extract text from a presentation, add charts or tables to PowerPoint, build slides from data, convert content to PPTX, or automate PowerPoint file creation.",
+      "description": "Creates, edits, and reads PowerPoint (.pptx) files programmatically with the python-pptx library. Use when a user asks to generate a PPTX, modify slides, extract text from a presentation, add charts or tables to PowerPoint, build slides from data, convert content to PPTX, or automate PowerPoint file creation.",
       "category": "documents",
       "tags": [
         "powerpoint",
@@ -7215,7 +7223,7 @@
     {
       "name": "promptfoo",
       "slug": "promptfoo",
-      "description": "Test and evaluate LLM prompts systematically with Promptfoo — open-source eval framework. Use when someone asks to \"test my prompts\", \"evaluate LLM output\", \"Promptfoo\", \"prompt regression testing\", \"compare LLM models\", \"LLM evaluation framework\", or \"benchmark prompts against test cases\". Covers test cases, assertions, model comparison, red-teaming, and CI integration.",
+      "description": "Promptfoo is an open-source framework that tests and evaluates LLM prompts systematically. Use when someone asks to \"test my prompts\", \"evaluate LLM output\", \"Promptfoo\", \"prompt regression testing\", \"compare LLM models\", \"LLM evaluation framework\", or \"benchmark prompts against test cases\". Covers test cases, assertions, model comparison, red-teaming, and CI integration.",
       "category": "data-ai",
       "tags": [
         "llm",
@@ -7347,7 +7355,7 @@
     {
       "name": "rabbitmq",
       "slug": "rabbitmq",
-      "description": "Build messaging systems with RabbitMQ — queues, exchanges, routing, dead-letter queues, delayed messages, priority queues, and RPC patterns. Use when tasks involve task queues, background job processing, inter-service communication, request-reply patterns, or reliable message delivery with acknowledgments.",
+      "description": "RabbitMQ is an open-source message broker: publishers send messages to exchanges, which route them into queues that consumers read and acknowledge. Use when tasks involve task queues, background job processing, inter-service communication, pub/sub fan-out, topic routing, dead-letter queues, retries with backoff, delayed messages, priority queues, request-reply (RPC), or reliable delivery with acknowledgments and publisher confirms.",
       "category": "devops",
       "tags": [
         "rabbitmq",
@@ -7522,7 +7530,7 @@
     {
       "name": "recharts",
       "slug": "recharts",
-      "description": "Build responsive charts in React with Recharts. Use when a user asks to create line charts, bar charts, area charts, pie charts, or composed dashboard visualizations using the Recharts component library.",
+      "description": "Recharts is a composable charting library for React that renders responsive SVG charts. Use when a user asks to create line charts, bar charts, area charts, pie charts, or composed dashboard visualizations using the Recharts component library.",
       "category": "development",
       "tags": [
         "charts",
@@ -7700,7 +7708,7 @@
     {
       "name": "restate",
       "slug": "restate",
-      "description": "Build resilient distributed applications with Restate — durable execution engine for TypeScript/Java/Go. Use when someone asks to \"durable execution\", \"Restate\", \"resilient workflows\", \"distributed transactions\", \"saga pattern\", \"fault-tolerant services\", or \"replace Temporal with something lighter\". Covers durable handlers, virtual objects, workflows, and sagas.",
+      "description": "Restate is a durable execution engine that makes distributed application code resilient to crashes, with SDKs for TypeScript, Java, Go and more. Use when someone asks to \"durable execution\", \"Restate\", \"resilient workflows\", \"distributed transactions\", \"saga pattern\", \"fault-tolerant services\", or \"replace Temporal with something lighter\". Covers durable handlers, virtual objects, workflows, and sagas.",
       "category": "development",
       "tags": [
         "durable-execution",
@@ -7733,7 +7741,7 @@
     {
       "name": "retool",
       "slug": "retool",
-      "description": "Build internal tools with Retool, the low-code platform. Use when a user asks to create admin panels, connect to databases or APIs, build CRUD interfaces with drag-and-drop components, or deploy Retool apps.",
+      "description": "Retool is a platform for building internal tools — admin panels, dashboards and CRUD apps — on top of your own databases and APIs. Use when a user asks to build or edit a Retool app, drive the Retool CLI (retool init, check, push, publish) from a coding agent, write queries and {{ }} bindings in a classic app, automate jobs with Retool Workflows, or self-host Retool with Docker or Helm.",
       "category": "development",
       "tags": [
         "internal-tools",
@@ -8144,7 +8152,7 @@
     {
       "name": "shodan",
       "slug": "shodan",
-      "description": "Shodan API integration for discovering internet-connected devices and services. Use when: mapping attack surface, finding exposed services by port/product/CVE, IoT device discovery, IP reputation checks, monitoring infrastructure exposure.",
+      "description": "Shodan is a search engine for internet-connected devices: it indexes open ports, service banners, certificates and known vulnerabilities for every public IP. Use when: mapping the attack surface of an organization you are authorized to assess, finding exposed services by port, product or CVE, checking what a suspicious IP exposes, or monitoring your own network ranges for new exposure with the Shodan CLI, Python library or API.",
       "category": "research",
       "tags": [
         "shodan",
@@ -8204,8 +8212,8 @@
     {
       "name": "smolagents",
       "slug": "smolagents",
-      "description": "You are an expert in smolagents, Hugging Face's minimalist agent framework. You help developers build AI agents that write and execute Python code to solve tasks, use tools from the Hugging Face Hub, chain multiple agents together, and run on any LLM (OpenAI, Anthropic, local models) — providing a simple, code-first approach to building agents without complex abstractions.",
-      "category": "AI & Machine Learning",
+      "description": "smolagents is Hugging Face's small Python library for building AI agents that solve a task by writing and running Python code that calls your tools. Use when a user asks to build an agent with smolagents, create a CodeAgent or ToolCallingAgent, write a tool with the @tool decorator, connect an agent to an MCP server or a Hub tool, set up a manager agent with sub-agents, switch the model behind an agent (Hugging Face Inference Providers, OpenAI, Anthropic, Ollama), or run agent-generated code in a Docker or E2B sandbox.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -8306,7 +8314,7 @@
     {
       "name": "sox",
       "slug": "sox",
-      "description": "Process audio files with SoX (Sound eXchange). Use when a user asks to apply audio effects, mix and combine audio tracks, convert audio formats, batch process audio files, normalize volume, trim silence, add reverb or echo, change tempo or pitch, split audio files, create spectrograms, generate test tones, resample audio, or build audio processing pipelines. Covers all SoX effects, format conversion, mixing, and batch workflows.",
+      "description": "Processes audio files with SoX (Sound eXchange). Use when a user asks to apply audio effects, mix and combine audio tracks, convert audio formats, batch process audio files, normalize volume, trim silence, add reverb or echo, change tempo or pitch, split audio files, create spectrograms, generate test tones, resample audio, or build audio processing pipelines. Covers all SoX effects, format conversion, mixing, and batch workflows.",
       "category": "content",
       "tags": []
     },
@@ -8365,9 +8373,15 @@
     {
       "name": "spline",
       "slug": "spline",
-      "description": "You are an expert in Spline, the browser-based 3D design tool that lets designers create interactive 3D scenes and export them to websites without writing code. You help teams build 3D landing pages, product showcases, animated illustrations, and interactive experiences — with Spline's visual editor for modeling, materials, animations, physics, and mouse/scroll interactions, plus export to React, vanilla JS, or embeddable iframe.",
-      "category": "3D & Creative",
-      "tags": []
+      "description": "Spline is a browser-based 3D design tool for building interactive scenes and publishing them to the web as an embed, a web component, or React, Next.js and vanilla JavaScript code. Use when a user asks to add a Spline scene to a site, embed a 3D hero or product showcase, control a Spline scene from code with @splinetool/react-spline or @splinetool/runtime, use the spline-viewer component, react to clicks on 3D objects, or make a Spline embed load faster.",
+      "category": "design",
+      "tags": [
+        "3d",
+        "design-tool",
+        "no-code",
+        "interactive",
+        "web"
+      ]
     },
     {
       "name": "spring-boot",
@@ -8897,7 +8911,7 @@
     {
       "name": "tauri",
       "slug": "tauri",
-      "description": "Assists with building lightweight cross-platform desktop (and mobile) applications using Tauri. Use when creating small, fast, secure apps with a web frontend and Rust backend that use the system webview instead of bundling Chromium. Trigger words: tauri, rust desktop, system webview, tauri commands, tauri plugins.",
+      "description": "Tauri builds desktop and mobile apps from a web frontend and a Rust backend, rendering the UI in the operating system's webview instead of a bundled Chromium. Use when creating or extending a Tauri v2 app: scaffolding with create-tauri-app, writing Rust commands and calling them with invoke, pushing events or channel data to the frontend, adding plugins, fixing \"not allowed\" permission errors in capabilities, bundling installers, or shipping signed auto-updates. Trigger words: tauri, tauri v2, tauri command, tauri plugin, capabilities, system webview, rust desktop app.",
       "category": "development",
       "tags": [
         "tauri",
@@ -8981,7 +8995,7 @@
     {
       "name": "telegram-export",
       "slug": "telegram-export",
-      "description": "Export and download Telegram chats, media, and channel content. Use when a user asks to export Telegram chat history, download media from Telegram channels or groups, archive Telegram conversations, backup Telegram messages, extract images or videos from Telegram, bulk download from Telegram channels, scrape Telegram content, or migrate Telegram data. Covers Telegram Desktop export, Telethon-based scripting, and TDLib approaches.",
+      "description": "Exports and downloads Telegram chats, media, and channel content. Use when a user asks to export Telegram chat history, download media from Telegram channels or groups, archive Telegram conversations, backup Telegram messages, extract images, videos or links from Telegram, bulk download from Telegram channels, or migrate Telegram data. Covers Telegram Desktop's built-in export and Python scripts built on the Telethon library.",
       "category": "content",
       "tags": []
     },
@@ -9047,8 +9061,8 @@
     {
       "name": "tesseract",
       "slug": "tesseract",
-      "description": "You are an expert in Tesseract OCR, the most popular open-source optical character recognition engine. You help developers extract text from images, PDFs, and scanned documents using Tesseract's LSTM neural network engine, multi-language support (100+ languages), page segmentation modes, and integration with image preprocessing for maximum accuracy.",
-      "category": "AI & Machine Learning",
+      "description": "Tesseract is an open-source OCR engine that reads printed text out of images (PNG, JPEG, TIFF) and writes plain text, searchable PDF, hOCR, TSV or ALTO XML. Use when someone asks to \"extract text from an image\", \"OCR this scan\", \"make a scanned PDF searchable\", \"read a receipt or serial number from a photo\", \"get word bounding boxes and confidence\", or names tesseract, pytesseract or tesseract.js. Covers the tesseract command line, language data, page segmentation modes, the pytesseract Python wrapper, OpenCV preprocessing and tesseract.js.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -9179,8 +9193,8 @@
     {
       "name": "tinybase",
       "slug": "tinybase",
-      "description": "You are an expert in TinyBase, the reactive data store for local-first applications. You help developers build offline-capable apps with structured tables, automatic reactivity, CRDT-based sync, persistence to IndexedDB/SQLite/Postgres, and relationship modeling — providing a complete client-side database that syncs across devices without a custom backend.",
-      "category": "Frontend Development",
+      "description": "TinyBase is a reactive in-memory data store for local-first JavaScript and TypeScript apps, with tables, key-value data, queries, persistence and CRDT sync. Use when a user asks to build an offline-capable or local-first app, keep app state in a TinyBase store, persist it to localStorage, IndexedDB, SQLite or Postgres, sync data between devices or tabs with a MergeableStore and WebSockets, or bind a store to React with tinybase/ui-react.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9402,9 +9416,15 @@
     {
       "name": "typeorm",
       "slug": "typeorm",
-      "description": "You are an expert in TypeORM, the ORM for TypeScript and JavaScript that supports PostgreSQL, MySQL, SQLite, MS SQL, and Oracle. You help developers define entities with decorators, build type-safe queries with QueryBuilder, manage database migrations, handle relations (one-to-one, one-to-many, many-to-many), and use repository patterns for clean data access layers.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "TypeORM is an ORM for TypeScript and JavaScript that maps decorated classes to tables in PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, Oracle and other databases. Use when a user asks to define entities and relations, query with repositories or QueryBuilder, set up a DataSource, generate and run migrations, or upgrade a project from TypeORM 0.3 to 1.x — for example \"add a column with a migration\", \"migration:generate cannot open my data-source.ts\", or \"findOneBy throws on an undefined value after the upgrade\".",
+      "category": "development",
+      "tags": [
+        "orm",
+        "typescript",
+        "database",
+        "sql",
+        "migrations"
+      ]
     },
     {
       "name": "typescript",
@@ -9442,7 +9462,7 @@
     {
       "name": "ui-ux-pro-max",
       "slug": "ui-ux-pro-max",
-      "description": "Complete UI/UX design intelligence and implementation guidance for polished interfaces. Use when a user asks to improve UX, redesign an interface, create a design system, review UI patterns, improve user flows, design forms, build navigation, or make an interface more intuitive and polished.",
+      "description": "UI UX Pro Max is an open-source design-intelligence pack for AI coding agents: a local, searchable database of UI styles, color palettes, font pairings, chart types and UX guidelines, plus a generator that turns a product description into a design system. Use when a user asks to install or use UI UX Pro Max, generate a design system, pick a style, palette or typography, improve UX, redesign an interface, review UI patterns, improve user flows, design forms, build navigation, or make an interface more intuitive and polished.",
       "category": "design",
       "tags": [
         "ui",
@@ -9455,7 +9475,7 @@
     {
       "name": "umami",
       "slug": "umami",
-      "description": "Track website analytics with Umami — privacy-focused, open-source Google Analytics alternative. Use when someone asks to \"track website analytics\", \"Umami\", \"privacy-friendly analytics\", \"self-hosted analytics\", \"GDPR analytics\", \"replace Google Analytics\", or \"website traffic tracking without cookies\". Covers setup, event tracking, custom properties, API, and self-hosting.",
+      "description": "Umami is an open-source, cookie-free web analytics platform: a Google Analytics alternative that is self-hosted with Docker and PostgreSQL or used as Umami Cloud. Use when someone asks to \"track website analytics\", \"Umami\", \"privacy-friendly analytics\", \"self-hosted analytics\", \"GDPR analytics\", \"replace Google Analytics\", or \"website traffic tracking without cookies\". Covers self-hosting, the tracking script and its options, custom events, identifying sessions, API keys and the stats API.",
       "category": "data-ai",
       "tags": [
         "analytics",
@@ -9608,8 +9628,8 @@
     {
       "name": "urql",
       "slug": "urql",
-      "description": "You are an expert in urql, the highly customizable and lightweight GraphQL client for React, Vue, Svelte, and vanilla JavaScript. You help developers fetch GraphQL data with minimal bundle size, document caching, normalized caching via Graphcache, exchanges (middleware pipeline), subscriptions, and offline support — providing a leaner alternative to Apollo Client with better extensibility.",
-      "category": "Frontend Development",
+      "description": "urql is a small, extensible GraphQL client for React, Preact, Vue, Svelte, Solid and plain JavaScript that sends queries, mutations and subscriptions and caches the results. Use when a user asks to add a GraphQL client to a frontend, fetch data with useQuery or useMutation, set up normalized caching with Graphcache, add auth, retry or subscription exchanges, replace Apollo Client with something lighter, or upgrade to urql 5.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9692,7 +9712,7 @@
     {
       "name": "valtio",
       "slug": "valtio",
-      "description": "Manage React state with Valtio — proxy-based state that just works. Use when someone asks to \"simple React state management\", \"Valtio\", \"proxy state\", \"mutable state in React\", \"alternative to Zustand/Redux\", or \"state management without boilerplate\". Covers proxy state, subscriptions, computed values, and devtools.",
+      "description": "Valtio is a proxy-based state library for React: wrap an object in proxy(), mutate it like plain JavaScript, and components that read it through useSnapshot re-render only for the properties they used. Use when someone asks for \"simple React state management\", \"Valtio\", \"proxy state\", \"mutable state in React\", \"alternative to Zustand/Redux\", or \"state management without boilerplate\". Covers Valtio 2: proxy state, snapshots, subscriptions, computed getters, async values with React's use hook, proxyMap/proxySet, and devtools.",
       "category": "development",
       "tags": [
         "state",
@@ -9857,8 +9877,8 @@
     {
       "name": "vitest",
       "slug": "vitest",
-      "description": "You are an expert in Vitest, the Vite-native testing framework. You help developers write and run unit tests, integration tests, and component tests with native TypeScript support, Jest-compatible API, built-in mocking, code coverage, snapshot testing, and watch mode — leveraging Vite's transform pipeline for instant test execution without separate compilation.",
-      "category": "Developer Tools",
+      "description": "Vitest is a test runner for JavaScript and TypeScript built on Vite, with a Jest-compatible API, built-in mocking, snapshots and code coverage. Use when a user asks to set up or run unit tests in a Vite or Node project, write tests with describe/it/expect, mock modules with vi.mock, add coverage thresholds, configure vitest.config.ts or test projects, migrate from Jest, or upgrade to Vitest 5.",
+      "category": "development",
       "tags": []
     },
     {
@@ -10147,7 +10167,7 @@
     {
       "name": "worldmonitor",
       "slug": "worldmonitor",
-      "description": "Build real-time intelligence dashboards that aggregate news, geopolitical events, and infrastructure data using AI. Use when: building news aggregation systems, monitoring global events, creating situational awareness dashboards.",
+      "description": "World Monitor is an open-source real-time global intelligence dashboard that aggregates news, conflict, market, maritime, aviation, cyber and infrastructure data and serves it through an MCP server, a REST API, a CLI and SDKs. Use when a user asks to query World Monitor from a script or an agent, get a country risk score or brief, pull conflict, cyber, sanctions or market feeds, connect the World Monitor MCP server, or self-host the dashboard.",
       "category": "data-ai",
       "tags": [
         "intelligence",
@@ -10160,7 +10180,7 @@
     {
       "name": "wxt",
       "slug": "wxt",
-      "description": "Build cross-browser extensions with WXT — the modern framework for Chrome, Firefox, Safari, and Edge extensions. Use when someone asks to \"build a browser extension\", \"Chrome extension with React\", \"WXT framework\", \"cross- browser extension\", \"manifest v3 extension\", \"build Firefox extension\", or \"browser extension with TypeScript\". Covers content scripts, background workers, popup/options pages, storage, messaging, and publishing.",
+      "description": "WXT is a Vite-based framework that builds browser extensions for Chrome, Firefox, Safari, and Edge from one codebase. Use when someone asks to \"build a browser extension\", \"Chrome extension with React\", \"WXT framework\", \"cross- browser extension\", \"manifest v3 extension\", \"build Firefox extension\", or \"browser extension with TypeScript\". Covers content scripts, background workers, popup/options pages, storage, messaging, and publishing.",
       "category": "development",
       "tags": [
         "browser-extension",
@@ -10281,7 +10301,7 @@
     {
       "name": "zabbix",
       "slug": "zabbix",
-      "description": "Configure Zabbix for enterprise infrastructure monitoring with templates, triggers, discovery rules, and dashboards. Use when a user needs to set up Zabbix server, configure host monitoring, create custom templates, define trigger expressions, or automate host discovery and registration.",
+      "description": "Zabbix is an open-source platform for enterprise infrastructure monitoring, configured here with templates, triggers, discovery rules, and the JSON-RPC API. Use when a user needs to set up Zabbix server, configure host monitoring, create custom templates, define trigger expressions, or automate host discovery and registration.",
       "category": "devops",
       "tags": [
         "zabbix",
@@ -10349,8 +10369,8 @@
     {
       "name": "zustand",
       "slug": "zustand",
-      "description": "You are an expert in Zustand, the small, fast, and scalable state management library for React. You help developers manage global state without boilerplate using Zustand's hook-based stores, selectors for performance, middleware (persist, devtools, immer), computed values, and async actions — replacing Redux complexity with a simple, un-opinionated API in under 1KB.",
-      "category": "Frontend Development",
+      "description": "Zustand is a small state-management library for React: a store is a hook, components subscribe to slices of it with selectors, and no context provider is needed. Use when a user asks to \"add a Zustand store\", \"share state between components without Redux\", \"persist state to localStorage\", \"fix Maximum update depth exceeded after upgrading to Zustand v5\", \"use Zustand with Next.js\", or wants the persist, devtools, immer or subscribeWithSelector middleware. Covers the v5 API: typed stores, useShallow, middleware order, access outside React, and per-request stores.",
+      "category": "development",
       "tags": []
     }
   ],
@@ -10386,5 +10406,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-01T09:04:49.403Z"
+  "updatedAt": "2026-10-01T13:01:37.923Z"
 }
