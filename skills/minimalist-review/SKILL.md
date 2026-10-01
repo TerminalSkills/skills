@@ -223,7 +223,7 @@ Two developers sell time tracking to architecture practices: 410 customers at $4
 | Export to accounting tools | 3 | 37 of 61 cancellation reasons: re-entering hours by hand | Must | Keep |
 | Single sign-on | 2 | two prospects asked, neither signed | Could | Defer until a prospect commits in writing at a stated price |
 
-Scores as written: S1 0 (five results, none measured), S2 0 (every part called essential), S3 1 (cancellation reasons are stated interest), S4 0, S5 1 (four months of the whole team), P1 2, P2 1 (repaying it within two years needs 5.7 customers kept a month, and only 6.8 a month leave for any reason the roadmap addresses), P3 0, P4 2 and P5 2 (salaries are already paid; nothing new recurs). Total 9.
+Scores as written: S1 0 (five results, none measured), S2 0 (every part called essential), S3 1 (cancellation reasons are stated interest), S4 0, S5 1 (four months of the whole team), P1 2, P2 1 (repaying it within two years needs 5.7 customers kept a month, and only 6.7 a month leave for any reason the roadmap addresses), P3 0, P4 2 and P5 2 (salaries are already paid; nothing new recurs). Total 9.
 
 Arithmetic. Gains from retention accumulate, so payback is computed month by month. If the export keeps half of the roughly six customers a month who leave over re-entry, that is 3 a month: cumulative contribution is 3 x $45 x (1 + 2 + ... + n). The export alone ($7,200) is repaid in month 10. The whole roadmap, with no evidence of gain from the other 29 weeks, is repaid in month 34.
 
