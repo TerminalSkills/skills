@@ -1,159 +1,236 @@
 ---
 name: first-customers
 description: >-
-  Find and convert your first 10-100 customers using founder-led sales, community engagement,
-  and early adopter strategies. Use when: launching a new product, acquiring first users,
-  building initial traction before scaling.
-license: MIT
-compatibility: "Any AI agent"
+  Plans and tracks the direct, one-at-a-time selling that gets a new product or
+  service its first 10 to 100 paying customers: sizes the outreach needed from
+  stage conversion rates and the founder's hours, builds a prospect list ordered
+  by warmth, shapes an early-customer offer and price, drafts outreach and call
+  scripts, and reads the funnel each week. Use when someone asks "how do I get my
+  first customers", "nobody is buying, what do I do", "write a cold email for my
+  product", "how many people do I need to contact", "should I charge early
+  users", or "get me to 10 paying customers". Covers SaaS, services, local
+  trades and products that are not built yet.
+license: Apache-2.0
+compatibility: "Any agent that can read and write files. Optional: Python 3.8+ (standard library only) for the funnel script. No accounts or API keys; payments are collected with whatever the business already uses."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: business
-  tags: [startup, customers, sales, traction, founder-sales]
-  use-cases:
-    - "Create a plan to get first 10 paying customers for a new SaaS"
-    - "Identify where your target customers hang out online"
-    - "Design a founder-led sales process for early stage"
-  agents: [claude-code, openai-codex, gemini-cli, cursor]
+  tags: ["sales", "customer-acquisition", "outreach", "startup", "pricing"]
 ---
 
 # First Customers
 
 ## Overview
 
-Help founders sell to their first 100 customers through manual, founder-led sales. Based on the philosophy of The Minimalist Entrepreneur by Sahil Lavingia. The core insight: skip the launch and focus on selling. "Viral success" is a myth — every seemingly overnight success is built on months or years of hard work. Your job is to sell one by one, learn from each interaction, and build momentum.
+The first customers of a small business are won by the founder, in person, one conversation at a time. Advertising and content need a message that is known to work and a customer profile that is known to buy; direct selling is how both are found. This skill treats that stage as a pipeline with numbers: how many people have to be contacted, in which order, with what offer, and what the results say to change.
+
+It produces three things: `first-customers-plan.md` (target, offer, pipeline arithmetic, weekly rhythm), `prospects.csv` (one row per person, dated at every stage), and the messages and call outline the founder will use.
 
 ## Instructions
 
-### The Concentric Circles of Sales
+### 1. Establish the starting position
 
-Sell outward from the people who care most about you to the people who care least:
+Ask what the project does not show:
 
-**Circle 1: Friends and Family**
-- Start here. Yes, it's uncomfortable. Do it anyway.
-- Pitch them on being your first customers, not investors.
-- They trust you more than anyone else. If they won't buy, who will?
-- Ask for their honest feedback, not social media posts.
-- Kickstarter says: "Support always begins with people you know."
+1. What is sold, to whom (role plus situation), and at what price?
+2. What exists today: a working product, a prototype, or nothing yet?
+3. How many people does the founder know by name who have this problem? How many more can be found who have talked about it in public?
+4. How many hours a week can go to selling, and for how many weeks?
+5. The target: how many paying customers, by when.
+6. Where the prospects are (country), because the rules for unsolicited email differ.
 
-**Circle 2: Your Community**
-- The community you identified and have been contributing to.
-- Three steps:
-  1. Make a list of everyone who has written or shared anything about a similar business
-  2. Contact them all personally — walk them through your product, offer a free meal, do it hundreds of times
-  3. Ask for candid feedback — not reviews or social posts, just honest feedback
+Read the landing page and pricing, any contact list or CRM export, earlier outreach, and how payment is taken. If nobody can pay today, fixing that comes before any outreach.
 
-**Circle 3: Strangers (Cold Outreach)**
-- Cold emails, calls, messages — this works. It's how Gumroad grew.
-- Each email refines your ability to write better ones.
-- Use each rejection as a learning opportunity.
-- Don't copy/paste — personalize every message.
+### 2. Shape the early-customer offer
 
-### Sales Mindset
+Early customers buy a result and the founder's attention. State the offer in five lines: the outcome, the price, the term, what happens if it does not work, and what the founder asks for in return (a 20-minute feedback call after two weeks, a reference if they are happy).
 
-- You're not convincing anyone. You're helping people.
-- You already have a relationship with your community.
-- Turn every failed conversion into an insight — either wrong person, or product needs work.
-- Sales is an education process: your customers get to know you, you get to know what's working.
+| What exists | Offer | Money |
+|---|---|---|
+| Working product | Standard plan, set up by the founder personally | Full price from day one, cancel any time |
+| Half-built product | Paid pilot: fixed term of 30 to 60 days and one written success measure | Fixed fee up front, refunded if the measure is missed |
+| Nothing built | Pre-sale with a stated delivery date, or the result delivered by hand as a service | Deposit, refundable until delivery |
+| Service or trade | The normal job with a redo guarantee | Full price; a deposit at booking |
 
-### Pricing
+Charge from the first customer. A free user tells you they like it; a paying one tells you it is worth money, and only the second fact lets the business continue. To set a first price: put a monthly figure on what the problem costs one customer (from their own account of it), list what they pay for the current alternative, pick a price between the alternative and a small fraction of the problem cost, then quote it. If several buyers in a row accept without hesitation, quote the next one more.
 
-- There is a massive difference between free and $1 (the "zero price effect").
-- **Cost-based**: Your costs + a margin (e.g., 20-50%).
-- **Value-based**: What it's worth to the customer, regardless of your costs.
-- Start low and raise prices over time as your product improves.
-- Goal: eventually move to tiered pricing as you build brand and value.
+Take payment with a payment link or an invoice; Stripe Payment Links, for instance, are created in the dashboard without code and can charge once or on a subscription.
 
-### Key Metrics
+### 3. Do the pipeline arithmetic
 
-- Manual sales = 99% of early growth. Word of mouth = 99% of later growth.
-- You need far fewer customers than you think. Slack's IPO: 575 customers = 40% of revenue.
-- Product-market fit = repeat customers who sign up and use your product on their own.
+Work backwards from the target. For each group of prospects:
 
-### When to "Launch"
+```text
+sales          = sends x reply rate x call rate x close rate
+sends per sale = 1 / (reply rate x call rate x close rate)
+minutes        = sends x minutes per send + calls x 45     (30 on the call, 15 for notes and follow-up)
+```
 
-Don't launch until you have 100 paying customers. Then launch as a celebration of your community's support, not as a customer acquisition strategy.
+Until the business has its own numbers, size the work with these planning guesses. They are assumptions for a first plan, not benchmarks; replace each row with measured figures after 30 sends in that group.
 
-### Output Format
+| Group | Who | Reply | Reply to call | Call to sale | Sends per sale | Minutes per send |
+|---|---|---|---|---|---|---|
+| Warm | knows the founder and has the problem | 60% | 60% | 30% | 9 | 5 |
+| Community | has voiced the problem in public; no relationship | 25% | 50% | 25% | 32 | 10 |
+| Cold | fits the profile; found in a directory | 8% | 40% | 20% | 156 | 12 |
 
-Help the user create:
-1. A list of 10 friends/family to pitch this week
-2. A list of 10 community members to reach out to
-3. A cold outreach template (personalized, not copy-paste)
-4. Their initial pricing strategy
-5. A weekly sales goal and tracking method
+Then check the total against the hours from step 1, after setting aside an hour a week for review and about two hours per new customer for setup by hand. When the target does not fit, say so and offer the choices: a later date, more warm and community prospects (introductions are the cheapest source), or a stronger offer. Do not close the gap by assuming better rates.
+
+### 4. Build the prospect list
+
+Fill the groups in order: warm first, community second, cold last. A prospect qualifies only with evidence of the problem (a post, a job advert, a tool they use, something they said), the authority to buy, and a way to reach them. Add 25 qualified rows a week; never buy a list.
+
+```csv
+name,org,role,source,warmth,evidence,sent_on,replied_on,call_on,paid_on,objection,next_step
+Hollis Tran,Marigold Tea Club,founder,subscription-operators forum,community,"posted 2 Sep: lost 31 subscribers in August and found out from the payout",2026-09-08,2026-09-09,2026-09-15,2026-09-19,,onboarding call 22 Sep
+Dana Okafor,Brine & Barrel,operations lead,Shopify app directory,cold,"store runs a monthly box; careers page lists a retention role",2026-09-10,,,,,follow up 15 Sep
+```
+
+`warmth` is `warm`, `community` or `cold`. Each stage column holds the date the stage was reached, which makes the funnel countable. `objection` records, in the prospect's words, why a conversation stopped.
+
+### 5. Write the outreach
+
+One message per person, written for that person, in four moves and under 100 words:
+
+1. The evidence: what you saw or know about their situation.
+2. The problem, named the way they would name it.
+3. What you have and the one result it produces, with a number if you have one.
+4. A small ask: a reply, or 15 minutes. Not a demo, not a signup.
+
+Follow up once after three business days and once more a week later with something new (a number, a short example), then stop. Send by hand from the founder's own mailbox, 10 to 20 a day.
+
+Rules for unsolicited email depend on where the recipient is:
+
+| Recipient in | What applies |
+|---|---|
+| United States | CAN-SPAM covers business-to-business mail too: truthful sender and subject, clear that the message is commercial, a valid postal address, and an opt-out that is honoured within 10 business days |
+| United Kingdom | PECR lets you email companies and other corporate bodies; sole traders count as individuals and need prior consent or an earlier purchase. Identify yourself and give an opt-out every time |
+| European Union | GDPR accepts direct marketing as a possible legitimate interest, but each member state's e-privacy law decides whether cold business email needs consent. Check the country |
+| Canada | CASL requires consent (express or implied), sender identification and an unsubscribe mechanism before a commercial message is sent |
+
+Gmail requires anyone mailing its personal accounts to authenticate with SPF or DKIM and to keep reported spam under 0.3%, so send from a domain with both set up. On LinkedIn and community platforms the platform's own rules apply; do not use automation tools on either.
+
+### 6. Run the conversation
+
+A first call is mostly questions about what has already happened, because people describe their past accurately and their future generously:
+
+- "Tell me about the last time this happened." What did they do, and how long did it take?
+- "What did it cost you?" Money, hours, a customer.
+- "What have you tried, and what did you pay for it?" Paying before is the strongest sign they will pay again.
+- "Who else has a say in buying something like this?"
+
+Show the product or describe the service only after those answers, and only the part that matches what they said. Then ask for the sale with a concrete next step: "I can set you up on Thursday. Shall I send the payment link now?" If the answer is no, ask what would have to be true for a yes and write the answer in `objection` verbatim. End every call, sale or not, by asking for two introductions.
+
+### 7. Read the funnel every week
+
+```python
+#!/usr/bin/env python3
+"""funnel.py prospects.csv - stage counts and conversion per warmth group, plus objections."""
+import csv, sys
+from collections import Counter, defaultdict
+
+STAGES = ["sent_on", "replied_on", "call_on", "paid_on"]
+rows = [r for r in csv.DictReader(open(sys.argv[1], newline="")) if r["sent_on"]]
+groups = defaultdict(list)
+for r in rows:
+    groups[r["warmth"]].append(r)
+    groups["all"].append(r)
+
+def pct(a, b):
+    return f"{a / b:.0%}" if b else "-"
+
+print(f"{'group':10} {'sent':>4} {'reply':>5} {'call':>4} {'paid':>4} {'reply%':>7} {'call%':>6} {'close%':>7} {'sends/sale':>11}")
+for name in ["warm", "community", "cold", "all"]:
+    rs = groups.get(name)
+    if not rs:
+        continue
+    sent, reply, call, paid = (sum(bool(r[s]) for r in rs) for s in STAGES)
+    print(f"{name:10} {sent:>4} {reply:>5} {call:>4} {paid:>4} {pct(reply, sent):>7} "
+          f"{pct(call, reply):>6} {pct(paid, call):>7} {(f'{sent / paid:.0f}' if paid else '-'):>11}")
+objections = Counter(r["objection"] for r in rows if r["objection"])
+print("objections:", ", ".join(f"{k} ({v})" for k, v in objections.most_common()))
+```
+
+What the stages say, once a group has 30 or more sends (working thresholds, to be tightened with experience):
+
+| Symptom | Likely cause | Change |
+|---|---|---|
+| Few replies (cold under 5%, warm under 30%) | wrong people, or the first line shows no evidence | tighten the qualifying rule; rewrite the opening around what you saw |
+| Replies, but under a third become calls | the ask is too large or the result is unclear | ask a question instead of asking for time; put a number on the result |
+| Calls, but under one in five buys | offer, price or severity | read the objections: the same one three times means change the offer |
+| "Not now" from most of a segment | the problem is real but not urgent for them | move to the segment where it costs more |
+| They pay, then stop using it within a month | the product, not the selling | pause outreach and fix what the customers hit |
+
+### 8. Know when this stage is over
+
+Keep selling by hand until there are at least ten customers of the same kind, most of them still active or reordering after 60 days, and two or three arrived by referral without being asked. That is the evidence a marketing plan needs: who buys, the words that work, and what a customer is worth.
+
+`first-customers-plan.md` contains, in order: target and deadline; the offer in five lines; the pipeline table with expected sales per group and the hours check; the weekly rhythm (list building, sending, calls, Friday review); the messages; and a dated log of what was changed after each review and why.
 
 ## Examples
 
-### Example 1: SaaS Tool for Freelance Designers
+### Example 1: A subscription-analytics tool at zero customers
 
-**User prompt:** "I built a simple invoicing tool for freelance designers. It auto-generates invoices from Figma project files. I charge $12/month. I have 0 customers. Help me get my first 10."
+Ines Carvalho built a churn-alert tool for subscription-box shops and charges $79 a month. She knows 12 shop owners from a previous job, has found 40 more who posted about churn in two operator forums, can sell 10 hours a week, and wants 10 customers in 8 weeks.
 
-**Expected output:**
+Pipeline arithmetic with the planning guesses:
 
-**Circle 1: Friends & Family (This Week)**
-Reach out to these people personally — text, call, or in-person:
-1. Any designer friends you have — even if they use another tool, ask them to try yours for a month and give honest feedback
-2. Non-designer friends who freelance (writers, developers) — they may not be your target but they'll stress-test the invoicing flow
-3. Former colleagues from past design jobs
+| Group | Sends | Replies | Calls | Expected sales | Hours |
+|---|---|---|---|---|---|
+| Warm | 12 | 7.2 | 4.3 | 1.3 | 4.2 |
+| Community | 40 | 10 | 5 | 1.25 | 10.4 |
+| Introductions (half the 9 calls yield one) | 4.7 | 2.8 | 1.7 | 0.5 | 1.6 |
+| Cold | 204 | 16 | 6.5 | 1.3 | 45.7 |
+| Total | | | | 4.4 | 62 of 80 |
 
-Target: 3 paying customers from this circle by Sunday.
+Eighteen of the 80 hours are held back for the weekly review and for setting up about five customers by hand; the cold row is what the remaining 45.7 hours buy at 13.4 minutes per send including its calls. The honest plan is four or five customers in 8 weeks, not ten. The agent offers the choices: keep the date and aim for five, or find about 160 more community-grade prospects, which at 32 sends per sale is the cheapest route to the other five.
 
-**Circle 2: Community (Next 2 Weeks)**
-You should already be active in design communities. If not, start now:
-- Post in the Figma Community Forum showing how you solved your own invoicing pain
-- Share in Designer Hangout Slack (12k members) — not as a pitch, but as "I built this for myself, anyone want to try it?"
-- DM 10 freelance designers you follow on Twitter/X who have complained about invoicing. Example:
+Message to a community prospect (83 words):
 
-> "Hey Sarah, I saw your tweet last month about chasing down clients for payments. I built a small tool that auto-generates invoices from Figma projects — nothing fancy, just saves me about 2 hours a week. Would you want to try it free for 2 weeks and tell me if it actually helps? No pressure either way."
+```text
+Subject: the 31 subscribers you lost in August
 
-Target: 5 paying customers from this circle in 2 weeks.
+Hi Hollis, I read your post about finding out from the payout that 31 tea-club subscribers had gone.
+I ran retention at a coffee subscription for three years and built a small tool for exactly that: it
+flags subscribers likely to cancel in the next two weeks, from skipped boxes and failed cards, so
+there is time to reach them. Would it be useful if I ran it on last month's data and showed you who
+it would have flagged?
+Ines Carvalho, Lisbon
+```
 
-**Circle 3: Cold Outreach (Ongoing)**
-Search for freelance designers on Dribbble, Behance, and Twitter who mention invoicing pain. Send personalized emails:
+After three weeks, `python3 funnel.py prospects.csv` printed:
 
-> "Hi Marcus, I came across your portfolio on Dribbble — your brand identity work for Oakwood Coffee is fantastic. I noticed you're freelancing full-time, and I wanted to share something I built: a tool that auto-generates invoices directly from Figma project files. It saves me about 2 hours per week on billing. I'd love to give you a free 2-week trial if you're interested. Either way, keep making great work. — [Your name]"
+```text
+group      sent reply call paid  reply%  call%  close%  sends/sale
+warm         12     8    5    2     67%    62%     40%           6
+community    34     9    4    1     26%    44%     25%          34
+cold         60     4    1    0      7%    25%      0%           -
+all         106    21   10    3     20%    48%     30%          35
+objections: no time to set it up (5), already track it in a spreadsheet (5), price (1), not a priority this quarter (1)
+```
 
-Target: 2 customers from 50 cold emails (4% conversion is realistic for personalized outreach).
+Reading: warm and community are tracking the plan and cold is not earning its hours yet. Price came up once in 12 objections, so $79 stays. "No time to set it up" came up five times, so the offer changes: Ines connects the shop's data herself on the first call. The spreadsheet objection becomes the new opening line for community prospects ("what does the spreadsheet tell you two weeks before they cancel?"). Cold sending is paused until 30 more community prospects are found.
 
-**Pricing:** $12/month is reasonable for now. Don't lower it. If anything, consider $15/month after your first 20 customers.
+### Example 2: A mobile bicycle mechanic in Bristol
 
-### Example 2: Local Service Business
+Callum Reid services bicycles at the customer's home or workplace for £65. He wants 20 paying customers in four weeks and has 12 hours a week. He rides with a 180-member club and knows people at three offices with bike storage.
 
-**User prompt:** "I'm starting a meal prep delivery service for busy parents in Austin, TX. I cook 5 meals per week, delivered Sunday evening. $150/week per family. How do I get my first customers?"
+- **Price check.** He phoned five local shops: £55 to £90 for the same service and a wait of four to nine days. £65 at the door within the week needs no discount. Booking takes a £15 deposit by payment link, which also cuts no-shows.
+- **Warm, individuals.** Thirty riders he knows personally, messaged one by one: 30 x 60% x 60% x 30% is about 3 bookings. A post in the club chat goes out only with the organiser's agreement.
+- **Warm, workplaces.** His three contacts introduce him to whoever runs the building. The offer is a service day on site once 6 bikes are prepaid; each day is 6 to 8 customers. One or two of three happening gives 6 to 16.
+- **Rules.** He does not text or email individuals he does not know: under PECR they need to have consented. Companies can be emailed, so the facilities managers are fair to contact.
+- **Expected.** 9 to 19 customers, so 20 is just past the top of the range; the plan says so and names the gap-closer, a fourth workplace introduction asked for at the first service day. Each service day earns 7 x (£65 - £7 parts and card fee) = £406 for about seven hours including travel.
 
-**Expected output:**
-
-**Circle 1: Friends & Family (This Week)**
-- Text every parent you know in Austin: "I'm starting a meal prep service — 5 home-cooked family meals delivered Sunday evening for $150/week. Can I make your family the first batch this Sunday? I'll do the first week at $100 so I can get your honest feedback."
-- Ask your parents, siblings, and close friends to spread the word to any Austin parents they know.
-- Post on your personal Instagram/Facebook: "I'm cooking for Austin families. DM me if you want in."
-
-Target: 2-3 families from your immediate network.
-
-**Circle 2: Community (Next 2 Weeks)**
-- Austin Moms Facebook Group (15k+ members) — don't hard-sell. Post: "Fellow Austin parents — what's your biggest struggle with weeknight dinners? I've been meal prepping for my own family and I'm thinking about offering it as a service."
-- Nextdoor in your neighborhood — same approach, conversation first.
-- Your kids' school parent WhatsApp groups — mention it casually.
-- Local parenting meetup groups (Austin City Moms, Dad's Group ATX).
-
-Target: 4-5 families from community engagement.
-
-**Circle 3: Cold Outreach (Week 3+)**
-- Partner with a local gym or yoga studio: offer their members a 10% discount in exchange for a flyer at the front desk.
-- Drop off a free sample meal at 10 local businesses with a lot of working parents (pediatrician offices, daycares).
-
-**Pricing:** $150/week is solid. Do not go below $120 — your costs (groceries, containers, gas, time) are real. Offer a "first week trial" at $100 to reduce friction, then full price.
-
-**Weekly Goal:** Add 1 new family per week. At 10 families ($1,500/week), evaluate if you need to hire kitchen help before scaling further.
+Message to the office contact: "Sam, would your facilities manager be up for a bike service day in the car park? I do a full service for £65, people prepay online, and I only come once six are booked, so there is nothing for the company to pay or organise beyond a spot to work. Could you introduce me?"
 
 ## Guidelines
 
-- Always start with Circle 1 (friends/family) even though it's uncomfortable — skipping to cold outreach is a common mistake
-- Encourage real personalization in every outreach message — templates are starting points, not scripts
-- Pricing should never be free; the gap between $0 and $1 is bigger than $1 and $100
-- Focus on learning over revenue in the first 10 customers — every conversation is data
-- Manual, unscalable sales is the goal at this stage — automation comes later
-- Don't suggest a "launch" until the user has paying customers who came organically
-- Track rejections as carefully as conversions — they reveal product or positioning gaps
+- The planning rates are guesses. Say so in the plan, and replace them with the business's own after 30 sends per group. Published "average reply rates" describe other people's lists.
+- Do not hide a target that does not fit the hours. A plan that needs 1,500 hand-written cold emails from one person in eight weeks is a wrong plan, and the fix is more warm and community prospects or more time.
+- Free pilots teach little about demand. If the founder insists on one, set an end date and the price that follows in writing before it starts.
+- Mass sending is a different activity with different rules: bought lists, mail-merge tools and sequences of five follow-ups damage the sending domain and, in several countries, break the law. The legal table above is a summary, not advice; for regulated sectors or consumer prospects, check the regulator's own guidance.
+- Record objections in the prospect's words. "Too expensive" written down as "price" hides whether they meant the amount, the billing term or the missing proof.
+- Ten customers of ten different kinds teach less than ten of one kind. Narrow the list when early buyers cluster.
+- Friends who buy to be kind are not evidence. Count a warm sale as a signal only if the person has the problem and keeps using the product.
+- Not the right tool once the business has a repeatable source of buyers, or for marketplaces and consumer apps that need thousands of users before the product works at all; those need a channel plan, not a prospect list.
