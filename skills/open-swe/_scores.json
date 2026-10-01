@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7b188158650d67f1dcfd5aff8f96e631c0e0f81f4bce25ecf15f612e01d4ca4c",
-  "scoredAt": "2026-05-13T09:44:34.238Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3e24b2927835251c33687f3c08c62b7e57250926088b4adb4f7dc8bcf6e17bea",
+  "scoredAt": "2026-10-01T12:09:16.498Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases, limiting robustness."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive narrative that may be considered padded, reducing overall conciseness."
       },
       {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "Skill assumes specific LLMs and framework, limiting compatibility with other AI agents."
+        "detail": "The skill is vendor-locked to LangChain, limiting compatibility with other AI agents."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 100,
-    "multiplier": 3.57,
+    "multiplier": 3.25,
+    "baselineAvg": 20,
+    "treatmentAvg": 65,
     "scenarios": [
       {
-        "name": "Wire up a GitHub bot that auto-fixes labeled issues",
-        "baseline": 25,
-        "treatment": 100,
-        "rationale": "Baseline reached for PyGithub polling and a raw Anthropic call with no Open SWE primitives; treatment used SWEAgent, GitHubIntegration with the on_issue label decorator, and the documented create_pr + failure-comment flow."
+        "name": "deploy-with-docker-and-github-app",
+        "baseline": 10,
+        "treatment": 0,
+        "rationale": "Response B includes some Docker setup but omits the required build/run commands, GitHub App permissions, and webhook/callback URLs, whereas Response A is empty."
       },
       {
-        "name": "Process multiple issues in parallel with test iteration loops",
+        "name": "trigger-by-issue-comment",
         "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response A covers all rubric points with detail, while Response B omits key steps like the 👀 reaction, sandbox workflow, and sign‑in requirement."
+      },
+      {
+        "name": "ci-diff-review-with-oswe",
+        "baseline": 20,
         "treatment": 100,
-        "rationale": "Baseline used asyncio.gather but hand-rolled the retry loop and missed every SWEAgent.solve parameter (max_iterations, run_tests, test_command) plus the iterations introspection the rubric required."
+        "rationale": "Response B fully satisfies all rubric items, while Response A omits checksum verification, the correct command, exit code details, environment variable, and output redirection."
       }
     ]
   }
