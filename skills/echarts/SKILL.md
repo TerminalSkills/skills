@@ -1,27 +1,74 @@
 ---
 name: echarts
 description: >-
-  Create interactive data visualizations with Apache ECharts. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications.
+  Creates interactive data visualizations with Apache ECharts, the open-source JavaScript charting library. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications, render a chart to SVG on the server, or upgrade from ECharts 5 to 6.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "ECharts 6.x (checked against 6.1.0) in modern browsers, or Node.js for server-side SVG. React: echarts-for-react 3.0.6. Vue: vue-echarts 8 (Vue 3.3+, ECharts 6 only)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["charts", "interactive", "canvas", "dashboard", "analytics"]
+  repository: https://github.com/apache/echarts
 ---
 # ECharts — Enterprise Data Visualization
 
 ## Overview
 
-You are an expert in Apache ECharts, the powerful charting library for complex data visualizations. You help developers create interactive dashboards with line, bar, pie, scatter, heatmap, tree, sankey, geographic, and custom chart types with animations, themes, and large dataset support (Canvas + WebGL rendering for millions of data points).
+Apache ECharts is an open-source (Apache-2.0) JavaScript charting library. A chart is one plain `option` object passed to `chart.setOption()`: line, bar, pie, scatter, heatmap, tree, sankey, geographic and custom series, with tooltips, zooming, animation and themes built in. It draws on Canvas (the default) or SVG, and in Node.js it can produce an SVG string without a browser. ECharts 6 changed the default theme and added runtime theme switching plus chord, beeswarm, broken-axis and matrix-layout charts.
 
 ## Instructions
+
+### Installation
+
+```bash
+npm install echarts                       # Vanilla JS
+npm install echarts echarts-for-react     # React
+npm install echarts vue-echarts           # Vue 3
+```
+
+### Vanilla JavaScript
+
+```javascript
+import * as echarts from "echarts/core";
+import { BarChart, LineChart } from "echarts/charts";
+import { DatasetComponent, GridComponent, LegendComponent, TooltipComponent } from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
+
+// Tree-shakeable imports: register what the chart uses. A renderer is always required.
+echarts.use([BarChart, LineChart, DatasetComponent, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer]);
+
+const el = document.getElementById("revenue-chart");   // the element needs a CSS width and height
+const chart = echarts.init(el);
+chart.setOption({
+  tooltip: { trigger: "axis" },
+  legend: {},
+  dataset: {
+    source: [
+      ["month", "Revenue", "Costs"],
+      ["Jan", 42000, 31000],
+      ["Feb", 46500, 32500],
+      ["Mar", 51200, 34100],
+    ],
+  },
+  xAxis: { type: "category" },
+  yAxis: {},
+  series: [{ type: "bar" }, { type: "line" }],        // each series takes the next dataset column
+});
+
+// The chart does not follow its container: call resize() yourself
+const observer = new ResizeObserver(() => chart.resize());
+observer.observe(el);
+// On teardown: observer.disconnect(); chart.dispose();
+```
+
+`import * as echarts from "echarts"` registers everything and needs no `use()` call: simpler, but a much larger bundle.
 
 ### React Integration
 
 ```tsx
 // Using echarts-for-react wrapper
+import { useEffect, useRef } from "react";
 import ReactECharts from "echarts-for-react";
 
 function SalesChart({ data }) {
@@ -49,14 +96,15 @@ function SalesChart({ data }) {
         restore: {},                      // Reset view
       },
     },
-    dataZoom: [{ type: "slider", start: 0, end: 100 }],  // Timeline scrubber
+    dataZoom: [{ type: "slider", start: 0, end: 100, bottom: 30 }],  // Range slider above the legend
+    grid: { bottom: 90 },
   };
 
   return <ReactECharts option={option} style={{ height: 500 }} />;
 }
 
-// Pie chart with drill-down
-function CategoryBreakdown({ data }) {
+// Donut chart; onEvents receives ECharts events such as a click on a slice
+function CategoryBreakdown({ data, onSelect }) {
   const option = {
     tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
     series: [{
@@ -69,39 +117,72 @@ function CategoryBreakdown({ data }) {
       data: data.map(d => ({ value: d.count, name: d.category })),
     }],
   };
-  return <ReactECharts option={option} style={{ height: 400 }} />;
+  return <ReactECharts option={option} style={{ height: 400 }}
+    onEvents={{ click: (e) => onSelect(e.name) }} />;
 }
 
-// Real-time streaming chart
-function LiveMetrics() {
+// Real-time streaming chart: update the instance directly instead of re-rendering React
+function LiveMetrics({ readLatency }) {
   const chartRef = useRef(null);
+  const points = useRef([]);
+  const baseOption = {
+    animation: false,
+    xAxis: { type: "time" },
+    yAxis: { type: "value", name: "ms" },
+    series: [{ type: "line", showSymbol: false, data: [] }],
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
       const chart = chartRef.current?.getEchartsInstance();
       if (!chart) return;
-      // Append new data point, remove oldest
-      chart.setOption({
-        series: [{ data: [...currentData, newPoint].slice(-60) }],
-      });
+      // Append new data point, keep the last 60
+      points.current = [...points.current, [Date.now(), readLatency()]].slice(-60);
+      chart.setOption({ series: [{ data: points.current }] });
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [readLatency]);
 
-  return <ReactECharts ref={chartRef} option={baseOption} />;
+  return <ReactECharts ref={chartRef} option={baseOption} style={{ height: 300 }} />;
 }
+```
+
+### Vue Integration
+
+```vue
+<template>
+  <VChart :option="option" autoresize style="height: 400px" />
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import { use } from "echarts/core";
+import { BarChart } from "echarts/charts";
+import { GridComponent, TooltipComponent } from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
+import VChart from "vue-echarts";
+
+use([BarChart, GridComponent, TooltipComponent, CanvasRenderer]);
+
+const option = ref({
+  tooltip: {},
+  xAxis: { type: "category", data: ["Mon", "Tue", "Wed", "Thu", "Fri"] },
+  yAxis: {},
+  series: [{ type: "bar", data: [412, 388, 455, 501, 476] }],
+});
+</script>
 ```
 
 ### Advanced Charts
 
 ```typescript
-// Sankey diagram (flow visualization)
+// Sankey diagram (flow visualization) — every name used in links must be listed in data
 const sankeyOption = {
   series: [{
     type: "sankey",
     data: [
-      { name: "Organic" }, { name: "Paid" }, { name: "Referral" },
-      { name: "Signup" }, { name: "Activation" }, { name: "Paid User" },
+      { name: "Organic" }, { name: "Paid" }, { name: "Referral" }, { name: "Signup" },
+      { name: "Activation" }, { name: "Churned" }, { name: "Paid User" },
     ],
     links: [
       { source: "Organic", target: "Signup", value: 5000 },
@@ -114,7 +195,7 @@ const sankeyOption = {
   }],
 };
 
-// Heatmap (calendar-style, like GitHub contributions)
+// Heatmap (calendar-style, like GitHub contributions); dailyData = [{ date: "2026-03-14", commits: 7 }, ...]
 const calendarHeatmap = {
   visualMap: { min: 0, max: 100, type: "piecewise", orient: "horizontal", left: "center" },
   calendar: { range: "2026", cellSize: ["auto", 15] },
@@ -126,42 +207,77 @@ const calendarHeatmap = {
 };
 ```
 
-## Installation
+### Upgrading from ECharts 5 to 6
 
-```bash
-npm install echarts echarts-for-react    # React
-npm install echarts                       # Vanilla JS
+`npm install echarts@6` needs no code changes in most projects, but charts look different: a new color palette, and the legend now sits at the bottom by default.
+
+```javascript
+import * as echarts from "echarts";
+import "echarts/theme/v5.js";                      // keep the .js: "echarts/theme/v5" fails to resolve in Node
+
+const chart = echarts.init(el, "v5");             // version 5 colors and component positions
+chart.setOption(option);
+// New in 6: switch theme on a live chart (it has no effect before the first setOption)
+chart.setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "v5");
 ```
 
 ## Examples
 
-**Example 1: User asks to set up echarts**
+### Example 1: Render a chart to SVG on the server
 
-User: "Help me set up echarts for my project"
+User: "Generate the weekly signups chart as an image for our email report, no browser."
 
-The agent should:
-1. Check system requirements and prerequisites
-2. Install or configure echarts
-3. Set up initial project structure
-4. Verify the setup works correctly
+```javascript
+// render-signups.mjs — run with: node render-signups.mjs
+import { writeFileSync } from "node:fs";
+import * as echarts from "echarts";
 
-**Example 2: User asks to build a feature with echarts**
+const chart = echarts.init(null, null, { renderer: "svg", ssr: true, width: 800, height: 400 });
+chart.setOption({
+  animation: false,
+  title: { text: "Signups, week of 21 September" },
+  xAxis: { type: "category", data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] },
+  yAxis: { type: "value" },
+  series: [{ type: "bar", data: [182, 205, 197, 241, 263, 118, 96], label: { show: true, position: "top" } }],
+});
+writeFileSync("signups.svg", chart.renderToSVGString());
+chart.dispose();
+```
 
-User: "Create a dashboard using echarts"
+Result: `signups.svg`, an 800×400 vector image of about 7 KB, written without a DOM. SSR mode needs `renderer: "svg"`, `ssr: true` and an explicit width and height. For PNG output, pass a `canvas` package (node-canvas) instance to `echarts.init` and call `canvas.toBuffer("image/png")`.
 
-The agent should:
-1. Scaffold the component or configuration
-2. Connect to the appropriate data source
-3. Implement the requested feature
-4. Test and validate the output
+### Example 2: Plot 200,000 sensor readings without freezing the page
+
+User: "Our temperature chart has 200k points and the page locks up when it loads."
+
+```javascript
+// readings: [[timestampMs, celsius], ...] with 200,000 rows
+chart.setOption({
+  animation: false,
+  tooltip: { trigger: "axis" },
+  xAxis: { type: "time" },
+  yAxis: { type: "value", scale: true, name: "°C" },
+  dataZoom: [{ type: "inside" }, { type: "slider" }],
+  series: [{
+    type: "line",
+    showSymbol: false,       // no marker per point
+    sampling: "lttb",        // downsample to what the pixels can show, keeping peaks
+    data: readings,
+  }],
+});
+```
+
+Result: the line keeps its shape while far fewer segments are drawn (rendered to SVG at 1200 px wide, 200,000 points come to about 75 KB with `sampling: "lttb"`; without it the size depends on the data, from about 230 KB for a slow drift to over 2 MB for noisy readings), and zooming with the wheel or slider reveals detail again.
 
 ## Guidelines
 
-1. **echarts-for-react for React** — Use the wrapper for lifecycle management; pass `option` as prop, not imperative API calls
-2. **Canvas for large data** — ECharts uses Canvas by default; it handles 100K+ points smoothly; switch to WebGL for millions
+1. **echarts-for-react for React** — Use the wrapper for lifecycle management; pass `option` as prop, and reach for `getEchartsInstance()` only for high-frequency updates
+2. **Canvas for large data** — Canvas is the default renderer and the right one beyond roughly a thousand elements; use `sampling` on lines and `large: true` on bar and scatter series, and the `echarts-gl` extension (WebGL) for millions of points
 3. **Toolbox for interaction** — Enable `saveAsImage`, `dataZoom`, `restore` in the toolbox; users expect to zoom and download
-4. **Responsive resize** — ECharts auto-resizes with the container; wrap in a div with CSS width/height
-5. **Theme system** — Use ECharts themes for consistent styling across charts; create custom themes at https://echarts.apache.org/en/theme-builder.html
-6. **Lazy rendering** — Use `lazyUpdate={true}` in React for performance; prevents unnecessary re-renders
+4. **Responsive resize** — Plain ECharts needs `chart.resize()` from a `ResizeObserver`; `echarts-for-react` resizes on its own (`autoResize`, on by default) and `vue-echarts` when the `autoresize` prop is set. The container must have a height
+5. **Theme system** — Use ECharts themes for consistent styling across charts; create custom themes at https://echarts.apache.org/en/theme-builder.html and load them with `echarts.registerTheme(name, theme)`
+6. **Updates in React** — A new `option` object is merged into the chart; set `notMerge={true}` when series are removed, or stale ones stay. `lazyUpdate={true}` postpones the redraw to the next frame
 7. **Dataset for shared data** — Use ECharts `dataset` component when multiple series share the same data source
-8. **Server-side rendering** — Use `echarts-node-export` for generating chart images server-side (reports, emails)
+8. **Server-side rendering** — Use the built-in SVG SSR mode shown in Example 1 for reports and emails; `VChart` and `ReactECharts` render only in the browser
+9. **Dispose charts** — Call `chart.dispose()` when the element is removed; undisposed instances keep memory and listeners
+10. **Untrusted data** — A `tooltip.formatter` function returns raw HTML; escape user-supplied text with `echarts.format.encodeHTML()` before inserting it, or it is an XSS risk
