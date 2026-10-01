@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5946d425584b1e6870c369d170a5d436b6f417621326cbc301f6be77505ffa8e",
-  "scoredAt": "2026-05-13T10:10:27.357Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e6a34b881b03ed831d7c213912c4b9cc2463efaa6cbe34fa2ea62b95dcfe4659",
+  "scoredAt": "2026-10-01T12:58:59.452Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for loading or interaction failures."
+        "detail": "The instructions do not cover error handling or edge cases such as missing objects or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose and not strictly necessary for execution."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 65,
-    "treatmentAvg": 95,
-    "multiplier": 1.46,
+    "multiplier": 2.03,
+    "baselineAvg": 33,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "React 3D hero with object navigation and load-time positioning",
-        "baseline": 75,
-        "treatment": 95,
-        "rationale": "Both wire up @splinetool/react-spline correctly, but only the treatment uses the documented onMouseDown prop with e.target.name and onLoad findObjectByName('HeroCube') exactly as shown in the skill."
+        "name": "lazy-loaded-viewer-with-placeholder",
+        "baseline": 10,
+        "treatment": 30,
+        "rationale": "Response B is closer to the rubric, using Spline runtime and a click listener on a named object, but still misses the required <spline-viewer> element and load-complete event; Response A uses Three.js and lacks all rubric elements."
       },
       {
-        "name": "Vanilla JS canvas Spline scene with click event logging",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline imports Application and loads the scene but attaches a DOM click handler to the canvas; only the treatment uses app.addEventListener('mouseDown', e => e.target.name) per the documented runtime event API."
+        "name": "react-control-variables-and-events",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses the wrong prop name and omits the onSplineMouseDown handler."
+      },
+      {
+        "name": "vanilla-runtime-object-manipulation",
+        "baseline": 40,
+        "treatment": 70,
+        "rationale": "Response A meets most rubric items except the exact canvas id, while Response B uses a different API and element, missing key requirements."
       }
     ]
   }
