@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6b444373c330c5e5b1424010e842db186c7886cc0054c1e19ddcf6e8c4ebba32",
-  "scoredAt": "2026-05-13T10:03:53.639Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0fac764f7a927e011402530af4691a6cb55f9466cb11be0a53732f7b0ec69791",
+  "scoredAt": "2026-10-01T12:25:38.958Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases comprehensively."
+        "detail": "The skill does not explicitly cover error handling or edge cases for all operations."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered verbose."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill references specific agents (Claude Code, Codex, Cursor) and assumes certain CLI behavior, limiting cross-platform applicability."
       }
     ]
   },
