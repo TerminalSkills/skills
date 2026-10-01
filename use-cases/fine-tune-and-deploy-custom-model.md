@@ -8,6 +8,7 @@ skills:
   - huggingface
   - wandb
   - vllm
+  - unsloth
 category: data-ai
 tags:
   - fine-tuning
@@ -258,3 +259,7 @@ After two weeks of iteration tracked entirely in W&B:
 - **vLLM serves 150 req/s** on a single A100, handling the entire legal team's workload
 - **Model artifacts versioned** in W&B — easy to roll back if quality degrades
 - **Total training cost**: ~$15 in GPU time (4-bit LoRA is remarkably efficient)
+
+## Related Skills
+
+- [unsloth](/skills/unsloth) — Choose unsloth when the LoRA/QLoRA run has to fit one GPU and the result must ship as GGUF for Ollama/llama.cpp or as merged 16-bit weights for `vllm serve`, with training and export in one library
