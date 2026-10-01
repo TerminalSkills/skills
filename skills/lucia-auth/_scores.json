@@ -1,47 +1,35 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7e0b1d7a6efabc7723da74503f8a766b87c75ecfeed462d432ec37afecaee5af",
-  "scoredAt": "2026-05-13T09:26:35.711Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3038f06c1aea53d796526e31282e1fd97c6229ede58adc5c7eee582bdbf812bc",
+  "scoredAt": "2026-10-01T11:55:55.541Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios and edge cases such as duplicate emails, password strength, or token expiration handling."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 88,
-    "multiplier": 1.83,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Implement email/password signup with Lucia and Drizzle",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment uses DrizzlePostgreSQLAdapter, Argon2id().hash, generateIdFromEntropySize(10), lucia.createSession + createSessionCookie as documented; baseline typically reaches for next-auth or rolls custom bcrypt + JWT, missing the explicit Lucia primitives."
-      },
-      {
-        "name": "Add Google OAuth callback that creates or finds a user and starts a session",
-        "baseline": 46,
-        "treatment": 86,
-        "rationale": "Treatment uses arctic's Google with createAuthorizationURL + validateAuthorizationCode, fetches userinfo via Bearer accessToken(), then lucia.createSession + createSessionCookie; baseline tends to wire google-auth-library or passport, omitting arctic and Lucia's session creation pattern."
+        "name": "add-csrf-protection",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes the exact rejectCrossSite function and a POST‑handler example, while Response B omits the required function entirely."
       }
     ]
   }
