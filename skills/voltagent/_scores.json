@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:52068a6f5ab0c259e6eb3dff00634432eadb30bd4529e2b3109117634db97ac1",
+  "scoredAt": "2026-10-01T09:01:25.695Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to VoltAgent and does not support other AI agent frameworks."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.8,
+    "baselineAvg": 8,
+    "treatmentAvg": 78,
+    "scenarios": [
+      {
+        "name": "agent-with-tool-and-memory",
+        "baseline": 15,
+        "treatment": 55,
+        "rationale": "Response A covers most rubric items but uses a different tool name and env var; Response B misses key requirements entirely."
+      },
+      {
+        "name": "supervisor-with-guardrail",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use the required VoltAgent framework or guardrail API."
+      },
+      {
+        "name": "refund-workflow-with-suspension",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A implements the required VoltAgent workflow logic (except for the id mismatch), while Response B uses a completely different BPMN approach and fails to meet the rubric."
+      }
+    ]
+  }
+}
