@@ -1,16 +1,21 @@
 ---
 name: ui-ux-pro-max
 description: >-
-  Complete UI/UX design intelligence and implementation guidance for polished
-  interfaces. Use when a user asks to improve UX, redesign an interface,
-  create a design system, review UI patterns, improve user flows, design
-  forms, build navigation, or make an interface more intuitive and polished.
+  UI UX Pro Max is an open-source design-intelligence pack for AI coding
+  agents: a local, searchable database of UI styles, color palettes, font
+  pairings, chart types and UX guidelines, plus a generator that turns a
+  product description into a design system. Use when a user asks to install
+  or use UI UX Pro Max, generate a design system, pick a style, palette or
+  typography, improve UX, redesign an interface, review UI patterns, improve
+  user flows, design forms, build navigation, or make an interface more
+  intuitive and polished.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "The pack's search script needs Python 3 (standard library only); its installer runs with Node.js via npx. The design method itself has no requirements."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
+  repository: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
   tags: ["ui", "ux", "design-system", "user-experience", "interaction-design"]
   use-cases:
     - "Review and improve existing UI/UX with actionable recommendations"
@@ -23,9 +28,49 @@ metadata:
 
 ## Overview
 
-Complete UI/UX design intelligence for building polished, intuitive interfaces. Covers interaction design, user flows, component patterns, design systems, accessibility, and micro-interactions. Provides both strategic design thinking and practical implementation guidance for production-quality interfaces.
+UI UX Pro Max is an open-source (MIT) skill pack by NextLevelBuilder that gives a coding agent design data it can query offline: 79 searchable UI styles, 192 product types with matching palettes, 74 font pairings, 25 chart types, 119 UX guidelines and rules for 22 stacks (counts as of v2.15.0), plus a generator that combines them into one design system for a product. This skill covers installing and querying the pack, and a compact design method — interaction design, user flows, component patterns, accessibility, and micro-interactions — that applies whether or not the pack is installed.
 
 ## Instructions
+
+### Use the UI UX Pro Max pack when it is available
+
+Check for an existing install before proposing one. The installer copies seven skills (`ui-ux-pro-max`, `design`, `design-system`, `ui-styling`, `brand`, `banner-design`, `slides` — about 170 files, 5 MB) into the project, so ask the user first.
+
+```bash
+# Already installed? (project, universal, or home directory)
+ls .claude/skills/ui-ux-pro-max/scripts/search.py .agents/skills/ui-ux-pro-max/scripts/search.py \
+   ~/.claude/skills/ui-ux-pro-max/scripts/search.py 2>/dev/null
+python3 --version
+
+# Install into the current project (the npm package is ui-ux-pro-max-cli; its command is uipro)
+npx ui-ux-pro-max-cli init --ai claude       # .claude/skills/   also: cursor, gemini, copilot, windsurf, opencode, all
+npx ui-ux-pro-max-cli init --ai codex        # .agents/skills/   (same target as --ai universal)
+npx ui-ux-pro-max-cli init --ai claude --global   # ~/.claude/skills/ for every project
+```
+
+In Claude Code the pack is also a plugin: `/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill`, then `/plugin install ui-ux-pro-max@ui-ux-pro-max-skill`.
+
+Generate a design system first, then look up details. Point `SEARCH` at wherever the pack was installed:
+
+```bash
+SEARCH=.claude/skills/ui-ux-pro-max/scripts/search.py
+
+# One recommendation: landing pattern, style, palette, typography, effects, anti-patterns, checklist
+python3 $SEARCH "veterinary clinic appointment booking" --design-system -p "Pawline Vet" -f markdown
+
+# Save it for later sessions: design-system/pawline-vet/MASTER.md plus pages/booking.md
+# (files that already exist are left untouched; add --force to overwrite MASTER.md)
+python3 $SEARCH "veterinary clinic appointment booking" --design-system --persist -p "Pawline Vet" --page booking --output-dir .
+
+# Targeted lookups (-n sets the number of results, default 3; --json returns untruncated fields)
+python3 $SEARCH "form validation error message" --domain ux -n 2
+python3 $SEARCH "form validation" --stack nextjs
+python3 $SEARCH "skeleton loading" --domain ux --json
+```
+
+`--domain` accepts `style`, `color`, `chart`, `landing`, `product`, `ux`, `typography`, `icons`, `gsap`, `react`, `web`, `google-fonts`. `--stack` accepts `react`, `nextjs`, `vue`, `nuxtjs`, `nuxt-ui`, `svelte`, `astro`, `angular`, `laravel`, `html-tailwind`, `shadcn`, `threejs`, `swiftui`, `jetpack-compose`, `react-native`, `flutter`, `javafx`, `wpf`, `winui`, `avalonia`, `uno`, `uwp`. When a persisted design system exists, read `MASTER.md` before writing UI code; a file in `pages/` overrides it for that page.
+
+### Design method
 
 When a user asks for UI/UX guidance or implementation, follow these steps:
 
@@ -57,7 +102,7 @@ When a user asks for UI/UX guidance or implementation, follow these steps:
 ```
 Top nav:        Best for < 7 primary sections, public sites
 Sidebar nav:    Best for apps with deep hierarchy, frequent switching
-Tab bar:        Best for mobile, 3-5 primary destinations
+Bottom tabs:    Best for mobile, 3-5 primary destinations
 Breadcrumbs:    Best for deep hierarchies where users need to backtrack
 Command palette: Best for power users, keyboard-driven apps
 ```
@@ -116,7 +161,32 @@ Focus:      Visible ring (2px offset) for keyboard navigation
 
 ## Examples
 
-### Example 1: Improve a settings page UX
+### Example 1: Generate and persist a design system with the pack
+
+**User request:** "We're building a booking site for Pawline Vet, a veterinary clinic. Pick a look for it and keep it consistent across pages."
+
+```bash
+SEARCH=.claude/skills/ui-ux-pro-max/scripts/search.py
+python3 $SEARCH "veterinary clinic appointment booking" --design-system --persist -p "Pawline Vet" --page booking --output-dir .
+```
+
+**Result:** the script prints the recommendation and, on the first run, writes two files. The key values it returned:
+
+```markdown
+Category:    Veterinary Clinic
+Pattern:     Trust & Authority + Conversion (Hero > Proof > Solution overview > Clear CTA path)
+Style:       Claymorphism — light mode supported, dark mode conditional
+Colors:      Primary #0D9488, Secondary #14B8A6, Accent/CTA #EA580C, Background #F0FDFA, Foreground #134E4A
+Typography:  Varela Round (headings) / Nunito Sans (body), with the Google Fonts import
+Checklist:   contrast 4.5:1, visible focus states, prefers-reduced-motion, responsive at 375/768/1024/1440px
+
+design-system/pawline-vet/MASTER.md          # colors as CSS variables, typography, spacing, component specs
+design-system/pawline-vet/pages/booking.md   # overrides for the booking page only
+```
+
+The suggested call to action was "Contact Sales / Get Quote", which does not fit a clinic — replace it with "Book an appointment" in `MASTER.md` before building, then implement the pages from those files.
+
+### Example 2: Improve a settings page UX
 
 **User request:** "Our settings page is confusing, help me redesign it"
 
@@ -137,7 +207,7 @@ Focus:      Visible ring (2px offset) for keyboard navigation
 
 ### Interaction
 - Auto-save with a subtle "Saved" toast (no save button needed)
-- Or: floating save bar that appears only when changes are detected
+- Or: floating save banner that appears only when changes are detected
 - Show changed fields with a subtle highlight
 - Add "Reset to default" per field, not per page
 
@@ -148,46 +218,6 @@ Each setting:
   Label (bold) + Description (gray, smaller)
   Input/Toggle/Select aligned to the right
   Divider between settings
-```
-
-### Example 2: Design a user onboarding flow
-
-**User request:** "Design an onboarding flow for our project management app"
-
-**Output:**
-```markdown
-## Onboarding Flow (4 steps)
-
-### Step 1: Welcome + Name (10 sec)
-- "Welcome to [App]! Let's get you set up."
-- Single field: "What should we call you?"
-- Skip button visible but de-emphasized
-- Progress: ████░░░░ 1/4
-
-### Step 2: Create First Project (20 sec)
-- "Create your first project"
-- Project name field (pre-filled with "My First Project")
-- Template picker: 3 visual cards (Blank, Marketing, Engineering)
-- Progress: █████░░░ 2/4
-
-### Step 3: Invite Team (optional) (15 sec)
-- "Work better together"
-- Email input with "Add another" button
-- "I'll do this later" link prominent
-- Progress: ███████░ 3/4
-
-### Step 4: Quick Tour (30 sec)
-- 3-step spotlight tour of key features
-- Highlight: sidebar nav, create button, notification bell
-- "Got it" button on each, skip link visible
-- Progress: ████████ Done!
-
-### Design Principles Applied
-- Each step has ONE primary action
-- Never more than 2 fields per step
-- Always show progress and allow skipping
-- Pre-fill smart defaults to reduce effort
-- Total time: under 90 seconds
 ```
 
 ### Example 3: Design system component audit
@@ -236,3 +266,8 @@ Each setting:
 - Performance is UX. A beautiful interface that takes 4 seconds to respond feels broken.
 - Accessibility is UX for everyone. Keyboard navigation, screen readers, color contrast, and motion preferences all matter.
 - When in doubt, look at what works. Study interfaces people already use and love. Do not reinvent patterns without good reason.
+- Treat the pack's design system as a starting point. It ranks rows by keyword match, so check the matched category and adjust anything that does not suit the product; re-run with a more specific query if the category is wrong.
+- Use the current npm package `ui-ux-pro-max-cli`. The older `uipro-cli` package stopped at 2.2.3 (January 2026) and ships stale data.
+- If `.claude/skills/ui-ux-pro-max/` already exists — for example this skill was installed under that name — `init --ai claude` reports success but writes nothing. Install with `--ai universal`, use the Claude Code plugin, or pass `--force`, which replaces the existing `SKILL.md` with the pack's own.
+- `uipro versions` queries the GitHub API and fails with a rate-limit error once the unauthenticated quota is used up; `init` installs from the npm package and does not need it. `uipro uninstall` asks for confirmation, so let the user run it.
+- Do not install Python or other software to make the pack work; if `python3` is missing, tell the user and continue with the design method.
