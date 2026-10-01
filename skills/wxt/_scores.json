@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c0502c18f47a0060ed543c09a4cfb6261faf67233973c5153ae5078fb6a939d4",
-  "scoredAt": "2026-05-13T10:38:31.027Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:86dc87afe3791bf2a92cd08fff4ba14ab81f4dc0225fac5f8ba3c3372b80414f",
+  "scoredAt": "2026-10-01T12:47:38.935Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing API keys or fetch failures."
+        "detail": "The instructions do not explicitly cover error handling or edge cases, limiting robustness."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 88,
-    "multiplier": 2.1,
+    "multiplier": 7,
+    "baselineAvg": 10,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "Scaffold a Chrome+Firefox extension with React popup and content script",
-        "baseline": 45,
-        "treatment": 89,
-        "rationale": "Treatment uses npx wxt@latest init, entrypoints/popup + entrypoints/content.ts with defineContentScript and matches, and npm run dev/dev:firefox/zip per the skill; baseline hand-writes manifest.json and webpack/vite config, missing the file-based entrypoints and per-browser dev scripts."
+        "name": "init-react-project",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A exactly follows the required command sequence, mentions the React template, and explains that npm run dev opens Chrome with the extension and hot reload; Response B uses a different init command, omits the required details, and does not state the Chrome extension behavior."
       },
       {
-        "name": "Persist an API key from popup and consume it in background fetch",
-        "baseline": 40,
-        "treatment": 87,
-        "rationale": "Treatment uses the WXT storage helper (storage.getItem/setItem with the local: prefix) in popup, defineBackground for the service worker, and browser.runtime.sendMessage for messaging as documented; baseline reaches for raw chrome.storage.local and chrome.runtime APIs without WXT's typed helpers."
+        "name": "add-blocking-content-script",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A includes the required content script file and logic but omits the storage.defineItem declaration and the .content.ts note; Response B does not meet any of the rubric requirements."
+      },
+      {
+        "name": "build-and-zip-firefox",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B covers some required elements but omits the build step, output path, and warning, while Response A fails to meet any rubric criteria."
       }
     ]
   }
