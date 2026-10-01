@@ -154,7 +154,7 @@ Jonas Weber wants to sell physiotherapy clinics a tool that texts waitlisted pat
 | Fill gaps by phoning patients themselves | 5 of 12 | 2 |
 | Paid a €150 deposit for a three-month pilot | 4 of 12 (95% interval 14%–61%) | 4 |
 
-Numbers: first-year gross profit = 79 × 12 × 0.85 = €805.80; allowable CAC = €268.60, which buys about 7.5 hours of outreach per closed clinic at €35 an hour, so selling by phone and visit is affordable. Market: his goal of €60,000 a year needs 64 clinics (60,000 ÷ 948), which is 16% of the 412 he can reach; at the low end of the interval (14%) he would land at 57 clinics and €54,000, just short.
+Numbers: first-year gross profit = 79 × 12 × 0.85 = €805.80; allowable CAC = €268.60, which buys about 7.7 hours of outreach per closed clinic at €35 an hour, so selling by phone and visit is affordable. Market: his goal of €60,000 a year needs 64 clinics (60,000 ÷ 948), which is 16% of the 412 he can reach; at the low end of the interval (14%) he would land at 57 clinics and €54,000, just short.
 
 **Verdict: Build, as a hand-delivered pilot.** Payment is at level 4 from strangers. Open risks: the four payers came from people who agreed to a call, so the true rate across all clinics is lower; the goal is met only if the deposit rate holds, so the reachable list should grow beyond three cities. Next experiment: run the pilot for the four clinics by hand for six weeks; pass line: three of four refill at least two slots a week and convert to the monthly plan.
 
