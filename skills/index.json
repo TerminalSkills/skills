@@ -399,6 +399,19 @@
       "tags": []
     },
     {
+      "name": "ant-design",
+      "slug": "ant-design",
+      "description": "Ant Design (antd) is a React component library of 70+ enterprise UI components (tables, forms, date pickers, modals, menus) with design-token theming through ConfigProvider. Use it to build admin panels, back-office tools and data-heavy dashboards: server-paginated tables with filters and bulk actions, validated forms, dark or branded themes, and antd inside Next.js without a flash of unstyled content. Triggers: \"antd table\", \"Ant Design form validation\", \"customize antd theme\", \"antd dark mode\", \"antd with Next.js App Router\", \"upgrade antd 5 to 6\".",
+      "category": "development",
+      "tags": [
+        "react",
+        "antd",
+        "component-library",
+        "admin-panel",
+        "design-tokens"
+      ]
+    },
+    {
       "name": "anthropic-sdk",
       "slug": "anthropic-sdk",
       "description": "Integrate Claude AI into applications with the Anthropic SDK. Use when a user asks to add Claude to an app, use Claude for text generation, build a chatbot with Claude, use Claude's long context window, implement tool use with Claude, stream Claude responses, use Claude for code generation, document analysis, or reasoning tasks. Covers Messages API, streaming, tool use, vision, system prompts, extended thinking, and batch processing.",
@@ -2952,6 +2965,19 @@
       "tags": []
     },
     {
+      "name": "fabric",
+      "slug": "fabric",
+      "description": "Fabric is a command-line tool that runs a library of reusable AI prompts, called patterns, over any text you pipe in, such as summarize, extract_wisdom or analyze_claims. Use it to summarize articles, pull key ideas from YouTube talks and podcasts, fact-check claims, write custom prompt patterns, or chain patterns into a workflow, with OpenAI, Anthropic, Gemini or local Ollama models. Trigger phrases: \"summarize this article with fabric\", \"extract wisdom from this YouTube video\", \"run a fabric pattern\", \"create a custom fabric pattern\", \"pipe this into an LLM from the terminal\".",
+      "category": "productivity",
+      "tags": [
+        "prompt-patterns",
+        "llm-cli",
+        "summarization",
+        "youtube-transcripts",
+        "ollama"
+      ]
+    },
+    {
       "name": "facebook-marketing",
       "slug": "facebook-marketing",
       "description": "Create, optimize, and automate Facebook content for Pages, Groups, and Ads. Use when someone asks to \"grow Facebook page\", \"create Facebook ads\", \"manage Facebook group\", \"Facebook API integration\", \"automate Facebook posting\", \"Facebook analytics\", or \"Facebook marketing strategy\". Covers Pages, Groups, Graph API publishing, Ads Manager API, Messenger bots, and growth strategies.",
@@ -3622,6 +3648,19 @@
       "tags": []
     },
     {
+      "name": "golang",
+      "slug": "golang",
+      "description": "Go is Google's open-source programming language whose toolchain compiles programs into single static binaries and ships with built-in modules, testing, fuzzing, race detection and cross-compilation. Use when a user asks to set up a Go project, add or upgrade Go dependencies, run go test, go vet or benchmarks, fix a data race, write generic Go code, work across several modules with go.work, or build release binaries for Linux, macOS and Windows. Phrases: \"init a go module\", \"go mod tidy\", \"cross-compile my Go CLI\", \"why is my go test cached\", \"build a static Go binary for Docker\".",
+      "category": "development",
+      "tags": [
+        "go",
+        "golang",
+        "go-modules",
+        "cross-compilation",
+        "testing"
+      ]
+    },
+    {
       "name": "google-ai-studio",
       "slug": "google-ai-studio",
       "description": "Google AI Studio and Gemini API for multimodal AI. Use when you need multimodal AI (text + image + video + audio), long context up to 1M tokens, code generation with Gemini, grounding with Google Search, or structured output with response schemas.",
@@ -4179,6 +4218,19 @@
       ]
     },
     {
+      "name": "impeccable",
+      "slug": "impeccable",
+      "description": "Impeccable is a design skill pack for AI coding agents: one /impeccable skill with 24 commands (init, audit, critique, polish, typeset, layout and more) plus a CLI that scans HTML, CSS, JSX and live URLs for 61 deterministic anti-patterns of AI-generated UI. Use when a user says \"my AI-generated UI looks generic\", \"install impeccable\", \"run /impeccable audit\", \"polish this page before launch\", \"stop the purple gradients and Inter everywhere\", or wants a design lint for UI files in CI or as an agent hook in Claude Code, Cursor, Codex, GitHub Copilot or Grok Build.",
+      "category": "design",
+      "tags": [
+        "frontend-design",
+        "ui-audit",
+        "design-lint",
+        "ai-agents",
+        "accessibility"
+      ]
+    },
+    {
       "name": "improve-codebase-architecture",
       "slug": "improve-codebase-architecture",
       "description": "Explore a codebase to find opportunities for architectural improvement, focusing on making the codebase more testable by deepening shallow modules. Use when: user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more AI-navigable.",
@@ -4524,6 +4576,19 @@
       ]
     },
     {
+      "name": "kilo-code",
+      "slug": "kilo-code",
+      "description": "Kilo Code is an open-source AI coding agent that runs in the terminal, VS Code and JetBrains, reads and edits a codebase, runs commands, and works with 500+ models from any provider, including local Ollama. Use it to script the `kilo` CLI: one-shot `kilo run` tasks, CI jobs with `--auto`, provider and model setup in `kilo.jsonc`, permission rules, and custom agents in `.kilo/agents/`. Triggers: \"set up Kilo Code\", \"kilo run in CI\", \"use Kilo with Ollama\", \"Kilo custom agent\", \"open-source coding agent that works with any model\".",
+      "category": "development",
+      "tags": [
+        "coding-agent",
+        "cli",
+        "ai-coding",
+        "ollama",
+        "ci-cd"
+      ]
+    },
+    {
       "name": "knex",
       "slug": "knex",
       "description": "You are an expert in Knex.js, the flexible SQL query builder for Node.js that supports PostgreSQL, MySQL, SQLite, and MSSQL. You help developers write type-safe queries with a chainable API, manage database migrations and seeds, build complex joins and subqueries, and use transactions — providing direct SQL control without the overhead of a full ORM.",
@@ -4778,6 +4843,19 @@
       "description": "Get free TLS certificates with Certbot and Let's Encrypt. Use when a user asks to add HTTPS to a website, get a free SSL certificate, auto-renew certificates, or secure a web server with TLS.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "librechat",
+      "slug": "librechat",
+      "description": "LibreChat is a self-hosted, ChatGPT-style web chat that puts OpenAI, Anthropic, Google, OpenRouter, Ollama and other providers behind one login, with agents, MCP tools, file search and per-user spending budgets. Use when deploying LibreChat with Docker Compose, editing librechat.yaml or .env, adding a custom endpoint, connecting MCP servers, closing registration or adding SSO, creating users, or updating an instance. Trigger phrases: \"set up LibreChat\", \"self-hosted ChatGPT for the team\", \"add Claude and GPT to one chat UI\", \"add an MCP server to LibreChat\", \"update LibreChat\".",
+      "category": "devops",
+      "tags": [
+        "librechat",
+        "self-hosted",
+        "llm-chat",
+        "mcp",
+        "docker-compose"
+      ]
     },
     {
       "name": "libsql",
@@ -5233,6 +5311,19 @@
       "tags": []
     },
     {
+      "name": "material-ui",
+      "slug": "material-ui",
+      "description": "Material UI (@mui/material) is a React component library that implements Google's Material Design, with ready-made buttons, forms, dialogs, tables, layout grids and a theming system. Use this skill to add MUI to a React or Next.js App Router project, build a brand theme with createTheme and ThemeProvider, style components with the sx prop, set up dark mode with CSS theme variables, or upgrade v5-v7 code to the current v9 API with the official codemods. Trigger phrases: \"use Material UI\", \"set up MUI in Next.js\", \"MUI theme with our brand colors\", \"add dark mode toggle to MUI\", \"fix MUI InputProps error after upgrade\".",
+      "category": "development",
+      "tags": [
+        "react",
+        "ui-library",
+        "material-design",
+        "theming",
+        "nextjs"
+      ]
+    },
+    {
       "name": "mcp-client",
       "slug": "mcp-client",
       "description": "Connect to and consume MCP servers from applications. Use when: integrating MCP servers into your app, building AI agents that use MCP tools, testing MCP server implementations, or programmatically calling MCP tools and reading resources.",
@@ -5356,6 +5447,19 @@
       "description": "You are an expert in MikroORM, the TypeScript ORM built on Unit of Work and Identity Map patterns. You help developers build data layers with decorator-based entities, automatic change tracking, lazy/eager loading, embeddables, query builder, migrations, and seeding — supporting PostgreSQL, MySQL, SQLite, and MongoDB with a DDD-friendly architecture.",
       "category": "Backend Development",
       "tags": []
+    },
+    {
+      "name": "mineru",
+      "slug": "mineru",
+      "description": "Converts PDFs, scanned pages, images and Office files into Markdown or structured JSON with MinerU, keeping headings, reading order, tables and formulas. Use when a user asks to turn a complex or scanned PDF into Markdown, extract tables from a PDF report, OCR a document for an LLM, batch-convert a folder of papers or reports, or let an agent read a long document page by page with citable locators. Runs locally on CPU or GPU; cloud parsing only when explicitly requested.",
+      "category": "documents",
+      "tags": [
+        "pdf-to-markdown",
+        "ocr",
+        "document-parsing",
+        "table-extraction",
+        "rag-ingestion"
+      ]
     },
     {
       "name": "minimalist-review",
@@ -5720,6 +5824,19 @@
         "serverless",
         "database",
         "branching"
+      ]
+    },
+    {
+      "name": "neovim",
+      "slug": "neovim",
+      "description": "Neovim is a terminal text editor configured in Lua, with a built-in LSP client, Treesitter parsing and, since 0.12, a built-in plugin manager (vim.pack). Use this skill to install Neovim, write or repair an init.lua, add plugins, wire up language servers with vim.lsp.config and vim.lsp.enable, set up format-on-save, or run Neovim headless for scripted edits. Trigger phrases: \"set up neovim\", \"fix my init.lua\", \"neovim LSP not working\", \"lspconfig deprecated warning\", \"add a plugin to nvim\", \"nvim --headless\", \"format on save in neovim\".",
+      "category": "development",
+      "tags": [
+        "neovim",
+        "lua",
+        "lsp",
+        "treesitter",
+        "text-editor"
       ]
     },
     {
@@ -6168,6 +6285,19 @@
       ]
     },
     {
+      "name": "opencode",
+      "slug": "opencode",
+      "description": "OpenCode is an open-source AI coding agent that runs in the terminal, reads a codebase, edits files and runs shell commands using any of 75+ model providers or a local model. Use it to set up OpenCode, write opencode.json, choose models and providers, restrict permissions, create custom agents and slash commands, add MCP servers, or script it with `opencode run` in CI. Trigger phrases: \"install opencode\", \"configure opencode.json\", \"use opencode with Ollama\", \"opencode run in CI\", \"opencode plan mode\", \"create an opencode agent\", \"open-source alternative to Claude Code\".",
+      "category": "development",
+      "tags": [
+        "ai-coding-agent",
+        "terminal",
+        "cli",
+        "open-source",
+        "llm"
+      ]
+    },
+    {
       "name": "opencv",
       "slug": "opencv",
       "description": "You are an expert in OpenCV (Open Source Computer Vision Library), the most popular library for real-time computer vision. You help developers build image processing pipelines, object detection systems, video analysis tools, augmented reality, and document processing using OpenCV's 2,500+ algorithms for image manipulation, feature detection, camera calibration, 3D reconstruction, and DNN inference — in Python, C++, or JavaScript.",
@@ -6185,6 +6315,19 @@
         "document-processing",
         "rag",
         "data-extraction"
+      ]
+    },
+    {
+      "name": "openhands",
+      "slug": "openhands",
+      "description": "OpenHands is an open-source autonomous coding agent that edits files, runs shell commands and works through multi-step software tasks with any LLM, from a terminal UI, a headless CI mode, a self-hosted web control center (Agent Canvas) or a Python SDK. Use when a user wants a model-agnostic, self-hostable coding agent: \"run OpenHands on this repo\", \"fix this bug with OpenHands headless in CI\", \"set up OpenHands with a local Ollama model\", \"script an agent with the OpenHands SDK\", \"add an MCP server to OpenHands\", or \"run Claude Code and Codex from one self-hosted dashboard\".",
+      "category": "development",
+      "tags": [
+        "ai-coding-agent",
+        "autonomous-agent",
+        "self-hosted",
+        "headless",
+        "agent-sdk"
       ]
     },
     {
@@ -6439,6 +6582,19 @@
       "description": "Expert guidance for Pandera, the Python library for validating pandas and Polars DataFrames with expressive schemas. Helps developers define data contracts, validate data pipelines, and catch data quality issues before they corrupt downstream systems.",
       "category": "data-ai",
       "tags": []
+    },
+    {
+      "name": "paperclip",
+      "slug": "paperclip",
+      "description": "Paperclip is a self-hosted Node.js server and web dashboard that runs a team of AI coding agents (Claude Code, Codex, Gemini CLI, OpenCode, OpenClaw) as a company, with an org chart, goals, tasks, monthly budgets and approval gates. Use when someone wants to install or run Paperclip, hire agents, assign tasks to them, cap agent spend, or script it through the paperclipai CLI or its REST API. Phrases: \"set up Paperclip\", \"run my agents like a company\", \"too many Claude Code tabs\", \"give each agent a budget\", \"paperclipai onboard\".",
+      "category": "automation",
+      "tags": [
+        "ai-agents",
+        "agent-orchestration",
+        "claude-code",
+        "budgets",
+        "self-hosted"
+      ]
     },
     {
       "name": "partykit",
@@ -7690,6 +7846,19 @@
         "gen-3",
         "text-to-video",
         "ai-video"
+      ]
+    },
+    {
+      "name": "rust",
+      "slug": "rust",
+      "description": "Rust is a compiled, memory-safe systems programming language whose toolchain (rustup, rustc, Cargo, Clippy, rustfmt) builds, tests, lints and packages code. Use this skill to install or pin a Rust toolchain, start a crate or a multi-crate Cargo workspace, add dependencies, fix borrow-checker errors, design error handling with Result, gate CI on clippy and fmt, migrate to the 2024 edition, or ship an optimized release binary. Triggers: \"set up Rust\", \"cargo new\", \"cargo workspace\", \"fix this borrow checker error\", \"clippy warnings\", \"migrate to edition 2024\", \"pin the Rust version\", \"build a Rust CLI\".",
+      "category": "development",
+      "tags": [
+        "rust",
+        "cargo",
+        "rustup",
+        "clippy",
+        "systems-programming"
       ]
     },
     {
@@ -9383,6 +9552,19 @@
       "tags": []
     },
     {
+      "name": "unsloth",
+      "slug": "unsloth",
+      "description": "Unsloth fine-tunes open LLMs such as Llama, Qwen and Gemma with LoRA or QLoRA about twice as fast and with far less GPU memory than a stock Hugging Face setup, then exports the result to GGUF for Ollama and llama.cpp or to merged weights for vLLM. Use it when someone wants to train a model on their own data on a single GPU, a Colab notebook or a workstation. Trigger phrases: \"fine-tune Llama on my data\", \"QLoRA on a 16 GB GPU\", \"train Qwen with Unsloth\", \"export my fine-tune to GGUF\", \"make an Ollama model from my dataset\", \"unsloth train\", \"FastLanguageModel\".",
+      "category": "data-ai",
+      "tags": [
+        "fine-tuning",
+        "qlora",
+        "llm-training",
+        "gguf",
+        "unsloth"
+      ]
+    },
+    {
       "name": "unusual-whales-api",
       "slug": "unusual-whales-api",
       "description": "Query the Unusual Whales API for unusual options flow, dark pool prints, market tide sentiment, gamma exposure, congressional trading, and stock greeks. Use when someone asks about \"unusual options activity\", \"whale trades\", \"dark pool prints\", \"market sentiment\", \"gamma exposure\", \"GEX\", \"congressional trading\", \"insider trading\", or needs real-time and historical market data for trading analysis and AI agent integration.",
@@ -9685,6 +9867,19 @@
       "description": "You are an expert in vLLM, the high-throughput LLM serving engine. You help developers deploy open-source models (Llama, Mistral, Qwen, Phi, Gemma) with PagedAttention for efficient memory management, continuous batching, tensor parallelism for multi-GPU, OpenAI-compatible API, and quantization support — achieving 2-24x higher throughput than HuggingFace Transformers for production LLM serving.",
       "category": "AI & Machine Learning",
       "tags": []
+    },
+    {
+      "name": "voltagent",
+      "slug": "voltagent",
+      "description": "VoltAgent is an open-source TypeScript framework for building AI agents with typed tools, persistent memory, supervisor/sub-agent teams, MCP tools, guardrails and suspendable workflows, served over a local HTTP API. Use when someone asks to \"build an AI agent in TypeScript\", \"add tools and memory to an agent\", \"set up a supervisor with sub-agents\", \"pause a workflow for human approval\", \"connect an agent to an MCP server\", or mentions VoltAgent, @voltagent/core or create-voltagent-app.",
+      "category": "development",
+      "tags": [
+        "ai-agents",
+        "typescript",
+        "multi-agent",
+        "llm-workflows",
+        "mcp"
+      ]
     },
     {
       "name": "vue",
@@ -10191,5 +10386,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-09-30T11:50:56.559Z"
+  "updatedAt": "2026-10-01T09:04:49.403Z"
 }
