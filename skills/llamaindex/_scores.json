@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7988766ef6a61fe17caf2ffad280c9e00126da4ed9fde1624e2582cc292be725",
-  "scoredAt": "2026-05-13T09:25:10.488Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:eee25ecad47bc7c8e4c57d58facf7f1e2f7adea4410b15eb843891dd7c50b23b",
+  "scoredAt": "2026-10-01T11:54:29.695Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for ingestion, chunking, or retrieval."
+        "detail": "The skill does not explicitly handle error scenarios such as missing API keys or failed embeddings, limiting robustness."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanatory text that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to LlamaIndex and does not support other AI frameworks."
+        "detail": "The skill is tightly coupled to the llama-index framework, limiting portability to other AI agent platforms."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 56,
-    "treatmentAvg": 88,
-    "multiplier": 1.57,
+    "multiplier": 7.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "RAG over internal docs with citations",
-        "baseline": 58,
-        "treatment": 90,
-        "rationale": "Treatment uses SimpleDirectoryReader, IngestionPipeline with title/summary metadata extractors and deduplication, SentenceSplitter at 1024 tokens with 200 overlap, VectorStoreIndex, and CitationQueryEngine for source attribution — all named in the skill; baseline writes a generic LangChain-style or hand-rolled RAG that misses CitationQueryEngine and metadata extractor pattern."
+        "name": "ingest-and-query-vector-index",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet the specified tools, parameters, or persistence requirements."
       },
       {
-        "name": "Multi-source ReAct agent across docs, SQL, and web",
-        "baseline": 54,
-        "treatment": 86,
-        "rationale": "Treatment wraps each source as QueryEngineTool, builds a ReActAgent that routes, and uses SubQuestionQueryEngine for multi-part queries plus CorrectnessEvaluator/FaithfulnessEvaluator on a test set as instructed; baseline implements a generic tool-using agent without QueryEngineTool/SubQuestionQueryEngine or the named evaluators."
+        "name": "hybrid-retrieval-with-rerank",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not use the required classes or structure."
+      },
+      {
+        "name": "multi-tool-agent-with-date-math",
+        "baseline": 20,
+        "treatment": 35,
+        "rationale": "Response A is closer to the llama-index based rubric, though incomplete, whereas Response B uses LangChain and misses key elements."
       }
     ]
   }
