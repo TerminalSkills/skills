@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:420b1cd327d3b0c5a8d0c1ba65a82826f8f0e669c586992851f19d648b63fd3c",
-  "scoredAt": "2026-05-13T10:08:31.488Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f682650da5be6bb794fa922ba2ee5ee8e3c874679168426ab9751c7cb5fb1ac9",
+  "scoredAt": "2026-10-01T12:27:56.683Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 88,
-    "multiplier": 2.32,
+    "multiplier": 6.7,
+    "baselineAvg": 3,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Build a stock analysis agent that uses pandas and matplotlib",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Treatment imports CodeAgent and a model class from smolagents, decorates Python functions with @tool with typed signatures and docstrings, and passes additional_authorized_imports=['pandas','numpy','matplotlib'] plus max_steps, all per the skill; baseline reaches for LangChain/AutoGPT-style tool-calling and never uses smolagents' code-execution model."
+        "name": "average-calculator-agent",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response B includes a CodeAgent and tool but fails to round to two decimals and call final_answer, whereas Response A lacks an agent entirely."
       },
       {
-        "name": "Compose a manager agent that delegates to a web researcher and a data analyst",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment wraps two CodeAgent specialists in ManagedAgent with name and description fields and passes them via managed_agents= to a manager CodeAgent, exactly as the skill prescribes; baseline writes ad-hoc Python orchestration without the ManagedAgent abstraction."
+        "name": "web-regulation-manager",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response B meets almost all rubric requirements but omits the explicit final_answer call, whereas Response A fails to implement the required agent structure at all."
+      },
+      {
+        "name": "hub-tool-docker-agent",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
       }
     ]
   }
