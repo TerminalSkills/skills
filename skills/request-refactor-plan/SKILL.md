@@ -35,7 +35,7 @@ Read the area before believing either the complaint or the proposed cure. Collec
 
 ```bash
 wc -l src/orders/order-service.ts
-rg -l "order-service" src --glob '!*.test.ts' | wc -l          # files that depend on it
+grep -rl "order-service" src --exclude='*.test.ts' | wc -l      # files that depend on it
 git log --since="12 months ago" --format= --name-only -- src/orders \
   | grep . | sort | uniq -c | sort -rn | head -5               # most-changed files
 npx vitest run src/orders --coverage                           # the project's own test command
@@ -80,6 +80,7 @@ Usual order: tests that pin behaviour → preparatory tidying that makes the cha
 Show the user the full draft and ask specifically: is the frozen behaviour complete, is any commit too big, where would they stop if time ran out. After approval, file it:
 
 ```bash
+tmp=$(mktemp -d)   # save the approved plan as $tmp/refactor-plan.md
 gh label list --search refactor --json name --jq '.[].name'
 gh issue create --title "Refactor plan: extract pricing from OrderService" \
   --body-file "$tmp/refactor-plan.md" --label refactor
@@ -140,7 +141,7 @@ run through the public `OrderService.quote()`.
 10. Point `OrderService.quote()` at the module.
 11. Point `OrderService.place()` at the module.
 12. Point the invoice job and the cart preview at the module.
-13. Delete the private copies and `calculateTotals()`. Verify: no references remain (`rg`).
+13. Delete the private copies and `calculateTotals()`. Verify: no references remain (`grep -r`).
     **Checkpoint: single implementation.**
 14. Rename leftovers, update `docs/architecture/orders.md`.
 
