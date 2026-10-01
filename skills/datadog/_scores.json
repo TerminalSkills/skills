@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:74dfca0af1ffcc74b72b14ea476fb1485e5513286fc456f69b31d65e29f7a313",
-  "scoredAt": "2026-05-13T16:23:32.452Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:3e801a5a1d344baa4e0ef2ed361db3858a88baca7436892dff8b38f6811b483e",
+  "scoredAt": "2026-10-01T11:37:21.083Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -17,25 +17,19 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases for installation and configuration failures."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that exceeds concise instructions."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The installation steps assume a Debian-based Linux environment and may not work on other operating systems."
+        "detail": "The instructions assume Linux or Docker environments, limiting applicability to other platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "The installation script is fetched via curl without verifying its checksum, which could allow tampering."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
     "multiplier": 2.25,
