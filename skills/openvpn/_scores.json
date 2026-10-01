@@ -1,34 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1d2057b874ec323d4c0ef89a35eec6ef8c7aa68d510e8043166d86dbcf688372",
-  "scoredAt": "2026-05-13T09:46:06.725Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ab89ce142bc37f93566b5cff31eaa0d45c38d041344a5d76512512620c0c1904",
+  "scoredAt": "2026-10-01T12:15:01.157Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill focuses on happy path scenarios and does not address error handling or edge cases such as missing packages or permission issues."
+        "detail": "The skill does not cover error handling or edge cases such as installation failures or unsupported OpenVPN versions."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The instructions contain verbose explanations and comments that could be streamlined for brevity."
+        "detail": "The skill file contains extensive explanatory text and guidelines that increase verbosity beyond what is necessary for execution."
       },
       {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Linux environment (Ubuntu/Debian, CentOS/RHEL) and does not support other operating systems or AI agent platforms."
+        "detail": "The instructions are specific to Debian/Ubuntu Linux and do not support other operating systems or package managers."
       }
     ]
   },
