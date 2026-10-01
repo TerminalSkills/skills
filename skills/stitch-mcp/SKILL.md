@@ -73,7 +73,7 @@ first when the key route is intended.
 |---|---|---|
 | What the client starts | `npx @_davideast/stitch-mcp proxy` as a child process | Nothing; it calls `https://stitch.googleapis.com/mcp` |
 | Tools the agent sees | Stitch's own tools plus the four helpers in step 6 | Stitch's own tools only |
-| OAuth token lifetime | Renewed for you about every 55 minutes | One hour, then replaced by hand |
+| OAuth token lifetime | Renewed for you by the proxy | One hour, then replaced by hand |
 | Fits | Interactive design-to-code sessions | Pipelines and sandboxes that cannot spawn processes |
 
 Pick the proxy unless there is a concrete reason not to: without `get_screen_code` the agent must
@@ -158,11 +158,11 @@ hasHtml }] }`. A screen with `hasHtml: false` has no markup to fetch yet.
 
 | Tool | Source | Input | What comes back |
 |------|--------|-------|-----------------|
-| `list_projects`, `get_project` | Stitch | none / project resource name | Projects the account can open |
-| `list_screens`, `get_screen` | Stitch | `projectId` (+ `screenId`) | Metadata and download URLs, not markup |
+| `list_projects`, `get_project` | Stitch | none / `name` (`projects/ID`) | Projects the account can open |
+| `list_screens`, `get_screen` | Stitch | `projectId` / `name` (`projects/ID/screens/SCREEN_ID`) | Metadata and download URLs, not markup |
 | `generate_screen_from_text`, `edit_screens`, `generate_variants` | Stitch | prompt-driven | New or changed screens in the project |
-| `get_screen_code` | proxy | `projectId`, `screenId` | The screen object with `htmlContent` |
-| `get_screen_image` | proxy | `projectId`, `screenId` | The screen object with `screenshotBase64` (PNG) |
+| `get_screen_code` | proxy | `projectId`, `screenId` | `{ screenId, projectId, htmlContent }` |
+| `get_screen_image` | proxy | `projectId`, `screenId` | `{ screenId, projectId, imageContent }`, the screenshot as base64 |
 | `build_site` | proxy | `projectId`, `routes[]` of `{ screenId, route }` | `{ success, pages: [{ screenId, route, title, html }], message }` |
 | `list_tools` | proxy | none | Names, descriptions and input schemas |
 
@@ -182,14 +182,15 @@ file, and `-o` takes `json`, `pretty` (default) or `raw`.
 5. Compare the running page with the screenshot at the design's width, then at a phone width, and
    report every deliberate deviation.
 
-The generating tools write to the user's Stitch project. Call them only when the user asks for a
-new or edited design, never as a side effect of implementing one.
+The generating tools, `create_project`, `delete_project` and the design-system tools change the
+user's Stitch account. Call them only when the user asks for that, never as a side effect of
+implementing a design.
 
 ### 8. Preview or export without an agent
 
 | Command | Purpose | Flags worth knowing |
 |---------|---------|---------------------|
-| `serve -p ID` | Local Vite server, one URL per screen under `/screens/` | `--list-screens` prints paths as JSON; `--json` starts headless and prints `{ url, screens }` once ready |
+| `serve -p ID` | Local Vite server, one URL per screen under `/screens/` | `--list-screens` prints paths as JSON; `--json` starts headless and prints JSON once the server is ready |
 | `site -p ID` | Writes an Astro project from a screen-to-route map | `-o DIR` output folder; `-r JSON` supplies the map and skips the UI; `-e` prints the map as `build_site` input |
 | `upload -p ID -f FILE` | Adds a PNG, JPG, WEBP or HTML file as a new screen | `--title` |
 | `proxy` | The MCP server itself | `--debug` logs to `/tmp/stitch-proxy-debug.log` |
