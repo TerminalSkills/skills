@@ -1,36 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1a4c62d7b386ae8ea0965f53592d61ddbacff69452631ad992afd6b67984ffc5",
-  "scoredAt": "2026-05-13T09:41:12.759Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4ca078627dfdd926bd4aea0f3daf2258bd2b2f826fdec4dae2559ab927bbda9c",
+  "scoredAt": "2026-10-01T11:21:59.975Z",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not fully cover error scenarios and edge cases, limiting robustness."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Installation script fetched via curl and piped to bash without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
     "baselineAvg": 35,

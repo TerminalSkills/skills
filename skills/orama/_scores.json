@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1ce1bec8b09508f05350f4a4e3f3746a1d4a4e71d3f4a5716fbf83dc93eeb56a",
-  "scoredAt": "2026-05-13T09:46:24.314Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:963b27ecd5233c8b4093323b6ecc2b8d4ccef570f3bbdf84a37a55b4d6e983c1",
+  "scoredAt": "2026-10-01T12:16:38.100Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases such as invalid parameters or empty indexes."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes a Node.js/TypeScript environment, limiting cross-platform applicability."
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanations and multiple examples, leading to verbosity that may overwhelm users."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 86,
-    "multiplier": 2.87,
+    "multiplier": 1.98,
+    "baselineAvg": 47,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Add faceted blog search with typo tolerance to a docs site",
-        "baseline": 32,
-        "treatment": 88,
-        "rationale": "Treatment defines a schema with enum/string[]/number types, calls create+insert+search from @orama/orama, and uses where+facets with ranges for the filter UI; baseline reaches for Algolia/Lunr or invents a generic API surface."
+        "name": "static-site-search-index",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric items with correct schema, insertMultiple, JSON persistence, restore, and search hits; Response B omits required fields, uses addDocuments instead of insertMultiple, and does not demonstrate restore or hit structure."
       },
       {
-        "name": "Hybrid semantic + keyword search over Kubernetes documentation",
-        "baseline": 28,
-        "treatment": 85,
-        "rationale": "Treatment uses @orama/plugin-embeddings with pluginEmbeddings, declares a vector[384] field, and calls search with mode: 'hybrid' plus a similarity threshold; baseline stitches together a separate vector DB and BM25 library without the single hybrid mode."
+        "name": "faceted-product-search",
+        "baseline": 70,
+        "treatment": 80,
+        "rationale": "Both responses miss the tags containsAll filter, but B includes the tags field in the schema, making it slightly more complete."
+      },
+      {
+        "name": "hybrid-search-embeddings",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not."
       }
     ]
   }

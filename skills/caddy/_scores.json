@@ -1,47 +1,41 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:911fd3e2a8c26eae4dcf37b9c553e1df94b80b06306b0a20a8821efefa833d47",
-  "scoredAt": "2026-05-13T15:02:40.630Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6b0faf1606606c7d885e6eb9fd02848422d57db4a503c8e97e7afb5da4b53a57",
+  "scoredAt": "2026-10-01T11:25:09.193Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill lacks explicit error handling or edge case coverage, focusing mainly on happy path scenarios."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.82,
-    "baselineAvg": 33,
-    "treatmentAvg": 60,
+    "multiplier": 10,
+    "baselineAvg": 5,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "static-site-with-proxy-and-rate-limit",
-        "baseline": 55,
+        "name": "admin-api-config-update",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the required rate_limit zone and Content-Security-Policy header."
+        "rationale": "Response B provides the required curl PATCH with the correct endpoint and JSON array, while Response A is empty."
       },
       {
-        "name": "wildcard-subdomain-with-dns-challenge-and-health-checks",
+        "name": "enable-rate-limiting-plugin",
         "baseline": 10,
-        "treatment": 20,
-        "rationale": "Both responses lack the required JSON configuration and POST example, but Response B includes more of the specified directives (round-robin, active health checks, DNS TLS) and is therefore closer to the rubric."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A misses the required install command, Caddyfile syntax, and reload instruction."
       }
     ]
   }

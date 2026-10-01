@@ -1,69 +1,76 @@
 ---
 name: detox
-description: When the user wants to write end-to-end tests for React Native apps using Detox's gray-box testing approach. Also use when the user mentions "detox," "React Native testing," "React Native E2E," "gray-box testing," or "Wix Detox." For general mobile testing, see appium. For simpler mobile UI flows, see maestro.
+description: >-
+  Detox is a gray-box end-to-end testing framework for React Native apps: it
+  runs Jest tests against the app on an iOS simulator or Android emulator and
+  waits for the app to go idle before each step. Use when the user wants to set
+  up Detox, write or fix React Native E2E tests, debug a test that hangs or
+  cannot find an element, or run Detox in CI. Also use when the user mentions
+  "detox," "React Native E2E," "gray-box testing," "detox build," or "Wix
+  Detox." For black-box testing of any mobile app, see appium; for simple YAML
+  UI flows, see maestro.
+license: Apache-2.0
+compatibility: "Detox 20.x (checked against 20.51.4) with Jest 27.2.5–30 and Node.js 14+; officially supports React Native 0.77–0.84. iOS tests need macOS with Xcode and applesimutils; Android tests need the Android SDK and an emulator. Expo is not officially supported."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
-  tags:
-    - react-native
-    - e2e-testing
-    - mobile
-    - gray-box
+  tags: ["react-native", "e2e-testing", "mobile", "gray-box"]
+  repository: https://github.com/wix/Detox
 ---
 
 # Detox
 
 ## Overview
 
-You are an expert in Detox, the gray-box end-to-end testing framework for React Native apps by Wix. You help users set up Detox for iOS and Android, write reliable tests that synchronize automatically with the app's UI and network activity, handle device/emulator management, and integrate Detox into CI. You understand Detox's automatic synchronization, which eliminates most flakiness caused by timing issues.
+Detox is the gray-box end-to-end testing framework for React Native apps by Wix. Tests are written in JavaScript, run by Jest on your machine, and drive the real app on an iOS simulator or Android emulator. Because Detox runs inside the app as well, it knows when animations, timers and network requests are in flight and waits for the app to become idle before every action and assertion, which removes most timing flakiness without `sleep` calls. The price is setup: Detox needs a test build of the app per platform and a few native changes on Android.
 
 ## Instructions
 
 ### Initial Assessment
 
-1. **Platform** — iOS, Android, or both?
-2. **React Native version** — Expo or bare workflow?
+1. **Platform** — iOS, Android, or both? iOS tests only run on macOS.
+2. **React Native version** — bare React Native or Expo? Detox has no Expo-specific support, and the Expo guide that the Detox docs link to now covers Maestro; treat Detox on Expo as community-maintained.
 3. **CI** — Which CI provider? (GitHub Actions, CircleCI, Bitrise)
 4. **Current state** — New project or adding tests to existing app?
 
 ### Setup
 
 ```bash
-# setup-detox.sh — Install Detox in a React Native project.
-# Includes both iOS and Android configuration.
+# Run in the React Native project root
+npm install "jest@^29" --save-dev      # pin the major so an old lockfile cannot pull Jest 26
+npm install detox --save-dev
 
-# Install Detox CLI and library
-npm install -g detox-cli
-npm install --save-dev detox
-
-# iOS: Install applesimutils (macOS only)
+# iOS only (macOS): simulator control tool required by Detox
 brew tap wix/brew
 brew install applesimutils
 
-# Initialize Detox config
-detox init
+# Creates .detoxrc.js, e2e/jest.config.js and e2e/starter.test.js
+npx detox init
 ```
+
+`npm install -g detox-cli` is optional: it only lets you type `detox` instead of `npx detox`.
 
 ### Configuration
 
 ```javascript
-// .detoxrc.js — Detox configuration for iOS and Android.
-// Defines build commands, device types, and test runner.
+// .detoxrc.js — apps (how to build, where the binary is), devices, and their combinations
+/** @type {Detox.DetoxConfig} */
 module.exports = {
   testRunner: {
-    args: {
-      config: 'e2e/jest.config.js',
-    },
-    jest: {
-      setupTimeout: 120000,
-    },
+    args: { $0: 'jest', config: 'e2e/jest.config.js' },
+    jest: { setupTimeout: 120000 },
   },
   apps: {
     'ios.debug': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/MyApp.app',
-      build: 'xcodebuild -workspace ios/MyApp.xcworkspace -scheme MyApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/FieldNotes.app',
+      build: 'xcodebuild -workspace ios/FieldNotes.xcworkspace -scheme FieldNotes -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+    },
+    'ios.release': {
+      type: 'ios.app',
+      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/FieldNotes.app',
+      build: 'xcodebuild -workspace ios/FieldNotes.xcworkspace -scheme FieldNotes -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'android.debug': {
       type: 'android.apk',
@@ -73,33 +80,23 @@ module.exports = {
     },
   },
   devices: {
-    simulator: {
-      type: 'ios.simulator',
-      device: { type: 'iPhone 15' },
-    },
-    emulator: {
-      type: 'android.emulator',
-      device: { avdName: 'Pixel_7_API_34' },
-    },
+    simulator: { type: 'ios.simulator', device: { type: 'iPhone 16' } },
+    emulator: { type: 'android.emulator', device: { avdName: 'Pixel_7_API_34' } },
   },
   configurations: {
-    'ios.sim.debug': {
-      device: 'simulator',
-      app: 'ios.debug',
-    },
-    'android.emu.debug': {
-      device: 'emulator',
-      app: 'android.debug',
-    },
+    'ios.sim.debug': { device: 'simulator', app: 'ios.debug' },
+    'ios.sim.release': { device: 'simulator', app: 'ios.release' },
+    'android.emu.debug': { device: 'emulator', app: 'android.debug' },
   },
 };
 ```
 
+A simulator of that `type` must already exist (`applesimutils --list`): Detox clones an existing one and fails with `Failed to find a device` when there is none. `detox init` writes `iPhone 15`, which the GitHub `macos-15` image does not have. `avdName` must be one that `emulator -list-avds` prints. `detox build` only runs the `build` string of the chosen configuration; if it fails, the fix is in the Xcode or Gradle command, not in Detox.
+
 ### Jest Config for Detox
 
 ```javascript
-// e2e/jest.config.js — Jest configuration for Detox tests.
-// Sets up the Detox test environment and timeouts.
+// e2e/jest.config.js — generated by `detox init`
 module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/**/*.test.js'],
@@ -113,111 +110,185 @@ module.exports = {
 };
 ```
 
+### Android native setup
+
+iOS needs no project changes. A bare Android project needs these build-script changes and three more below:
+
+```diff
+ // android/build.gradle
+ allprojects {
+   repositories {
+     google()
++    maven { url("$rootDir/../node_modules/detox/Detox-android") }
+   }
+ }
+
+ // android/app/build.gradle
+   defaultConfig {
++    testBuildType System.getProperty('testBuildType', 'debug')
++    testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+   }
+   dependencies {
++    androidTestImplementation('com.wix:detox:+')
+   }
+```
+
+Also: the Kotlin Gradle plugin on the buildscript classpath; a `DetoxTest.java` instrumentation test under `android/app/src/androidTest/java/` in your app's package (copy it from the Detox "Project Setup" page and change the package line); and a `network_security_config.xml` that permits cleartext traffic to `10.0.2.2` and `localhost`, registered with `android:networkSecurityConfig` in `AndroidManifest.xml`. Release builds must add Detox's ProGuard file (`node_modules/detox/android/detox/proguard-rules-app.pro`), otherwise the test hangs or crashes at launch.
+
 ### Writing Tests
 
 ```javascript
-// e2e/login.test.js — Detox E2E test for the login flow.
-// Gray-box: Detox waits for animations and network automatically.
+// e2e/login.test.js — element(), by, expect, waitFor and device are Detox globals
 describe('Login Flow', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
   });
-
   beforeEach(async () => {
     await device.reloadReactNative();
   });
 
-  it('should show login screen on launch', async () => {
-    await expect(element(by.id('login-screen'))).toBeVisible();
-    await expect(element(by.id('email-input'))).toBeVisible();
-    await expect(element(by.id('password-input'))).toBeVisible();
-  });
-
   it('should login successfully with valid credentials', async () => {
-    await element(by.id('email-input')).typeText('user@example.com');
-    await element(by.id('password-input')).typeText('password123');
+    await element(by.id('email-input')).typeText('maya.chen@fieldnotes.app');
+    await element(by.id('password-input')).typeText(process.env.E2E_USER_PASSWORD);
     await element(by.id('login-button')).tap();
-
     await expect(element(by.id('home-screen'))).toBeVisible();
     await expect(element(by.text('Welcome back'))).toBeVisible();
   });
-
   it('should show error for invalid credentials', async () => {
-    await element(by.id('email-input')).typeText('wrong@example.com');
-    await element(by.id('password-input')).typeText('wrongpass');
+    await element(by.id('email-input')).typeText('maya.chen@fieldnotes.app');
+    await element(by.id('password-input')).typeText('not-the-password');
     await element(by.id('login-button')).tap();
-
-    await expect(element(by.id('error-message'))).toBeVisible();
-    await expect(element(by.text('Invalid credentials'))).toBeVisible();
+    await expect(element(by.id('error-message'))).toHaveText('Invalid credentials');
+    await expect(element(by.id('home-screen'))).not.toBeVisible();
   });
 });
 ```
+
+`by.id` matches the React Native `testID` prop, which only works when it reaches a native component (`View`, `Text`, `TextInput`, `Pressable`); a custom component must forward it. Other matchers: `by.text`, `by.label`, `by.type`, combined with `.and()`, `.withAncestor()`, `.withDescendant()` and `.atIndex()`. Negate any assertion with `.not`; `toBeNotVisible()` and `toNotExist()` are deprecated.
 
 ### Scrolling and Lists
 
 ```javascript
-// e2e/feed.test.js — Detox test for scrollable lists and pull-to-refresh.
-// Demonstrates scroll actions and element matching within lists.
-describe('Feed Screen', () => {
-  beforeAll(async () => {
-    await device.launchApp();
-    await element(by.id('email-input')).typeText('user@example.com');
-    await element(by.id('password-input')).typeText('password123');
-    await element(by.id('login-button')).tap();
-  });
-
-  it('should scroll to load more items', async () => {
-    await waitFor(element(by.id('feed-list'))).toBeVisible().withTimeout(5000);
-    await element(by.id('feed-list')).scroll(500, 'down');
-    await expect(element(by.id('feed-item-10'))).toBeVisible();
-  });
-
-  it('should pull to refresh', async () => {
-    await element(by.id('feed-list')).scroll(200, 'up');
-    await waitFor(element(by.id('refresh-indicator'))).toBeNotVisible().withTimeout(5000);
-  });
+// e2e/feed.test.js — scroll until an item appears, then pull to refresh
+it('should load more items and refresh', async () => {
+  await waitFor(element(by.id('feed-item-10'))).toBeVisible().whileElement(by.id('feed-list')).scroll(300, 'down');
+  await element(by.id('feed-list')).scrollTo('top');
+  await element(by.id('feed-list')).swipe('down', 'slow');   // pull to refresh
+  await waitFor(element(by.id('refresh-indicator'))).not.toBeVisible().withTimeout(5000);
 });
 ```
+
+`scroll(offset, direction)` moves by points, `scrollTo('bottom')` jumps to an edge, `swipe(direction)` performs the gesture. A `waitFor` without `withTimeout` or `whileElement` does nothing.
 
 ### Running Tests
 
 ```bash
-# run-detox.sh — Build and run Detox tests.
-# Separate build and test steps for flexibility.
-
-# Build the app for testing
-detox build --configuration ios.sim.debug
-detox build --configuration android.emu.debug
-
-# Run tests
-detox test --configuration ios.sim.debug
-detox test --configuration android.emu.debug
-
-# Run specific test file
-detox test --configuration ios.sim.debug e2e/login.test.js
-
-# Run with retry on failure
-detox test --configuration ios.sim.debug --retries 2
+npx detox build --configuration ios.sim.debug
+npm start                                        # debug builds need Metro running in another terminal
+npx detox test --configuration ios.sim.debug
+npx detox test -c ios.sim.debug e2e/login.test.js            # one file
+npx detox test -c ios.sim.debug --retries 2                  # re-run failing files
+npx detox test -c ios.sim.debug --reuse                      # keep the installed app, faster reruns
+npx detox test -c android.emu.debug --headless               # no emulator window
+npx detox test -c ios.sim.release --record-logs failing --take-screenshots failing --record-videos failing
+npx detox test -c ios.sim.debug --loglevel verbose --debug-synchronization 5000
 ```
+
+Artifacts go to `artifacts/` unless `--artifacts-location` says otherwise. Jest flags such as `-t "login"` pass through.
 
 ### CI Integration
 
 ```yaml
-# .github/workflows/detox.yml — Run Detox tests on macOS runner.
-# Uses iOS simulator for E2E testing.
+# .github/workflows/detox.yml — release build on an iOS simulator
 name: Detox E2E
 on: [push]
 jobs:
   detox-ios:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
       - run: brew tap wix/brew && brew install applesimutils
       - run: cd ios && pod install
-      - run: detox build --configuration ios.sim.debug
-      - run: detox test --configuration ios.sim.debug --retries 2
+      - run: npx detox build --configuration ios.sim.release
+      - run: npx detox test --configuration ios.sim.release --cleanup --headless --retries 2 --record-logs failing --take-screenshots failing
+        env:
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: detox-artifacts
+          path: artifacts
 ```
+
+Test a release build in CI: it bundles the JavaScript, so no Metro server is needed. Android emulators need hardware virtualization (KVM) on the runner.
+
+## Examples
+
+### Example 1: Add a login test to an existing app and run it on iOS
+
+**User request:** "We have Detox installed. Add an E2E test for the login screen and run it on the simulator."
+
+Add `testID`s to the screen, then create `e2e/login.test.js` from "Writing Tests" above:
+
+```jsx
+<TextInput testID="email-input" value={email} onChangeText={setEmail} autoCapitalize="none" />
+<TextInput testID="password-input" value={password} onChangeText={setPassword} secureTextEntry />
+<Pressable testID="login-button" onPress={submit}><Text>Log in</Text></Pressable>
+```
+
+```bash
+npx detox build -c ios.sim.debug
+npm start &                       # Metro, stop it afterwards with: kill %1
+E2E_USER_PASSWORD="$FIELDNOTES_E2E_PASSWORD" npx detox test -c ios.sim.debug e2e/login.test.js
+```
+
+**Result:** the simulator boots, the app is installed and launched, and Jest lists both tests of `Login Flow` as passed. If a `testID` is missing or not forwarded, the run fails with `Test Failed: No elements found for “MATCHER(id == “login-button”)”`; rerun with `--loglevel verbose` to print the view hierarchy.
+
+### Example 2: A test hangs on a screen with a spinner
+
+**User request:** "Our Detox test just sits on the dashboard and times out. The app works fine by hand."
+
+```bash
+npx detox test -c ios.sim.debug e2e/dashboard.test.js --debug-synchronization 5000
+```
+
+The log names what keeps the app busy:
+
+```
+detox[90417] i The app is busy with the following tasks:
+• UI elements are busy:
+  - View animations pending: 2.
+• 1 network requests with URLs:
+  - URL #1: https://api.fieldnotes.app/v1/sync/poll
+```
+
+Exclude the long-polling endpoint from synchronization, and if a looping animation stays, wait manually around that one screen:
+
+```javascript
+await device.launchApp({ newInstance: true });
+await device.setURLBlacklist(['.*/v1/sync/poll.*']);
+
+await device.disableSynchronization();
+await element(by.id('tab-dashboard')).tap();
+await waitFor(element(by.id('dashboard-total'))).toBeVisible().withTimeout(8000);
+await element(by.id('tab-settings')).tap();
+await device.enableSynchronization();   // only after leaving the busy screen
+```
+
+**Result:** the test no longer waits for the polling request, and the dashboard assertion passes within the 8-second window instead of timing out.
+
+## Guidelines
+
+- Match by `testID` (`by.id`) rather than by text: IDs survive copy changes and translations.
+- Start each test from a known state: `device.launchApp({ newInstance: true })` is the safest, `device.reloadReactNative()` is faster but can glitch in complex apps, and `launchApp({ delete: true })` or `{ resetAppState: true }` clears stored data.
+- Do not add sleeps. If Detox waits forever, find the busy resource with `--debug-synchronization`: an endless loader, a looping animation, a `setTimeout` polling loop (use `setInterval`, which Detox ignores) or a long-lived request (blacklist its URL). Disabling synchronization is the last resort and is re-enabled on every new app launch.
+- Keep `maxWorkers: 1` until the suite is stable; more workers boot more simulators and need tests that do not share accounts or server state.
+- Use `--retries` in CI to absorb rare device hiccups, but treat a test that needs retries locally as a bug.
+- On Android prefer AOSP emulator images (`system-images;android-34;default;x86_64`) over Google API images; they are lighter and more stable for automation.
+- Keep test credentials in environment variables or CI secrets and point tests at a staging backend, never at production accounts.
+- Permission dialogs: on iOS grant them at launch with `device.launchApp({ permissions: { notifications: 'YES', location: 'inuse' } })`, or tap them through the experimental iOS-only `system.element(by.system.label('Allow')).tap()`. There is no system API on Android yet.
+- Limits: Detox does not run on physical iOS devices and cannot drive other apps. For cross-app flows or apps that are not React Native, choose Appium or Maestro.

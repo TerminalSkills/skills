@@ -1,41 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:10bec9b2d47cd0dd5089f3e607cc6e0cf96e50a55af8cbbd0d693ad1b973b015",
-  "scoredAt": "2026-05-13T09:12:37.226Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:85f52a1daea96c8fbbd624088cb0f0572e68f700b467b7c390c0adcf5eedc41f",
+  "scoredAt": "2026-10-01T11:49:52.001Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The code handles rate limiting but does not cover quota_exceeded or insufficient_credit errors, leaving some error scenarios unhandled."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose beyond necessary instructions."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is implemented in Python and relies on specific libraries, limiting its applicability to agents that support Python execution."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 18,
-    "treatmentAvg": 96,
-    "multiplier": 5.33,
+    "multiplier": 5,
+    "baselineAvg": 20,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Avatar video generation, poll, download",
-        "baseline": 20,
-        "treatment": 96,
-        "rationale": "Baseline invents Bearer auth and incorrect endpoint/payload shapes; treatment uses X-Api-Key, POSTs the documented video_inputs structure with character/voice/dimension to /v2/video/generate, polls /v1/video_status.get?video_id=... for status=='completed', then streams the video_url to disk."
+        "name": "bulk-personalized-video-generation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required batch workflow, while Response B uses a single‑job approach and omits batch handling."
       },
       {
-        "name": "Video translation with lip-sync",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline fabricates a translate endpoint and a generic language field; treatment POSTs to /v2/video_translate with video_url, output_language='es', and title, then polls /v2/video_translate/{translate_id} for completed status — exactly the documented contract."
+        "name": "video-translation-lip-sync",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully implements the required API calls, polling, and download logic, while Response A does not use the specified endpoint or download the translated videos."
+      },
+      {
+        "name": "setup-webhook-notifications",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits the webhook registration step and the storage of the returned secret."
       }
     ]
   }

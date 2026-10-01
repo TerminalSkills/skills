@@ -1,26 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:223b696ab1bbf3bc04442f06f6c64ac32a6207a82f318ba6c4cd4578952bb923",
-  "scoredAt": "2026-05-13T15:52:23.698Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1c3c5afa55941726b1b0d7a741335aafb69cd251956511afedbeb57368e47153",
+  "scoredAt": "2026-10-01T11:33:36.619Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is tailored to Next.js and Remix, limiting its applicability across different AI agent platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

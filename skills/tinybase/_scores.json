@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:051649ad5daf24ce6afad29339864385cb6d91a94a45a219253a46bf4e40f8f1",
-  "scoredAt": "2026-05-13T10:26:24.882Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1887fac379756fafc77df25370765b832d03af32aeaa6fd53e6a37e07b5140da",
+  "scoredAt": "2026-10-01T12:37:33.361Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases, only happy path examples."
+        "detail": "The instructions lack explicit error handling for persistence and synchronization failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 8.08,
+    "baselineAvg": 12,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "Offline-first React todo app with multi-device sync",
-        "baseline": 35,
-        "treatment": 96,
-        "rationale": "Baseline knows the createStore basics but misses the CRDT-specific createMergeableStore, createWsSynchronizer with startSync, and createLocalPersister with startAutoLoad/startAutoSave required for the offline+sync requirement."
+        "name": "create-store-with-schema-and-listener",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric with correct API usage and listener cleanup, while Response A uses different APIs, omits required methods, and lacks listener removal."
       },
       {
-        "name": "Reactive query with relationships for incomplete todos",
+        "name": "persist-store-to-indexeddb",
         "baseline": 20,
-        "treatment": 94,
-        "rationale": "Baseline filters/sorts imperatively in the component, missing createQueries with select/where/order, createRelationships for foreign-key navigation, and useResultTable for fine-grained reactive rerenders."
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not create the required persister, call startAutoPersisting, or mention the load‑then‑save sequence."
+      },
+      {
+        "name": "sync-two-clients-with-websocket",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with correct APIs and a working demo, while Response B uses a different, incomplete API and omits all required elements."
       }
     ]
   }

@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:45772954b3e983417981993e8989dd707c083ffe6446c0aa1f5e28f2be0f39e1",
-  "scoredAt": "2026-05-13T12:02:46.968Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:df0f5a84bd2cb02d6e612c3cde09da4cae1720230c4243dc92f1d044f9ad32da",
+  "scoredAt": "2026-10-01T13:01:11.162Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or troubleshooting scenarios for installation or configuration failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Instructions assume a Linux environment and do not provide guidance for Windows or other operating systems."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 4.29,
-    "baselineAvg": 17,
-    "treatmentAvg": 73,
+    "multiplier": 1.92,
+    "baselineAvg": 25,
+    "treatmentAvg": 48,
     "scenarios": [
       {
-        "name": "multi-protocol-auth-traffic-limit",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B contains some relevant details but is incomplete, while Response A is empty."
+        "name": "docker-proxy-with-users-and-stdout-logs",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response A includes a nearly complete docker run command and a largely correct config snippet, whereas Response B provides an incorrect config and no docker run command."
       },
       {
-        "name": "proxy-chaining-rotation",
+        "name": "rotate-upstream-proxies-with-bandwidth-limit",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A is not provided and thus cannot meet the criteria."
+        "treatment": 60,
+        "rationale": "Response B covers most of the required configuration but fails to meet the exact weight distribution and bandlimout value specified in the rubric, whereas Response A provides no content."
       },
       {
-        "name": "port-forwarding-ssh",
-        "baseline": 50,
-        "treatment": 70,
-        "rationale": "Response A covers most rubric items but omits internal and auth directives, while Response B fails to use the required tcppm directive and lacks logging."
+        "name": "fix-allow-parse-error-and-create-passwd",
+        "baseline": 35,
+        "treatment": 25,
+        "rationale": "Response A gives a corrected allow line and a minimal config example, while Response B focuses on syntax details but omits all required lines; A covers more rubric items."
       }
     ]
   }

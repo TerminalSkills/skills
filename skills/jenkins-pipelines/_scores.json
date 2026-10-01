@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:070adf40a789c161797386e2eea3955bc22d92f426c306830a49781785e421fc",
-  "scoredAt": "2026-05-13T09:17:52.712Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e72594e0c880ee13921a2f4ae0f7453778b7ee24ac087fdf0784e4e3ebc4adda",
+  "scoredAt": "2026-10-01T11:53:15.737Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, focusing mainly on happy paths."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 96,
-    "multiplier": 3.43,
+    "multiplier": 5.12,
+    "baselineAvg": 17,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "declarative-deploy-pipeline",
+        "name": "docker-registry-deploy-with-approval",
         "baseline": 30,
-        "treatment": 96,
-        "rationale": "Baseline ran stages sequentially with raw docker push and no credential bindings; treatment used a parallel Lint/Test/Security block, docker.build + docker.withRegistry, withCredentials([file(... KUBECONFIG)]) for Helm, and an input gate guarded by when { branch 'main' }."
+        "treatment": 60,
+        "rationale": "Response B covers more rubric items (timeout, concurrency, credentials, input) than Response A, though both miss several key requirements."
       },
       {
-        "name": "k8s-multi-container-agent",
-        "baseline": 25,
-        "treatment": 96,
-        "rationale": "Baseline used a single inbound-agent container with no container() switching; treatment defined a kubernetes pod yaml with node/docker/helm containers, set defaultContainer, and used container('docker')/container('helm') wrappers per stage."
+        "name": "multibranch-pr-tests-and-deploy",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the PR-specific when block, junit step, Docker agent, and proper githubNotify usage."
+      },
+      {
+        "name": "shared-library-build-and-notify",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements exactly, while Response B uses a different library name/tag and omits the required post-success Slack notification."
       }
     ]
   }

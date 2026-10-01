@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:323c35f1b8b545cc406ac8be74fd14efe049b4661274b98c2fb86821253f4d74",
-  "scoredAt": "2026-05-13T15:49:41.342Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c733c0dd2dea7ac138db32675cb9e66d33ea58b8c7c1ba72465b71905ca13bee",
+  "scoredAt": "2026-10-01T11:31:47.382Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a Claude-specific file path (.claude/product-marketing-context.md), limiting compatibility with other AI agents."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.75,
-    "baselineAvg": 40,
-    "treatmentAvg": 70,
+    "multiplier": 1.86,
+    "baselineAvg": 35,
+    "treatmentAvg": 65,
     "scenarios": [
       {
-        "name": "mailchimp-alternative-page",
-        "baseline": 45,
-        "treatment": 65,
-        "rationale": "Response A covers more rubric items, including a detailed comparison table and multiple sections, whereas Response B is shorter and lacks several required sections."
+        "name": "asana-alternative-page",
+        "baseline": 25,
+        "treatment": 55,
+        "rationale": "Response A covers more rubric items (TL;DR, comparison tables, migration, who it's for) than Response B, which lacks most required sections."
       },
       {
-        "name": "teamsync-vs-asana-page",
-        "baseline": 35,
+        "name": "mailchimp-alternatives-roundup",
+        "baseline": 45,
         "treatment": 75,
-        "rationale": "Response B covers most rubric items (TL;DR, comparison table, detailed categories, migration path, target audiences) but lacks testimonials and CTA, whereas Response A misses many core requirements."
+        "rationale": "Response B covers more rubric items, including a criteria framework, detailed comparison, use‑case recommendations, migration tips, and last‑verified dates, whereas Response A lacks many required sections."
+      },
+      {
+        "name": "competitor-vs-competitor-comparison",
+        "baseline": 35,
+        "treatment": 65,
+        "rationale": "Response B includes TL;DR, last_verified dates, pricing comparison, and a three‑way table, covering more rubric items than Response A, which lacks TL;DR, last_verified, migration, FAQ, meta tags, and data source references."
       }
     ]
   }

@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:facefacce9be65d4da70ef1a68a841f5422cbf0802c9f5f6496c636d80f55a2d",
-  "scoredAt": "2026-05-13T10:10:00.845Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7435315e07675743632e00687ca157daf8e55d6414e882922b445f98c1301224",
+  "scoredAt": "2026-10-01T12:29:22.125Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling for missing files, permission errors, or other edge cases, making the skill less robust."
+        "category": "conciseness",
+        "detail": "The skill file contains excessive explanatory text that may be considered padded."
       }
     ]
   },

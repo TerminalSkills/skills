@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e1846c158fb0774a17aac93aa207b44b28d13ed337d64d7eb6e664c0eb15a0be",
-  "scoredAt": "2026-05-13T09:09:07.961Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a89833c5af291a06a0cc1e1b0c56e57d65baf99e8f2f5899889302c9257236d9",
+  "scoredAt": "2026-10-01T11:46:30.560Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that exceeds the concise style expected for actionable instructions."
       }
     ]
   },

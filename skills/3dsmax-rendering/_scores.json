@@ -1,34 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f02d337441e6e9cabf8681de1302566f64c5a76caa2bfe3646293ba87a64f6ca",
-  "scoredAt": "2026-05-13T12:00:56.655Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:8520c6ffd0047cc2b319010c2e8d784126fb353f7c71fdf18283fd6f8dadcdfd",
+  "scoredAt": "2026-10-01T11:10:23.487Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "WEAK"
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases such as missing renderers or invalid file paths."
       },
       {
         "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The skill provides code snippets but lacks realistic usage demonstrations."
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanatory text that could be trimmed for brevity."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is specific to 3ds Max and V-Ray, limiting compatibility with other AI agents."
+        "detail": "The skill is tailored to Windows 3ds Max and does not support other operating systems or AI agents."
       }
     ]
   },
@@ -37,27 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.13,
-    "baselineAvg": 23,
-    "treatmentAvg": 72,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "configure-vray-interior-production",
-        "baseline": 20,
+        "name": "batch-render-all-cameras-with-elements",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric items, while Response B omits many required settings."
+        "rationale": "Response A includes all required MaxScript calls and steps, while Response B is a Blender script and does not meet the rubric."
       },
       {
-        "name": "setup-corona-production",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response A covers more of the required settings, while Response B omits several key parameters."
+        "name": "command-line-render-camera",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required flags and scene path, while Response A uses different flags and misses the specified ones."
       },
       {
-        "name": "batch-network-render",
-        "baseline": 20,
-        "treatment": 55,
-        "rationale": "Response B covers most of the required API calls and logic, though it omits camera enumeration, whereas Response A is incomplete and stops short of implementing the core loop."
+        "name": "backburner-network-render",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required flags and the scene path, while Response B omits the required flags and the scene file path."
       }
     ]
   }

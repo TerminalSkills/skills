@@ -1,26 +1,29 @@
 ---
 name: wxt
 description: >-
-  Build cross-browser extensions with WXT — the modern framework for Chrome,
-  Firefox, Safari, and Edge extensions. Use when someone asks to "build a
+  WXT is a Vite-based framework that builds browser extensions for Chrome,
+  Firefox, Safari, and Edge from one codebase. Use when someone asks to "build a
   browser extension", "Chrome extension with React", "WXT framework", "cross-
   browser extension", "manifest v3 extension", "build Firefox extension", or
   "browser extension with TypeScript". Covers content scripts, background
   workers, popup/options pages, storage, messaging, and publishing.
 license: Apache-2.0
-compatibility: "Chrome, Firefox, Safari, Edge. Supports React, Vue, Svelte, Solid."
+compatibility: "WXT 0.21: Node.js 22+, Vite 6.3.4+, TypeScript 5.4+. Targets Chrome, Firefox, Safari, Edge. Supports React, Vue, Svelte, Solid."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["browser-extension", "chrome", "firefox", "wxt", "manifest-v3"]
+  repository: https://github.com/wxt-dev/wxt
 ---
 
 # WXT
 
 ## Overview
 
-WXT is a Vite-based framework for building browser extensions — think "Next.js for extensions." File-based entrypoints, hot reload, TypeScript-first, and it outputs a single extension that works on Chrome (MV3), Firefox (MV2/MV3), Safari, and Edge. No more manually editing manifest.json or reloading the extension after every change.
+WXT is a Vite-based framework for building browser extensions — its own tagline is "like Nuxt, but for web extensions." File-based entrypoints, hot reload, TypeScript-first, auto-imports. One codebase produces a separate build per browser: Manifest V3 for Chrome and Edge, Manifest V2 by default for Firefox and Safari (pass `--mv3` to override). There is no `manifest.json` in the source tree — WXT generates it from `wxt.config.ts` and the entrypoint files.
+
+WXT is still pre-1.0, so a change in the second digit (0.20 → 0.21) is a breaking release. This skill matches 0.21, which needs Node.js 22+, and makes `vite` a required peer dependency and `web-ext` an optional one (without `web-ext` the dev command no longer opens a browser).
 
 ## When to Use
 
@@ -35,63 +38,88 @@ WXT is a Vite-based framework for building browser extensions — think "Next.js
 ### Setup
 
 ```bash
-npx wxt@latest init my-extension
-cd my-extension
-npm install
-npm run dev  # Opens Chrome with hot-reloading extension
+npx wxt@latest init code-explainer -t react --pm npm   # templates: vanilla, vue, react, svelte, solid
+cd code-explainer
+npm install    # postinstall runs `wxt prepare`, which generates .wxt/ (types, tsconfig)
+npm run dev    # Opens Chrome with the extension loaded and hot reload
 ```
+
+Without `-t` and `--pm` the `init` command asks for the template and package manager. To add WXT to an existing project: `npm i -D wxt vite typescript`, plus `web-ext` if the dev command should open a browser.
 
 ### Project Structure
 
 ```
-my-extension/
+code-explainer/
 ├── entrypoints/
 │   ├── popup/           # Popup UI (click extension icon)
 │   │   ├── index.html
 │   │   ├── main.tsx
 │   │   └── App.tsx
-│   ├── options/         # Options page
-│   │   ├── index.html
-│   │   └── main.tsx
 │   ├── content.ts       # Content script (runs on web pages)
 │   └── background.ts    # Service worker (background logic)
+├── utils/               # Auto-imported helpers (also components/, hooks/, composables/)
 ├── public/
-│   └── icon/
-│       ├── 16.png
-│       ├── 48.png
-│       └── 128.png
+│   └── icon/            # 16.png, 32.png, 48.png, 96.png, 128.png — found automatically
+├── .env                 # WXT_* and VITE_* variables, exposed on import.meta.env
 ├── wxt.config.ts
 └── package.json
+```
+
+More content scripts go in files named `{name}.content.ts`. Other recognised entrypoint names include `options`, `sidepanel`, `newtab` and `devtools` (each a folder with an `index.html`).
+
+### Config and Permissions
+
+WXT does not add permissions for you. Every API used below has to be declared, or it is `undefined` at runtime (`storage` throws):
+
+```typescript
+// wxt.config.ts
+import { defineConfig } from "wxt";
+
+export default defineConfig({
+  modules: ["@wxt-dev/module-react"],
+  manifest: {
+    name: "Code Explainer",
+    permissions: ["storage", "alarms"],
+    host_permissions: ["https://api.openai.com/*"],
+  },
+});
+```
+
+Write manifest keys in MV3 form (`action`, `host_permissions`); WXT converts them for MV2 builds. The manifest `name` and `version` default to the values in `package.json`, which also name the zip files — the template ships as `wxt-react-starter` 0.0.0, so edit both.
+
+```typescript
+// utils/storage.ts — typed storage items, auto-imported everywhere
+export const explainCount = storage.defineItem<number>("local:explainCount", { fallback: 0 });
 ```
 
 ### Content Script
 
 ```typescript
-// entrypoints/content.ts — Runs on matched web pages
-/**
- * Content scripts have access to the DOM of the page.
- * Define which URLs to match with the `matches` export.
- */
+// entrypoints/content.ts — Runs on matched web pages; createShadowRootUi isolates the button's styles.
+// DOM and extension API calls must stay inside main(): WXT imports this file in Node at build time.
 export default defineContentScript({
-  matches: ["*://*.github.com/*"],  // Run on GitHub pages
-  main() {
-    // Add a custom button to every GitHub PR page
-    const prHeader = document.querySelector(".gh-header-actions");
-    if (prHeader) {
-      const btn = document.createElement("button");
-      btn.textContent = "🤖 AI Review";
-      btn.className = "btn btn-sm";
-      btn.onclick = async () => {
-        const diff = document.querySelector(".diff-view")?.textContent;
-        // Send to background for API call
-        const review = await browser.runtime.sendMessage({
-          type: "REVIEW_PR",
-          diff: diff?.slice(0, 5000),
-        });
-        alert(review.summary);
-      };
-      prHeader.prepend(btn);
-    }
+  matches: ["https://github.com/*"],
+  cssInjectionMode: "ui",
+  async main(ctx) {
+    const ui = await createShadowRootUi(ctx, {
+      name: "code-explainer",
+      position: "inline",
+      anchor: "body",
+      onMount(container) {
+        const btn = document.createElement("button");
+        btn.textContent = "Explain selection";
+        btn.style.cssText = "position:fixed;right:16px;bottom:16px;z-index:9999";
+        btn.onclick = async () => {
+          const code = window.getSelection()?.toString().slice(0, 5000);
+          if (!code) return;
+          // Send to background for the API call
+          const reply = await browser.runtime.sendMessage({ type: "EXPLAIN", code });
+          alert(reply.error ?? reply.summary);
+        };
+        container.append(btn);
+      },
+    });
+    ui.mount();
   },
 });
 ```
@@ -99,43 +127,45 @@ export default defineContentScript({
 ### Background Service Worker
 
 ```typescript
-// entrypoints/background.ts — Persistent background logic
-/**
- * Service worker handles API calls, alarms, and message routing.
- * No DOM access here — communicate with content scripts via messaging.
- */
+// entrypoints/background.ts — Service worker: API calls, alarms, message routing. No DOM access.
+// The main function cannot be async.
 export default defineBackground(() => {
-  // Handle messages from content scripts
-  browser.runtime.onMessage.addListener(async (msg, sender) => {
-    if (msg.type === "REVIEW_PR") {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await storage.getItem("local:apiKey")}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [{ role: "user", content: `Review this diff:\n${msg.diff}` }],
-        }),
-      });
-      const data = await response.json();
-      return { summary: data.choices[0].message.content };
-    }
+  // Since WXT 0.20 `browser` is the native API, not webextension-polyfill:
+  // answer with sendResponse and return true instead of returning a promise.
+  browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type !== "EXPLAIN") return;
+    explain(msg.code)
+      .then((summary) => sendResponse({ summary }))
+      .catch((err) => sendResponse({ error: String(err) }));
+    return true; // keep the channel open until sendResponse runs
   });
 
   // Periodic tasks with alarms
-  browser.alarms.create("check-notifications", { periodInMinutes: 5 });
+  browser.alarms.create("refresh-badge", { periodInMinutes: 30 });
   browser.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name === "check-notifications") {
-      // Check for updates, show badge
-      const count = await checkNotifications();
-      if (count > 0) {
-        browser.action.setBadgeText({ text: String(count) });
-      }
-    }
+    if (alarm.name !== "refresh-badge") return;
+    const count = await explainCount.getValue();
+    // MV2 builds (the Firefox default) only have browser.browserAction
+    await (browser.action ?? browser.browserAction).setBadgeText({ text: count ? String(count) : "" });
   });
 });
+
+async function explain(code: string): Promise<string> {
+  const apiKey = await storage.getItem<string>("local:apiKey");
+  if (!apiKey) throw new Error("Save an API key in the popup first");
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: import.meta.env.WXT_OPENAI_MODEL, // set in .env
+      messages: [{ role: "user", content: `Explain this code:\n${code}` }],
+    }),
+  });
+  if (!response.ok) throw new Error(`OpenAI API returned ${response.status}`);
+  const data = await response.json();
+  await explainCount.setValue((await explainCount.getValue()) + 1);
+  return data.choices[0].message.content;
+}
 ```
 
 ### Popup UI (React)
@@ -149,9 +179,7 @@ export default function App() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    storage.getItem<string>("local:apiKey").then((key) => {
-      if (key) setApiKey(key);
-    });
+    storage.getItem<string>("local:apiKey").then((key) => key && setApiKey(key));
   }, []);
 
   const save = async () => {
@@ -162,17 +190,10 @@ export default function App() {
 
   return (
     <div style={{ width: 300, padding: 16 }}>
-      <h2>🤖 AI PR Reviewer</h2>
-      <input
-        type="password"
-        value={apiKey}
-        onChange={(e) => setApiKey(e.target.value)}
-        placeholder="OpenAI API Key"
-        style={{ width: "100%" }}
-      />
-      <button onClick={save} style={{ marginTop: 8 }}>
-        {saved ? "✅ Saved!" : "Save Key"}
-      </button>
+      <h2>Code Explainer</h2>
+      <input type="password" value={apiKey} placeholder="OpenAI API Key"
+        onChange={(e) => setApiKey(e.target.value)} style={{ width: "100%" }} />
+      <button onClick={save} style={{ marginTop: 8 }}>{saved ? "Saved" : "Save Key"}</button>
     </div>
   );
 }
@@ -181,43 +202,98 @@ export default function App() {
 ### Build for Multiple Browsers
 
 ```bash
-# Development (Chrome with hot reload)
-npm run dev
+npm run dev            # Chrome with hot reload
+npm run dev:firefox    # Firefox
 
-# Development for Firefox
-npm run dev:firefox
-
-# Build for all browsers
-npm run build          # Chrome MV3
-npm run build:firefox  # Firefox MV2/MV3
+# Production builds, one output directory per target
+npm run build          # wxt build            → .output/chrome-mv3/
+npm run build:firefox  # wxt build -b firefox → .output/firefox-mv2/
+npx wxt build -b firefox --mv3   # → .output/firefox-mv3/
+npx wxt build -b edge            # or -b safari
 
 # Zip for store submission
-npm run zip
-npm run zip:firefox
+npm run zip            # .output/code-explainer-1.0.0-chrome.zip
+npm run zip:firefox    # ...-firefox.zip plus ...-sources.zip, which Firefox review requires
 ```
+
+Branch on the target with `import.meta.env.BROWSER`, `import.meta.env.FIREFOX` or `import.meta.env.MANIFEST_VERSION`; limit an entrypoint to some browsers with `include: ["firefox"]` or `exclude: ["chrome"]`.
+
+### Publish
+
+```bash
+npx wxt submit init   # asks for store credentials, writes .env.submit
+npx wxt submit --dry-run \
+  --chrome-zip .output/code-explainer-1.0.0-chrome.zip \
+  --firefox-zip .output/code-explainer-1.0.0-firefox.zip \
+  --firefox-sources-zip .output/code-explainer-1.0.0-sources.zip
+```
+
+Drop `--dry-run` to submit. The first listing in each store has to be created by hand. Edge accepts the Chrome zip via `--edge-zip`. Safari is not automated: build with `-b safari` and wrap the output with Xcode's `safari-web-extension-packager`.
 
 ## Examples
 
-### Example 1: Build a productivity extension
+### Example 1: Block distracting sites during focus time
 
-**User prompt:** "Build a Chrome extension that blocks distracting websites during focus time."
+**User prompt:** "Build a Chrome extension that blocks Reddit and YouTube while I'm in a focus session."
 
-The agent will create a WXT extension with a popup for configuring blocked sites and focus timer, a content script that shows a block page on matched domains, and background alarms for timer management.
+Add a storage item and a second content script; the popup starts a session with `focusUntil.setValue(Date.now() + 25 * 60_000)`.
 
-### Example 2: Content enhancement extension
+```typescript
+// utils/storage.ts
+export const focusUntil = storage.defineItem<number>("local:focusUntil", { fallback: 0 });
+```
 
-**User prompt:** "Build an extension that adds AI-powered summaries to any article page."
+```typescript
+// entrypoints/blocker.content.ts
+export default defineContentScript({
+  matches: ["*://*.reddit.com/*", "*://*.youtube.com/*"],
+  runAt: "document_start",
+  async main() {
+    const until = await focusUntil.getValue();
+    if (Date.now() >= until) return;
+    window.stop();
+    const time = new Date(until).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    document.documentElement.innerHTML = `<body><h1>Focus time. Back at ${time}.</h1></body>`;
+  },
+});
+```
 
-The agent will create a content script that detects article content, a floating sidebar UI, and background API calls to summarize text.
+`npm run build` picks the file up by name and adds it to the generated manifest:
+
+```json
+"content_scripts": [
+  { "matches": ["*://*.reddit.com/*", "*://*.youtube.com/*"], "run_at": "document_start", "js": ["content-scripts/blocker.js"] }
+]
+```
+
+### Example 2: Ship the same extension to Firefox
+
+**User prompt:** "My WXT extension works in Chrome. Package it for the Firefox add-on store too."
+
+```bash
+npx wxt zip -b firefox
+```
+
+```
+✔ Zipped extension in 44 ms
+  ├─ .output/code-explainer-1.0.0-firefox.zip  95.69 kB
+  └─ .output/code-explainer-1.0.0-sources.zip  69.52 kB
+```
+
+The command also lists every file that went into the sources zip (hidden files such as `.env` are left out). The Firefox build is MV2: `host_permissions` are merged into `permissions`, `action` becomes `browser_action`, and the background runs as a script instead of a service worker. A new listing must first declare `browser_specific_settings.gecko.data_collection_permissions` in `manifest` (the build warns until it does; an explicit `gecko.id` is recommended). Upload both zips; the reviewers rebuild the extension from the sources zip, so check that `npm i && npm run zip:firefox` works inside it.
 
 ## Guidelines
 
 - **File-based entrypoints** — file name and location determine the extension component
-- **`browser.*` API** — WXT polyfills Chrome and Firefox differences automatically
-- **`storage` helper** — type-safe extension storage with `storage.getItem/setItem`
+- **`browser.*` API** — a plain alias for the browser's own `browser`/`chrome` global with `@types/chrome` types; the polyfill was removed in 0.20, so APIs a browser lacks are `undefined` (feature-detect with `?.`)
+- **No promise replies from `onMessage`** — use `sendResponse` plus `return true`, or a messaging library such as `@webext-core/messaging`; Chrome only began accepting returned promises in version 148
+- **Declare permissions yourself** — `storage`, `alarms`, `host_permissions` and the rest go in `manifest` in `wxt.config.ts`
+- **`storage` helper** — keys carry their area prefix (`local:`, `session:`, `sync:`, `managed:`); prefer `storage.defineItem` for typed values with a fallback
+- **Imports** — helpers are auto-imported; for explicit imports use `#imports` (`wxt/storage`, `wxt/client` and `wxt/sandbox` no longer exist)
 - **Hot reload works** — `npm run dev` reloads content scripts and popup on save
 - **MV3 service workers** — background scripts are service workers (no persistent state)
-- **`matches` for content scripts** — define URL patterns where scripts should inject
-- **Message passing** — content script ↔ background communication via `browser.runtime.sendMessage`
-- **One codebase, all browsers** — build targets handle manifest differences
-- **Icons at 16/48/128px** — required for Chrome Web Store
+- **Single-page sites** — content scripts run only on full page loads; on sites like GitHub or YouTube match the whole origin and listen for `wxt:locationchange` with `ctx.addEventListener`
+- **Secrets** — anything in `.env` or the source is shipped inside the extension and readable by every user; take API keys from the user at runtime or proxy calls through your own server
+- **Upgrading** — install with `--ignore-scripts`, apply the steps in the upgrade guide, then run `wxt prepare`
+- **Chrome Web Store API v1 stops working on 15 October 2026** — rerun `wxt submit init` and choose v2 (service-account auth)
+- **When not to use** — an existing extension with a working custom build gains little; Safari still needs Xcode on macOS

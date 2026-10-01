@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4d6d466e3b2f2ad3d656c31316e8c4c13ad5037a8319008d656a744c808d9f05",
-  "scoredAt": "2026-05-13T09:26:20.358Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9b84173a86605a27d3c7103603f29bcc479cc5fa25703093f45d117c259b5afb",
+  "scoredAt": "2026-10-01T11:55:23.502Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as missing animation data or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is limited to browser or React Native environments and does not support other AI agent platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 86,
-    "multiplier": 1.65,
+    "multiplier": 3,
+    "baselineAvg": 25,
+    "treatmentAvg": 75,
     "scenarios": [
       {
-        "name": "Build a React Lottie component that plays only frames 10-50 on hover",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment uses lottie-web's loadAnimation with renderer:'svg', anim.playSegments([10,50], true) for hover, and calls animRef.current?.destroy() in cleanup; baseline often imports lottie-react and misses playSegments and explicit destroy on unmount."
+        "name": "pause-after-5-seconds",
+        "baseline": 45,
+        "treatment": 60,
+        "rationale": "Response B meets the import requirement and otherwise matches the rubric, while Response A lacks the import and cleanup step, making it less complete."
       },
       {
-        "name": "Recolor a Lottie JSON to match brand colors before rendering",
-        "baseline": 48,
-        "treatment": 84,
-        "rationale": "Treatment walks layer.shapes/it recursively, matches shape.ty === 'fl' fills via shape.c.k, and writes back normalized [r,g,b,1] tuples as in the skill's recolorAnimation; baseline edits hex strings or applies CSS filters which do not work on Lottie shape fills."
+        "name": "recolor-and-play-once",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response A meets the rubric requirements (imports recolorAnimation, recolors the JSON, passes to LottiePlayer with loop=false, and sets container dimensions), whereas Response B does not use recolorAnimation or LottiePlayer at all."
+      },
+      {
+        "name": "dotlottie-error-handling",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items (import, DotLottie instance, loadError listener) but omits setSpeed(1.5); Response B fails to use DotLottie and lacks the required event handling and speed setting."
       }
     ]
   }

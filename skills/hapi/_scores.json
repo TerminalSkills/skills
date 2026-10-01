@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8cfed0372a14fdb10e655eb7af2eee2af5575fc168b241e87ce6c9eb14bd45c4",
-  "scoredAt": "2026-05-13T09:11:12.024Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3237eea36a2ae3fca525e71c33b50baa40c45d5e474dc3de15976713c6f409cb",
+  "scoredAt": "2026-10-01T11:47:30.041Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Example code does not demonstrate error handling or edge case scenarios."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill is tailored to Node.js/Hapi and may not be usable by agents on other runtimes."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 10,
-    "treatmentAvg": 95,
-    "multiplier": 9.5,
+    "multiplier": 1.11,
+    "baselineAvg": 90,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Hapi POST /api/users with Joi validation and JWT auth",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Baseline answers with Express and middleware instead of Hapi; treatment uses options.validate.payload with Joi, registers @hapi/jwt and server.auth.strategy('jwt','jwt',...), and applies auth: 'jwt' as the skill documents."
+        "name": "jwt-protected-get-with-validation",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B correctly registers @hapi/jwt and meets all rubric items, whereas Response A uses hapi-auth-jwt2 instead of @hapi/jwt, missing that requirement."
       },
       {
-        "name": "Modularize routes into a plugin and test via inject",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Baseline reverts to express.Router and supertest; treatment defines a Hapi.Plugin with name/version/register registering server.route([...]), registers via server.register, and tests with server.inject plus @hapi/boom errors."
+        "name": "plugin-with-method-and-lifecycle-extension",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing a plugin with name and async register, a cached server.method, an onPreResponse extension adding a header, and a route that calls the method."
+      },
+      {
+        "name": "test-auth-and-validation-with-inject",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, covering all three required test cases with server.inject() and appropriate assertions."
       }
     ]
   }

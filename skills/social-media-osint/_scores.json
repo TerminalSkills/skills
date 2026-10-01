@@ -1,31 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3aba04ff3599cc95112a97af0a1bccc6d0ae9cbfa458ad93bdea624f26e1c3a0",
-  "scoredAt": "2026-05-13T10:09:22.198Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8472b56b1f8c4a6866404b3c685c13a78416088347b3a476eca067f808273924",
+  "scoredAt": "2026-10-01T11:24:30.712Z",
+  "backend": "gemini-api",
+  "model": "gemini-3.5-flash",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling for tool failures and edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one realistic example is provided; more demonstrations are needed."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

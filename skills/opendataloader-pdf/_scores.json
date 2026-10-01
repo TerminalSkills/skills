@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:77852853179d0a7137dd22a2083779f8112ed1c49682dd196a0f5b84238986bf",
-  "scoredAt": "2026-05-13T09:45:32.941Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ca1529ff96191afdf1270b3849c9b58231dc648566d4b575420e611ad7219935",
+  "scoredAt": "2026-10-01T12:12:49.422Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill lacks handling for encrypted PDFs, missing dependencies, and corrupted files, limiting robustness."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
+    "multiplier": 9,
+    "baselineAvg": 7,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Quarterly financial PDF to RAG-ready JSON with tables",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment extracts text with pdfplumber's layout=True, tables via extract_tables with vertical_strategy='text' converted to dicts keyed by header row, plus chunk_for_rag with overlap and unified pdf_to_ai_ready output; baseline uses raw PyPDF2 page.extract_text and skips tables entirely."
+        "name": "markdown-with-page-separators",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B exactly matches the rubric with a single opendataloader-pdf command and required flags, while Response A uses a different approach and does not meet the rubric."
       },
       {
-        "name": "Batch process mixed digital + scanned legal contracts",
-        "baseline": 40,
-        "treatment": 86,
-        "rationale": "Treatment runs the pdfplumber pipeline first, detects scanned docs by checking total extracted text length, and falls back to PyMuPDF get_pixmap at dpi=300 piped into pytesseract.image_to_string as documented; baseline lacks the digital-vs-scanned detection heuristic and uses ad-hoc OCR."
+        "name": "extract-tables-to-csv",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet the required CLI call or use of opendataloader-pdf."
+      },
+      {
+        "name": "hybrid-ocr-tagged-pdf",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A follows the required opendataloader-pdf commands and shows server startup, missing only the OCR engine flag and explicit server reference, while Response B uses a different CLI and omits most rubric requirements."
       }
     ]
   }

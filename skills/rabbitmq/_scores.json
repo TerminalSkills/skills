@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:11d7a5f6d1a137a266c47f01e3215633c3aebe1a680a9eae05bac1d42c2d8991",
-  "scoredAt": "2026-05-13T09:59:41.566Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d748d77c5d952d0103a41c45a683857f45e8aa762ca2f1dfa9847950a97069ce",
+  "scoredAt": "2026-10-01T12:22:39.961Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanatory text that may be considered padded, reducing conciseness."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 92,
-    "multiplier": 1.67,
+    "multiplier": 1.95,
+    "baselineAvg": 22,
+    "treatmentAvg": 43,
     "scenarios": [
       {
-        "name": "rabbitmq-task-queue-with-dlq",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment wires prefetch, durable queue with x-dead-letter-exchange, persistent publishes, and ack/nack handling exactly as the skill teaches, while the baseline often misses the DLX queue argument or the persistent flag."
+        "name": "fanout-notification-broadcast",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response B meets the required exchange, queue, bind, and publish calls (though it lacks consumer code), while Response A uses different names and does not match the rubric exactly."
       },
       {
-        "name": "rabbitmq-topic-routing",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Treatment uses assertExchange('events','topic'), bindQueue with order.created/payment.*/# routing keys, and channel.publish with routing keys exactly as documented, while the baseline gets the topology mostly right but may bind the wrong patterns or omit durability."
+        "name": "topic-routing-orders",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response meets the required queue names, bindings, or routing keys specified in the rubric."
+      },
+      {
+        "name": "dead-letter-retry-limit",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "B covers more rubric items than A"
       }
     ]
   }

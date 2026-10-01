@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6f3bd31283c75d8815346c2a49314413a23ef5a2ffa72f66ab23862c3ac39729",
-  "scoredAt": "2026-05-13T09:51:26.413Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e70588f0fa1c5bffa3ad397d5aac397174103006fa56b8a47459a4c15c3941b5",
+  "scoredAt": "2026-10-01T12:18:33.524Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The instructions lack explicit step-by-step guidance, making them ambiguous."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases, limiting robustness."
+        "category": "conciseness",
+        "detail": "The skill file contains excessive explanatory text that reduces conciseness."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 95,
-    "multiplier": 1.9,
+    "multiplier": 1.55,
+    "baselineAvg": 55,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Gapminder bubble chart with continent color and population size",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment uses px.data.gapminder().query and px.scatter with size, color, log_x, and size_max exactly as documented; baseline reaches for matplotlib or graph_objects and misses the built-in dataset."
+        "name": "plotly-express-scatter-export",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A omits the required HTML export options."
       },
       {
-        "name": "Plotly.js browser revenue chart with currency hover and small bundle",
+        "name": "plotly-js-title-fix",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is incomplete and lacks the necessary config and full code."
+      },
+      {
+        "name": "dash-dashboard-continent-line",
         "baseline": 45,
-        "treatment": 95,
-        "rationale": "Treatment imports plotly.js-dist-min and uses Plotly.newPlot with hovertemplate %{y:,.0f}, tickformat $,.0f, and hovermode x unified; baseline ships the full plotly.js bundle and a plain hover string."
+        "treatment": 55,
+        "rationale": "Both miss the required config and run method, but A at least attempts a config key, whereas B omits it entirely."
       }
     ]
   }

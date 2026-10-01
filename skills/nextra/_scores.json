@@ -1,26 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b92c83c504596ee36421ad60753d726a748c3c838d70852f74d58bab686e6b67",
-  "scoredAt": "2026-05-13T09:40:24.190Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:32b21c22b07dc4a36633bba8c166428d928cdb798ce9b61458be33ed40041a36",
+  "scoredAt": "2026-10-01T11:20:53.423Z",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

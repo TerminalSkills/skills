@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:92999ebbeb9b1f34f33ac2ff1c2199a3405f1a1030b47fe0db446c97f9059085",
-  "scoredAt": "2026-05-13T14:44:54.667Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:0fb77f7b7f89d3eeb953859d6347fe8dd4e7c2bc115c7693c2e794ca094773be",
+  "scoredAt": "2026-10-01T11:21:16.641Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose and not strictly necessary for execution."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.33,
-    "baselineAvg": 75,
-    "treatmentAvg": 100,
+    "multiplier": 3.53,
+    "baselineAvg": 17,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "bloom-exr-output",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required Glare node, File Output node, and pass connections."
+        "name": "cinematic-color-grade-with-bloom-and-vignette",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses are incomplete; B contains more detail than A but still lacks the full node setup required by the rubric."
       },
       {
-        "name": "alpha-over-photo-background",
-        "baseline": 100,
+        "name": "composite-3d-character-over-photo-plate",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except setting scene.render.filepath, while Response B omits the required node group assignment and NodeGroupOutput, making it less complete."
+      },
+      {
+        "name": "port-blender-4x-compositing-script-to-5x",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Both scripts meet all rubric requirements; Response A offers more context but both fully satisfy the criteria."
+        "rationale": "Response B fully satisfies the rubric, while Response A is empty."
       }
     ]
   }

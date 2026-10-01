@@ -1,41 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c541c808fc7ae3c6b199b5257894149bc844d05f46326f90b40c513cbbb42448",
-  "scoredAt": "2026-05-13T14:14:24.180Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:e5347b31c8e8f4ad4e470c56845d7c4027346c0d710d29dc240a1efd608e309d",
+  "scoredAt": "2026-10-01T11:18:47.794Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Missing handling for missing API key and network timeouts, limiting robustness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Excessive explanatory text and repeated sections increase file length unnecessarily."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill is limited to Python SDK and specific agents, not universally applicable across all AI agents."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 4,
+    "multiplier": 10,
     "baselineAvg": 0,
-    "treatmentAvg": 40,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "transcribe-podcast-with-chapters",
+        "name": "transcribe-with-speaker-labels-and-sentiment-summary",
         "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B provides detailed code and outputs but does not use transcribe_rich as required, whereas Response A offers no solution."
+        "treatment": 100,
+        "rationale": "Response A fully follows the rubric, while Response B does not use the required AssemblyAI API calls."
       },
       {
-        "name": "lemur-action-items",
+        "name": "redact-pii-and-get-audio-url",
         "baseline": 0,
-        "treatment": 30,
-        "rationale": "Response A never calls transcribe_rich or lemur_qa, while Response B calls speaker_labels and a LeMUR QA but still omits the required transcribe_rich call."
+        "treatment": 100,
+        "rationale": "Response B fully implements the rubric, while Response A does not provide any solution."
+      },
+      {
+        "name": "real-time-transcription-with-speaker-labels",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with complete code and details, while Response B provides no relevant content."
       }
     ]
   }

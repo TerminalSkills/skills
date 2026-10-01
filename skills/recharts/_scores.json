@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:86600970d7cc0c07bbcca1de92585262401bff54838008ee5fc9b6d7b5d79cdc",
-  "scoredAt": "2026-05-13T10:01:15.799Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7da6d18bf5386ada0c0a8a4d4b9fd361a2c1798c09575882028a6dcd571e6407",
+  "scoredAt": "2026-10-01T12:23:37.369Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,13 +17,13 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The instructions lack explicit step-by-step guidance for the agent, making them somewhat vague."
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios and edge cases, such as handling missing data or invalid props."
       },
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing data or invalid props."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 96,
-    "multiplier": 2.23,
+    "multiplier": 1.89,
+    "baselineAvg": 53,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Three-series revenue line chart with dollar formatting",
-        "baseline": 45,
-        "treatment": 96,
-        "rationale": "Baseline skips ResponsiveContainer, tickFormatter, CartesianGrid and tooltip formatter; treatment uses every documented pattern for a responsive, currency-formatted line chart."
+        "name": "responsive-line-chart-with-custom-tooltip",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric items, while Response A uses Chart.js instead of a LineChart and misses the required components."
       },
       {
-        "name": "Area chart with linearGradient fill",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline uses fillOpacity instead of the documented <defs><linearGradient> with two <stop> elements referenced via fill=url(#id); treatment follows the exact gradient pattern inside ResponsiveContainer."
+        "name": "bar-chart-with-shape-prop-and-matching-legend",
+        "baseline": 90,
+        "treatment": 100,
+        "rationale": "Both answers meet the rubric, but Response B correctly passes the custom shape as a component (shape={RoundedBar}), ensuring runnable code, whereas Response A passes an element (<TriangleShape />), which is not the typical usage and may not render correctly."
+      },
+      {
+        "name": "composed-chart-with-reference-line-and-no-animation",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements, while Response B omits the required isAnimationActive={false} on the chart."
       }
     ]
   }

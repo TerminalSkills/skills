@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a3f4992c5facf292c76eff74a7d57d2653c34d038259863a893c2b129ff67309",
-  "scoredAt": "2026-05-13T14:08:04.736Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:1bda6d6cf67d3977f24c289543afe444408755e0dfe721d67c33c5e984b9801f",
+  "scoredAt": "2026-10-01T12:53:35.763Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,42 +17,42 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions lack step-by-step guidance and are not specific for the agent."
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios and edge cases."
       },
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases for deployment and data queries."
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be more concise."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Using a shortened URL in curl command may lead to malicious redirects."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 1.7,
-    "baselineAvg": 43,
-    "treatmentAvg": 73,
+    "multiplier": 1.67,
+    "baselineAvg": 52,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "create-products-crud-interface",
-        "baseline": 45,
-        "treatment": 55,
-        "rationale": "Response A includes a modal and a JSObject for validation (though not named exactly), whereas Response B lacks any validation logic; both miss the date‑range requirement, but A is slightly more complete."
+        "name": "orders-crud-with-jsobject",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses different query names and omits the required OrdersQuery and UpdateOrderQuery definitions."
       },
       {
-        "name": "setup-appsmith-k8s-git-sync",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Response A covers almost all rubric items except the localhost URL, while Response B fails to provide the correct Helm repo URL and install command, missing key requirements."
+        "name": "self-host-docker-backup-domain",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items (pinned image, docker-compose, backup, custom domain, telemetry) while Response B lacks key details such as a pinned tag, proper env file location, and domain/telemetry settings."
+      },
+      {
+        "name": "git-sync-automatic-deploy",
+        "baseline": 85,
+        "treatment": 80,
+        "rationale": "Both responses cover the key steps, but A provides more detailed instructions and a concrete GitHub Actions workflow, while B omits the branch‑protection note and is slightly less exhaustive."
       }
     ]
   }

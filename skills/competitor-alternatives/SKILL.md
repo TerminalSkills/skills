@@ -1,9 +1,11 @@
 ---
 name: competitor-alternatives
-description: "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables."
+description: "Plans and writes competitor comparison and alternative pages for SEO and sales enablement. Use when the user asks for an 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables."
+license: MIT
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags:
     - seo
@@ -96,9 +98,42 @@ Update quarterly (pricing, major features), annually (full refresh).
 
 **Internal Linking**: Link between related competitor pages, from feature pages to comparisons, and create a hub page linking to all competitor content.
 
-**Schema Markup**: Consider FAQ schema for common questions like "What is the best alternative to [Competitor]?"
+**FAQ Section**: Answer common questions like "What is the best alternative to [Competitor]?" in a visible FAQ block. Do not rely on FAQ schema for search appearance: Google stopped showing FAQ rich results on May 7, 2026.
 
-**Centralized Competitor Data**: Create a single YAML source of truth for each competitor with positioning, pricing, feature ratings, strengths/weaknesses, best-for/not-ideal-for, and common complaints from reviews.
+**URL Map**: One competitor can feed all four formats; keep the paths predictable.
+
+```text
+/alternatives/asana                  # Format 1: Asana alternative
+/alternatives/asana-alternatives     # Format 2: Asana alternatives
+/vs/asana                            # Format 3: you vs Asana
+/compare/asana-vs-monday             # Format 4: competitor vs competitor
+/compare                             # hub page linking to all of the above
+```
+
+**Centralized Competitor Data**: Create a single YAML source of truth for each competitor with positioning, pricing, feature ratings, strengths/weaknesses, best-for/not-ideal-for, and common complaints from reviews. Record where each fact came from and when it was last checked:
+
+```yaml
+# competitor_data/asana.yaml
+name: Asana
+website: asana.com
+pricing:
+  model: per-seat
+  free_tier: Personal
+  starter: "$10.99/user/month billed annually ($13.49 monthly)"
+  advanced: "$24.99/user/month billed annually ($30.49 monthly)"
+  enterprise: custom
+  source: https://asana.com/pricing
+  last_verified: 2026-10-01
+strengths:
+  - Large integration ecosystem
+  - Enterprise features
+  - Brand recognition
+best_for:
+  - Large teams and enterprises
+  - Teams already working in Asana
+not_ideal_for:
+  - Small agencies that need client portals and time tracking built in
+```
 
 **For data structure and examples**: See [references/content-architecture.md](references/content-architecture.md)
 
@@ -110,11 +145,29 @@ Update quarterly (pricing, major features), annually (full refresh).
 
 The agent will:
 - Draft a full "TeamSync vs Asana" page following Format 3 structure.
-- Open with a TL;DR: "TeamSync is built specifically for small agencies with built-in client portals and time tracking. Asana is a general-purpose tool that scales to enterprises but requires add-ons for agency workflows."
+- Open with a TL;DR that says who each tool is built for and what each costs (shown below).
 - Create comparison sections for Features, Pricing, Ease of Use, Integrations, and Support.
 - Honestly note where Asana wins (larger integration ecosystem, enterprise features, brand recognition).
 - Include a "Who Asana is best for" section (large teams, enterprise, teams already in the Asana ecosystem).
-- Provide meta title, description, and FAQ schema suggestions targeting "TeamSync vs Asana" keywords.
+- Provide a meta title, a meta description, and FAQ questions with answers targeting "TeamSync vs Asana" keywords.
+
+The page, titled "TeamSync vs Asana: Which Fits a Small Agency?", opens like this:
+
+```markdown
+**TL;DR**: TeamSync is built for agencies under 20 people, with client portals and time
+tracking included at $12/user/month. Asana is a general-purpose tool that scales to
+enterprises; its paid plans run $10.99–$24.99/user/month billed annually.
+Choose Asana if you need its integration ecosystem or enterprise controls.
+Choose TeamSync if you bill clients by the hour and want one tool for it.
+
+| | TeamSync | Asana |
+|---|---|---|
+| Price per user/month | $12 | $10.99–$24.99 (annual billing) |
+| Built for | Agencies under 20 people | General-purpose teams up to enterprise |
+| Client portals, time tracking | Built in | Confirm per plan before publishing |
+
+_Pricing last verified: 2026-10-01 — asana.com/pricing_
+```
 
 ### Example 2: Alternatives Roundup Page
 
@@ -128,6 +181,20 @@ The agent will:
 - Add a comparison table covering price at 10k and 50k contacts, SMS support, e-commerce integrations, and automation capabilities.
 - Recommend by use case: "Best for budget-conscious stores" vs "Best for advanced automation" vs "Best for Shopify-native."
 
+The delivered outline:
+
+```text
+H1  6 Mailchimp Alternatives for Growing E-commerce Stores (2026)
+H2  Why stores outgrow Mailchimp
+H2  How we compared: pricing transparency, channels, e-commerce integrations, automation
+H2  The alternatives at a glance (comparison table, prices at 10k and 50k contacts)
+H2  1. SendPulse — email, SMS and web push in one plan
+H2  2–6. One section per alternative: who it suits, pros, cons, pricing
+H2  Which one should you pick? (by use case)
+H2  Switching from Mailchimp: what transfers and what does not
+H2  FAQ
+```
+
 ## Guidelines
 
 - **Always be honest about competitor strengths** — readers are actively comparing and will fact-check. Losing credibility on one claim undermines the entire page.
@@ -137,3 +204,7 @@ The agent will:
 - **Update competitor data quarterly** — stale comparison pages with outdated pricing or features damage credibility and rankings.
 - **Use review sites for voice-of-customer language** — G2 and Capterra reviews reveal the exact words people use when frustrated with competitors. Mirror that language in your "why people look for alternatives" section.
 - **Create the competitor data file first** — a centralized YAML source per competitor ensures consistency across all pages and makes quarterly updates manageable.
+
+---
+
+Adapted from [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) (MIT License, © Corey Haines).

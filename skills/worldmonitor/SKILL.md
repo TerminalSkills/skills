@@ -1,20 +1,25 @@
 ---
 name: worldmonitor
 description: >-
-  Build real-time intelligence dashboards that aggregate news, geopolitical events, and
-  infrastructure data using AI. Use when: building news aggregation systems, monitoring
-  global events, creating situational awareness dashboards.
+  World Monitor is an open-source real-time global intelligence dashboard that
+  aggregates news, conflict, market, maritime, aviation, cyber and
+  infrastructure data and serves it through an MCP server, a REST API, a CLI
+  and SDKs. Use when a user asks to query World Monitor from a script or an
+  agent, get a country risk score or brief, pull conflict, cyber, sanctions or
+  market feeds, connect the World Monitor MCP server, or self-host the
+  dashboard.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.10+"
+compatibility: "CLI: Node.js 18.17+. Python SDK: Python 3.9+. Self-hosting: Node.js 22+ and Docker or Podman. Most data calls need a paid API key."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: [intelligence, news-aggregation, geopolitical, monitoring, dashboard]
+  repository: https://github.com/koala73/worldmonitor
   use-cases:
-    - "Build a real-time news monitoring dashboard for a specific industry"
-    - "Create an AI-powered intelligence feed that summarizes global events"
-    - "Monitor competitor news and market changes in real-time"
+    - "Pull a country risk score or strategic brief into a script or report"
+    - "Give an AI agent live conflict, cyber, sanctions and market data over MCP"
+    - "Self-host the World Monitor dashboard with your own data-source keys"
   agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
@@ -22,220 +27,180 @@ metadata:
 
 ## Overview
 
-Build real-time intelligence dashboards that ingest data from multiple sources (RSS, news APIs, social media), use AI to categorize, summarize, deduplicate, and score severity, then push updates to a live dashboard. Think of it as your own AI-powered situation room.
+World Monitor (`koala73/worldmonitor`, AGPL-3.0) is a situational-awareness dashboard: curated news feeds synthesized into briefs, a 3D globe and flat map with shared layers, a Country Instability Index, market, energy, maritime and aviation panels. The same data is available to programs through four surfaces that all speak to one backend:
+
+| Surface | Where | Use it for |
+|---|---|---|
+| MCP server | `https://worldmonitor.app/mcp` (Streamable HTTP) | Agents; the recommended surface — more than 80 tools in October 2026 |
+| CLI | `worldmonitor` on npm (alias `wm`) | Shell scripts and CI; a thin wrapper over the MCP server |
+| SDKs | `worldmonitor-sdk` (PyPI), `worldmonitor` (RubyGems), `github.com/koala73/worldmonitor/sdk/go` | Application code |
+| REST API | `https://api.worldmonitor.app`, OpenAPI at `https://worldmonitor.app/openapi.yaml` | Endpoints MCP does not expose |
+
+Listing tools is public. One data tool, `get_sources`, works without credentials; every other data call needs an API key (`wm_` plus 40 hex characters, from worldmonitor.app/pro) or an OAuth sign-in from an MCP client.
 
 ## Instructions
 
-When a user asks to build a news monitoring system, intelligence dashboard, or event aggregation feed:
+### CLI
 
-1. **Define scope** — What topics/regions/industries to monitor?
-2. **Select sources** — RSS feeds, NewsAPI, social APIs, custom scrapers
-3. **Set up pipeline** — Ingest → Deduplicate → Classify → Summarize → Score
-4. **Build output** — API + WebSocket for real-time push, alert rules
+```bash
+npm install -g worldmonitor        # or run ad hoc: npx worldmonitor tools
+worldmonitor tools                 # public: the live tool registry as JSON
+worldmonitor list cyber            # public: REST operations of one service, from the OpenAPI spec
 
-### Source Ingestion (Python)
+export WORLDMONITOR_API_KEY="wm_..."   # sent as the X-WorldMonitor-Key header
+worldmonitor world                             # global situation brief
+worldmonitor country IR                        # AI strategic brief, ISO 3166-1 alpha-2
+worldmonitor risk DE                           # Country Instability Index and sanctions status
+worldmonitor conflicts --country Sudan --limit 5
+worldmonitor markets --asset_class crypto
+worldmonitor news --topic cyber --alerts_only           # a bare --flag is sent as boolean true
+```
+
+Shortcuts exist for `world`, `country`, `risk`, `markets`, `conflicts`, `cyber`, `news`, `disasters`, `sanctions`, `forecasts` and `maritime`. Every other tool goes through `call`; any `--key value` that is not a CLI flag becomes a tool argument, and `--args` passes typed JSON:
+
+```bash
+worldmonitor call get_cyber_threats --min_severity high --limit 10
+worldmonitor call get_market_data --args '{"symbols":["AAPL","MSFT"]}'
+worldmonitor call describe_tool --tool_name get_country_risk     # full definition of one tool
+worldmonitor get /api/cyber/v1/list-cyber-threats                # raw REST path
+```
+
+Flags: `--api-key`, `--mcp-url`, `--base-url`, `--args`, `--timeout <ms>` (default 30000), `--raw`, `--compact`. Exit codes: `0` success, `1` request or transport error (body on stderr), `2` usage error.
+
+### Shrinking responses
+
+Every tool accepts a `jmespath` argument that projects the response on the server; the projected value comes back under `structuredContent.projection`. Cache-backed tools wrap their payload as `{ "cached_at", "stale", "data" }` — `stale: true` means a contributing feed missed its freshness budget, so caveat the answer. List fields are capped at 30 items unless `limit` is set (`0` removes the cap); `summary: true` returns counts and three samples.
+
+```bash
+worldmonitor risk DE --jmespath '{score: cii.combinedScore, trend: cii.trend, advisory: advisoryLevel, sanctioned: sanctionsActive}'
+```
+
+### MCP server
+
+```bash
+# Claude Code — then run /mcp, pick worldmonitor, and sign in
+claude mcp add --transport http worldmonitor https://worldmonitor.app/mcp
+
+# With an API key instead of OAuth
+claude mcp add --transport http worldmonitor https://worldmonitor.app/mcp \
+  --header "X-WorldMonitor-Key: $WORLDMONITOR_API_KEY"
+```
+
+Claude Desktop and Cursor take `{"mcpServers": {"worldmonitor": {"url": "https://worldmonitor.app/mcp"}}}` in `claude_desktop_config.json` or `~/.cursor/mcp.json` and run the OAuth flow on first use. From a script, the server is plain JSON-RPC over HTTP:
+
+```bash
+curl -s https://worldmonitor.app/mcp \
+  -H "X-WorldMonitor-Key: $WORLDMONITOR_API_KEY" \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_country_risk","arguments":{"country_code":"DE"}}}'
+```
+
+The key goes in `X-WorldMonitor-Key`, never in `Authorization: Bearer` — that header is reserved for OAuth tokens and a key sent there returns `401 invalid_token`.
+
+### Python SDK
 
 ```python
-"""Fetch from multiple source types in parallel."""
-import asyncio, hashlib, feedparser, httpx
-from datetime import datetime, timezone
+# pip install worldmonitor-sdk   (the PyPI package named "worldmonitor" is an unrelated project)
+from worldmonitor_sdk import Client, MCPError
 
-class NewsItem:
-    def __init__(self, title: str, content: str, source: str, url: str, published: datetime):
-        self.title, self.content, self.source, self.url = title, content, source, url
-        self.published = published
-        self.id = hashlib.sha256(f"{title}{url}".encode()).hexdigest()[:16]
-
-async def fetch_rss(feeds: list[str]) -> list[NewsItem]:
-    items = []
-    async with httpx.AsyncClient(timeout=15) as client:
-        responses = await asyncio.gather(*[client.get(url) for url in feeds], return_exceptions=True)
-    for resp in responses:
-        if isinstance(resp, Exception):
-            continue
-        feed = feedparser.parse(resp.text)
-        for entry in feed.entries[:20]:
-            items.append(NewsItem(
-                title=entry.get("title", ""), content=entry.get("summary", ""),
-                source=feed.feed.get("title", "RSS"), url=entry.get("link", ""),
-                published=datetime.now(timezone.utc),
-            ))
-    return items
-
-async def fetch_newsapi(query: str, api_key: str) -> list[NewsItem]:
-    async with httpx.AsyncClient() as client:
-        resp = await client.get("https://newsapi.org/v2/everything",
-            params={"q": query, "sortBy": "publishedAt", "pageSize": 50},
-            headers={"X-Api-Key": api_key})
-        data = resp.json()
-    return [
-        NewsItem(title=a["title"], content=a.get("description", ""),
-                 source=a["source"]["name"], url=a["url"],
-                 published=datetime.fromisoformat(a["publishedAt"].replace("Z", "+00:00")))
-        for a in data.get("articles", [])
-    ]
+client = Client()                       # reads WORLDMONITOR_API_KEY; or Client(api_key="wm_...")
+tools = client.list_tools()["tools"]    # public
+risk = client.country_risk("DE")
+events = client.conflict_events(country="Sudan", limit=5)
+quotes = client.call_tool("get_market_data", asset_class="crypto")
 ```
 
-### Deduplication
+Helpers: `world_brief`, `country_brief`, `country_risk`, `market_data`, `conflict_events`, `cyber_threats`, `news_intelligence`, `natural_disasters`, `sanctions_data`, `forecast_predictions`, `maritime_activity`, plus `call_tool`, `get("/api/...")` and `health()`. A missing or invalid key raises `MCPError` with code `-32001`. The Ruby and Go clients mirror the same surface.
 
-```python
-from difflib import SequenceMatcher
+### Running the dashboard yourself
 
-def deduplicate(items: list[NewsItem], threshold: float = 0.75) -> list[NewsItem]:
-    unique, seen_titles = [], []
-    for item in sorted(items, key=lambda x: x.published, reverse=True):
-        is_dup = any(SequenceMatcher(None, item.title.lower(), s.lower()).ratio() > threshold for s in seen_titles)
-        if not is_dup:
-            unique.append(item)
-            seen_titles.append(item.title)
-    return unique
+```bash
+git clone https://github.com/koala73/worldmonitor.git && cd worldmonitor
+npm install
+npm run dev            # http://localhost:3000 — set DEV_PORT in .env.local to change it
+npm run dev:finance    # variants: dev:tech, dev:finance, dev:commodity, dev:happy, dev:energy
 ```
 
-### AI Classification & Summarization
+The dev server needs no environment variables; optional keys in `.env.example` unlock extra layers. For the full self-hosted stack (dashboard, relay, Redis), four secrets must exist before the containers start:
 
-```python
-import json
-from openai import OpenAI
-
-client = OpenAI()
-CATEGORIES = ["geopolitics", "technology", "finance", "security", "climate", "health", "regulation", "market-move"]
-
-def analyze_article(item: NewsItem) -> dict:
-    response = client.chat.completions.create(
-        model="gpt-4o-mini", response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": f"Analyze this news. Return JSON: {{category: one of {CATEGORIES}, severity: 1-10, summary: '2-3 sentences', entities: [], sentiment: 'positive|negative|neutral', actionable: bool}}"},
-            {"role": "user", "content": f"Title: {item.title}\n\nContent: {item.content[:2000]}"},
-        ],
-    )
-    analysis = json.loads(response.choices[0].message.content)
-    return {**analysis, "id": item.id, "title": item.title, "url": item.url, "source": item.source}
+```bash
+for name in RELAY_SHARED_SECRET REDIS_PASSWORD REDIS_TOKEN WM_SESSION_SECRET; do
+  echo "$name=$(openssl rand -hex 32)" >> .env
+done
+docker compose up -d
+./scripts/run-seeders.sh     # runs on the host, fills Redis from upstream sources
 ```
 
-### Dashboard API (Node.js)
-
-```typescript
-import express from "express";
-import { WebSocketServer, WebSocket } from "ws";
-import { createServer } from "http";
-
-interface IntelItem {
-  id: string; title: string; summary: string; category: string;
-  severity: number; source: string; url: string; timestamp: string;
-}
-
-const app = express();
-const server = createServer(app);
-const wss = new WebSocketServer({ server });
-let feed: IntelItem[] = [];
-const clients = new Set<WebSocket>();
-
-wss.on("connection", (ws) => {
-  clients.add(ws);
-  ws.send(JSON.stringify({ type: "init", items: feed.slice(0, 50) }));
-  ws.on("close", () => clients.delete(ws));
-});
-
-function broadcast(item: IntelItem) {
-  const msg = JSON.stringify({ type: "new", item });
-  clients.forEach((ws) => { if (ws.readyState === WebSocket.OPEN) ws.send(msg); });
-}
-
-app.post("/api/ingest", express.json(), (req, res) => {
-  const item: IntelItem = { ...req.body, timestamp: new Date().toISOString() };
-  feed.unshift(item);
-  feed = feed.slice(0, 1000);
-  broadcast(item);
-  res.json({ ok: true });
-});
-
-app.get("/api/feed", (req, res) => {
-  let items = feed;
-  const { category, minSeverity, limit } = req.query;
-  if (category) items = items.filter((i) => i.category === category);
-  if (minSeverity) items = items.filter((i) => i.severity >= Number(minSeverity));
-  res.json(items.slice(0, Number(limit) || 50));
-});
-
-server.listen(3000, () => console.log("Intelligence dashboard on :3000"));
-```
-
-### Alert Rules
-
-```python
-import httpx
-
-ALERT_RULES = [
-    {"category": "security", "min_severity": 7, "channel": "slack"},
-    {"category": "market-move", "min_severity": 8, "channel": "email"},
-    {"category": "*", "min_severity": 9, "channel": "all"},
-]
-
-async def check_alerts(item: dict):
-    for rule in ALERT_RULES:
-        cat_match = rule["category"] == "*" or rule["category"] == item["category"]
-        if cat_match and item["severity"] >= rule["min_severity"]:
-            await send_alert(rule["channel"], item)
-
-async def send_alert(channel: str, item: dict):
-    msg = f"[{item['category'].upper()}] Severity {item['severity']}/10\n{item['title']}\n{item['summary']}"
-    if channel in ("slack", "all"):
-        await httpx.AsyncClient().post("https://hooks.slack.com/services/YOUR/WEBHOOK", json={"text": msg})
-```
+The dashboard is then at `http://localhost:3000` (`WM_PORT` changes it). Data-source and LLM keys (`GROQ_API_KEY`, `FINNHUB_API_KEY`, `NASA_FIRMS_API_KEY`, or `LLM_API_URL` for an OpenAI-compatible endpoint such as Ollama) go in a gitignored `docker-compose.override.yml`. The self-hosted MCP endpoint is `/api/mcp`; it accepts keys listed in `WORLDMONITOR_VALID_KEYS`, and point the CLI at it with `--mcp-url http://localhost:3000/api/mcp`.
 
 ## Examples
 
-### Example 1: Tech Industry News Monitor
+### Example 1: Check that the API is reachable, then read a country's risk
 
-```python
-RSS_FEEDS = [
-    "https://feeds.arstechnica.com/arstechnica/index",
-    "https://techcrunch.com/feed/",
-    "https://www.theverge.com/rss/index.xml",
-]
+**User request:** "Set up the World Monitor CLI and tell me how unstable Germany is right now."
 
-async def run_tech_monitor():
-    items = await fetch_rss(RSS_FEEDS)
-    unique = deduplicate(items)
-    for item in unique[:20]:
-        analysis = analyze_article(item)
-        async with httpx.AsyncClient() as c:
-            await c.post("http://localhost:3000/api/ingest", json=analysis)
-        await check_alerts(analysis)
-        # Output: {"category": "technology", "severity": 4, "summary": "Apple announced..."}
+Confirm connectivity with the one call that needs no key:
+
+```bash
+npx worldmonitor call get_sources --view summary \
+  --jmespath 'summary.{providers:providerCount,outlets:outletCount,tiers:outletsByTier}' --compact
 ```
 
-### Example 2: Geopolitical Event Monitoring with Scheduled Polling
+```json
+{"content":[{"type":"text","text":"{\"providers\":771,\"outlets\":519,\"tiers\":{\"1\":64,\"2\":240,\"3\":194,\"4\":21}}"}],"structuredContent":{"projection":{"providers":771,"outlets":519,"tiers":{"1":64,"2":240,"3":194,"4":21}}}}
+```
+
+Without a key, `npx worldmonitor risk DE` exits with status 1 and prints `Authentication required. Use OAuth (/oauth/token) or pass your API key via X-WorldMonitor-Key header.` Export `WORLDMONITOR_API_KEY` and run:
+
+```bash
+worldmonitor risk DE --jmespath '{score: cii.combinedScore, trend: cii.trend, advisory: advisoryLevel, sanctioned: sanctionsActive}'
+```
+
+The projection returns four fields: `score` is the Composite Instability Index on a 0–100 scale, `trend` its direction, `advisory` the travel advisory level and `sanctioned` a boolean. Report the score together with `cii.computedAt` when the user needs to know how fresh it is.
+
+### Example 2: Morning conflict digest for a watchlist, posted to Slack
+
+**User request:** "Every morning, post the deadliest conflict events in Sudan, Myanmar and Ukraine to our #geo-risk channel."
 
 ```python
-async def monitor_loop(interval_minutes: int = 15):
-    """Run the full pipeline on a schedule."""
-    while True:
-        items = await fetch_rss(RSS_FEEDS)
-        newsapi_items = await fetch_newsapi("geopolitics OR sanctions", NEWSAPI_KEY)
-        all_items = items + newsapi_items
-        unique = deduplicate(all_items)
-        for item in unique:
-            analysis = analyze_article(item)
-            async with httpx.AsyncClient() as c:
-                await c.post("http://localhost:3000/api/ingest", json=analysis)
-            await check_alerts(analysis)
-        await asyncio.sleep(interval_minutes * 60)
-        # Runs every 15 min, deduplicates across sources, alerts on severity >= 7
+# wm_digest.py — run from cron: 0 7 * * * /opt/geo/venv/bin/python /opt/geo/wm_digest.py
+import json, os, urllib.request
+from worldmonitor_sdk import Client, MCPError
+
+WATCHLIST = ["Sudan", "Myanmar", "Ukraine"]
+PROJECTION = ('{stale: stale, events: data."ucdp-events".events[]'
+              '.{country: country, a: sideA, b: sideB, deaths: deathsBest}}')
+client = Client()  # WORLDMONITOR_API_KEY
+
+lines = []
+for country in WATCHLIST:
+    try:
+        result = client.conflict_events(country=country, min_fatalities=5, limit=5, jmespath=PROJECTION)
+    except MCPError as err:
+        lines.append(f"{country}: lookup failed ({err.code})")
+        continue
+    view = result["structuredContent"]["projection"]
+    flag = " (feed stale)" if view["stale"] else ""
+    for e in view["events"] or []:
+        lines.append(f"{e['country']}{flag}: {e['a']} vs {e['b']} — {e['deaths']} dead")
+
+payload = json.dumps({"text": "\n".join(lines) or "No events above threshold."}).encode()
+request = urllib.request.Request(os.environ["SLACK_WEBHOOK_URL"], data=payload,
+                                 headers={"Content-Type": "application/json"})
+urllib.request.urlopen(request, timeout=10)
 ```
+
+Each run costs three tool calls. The Slack message has one line per event in the form `Sudan: <side A> vs <side B> — <deaths> dead`; a country with nothing above the threshold adds no lines.
 
 ## Guidelines
 
-1. **Dedup aggressively** — The same story appears across 20+ outlets. Dedup by title similarity
-2. **Batch AI calls** — Process 10 articles per LLM call instead of 1 to save ~90% on API costs
-3. **Severity calibration** — Periodically review severity scores. LLMs tend to over-rate severity
-4. **Source diversity** — Mix mainstream, niche, and social sources for balanced coverage
-5. **Rate limit respect** — Cache RSS feeds for 15-30 min. Don't hammer free APIs
-6. **Historical storage** — Keep analyzed articles in a DB for trend analysis over time
-
-## Dependencies
-
-```bash
-pip install feedparser httpx openai     # Python pipeline
-npm install express ws                   # Node.js dashboard
-```
+- **Budget the quota.** Pro includes 50 MCP calls per UTC day; API Starter 1,000 requests per day at 60 per minute; API Business 10,000 per day at 300 per minute. On the API plans MCP and REST draw on the same allowance, and tools that fetch live data cost more than one unit (`get_country_risk` 2, `get_country_brief` 3); Pro counts one per call. Beyond the allowance the API answers 429 until 00:00 UTC. Cache results and use `jmespath` rather than re-calling.
+- **Anonymous limits.** `get_sources` allows 10 calls per minute per IP without a key; discovery (`tools/list`) 60 per minute.
+- **Send a descriptive User-Agent to the REST API.** Without a `wm_` key, a request from `curl`, `python-requests` or a similar generic agent to an `/api/*` data path is rejected with `403 agent_request_blocked` (`/api/health` and `/api/version` are exempt); the CLI and SDKs set their own agent string.
+- **Do not trust stale data silently.** Check `stale` and `cached_at`; the public status is at `https://api.worldmonitor.app/api/health?compact=1`.
+- **Tool arguments change.** The registry is live — read `worldmonitor tools` or `describe_tool` instead of assuming a parameter; for example `get_cyber_threats` takes `min_severity` as `low`, `medium`, `high` or `critical`, not a number.
+- **Keep keys server-side.** Never ship a `wm_` key in browser code, and never commit `.env` or `docker-compose.override.yml`.
+- **Self-hosting security.** The stack refuses to start without the four secrets. Never set `I_UNDERSTAND_THIS_DISABLES_AUTH=true` on a host reachable from the internet, and keep the Redis REST proxy bound to `127.0.0.1`.
+- **Licensing.** The platform is AGPL-3.0: a modified instance offered over a network must publish its source. The CLI and SDKs are MIT. Hosted data has redistribution limits by plan — building a customer-facing product on it needs API Business.
+- **AI output is a starting point.** Briefs and forecasts (`get_country_brief`, `analyze_situation`, `generate_forecasts`) are model-generated; cite the underlying sources the response lists before acting on them.
+- **When not to use it.** For a private feed of your own RSS sources with custom classification, a small pipeline you own is simpler than self-hosting the full stack.

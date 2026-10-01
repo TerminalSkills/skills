@@ -1,53 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:082f9773ea73dbcbac6cba466f62d966e172fe7520726f1fee6641c35f2406bd",
-  "scoredAt": "2026-05-13T10:03:08.585Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:92aadf74f4b64aa1671ebd3b26ee8db2db10e9f7e57fa7694f227427f3174a01",
+  "scoredAt": "2026-10-01T12:24:46.442Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover all error scenarios and edge cases in examples."
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text beyond concise instructions."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Restate, limiting compatibility with other AI agent platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Docker image pulled without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 95,
-    "multiplier": 2.38,
+    "multiplier": 9,
+    "baselineAvg": 5,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Crash-safe payment workflow",
-        "baseline": 35,
+        "name": "payment-service-idempotent-retries",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Baseline used BullMQ with a hand-rolled DB state table for idempotency; treatment used restate.service with each side effect in ctx.run and restate.endpoint().bind(...).listen(...) as the skill prescribes."
+        "rationale": "Response B fully meets the rubric, while Response A does not use Restate at all."
       },
       {
-        "name": "Trip-booking saga with compensation",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline structured try/catch correctly but lacked durability primitives; treatment wrapped every booking and compensation in ctx.run inside a restate.service handler matching the skill's saga pattern."
+        "name": "shopping-cart-virtual-object",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use Restate at all."
+      },
+      {
+        "name": "booking-saga-compensation",
+        "baseline": 10,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items but omits throwing restate.TerminalError; Response B does not use restate at all."
       }
     ]
   }

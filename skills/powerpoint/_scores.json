@@ -1,15 +1,15 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:6f5e71b665bffb524bf601d21c0444264c7da5931b4df54a70819684f7c77a11",
-  "scoredAt": "2026-05-13T09:52:53.821Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:f05965ba54a8083cb53a295093eec6b2fdabf99c66863208bc9f51ee9a61f9ba",
+  "scoredAt": "2026-10-01T12:19:43.458Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for file operations and unsupported features."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose for a concise skill definition."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 91,
-    "multiplier": 2.12,
+    "multiplier": 3.91,
+    "baselineAvg": 23,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Generate sales-report PPTX from JSON",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline knew python-pptx basics but mixed up layout indices and skipped CategoryChartData/XL_CHART_TYPE typing; treatment used the documented chart and table helpers with Inches positioning and saved a clean .pptx."
+        "name": "generate-sales-report-from-json",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the specified requirements."
       },
       {
-        "name": "Batch template rebrand",
+        "name": "batch-update-branding-across-templates",
+        "baseline": 40,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items but fails to target the '{{COMPANY}}' placeholder; Response B misses key steps like placeholder handling, updated folder, and proper logo replacement."
+      },
+      {
+        "name": "extract-presentation-to-markdown",
         "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline overwrote text_frame.text directly (destroying fonts) and saved over the source; treatment iterated paragraph.runs to preserve formatting and wrote to a new updated/ path per the guidelines."
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A lacks table extraction, speaker notes, and proper markdown formatting."
       }
     ]
   }

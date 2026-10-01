@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3455676cc9705199d5dfb5149a862981ff2ab83cd58427f59359489d2388aa17",
-  "scoredAt": "2026-05-13T09:34:04.846Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9aaa6329cdf89909fa93a00a80e6f668320398ec99be0d59aee3049d0d16522c",
+  "scoredAt": "2026-10-01T12:00:14.844Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as database connection failures or invalid input."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes Node.js 18+ with PostgreSQL and Redis, limiting applicability to other environments."
+        "detail": "The instructions focus on happy paths and do not cover error handling or edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Storefront Stripe checkout flow",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline invents endpoint paths (/checkout, /order) and typically skips the payment-sessions init step; treatment chains POST /store/carts, /line-items, /shipping-methods, /payment-sessions, /complete in the exact order documented and passes region_id when creating the cart."
+        "name": "setup-medusa-nextjs-store",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required commands, config changes, and Stripe provider snippet; Response A is missing these details."
       },
       {
-        "name": "Order confirmation email on order.placed",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline puts the email send inline in an order route or proposes a Stripe webhook; treatment creates src/subscribers/order-placed.ts exporting a handler and config with event: 'order.placed' and resolves the notification service from container as shown in the SKILL.md."
+        "name": "add-custom-api-route",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A meets all rubric requirements; B does not."
+      },
+      {
+        "name": "import-shopify-products",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a TypeScript script using medusa exec, createProductsWorkflow, batch processing, and progress output, while Response B uses a different approach that does not meet any of the rubric requirements."
       }
     ]
   }
