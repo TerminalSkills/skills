@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:71d67ec16b407fa65d435c557262fd0e95f17b1688f3b5e100199eec679be39d",
-  "scoredAt": "2026-05-13T16:33:34.034Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:e9bbc9029e07136d6d1b78e1903149fc3384dafdec0d5924de8356632ae0ca40",
+  "scoredAt": "2026-10-01T11:38:39.014Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The setup script includes macOS-specific brew commands, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.43,
-    "baselineAvg": 70,
+    "multiplier": 2.63,
+    "baselineAvg": 38,
     "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "setup-detox-both-platforms",
-        "baseline": 40,
+        "name": "setup-detox-new-project",
+        "baseline": 50,
         "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric items, while Response A omits global CLI, applesimutils, detox init, and uses a different config file."
+        "rationale": "Response B meets all rubric requirements, while Response A omits key steps such as applesimutils installation, detox init, and the exact build/test commands."
       },
       {
-        "name": "write-login-flow-test",
-        "baseline": 100,
+        "name": "write-login-test",
+        "baseline": 45,
         "treatment": 100,
-        "rationale": "Both responses fully satisfy the rubric, providing the required test suite structure, valid credentials test, and error test with element(by.id(...)) and expect(...).toBeVisible()."
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key elements such as process.env usage, welcome text check, and correct testIDs."
+      },
+      {
+        "name": "debug-hanging-test-long-polling",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A covers all rubric items, while Response B omits key steps such as debug-synchronization, URL blacklisting, and synchronization control."
       }
     ]
   }
