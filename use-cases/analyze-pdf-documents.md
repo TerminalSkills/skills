@@ -2,7 +2,7 @@
 title: "Transform PDF Reports Into Actionable Data and Cut Analysis Time"
 slug: analyze-pdf-documents
 description: "Extract tables, figures, and insights from complex PDF reports to eliminate manual data entry and accelerate business decisions."
-skills: [pdf-analyzer, data-analysis, excel-processor]
+skills: [pdf-analyzer, data-analysis, excel-processor, mineru]
 category: data-ai
 tags: [pdf, extraction, analysis, tables, reporting, automation]
 ---
@@ -140,3 +140,7 @@ Wednesday, the excel-processor built an automated dashboard with property perfor
 The 264 hours saved annually translates to $19,800 in labor costs. But the real payoff is what the data revealed: she caught the maintenance cost spike two months earlier than she would have manually, preventing $34,000 in emergency repairs by switching management companies before the problems escalated into roof replacements and HVAC failures.
 
 Data-driven lease pricing — informed by the seasonal patterns the automated analysis revealed — increased portfolio revenue by 8.4% over the following year. Properties up for renewal in March now get prioritized for early outreach, and September renewals get incentive offers to counter the historically lower retention rate. The three properties with sub-85% rent collection rates got flagged for management review and resolved within a quarter. None of these strategies were possible when the data lived trapped inside 47 separate PDFs that took 22 hours to read.
+
+## Related Skills
+
+- [mineru](/skills/mineru) — Choose mineru when the vendor PDFs have merged cells, tables that span pages or scanned pages that a text extractor mangles; its basic/standard tiers rebuild tables as Markdown/HTML before they go to data analysis.

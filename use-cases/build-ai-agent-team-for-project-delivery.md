@@ -4,6 +4,7 @@ slug: build-ai-agent-team-for-project-delivery
 description: Use Squad to orchestrate specialized AI agents that collaborate on full project delivery with defined roles and handoffs.
 skills:
   - squad-agents
+  - paperclip
 category: development
 tags:
   - ai-agents
@@ -69,3 +70,4 @@ Kai, a solo founder, uses Squad to build an invoice management MVP. He runs `squ
 ## Related Skills
 
 - [squad-agents](/skills/squad-agents) — The framework for building AI agent teams
+- [paperclip](/skills/paperclip) — Choose paperclip when the team should be existing agents (Claude Code, Codex, Gemini CLI) working from one self-hosted dashboard with an org chart, per-agent monthly budgets and approval gates, rather than Squad's file-based team inside the repo.

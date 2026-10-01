@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:045cf9243bcb723fdab60a8b9c49730174f228719214324faf56f6b28b377609",
+  "scoredAt": "2026-10-01T08:54:36.668Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "interactive-fix-test",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B includes the required -t flag command and explains the editing and testing process, while Response A lacks the -t flag and explicit test pass confirmation."
+      },
+      {
+        "name": "ci-headless-bump-deps",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes all required flags, env vars, and output redirection; Response B lacks the specified flags, env vars, and output handling."
+      },
+      {
+        "name": "setup-agent-canvas",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required agent-canvas command, 127.0.0.1 binding, and the correct UI URL."
+      }
+    ]
+  }
+}

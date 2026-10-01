@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:4467663c683d6d8c522f3205a7dfeae56b6d913657609ef4e22ec5953c6d225b",
+  "scoredAt": "2026-09-30T22:03:06.717Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "create-custom-reviewer-agent",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers the required agent file, listing, and run command but omits the actual review output, while Response B does not address the .kilo agent setup at all."
+      },
+      {
+        "name": "ci-auto-run-with-deny",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is empty."
+      },
+      {
+        "name": "local-ollama-64k-context",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items except the printf requirement, while Response A misses many key elements."
+      }
+    ]
+  }
+}

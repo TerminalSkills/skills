@@ -4,7 +4,7 @@ slug: build-design-to-code-pipeline-with-ai
 description: Use Google Stitch and stitch-mcp to generate UI designs from descriptions and convert them to production React components.
 skills:
   - stitch-mcp
-  - impeccable-design
+  - impeccable
 category: design
 tags:
   - design-to-code
@@ -97,4 +97,4 @@ Anya, co-founder of a project management startup, needs a landing page, dashboar
 ## Related Skills
 
 - [stitch-mcp](/skills/stitch-mcp) — CLI for importing Google Stitch designs via MCP
-- [impeccable-design](/skills/impeccable-design) — Design language for polishing AI-generated UI
+- [impeccable](/skills/impeccable) — Design language for polishing AI-generated UI

@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:36eee6fe401f6b35a42723007913fa369bbd04555201a3df15fcf1605e2ed7fb",
+  "scoredAt": "2026-10-01T08:52:05.800Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.35,
+    "baselineAvg": 23,
+    "treatmentAvg": 100,
+    "scenarios": [
+      {
+        "name": "setup-librechat-with-providers-and-budget",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits the balance block, mounting of librechat.yaml, and the correct registration flag."
+      },
+      {
+        "name": "add-custom-ollama-endpoint",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key details and uses an incorrect configuration file."
+      },
+      {
+        "name": "create-user-with-initial-balance",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required docker compose exec commands, while Response B does not meet any of the specified requirements."
+      }
+    ]
+  }
+}

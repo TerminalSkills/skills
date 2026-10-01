@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:a0b890f01eb9062010b8b815215404fff0a6e2207d35aeb1dc9b6f93671ec36e",
+  "scoredAt": "2026-09-30T22:07:39.217Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains excessive background and verbose explanations that may be considered padded."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 9,
+    "baselineAvg": 7,
+    "treatmentAvg": 90,
+    "scenarios": [
+      {
+        "name": "batch-scan-to-markdown",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not mention mineru-kit or the required command."
+      },
+      {
+        "name": "long-pdf-search-with-locators",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items while Response A omits key server and parsing steps."
+      },
+      {
+        "name": "office-to-markdown-with-tables",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B provides no content."
+      }
+    ]
+  }
+}

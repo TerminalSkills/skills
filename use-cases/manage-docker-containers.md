@@ -2,7 +2,7 @@
 title: "Optimize Docker Workflows and Cut Build Times by 70%"
 slug: manage-docker-containers
 description: "Create efficient Dockerfiles, streamline container orchestration, and optimize CI/CD pipelines to dramatically reduce build times and costs."
-skills: [docker-helper, cicd-pipeline]
+skills: [docker-helper, cicd-pipeline, golang]
 category: devops
 tags: [docker, containers, optimization, build-time, cicd]
 ---
@@ -205,3 +205,7 @@ The DevOps engineer at a 50-person SaaS company was spending 15 hours weekly tro
 Monday, the docker-optimizer audit uncovered the waste: 3.2 GB images for apps that needed 200 MB, build dependencies shipped to production, zero layer caching, dependencies recompiled from scratch every build. Tuesday, multi-stage builds went in for all 8 services. Frontend image: 3.2 GB to 180 MB. Backend API: 2.1 GB to 95 MB. ML service: 4.7 GB to 340 MB. Total registry storage dropped 91%. Wednesday, docker-helper got proper health checks and service dependencies, and the CI/CD pipeline got parallel builds. Full pipeline time: 52 minutes to 11 minutes.
 
 One month later: feature deployment frequency up 40% from faster feedback loops, AWS costs down $1,100/month, and zero developer hours lost to Docker issues. The team that almost abandoned containers now considers them a competitive advantage.
+
+## Related Skills
+
+- [golang](/skills/golang) — Choose golang for the Go API gateway service: a multi-stage build with cached go mod download and a CGO_ENABLED=0 -trimpath -ldflags "-s -w" static binary on a distroless base is how its image shrinks from 967 MB.

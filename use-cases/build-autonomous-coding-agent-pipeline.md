@@ -2,7 +2,7 @@
 title: Build an Autonomous Coding Agent Pipeline for Your Team
 slug: build-autonomous-coding-agent-pipeline
 description: Set up a team coding pipeline using Aider for autonomous code generation from GitHub issues, Continue for in-IDE AI assistance with custom context, and Cline for complex multi-file refactoring — enabling a 4-person engineering team to ship 3x faster by delegating boilerplate, tests, and documentation to AI agents while focusing on architecture decisions.
-skills: [aider, continue-dev, cline]
+skills: [aider, continue-dev, cline, kilo-code, openhands]
 category: development
 tags: [ai-coding, autonomous-agent, code-generation, developer-productivity, vibe-coding]
 ---
@@ -208,3 +208,8 @@ The team's velocity increased from 18 story points per sprint to 52. The backlog
 - **Cline**: Completed 3 major refactoring tasks that would have taken 2 weeks each manually — done in 2 days each with AI assistance
 - **Test coverage**: 62% → 84% (AI-generated tests for existing code)
 - **PR cycle time**: 4.1 days → 1.6 days
+
+## Related Skills
+
+- [kilo-code](/skills/kilo-code) — Choose kilo-code for the autonomous issue/test-fix lane when you need permission rules that deny push/rm and allow only named commands (`KILO_CONFIG_CONTENT`), with any model; check its work separately, because exit 0 only means the run finished.
+- [openhands](/skills/openhands) — Choose openhands when the team wants an open-source, model-agnostic agent that can work through the issue backlog headless in CI (`openhands --headless --override-with-envs`) or inside per-conversation Docker sandboxes, with any LLM including a local one.

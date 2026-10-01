@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:86349f88d58d538df01b2f3dad46b9e81596cdff9e4808a3f88b9e240c5fe1cd",
+  "scoredAt": "2026-09-30T22:06:09.051Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not explicitly cover error scenarios or edge cases such as missing peer dependencies or runtime failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanations and verbose sections that exceed concise instruction requirements."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.53,
+    "baselineAvg": 17,
+    "treatmentAvg": 77,
+    "scenarios": [
+      {
+        "name": "setup-mui-nextjs-darkmode",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is not provided for evaluation."
+      },
+      {
+        "name": "responsive-filter-row",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response B meets most rubric items (Grid, slotProps, dashed button, icons) but lacks background color and border radius; Response A fails on Grid, slotProps, and button variant."
+      },
+      {
+        "name": "upgrade-v5-to-v9",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items, missing only the legacy GridLegacy import replacement, while Response A omits codemods, tsc, and the required prop replacements."
+      }
+    ]
+  }
+}

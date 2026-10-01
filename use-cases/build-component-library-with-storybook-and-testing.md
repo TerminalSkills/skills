@@ -7,6 +7,7 @@ skills:
   - vitest
   - cypress
   - shadcn-ui
+  - material-ui
 category: development
 tags:
   - components
@@ -466,3 +467,7 @@ Mei's team built the component library in two weeks and migrated the three apps 
 - **Component documentation: nonexistent → complete** — Storybook serves as the single source of truth. Designers review stories directly, new developers learn components by browsing, QA tests against documented states.
 - **Duplicated component code: ~8,000 lines removed** across three apps. Each app now imports from `@repo/ui` instead of maintaining its own Button, Modal, and Form.
 - **PR review time for UI changes: 45 min → 15 min** — reviewers check the Chromatic visual diff instead of pulling the branch and manually testing every viewport.
+
+## Related Skills
+
+- [material-ui](/skills/material-ui) — Choose material-ui as the base instead of shadcn/ui when the apps are not Tailwind-based or need ready-made complex components (Autocomplete, Dialog, Tabs, MUI X Data Grid), and wrap them with company theme overrides and custom variants.

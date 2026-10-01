@@ -3,7 +3,7 @@ title: Build an AI Design System with Impeccable
 slug: build-ai-design-system-with-impeccable
 description: Use Impeccable to enforce consistent design tokens and rules so AI-generated React components always match your design system.
 skills:
-  - impeccable-design
+  - impeccable
   - shadcn-ui
 category: design
 tags:
@@ -89,5 +89,5 @@ Lena, a design engineer at a fintech startup, needs 40 components for a new dash
 
 ## Related Skills
 
-- [impeccable-design](/skills/impeccable-design) — The design language and steering commands
+- [impeccable](/skills/impeccable) — The design language and steering commands
 - [shadcn-ui](/skills/shadcn-ui) — Component library that pairs well with design tokens

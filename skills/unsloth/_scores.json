@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:37df566d372f34b671b4850326728ee63b8a23050abc5747299e9337986f790d",
+  "scoredAt": "2026-10-01T09:03:32.447Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes NVIDIA GPU with CUDA capability, limiting cross-platform compatibility."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 8.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "train-llama-qlora-16gb",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A includes the required unsloth train command with all flags and most rubric details, though it omits a clear note about printing loss and absolute checkpoint path; Response B lacks the unsloth CLI command entirely."
+      },
+      {
+        "name": "export-gguf-ollama",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response A covers almost all rubric items except the explicit mention of the 'Saved to:' line, while Response B does not use unsloth export and misses all required elements."
+      },
+      {
+        "name": "python-api-merge-16bit",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits key imports, configurations, and the required training and saving steps."
+      }
+    ]
+  }
+}

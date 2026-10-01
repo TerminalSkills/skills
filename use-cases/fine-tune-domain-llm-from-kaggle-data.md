@@ -6,6 +6,7 @@ skills:
   - kaggle-finetune
   - peft-fine-tuning
   - pytorch
+  - unsloth
 category: data-ai
 tags:
   - fine-tuning
@@ -88,3 +89,7 @@ If per-category F1 scores are uneven, investigate the training data distribution
 ## Real-World Example
 
 A telehealth company fine-tuned Mistral-7B on 48,000 patient intake messages from a Kaggle medical NLP dataset. The base model classified triage urgency at 71% accuracy. After 3 epochs of QLoRA training on a single A100 (8 hours, $12 in cloud compute), the fine-tuned model hit 93% accuracy on held-out data. The LoRA adapter was only 140MB, so they merged it and deployed via Ollama on a $200/month dedicated server. The model now processes 2,000 intake messages daily, routing urgent cases to nurses within 90 seconds instead of the previous 15-minute manual review cycle.
+
+## Related Skills
+
+- [unsloth](/skills/unsloth) — Choose unsloth when the single A100 or a free Kaggle/Colab GPU is the constraint: its patched QLoRA training uses less VRAM and runs faster than plain PEFT on the same data

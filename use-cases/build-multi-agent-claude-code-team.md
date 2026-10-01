@@ -5,6 +5,7 @@ description: "Run 5 Claude Code agents in parallel — each owning a different p
 skills:
   - oh-my-claudecode
   - worktrunk
+  - paperclip
 category: development
 tags:
   - multi-agent
@@ -210,3 +211,7 @@ The verify stage runs all tests against the merged codebase:
 3. **Tests during, not after** — QA writes tests from specs while code is being written
 4. **Auto-merge** — OMC handles branch merging and conflict resolution
 5. **Fix loop** — verify → fix → verify catches issues without human intervention
+
+## Related Skills
+
+- [paperclip](/skills/paperclip) — Choose paperclip when parallel Claude Code agents need persistent ticket ownership (atomic checkout), spend caps and a shared dashboard instead of terminals you juggle by hand.

@@ -8,6 +8,7 @@ skills:
   - redis
   - postgresql
   - zod
+  - voltagent
 category: data-ai
 tags:
   - ai-agents
@@ -307,3 +308,7 @@ const result = await researchAgent.run(
 - **Cost controlled** — guardrails cap each agent run at $0.50; the average run costs $0.08 and uses 4-6 tool calls
 - **Conversation memory persists** — follow-up questions reference previous context; "now draft one for their CTO too" works because the agent remembers the company research
 - **Tool failures don't crash the agent** — automatic retries with backoff handle transient errors; the agent reports the failure and adapts its approach
+
+## Related Skills
+
+- [voltagent](/skills/voltagent) — Choose voltagent when you want the TypeScript agent loop (Zod-typed tools, conversation memory, maxSteps, guardrails) from a framework instead of hand-writing it on the OpenAI SDK plus Redis.

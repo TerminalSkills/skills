@@ -5,6 +5,7 @@ description: "Ship a native desktop application for Windows, macOS, and Linux us
 skills:
   - electron
   - tauri
+  - rust
 category: development
 tags:
   - desktop
@@ -87,3 +88,7 @@ A logistics startup with 12 warehouses built their inventory scanner as a React 
 - Use context isolation and a preload script in Electron from day one. Retrofitting security after launch is far harder than building it in from the start.
 - Test auto-updates on all three platforms before shipping. macOS code signing behaves differently from Windows Authenticode, and Linux distributions handle updates through package managers rather than in-app updaters.
 - SQLite is the right offline storage for structured data, but consider using the filesystem directly for large binary assets like scanned images. Storing blobs in SQLite causes database bloat and slower backups.
+
+## Related Skills
+
+- [rust](/skills/rust) — Choose rust when the team goes the Tauri route and needs the Rust toolchain installed and help with the compile and borrow-checker errors the use case warns slow down the first weeks.

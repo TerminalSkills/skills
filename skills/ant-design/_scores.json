@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:58dbe66dfbf47ab299b8bb05a533266249c60062f05b9ef4cb4eaa0ab7d00508",
+  "scoredAt": "2026-09-30T21:55:24.134Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 87,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover error handling for network failures or missing resources."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that could be trimmed for brevity."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.68,
+    "baselineAvg": 28,
+    "treatmentAvg": 75,
+    "scenarios": [
+      {
+        "name": "cli-lint-deprecated-props",
+        "baseline": 20,
+        "treatment": 40,
+        "rationale": "Response A includes the correct command but omits explanation and JSON option, while Response B uses an incorrect command and lacks required details."
+      },
+      {
+        "name": "nextjs-dark-theme-no-fouc",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits the required registry, theme algorithm, and client‑side usage."
+      },
+      {
+        "name": "server-paginated-table-bulk-action",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Response B covers all required features except the Form.useForm requirement, while Response A omits several key elements such as rowKey, controlled pagination, and the modal.confirm logic."
+      }
+    ]
+  }
+}

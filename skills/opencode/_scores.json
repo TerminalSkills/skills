@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:d216632e44c8c4872846c91c50d246711d9567147a5f34841a68252b7a530774",
+  "scoredAt": "2026-09-30T22:09:50.777Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 70,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill file does not explicitly cover error handling or edge cases for missing API keys or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose for a skill specification."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to the OpenCode agent and does not work with other AI agents."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "install-opencode-with-ollama",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement; Response B does not."
+      },
+      {
+        "name": "create-sql-migration-review-agent",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A includes most required elements but omits the explicit steps section; Response B fails to produce the required markdown file."
+      },
+      {
+        "name": "ci-npm-audit-report",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response B includes the required opencode run command, audit.json input, and markdown output, and attempts a permission block, whereas Response A lacks the correct command, permission block, and file name."
+      }
+    ]
+  }
+}

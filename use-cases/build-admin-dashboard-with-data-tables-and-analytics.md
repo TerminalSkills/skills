@@ -7,6 +7,7 @@ skills:
   - swr
   - valtio
   - umami
+  - ant-design
 category: development
 tags:
   - admin
@@ -281,3 +282,7 @@ function BulkActions() {
 ## The Outcome
 
 Lena's ops team goes from a 10-second page load to instant pagination — the table fetches 25 rows at a time with server-side sorting and filtering. SWR caches pages so navigating back is instant. Bulk actions let them deactivate 200 churned accounts in one click instead of one-by-one. Valtio keeps filter state synchronized across the sidebar and table without prop drilling. Umami shows that the team uses the "export" bulk action 12 times per day (justify building a scheduled export feature next) and the "suspended" filter 3x more than "inactive" (rename the filter to be more prominent). Dashboard load time: 200ms. Time saved per ops team member: 45 minutes per day.
+
+## Related Skills
+
+- [ant-design](/skills/ant-design) — choose it when you want a ready-made table with built-in server-side sorting, filters, row selection for bulk actions and pagination, plus themed confirm dialogs, instead of assembling headless TanStack Table markup yourself
