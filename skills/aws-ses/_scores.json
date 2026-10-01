@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b075c74216001bca274b733951476aa6df9062937922826945751f449e55d95c",
-  "scoredAt": "2026-05-13T14:27:49.402Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:bba1122dd7bab19aece661f76f5ecf9e280b8b19ad3f5507c600cbfe6c708556",
+  "scoredAt": "2026-10-01T11:19:49.937Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for AWS SES operations."
+        "detail": "Instructions do not cover all possible error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that reduces overall conciseness."
       }
     ]
   },
@@ -35,13 +40,19 @@
         "name": "verify-domain-dkim",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A includes the exact sesv2 commands required by the rubric, while Response B uses different SES commands and does not meet the rubric requirements."
+        "rationale": "Response B satisfies all rubric requirements, while Response A does not use the required sesv2 commands or query format."
       },
       {
-        "name": "setup-receipt-rule-s3-lambda",
+        "name": "send-email-with-attachment",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A exactly matches the required command and JSON structure, while Response B uses a different rule set name, rule name, bucket, and Lambda ARN, failing to meet the rubric."
+        "rationale": "Response B fully satisfies the rubric, while Response A uses a Raw content approach and omits the required Simple content and attachments structure."
+      },
+      {
+        "name": "setup-bounce-sns",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes the required sesv2 commands with correct parameters, while Response B uses receipt rules instead of configuration sets and thus fails to meet the rubric."
       }
     ]
   }
