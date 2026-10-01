@@ -1,109 +1,273 @@
 ---
 name: product-marketing-context
-description: "When the user wants to create or update their product marketing context document. Also use when the user mentions 'product context,' 'marketing context,' 'set up context,' 'positioning,' or wants to avoid repeating foundational information across marketing tasks. Creates `.claude/product-marketing-context.md` that other marketing skills reference."
+description: >-
+  Creates and maintains `.claude/product-marketing-context.md`, one sourced file that records what
+  the product is, who buys it, what they use instead, the proof behind each claim, customer
+  wording, pricing and goals, so later marketing tasks read facts instead of asking again or
+  guessing. Drafts it from the repository and site, interviews the user for the gaps, tags every
+  statement with its source, and checks the file with a script. Use when someone says "set up
+  marketing context", "product context", "positioning document", "write down our messaging", "we
+  repositioned, update the context", or before the first copywriting, CRO, SEO or email task in a
+  project.
+license: Apache-2.0
+compatibility: >-
+  Any repository. The file is plain Markdown read by Claude Code, Codex, Gemini CLI and Cursor.
+  The check script needs Python 3.8+.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: business
-  tags:
-    - product-marketing
-    - positioning
-    - messaging
+  tags: ["positioning", "messaging", "product-marketing", "context", "documentation"]
 ---
 
 # Product Marketing Context
 
 ## Overview
 
-You help users create and maintain a product marketing context document. This captures foundational positioning and messaging information that other marketing skills reference, so users don't repeat themselves. The document is stored at `.claude/product-marketing-context.md`.
+Marketing work goes wrong in a predictable way when an agent starts cold: it invents an audience,
+borrows claims from the category, and writes in a voice nobody at the company uses. This skill
+fixes the inputs once. It produces a single file, `.claude/product-marketing-context.md`, that
+other skills in this catalog (copywriting, page and form optimisation, pricing, email, SEO, ads)
+look for before they ask questions.
+
+The file is a record of facts, not a piece of copy. Three properties make it useful:
+
+- **Sourced.** Each statement says where it comes from, so a reader can tell a measured number
+  from a founder's belief.
+- **Honest about gaps.** What is unknown is written down as an open question with an owner.
+- **Short and current.** Under 200 lines, with a review date; superseded facts are removed, since
+  version control keeps the history.
 
 ## Instructions
 
-### Step 1: Check for Existing Context
+### 1. Check what exists
 
-First, check if `.claude/product-marketing-context.md` already exists.
+```bash
+ls -l .claude/product-marketing-context.md 2>/dev/null
+grep -nE "^## |^Last reviewed|TODO\(" .claude/product-marketing-context.md 2>/dev/null
+```
 
-**If it exists:** Read it, summarize what's captured, ask which sections to update, and only gather info for those sections.
+If the file exists, go to step 6 (update). If not, continue.
 
-**If it doesn't exist, offer two options:**
+### 2. Read the project before asking anything
 
-1. **Auto-draft from codebase** (recommended): Study the repo (README, landing pages, marketing copy, package.json, etc.) and draft a V1. The user reviews, corrects, and fills gaps. This is faster than starting from scratch.
-2. **Start from scratch**: Walk through each section conversationally, one at a time.
+| Evidence | Where to look | Feeds section |
+|---|---|---|
+| What the product is and does | `README.md`, `docs/` introduction, `package.json` description | Product |
+| Claims made in public | Landing page source, `title` and meta description, Open Graph tags | Product, Differentiators |
+| Plans, prices, trial | Billing or plan configuration in code, the pricing page | Offers and pricing |
+| What shipped recently | `CHANGELOG.md`, release notes | Differentiators |
+| Named alternatives | Comparison or "alternatives" pages, migration guides, importers | Problem and alternatives |
+| Worries buyers raise | FAQ, help centre articles, security page | Objections |
+| Quotes and results | Testimonial and case-study content, with who said it | Differentiators and proof |
+| The action that counts | Analytics event names, signup and checkout routes | Goals and measures |
 
-Most users prefer option 1. After presenting the draft, ask: "What needs correcting? What's missing?"
+```bash
+grep -rnoiE "<title>[^<]+|name=\"description\" content=\"[^\"]+|og:(title|description)\" content=\"[^\"]+" \
+  --include=*.html --include=*.tsx --include=*.jsx --include=*.astro --include=*.vue . 2>/dev/null | head -20
+grep -rnEil "testimonial|case stud|compared to|alternative to| vs " --include=*.md --include=*.mdx --include=*.tsx . 2>/dev/null | head -20
+grep -rnE "price|amount|interval|trial" --include=*plan*.ts --include=*pricing*.ts --include=*billing*.ts . 2>/dev/null | head -20
+```
 
-### Step 2: Gather Information
+Write down contradictions as you find them (the README says freelancers, the landing page says
+agencies). They are the most valuable output of this step.
 
-**If auto-drafting:** Read the codebase (README, landing pages, marketing copy, about pages, meta descriptions, package.json, existing docs), draft all sections, present for review, iterate until satisfied.
+### 3. Ask for what the repository cannot show
 
-**If starting from scratch:** Walk through each section below one at a time. Don't dump all questions at once. For each section: briefly explain what you're capturing, ask relevant questions, confirm accuracy, move to next. Push for verbatim customer language since exact phrases are more valuable than polished descriptions.
+Ask in two short rounds, never as one long form. Offer to read material instead of asking:
+call notes, interview transcripts, reviews, support tickets, a sales deck.
 
-### Sections to Capture
+Round one:
 
-**1. Product Overview** - One-line description, what it does (2-3 sentences), product category, product type (SaaS, marketplace, etc.), business model and pricing.
+1. Who pays, who uses it day to day, and what happened in their work just before they went looking?
+2. What were they using before, and what would they go back to if the product vanished?
+3. When a customer recommends it to a peer, what do they say? Exact words, if you have them.
+4. What can you prove: a number, a named customer, a permission to quote?
 
-**2. Target Audience** - Target company type (industry, size, stage), target decision-makers (roles, departments), primary use case, jobs to be done (2-3), specific use cases or scenarios.
+Round two, after showing the draft:
 
-**3. Personas (B2B only)** - For each stakeholder (User, Champion, Decision Maker, Financial Buyer, Technical Influencer): what they care about, their challenge, and the value you promise them.
+5. The last three deals lost or accounts cancelled: what was the stated reason?
+6. Which words do customers use for the problem, and which words should never appear?
+7. The one action marketing should drive, and the current numbers for it.
 
-**4. Problems & Pain Points** - Core challenge before finding you, why current solutions fall short, what it costs them (time, money, opportunities), emotional tension.
+### 4. Write the file
 
-**5. Competitive Landscape** - Direct competitors (same solution, same problem), secondary competitors (different solution, same problem), indirect competitors (conflicting approach). How each falls short.
+Fixed headings, in this order, so other skills and the check script can find them:
 
-**6. Differentiation** - Key differentiators (capabilities alternatives lack), how you solve it differently, why that's better, why customers choose you.
+| Section | Holds | Limit |
+|---|---|---|
+| Header | Product name, `Last reviewed: YYYY-MM-DD`, owner, sources used | 4 lines |
+| Product | What it is, what form it takes, the category a buyer would name | 3 to 5 statements |
+| Audience | Who buys, who uses, company type, the event that starts the search | One group per bullet |
+| Problem and alternatives | The problem in customer words; what they use instead and why it falls short | Alternatives include "nothing" and "a spreadsheet" |
+| Differentiators and proof | What the product does that the alternatives do not, each with evidence | No evidence means `[assumption]` |
+| Objections | Each worry with the true answer | Top three to five |
+| Language | Words customers use; words to avoid; product terms | Quotes verbatim |
+| Voice | How the company writes: two or three sentences | No source tags needed |
+| Offers and pricing | Plans, prices, trial, guarantees | From code or billing, with date |
+| Goals and measures | Primary action, current rate, target | Numbers carry their date |
+| Open questions | `TODO(owner): question` | Remove when answered |
 
-**7. Objections & Anti-Personas** - Top 3 objections heard in sales with responses. Who is NOT a good fit.
+Rules for every statement outside Voice and Open questions:
 
-**8. Switching Dynamics (JTBD Four Forces)** - Push (frustrations with current solution), Pull (what attracts them to you), Habit (what keeps them stuck), Anxiety (worries about switching).
+- One fact per bullet, ending in a source tag:
+  `[repo: path]`, `[site: url]`, `[data: system, date]`, `[customer: who, date]`,
+  `[user: date]` for what the user told you, or `[assumption]`.
+- Customer words go in quotation marks, unedited. Do not tidy them into marketing language.
+- A number without a date and a system of record is an assumption.
+- What a competitor does or charges is recorded only from their public page with the date
+  checked, or as a customer's words. Never from memory.
+- Nothing confidential when the repository is public: no unreleased plans, no customer names
+  without permission.
 
-**9. Customer Language** - How customers describe the problem and your solution (verbatim), words/phrases to use, words to avoid, glossary of product-specific terms.
+### 5. Check and connect it
 
-**10. Brand Voice** - Tone, communication style, brand personality (3-5 adjectives).
+Save the script as `scripts/check_context.py` (or run it once from a scratch directory):
 
-**11. Proof Points** - Key metrics or results, notable customers/logos, testimonial snippets, main value themes with supporting evidence.
+```python
+"""Usage: python3 check_context.py [.claude/product-marketing-context.md]"""
+import re, sys
+from datetime import date
 
-**12. Goals** - Primary business goal, key conversion action, current metrics.
+path = sys.argv[1] if len(sys.argv) > 1 else ".claude/product-marketing-context.md"
+lines = open(path, encoding="utf-8").read().splitlines()
+text = "\n".join(lines)
+SECTIONS = ["Product", "Audience", "Problem and alternatives", "Differentiators and proof", "Objections",
+            "Language", "Voice", "Offers and pricing", "Goals and measures", "Open questions"]
+TAG = re.compile(r"\[(repo|site|user|customer|data|assumption)\b[^\]]*\]")
+problems = [f"section missing: ## {s}" for s in SECTIONS if not re.search(rf"^## {re.escape(s)}\s*$", text, re.M)]
 
-### Step 3: Create the Document
+reviewed = re.search(r"^Last reviewed: (\d{4})-(\d{2})-(\d{2})", text, re.M)
+if not reviewed:
+    problems.append("no 'Last reviewed: YYYY-MM-DD' line")
+elif (date.today() - date(*map(int, reviewed.groups()))).days > 90:
+    problems.append("last review is more than 90 days old")
 
-After gathering information, create `.claude/product-marketing-context.md` with clearly labeled sections for each of the 12 areas above. Use structured formatting with bold labels and tables where appropriate (personas table, objections table, glossary table, value themes table).
+section = ""
+for number, line in enumerate(lines, 1):
+    if line.startswith("## "):
+        section = line[3:].strip()
+    elif line.startswith("- ") and section not in ("", "Voice", "Open questions"):
+        if not TAG.search(line) and "TODO(" not in line:
+            problems.append(f"line {number}: statement without a source tag")
+if len(lines) > 200:
+    problems.append(f"{len(lines)} lines; keep it under 200")
 
-### Step 4: Confirm and Save
+print(f"{path}: {len(lines)} lines, {text.count('TODO(')} open questions, {text.count('[assumption')} assumptions")
+for p in problems:
+    print("  FIX " + p)
+sys.exit(1 if problems else 0)
+```
 
-Show the completed document, ask if anything needs adjustment, save to `.claude/product-marketing-context.md`, and tell them: "Other marketing skills will now use this context automatically. Run `/product-marketing-context` anytime to update it."
+Then make sure agents find the file. Add one line to the project instruction file the team's
+agent reads (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md` or a Cursor rule):
+
+```markdown
+Marketing facts (audience, claims, proof, pricing, wording) are in `.claude/product-marketing-context.md`.
+Read it before writing or reviewing anything customer-facing; do not restate it here.
+```
+
+Keep the path inside backticks. In Claude Code an `@` path outside backticks is an import and
+would load the whole file into every session, including the ones that fix a build. Commit the
+file so teammates and CI agents share it.
+
+### 6. Update an existing file
+
+1. Run the check script and read the open questions.
+2. Change only the sections the news affects; replace statements, do not append history.
+3. Set `Last reviewed` to today and add the new sources to the header.
+4. Search the project for material that now disagrees and list it for the user:
+
+```bash
+grep -rnE 'freelancers?|\$19( |/)|per month' --include=*.md --include=*.mdx --include=*.tsx --include=*.html . | grep -v product-marketing-context
+```
+
+### 7. Report
+
+Tell the user, in this order: what the file now says in five lines; contradictions found between
+sources; open questions with owners; assumptions that need evidence; files that disagree with it.
 
 ## Examples
 
-### Example 1: Auto-Draft from a SaaS Codebase
+### Example 1: first draft from a repository
 
-**User prompt:** "Set up my product marketing context."
+Request: "Set up the marketing context for Brindle CRM."
 
-The agent will check for `.claude/product-marketing-context.md` (doesn't exist), then offer the two options. The user chooses auto-draft. The agent reads README.md, the landing page component, package.json, and any marketing copy in the repo. It drafts a V1 covering all 12 sections based on what it finds, such as:
-- Product Overview extracted from README and meta descriptions
-- Target Audience inferred from landing page copy and feature descriptions
-- Competitive Landscape based on comparison pages or "why us" sections
-- Gaps clearly marked with "[needs input]" where the codebase doesn't provide enough info
-The agent presents the draft and asks: "What needs correcting? What's missing?" Then iterates until the user approves and saves the file.
+The agent reads the README, the landing page, `src/billing/plans.ts` and six call notes the user
+drops into `notes/calls/`, asks round one, and writes (shortened here):
 
-### Example 2: Updating an Existing Context Document
+```markdown
+# Product marketing context: Brindle CRM
 
-**User prompt:** "We just repositioned from targeting freelancers to targeting agencies. Update our product marketing context."
+Last reviewed: 2026-10-01
+Owner: Maya Okafor
+Sources: repository, brindlecrm.com, 6 customer calls (September 2026), Stripe export
 
-The agent reads the existing `.claude/product-marketing-context.md`, summarizes the current state, and identifies sections that need updating for the repositioning:
-- Target Audience: Update from freelancers to agency owners and account managers
-- Personas: Replace freelancer persona with agency stakeholders (Agency Owner, Account Manager, Creative Director)
-- Problems & Pain Points: Shift from individual productivity to team coordination and client management challenges
-- Customer Language: Update verbatim phrases to reflect agency terminology
-- Competitive Landscape: Reassess competitors in the agency management space
-The agent walks through each affected section, gathers new information, updates the document, and saves.
+## Product
+- Brindle is a CRM for independent insurance brokers: policies, renewals and client notes in one record. [repo: README.md]
+- Category the buyer would name: "broker CRM" or "agency management system". [customer: 4 of 6 calls]
+
+## Audience
+- Brokerages with 2 to 15 staff in the UK and Ireland. [data: Stripe export 2026-09-28, 212 of 240 accounts]
+- Trigger to look: a missed renewal, or a handler leaving with client knowledge in their inbox. [customer: calls 2, 3, 5]
+
+## Problem and alternatives
+- "We found out the policy had lapsed when the client rang to claim." [customer: Oakfield Insurance call, 2026-09-12]
+- What they use instead: a shared spreadsheet plus Outlook reminders. [customer: 5 of 6 calls]
+
+## Differentiators and proof
+- Renewal calendar built from policy end dates, with handler assignment. [repo: src/renewals/]
+- Customers report fewer missed renewals. [assumption] TODO(Maya): get a number and permission to quote.
+
+## Offers and pricing
+- £39 per user per month; £390 per user per year; 14-day trial without a card. [repo: src/billing/plans.ts]
+
+## Open questions
+- TODO(Jon): the pricing page says "from £29"; the code says £39. Which is right?
+```
+
+Check output and report:
+
+```text
+.claude/product-marketing-context.md: 48 lines, 4 open questions, 1 assumptions
+```
+
+"Draft saved. Two things need you: the pricing page and the code disagree on the price (£29 and
+£39), and the main benefit, fewer missed renewals, has no number behind it yet. Until it does,
+copy should describe the renewal calendar rather than claim a result."
+
+### Example 2: update after a change of audience and price
+
+Request: "Sproutdeck now sells to agencies instead of freelancers, and the plan went from $19 to
+$49 per workspace. Update the context."
+
+The agent runs the check (file last reviewed 2026-05-14, flagged as stale), rewrites Audience,
+Problem and alternatives, Language and Offers and pricing from the user's notes on four agency
+calls, moves two freelancer quotes out, marks the old differentiator "works offline" as
+`[assumption]` because no agency mentioned it, and runs the search from step 6:
+
+```text
+content/blog/invoice-tips-for-freelancers.mdx:3: description: "For freelancers who ..."
+app/(site)/page.tsx:41: <p>Built for freelancers. $19 per month.</p>
+emails/welcome-1.mdx:12: As a freelancer, you ...
+```
+
+Report: sections changed, three files that still address freelancers or show $19, and one open
+question: "TODO(Priya): do agencies need client-level permissions? Two of four calls raised it."
 
 ## Guidelines
 
-- Always check for existing `.claude/product-marketing-context.md` before starting from scratch
-- Recommend auto-drafting from the codebase as the default since it is faster and gives users something to react to rather than answering from a blank slate
-- Walk through sections one at a time when gathering information, never dump all questions at once
-- Push for verbatim customer language since exact phrases customers use are more valuable than polished marketing descriptions
-- Mark sections with "[needs input]" when auto-drafting if the codebase does not provide enough information
-- Skip sections that don't apply (for example, B2B Personas for a B2C product)
-- Validate each section with the user before moving to the next to avoid rework
-- Keep the document concise and scannable: use bold labels, short bullet points, and tables for structured data
+- Do not fill a gap with a plausible sentence. An empty section with a `TODO` is correct; an
+  invented persona is a defect that every later task inherits.
+- Do not record testimonials, customer counts or logos that cannot be traced to a real customer
+  and a permission. In the US, 16 CFR Part 465 makes fabricated testimonials unlawful.
+- Do not paste the whole landing page in. The file records the facts behind the copy.
+- Do not let it become a strategy essay. If a section passes its limit, the extra belongs in a
+  separate document linked from the header.
+- When two sources conflict, keep both in Open questions until the owner decides; do not pick.
+- For several products in one repository, keep this path for the main product and add one file
+  per extra product, such as `.claude/product-marketing-context.invoicing.md`, listed in the header.
+- Review it when pricing, audience or the main claim changes, and at least every 90 days; the
+  check script fails after that.
+- When not to use it: a single small task where the user has already given the facts in the
+  request, or a repository that holds no product (a library of scripts, a personal site).
