@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7c6d27948580967ef8429a56961520a87819f3fa2fb2f613cc32f711ba390cc3",
-  "scoredAt": "2026-05-13T10:34:45.910Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b53cefd794947e14cea5057e594bfa8524f1f364d4bc005cb2f8369a49d1ba43",
+  "scoredAt": "2026-10-01T12:45:38.896Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill lacks explicit, step‑by‑step instructions, leaving users uncertain about how to apply the guidance."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Only a few error scenarios are demonstrated; the skill does not address a broad range of edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The explanatory text contains some verbose sections that could be trimmed for brevity."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 90,
-    "multiplier": 1.64,
+    "multiplier": 1.5,
+    "baselineAvg": 48,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "Mock payment failure rollback test",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment uses vi.mock at top level for both modules, vi.mocked(...).mockRejectedValueOnce for the failure case, and asserts sendEmail was not called; baseline mixes jest-style patterns and omits the rollback negative assertion."
+        "name": "setup-vitest-with-coverage",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but lacks the required test:watch script and npx vitest command, while Response B uses the wrong coverage provider, omits the specific lines threshold, and also misses the npx command."
       },
       {
-        "name": "CI coverage threshold configuration",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment configures coverage.provider v8 with thresholds for lines/branches/functions in vitest.config.ts and runs `npx vitest run --coverage` plus installs @vitest/coverage-v8; baseline gives generic coverage config without vitest-specific keys."
+        "name": "mock-email-module-with-vi-mock",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Response A correctly mocks sendEmail with a resolved promise and includes a test, but misses the call assertion and hoisting; Response B asserts the call but uses the wrong module path, mock value, and still imports before the mock, making it slightly less compliant."
+      },
+      {
+        "name": "configure-multiple-projects-dom-node",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the dom project, its include pattern, and the specific command to run only DOM tests."
       }
     ]
   }
