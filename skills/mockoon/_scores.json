@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fa1d38a9913f45c2d7040a34c1a39722046747a30078d913cac3570aa28a3a13",
-  "scoredAt": "2026-05-13T09:36:18.595Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:807f6dd40832906957d2f78d52924cb153d53a1f1c35aeaf3bf65419aae7f10a",
+  "scoredAt": "2026-10-01T12:03:19.057Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly cover error handling or edge cases beyond basic route examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment and Docker, limiting applicability to agents without these tools."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 94,
-    "multiplier": 4.7,
+    "multiplier": 7.2,
+    "baselineAvg": 3,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "User-by-id mock with rule-based 404",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline drafts an Express or json-server config that does not match Mockoon's schema; treatment produces the documented environment with urlParam, faker helpers, and a rules entry targeting params/id equals 999."
+        "name": "start-mock-with-templating",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits hostname and faker-seed; Response B does not use mockoon-cli at all."
       },
       {
-        "name": "Mockoon CLI in a GitHub Actions workflow",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Baseline reaches for json-server or wiremock and misses the @mockoon/cli flags; treatment runs npx @mockoon/cli start --data ... --port 3001 in the background and sets API_BASE_URL for the test step as shown in the skill."
+        "name": "validate-and-repair-environment",
+        "baseline": 10,
+        "treatment": 35,
+        "rationale": "Response B better because it includes the required mockoon-cli validate command, while Response A does not."
+      },
+      {
+        "name": "dockerize-mock-server",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention mockoon-cli or the required Dockerfile content."
       }
     ]
   }
