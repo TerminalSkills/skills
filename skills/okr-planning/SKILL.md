@@ -1,11 +1,18 @@
 ---
 name: okr-planning
-description: Expert guidance for OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. Applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
+description: >-
+  Guides OKR (Objectives and Key Results) planning: writing ambitious
+  objectives with measurable key results, aligning teams, running the
+  quarterly cycle, and scoring results. Use when a user asks to "write OKRs
+  for next quarter", "review our OKRs", "turn these goals into key results",
+  "run OKR planning", or "score our OKRs". Applies frameworks from John Doerr
+  (Measure What Matters), Christina Wodtke (Radical Focus), and practices
+  from Google and Intel.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
   - okrs
@@ -21,7 +28,7 @@ metadata:
 ## Overview
 
 
-OKR (Objectives and Key Results) planning, helping product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. This skill applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
+This skill guides OKR (Objectives and Key Results) planning: it helps product teams set ambitious goals, define measurable outcomes, align teams, and run quarterly planning cycles. This skill applies frameworks from John Doerr (Measure What Matters), Christina Wodtke (Radical Focus), and practices from Google, Intel, and high-growth startups.
 
 
 ## Instructions
@@ -33,12 +40,12 @@ OKR (Objectives and Key Results) planning, helping product teams set ambitious g
 
 **Objective**: Qualitative, inspiring, time-bound
 - Answers: "Where do we want to go?"
-- Should be ambitious but achievable (70% completion = good)
+- Should be ambitious but achievable (for a stretch objective, 70% completion = good)
 - One sentence, memorable, motivating
 
 **Key Results**: Quantitative, measurable, specific
 - Answer: "How do we know we're getting there?"
-- 2-5 per objective
+- 3-5 per objective
 - Include a number (baseline → target)
 - Measurable at the end of the quarter with no debate
 
@@ -122,12 +129,15 @@ Key Results:
 Score each KR: 0.0 to 1.0
 - 0.0-0.3: Failed to make meaningful progress
 - 0.4-0.6: Made progress but fell short
-- 0.7-0.9: Delivered strong results (this is the sweet spot)
-- 1.0: Hit exactly — either sandbagged or got lucky
+- 0.7-1.0: Delivered
 
 Average KR scores = Objective score.
-Team target: 0.6-0.7 average (means OKRs are ambitious enough)
-If you're consistently scoring 1.0, your OKRs aren't ambitious enough.
+
+Label every OKR before the quarter starts — the expected score differs:
+- Committed OKR (a launch date, an SLA, a compliance deadline): expected score 1.0;
+  anything lower needs an explanation of what went wrong in planning or execution
+- Aspirational (stretch) OKR: expected average 0.6-0.7 with high variance;
+  consistently scoring 1.0 here means the goals aren't ambitious enough
 ```
 
 ### OKR Alignment
@@ -154,7 +164,7 @@ Company Objective: "Achieve product-market fit in the SMB segment"
 
 ### Rules for Alignment
 1. Teams own their OKRs — company provides direction, not dictation
-2. 60% top-down, 40% bottom-up — teams know their domain best
+2. Roughly half bottom-up — about half of objectives (and nearly all KRs) should come from the teams, not from the top
 3. Dependencies must be explicit — if Team A needs Team B, it's in the OKRs
 4. No duplicate KRs — if two teams share a KR, assign one owner
 5. Individual OKRs are optional — team-level is sufficient for most orgs
@@ -169,7 +179,7 @@ Company Objective: "Achieve product-market fit in the SMB segment"
 
 2. **KRs as tasks**: "Launch feature X" is a task. "Feature X drives 20% increase in activation" is a KR. Measure impact, not output.
 
-3. **Sandbagging**: If teams always score 1.0, they're setting easy goals. OKRs should feel uncomfortable.
+3. **Sandbagging**: If teams always score 1.0 on aspirational OKRs, they're setting easy goals. Stretch OKRs should feel uncomfortable.
 
 4. **OKRs as performance reviews**: If KR scores affect compensation, teams will sandbag. Decouple OKRs from performance reviews.
 
@@ -178,37 +188,80 @@ Company Objective: "Achieve product-market fit in the SMB segment"
 6. **No baseline**: "Improve retention" means nothing without "from X% to Y%". Always include the current number.
 
 7. **Missing counter-metrics**: "Increase signups" without tracking quality leads to gaming (bot signups, low-quality traffic).
+
+8. **Mixing committed and aspirational**: A commitment marked as a stretch gets under-resourced and missed; a stretch marked as a commitment makes teams defensive. Label each one.
 ```
 
 
 ## Examples
 
 
-### Example 1: Creating a writing okrs for a new product
+### Example 1: Drafting OKRs for a product launch
 
 **User request:**
 
 ```
-We're launching a project management tool for remote design teams. Help me create a writing okrs.
+We're launching Loomboard, a critique tool for remote design teams, on August 12.
+Draft our Q3 OKRs. Today: 12 beta teams, 140 teams on the waitlist, 0 paying.
 ```
 
-The agent applies the Okr Planning framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
+The agent asks who owns each number and which results are promises to customers, then returns:
 
-### Example 2: Reviewing quarterly OKRs for alignment issues
+```markdown
+**Objective (aspirational):** Remote design teams run their weekly critique in Loomboard
+
+Key Results:
+1. 40 teams hold 3+ critique sessions in their first 30 days (baseline: 0 of 12 beta teams)
+2. Week-4 team retention reaches 60% (no baseline — the launch cohort reaches week 4 on September 9)
+3. Median time from signup to first shared board drops from 26 minutes to under 10
+
+**Objective (committed):** Launch on August 12 without losing customer work
+
+Key Results:
+1. Zero data-loss incidents in the launch cohort
+2. p95 board load time falls from 4.1 s to under 2 s at 500 concurrent editors
+3. All 12 beta teams run a critique in their production workspace before launch day (today: 0 of 12)
+
+Counter-metric: support tickets stay under 0.5 per active team per week.
+Open question: KR2 has no baseline; treat the first score as a calibration, not a grade.
+```
+
+### Example 2: Reviewing quarterly OKRs for measurability and ambition
 
 **User request:**
 
 ```
-Here are our Q2 OKRs for the platform team. Check if key results are measurable and objectives are ambitious enough.
+Here are our Q2 OKRs for the platform team. Check if key results are measurable
+and objectives are ambitious enough.
+
+O: Improve platform reliability
+KR1: Migrate all services to the new Kubernetes cluster
+KR2: Improve uptime
+KR3: 100% of on-call tickets closed
 ```
 
-The agent analyzes the existing work against OKR best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
+The agent returns a line-by-line review with rewrites:
+
+```markdown
+| Item | Problem | Rewrite |
+|------|---------|---------|
+| O: Improve platform reliability | Vague, describes no end state | Product teams ship without thinking about the platform |
+| KR1: Migrate all services | Output — a task, not a result | Node-level incidents fall from 9 to 2 per quarter (the migration is the initiative) |
+| KR2: Improve uptime | No baseline or target | API availability rises from 99.82% to 99.95% (30-day rolling) |
+| KR3: 100% of tickets closed | Activity metric, invites closing tickets early | Median time to restore falls from 47 to 15 minutes |
+
+Missing:
+- Counter-metric: deploy frequency must not drop below 20 per week
+- Labels: 99.95% availability is a commitment (expected score 1.0);
+  the incident reduction is a stretch (0.7 is a good result)
+- Owner for each KR
+```
 
 
 ## Guidelines
 
 1. **Outcomes over outputs** — Key Results measure impact on users/business, not tasks completed or features shipped
-2. **Ambitious but achievable** — Target 70% completion; consistently scoring 1.0 means you're not stretching enough
+2. **Ambitious but achievable** — For stretch OKRs target 70% completion; consistently scoring 1.0 means you're not stretching enough. Committed OKRs are expected to hit 1.0
 3. **3 objectives max** — Focus is the point of OKRs; if you have 8 objectives, you have zero priorities
 4. **Weekly check-ins** — Traffic-light each KR weekly; fix problems in week 3, not week 12
 5. **Decouple from compensation** — OKRs are a goal-setting tool, not a performance evaluation tool; linking to bonuses kills ambition
