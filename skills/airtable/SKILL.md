@@ -1,373 +1,298 @@
 ---
 name: airtable
 description: >-
-  Build integrations with the Airtable Web API — bases, tables, records, fields,
-  views, webhooks, and OAuth. Use when tasks involve reading or writing Airtable
-  data, syncing external sources with Airtable bases, building automations
-  triggered by record changes, or migrating data to/from Airtable.
+  Airtable is a hosted spreadsheet-database; its Web API reads and writes
+  records, table schema, attachments and webhooks over REST. Use when tasks
+  involve reading or writing Airtable data, importing or upserting rows from a
+  CSV or another system, syncing external sources with Airtable bases, reacting
+  to record changes with webhooks, connecting users through Airtable OAuth, or
+  debugging 422 and 429 responses from api.airtable.com.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "Airtable account with a personal access token or an OAuth integration; code samples use Python 3.9+ with requests"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: productivity
   tags: ["airtable", "api", "productivity", "databases", "automation"]
 ---
 
 # Airtable API Integration
 
-Automate and integrate with Airtable bases using the REST API.
+## Overview
 
-## Authentication
+The Airtable Web API is a REST API at `https://api.airtable.com/v0`. Records live in tables inside a base; IDs are prefixed by type (`app…` base, `tbl…` table, `fld…` field, `rec…` record, `viw…` view). Requests authenticate with a bearer token: a personal access token (PAT) for your own scripts, or an OAuth access token when other users connect their accounts. Legacy API keys stopped working on February 1, 2024. Writes are limited to 10 records per request and every base to 5 requests per second.
 
-### Personal Access Token (simplest)
+## Instructions
 
-Generate at https://airtable.com/create/tokens. Scope to specific bases and permissions.
+### Authentication
+
+Create a personal access token at https://airtable.com/create/tokens, add only the scopes and bases the script needs, and keep it in an environment variable.
 
 ```bash
-export AIRTABLE_TOKEN="pat..."
+export AIRTABLE_TOKEN="pat..."        # set from your secret manager; never commit it
+curl -s https://api.airtable.com/v0/meta/whoami -H "Authorization: Bearer $AIRTABLE_TOKEN"
+# {"id":"usrL2PNC5o3H4lBEi"}
 ```
 
-### OAuth 2.0 (multi-user apps)
+| Scope | Allows |
+|---|---|
+| `data.records:read` / `data.records:write` | Read / create, update and delete records |
+| `schema.bases:read` / `schema.bases:write` | Read / change tables and fields |
+| `webhook:manage` | Create, list and delete webhooks, fetch payloads; creating a `tableData` webhook and reading its payloads also need `data.records:read` |
+| `user.email:read` | Email address in `whoami` |
 
-Register at https://airtable.com/create/oauth. Supports PKCE for public clients.
-
-```python
-"""airtable_oauth.py — OAuth 2.0 with PKCE for Airtable."""
-import hashlib, secrets, base64, requests
-
-def start_oauth(client_id: str, redirect_uri: str) -> tuple[str, str]:
-    """Generate authorization URL with PKCE challenge.
-
-    Args:
-        client_id: From Airtable OAuth integration settings.
-        redirect_uri: Your callback URL.
-
-    Returns:
-        Tuple of (authorization_url, code_verifier) — store verifier for token exchange.
-    """
-    verifier = secrets.token_urlsafe(64)
-    challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode()).digest()
-    ).rstrip(b"=").decode()
-
-    url = (
-        f"https://airtable.com/oauth2/v1/authorize?"
-        f"client_id={client_id}&redirect_uri={redirect_uri}"
-        f"&response_type=code&scope=data.records:read data.records:write schema.bases:read"
-        f"&code_challenge={challenge}&code_challenge_method=S256"
-    )
-    return url, verifier
-
-def exchange_token(code: str, verifier: str, client_id: str, redirect_uri: str) -> dict:
-    """Exchange authorization code for access token.
-
-    Args:
-        code: From Airtable's redirect.
-        verifier: The PKCE code_verifier from start_oauth.
-        client_id: OAuth client ID.
-        redirect_uri: Must match the one used in authorization.
-    """
-    resp = requests.post("https://airtable.com/oauth2/v1/token", data={
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": redirect_uri,
-        "client_id": client_id,
-        "code_verifier": verifier,
-    })
-    return resp.json()  # access_token, refresh_token, expires_in
-```
-
-## Core API Patterns
-
-### Record Operations
+### Records
 
 ```python
-"""airtable_records.py — CRUD operations on Airtable records."""
-import requests, time
+"""airtable_client.py — minimal Airtable Web API client."""
+import base64, hashlib, hmac, os, time
+import requests
 
 API = "https://api.airtable.com/v0"
+session = requests.Session()
+session.headers["Authorization"] = f"Bearer {os.environ['AIRTABLE_TOKEN']}"
 
-def headers(token: str) -> dict:
-    return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-
-def list_records(token: str, base_id: str, table_name: str,
-                 view: str = None, formula: str = None,
-                 fields: list = None, sort: list = None) -> list:
-    """List all records from a table with optional filtering.
-
-    Args:
-        token: Personal access token or OAuth token.
-        base_id: Base ID (starts with 'app').
-        table_name: Table name or ID.
-        view: Optional view name to filter/sort by.
-        formula: Airtable formula for filtering (e.g., "AND({Status}='Active', {Score}>80)").
-        fields: List of field names to return (reduces payload).
-        sort: List of dicts with 'field' and 'direction' keys.
-
-    Returns:
-        List of all matching record objects.
-    """
-    params = {}
-    if view:
-        params["view"] = view
-    if formula:
-        params["filterByFormula"] = formula
-    if fields:
-        for i, f in enumerate(fields):
-            params[f"fields[{i}]"] = f
-    if sort:
-        for i, s in enumerate(sort):
-            params[f"sort[{i}][field]"] = s["field"]
-            params[f"sort[{i}][direction]"] = s.get("direction", "asc")
-
-    records = []
-    offset = None
-    while True:
-        if offset:
-            params["offset"] = offset
-        resp = requests.get(f"{API}/{base_id}/{table_name}",
-                            params=params, headers=headers(token))
-        resp.raise_for_status()
-        data = resp.json()
-        records.extend(data["records"])
-        offset = data.get("offset")
-        if not offset:
+def call(method: str, url: str, **kwargs) -> dict:
+    """One request, throttled to 5 per second; waits 30 s and retries on 429."""
+    for _ in range(4):
+        resp = session.request(method, url, timeout=30, **kwargs)
+        if resp.status_code != 429:
             break
-        time.sleep(0.2)  # Stay under 5 req/s rate limit
+        time.sleep(30)
+    if not resp.ok:
+        raise RuntimeError(f"{method} {url} -> {resp.status_code} {resp.text}")
+    time.sleep(0.2)
+    return resp.json()
 
-    return records
+def batches(items: list, size: int = 10):
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
 
-def create_records(token: str, base_id: str, table_name: str,
-                   records: list[dict], typecast: bool = False) -> list:
-    """Create up to 10 records at a time.
+def list_records(base_id, table, formula=None, fields=None, view=None, sort=None) -> list:
+    """Every record of a table. POST /listRecords keeps long formulas out of the URL."""
+    options = {"filterByFormula": formula, "fields": fields, "view": view, "sort": sort}
+    body = {k: v for k, v in options.items() if v}
+    records = []
+    while True:
+        page = call("POST", f"{API}/{base_id}/{table}/listRecords", json=body)
+        records += page["records"]
+        if "offset" not in page:
+            return records
+        body["offset"] = page["offset"]
 
-    Args:
-        token: Auth token.
-        base_id: Base ID.
-        table_name: Target table.
-        records: List of dicts with field values (max 10 per call).
-        typecast: If True, Airtable auto-converts string values to proper types.
-
-    Returns:
-        List of created record objects with IDs.
-    """
-    # Airtable limits to 10 records per request
+def create_records(base_id, table, rows: list[dict], typecast=False) -> list:
     created = []
-    for i in range(0, len(records), 10):
-        batch = [{"fields": r} for r in records[i:i + 10]]
-        resp = requests.post(
-            f"{API}/{base_id}/{table_name}",
-            json={"records": batch, "typecast": typecast},
-            headers=headers(token),
-        )
-        resp.raise_for_status()
-        created.extend(resp.json()["records"])
-        if i + 10 < len(records):
-            time.sleep(0.2)
+    for batch in batches(rows):
+        body = {"records": [{"fields": row} for row in batch], "typecast": typecast}
+        created += call("POST", f"{API}/{base_id}/{table}", json=body)["records"]
     return created
 
-def update_records(token: str, base_id: str, table_name: str,
-                   updates: list[dict]) -> list:
-    """Update existing records (PATCH — partial update).
-
-    Args:
-        token: Auth token.
-        base_id: Base ID.
-        table_name: Target table.
-        updates: List of dicts with 'id' and 'fields' keys (max 10 per call).
-    """
+def update_records(base_id, table, updates: list[dict]) -> list:
+    """updates = [{"id": "rec...", "fields": {...}}]; PATCH leaves other fields untouched."""
     updated = []
-    for i in range(0, len(updates), 10):
-        batch = updates[i:i + 10]
-        resp = requests.patch(
-            f"{API}/{base_id}/{table_name}",
-            json={"records": batch},
-            headers=headers(token),
-        )
-        resp.raise_for_status()
-        updated.extend(resp.json()["records"])
-        if i + 10 < len(updates):
-            time.sleep(0.2)
+    for batch in batches(updates):
+        updated += call("PATCH", f"{API}/{base_id}/{table}", json={"records": batch})["records"]
     return updated
 
-def delete_records(token: str, base_id: str, table_name: str,
-                   record_ids: list[str]) -> list:
-    """Delete records by ID (max 10 per call).
+def upsert_records(base_id, table, rows: list[dict], merge_on: list[str], typecast=False):
+    """Update rows that match on the merge_on fields and create the rest."""
+    created, updated = [], []
+    for batch in batches(rows):
+        body = {"performUpsert": {"fieldsToMergeOn": merge_on}, "typecast": typecast,
+                "records": [{"fields": row} for row in batch]}
+        data = call("PATCH", f"{API}/{base_id}/{table}", json=body)
+        created += data["createdRecords"]
+        updated += data["updatedRecords"]
+    return created, updated
 
-    Args:
-        token: Auth token.
-        base_id: Base ID.
-        table_name: Target table.
-        record_ids: List of record IDs to delete.
-    """
+def delete_records(base_id, table, record_ids: list[str]) -> list:
     deleted = []
-    for i in range(0, len(record_ids), 10):
-        batch = record_ids[i:i + 10]
-        params = "&".join(f"records[]={rid}" for rid in batch)
-        resp = requests.delete(
-            f"{API}/{base_id}/{table_name}?{params}",
-            headers=headers(token),
-        )
-        resp.raise_for_status()
-        deleted.extend(resp.json()["records"])
-        if i + 10 < len(record_ids):
-            time.sleep(0.2)
+    for batch in batches(record_ids):
+        params = [("records[]", record_id) for record_id in batch]
+        deleted += call("DELETE", f"{API}/{base_id}/{table}", params=params)["records"]
     return deleted
 ```
 
-### Formula Filtering
+- A list page holds at most 100 records (`pageSize`); follow `offset` until it is absent. `maxRecords` caps the total. `GET /v0/{baseId}/{table}` takes the same options as query parameters, but the URL must stay under 16,000 characters.
+- Fields whose value is empty (`""`, `[]`, `false`) are omitted from returned records — read with `record["fields"].get("Done", False)`.
+- `sort` is a list such as `[{"field": "Due Date", "direction": "desc"}]`. Pass `"returnFieldsByFieldId": true` to key fields by ID, so a renamed column does not break the integration.
+- `PUT` instead of `PATCH` clears every field that is not in the request.
+- `fieldsToMergeOn` accepts one to three fields of type number, text, long text, single select, multiple select or date. If two existing records match, the request fails.
 
-Airtable formulas are powerful for server-side filtering:
+### Formula filtering
+
+`filterByFormula` takes an Airtable formula; a record is returned when the result is not `0`, `false`, `""`, `NaN`, `[]` or `#Error!`.
 
 ```python
-# Common formula patterns
 formulas = {
-    # Exact match
     "status_active": "{Status} = 'Active'",
-
-    # Multiple conditions
     "high_priority_open": "AND({Priority} = 'High', {Status} != 'Done')",
-
-    # Date filtering — tasks due this week
-    "due_this_week": "IS_BEFORE({Due Date}, DATEADD(TODAY(), 7, 'days'))",
-
-    # Text search (case-insensitive)
-    "name_contains": "FIND('search term', LOWER({Name}))",
-
-    # Linked records — has at least one linked project
-    "has_project": "{Project} != ''",
-
-    # Number range
-    "score_range": "AND({Score} >= 80, {Score} <= 100)",
-
-    # Empty/non-empty checks
+    "due_in_7_days_or_overdue": "IS_BEFORE({Due Date}, DATEADD(TODAY(), 7, 'days'))",
+    "name_contains": "FIND('invoice', LOWER({Name}))",       # case-insensitive search
+    "has_project": "{Project} != ''",                        # linked record present
     "missing_email": "{Email} = ''",
-    "has_attachment": "{Attachments} != ''",
 }
 ```
 
-### Schema Operations
-
-Read and modify base structure:
+### Schema
 
 ```python
-def get_base_schema(token: str, base_id: str) -> dict:
-    """Get all tables, fields, and views in a base.
+tables = call("GET", f"{API}/meta/bases/{base_id}/tables")["tables"]      # schema.bases:read
+table_id = next(t["id"] for t in tables if t["name"] == "Orders")
 
-    Args:
-        token: Auth token with schema.bases:read scope.
-        base_id: Base ID.
-    """
-    resp = requests.get(f"https://api.airtable.com/v0/meta/bases/{base_id}/tables",
-                        headers=headers(token))
-    return resp.json()
-
-def create_field(token: str, base_id: str, table_id: str,
-                 name: str, field_type: str, options: dict = None) -> dict:
-    """Add a new field (column) to a table.
-
-    Args:
-        token: Auth token with schema.bases:write scope.
-        base_id: Base ID.
-        table_id: Table ID (not name).
-        name: Field name.
-        field_type: One of: singleLineText, multilineText, number, percent,
-                    currency, singleSelect, multipleSelects, date, checkbox, etc.
-        options: Type-specific options (e.g., select choices, currency symbol).
-    """
-    body = {"name": name, "type": field_type}
-    if options:
-        body["options"] = options
-    resp = requests.post(
-        f"https://api.airtable.com/v0/meta/bases/{base_id}/tables/{table_id}/fields",
-        json=body, headers=headers(token),
-    )
-    return resp.json()
+call("POST", f"{API}/meta/bases/{base_id}/tables/{table_id}/fields", json={   # schema.bases:write
+    "name": "Region", "type": "singleSelect",
+    "options": {"choices": [{"name": "EMEA"}, {"name": "APAC"}, {"name": "Americas"}]},
+})
 ```
+
+`GET /v0/meta/bases` lists the bases the token can reach. Creating a field needs the table ID, not its name.
+
+### Attachments
+
+Either write a public URL into the attachment field (`{"Photos": [{"url": "https://cdn.northwind.io/p/1042.jpg"}]}`) or upload the bytes, up to 5 MB, to the separate content host:
+
+```python
+def upload_attachment(base_id, record_id, field, file_path, content_type) -> dict:
+    with open(file_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+    url = f"https://content.airtable.com/v0/{base_id}/{record_id}/{field}/uploadAttachment"
+    body = {"contentType": content_type, "filename": os.path.basename(file_path), "file": encoded}
+    return call("POST", url, json=body)
+```
+
+Writing an attachment field replaces its content: include `{"id": "att..."}` for each existing attachment you want to keep. Attachment URLs returned by the API expire after 2 hours; download the file if you need to keep it.
 
 ### Webhooks
 
-Listen for changes in real time:
+A webhook sends a small ping to your HTTPS endpoint; the changes themselves are fetched from the payloads endpoint. Tables and fields in the specification must be given by ID.
 
 ```python
-def create_webhook(token: str, base_id: str, notification_url: str,
-                   table_id: str = None) -> dict:
-    """Register a webhook for record changes.
+def create_webhook(base_id, table_id, notification_url) -> dict:
+    spec = {"options": {"filters": {"dataTypes": ["tableData"], "recordChangeScope": table_id}}}
+    body = {"notificationUrl": notification_url, "specification": spec}
+    return call("POST", f"{API}/bases/{base_id}/webhooks", json=body)
+    # {"id": "ach...", "macSecretBase64": "...", "expirationTime": "..."} — the secret is shown only once
 
-    Args:
-        token: Auth token with webhook:manage scope.
-        base_id: Base ID to watch.
-        notification_url: Your HTTPS endpoint for receiving payloads.
-        table_id: Optional — watch a specific table instead of entire base.
-    """
-    spec = {"options": {"filters": {"sourceType": "client", "recordChangeScope": base_id}}}
-    if table_id:
-        spec["options"]["filters"]["watchDataInFieldIds"] = "all"
-    resp = requests.post(
-        f"https://api.airtable.com/v0/bases/{base_id}/webhooks",
-        json={"notificationUrl": notification_url, "specification": spec},
-        headers=headers(token),
-    )
-    return resp.json()
+def verify_ping(raw_body: bytes, mac_header: str, mac_secret_base64: str) -> bool:
+    """mac_header is the X-Airtable-Content-MAC request header."""
+    digest = hmac.new(base64.b64decode(mac_secret_base64), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(f"hmac-sha256={digest}", mac_header)
 
-def list_webhook_payloads(token: str, base_id: str, webhook_id: str,
-                          cursor: int = None) -> dict:
-    """Fetch webhook payloads (poll-based — payloads expire after 7 days).
-
-    Args:
-        token: Auth token.
-        base_id: Base ID.
-        webhook_id: Webhook ID from create_webhook.
-        cursor: Cursor from previous response for pagination.
-    """
-    params = {}
-    if cursor:
-        params["cursor"] = cursor
-    resp = requests.get(
-        f"https://api.airtable.com/v0/bases/{base_id}/webhooks/{webhook_id}/payloads",
-        params=params, headers=headers(token),
-    )
-    return resp.json()
+def read_payloads(base_id, webhook_id, cursor=1):
+    """Call after each ping; store the returned cursor for the next call."""
+    payloads = []
+    while True:
+        url = f"{API}/bases/{base_id}/webhooks/{webhook_id}/payloads"
+        page = call("GET", url, params={"cursor": cursor})
+        payloads += page["payloads"]
+        cursor = page["cursor"]
+        if not page["mightHaveMore"]:
+            return payloads, cursor
 ```
 
-## Rate Limits
+- Optional filters: `fromSources` (`client`, `publicApi`, `formSubmission`, `automation`, `sync`…), `changeTypes` (`add`, `remove`, `update`), `watchDataInFieldIds`. Payloads carry only the cells that changed; add `"includes": {"includeCellValuesInFieldIds": "all"}` under `options` to get every field of a changed record.
+- A webhook created with a PAT or OAuth token expires after 7 days. `POST …/webhooks/{id}/refresh` or reading its payloads extends it by 7 days; payloads are kept for a week.
+- Limits: 10 webhooks per base, 2 per OAuth integration per base. Creating one requires creator permission on the base.
+- Answer each ping with `200` or `204` within 25 seconds. A failed ping is retried with exponential backoff for about a day, then notifications are disabled until re-enabled with `POST …/webhooks/{id}/enableNotifications` and body `{"enable": true}`.
 
-- **5 requests per second** per base
-- Record operations: max **10 records** per create/update/delete call
-- List: max **100 records** per page (use offset for pagination)
-- Implement backoff on 429 responses
+### OAuth 2.0
 
-## Field Type Reference
+Register the integration at https://airtable.com/create/oauth. Airtable requires PKCE and a `state` value on every authorization request.
 
-| Type | API name | Notes |
+```python
+import base64, hashlib, os, secrets, urllib.parse
+import requests
+
+def authorization_url(client_id: str, redirect_uri: str) -> tuple[str, str, str]:
+    verifier = secrets.token_urlsafe(64)
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+    state = secrets.token_urlsafe(32)
+    query = urllib.parse.urlencode({
+        "client_id": client_id, "redirect_uri": redirect_uri, "response_type": "code",
+        "scope": "data.records:read data.records:write schema.bases:read",
+        "state": state, "code_challenge": challenge, "code_challenge_method": "S256",
+    })
+    return f"https://airtable.com/oauth2/v1/authorize?{query}", verifier, state   # keep both in the session
+
+def exchange_code(code: str, verifier: str, client_id: str, redirect_uri: str) -> dict:
+    data = {"grant_type": "authorization_code", "code": code,
+            "redirect_uri": redirect_uri, "code_verifier": verifier}
+    secret = os.environ.get("AIRTABLE_CLIENT_SECRET")
+    auth = (client_id, secret) if secret else None        # HTTP Basic when the integration has a secret
+    if not secret:
+        data["client_id"] = client_id
+    return requests.post("https://airtable.com/oauth2/v1/token", data=data, auth=auth, timeout=30).json()
+```
+
+Access tokens last 60 minutes and refresh tokens 60 days. Renew with `grant_type=refresh_token`; each refresh invalidates the previous access and refresh tokens, so store the new pair. Compare the returned `state` with the stored one before exchanging the code.
+
+### Field types
+
+| Field | API type | Value written |
 |---|---|---|
-| Single line text | `singleLineText` | Plain string |
-| Long text | `multilineText` | Supports markdown |
-| Number | `number` | Integer or decimal |
-| Single select | `singleSelect` | One from predefined list |
-| Multiple select | `multipleSelects` | Array of selections |
-| Date | `date` | ISO 8601 string |
+| Single line / long text | `singleLineText` / `multilineText` | String |
+| Rich text | `richText` | Markdown string |
+| Number, currency, percent | `number`, `currency`, `percent` | Number (percent as a fraction, 0.25 = 25%) |
+| Single / multiple select | `singleSelect` / `multipleSelects` | Option name / list of names |
+| Date / date and time | `date` / `dateTime` | ISO 8601 string |
 | Checkbox | `checkbox` | Boolean |
-| URL | `url` | Validated URL string |
-| Email | `email` | Validated email string |
-| Phone | `phoneNumber` | String |
-| Currency | `currency` | Number with currency formatting |
-| Percent | `percent` | Number displayed as percentage |
-| Attachment | `multipleAttachments` | Array of file objects with URL |
-| Linked record | `multipleRecordLinks` | Array of record IDs |
-| Lookup | `multipleLookupValues` | Read-only, from linked records |
-| Rollup | `rollup` | Read-only, aggregation of linked records |
-| Formula | `formula` | Read-only, computed value |
+| URL, email, phone | `url`, `email`, `phoneNumber` | String |
+| Attachment | `multipleAttachments` | List of `{"url": ...}` objects |
+| Linked record | `multipleRecordLinks` | List of record IDs |
+| Formula, rollup, lookup, count, autonumber, created time | `formula`, `rollup`, `multipleLookupValues`, `count`, `autoNumber`, `createdTime` | Read-only |
+
+## Examples
+
+### Example 1: Import a CSV without creating duplicates
+
+**User request:** "Load customers.csv into the Customers table of our CRM base. Rows whose email already exists should be updated, not duplicated."
+
+```python
+import csv, os
+from airtable_client import upsert_records
+BASE_ID = os.environ["AIRTABLE_BASE_ID"]          # appB7xK2mQ9vTnL4s
+with open("customers.csv", newline="") as f:
+    rows = [{"Email": r["email"], "Name": r["name"], "Plan": r["plan"], "MRR": r["mrr"]} for r in csv.DictReader(f)]
+
+created, updated = upsert_records(BASE_ID, "Customers", rows, merge_on=["Email"], typecast=True)
+print(f"{len(created)} created, {len(updated)} updated")
+```
+
+`typecast=True` converts the CSV strings (`"49"` to a number, a new plan name to a new select option). `Email` must be a single line text field: the email field type is not among the types `fieldsToMergeOn` accepts. For 1,240 rows the script sends 124 requests (at least 25 seconds at the throttled rate) and prints `38 created, 1202 updated`.
+
+### Example 2: Query overdue tasks from the command line
+
+**User request:** "Show me the open high-priority tasks that are past their due date."
+
+```bash
+curl -s -X POST "https://api.airtable.com/v0/appB7xK2mQ9vTnL4s/Tasks/listRecords" \
+  -H "Authorization: Bearer $AIRTABLE_TOKEN" -H "Content-Type: application/json" \
+  -d '{"filterByFormula": "AND({Priority} = \"High\", {Status} != \"Done\", IS_BEFORE({Due Date}, TODAY()))",
+       "fields": ["Name", "Due Date", "Owner"], "sort": [{"field": "Due Date"}]}'
+```
+
+```json
+{
+  "records": [
+    {"id": "recQ4mZ81xYtW0pLd", "createdTime": "2026-09-02T08:14:11.000Z",
+     "fields": {"Name": "Renew SOC 2 audit contract", "Due Date": "2026-09-24", "Owner": "Priya Raman"}},
+    {"id": "rec7HcVn3KsE9uTaB", "createdTime": "2026-09-10T13:40:52.000Z",
+     "fields": {"Name": "Rotate payment gateway keys", "Due Date": "2026-09-29", "Owner": "Marcus Lindqvist"}}
+  ]
+}
+```
+
+No `offset` key in the response means this is the last page.
 
 ## Guidelines
 
-- Always paginate list requests -- never assume all records fit in one response
-- Use `filterByFormula` to reduce payload instead of fetching all and filtering client-side
-- Batch operations in groups of 10 (API limit) with 200ms delays
-- Use `typecast: true` for imports where field values might need conversion
-- Attachment fields require URLs -- upload to a hosting service first, then pass the URL
-- Linked record fields accept record IDs, not display values
-- Formula and rollup fields are read-only -- you cannot write to them via API
-- Webhook payloads don't contain full record data -- they signal changes, then you fetch details
-- Rate limits are per-base, not per-token -- multiple integrations on the same base share the limit
+- Rate limits: 5 requests per second per base and 50 per second across all PAT traffic of one user. Going over returns `429`, and requests keep failing until you have waited 30 seconds — back off, do not retry immediately.
+- Free workspaces are capped at 1,000 API calls per month and Team workspaces at 100,000; schema calls count too. Batch writes (10 records per request) and cache reads instead of polling.
+- `422` means the request data failed validation against the base: an unknown field name, an unknown select option without `typecast`, a string in a number field, or a write to a computed field. `403` means the token lacks the scope or the base; `502` and `503` are safe to retry.
+- Use table and field IDs in long-lived integrations; names break when someone renames a column.
+- Linked record fields take record IDs, not display values. A select value that is not an existing option fails with `INVALID_MULTIPLE_CHOICE_OPTIONS` unless `typecast` is true, in which case Airtable creates the option — convenient for imports, a source of typo options elsewhere.
+- Give each token the narrowest scopes and only the bases it needs. Never put a PAT or the webhook MAC secret in client-side code or a repository.
+- Verify the `X-Airtable-Content-MAC` header on every webhook ping, and treat the ping as a signal only: fetch payloads with your stored cursor.
+- Deleting records and `PUT` updates cannot be undone through the API; confirm the record IDs with the user first.
+- For a UI-level export or a one-off edit, the Airtable interface or a CSV import is simpler than the API.

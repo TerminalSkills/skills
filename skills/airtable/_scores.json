@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8a86812fef504eb795884acadc9e7d4ed93ff3845d971fa93720f5f289e46270",
-  "scoredAt": "2026-05-13T13:51:46.096Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9c3c967efbead6d4fff5969bb0f9736ab5a2b3c7743f1a08bcbc5ee7cc76ca29",
+  "scoredAt": "2026-10-01T11:16:25.601Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not fully handle all error scenarios and edge cases, such as network failures and rate limit backoff."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 3.4,
+    "multiplier": 3.92,
     "baselineAvg": 25,
-    "treatmentAvg": 85,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "webhook-record-sync",
-        "baseline": 50,
-        "treatment": 70,
-        "rationale": "Response B correctly uses create_webhook but still omits list_webhook_payloads, whereas Response A omits create_webhook entirely, making B the better answer."
-      },
-      {
-        "name": "batch-create-with-typecast-and-filter",
+        "name": "upsert-from-csv",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B lacks the required API calls and typecast usage."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not address Airtable or the required functions."
+      },
+      {
+        "name": "create-webhook-and-verify",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits key elements such as the create_webhook call, macSecretBase64, and the correct header verification."
+      },
+      {
+        "name": "oauth-pkce-flow",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required functions and demonstrates token exchange, while Response B is incomplete and does not show the full flow."
       }
     ]
   }
