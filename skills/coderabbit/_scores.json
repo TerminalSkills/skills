@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c02086540b633197590f1a5a7dd9f0ec8225a2d75a1cba47ea6c6e57c3f3944d",
-  "scoredAt": "2026-05-13T15:43:19.590Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:b4cb0a5e26b8b6e32ecbbfee6860920fa2db4d32f9bbb88779dfb85797990250",
+  "scoredAt": "2026-10-01T11:30:31.092Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for installation and configuration failures."
+        "detail": "The instructions do not cover all error scenarios and edge cases, such as missing configuration files or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.15,
-    "baselineAvg": 20,
-    "treatmentAvg": 83,
+    "multiplier": 3.12,
+    "baselineAvg": 17,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "setup-coderabbit",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response B covers most rubric items except path_instructions, while Response A omits many required fields."
+        "name": "setup-auto-pr-review",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response B includes most required fields and a validation command, but lacks tone_instructions; Response A misses many required fields and the validation command."
       },
       {
-        "name": "update-path-instructions",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Response B fully satisfies the rubric with correct file name, draft review setting, new path instruction for drizzle/migrations/**, and unchanged path_filters, whereas Response A is incomplete and incorrectly formatted."
+        "name": "control-pr-review-with-comments",
+        "baseline": 0,
+        "treatment": 40,
+        "rationale": "Response A lists the required comments but omits the explanatory details; Response B provides no content."
+      },
+      {
+        "name": "local-cli-review-and-autofix",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response B covers most rubric items (agent review, auto-fix, re-run loop) while Response A omits key details like NDJSON parsing, severity handling, and credit usage."
       }
     ]
   }
