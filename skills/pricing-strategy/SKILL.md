@@ -235,8 +235,9 @@ that order volume is too seasonal for buyers to predict. Proposal:
 | Multi | Shops with several sites | $49 + $25 per extra location | 5 locations | Transfers between locations, low-stock rules per site |
 | Network | Distributors | $149 + $15 per location above 5 | None | Purchase-order approvals, API, audit log |
 
-Model: at list prices and no losses, monthly revenue would rise from $93,100 to about $146,000.
-The memo does not promise that: existing accounts keep $49 for six months, no bill more than
+Model: if the two-to-five group averages 3.5 locations and the six-plus group 7, then at list
+prices and with no losses monthly revenue would rise from $93,100 to about $146,000
+(1,210 × $49 + 540 × $111.50 + 150 × $179). The memo does not promise that: existing accounts keep $49 for six months, no bill more than
 doubles in the first year, and the pessimistic case assumes 15% of multi-location accounts leave.
 New signups get the new plans at once, which tests the metric before the base moves.
 
