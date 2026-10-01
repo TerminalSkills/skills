@@ -1,53 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:34b6b163d586d7494329b3358ae0fc1e7f35f22c120e86e3a942bb1879436534",
-  "scoredAt": "2026-05-13T14:52:53.798Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6806c200197e1d6ef4218d50a51f5c94df0c9a091d550b3a4e2910e5fac1998b",
+  "scoredAt": "2026-10-01T11:23:47.552Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "category": "crossPlatform",
+        "detail": "The skill notes that `bt eval` is not available on Windows, indicating a minor platform assumption."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for package installation."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 6.67,
-    "baselineAvg": 15,
+    "multiplier": 10,
+    "baselineAvg": 0,
     "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "evaluate-support-chatbot",
-        "baseline": 10,
+        "name": "run-eval-local-json",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with proper init, Eval, data, task, and custom scorer; Response B lacks the required init and Eval structure."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not."
       },
       {
-        "name": "log-production-traces",
-        "baseline": 20,
+        "name": "instrument-fastapi-tracing",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully meets the rubric by using init with apiKey, braintrust.traced() to wrap the chatbot call, and logging input/output, whereas Response B uses a manual Trace API instead of traced() and does not wrap a function."
+        "rationale": "Response A fully meets the rubric, while Response B omits the required init_logger, auto_instrument, and @traced usage."
+      },
+      {
+        "name": "ci-eval-action",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to meet key requirements."
       }
     ]
   }
