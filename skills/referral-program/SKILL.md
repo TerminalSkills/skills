@@ -1,138 +1,224 @@
 ---
 name: referral-program
-description: "When the user wants to create, optimize, or analyze a referral program, affiliate program, or word-of-mouth strategy. Also use when the user mentions 'referral,' 'affiliate,' 'ambassador,' 'word of mouth,' 'viral loop,' 'refer a friend,' or 'partner program.' This skill covers program design, incentive structure, and growth optimization."
+description: >-
+  Designs, specifies and diagnoses customer referral programs and affiliate programs for software
+  and subscription businesses: whether to run one, how large the reward can be, how attribution
+  and payout work in the database and billing system, how to stop abuse, and how to measure
+  whether it pays. Use when a user asks to "set up a referral program", "add refer-a-friend",
+  "give credit for invites", "launch an affiliate program", "what commission should we pay",
+  "why is nobody using our referral link", or mentions word of mouth, invite codes, ambassadors
+  or partner payouts.
+license: Apache-2.0
+compatibility: "Any product with user accounts and a billing system. Calculation helper needs Python 3.8+; the schema runs on PostgreSQL and SQLite; billing examples use the Stripe API."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: business
-  tags:
-    - referrals
-    - viral
-    - word-of-mouth
+  tags: ["referral-program", "affiliate-marketing", "growth", "customer-acquisition", "unit-economics"]
 ---
 
-# Referral & Affiliate Programs
+# Referral Program
 
 ## Overview
 
-You are an expert in viral growth and referral marketing. Your goal is to help design and optimize programs that turn customers into growth engines.
+A referral program pays existing customers, usually in account credit, when someone they invite becomes a paying customer. An affiliate program pays outside publishers a commission for the same result. Both are acquisition channels with a cost per customer, and both fail in predictable ways: rewards larger than the margin allows, rewards paid for sign-ups that never pay, links that leak to coupon sites, and attribution that cannot be audited.
 
-**Check for product marketing context first:**
-If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+This skill takes a business from numbers to a written specification an engineer can build: an economics check, the reward rules, a data model with a status flow, the billing calls, abuse controls, the compliance points that apply, and the queries that show whether it works. It also diagnoses a program that already exists.
 
 ## Instructions
 
-### Initial Context Gathering
+### 1. Collect the numbers and decide whether to build
 
-Gather this context (ask if not provided):
+Ask for, or pull from billing and analytics: active paying customers, new customers per month and how many already arrive by recommendation (a "how did you hear about us" field, direct and branded traffic), average revenue per account per month, gross margin, monthly churn, the blended cost of acquiring a customer through paid channels, the billing system, and the refund window.
 
-1. **Program Type** - Customer referral, affiliate, or both? B2B or B2C? Average customer LTV? Current CAC from other channels?
-2. **Current State** - Existing program? Current referral rate (% who refer)? Incentives tried?
-3. **Product Fit** - Is your product shareable? Network effects? Do customers naturally talk about it?
-4. **Resources** - Tools/platforms considered? Budget for referral incentives?
+Decide with the user before designing anything:
 
-### Referral vs. Affiliate
+- If almost nobody recommends the product today, a reward will not create the habit. Fix the product or onboarding first and say so.
+- With a small customer base (a few hundred or fewer), run it by hand first: a personal email with a unique link and a manually applied credit. Build the machinery when the manual version produces customers.
+- If recommendations already happen, a program mainly makes them trackable and more frequent. Expect part of the "referred" volume to be people who would have come anyway, and plan for that in the maths.
 
-**Customer Referral Programs:** Best for existing customers recommending to their network. Products with natural word-of-mouth. Lower-ticket or self-serve products. One-time or limited rewards, higher trust, lower volume.
+### 2. Choose the program type
 
-**Affiliate Programs:** Best for reaching audiences you don't have access to. Content creators, influencers, bloggers. Higher-ticket products justifying commissions. Ongoing commission relationship, higher volume, variable trust.
+| | Customer referral | Affiliate or partner |
+|---|---|---|
+| Who promotes | Existing customers, to people they know | Publishers, creators, consultants, to an audience |
+| Reward | Account credit, free period or plan upgrade, usually for both sides | Cash commission, flat or a share of revenue for a set period |
+| Volume and trust | Low volume, high trust, high retention | Higher volume, variable quality |
+| Extra obligations | Simple terms | Contract, disclosure rules, tax forms, payout operations, brand rules |
 
-### Referral Program Design
+Start with customer referral unless the product is sold through advisers or reviewed by publishers. Run both only with separate links and separate rules, and never let one person collect both rewards for the same customer.
 
-**The Referral Loop:**
+### 3. Size the reward
+
+The reward has to be noticeable to the person sharing and still leave the channel cheaper than the alternatives. Check both with the business's own numbers:
+
+```python
+def referral_economics(arpa, gross_margin, monthly_churn, paid_cac,
+                       referrer_reward, friend_reward, incremental_share):
+    """All money in one currency. incremental_share: fraction of referred
+    customers who would not have signed up without the program (0-1)."""
+    margin_month = arpa * gross_margin
+    ltv = margin_month / monthly_churn
+    cost = referrer_reward + friend_reward
+    cac = cost / incremental_share
+    return {
+        "ltv": round(ltv), "reward_cost": cost, "effective_cac": round(cac),
+        "payback_months": round(cac / margin_month, 1),
+        "ltv_to_cac": round(ltv / cac, 1), "vs_paid_cac": f"{cac / paid_cac:.0%}",
+    }
 ```
-Trigger Moment → Share Action → Convert Referred → Reward → (Loop)
+
+Rules for reading the result:
+
+- Count rewards at face value. Credit given to a paying customer is revenue you would otherwise have collected.
+- `incremental_share` is unknown at launch. Compute the result at an optimistic and a pessimistic value (for example 0.6 and 0.3) and keep the reward only if the pessimistic case is still acceptable.
+- Keep `effective_cac` below the paid-channel figure and the payback period inside what the business accepts for other channels. If the pessimistic case fails, lower the reward or pay it in a form that costs less than its face value (plan upgrade, usage allowance).
+- Two-sided rewards are the default: the friend gets a reason to use the link instead of signing up directly, which is what makes attribution possible.
+
+### 4. Write the rules
+
+State each of these in the specification, in one sentence each:
+
+- **Who can refer:** paying customers in good standing; staff and resellers excluded.
+- **Who counts as referred:** a person or company with no previous account, payment method or trial.
+- **Qualifying event:** the first paid invoice, and the reward is released only after the refund window has passed. Never pay on sign-up.
+- **Attribution:** the link `https://app.../r/CODE` sets a first-party cookie for a fixed window (30 to 90 days) and the code is stored on the account at sign-up; a code typed at checkout overrides the cookie; the last valid code before sign-up wins.
+- **Limits:** a cap per referrer per year, an expiry for unused credit, no cash value.
+- **Reversal:** refund, chargeback or cancellation inside the window reverses both rewards.
+- **Change clause:** the business may alter or end the program and withhold rewards for abuse.
+
+### 5. Data model and status flow
+
+```sql
+CREATE TABLE referral_codes (
+  code         TEXT PRIMARY KEY,              -- random, 8+ characters, never derived from the customer id
+  customer_id  TEXT NOT NULL UNIQUE,
+  created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE referrals (
+  id                    TEXT PRIMARY KEY,
+  code                  TEXT NOT NULL REFERENCES referral_codes(code),
+  referred_customer_id  TEXT NOT NULL UNIQUE, -- a new customer has at most one referrer
+  status                TEXT NOT NULL DEFAULT 'signed_up'
+                        CHECK (status IN ('signed_up', 'qualified', 'rewarded', 'rejected', 'reversed')),
+  signed_up_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  qualified_at          TIMESTAMP,
+  reject_reason         TEXT
+);
+CREATE TABLE referral_rewards (
+  id              TEXT PRIMARY KEY,
+  referral_id     TEXT NOT NULL REFERENCES referrals(id),
+  beneficiary_id  TEXT NOT NULL,
+  amount_cents    INTEGER NOT NULL,
+  provider_ref    TEXT UNIQUE,                -- billing-system transaction id
+  issued_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reversed_at     TIMESTAMP,
+  UNIQUE (referral_id, beneficiary_id)        -- a retried webhook cannot pay twice
+);
 ```
 
-**Step 1: Identify Trigger Moments** - Right after first "aha" moment, after achieving a milestone, after exceptional support, after renewing or upgrading.
+Status moves one way: `signed_up` to `qualified` when the first invoice is paid, `qualified` to `rewarded` when a scheduled job finds the refund window has passed and writes the reward rows, `rejected` when an abuse rule fires, `reversed` when money is returned after a reward. Drive the transitions from billing webhooks (`invoice.paid`, `charge.refunded`, `charge.dispute.created` in Stripe), not from the browser.
 
-**Step 2: Design Share Mechanism** - Ranked by effectiveness: In-product sharing (highest) > Personalized link > Email invitation > Social sharing > Referral code (works offline).
+With Stripe, carry the code into checkout as `client_reference_id` (up to 200 letters, digits, dashes or underscores) so the `checkout.session.completed` event can be matched to the referral, give the friend's discount as a promotion code restricted to first-time customers, and pay the referrer as invoice credit. A negative amount is a credit against the next invoice:
 
-**Step 3: Choose Incentive Structure:**
-- **Single-sided** (referrer only): Simpler, works for high-value products
-- **Double-sided** (both parties): Higher conversion, win-win framing
-- **Tiered**: Gamifies referral process, increases engagement
+```bash
+curl https://api.stripe.com/v1/customers/cus_Qx81LmT4vJd2Rk/balance_transactions \
+  -u "$STRIPE_SECRET_KEY:" \
+  -d amount=-5000 -d currency=usd \
+  -d description="Referral reward for referral rf_2f9c1a" \
+  -H "Idempotency-Key: reward-rf_2f9c1a-referrer"
+```
 
-**For examples and incentive sizing**: See [references/program-examples.md](references/program-examples.md)
+Balance transactions cannot be edited or deleted; a reversal is a second transaction with the opposite sign. Test every call in a sandbox before live keys are involved.
 
-### Program Optimization
+### 6. Abuse controls
 
-**If few customers are referring:** Ask at better moments, simplify sharing, test different incentive types, make referral prominent in product.
+- Reject when referrer and friend share a payment card fingerprint, a billing address, or (for business products) an email domain; hold for review when they share a device or network.
+- Pay only after the qualifying event and the refund window; reverse on refund or dispute.
+- Cap rewards per referrer and review anyone who reaches the cap in days rather than months.
+- Forbid posting links on coupon and deal sites in the terms, and watch for links with many clicks and few qualified customers.
+- Log every decision in `reject_reason` so support can explain it.
 
-**If referrals aren't converting:** Improve landing experience for referred users, strengthen incentive for new users, ensure referrer's endorsement is visible.
+### 7. Compliance points to raise with the user
 
-**A/B Tests to Run:** Incentive amount/type/timing, program description and CTA copy, placement and timing of referral prompts.
+- **Disclosure (US, FTC Endorsement Guides):** someone rewarded for a recommendation has a material connection and should say so in plain words when recommending publicly. Affiliates must disclose commissions clearly; the label "affiliate link" alone is not enough. The business is expected to tell participants this and to monitor it.
+- **Invitation email (US, CAN-SPAM):** if you offer a reward for forwarding a message, you count as its sender and the message needs a working opt-out and your postal address. The simplest safe design gives the referrer a link to send through their own channels; do not import their address book.
+- **Privacy (EU and UK):** if a referrer types a friend's email address into your product, send at most the one invitation and do not add the address to marketing lists.
+- **Tax (US):** cash paid to an affiliate is reportable on Form 1099-NEC once it reaches $2,000 in a calendar year (the threshold from tax year 2026; it was $600 before). Collect a W-9 or W-8 before the first payout. Ask an accountant how customer credits are treated.
 
-| Problem | Fix |
-|---------|-----|
-| Low awareness | Add prominent in-app prompts |
-| Low share rate | Simplify to one click |
-| Low conversion | Optimize referred user experience |
-| Fraud/abuse | Add verification, limits |
-| One-time referrers | Add tiered/gamified rewards |
+These are prompts for the user's own legal and tax advice, not a substitute for it.
 
-### Measuring Success
+### 8. Affiliate terms
 
-**Program health:** Active referrers (referred someone in last 30 days), referral conversion rate, rewards earned/paid.
+Decide and write down: commission (a share of revenue for a fixed number of months is easier to keep inside the payback limit than a lifetime share), the attribution window and that the last affiliate click wins, payout schedule (monthly, after the refund window, above a minimum balance), what is forbidden (bidding on the brand name in search ads, cashback and coupon sites unless approved, misleading claims), the disclosure requirement, and termination. Run the same economics function with `friend_reward` as any audience discount and `referrer_reward` as the expected total commission.
 
-**Business impact:** % of new customers from referrals, CAC via referral vs. other channels, LTV of referred customers, program ROI.
+### 9. Placement, launch and measurement
 
-**Typical benchmarks:** Referred customers have 16-25% higher LTV, 18-37% lower churn, and refer others at 2-3x the rate.
+Offer the link right after a moment of success (a goal reached, a positive survey answer, a renewal) and keep a permanent entry in the account menu. The offer is one sentence naming what each side gets and when. Launch to a slice of customers first so the rest serve as a comparison group for incrementality.
 
-### Launch Checklist
+Track the funnel by stage: customers shown the offer, customers who shared, link clicks, sign-ups, qualified customers, rewards issued and reversed. Then compare referred and other customers on retention after 90 days.
 
-**Before Launch:** Define goals and metrics, design incentive structure, build/configure referral tool, create landing page, set up tracking and attribution, define fraud prevention rules, create terms and conditions, test complete flow.
+```sql
+SELECT COUNT(*) AS signed_up,
+       SUM(CASE WHEN status IN ('qualified', 'rewarded') THEN 1 ELSE 0 END) AS qualified,
+       SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) AS rejected
+FROM referrals WHERE signed_up_at >= '2026-09-01';
 
-**Launch:** Announce to existing customers, add in-app referral prompts, update website with program details, brief support team.
+SELECT c.customer_id, COUNT(*) AS referred,
+       SUM(CASE WHEN r.status = 'rejected' THEN 1 ELSE 0 END) AS rejected
+FROM referrals r JOIN referral_codes c ON c.code = r.code
+GROUP BY c.customer_id HAVING COUNT(*) >= 10 ORDER BY referred DESC;
+```
 
-**Post-Launch (First 30 Days):** Review conversion funnel, identify top referrers, gather feedback, fix friction points, send reminders to non-referrers.
+| Weak stage | Likely cause | First change |
+|---|---|---|
+| Few customers see the offer | It lives only in settings | Add it after success moments and in receipts |
+| Seen but not shared | Reward unclear or unattractive, sharing takes effort | Rewrite the offer; one-tap copy of a short link |
+| Shared but few sign-ups | Friend lands on a generic page with no visible benefit | Landing page that names the referrer and the friend's reward |
+| Sign-ups but few qualify | Reward attracts people who never pay, or abuse | Tie the friend's benefit to the first payment; check the per-referrer query |
 
-### Email Sequences
+### 10. Deliverable
 
-**Program Launch Email:** Subject: "You can now earn [reward] for sharing [Product]." Body: Explain the double-sided reward, include unique referral link, show 3 simple steps.
-
-**Nurture Sequence:** Day 7: Remind about program. Day 30: "Know anyone who'd benefit?" Day 60: Success story + referral prompt. After milestone: "You achieved [X] -- know others who'd want this?"
-
-### Affiliate Programs
-
-**For detailed affiliate program design, commission structures, recruitment, and tools**: See [references/affiliate-programs.md](references/affiliate-programs.md)
+Write `docs/referral-program.md` with these sections: economics (inputs and both scenarios), rules, status flow and schema, billing calls, abuse rules, compliance notes, copy for the offer and the invitation, metrics and targets, launch plan. Add migrations and webhook handlers only if the user asks for implementation.
 
 ## Examples
 
-### Example 1: Double-Sided Referral Program for a Fitness App
+### Example 1: Credit-based referral for a subscription tool
 
-**User prompt:** "We run a fitness app called FitPulse with 50K active users. LTV is $180 and CAC is $35 from paid ads. We want to launch a referral program to lower acquisition costs."
+**Request:** "Quillharbor is invoicing software at $49 a month. 1,900 paying customers, 78% gross margin, 3.1% monthly churn, paid CAC is $310, and 14% of new customers say a colleague told them. Design a referral program on Stripe."
 
-The agent will design a complete referral program:
-- Double-sided incentive: Referrer gets 1 free month ($14.99 value), referred friend gets 30-day extended trial (normally 7 days)
-- Trigger moments: After completing a 30-day streak, after hitting a personal record, after sharing a workout summary
-- Share mechanism: In-app share button generating a personalized link, plus "Invite Contacts" flow for email/SMS
-- Fraud prevention: Maximum 10 referral rewards per user per quarter, referred user must complete 5 workouts to trigger reward
-- Launch plan: Email announcement to existing users, in-app banner for first 2 weeks, push notification to users who hit milestones
-- Success metrics: Target 5% referral rate (2,500 referrers), 25% conversion rate on referred signups, target CAC of $15 via referral channel
-- Projected ROI: If 625 new users acquired at $15 CAC vs. $35 paid CAC, saves $12,500/month
+```text
+>>> referral_economics(49, 0.78, 0.031, 310, referrer_reward=50, friend_reward=49, incremental_share=0.6)
+{'ltv': 1233, 'reward_cost': 99, 'effective_cac': 165, 'payback_months': 4.3, 'ltv_to_cac': 7.5, 'vs_paid_cac': '53%'}
+>>> referral_economics(49, 0.78, 0.031, 310, referrer_reward=50, friend_reward=49, incremental_share=0.3)
+{'ltv': 1233, 'reward_cost': 99, 'effective_cac': 330, 'payback_months': 8.6, 'ltv_to_cac': 3.7, 'vs_paid_cac': '106%'}
+```
 
-### Example 2: B2B SaaS Affiliate Program for a Design Tool
+Recommendation written into the spec: the friend's first month is free and the referrer receives $50 of invoice credit, released 30 days after the friend's first paid invoice. In the pessimistic case the channel costs about the same as paid acquisition, so the program launches to half of customers for one quarter and continues only if referred sign-ups in that half exceed the other half by enough to hold `incremental_share` above 0.4. Cap of 10 rewards per referrer per year; referrer and friend on the same email domain are rejected because that is seat expansion, not a new customer. The spec includes the schema above, the three webhook handlers, and the offer line "Give a colleague a free month. You get $50 off your next invoice when they stay."
 
-**User prompt:** "We sell a collaborative design tool at $49/month per team. We want to launch an affiliate program targeting design YouTubers and bloggers."
+### Example 2: Diagnosing a program that produces little
 
-The agent will design the affiliate program structure:
-- Commission: 30% recurring for 12 months ($14.70/month per referred team), justified by $588 average LTV
-- Tiers: Standard (30% for first 10 referrals), Silver (35% after 10), Gold (40% after 25 plus early feature access)
-- Recruitment strategy: Identify 50 design YouTubers with 10K-100K subscribers, offer exclusive 60-day extended trial for their audience, provide custom landing pages with co-branded content
-- Affiliate assets: Demo video template, comparison graphics vs. Figma/Canva, discount code for 20% off first 3 months
-- Tracking: Rewardful integrated with Stripe for automatic commission payments, 90-day cookie window, last-click attribution
-- Launch sequence: Recruit 10 founding affiliates with bonus commission, soft launch for 30 days to refine assets, then open applications publicly
-- Anti-fraud: Require affiliates to disclose relationship, block self-referrals, manual review for accounts generating >20 signups/month
+**Request:** "Ferncrest's refer-a-friend has run for a quarter and brought 23 members. We have 4,200 members. What is wrong?"
+
+Funnel from the tables and link logs: 4,200 eligible, 126 shared (3.0%), 1,890 clicks (15 per sharer), 151 sign-ups (8.0% of clicks), 23 qualified (15% of sign-ups).
+
+```text
+customer_id       referred  rejected
+cus_PnA41xRdT0    64        61
+cus_Lw7Hq2ZsB9    11        0
+```
+
+Findings: the offer appears only on the account page, which explains the 3% share rate. Fifteen clicks per sharer is far above what personal sharing produces: one link was posted on a deals forum, and that referrer accounts for 64 sign-ups, 61 rejected for a shared card fingerprint. Without that account the sign-up-to-qualified rate is 23 of 87, about 26%.
+
+Actions: show the offer after a member's tenth class and in the monthly receipt; add a landing page that names the referrer and the free week; withhold that referrer's pending rewards and add the forum to the terms' forbidden list; keep the reward as it is, since the problem is reach, not size. Target for next quarter: share rate above 8%.
 
 ## Guidelines
 
-- Always check `.claude/product-marketing-context.md` before asking discovery questions
-- Default to double-sided incentives for referral programs since they convert significantly better than single-sided rewards
-- Size referral rewards relative to LTV and CAC: the reward should be meaningful to the referrer but well below the cost of acquiring that customer through paid channels
-- Identify the highest-intent trigger moments in the product journey rather than asking for referrals at random times
-- Always include fraud prevention rules from the start since retroactively adding them causes friction with existing referrers
-- Keep the sharing mechanism as simple as possible: one-click sharing with a personalized link beats multi-step referral code flows
-- For affiliate programs, recommend recurring commissions over one-time payouts since they incentivize affiliates to create evergreen content
-- Include a launch email sequence and in-app prompts in every referral program recommendation since programs with no promotion get no participation
-- Track referral CAC against other channels to prove program ROI and justify continued investment
+- Do the arithmetic before the creative work. A program whose pessimistic scenario costs more than paid acquisition should be shrunk or dropped, and saying so is the useful answer.
+- Never release a reward on sign-up, trial start or email verification; these are free to fake.
+- Attributed is not the same as caused. Without a comparison group, report referral numbers as an upper bound.
+- Quote no industry benchmark for share or conversion rates unless the user supplies a source; the spread between products is too wide for a generic number to guide a decision.
+- Keep rewards in the product's own currency (credit, upgrades, usage) for customers; cash invites people who have no interest in the product and creates tax paperwork.
+- Regulated sectors (financial services, health, gambling, alcohol) and programs open to minors have extra rules on inducements; stop and send the user to counsel.
+- Multi-level structures, where people earn from the referrals of their referrals, are out of scope and legally risky.
+- Use a third-party referral or affiliate platform when the user needs payouts in many countries, tax form collection or a partner portal; this skill's schema is for the common in-product case.

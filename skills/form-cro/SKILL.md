@@ -1,122 +1,264 @@
 ---
 name: form-cro
-description: When the user wants to optimize any form that is NOT signup/registration — including lead capture forms, contact forms, demo request forms, application forms, survey forms, or checkout forms. Also use when the user mentions "form optimization," "lead form conversions," "form friction," "form fields," "form completion rate," or "contact form." For signup/registration forms, see signup-flow-cro. For popups containing forms, see popup-cro.
+description: >-
+  Audits and rebuilds web forms so that more people finish them: lead, contact,
+  demo-request, quote, checkout and survey forms. Produces a field-by-field
+  triage, standards-based markup (labels, autocomplete tokens, error handling
+  per the HTML spec and WCAG 2.2), funnel tracking and a test plan. Use when
+  someone says "our form isn't converting", "too many form fields", "people
+  abandon the contact form", "fix the demo request form", "form completion
+  rate", "form validation errors" or "make this form accessible". Account
+  sign-up flows belong to signup-flow-cro and forms inside popups to popup-cro.
+license: Apache-2.0
+compatibility: >-
+  Any agent that can read HTML, JSX or template files. Markup targets current
+  evergreen browsers; tracking examples assume Google Analytics 4 (gtag.js).
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: business
-  tags:
-    - forms
-    - conversion
-    - optimization
+  tags: ["forms", "conversion", "accessibility", "lead-generation", "wcag"]
 ---
 
 # Form CRO
 
 ## Overview
 
-You are an expert in form optimization. Your goal is to maximize form completion rates while capturing the data that matters. This skill covers lead capture, contact, demo request, application, survey, quote request, and checkout forms.
+A form loses people for three reasons: it asks for more than the visitor thinks the reward is worth, it is physically awkward to fill in (wrong keyboard, no autofill, tiny targets), or it rejects an answer without saying how to fix it. This skill works through all three and hands back four things: a measured funnel, a decision for every field, replacement markup that follows the HTML specification and WCAG 2.2, and a test plan sized to the traffic the form really gets.
 
-**Check for product marketing context first:**
-If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
-
-Before providing recommendations, identify the form type, current state (field count, completion rate, mobile vs. desktop split, abandonment points), and business context (what happens with submissions, which fields are used in follow-up, compliance requirements).
+Accessibility is treated as part of conversion, not a separate chore. A visitor who cannot hear which field is wrong, or whose password manager cannot recognise the email box, is an abandoned submission like any other.
 
 ## Instructions
 
-### Core Principles
+### 1. Collect the form and the facts around it
 
-**Every Field Has a Cost.** Each additional field reduces completion rate. Rule of thumb: 3 fields is baseline, 4-6 fields cause 10-25% reduction, 7+ fields cause 25-50%+ reduction. For each field ask: Is this necessary before we can help them? Can we get this another way? Can we ask later?
+Read the form before asking anything. In a repository, find it and its handler:
 
-**Value Must Exceed Effort.** Place a clear value proposition above the form, make what they get obvious, and reduce perceived effort through field count and labels.
+```bash
+grep -rnE "<form|onSubmit=|action=" --include="*.html" --include="*.tsx" --include="*.jsx" --include="*.vue" src/ | head -40
+```
 
-**Reduce Cognitive Load.** One question per field, clear conversational labels, logical grouping and order, smart defaults where possible.
+For a live page, fetch the HTML and note every `input`, `select` and `textarea` with its `type`, `name`, `autocomplete`, `required` and associated `label`. Then ask the user only for what the code cannot show:
 
-### Field-by-Field Optimization
+- What happens to a submission, and which fields does the next person or system actually use (routing, CRM, quoting)?
+- Monthly numbers: page views, people who started typing, successful submissions, split by phone and desktop.
+- Legal constraints: marketing consent, regulated data, age checks.
+- Whether engineering can change the backend or only the front end.
 
-- **Email**: Single field, no confirmation. Inline validation with typo detection. Proper mobile keyboard.
-- **Name**: Test single "Name" vs. First/Last. Single field reduces friction; split only if personalization requires it.
-- **Phone**: Make optional if possible. If required, explain why. Auto-format and handle country codes.
-- **Company**: Auto-suggest for faster entry. Consider enrichment after submission or inferring from email domain.
-- **Job Title/Role**: Dropdown if categories matter, free text if wide variation. Consider making optional.
-- **Message/Comments**: Make optional. Reasonable character guidance. Expand on focus.
-- **Dropdowns**: Use "Select one..." placeholder, searchable if many options, radio buttons if fewer than 5.
+### 2. Measure the funnel before changing anything
 
-### Form Layout
+Four counts describe a form: views, starts, submit attempts, successes. Start rate (starts ÷ views) is a page problem: the offer, the placement, the perceived length. Completion rate (successes ÷ starts) is a form problem. Attempts minus successes are validation failures.
 
-**Field Order:** Start with easiest fields (name, email), build commitment before asking more, sensitive fields last (phone, company size), logical grouping if many fields.
+GA4 enhanced measurement already emits `form_start` (first interaction with a form in a session) and `form_submit`, carrying `form_id`, `form_name` and `form_destination`; those parameters only show up in reports after they are registered as custom dimensions. `form_submit` fires on the submit event, so it also counts attempts the server rejects. Send the recommended `generate_lead` event from the confirmation step instead and treat that as the conversion. For the field where people give up, record the last field focused when the page is hidden (see Example 2).
 
-**Labels and Placeholders:** Labels should always be visible (not just placeholder text). Placeholders show examples, not labels. Help text only when genuinely helpful.
+### 3. Decide the fate of every field
 
-**Visual Design:** Sufficient spacing between fields, clear visual hierarchy, CTA button stands out, mobile-friendly tap targets (44px+). Single column layout is higher completion and mobile-friendly; multi-column only for short related fields like First/Last name.
+Give each field one of five verdicts and write the reason beside it.
 
-### Multi-Step Forms
+| Verdict | When it applies |
+|---|---|
+| Keep, required | Nobody can act on the submission without it |
+| Keep, optional | Helps some visitors, and its label says "(optional)" |
+| Derive | Obtainable from another answer: company from the email domain, city and state from the postal code, country from locale |
+| Defer | Useful later: ask on the confirmation page, in the follow-up email or on the call |
+| Delete | No named person or system reads it |
 
-Use multi-step when you have more than 5-6 fields, logically distinct sections, or conditional paths. Best practices: progress indicator (step X of Y), start easy and end with sensitive, one topic per step, allow back navigation, save progress, clear required vs. optional indication.
+Removing fields usually raises completion, but it is a trade: a qualifying question dropped from a sales form can fill the calendar with poor-fit calls. State that trade to the user and let a test settle it rather than quoting a universal percentage.
 
-**Progressive Commitment Pattern:** Low-friction start (just email) then more detail (name, company) then qualifying questions then contact preferences.
+### 4. Write the markup to the standard
 
-### Error Handling
+Every control gets these, in this order of importance:
 
-Validate as users move to next field, not while typing. Error messages should be specific, suggest how to fix, be positioned near the field, and never clear user input. On submit: focus first error field, summarize errors if multiple, preserve all entered data.
+1. **A visible `label` tied by `for`/`id`.** Placeholder text is not a label: it vanishes on input and assistive technology does not treat it as one (WCAG 3.3.2, Level A). Put an example in a hint paragraph linked by `aria-describedby`.
+2. **The right `type`**: `email`, `tel`, `url`, `date`. For digits that are not quantities (postal code, card number, one-time code) use `type="text"` with `inputmode="numeric"`; `inputmode` only chooses the on-screen keyboard and validates nothing.
+3. **An `autocomplete` token** from the HTML autofill list, so browsers and password managers fill the field (WCAG 1.3.5, Level AA, for data about the user).
+4. **`required` on mandatory fields**, and the word "(optional)" in the label of the others. Mark whichever group is smaller.
 
-### Submit Button
+| Field | `autocomplete` | Notes |
+|---|---|---|
+| Full name | `name` | One box unless a downstream system needs the parts (`given-name`, `family-name`) |
+| Email | `email` | `type="email"`, `spellcheck="false"` |
+| Phone | `tel` | `type="tel"`; accept spaces, dashes and a leading plus sign |
+| Company / job title | `organization` / `organization-title` | |
+| Street | `address-line1`, `address-line2` | Prefix with `shipping` or `billing` at checkout |
+| City / state or region | `address-level2` / `address-level1` | |
+| Postal code | `postal-code` | `inputmode="numeric"` only where codes are all digits |
+| Country | `country` (code) or `country-name` | |
+| Card | `cc-name`, `cc-number`, `cc-exp`, `cc-csc` | |
+| SMS or email code | `one-time-code` | `inputmode="numeric"` |
 
-**Copy:** Replace weak "Submit" or "Send" with action plus benefit: "Get My Free Quote," "Download the Guide," "Request Demo." Place immediately after last field, left-aligned with fields, sufficient size and contrast.
+Layout rules that hold up: one column; a label above its field; radio buttons for two to five choices and a `select` beyond that; inputs sized to hint at the expected length; text at 16px or larger so iOS Safari does not zoom the page on focus; every tap target at least 24 by 24 CSS pixels (WCAG 2.5.8, Level AA), with 44 by 44 as the comfortable goal for the submit button and radio rows. Never block paste, and never switch autofill off for personal data.
 
-**Post-Submit:** Loading state with disabled button and spinner, success confirmation with clear next steps, error handling with clear message.
+### 5. Handle errors so they can be fixed
 
-### Trust and Friction Reduction
+- Validate on the server every time. Client-side checks are a courtesy.
+- Check on submit. After a field has failed once, re-check it as the visitor edits so the message clears the moment it is fixed. Do not flag an empty field the visitor has not reached.
+- Add `novalidate` to the form when the page supplies its own messages; native browser bubbles cannot be styled, vanish after a few seconds and show one field at a time.
+- Each message says what to enter, in the words of the label: "Enter a phone number with area code", not "Invalid input". Identify the field in text (WCAG 3.3.1) and suggest the fix when it is known (3.3.3).
+- Set `aria-invalid="true"` on the control and connect the message with `aria-describedby`.
+- With several failures, show a summary above the form in a `role="alert"` container, move focus to it, and link each line to its field. Prefix the page title with "Error:".
+- Keep everything the visitor typed. Colour alone must not carry the error state (1.4.1).
 
-Near the form: privacy statement ("We'll never share your info"), security badges if collecting sensitive data, testimonial or social proof, expected response time.
+### 6. Split into steps only when it helps
 
-Reduce perceived effort: "Takes 30 seconds," field count indicator, remove visual clutter, generous white space. Address objections: "No spam, unsubscribe anytime," "We won't share your number," "No credit card required."
+Use steps when the form has distinct topics (property, usage, contact) or branches. Each step gets a heading that states the position ("Step 2 of 3: your energy use"), a Back control that restores earlier answers, and no question repeated from an earlier step (WCAG 3.3.7). Put contact details last, and say up front how many steps there are.
 
-### Form Type-Specific Guidance
+### 7. Finish the submission properly
 
-- **Lead Capture (Gated Content):** Minimum viable fields (often just email), clear value proposition, consider asking enrichment questions post-download.
-- **Contact Form:** Essential: Email/Name + Message. Phone optional. Set response time expectations. Offer alternatives (chat, phone).
-- **Demo Request:** Name, Email, Company required. Phone optional with "preferred contact" choice. Use case question helps personalize. Calendar embed increases show rate.
-- **Quote/Estimate Request:** Multi-step often works well. Start easy, technical details later, save progress.
-- **Survey Forms:** Progress bar essential, one question per screen, skip logic for relevance, consider incentive.
+The button names the result ("Book my demo", "Send my quote request"). Leave it enabled; a greyed-out button gives no clue about what is missing. After the first click, block double submission and show progress. Confirm on a new page or in a `role="status"` region with what happens next and when ("Priya from our team will email you by 5pm tomorrow"). A pre-ticked marketing checkbox is not valid consent under GDPR and UK GDPR, so consent boxes start unticked and stay separate from the terms. Prefer a honeypot field plus server rate limiting to a puzzle CAPTCHA.
 
-### Mobile Optimization
+### 8. Deliver in this shape
 
-Larger touch targets (44px minimum), appropriate keyboard types (email, tel, number), autofill support, single column only, sticky submit button, minimal typing with dropdowns and buttons.
-
-### Measurement
-
-Track form start rate, completion rate, field drop-off, error rate by field, time to complete, and mobile vs. desktop completion. Instrument: form views, first field focus, each field completion, errors by field, submit attempts, and successful submissions.
-
-### Output Format
-
-**Form Audit:** For each issue provide Issue, Impact (estimated effect on conversions), Fix (specific recommendation), Priority (High/Medium/Low).
-
-**Recommended Form Design:** Required fields with justified list, optional fields with rationale, recommended field order, copy (labels, placeholders, button), error messages for each field, layout guidance.
-
-**Test Hypotheses:** A/B test ideas with expected outcomes for layout/flow, field optimization, copy/design, and form type-specific changes.
+1. **Funnel**: views, starts, attempts, successes and the two rates, per device where known.
+2. **Findings table**: finding, evidence (line of markup or a number), fix, standard or source, effort (S/M/L), priority.
+3. **Field triage table** from step 3.
+4. **Replacement markup**, complete and ready to paste, plus any script.
+5. **Test plan**: one hypothesis per change set, the primary metric, and the sample needed. For two variants at 80% power and 5% significance, each arm needs about `16 × p × (1 − p) ÷ d²` starts, where `p` is the average of the two completion rates and `d` the absolute lift worth detecting. If that takes longer than about eight weeks, ship the fixes and compare before and after.
 
 ## Examples
 
-### Example 1: B2B Demo Request Form Audit
+### Example 1: A demo-request form cut from eleven fields to five
 
-**User prompt:** "Our demo request form has 12 fields and a 4% completion rate. Here's the URL: acme.com/request-demo. Can you audit it and recommend improvements?"
+**Request:** "Tallybridge sells payroll software to restaurants. Our demo form has 11 fields and 4.1% of the people who open the page submit it. The file is `src/pages/demo.html`."
 
-The agent will read the page, identify unnecessary fields (e.g., company revenue, employee count, industry that could be enriched post-submission via Clearbit), and provide a prioritized audit. It will recommend cutting to 5 core fields (Name, Work Email, Company, Job Title, "What challenge are you looking to solve?"), switching from a single-step layout to a 2-step progressive form, replacing the "Submit" button with "Book My Demo," adding a privacy note and expected response time, and estimating the completion rate improvement from 4% to 10-15%.
+The agent reads the file and reports: no `autocomplete` on any field, placeholders used as labels, phone required, errors shown one at a time by the browser. Triage:
 
-### Example 2: Newsletter Lead Capture Optimization
+| Field | Verdict | Reason |
+|---|---|---|
+| Full name, work email, company | Keep, required | Sales cannot reply or prepare without them |
+| Number of locations | Keep, optional | Routes groups of six or more to the enterprise rep |
+| Phone | Keep, optional | 1 in 5 booked demos happens by phone |
+| Job title, payroll provider, message | Defer | Asked in the calendar invite |
+| Country, state | Derive | The product is US-only, and the rep reads the state from the company's address |
+| "How did you hear about us?" | Delete | Nobody has opened that report since 2024 |
 
-**User prompt:** "We have a lead capture form on our blog sidebar asking for name, email, company, and job title to download our State of DevOps 2025 report. Only 1.2% of visitors fill it out."
+Replacement markup (three required fields, two optional):
 
-The agent will recommend reducing to email-only for the initial capture (since the report value should justify an email but 4 fields creates too much friction for a free download), moving enrichment questions to a post-download "thank you" page, rewriting the CTA from "Download" to "Get the Free Report," adding social proof ("Downloaded by 5,000+ DevOps leaders"), and testing a sticky bottom bar form vs. the sidebar placement. It will project a 3-5x improvement in capture rate with the reduced-friction approach.
+```html
+<div id="error-summary" role="alert" tabindex="-1" hidden>
+  <h2>Fix these answers to continue</h2>
+  <ul></ul>
+</div>
+
+<form id="demo-request" action="/demo-request" method="post" novalidate>
+  <div class="field">
+    <label for="name">Full name</label>
+    <p id="name-error" class="error" hidden></p>
+    <input id="name" name="name" type="text" autocomplete="name"
+           aria-describedby="name-error" required>
+  </div>
+  <div class="field">
+    <label for="email">Work email</label>
+    <p id="email-error" class="error" hidden></p>
+    <input id="email" name="email" type="email" autocomplete="email"
+           spellcheck="false" aria-describedby="email-error" required>
+  </div>
+  <div class="field">
+    <label for="company">Restaurant or group name</label>
+    <p id="company-error" class="error" hidden></p>
+    <input id="company" name="company" type="text" autocomplete="organization"
+           aria-describedby="company-error" required>
+  </div>
+  <fieldset>
+    <legend>How many locations do you run payroll for? (optional)</legend>
+    <label><input type="radio" name="locations" value="1"> 1</label>
+    <label><input type="radio" name="locations" value="2-5"> 2 to 5</label>
+    <label><input type="radio" name="locations" value="6+"> 6 or more</label>
+  </fieldset>
+  <div class="field">
+    <label for="phone">Phone (optional)</label>
+    <p id="phone-hint" class="hint">Only if you would rather get a call than an email.</p>
+    <input id="phone" name="phone" type="tel" autocomplete="tel"
+           aria-describedby="phone-hint">
+  </div>
+  <button type="submit">Book my demo</button>
+  <p>We use these details only to arrange your demo. <a href="/privacy">Privacy notice</a></p>
+</form>
+```
+
+```js
+const form = document.querySelector('#demo-request');
+const summary = document.querySelector('#error-summary');
+const messages = {
+  name: 'Enter your full name',
+  email: 'Enter an email address like dana@harborgrill.co',
+  company: 'Enter the name of your restaurant or group',
+};
+
+function check(input) {
+  const error = document.getElementById(`${input.id}-error`);
+  const bad = !input.checkValidity();
+  input.setAttribute('aria-invalid', String(bad));
+  error.textContent = bad ? messages[input.name] : '';
+  error.hidden = !bad;
+  return bad ? input : null;
+}
+
+form.addEventListener('submit', (event) => {
+  const failed = [...form.querySelectorAll('input[required]')].map(check).filter(Boolean);
+  if (!failed.length) return; // the server validates again
+  event.preventDefault();
+  summary.querySelector('ul').innerHTML = failed
+    .map((input) => `<li><a href="#${input.id}">${messages[input.name]}</a></li>`)
+    .join('');
+  summary.hidden = false;
+  summary.focus();
+  document.title = `Error: ${document.title.replace(/^Error: /, '')}`;
+});
+
+form.addEventListener('input', (event) => {
+  if (event.target.getAttribute('aria-invalid') === 'true') check(event.target);
+});
+```
+
+Submitting this form empty lists three linked messages, moves focus to the summary and marks each control `aria-invalid="true"`; correcting a field clears its message as the visitor types. The agent closes with the trade to watch: lead volume should rise, so track the share of demos that sales marks as qualified for four weeks alongside the completion rate.
+
+### Example 2: Finding where a three-step quote form loses people
+
+**Request:** "Brightfield Solar's quote form: 9,400 views a month, 2,350 starts, 310 quote requests. Where do we lose them and what should we test?"
+
+The agent computes a 25% start rate and a 13.2% completion rate (310 ÷ 2,350), notes that 87% of starters leave somewhere inside the form, and adds tracking to learn where:
+
+```js
+const quote = document.querySelector('#quote');
+let lastField = '';
+
+quote.addEventListener('focusin', (event) => {
+  if (event.target.name) lastField = event.target.name;
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && lastField && !quote.dataset.sent) {
+    gtag('event', 'form_abandon', { form_id: quote.id, last_field: lastField });
+  }
+});
+
+// on the confirmation step, after the server accepts the request
+quote.dataset.sent = 'true';
+gtag('event', 'generate_lead', { currency: 'USD', value: 40 });
+```
+
+The event also fires when someone only switches tabs, so the agent reads it as a ranking of fields, not an exact count. Two weeks of data show 41% of these events with `last_field` equal to `bill_upload`, a required utility-bill upload on step 2. The agent proposes replacing it with one typed number and moving the upload to the confirmation page:
+
+```html
+<h2>Step 2 of 3: your energy use</h2>
+<div class="field">
+  <label for="bill">Average monthly electric bill, in dollars</label>
+  <p id="bill-hint" class="hint">A rough figure is fine, for example 180.</p>
+  <input id="bill" name="bill" type="text" inputmode="decimal"
+         autocomplete="off" aria-describedby="bill-hint" required>
+</div>
+```
+
+Test plan: hypothesis "typing a number instead of uploading a bill lifts completion from 13.2% to 17.2%". With `p` = 0.152 and `d` = 0.04, each arm needs 16 × 0.152 × 0.848 ÷ 0.0016 ≈ 1,290 starts. At 2,350 starts a month split two ways, that is about five weeks. Guardrail metric: the share of quotes that survey engineers accept without asking for the bill again.
 
 ## Guidelines
 
-- Always justify every field. If you cannot explain why a field is needed before the first interaction, remove it.
-- Never recommend clearing form data on validation errors.
-- Prefer progressive profiling (collecting data over multiple interactions) over long single forms.
-- Test single "Name" field vs. First/Last before assuming either approach.
-- Mobile optimization is not optional. Over 50% of traffic is mobile for most sites.
-- Be specific in audit recommendations. "Improve the form" is not actionable; "Remove the phone field and make company name auto-suggest" is.
-- When recommending multi-step forms, always include a progress indicator and back navigation.
-- Respect compliance requirements (GDPR consent checkboxes, required legal disclosures) even when they add friction.
+- Never promise a lift. Field-count studies disagree with each other and none of them describes this form; report the baseline, the change and the measured result.
+- Do not validate on every keystroke or on leaving an untouched field; an error shown before the visitor has finished typing reads as an accusation.
+- `autocomplete="off"` is for values that are not about the person (a bill amount, a one-off reference). On name, email, phone and address it only makes the form slower.
+- Do not split one value across several boxes, such as three boxes for a phone number; accept the formats people type and normalise on the server. A date the visitor knows by heart, like a date of birth, is the exception: separate day, month and year fields work well there.
+- A `select` with two hundred countries is slower than a text box with `autocomplete="country-name"`. Reach for a custom combobox only if it is fully keyboard operable.
+- The markup here is tested with an automated accessibility checker, which cannot judge contrast, focus visibility or wording. Check text contrast of 4.5:1 and field borders of 3:1, then tab through the form with a keyboard and once with a screen reader.
+- Low traffic means no A/B test. Under roughly a thousand starts a month, fix the clear defects (missing labels, no autofill, lost input on error) and compare periods, saying plainly that seasonality may explain part of the change.
+- Not the right skill for account creation and login (signup-flow-cro), popups and slide-ins (popup-cro), or the page around the form when the start rate, not the completion rate, is the weak number (page-cro).

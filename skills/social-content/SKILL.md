@@ -1,165 +1,232 @@
 ---
 name: social-content
-description: "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies."
+description: >-
+  Plans and writes social media posts for a person or a company and delivers them as a checked,
+  dated file: posts adapted to each network's format and hard limits, with alt text, disclosure
+  where required, tracked links and a posting calendar. Use when a user asks to "write a LinkedIn
+  post", "turn this blog post into a thread", "plan a month of social content", "build a content
+  calendar", "repurpose this article for Instagram and TikTok", "announce our launch on X and
+  Bluesky", or wants help deciding what to post, where and how often.
+license: Apache-2.0
+compatibility: "Any project where source material (blog posts, changelog, docs) can be read. Limit checker needs Python 3.8+ (standard library only). Publishing is done by the user or their scheduler."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: business
-  tags:
-    - social-media
-    - content
-    - engagement
+  version: "2.0.0"
+  category: content
+  tags: ["social-media", "content-marketing", "copywriting", "content-calendar", "linkedin"]
 ---
 
 # Social Content
 
 ## Overview
 
-You are an expert social media strategist. Your goal is to help create engaging content that builds audience, drives engagement, and supports business goals.
+Social posts work when a specific person says a specific thing to people who care about it, in the shape the network expects. They fail when one generic paragraph is pasted everywhere, when the first line could open any post, or when a post is rejected, truncated or hidden because it broke a limit nobody checked.
 
-**Check for product marketing context first:**
-If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+This skill turns source material and a goal into posts that are ready to publish: it gathers what makes the account's voice its own, picks networks the user can actually sustain, writes each post natively, and stores everything in `social/posts.json` so lengths, hashtags, alt text and disclosure can be verified by a script before anything goes out. It writes and plans; it does not publish or sign in to any account.
 
 ## Instructions
 
-### Initial Context Gathering
+### 1. Gather the brief
 
-Gather this context (ask if not provided):
+Read what the project already holds before asking: `CHANGELOG.md`, release notes, the blog or docs directory, the README, customer quotes the user has permission to use. Then ask for what is missing:
 
-1. **Goals** - Primary objective (brand awareness, leads, traffic, community)? Desired action? Personal brand, company brand, or both?
-2. **Audience** - Who are you reaching? Most active platforms? What content do they engage with?
-3. **Brand Voice** - Tone (professional, casual, witty, authoritative)? Topics to avoid? Style guidelines?
-4. **Resources** - Time available for social? Existing content to repurpose? Can you create video?
+- **Speaker:** a named person or the brand account. People get more reach and more replies; brand accounts suit announcements and support.
+- **Audience and one goal for the quarter:** for example trial sign-ups from engineering managers, or repeat orders from past buyers. One goal decides what a post asks the reader to do.
+- **Capacity:** hours per week, who replies to comments, whether they can record video.
+- **Voice samples:** three to five past posts or messages the speaker is happy with. From them note sentence length, first or third person, use of emoji, words they favour and avoid. Write that down as five lines and follow it.
+- **Limits:** claims legal will not allow, customers that may not be named, embargo dates.
+- **History:** if they already post, the last twenty posts with their numbers.
 
-### Platform Quick Reference
+### 2. Choose networks and cadence
 
-| Platform | Best For | Frequency | Key Format |
-|----------|----------|-----------|------------|
-| LinkedIn | B2B, thought leadership | 3-5x/week | Carousels, stories |
-| Twitter/X | Tech, real-time, community | 3-10x/day | Threads, hot takes |
-| Instagram | Visual brands, lifestyle | 1-2 posts + Stories daily | Reels, carousels |
-| TikTok | Brand awareness, younger audiences | 1-4x/day | Short-form video |
-| Facebook | Communities, local businesses | 1-2x/day | Groups, native video |
+Pick the fewest networks that reach the audience, and a rhythm the user can keep for three months. A person with three hours a week does one network well: about three posts plus replies. Add a second network only when the first runs without strain.
 
-**For detailed platform strategies**: See [references/platforms.md](references/platforms.md)
+| Network | Native shape | Hard limits (checked October 2026) |
+|---|---|---|
+| LinkedIn | Text post that opens with a concrete claim; document carousels; short native video | 3,000 characters; the feed cuts off after roughly the first two lines |
+| X | Single post or a short thread, one point each | 280 weighted characters on free accounts: any link counts 23, emoji and CJK characters count 2 |
+| Bluesky | Short post, link card, threads | 300 graphemes; 4 images, each up to 2 MB |
+| Mastodon | Short post with content warnings and alt text expected | 500 characters by default (set per server); links count 23 |
+| Threads | Conversational short post | 500 characters; at most 5 links; carousel of 2 to 20 items |
+| Instagram | Carousel, Reel, Story; caption supports the visual | Caption 2,200 characters; 5 hashtags since Instagram's December 2025 change; alt text up to 1,000 characters |
+| TikTok | Vertical video with a spoken or on-screen opening line | Caption 2,200 characters through the posting API |
+| YouTube Shorts | Vertical video | Up to 3 minutes |
 
-### Content Pillars Framework
+Limits change. Recheck the network's own help or developer pages when a post sits near a limit or the table is more than a few months old, and update `LIMITS` in the checker.
 
-Build content around 3-5 pillars aligning expertise with audience interests:
+### 3. Write each post
 
-| Pillar | % of Content | Topics |
-|--------|--------------|--------|
-| Industry insights | 30% | Trends, data, predictions |
-| Behind-the-scenes | 25% | Building the company, lessons |
-| Educational | 25% | How-tos, frameworks, tips |
-| Personal | 15% | Stories, values, hot takes |
-| Promotional | 5% | Product updates, offers |
+Work from one source at a time and decide what single point each post makes.
 
-For each pillar, identify: your unique perspective, audience questions, past high performers, what you can create consistently, and alignment with business goals.
+- **Opening line:** it carries the most specific thing you have: a number, a result, a decision, a mistake. A reader should know from it whether the post is for them. Test: could this line open a post by any other company? If yes, rewrite it.
+- **Body:** short paragraphs, one idea each. Use the numbers, names and steps from the source. Say what it cost or what went wrong; a post with no trade-off reads as an advert.
+- **Close:** one next step that serves the goal, or none. Do not ask people to "comment YES" or tag friends to win reach.
+- **Links:** one per post, with `utm_source`, `utm_medium=social` and `utm_campaign` so clicks can be traced. Whether a link in the body or in a reply performs better differs by account; test it on this account instead of assuming.
+- **Hashtags:** none to three on LinkedIn, X, Bluesky and Mastodon, chosen because people follow them. Write multi-word tags in CamelCase so screen readers can pronounce them.
+- **Plain characters only:** no bold or italic lookalikes from Unicode symbol blocks; screen readers skip or mangle them and search cannot match them.
 
-### Hook Formulas
+Phrases to cut on sight, because they mark text as filler: openers such as "In today's fast-moving world", "Let's dive in", "Here's the thing"; a question opener followed immediately by its own answer; "game-changer", "unlock", "supercharge"; every line ending in an emoji; a closing "Thoughts?".
 
-The first line determines whether anyone reads the rest.
+### 4. Adapt, do not copy
 
-**Curiosity:** "I was wrong about [common belief]." / "The real reason [outcome] happens isn't what you think." / "[Result] -- and it only took [short time]."
+One source becomes several native pieces. What changes between them:
 
-**Story:** "Last week, [unexpected thing] happened." / "I almost [big mistake]." / "3 years ago, I [past state]. Today, [current state]."
+| From a 1,200-word article | Becomes |
+|---|---|
+| LinkedIn | 120 to 250 words: the claim, three concrete steps or findings, the trade-off, a link |
+| X or Bluesky | One post with the sharpest number and the link; or a thread of 3 to 5 posts, each readable alone |
+| Instagram or LinkedIn carousel | 5 to 8 slides: a headline slide, one point per slide in under 20 words, a closing slide with the next step; the caption adds context |
+| Short video | A script of 20 to 45 seconds: the result in the first sentence, then how, then one caution |
 
-**Value:** "How to [outcome] (without [pain]):" / "[Number] [things] that [outcome]:" / "Stop [mistake]. Do this instead:"
+Spread the pieces over one or two weeks so followers on several networks do not see the same thing at the same hour.
 
-**Contrarian:** "Unpopular opinion: [bold statement]" / "[Common advice] is wrong. Here's why:" / "I stopped [practice] and [positive result]."
+### 5. Media, accessibility, disclosure
 
-**For post templates and more hooks**: See [references/post-templates.md](references/post-templates.md)
+- Every still image gets alt text that states what the image shows and any number on it, in one or two sentences. Video gets captions; say the key line out loud as well as showing it.
+- **Disclosure:** when the speaker has a material connection to what they praise (they are paid, received it free, are an employee, earn commission), the post itself says so in plain words near the start: "ad", "sponsored", "gifted", "I work at Tarnlog". A profile bio, a tag buried among hashtags, or abbreviations such as "sp" and "collab" are not enough under the FTC's Endorsement Guides. In video the disclosure is spoken or on screen, not only in the caption. Use the network's paid-partnership label as well, not instead.
+- **Synthetic media:** realistic AI-generated or altered images, audio and video must be labelled with the network's own disclosure setting (YouTube, TikTok and Meta each have one). AI help with wording or outlines needs no label.
+- Reposting a customer's or creator's content needs their permission in writing.
 
-### Content Repurposing System
+### 6. Store and check
 
-Turn one piece of content into many. A single blog post becomes: LinkedIn key insight + link in comments, LinkedIn carousel of main points, Twitter/X thread of takeaways, Instagram carousel with visuals, Instagram Reel summarizing the post.
+Keep all posts in `social/posts.json`, one object per post:
 
-**Workflow:** Create pillar content (blog, video, podcast) → Extract 3-5 key insights → Adapt to each platform (format and tone) → Schedule across the week → Update and reshare evergreen content.
+```json
+{
+  "id": "w41-x-1",
+  "network": "x",
+  "date": "2026-10-07",
+  "status": "draft",
+  "text": "We cut our ingest bill 41% with 60 lines of code.\n\nThe problem was never bytes. It was requests: one object write per log line.",
+  "media": [{ "file": "social/media/ingest-cost-chart.png", "alt": "Line chart of monthly ingest cost falling from $11,800 to $6,960." }],
+  "paid_or_gifted": false
+}
+```
 
-### Content Calendar Structure
+Save the checker as `social/check_posts.py` and run it after every edit: `python3 social/check_posts.py`.
 
-| Day | LinkedIn | Twitter/X | Instagram |
-|-----|----------|-----------|-----------|
-| Mon | Industry insight | Thread | Carousel |
-| Tue | Behind-scenes | Engagement | Story |
-| Wed | Educational | Tips tweet | Reel |
-| Thu | Story post | Thread | Educational |
-| Fri | Hot take | Engagement | Story |
+```python
+#!/usr/bin/env python3
+"""Check social/posts.json against each network's hard limits. Exit 1 on any failure."""
+import json, re, sys
 
-**Batching strategy (2-3 hours weekly):** Review pillar topics, write 5 LinkedIn posts, write 3 Twitter threads + daily tweets, create Instagram content ideas, schedule everything, leave room for real-time engagement.
+URL = re.compile(r"https?://\S+")
+LIMITS = {  # verified October 2026; text limit, counting rule, max hashtags, max links
+    "x":         (280,  "weighted", None, None),   # free tier; URLs count 23, wide characters and emoji count 2
+    "linkedin":  (3000, "chars",    None, None),
+    "instagram": (2200, "chars",    5,    None),
+    "threads":   (500,  "chars",    None, 5),
+    "bluesky":   (300,  "chars",    None, None),   # limit is in graphemes; code points never undercount
+    "mastodon":  (500,  "urls23",   None, None),   # default instance limit
+    "tiktok":    (2200, "chars",    None, None),
+}
 
-### Engagement Strategy
+def length(text, rule):
+    if rule == "chars":
+        return len(text)
+    rest = URL.sub("", text)
+    urls = 23 * len(URL.findall(text))
+    if rule == "urls23":
+        return len(rest) + urls
+    narrow = lambda c: ord(c) <= 4351 or 8192 <= ord(c) <= 8205 or 8208 <= ord(c) <= 8223 or 8242 <= ord(c) <= 8247
+    return sum(1 if narrow(c) else 2 for c in rest) + urls
 
-**Daily routine (30 min):** Respond to all comments (5 min), comment on 5-10 target accounts (15 min), share/repost with added insight (5 min), send 2-3 DMs to new connections (5 min).
+failed = False
+for post in json.load(open(sys.argv[1] if len(sys.argv) > 1 else "social/posts.json", encoding="utf-8")):
+    limit, rule, max_tags, max_links = LIMITS[post["network"]]
+    problems = []
+    used = length(post["text"], rule)
+    if used > limit:
+        problems.append(f"text {used}/{limit}")
+    if max_tags is not None and len(re.findall(r"#\w+", post["text"])) > max_tags:
+        problems.append(f"more than {max_tags} hashtags")
+    if max_links is not None and len(URL.findall(post["text"])) > max_links:
+        problems.append(f"more than {max_links} links")
+    problems += [f"no alt text for {m['file']}" for m in post.get("media", []) if not m.get("alt") and not m["file"].endswith((".mp4", ".mov"))]
+    if post.get("paid_or_gifted") and not re.search(r"#ad\b|#sponsored\b|\bad:|\bgifted\b|paid partnership", post["text"], re.I):
+        problems.append("material connection not disclosed in the text")
+    failed = failed or bool(problems)
+    print(f"{post['id']:<14} {post['network']:<10} {used:>4}/{limit:<5} {'FAIL: ' + '; '.join(problems) if problems else 'ok'}")
+sys.exit(1 if failed else 0)
+```
 
-**Quality comments:** Add new insight (not "Great post!"), share related experience, ask thoughtful follow-up, respectfully disagree with nuance.
+The X count follows the published weighting and never undercounts; multi-part emoji may be counted a little high.
 
-**Relationship building:** Identify 20-50 accounts in your space, consistently engage, share their content with credit, collaborate over time.
+### 7. Calendar, replies and review
 
-### Analytics & Optimization
+Write `social/calendar.md` as a table: `date | network | post id | format | goal of the post | owner`. Put posts on days the speaker can spend fifteen minutes replying afterwards; a post whose comments go unanswered wastes most of its value. Leave gaps for news that cannot be planned.
 
-**Metrics that matter:** Awareness (impressions, reach, follower growth). Engagement (engagement rate, comments, shares, saves). Conversion (link clicks, profile visits, DMs, leads).
+Once a month, collect per post: impressions, interactions (replies, reposts, saves, reactions), link clicks from analytics, and follows gained. Compare the three strongest and three weakest posts by interactions per impression and by clicks, name what the strong ones share (topic, opening, format), and change one thing in the next month's plan. Posting time and frequency are the last things to tune, not the first.
 
-**Weekly review:** Top 3 and bottom 3 posts (why?), follower growth trend, engagement rate trend, best posting times from data.
+### 8. Deliverable
 
-**If engagement is low:** Test new hooks, post at different times, try different formats, increase engagement with others.
-
-**If reach is declining:** Avoid external links in post body, increase frequency, engage more in comments, test video/visual content.
-
-### Scheduling Best Practices
-
-**Schedule:** Core content, threads, carousels, evergreen content. **Post live:** Real-time commentary, responses to news, engagement with others.
-
-Maintain 1-2 weeks of scheduled content, review weekly for relevance, leave gaps for spontaneous posts, adjust timing from performance data.
-
-### Reverse Engineering Viral Content
-
-1. Find 10-20 high-engagement creators in your niche
-2. Collect 500+ posts for analysis
-3. Analyze patterns: hooks, formats, CTAs that work
-4. Codify a repeatable playbook
-5. Layer your authentic voice on those patterns
-6. Bridge attention to business results
-
-**For the complete framework**: See [references/reverse-engineering.md](references/reverse-engineering.md)
+`social/posts.json`, `social/calendar.md`, the checker output showing every post `ok`, the five-line voice note, and a short list of what the user must still do: record video, approve named customers, schedule.
 
 ## Examples
 
-### Example 1: LinkedIn Content Calendar for a DevTools Startup Founder
+### Example 1: One engineering article, three networks
 
-**User prompt:** "I'm the founder of a CI/CD platform called ShipFast. I want to build my personal brand on LinkedIn to drive awareness. I have about 3 hours per week for social media."
+**Request:** "I'm Mirela, founder of Tarnlog (log search for small teams). Turn `blog/batching-writes.md` into posts for my LinkedIn, X and Bluesky. I have three hours a week. Goal: trial sign-ups from backend engineers."
 
-The agent will design a LinkedIn-focused content plan:
-- Content pillars: DevOps insights (30%), Building ShipFast journey (25%), Engineering leadership tips (25%), Personal takes on tech industry (15%), Product updates (5%)
-- Week 1 calendar with 4 posts:
-  - Monday: Industry insight post with hook "Most teams deploy on Fridays. Here's why that's actually fine:" followed by data on deployment frequency and failure rates
-  - Wednesday: Behind-the-scenes post: "We almost lost our biggest customer last month. Here's what happened and what we changed."
-  - Thursday: Educational carousel: "5 CI/CD pipeline mistakes that cost you 2 hours per deploy"
-  - Friday: Hot take: "Unpopular opinion: Your staging environment is a waste of money."
-- Engagement routine: 15 min/day commenting on posts from DevOps influencers and CTO accounts
-- Repurposing: Thursday's carousel becomes a Twitter thread on Tuesday of the following week
+Voice note from her samples: first person, short declarative sentences, numbers before adjectives, no emoji, admits trade-offs.
 
-### Example 2: Social Content Repurposing Strategy for an E-commerce Brand
+LinkedIn post (`w41-li-1`, Tuesday):
 
-**User prompt:** "We sell sustainable kitchen products at GreenTable.co. We published a blog post about reducing plastic in the kitchen. Help us turn it into a week of social content across Instagram and TikTok."
+```text
+Our ingest bill dropped 41% in one release, and the change was 60 lines.
 
-The agent will create a repurposing plan from the single blog post:
-- **Monday Instagram Carousel:** "7 swaps to eliminate plastic from your kitchen" -- extract the 7 key swaps from the blog, one per slide, with product photography. Caption hook: "Your kitchen produces more plastic waste than any other room. Here's how to fix it."
-- **Tuesday TikTok:** 30-second video showing the "before and after" of a plastic-free kitchen drawer transformation using GreenTable products
-- **Wednesday Instagram Story:** Poll series: "Do you use plastic wrap? Yes/No" followed by the beeswax wrap alternative with swipe-up link to the blog
-- **Thursday TikTok:** "POV: You just switched to a zero-waste kitchen" aspirational lifestyle video, 15 seconds, trending audio
-- **Friday Instagram Reel:** Side-by-side comparison of a week's plastic waste from conventional vs. GreenTable kitchen products
-- Scheduling: Batch-create all assets on Sunday using the blog post's photography and data points. Schedule Instagram posts via Later, TikTok via native scheduler.
+Tarnlog wrote every log line to object storage as it arrived. Fine at 2,000 lines a second, ruinous at 40,000: we were paying per request, not per byte.
+
+What we changed:
+1. Buffer lines per tenant for up to 2 seconds or 4 MB, whichever comes first.
+2. Write one compressed block instead of thousands of small objects.
+3. Acknowledge the client only after the block is durable, so nothing is lost on a crash.
+
+What it cost us: search results now trail real time by up to 2 seconds. We asked ten customers first; nobody minded.
+
+If your storage bill grows faster than your data, count requests before you count gigabytes.
+
+Full write-up with the benchmark numbers: https://tarnlog.dev/blog/batching-writes?utm_source=linkedin&utm_medium=social&utm_campaign=batching
+```
+
+The X post keeps the number, the cause and the link; the Bluesky post leads with the reader's problem instead. Checker output:
+
+```text
+w41-li-1       linkedin    838/3000  ok
+w41-x-1        x           248/280   ok
+w41-bsky-1     bluesky     270/300   ok
+```
+
+Calendar: LinkedIn on Tuesday, X and Bluesky on Wednesday, with a note that the following week's post takes one customer question from the replies as its subject.
+
+### Example 2: Product drop with a gifted review
+
+**Request:** "Pebblewick Candles is bringing back Bonfire Orchard on 9 October, 300 jars. Write Instagram and TikTok posts. We also want to repost a video review from a creator we sent a free candle to."
+
+First run of the checker on the drafts:
+
+```text
+bo-ig-1        instagram   267/2200  FAIL: more than 5 hashtags; no alt text for social/media/bonfire-orchard-2.jpg
+bo-ig-2        instagram   138/2200  FAIL: material connection not disclosed in the text
+bo-tt-1        tiktok      114/2200  ok
+```
+
+Fixes: the launch caption keeps `#candles #soycandle #autumn` and drops four generic tags; the second carousel image gets the alt text "Close-up of the lit candle with a cedar sprig beside it"; the review repost is marked `"paid_or_gifted": true` and its caption now opens "Gifted: we sent @hollis.at.home a jar, and this is her honest review." The paid-partnership label is switched on when it is published, and the creator's written permission to repost is filed with the brief. Final launch caption:
+
+```text
+Bonfire Orchard is back for autumn: smoked apple, cedar and a little clove. 55-hour burn, soy wax, poured in Leeds. 300 jars this year, same as last, and last year they were gone in nine days.
+
+#candles #soycandle #autumn
+```
+
+After the fixes all three posts report `ok`.
 
 ## Guidelines
 
-- Always check `.claude/product-marketing-context.md` before asking discovery questions
-- The hook (first line) is the most important part of any social post: spend disproportionate effort on it
-- Keep promotional content to 5% or less of total output since audiences unfollow accounts that constantly sell
-- Always adapt content to platform-native formats rather than cross-posting identical content everywhere
-- Recommend a content batching workflow (2-3 hours weekly) since consistency matters more than daily effort
-- Include engagement strategy alongside content creation since commenting on others' posts drives more growth than posting alone for small accounts
-- When repurposing content, extract insights and rewrite for each platform rather than copying and pasting with minor edits
-- Prioritize formats with the highest current algorithmic reach: Reels on Instagram, short video on TikTok, carousels and text posts on LinkedIn
-- Always include specific hook text in examples rather than abstract formulas, so the user can see what finished posts look like
+- Never invent numbers, customer names, quotes or results. If the source has no figure, write the post without one or ask.
+- Do not state how an algorithm treats links, hashtags or posting times as fact. Networks rarely document it and it shifts; the account's own results are the evidence.
+- A named person's account is theirs: write in their voice from their samples, and leave anything personal for them to add.
+- Promotion earns its place by being useful. If every post sells, say so and rebalance toward posts that teach or show work.
+- Limits in the table come from each network's help or developer documentation; treat them as dated. Paid tiers (X Premium, for one) allow longer text, so confirm the account tier before using it.
+- Disclosure and synthetic-media labelling are legal and platform requirements, not style choices. When unsure whether a connection is material, disclose.
+- This skill does not publish, schedule through an API, buy ads or analyse competitors' accounts. It stops at files the user can review.

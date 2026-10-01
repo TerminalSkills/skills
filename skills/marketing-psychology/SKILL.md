@@ -1,154 +1,189 @@
 ---
 name: marketing-psychology
-description: "When the user wants to apply psychological principles, mental models, or behavioral science to marketing. Also use when the user mentions 'psychology,' 'mental models,' 'cognitive bias,' 'persuasion,' 'behavioral science,' 'why people buy,' 'decision-making,' or 'consumer behavior.' This skill provides 70+ mental models organized for marketing application."
+description: >-
+  Applies behavioural science to marketing decisions using only effects with
+  solid published evidence, named as the research literature names them, with
+  their replication record. Use when someone asks about "marketing psychology",
+  "cognitive biases", "persuasion", "why people buy", "behavioural science",
+  "nudges", or wants to use anchoring, scarcity, social proof, defaults, loss
+  aversion or a decoy on a pricing page, checkout, signup or upgrade prompt.
+  Grades each effect, says where it failed to replicate, checks the idea
+  against consumer-protection rules, and turns it into a sized experiment.
+license: Apache-2.0
+compatibility: >-
+  Any agent that can read the project's page templates, pricing configuration
+  and analytics exports. Python 3.9+ (standard library only) for the sample
+  size helper.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: business
-  tags:
-    - psychology
-    - persuasion
-    - behavior
+  tags: ["behavioral-science", "persuasion", "pricing", "experimentation", "marketing"]
 ---
 
-# Marketing Psychology & Mental Models
+# Marketing Psychology: Evidence-Graded Behavioural Science
 
 ## Overview
 
-You are an expert in applying psychological principles and mental models to marketing. Your goal is to help users understand why people buy, how to influence behavior ethically, and how to make better marketing decisions using 70+ mental models organized for marketing application.
+Popular lists of "biases that sell" mix findings that have survived large replications with others that have collapsed, and present all of them as laws. This skill works the other way round: start from a specific decision a customer is not making, find the barrier, choose at most two mechanisms whose evidence holds up, check that the application is honest and lawful, and test it with enough traffic to learn something.
 
-**Check for product marketing context first:**
-If `.claude/product-marketing-context.md` exists, read it before applying mental models. Use that context to tailor recommendations to the specific product and audience.
-
-When helping users: identify which mental models apply to their situation, explain the psychology behind the model, provide specific marketing applications, and suggest how to implement ethically.
+Effect sizes from laboratories shrink in the field. Across 126 trials run by two government nudge units the average effect was 1.4 percentage points, against 8.7 in published academic papers (DellaVigna & Linos, 2022). Plan for small, real gains.
 
 ## Instructions
 
-### Foundational Thinking Models
+### 1. Pin down the decision
 
-**First Principles** - Break problems down to basic truths. Don't copy competitors; ask "why" repeatedly to find root causes. Use the 5 Whys technique.
+Read the page template, pricing configuration, checkout flow or email in the project, and the analytics for it. Then state, in one line each: who decides, at which moment, what they do now, what you want instead, the current rate, and monthly traffic at that step. If any of these is unknown, get it before proposing a mechanism.
 
-**Jobs to Be Done** - People don't buy products, they "hire" them for a job. Frame your product around the outcome, not specifications. A drill buyer wants a hole, not a drill.
+### 2. Find the barrier from evidence
 
-**Inversion** - Instead of "How do I succeed?", ask "What would guarantee failure?" Then avoid those things. List everything that would make your campaign fail, then prevent each.
+Use session recordings, support tickets, on-page survey answers and funnel data, not a catalogue of biases. Typical barriers and the mechanisms that address them:
 
-**Pareto Principle (80/20)** - 80% of results come from 20% of efforts. Find the 20% of channels, customers, or content driving results and focus there.
+| Barrier seen in the data | Candidate mechanisms |
+|---|---|
+| People do nothing when a choice is required | Default effect, simpler choice set |
+| People doubt the product works for someone like them | Descriptive norms (social proof), specific evidence |
+| Price looks high with nothing to compare it with | Anchoring, left-digit effect, attribute framing |
+| People intend to act and postpone | Genuine deadlines, present-focused benefits, goal-gradient |
+| People start and abandon a multi-step task | Endowed progress, fewer steps |
 
-**Theory of Constraints** - Every system has one bottleneck. If your funnel converts well but traffic is low, fix traffic first. Don't optimize downstream of the bottleneck.
+### 3. Choose from effects that hold up
 
-**Second-Order Thinking** - Consider effects of effects. A flash sale boosts revenue (first order) but may train customers to wait for discounts (second order).
+**Well supported** (multi-lab replications, meta-analyses or large field experiments):
 
-### Understanding Buyers
+| Effect (popular name) | Key evidence | Use | Limit |
+|---|---|---|---|
+| Default effect | Johnson & Goldstein 2003; meta-analysis of 58 studies, N = 73,675, d = 0.68, with wide variation (Jachimowicz et al. 2019) | Preselect the option most buyers would pick anyway | Never preselect paid extras or consent |
+| Anchoring | Tversky & Kahneman 1974; replicated strongly across 36 samples in Many Labs 1 (Klein et al. 2014) | Show a relevant reference price first | Arbitrary anchors on willingness to pay replicated at under a third of the original size (Maniadis, Tufano & List 2014) |
+| Risky-choice framing | Tversky & Kahneman 1981; replicated in Many Labs 1 | State outcomes consistently as gains or as avoided losses | Shown for choices under risk, not for every headline |
+| Left-digit effect (charm pricing) | Thomas & Morwitz 2005; scanner data from 25 US chains (Strulov-Shlain 2023); field experiment with 21 million Lyft riders (List et al. 2023) | Price just below a round threshold when signalling value | Evidence is from retail and ride prices |
+| Mere exposure | Zajonc 1968; 268 curves from 81 articles show liking rises, then falls (Montoya et al. 2017) | Repeated, consistent brand presence | Over-exposure reverses it |
+| Reciprocity (gift exchange) | Mailing of about 10,000 letters: donation frequency +17% with a small gift, +75% with a large one (Falk 2007) | Give something useful before asking | Shown for charity; transfer to software trials is an assumption |
 
-**Mere Exposure Effect** - Familiarity breeds liking. Consistent brand presence across channels builds preference over time.
+**Real but conditional** (works in some settings, small on average, or disputed):
 
-**Confirmation Bias** - People seek info confirming existing beliefs. Align messaging with what your audience already believes; fighting beliefs head-on rarely works.
+| Effect (popular name) | Key evidence | When it works | Caution |
+|---|---|---|---|
+| Loss aversion | Kahneman & Tversky 1979; 607 estimates, mean coefficient 1.955 (Brown et al. 2024) | Larger stakes, concrete possessions | Gal & Rucker 2018 and a 2025 re-analysis dispute its robustness; "losses hurt twice as much" is an average, not a rule for copy |
+| Scarcity | Meta-analysis, 416 effects from 131 studies (Barton, Zlatevska & Oppewal 2022) | The cue fits the product: demand-based for utilitarian goods, supply-based for experiences, time-based for high-involvement purchases | Must be true; see step 4 |
+| Descriptive norms (social proof) | Goldstein, Cialdini & Griskevicius 2008; no advantage in a German replication (Bohner & Schlüter 2014); pooled evidence positive (Scheibehenne et al. 2016) | The reference group resembles the reader | Publicising that many people do the unwanted thing backfires (Cialdini et al. 2006) |
+| Attraction effect (decoy, asymmetric dominance) | Huber, Payne & Puto 1982 | Options described by numbers alone | Fails with pictures or real experience of the product (Frederick, Lee & Baskin 2014; Yang & Lynn 2014) |
+| Choice overload (paradox of choice) | Iyengar & Lepper 2000; meta-analysis of 50 experiments found a mean effect near zero (Scheibehenne et al. 2010) | Complex options, hard task, unclear preferences, no firm intent to buy (Chernev et al. 2015) | Cutting options is not a universal fix |
+| Endowment effect | Kahneman, Knetsch & Thaler 1990 | Tangible ownership | The gap shrinks under tighter procedures (Plott & Zeiler 2005) |
+| Present bias (hyperbolic discounting) | Laibson 1997; meta-analysis of 220 estimates (Imai, Rutter & Camerer 2021) | Effort and consumption now versus later | Weak or absent for money |
+| Zero-price effect | Shampanier, Mazar & Ariely 2007 | Low-priced items; stronger for hedonic products in follow-up studies | Shown mostly in small lab and cafeteria choices |
+| Goal-gradient, endowed progress | Kivetz, Urminsky & Zheng 2006; Nunes & Drèze 2006 | Visible progress toward a reward the person wants | Field studies of loyalty cards; untested for most software flows |
+| IKEA effect | Norton, Mochon & Ariely 2012 | The person finishes what they build | Disappears when the task is left incomplete |
 
-**Mimetic Desire** - People want things because others want them. Waitlists, exclusivity, and social proof trigger mimetic desire.
+**Do not build on these:**
 
-**Endowment Effect** - People value things more once they own them. Free trials and freemium models let customers "own" the product, making them reluctant to give it up.
+- Ego depletion and the "decision fatigue" advice derived from it: 23 labs found d = 0.04 (Hagger et al. 2016), 36 labs d = 0.06 (Vohs et al. 2021).
+- Incidental priming (money or flag images shifting attitudes): failed in Many Labs 1.
+- Signing a pledge at the top of a form to increase honesty: the 2012 paper was retracted in 2021; a preregistered replication found nothing (Kristal et al. 2020).
+- Subliminal advertising: the 1957 cinema claim was admitted to be invented.
+- Button colour as a persuasion lever: in an industry analysis of 6,700 e-commerce experiments, of which about 2,600 were grouped by treatment type, colour changes averaged 0.0% and button changes −0.2% revenue per visitor, while stock scarcity averaged +2.9%, social proof +2.3% and countdown urgency +1.5% (Browne & Swarbrick Jones 2017; not peer reviewed).
+- "Nudging" as a blanket claim: a meta-analysis reported d = 0.43 (Mertens et al. 2022); after correction for publication bias no clear effect remained (Maier et al. 2022).
 
-**IKEA Effect** - People value things more when they've invested effort. Let customers customize or configure; their investment increases commitment.
+### 4. Pass the honesty and law gate
 
-**Zero-Price Effect** - "Free" is psychologically different from any price. Free tiers, trials, and shipping have disproportionate appeal. The jump from $1 to $0 is bigger than $2 to $1.
+Reject the idea if any answer is no:
 
-**Hyperbolic Discounting** - People strongly prefer immediate rewards. Emphasize "Start saving time today" over "You'll see ROI in 6 months."
+1. Is every statement shown to the customer true at the moment they see it (stock, deadline, number of buyers, reviewer identity)?
+2. Would the customer still be content if the mechanism were explained to them?
+3. Is declining or undoing as easy as accepting?
+4. Does it clear the rules where the customers are?
 
-**Status-Quo Bias** - People prefer current state. Reduce friction to switch: "Import your data in one click."
+| Practice | Rule (not legal advice; confirm with counsel) |
+|---|---|
+| Countdown that resets, false "limited time" | EU Unfair Commercial Practices Directive, Annex I point 7: unfair in all circumstances. US: deception under Section 5 of the FTC Act |
+| Invented, purchased or undisclosed insider reviews; bought follower counts | US FTC rule on consumer reviews and testimonials, 16 CFR Part 465, in force since 21 October 2024 |
+| Pre-ticked box for a paid extra | EU Consumer Rights Directive, Article 22: express consent required |
+| Pre-ticked consent to tracking or marketing | Not valid consent under GDPR (CJEU, Planet49, 2019) |
+| Interface that deceives or impairs free choice on an online platform | EU Digital Services Act, Article 25 |
+| Cancellation harder than signup | The FTC's 2024 click-to-cancel rule was vacated in July 2025; the Restore Online Shoppers' Confidence Act and state auto-renewal laws still apply |
 
-**Paradox of Choice** - Too many options paralyze. Three pricing tiers beat seven. Recommend a single "best for most" option.
+### 5. Write the hypothesis
 
-**Peak-End Rule** - People judge experiences by the peak moment and the end. Design memorable peaks (surprise upgrades) and strong endings (thank you pages).
+```yaml
+decision: choose annual or monthly billing at checkout
+audience: new self-serve buyers, all devices
+barrier: monthly is preselected; 78% never touch the toggle (session data, 2 weeks)
+mechanism: default effect
+evidence_grade: well supported (Jachimowicz et al. 2019), effect varies by setting
+change: preselect annual; show "$144 billed today" beside the per-month price
+honesty_gate: total charged is on screen before payment; one click switches to monthly
+primary_metric: share of purchases on annual (now 22%)
+minimum_effect: 22% -> 30%
+guardrails: revenue per checkout visitor, refunds within 30 days, "charged yearly" tickets
+```
 
-**Curse of Knowledge** - Once you know something, you can't imagine not knowing it. Test copy with people unfamiliar with your space.
+### 6. Size the test before running it
 
-### Influencing Behavior & Persuasion
+```python
+"""Visitors per variant needed to detect a change between two conversion rates."""
+import sys
+from statistics import NormalDist
 
-**Reciprocity** - Give first, people want to give back. Free content, tools, and generous free tiers create reciprocal obligation.
+def per_variant(base, target, alpha=0.05, power=0.80):
+    z = NormalDist().inv_cdf
+    spread = base * (1 - base) + target * (1 - target)
+    return round((z(1 - alpha / 2) + z(power)) ** 2 * spread / (base - target) ** 2)
 
-**Commitment & Consistency** - Small commitments lead to larger ones. Email signup leads to free trial leads to paid plan.
+if __name__ == "__main__":
+    base, target = float(sys.argv[1]), float(sys.argv[2])
+    print(f"{base:.1%} -> {target:.1%}: {per_variant(base, target):,} visitors per variant")
+```
 
-**Authority Bias** - People defer to experts. Feature endorsements, certifications, "featured in" logos, and thought leadership.
+Divide the total by weekly traffic at that step. If the answer is more than about eight weeks, do not run a split test: either make a bolder change, measure an earlier step with a higher base rate, or ship the change on judgement and say plainly that its effect was not measured. Fix the sample size in advance and do not stop the first day the difference looks significant.
 
-**Scarcity / Urgency** - Limited availability increases perceived value. Limited-time offers and exclusive access create urgency. Only use when genuine.
+### 7. Deliver the recommendation
 
-**Loss Aversion** - Losses feel twice as painful as equivalent gains. Frame in terms of what they'll lose: "Don't miss out" beats "You could gain."
+One block per decision, with these fields in this order:
 
-**Anchoring Effect** - First number seen influences judgments. Show higher price first (original, competitor, enterprise tier) to anchor expectations.
-
-**Decoy Effect** - A third inferior option makes one original option look better. A "decoy" pricing tier makes your preferred tier the obvious choice.
-
-**Framing Effect** - Same facts, different frames change perception. "90% success rate" vs. "10% failure rate" feel different.
-
-**Social Proof / Bandwagon** - People follow what others do. Show customer counts, testimonials, logos, reviews. Numbers create confidence.
-
-### Pricing Psychology
-
-**Charm Pricing** - $99 feels much cheaper than $100. The left digit dominates perception. Use .99 endings for value products.
-
-**Rounded-Price Effect** - Round numbers feel premium. Use $500/month for premium products, $497/month for value-focused.
-
-**Rule of 100** - Under $100, percentage discounts seem larger ("20% off"). Over $100, absolute discounts seem larger ("$50 off").
-
-**Good-Better-Best** - Three tiers where the middle is your target. Expensive tier makes it reasonable; cheap tier provides an anchor.
-
-**Mental Accounting** - "$1/day" feels cheaper than "$30/month" even though it's the same. "Less than your morning coffee" reframes the expense.
-
-### Design & Delivery Models
-
-**Hick's Law** - More options equals slower decisions equals more abandonment. One clear CTA beats three.
-
-**BJ Fogg Behavior Model** - Behavior requires Motivation, Ability, and Prompt. All three must be present. Design for all three.
-
-**EAST Framework** - Make desired behaviors Easy, Attractive, Social, Timely.
-
-**Activation Energy** - Reduce starting friction. Pre-fill forms, offer templates, show quick wins. Make the first step trivially easy.
-
-### Growth & Scaling Models
-
-**Feedback Loops** - More users create more content creates better SEO creates more users. Identify and strengthen positive loops.
-
-**Compounding** - Consistent content, SEO, and brand building compound over time. Start early; benefits accumulate exponentially.
-
-**Network Effects** - Product becomes more valuable with more users. Design features that improve with adoption: shared workspaces, integrations, communities.
-
-**Switching Costs** - High switching costs create retention. Increase ethically through integrations, data accumulation, workflow customization, team adoption.
-
-**Survivorship Bias** - Don't only study successes. The viral hit you're copying had 99 failures you didn't see.
-
-### Quick Reference
-
-| Challenge | Relevant Models |
-|-----------|-----------------|
-| Low conversions | Hick's Law, Activation Energy, BJ Fogg, Friction |
-| Price objections | Anchoring, Framing, Mental Accounting, Loss Aversion |
-| Building trust | Authority, Social Proof, Reciprocity, Pratfall Effect |
-| Increasing urgency | Scarcity, Loss Aversion, Zeigarnik Effect |
-| Retention/churn | Endowment Effect, Switching Costs, Status-Quo Bias |
-| Growth stalling | Theory of Constraints, Local vs Global Optima, Compounding |
-| Decision paralysis | Paradox of Choice, Default Effect, Nudge Theory |
-| Onboarding | Goal-Gradient, IKEA Effect, Commitment & Consistency |
+```text
+Recommendation: Draftlattice checkout billing default
+Decision and baseline: 22% of 3,800 monthly checkout visitors buy annual.
+Barrier (evidence): monthly preselected; 78% never touch the toggle.
+Mechanism: default effect, well supported; effect size varies widely.
+Change: preselect annual, show total billed today.
+Honesty and law: passes all four questions; no pre-ticked extras.
+Test: 468 per variant for 22% -> 30%; about one week of traffic.
+Guardrails: revenue per visitor, 30-day refunds, billing complaints.
+Not recommended: decoy tier (plans are shown with screenshots; the effect fails there).
+```
 
 ## Examples
 
-### Example 1: SaaS Pricing Page Redesign for Basecamp Competitor
+### Example 1: A request for urgency that cannot be honest as asked
 
-**User prompt:** "We're a project management tool competing with Basecamp and Asana. Our pricing page has 5 tiers and conversion is only 1.8%. Which psychological principles should we apply to improve it?"
+Request: "Harborlight Languages sells an eight-week live Spanish course for $240. The page gets 9,000 visitors a month and 3.1% enrol. Add a 15-minute countdown for each visitor and an 'only 4 seats left' badge."
 
-The agent will identify the Paradox of Choice (5 tiers is too many), recommend consolidating to 3 tiers using Good-Better-Best, apply the Decoy Effect by making the middle "Team" plan the obvious choice, use Anchoring by displaying the Enterprise tier first, apply Charm Pricing ($29/month not $30), add Social Proof near each tier ("Most Popular" badge, customer count), use Loss Aversion in trial expiration messaging ("Don't lose your 14 days of project data"), and recommend framing the price as "$0.96/day per team member" using Mental Accounting.
+The agent finds in the page template that cohorts start on fixed dates and are capped at 24 seats. It rejects the per-visitor countdown: the deadline is false, which fails question 1 and is listed as always unfair in the EU, where a third of Harborlight's customers live. It keeps what is true: the enrolment deadline for the next cohort ("Enrolment closes Sunday 18 October, 23:59 CET") and the real remaining seats, shown only when eight or fewer remain. It cites the scarcity meta-analysis for the time-based cue on a considered purchase and warns that e-commerce experiments average +1.5% to +2.9% for such cues.
 
-### Example 2: Freemium-to-Paid Conversion for a Design Tool
+Then it runs the helper for a lift to 3.6%:
 
-**User prompt:** "Our free design tool has 50,000 monthly active users but only 2% convert to paid. How can we use psychology to increase upgrades without being pushy?"
+```text
+3.1% -> 3.6%: 20,326 visitors per variant
+```
 
-The agent will recommend leveraging the Endowment Effect (users have created designs they value), applying the IKEA Effect (they've invested time customizing templates), using the Zeigarnik Effect ("Your portfolio is 80% complete -- unlock Pro to finish"), implementing Loss Aversion in trial-end messaging ("You'll lose access to your 23 saved designs"), applying the Goal-Gradient Effect with a progress bar toward Pro features, using Social Proof ("12,000 designers upgraded this quarter"), and timing upgrade prompts using BJ Fogg's model -- high motivation moments (hitting export limits while working on a deadline) combined with easy ability (one-click upgrade) and a clear prompt.
+That is 40,652 visitors, four and a half months of traffic. The agent recommends shipping the truthful deadline without a split test, watching enrolments per cohort against the previous three cohorts, and reserving experiments for bigger changes such as the course outline or a free first lesson.
+
+### Example 2: More annual subscriptions without tricks
+
+Request: "Draftlattice is $15 per user monthly or $144 a year. Only 22% take annual. What does psychology say?"
+
+The agent reads the checkout component and session data: monthly is preselected and 78% of buyers never touch the toggle. It writes the hypothesis card from step 5 and adds a second, separate test for attribute framing of the saving ("2 months free" against "save 20%"), noting that no solid evidence favours either wording, so the test decides. It declines two ideas the user raised: a third "decoy" plan, because Draftlattice's plans are presented with screenshots, the condition under which the attraction effect has failed, and a "prices rise Friday" banner, because no price rise is planned.
+
+The helper returns `22.0% -> 30.0%: 468 visitors per variant`; with 3,800 checkout visitors a month the test needs about a week, and the agent sets it to two full weeks to cover weekday and weekend buyers. The recommendation follows the template in step 7, with refunds and billing complaints as guardrails so that a default that surprises people shows up as a cost.
 
 ## Guidelines
 
-- Always recommend ethical application of psychological principles. Scarcity should be genuine, not manufactured. Social proof should use real numbers.
-- When multiple models apply to a situation, prioritize the 2-3 most impactful rather than listing every possible model.
-- Connect models to specific, actionable changes. "Use anchoring" is vague; "Show the $299 Enterprise tier first so the $49 Starter tier feels like a bargain" is actionable.
-- Consider second-order effects. A tactic that boosts short-term conversions but damages trust will hurt long-term.
-- Test psychological hypotheses with A/B tests rather than assuming they will work. Context matters; what works for one audience may not work for another.
-- Avoid dark patterns. The Decoy Effect is fine; hiding the close button on an upgrade modal is not.
-- When addressing pricing psychology, always consider the target audience. Charm pricing works for value products but can cheapen premium brands.
+- Use the literature's name for an effect and give the popular label in brackets. If an idea has only a popular label and no traceable study, treat it as untested.
+- Cite the status with the effect every time. A reader who sees "anchoring" should also see where it weakens.
+- At most two mechanisms per recommendation. Stacking five makes the result impossible to attribute and usually makes the page worse.
+- A mechanism addresses a barrier. If the barrier is that the product does not solve the visitor's problem, no effect in the tables helps.
+- Laboratory effect sizes are ceilings, not forecasts. Quote field evidence when it exists and say when it does not.
+- Dark patterns are out of scope: confirm-shaming, hidden costs, forced continuity, obstructed cancellation, invented scarcity or reviews. Decline them and offer the honest version.
+- Vulnerable audiences (children, people in financial or health distress) call for a stricter gate; when in doubt leave the mechanism out.
+- The regulatory table is a prompt to check, current to October 2026, and not legal advice.
+- This skill does not replace copywriting, pricing research or page audits; it supplies the behavioural reasoning and the test design for one decision at a time.

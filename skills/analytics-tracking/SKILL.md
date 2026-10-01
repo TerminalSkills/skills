@@ -1,207 +1,251 @@
 ---
 name: analytics-tracking
-description: When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions "set up tracking," "GA4," "Google Analytics," "conversion tracking," "event tracking," "UTM parameters," "tag manager," "GTM," "analytics implementation," or "tracking plan." For A/B test measurement, see ab-test-setup.
+description: >-
+  Designs and implements website analytics tracking with Google Analytics 4 and
+  Google Tag Manager: a written tracking plan, event and parameter names that
+  pass GA4's rules, gtag.js or data-layer code, key events, consent mode, UTM
+  conventions, and a verification pass. Use when someone says "set up GA4",
+  "add conversion tracking", "track this form or button", "write a tracking
+  plan", "GTM data layer", "UTM parameters", "why are my events missing or
+  counted twice", or "audit our analytics setup".
+license: Apache-2.0
+compatibility: "A GA4 property with a web data stream and either the Google tag (gtag.js) or a Google Tag Manager web container. curl for the Measurement Protocol validation server. Web only; native mobile SDKs are out of scope."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: business
-  tags:
-    - analytics
-    - tracking
-    - measurement
+  tags: ["google-analytics", "ga4", "google-tag-manager", "event-tracking", "utm"]
 ---
 
 # Analytics Tracking
 
 ## Overview
 
-You are an expert in analytics implementation and measurement. Your goal is to help set up tracking that provides actionable insights for marketing and product decisions. You guide users through tracking plan creation, event naming, GA4/GTM implementation, UTM strategy, and validation.
-
-**Check for product marketing context first:**
-If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+Tracking is finished when a named person can answer a business question from a report, not when a tag fires. This skill takes a site from "we have GA4 installed" to a short tracking plan, code that sends each event exactly once with valid names, the Admin settings that make the data usable, and proof that it works. Everything here follows Google's current documentation for GA4, the Google tag and Tag Manager; Universal Analytics concepts (categories, actions, labels, goals, `anonymize_ip`) do not apply.
 
 ## Instructions
 
-### Initial Assessment
+### 1. Establish what exists
 
-Before implementing tracking, understand:
+Ask: which decisions the data should inform, which actions count as success (lead, signup, purchase), which regions the visitors come from (consent), and who is allowed to publish the Tag Manager container. Then look in the code:
 
-1. **Business Context** - What decisions will this data inform? What are key conversions?
-2. **Current State** - What tracking exists? What tools are in use?
-3. **Technical Context** - What's the tech stack? Any privacy/compliance requirements?
-
-### Core Principles
-
-1. **Track for Decisions, Not Data** - Every event should inform a decision. Avoid vanity metrics. Quality > quantity.
-2. **Start with the Questions** - What do you need to know? What actions will you take? Work backwards to what you need to track.
-3. **Name Things Consistently** - Establish naming conventions before implementing. Document everything.
-4. **Maintain Data Quality** - Validate implementation. Monitor for issues. Clean data > more data.
-
-### Tracking Plan Framework
-
-```
-Event Name | Category | Properties | Trigger | Notes
----------- | -------- | ---------- | ------- | -----
+```bash
+grep -rnE "gtag\(|dataLayer\.push|googletagmanager\.com|GTM-[A-Z0-9]{4,}|G-[A-Z0-9]{8,}|@next/third-parties" \
+  --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.html" \
+  --exclude-dir=node_modules --exclude-dir=.next .
 ```
 
-**Event Types:**
+Choose one delivery path and keep to it. If a `GTM-` container is on the page, send events through the data layer and configure tags in Tag Manager; if only the Google tag is present, call `gtag()` directly. The same event sent through both paths is counted twice.
 
-| Type | Examples |
-|------|----------|
-| Pageviews | Automatic, enhanced with metadata |
-| User Actions | Button clicks, form submissions, feature usage |
-| System Events | Signup completed, purchase, subscription changed |
-| Custom Conversions | Goal completions, funnel stages |
+### 2. Pick events from the top of this list down
 
-**For comprehensive event lists**: See [references/event-library.md](references/event-library.md)
+1. **Already collected.** With enhanced measurement on, GA4 records `page_view` (page loads and browser-history changes), `scroll` (once per page at 90% depth), `click` (outbound links only), `view_search_results`, `video_start` / `video_progress` / `video_complete` (embedded YouTube), `file_download`, `form_start` and `form_submit`. Do not re-implement these.
+2. **Recommended events.** Use Google's exact names and parameters so built-in reports fill in: `sign_up` and `login` (`method`), `generate_lead` (`currency`, `value`, `lead_source`), `search` (`search_term`), `view_item`, `add_to_cart`, `begin_checkout`, `add_payment_info`, `purchase` (`transaction_id`, `currency`, `value`, `items`).
+3. **Custom events**, only when nothing above fits. One name per action, with the variation in parameters: `cta_click` with `cta_location: "pricing_hero"`, not a separate event name per button.
 
-### Event Naming Conventions
+Names must pass these limits; GA4 does not log what exceeds them, and nothing in the browser reports an error:
 
-Use Object-Action format, lowercase with underscores:
+| Item | Rule |
+|---|---|
+| Event name | Starts with a letter; letters, digits and underscores only; case-sensitive; 40 characters |
+| Parameters | 25 per event; name 40 characters; value 100 characters (`page_location` 1,000, `page_referrer` 420, `page_title` 300) |
+| User properties | 25 per property; name 24 characters; value 36 characters |
+| Reserved | Parameter names starting with `_`, `firebase_`, `ga_`, `google_` or `gtag.`. Do not reuse automatic names (`click`, `scroll`, `session_start`, `first_visit`, `user_engagement`, `form_submit`, `file_download`) for custom events |
+| Per standard property | 30 key events, 50 event-scoped and 25 user-scoped custom dimensions, 50 custom metrics |
 
+Money: `value` is a number, never a string, and always travels with `currency` (ISO 4217, `"USD"`). For `purchase`, `value` is the sum of price × quantity and excludes shipping and tax; `transaction_id` is required and is what keeps a repeated purchase from being counted again.
+
+### 3. Write the tracking plan
+
+Create `docs/tracking-plan.md` with one row per event: event name, the exact moment it fires (a server-confirmed success, not a button press), parameters with example values, whether it is a key event, and which path sends it. Example 1 shows the format. Every later step works from this file.
+
+### 4. Implement
+
+**Google tag with consent defaults.** The consent default must run before the tag loads; the order of these blocks is the point.
+
+```html
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    wait_for_update: 500
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7KQ2M4XW9P"></script>
+<script>
+  gtag('js', new Date());
+  gtag('config', 'G-7KQ2M4XW9P');
+</script>
 ```
-signup_completed
-button_clicked
-form_submitted
-article_read
-checkout_payment_completed
-```
 
-Be specific: `cta_hero_clicked` not `button_clicked`. Include context in properties, not event name.
+When the visitor answers the banner, the consent tool calls `gtag('consent', 'update', { analytics_storage: 'granted', ... })` with all four types, and repeats that on later pages from the stored choice. Add `region: ['ES', 'FR']` to a default to scope it; the most specific region wins. Which defaults to set is the site owner's legal decision, not a technical one. In Tag Manager, use a consent template from the Community Template Gallery (or the consent APIs in a custom template), never a Custom HTML tag.
 
-### Essential Events
+**Events with gtag.js** go anywhere below the snippet: `gtag('event', 'generate_lead', { currency: 'USD', value: 180, lead_source: 'demo_form' })`.
 
-**Marketing Site:**
-
-| Event | Properties |
-|-------|------------|
-| cta_clicked | button_text, location |
-| form_submitted | form_type |
-| signup_completed | method, source |
-| demo_requested | - |
-
-**Product/App:**
-
-| Event | Properties |
-|-------|------------|
-| onboarding_step_completed | step_number, step_name |
-| feature_used | feature_name |
-| purchase_completed | plan, value |
-| subscription_cancelled | reason |
-
-**For full event library by business type**: See [references/event-library.md](references/event-library.md)
-
-### Standard Event Properties
-
-| Category | Properties |
-|----------|------------|
-| Page | page_title, page_location, page_referrer |
-| User | user_id, user_type, account_id, plan_type |
-| Campaign | source, medium, campaign, content, term |
-| Product | product_id, product_name, category, price |
-
-### GA4 Implementation
-
-1. Create GA4 property and data stream
-2. Install gtag.js or GTM
-3. Enable enhanced measurement
-4. Configure custom events
-5. Mark conversions in Admin
+**Events with Tag Manager.** The page pushes a message that carries an `event` key; a GA4 Event tag listens for it with a Custom Event trigger and reads the fields through Data Layer Variables. For ecommerce events, clear the previous object first:
 
 ```javascript
-gtag('event', 'signup_completed', {
-  'method': 'email',
-  'plan': 'free'
-});
-```
-
-**For detailed GA4 implementation**: See [references/ga4-implementation.md](references/ga4-implementation.md)
-
-### Google Tag Manager
-
-| Component | Purpose |
-|-----------|---------|
-| Tags | Code that executes (GA4, pixels) |
-| Triggers | When tags fire (page view, click) |
-| Variables | Dynamic values (click text, data layer) |
-
-```javascript
+dataLayer.push({ ecommerce: null });
 dataLayer.push({
-  'event': 'form_submitted',
-  'form_name': 'contact',
-  'form_location': 'footer'
+  event: 'purchase',
+  ecommerce: {
+    transaction_id: 'ST-20418',
+    value: 43.50,
+    tax: 3.48,
+    shipping: 4.90,
+    currency: 'USD',
+    items: [
+      { item_id: 'OOL-100', item_name: 'High Mountain Oolong 100 g', price: 14.50, quantity: 3 }
+    ]
+  }
 });
 ```
 
-**For detailed GTM implementation**: See [references/gtm-implementation.md](references/gtm-implementation.md)
+**Single-page apps.** Enhanced measurement sends `page_view` on `pushState`, `popState` and `replaceState` when "Page changes based on browser history events" is ticked (Admin > Data collection and modification > Data streams > the stream > Enhanced measurement > Page views > advanced settings). With Tag Manager, send `page_view` from a GA4 Event tag on a History Change trigger and leave that option off, or every navigation counts twice. To send page views by hand, set `send_page_view: false` in `config` and turn the history option off as well.
 
-### UTM Parameter Strategy
+**Signed-in users.** Pass an internal ID with `gtag('config', 'G-7KQ2M4XW9P', { user_id: 'u_48211' })`: an opaque ID, never an email address.
 
-| Parameter | Purpose | Example |
-|-----------|---------|---------|
-| utm_source | Traffic source | google, newsletter |
-| utm_medium | Marketing medium | cpc, email, social |
-| utm_campaign | Campaign name | spring_sale |
-| utm_content | Differentiate versions | hero_cta |
-| utm_term | Paid search keywords | running+shoes |
+**Server-side events** (a webhook confirms payment, a CRM marks a lead qualified) go through the Measurement Protocol: `POST https://www.google-analytics.com/mp/collect?measurement_id=...&api_secret=...` with a JSON body holding `client_id` and up to 25 `events`. Read the browser's `client_id` and `session_id` with `gtag('get', 'G-7KQ2M4XW9P', 'client_id', callback)` and store them with the order. Include `session_id` and `engagement_time_msec` in `params`; without them the event does not count toward session and engagement metrics or show properly in Realtime. The secret is created under Admin > Data collection and modification > Data streams > the stream > Measurement Protocol API secrets and stays in a server environment variable. For EU collection use the host `region1.google-analytics.com`.
 
-Lowercase everything. Use underscores or hyphens consistently. Document all UTMs in a spreadsheet.
+### 5. Configure GA4 Admin
 
-### Debugging and Validation
+- **Key events** (the name that replaced "conversions"): Admin > Data display > Events, star the event. `purchase` is one by default. Allow up to 24 hours for standard reports.
+- **Custom definitions**: a custom parameter is invisible in reports until it is registered under Admin > Data display > Custom definitions as an event-scoped dimension; it appears 24–48 hours later. Register only what the plan needs.
+- **Data retention**: Admin > Data Settings > Data Retention. Standard properties offer 2 or 14 months; choose 14. It affects explorations and funnels, not the standard aggregated reports.
+- **Data redaction**: turn on email redaction and list query parameters to strip for the web stream if URLs can carry personal data.
 
-| Tool | Use For |
-|------|---------|
-| GA4 DebugView | Real-time event monitoring |
-| GTM Preview Mode | Test triggers before publish |
-| Browser Extensions | Tag Assistant, dataLayer Inspector |
+### 6. Set the UTM convention
 
-**Validation Checklist:**
-- [ ] Events firing on correct triggers
-- [ ] Property values populating correctly
-- [ ] No duplicate events
-- [ ] Works across browsers and mobile
-- [ ] Conversions recorded correctly
-- [ ] No PII leaking
+| Parameter | Use |
+|---|---|
+| `utm_source` | Who sent the visit: `newsletter`, `linkedin`, `partner-fieldnotes` |
+| `utm_medium` | Channel type; GA4 maps it to a default channel (table below) |
+| `utm_campaign` | The campaign, identical across every platform it runs on |
+| `utm_id` | Campaign ID, needed when cost data is imported |
+| `utm_content`, `utm_term` | Creative variant; paid keyword |
 
-### Privacy and Compliance
+Always set source, medium and campaign together. Values are case-sensitive (`Email` and `email` become two rows), so use lowercase throughout. Keep UTMs off links between your own pages and never put personal data in them.
 
-- Cookie consent required in EU/UK/CA
-- No PII in analytics properties
-- Configure data retention settings
-- Use consent mode (wait for consent before firing tags)
-- IP anonymization enabled
-- Integrate with consent management platform
+| `utm_medium` value | Default channel group |
+|---|---|
+| `email` | Email |
+| `cpc`, `ppc`, or anything starting with `paid` | Paid Search, Paid Social, Paid Shopping, Paid Video or Paid Other, depending on the source |
+| `social` | Organic Social |
+| `affiliate` | Affiliates |
+| `display`, `banner`, `cpm` | Display |
+| `referral` | Referral |
+| `sms` | SMS |
+
+### 7. Verify before calling it done
+
+1. Open Tag Assistant (tagassistant.google.com, or Preview in the Tag Manager workspace), connect to the site, and perform each action in the plan.
+2. Watch Admin > Data display > DebugView. Each event must appear once, with every planned parameter, on desktop and on a phone. DebugView stays empty while analytics consent is denied, so grant it in the banner first.
+3. To debug without Tag Assistant, add `debug_mode: true` to the event or `config`; remove the key afterwards, because setting it to `false` does not switch it off.
+4. Check server-side payloads against the validation server (Example 3). The live endpoint returns 2xx even for malformed events.
+5. A day later, confirm the events and key events in the standard reports and record the date in the plan.
 
 ## Examples
 
-### Example 1: SaaS Marketing Site Tracking Plan
+### Example 1: Lead tracking for a B2B site on Next.js
 
-**User prompt:** "We're launching a new marketing site for our HR software Peoplus on Next.js. We use GA4 and need to track signups, demo requests, and content engagement. Help me create a tracking plan."
+Prompt: "Kestrel Payroll's marketing site is Next.js. GA4 is installed with the Google tag. We need demo requests and signups as conversions, and we want to know which company sizes ask for demos."
 
-The agent will:
-- Create a structured tracking plan with events: `cta_clicked`, `demo_form_submitted`, `signup_completed`, `pricing_toggled`, `blog_article_read`, `resource_downloaded`.
-- Define properties for each event (e.g., `demo_form_submitted` with `company_size`, `source_page`).
-- Provide GTM data layer implementation code for each event.
-- Recommend custom dimensions for `user_type` and `plan_interest`.
-- Define conversions to mark in GA4 Admin and outline a UTM strategy for the launch campaign across paid, email, and social channels.
+The plan the agent writes to `docs/tracking-plan.md`:
 
-### Example 2: E-commerce Conversion Funnel Audit
+```markdown
+| Event | Fires when | Parameters (example) | Key event | Sent by |
+|---|---|---|---|---|
+| page_view | page load and route change | automatic | no | enhanced measurement |
+| file_download | click on a PDF link | automatic | no | enhanced measurement |
+| generate_lead | POST /api/demo returns 200 | currency "USD", value 180, lead_source "demo_form", company_size "51-200" | yes | gtag |
+| sign_up | account row created | method "email" or "google" | yes | gtag |
+| cta_click | click on a primary button | cta_location "pricing_hero", cta_text "Start free trial" | no | gtag |
 
-**User prompt:** "Our Shopify store DailyBrew sells specialty coffee. We have GA4 installed but can't see where people drop off between product view and purchase. Our conversion rate is 1.2% and we need better funnel tracking."
+Custom dimensions to register (event scope): company_size, cta_location, lead_source
+Lead value: 180 USD = 6% demo-to-customer rate × 3,000 USD first-year revenue
+Verified in DebugView: 2026-10-02
+```
 
-The agent will:
-- Audit the current GA4 setup and identify missing events in the purchase funnel.
-- Create a funnel tracking plan: `product_viewed` (with `product_name`, `price`, `category`), `add_to_cart`, `cart_viewed`, `checkout_started`, `shipping_selected`, `payment_submitted`, `purchase_completed`.
-- Provide Shopify-specific GTM implementation using Shopify's data layer.
-- Set up enhanced e-commerce tracking in GA4 with proper product properties.
-- Recommend a validation process using GA4 DebugView to confirm each funnel step fires correctly.
+The code:
+
+```tsx
+// app/layout.tsx — loads the Google tag once for every route
+import { GoogleAnalytics } from '@next/third-parties/google'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
+    </html>
+  )
+}
+
+// app/demo/DemoForm.tsx — fire only after the server accepted the request
+'use client'
+import { sendGAEvent } from '@next/third-parties/google'
+
+export async function submitDemo(form: { email: string; companySize: string }) {
+  const res = await fetch('/api/demo', { method: 'POST', body: JSON.stringify(form) })
+  if (!res.ok) return
+  sendGAEvent('event', 'generate_lead', {
+    currency: 'USD',
+    value: 180,
+    lead_source: 'demo_form',
+    company_size: form.companySize, // the email address is never sent
+  })
+}
+```
+
+Then the Admin steps: star `generate_lead` and `sign_up` as key events, register the three custom dimensions, set retention to 14 months, confirm "Page changes based on browser history events" is ticked so App Router navigations count as page views.
+
+### Example 2: A store that counts purchases twice
+
+Prompt: "Saltmarsh Tea runs on a custom storefront with Tag Manager. GA4 shows about 30% more purchases than our order system."
+
+The agent searches the code, finds the `purchase` push in the order-confirmation page with no `transaction_id`, and a second GA4 tag firing on the same page from a Page View trigger. Customers who reload the confirmation page, or reopen it from the order email, send the event again. The fix:
+
+1. Push `purchase` once, with `transaction_id` set to the order number and the `ecommerce: null` reset before it (the code in step 4).
+2. In Tag Manager keep one GA4 Event tag for `purchase` on a Custom Event trigger named `purchase`, map `transaction_id`, `value`, `currency` and `items` from Data Layer Variables, and delete the Page View tag.
+3. Preview, place a test order, reload the confirmation page, and confirm in Tag Assistant that the tag fired once.
+4. Compare GA4 purchases with the order system for the following week and note the remaining gap in the plan. After the fix GA4 should match the order system or sit below it, because ad blockers and declined consent only remove events.
+
+### Example 3: Checking a server-side event before it ships
+
+The validation server accepts the same request as the live endpoint, stores nothing, and explains what is wrong. It does not check the secret or the measurement ID.
+
+```bash
+curl -s -X POST "https://www.google-analytics.com/debug/mp/collect?measurement_id=G-7KQ2M4XW9P&api_secret=$GA_API_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"client_id":"1837264019.1759312800","validation_behavior":"ENFORCE_RECOMMENDATIONS",
+       "events":[{"name":"Demo Request","params":{"value":180}}]}'
+```
+
+```json
+{
+  "validationMessages": [ {
+    "fieldPath": "events",
+    "description": "Event at index: [0] has invalid name [Demo Request]. Only alphanumeric characters and underscores are allowed.",
+    "validationCode": "NAME_INVALID"
+  } ]
+}
+```
+
+Renamed to `generate_lead` with `currency`, `value`, `session_id` and `engagement_time_msec`, the same request returns an empty `validationMessages` array. Only then does the agent switch the URL to `/mp/collect`.
 
 ## Guidelines
 
-- **Always start with questions, not tools** — understand what decisions the data will inform before choosing what to track.
-- **Avoid PII in event properties** — never pass emails, full names, or other personally identifiable information as event parameters.
-- **Test tracking before going live** — use GA4 DebugView and GTM Preview Mode to verify every event fires correctly with the right properties.
-- **Don't duplicate automatic properties** — GA4 already captures page_location, page_referrer, and other standard parameters. Only add custom properties that provide additional context.
-- **Document naming conventions upfront** — inconsistent event names (mixing `signupCompleted` with `signup_completed`) create data headaches that are painful to fix later.
-- **Keep UTM parameters lowercase and consistent** — `utm_source=Google` and `utm_source=google` create separate entries in reports. Standardize before launching campaigns.
-- **Plan for consent** — implement consent mode from day one. Retrofitting cookie consent is much harder than building it in.
+- No personal data in any event, parameter, user property, page URL, page title or UTM value: no emails, phone numbers or names. Look for forms that submit with GET and put the email in the query string.
+- A parameter that is not registered as a custom dimension cannot be used in reports, and one registered late has no history. Register on the day the event ships.
+- A parameter value over 100 characters exceeds the collection limit and is not stored as sent. Send IDs and short labels, not sentences.
+- Do not spend key events on steps (page views, clicks). Thirty is the ceiling, and each one dilutes the "Key events" column.
+- Fire on confirmed outcomes. A click on "Submit" also counts validation errors and double clicks; the server's success response does not.
+- GA4 does not log IP addresses, so there is no IP-anonymisation switch to set. Old snippets containing `anonymize_ip` can be deleted.
+- Keep debug traffic out of reports: use Tag Assistant for your own device instead of shipping `debug_mode` to everyone.
+- Never put the Measurement Protocol secret in browser code. Anyone who has it can write events into the property.
+- This skill does not decide what the consent banner must say or which defaults are lawful in a given country; that belongs to the site owner and their counsel.
+- Not the right tool for product analytics inside an app (per-user funnels, retention cohorts) or for mobile SDK setup.

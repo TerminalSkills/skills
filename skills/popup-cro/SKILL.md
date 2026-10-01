@@ -1,148 +1,279 @@
 ---
 name: popup-cro
-description: When the user wants to create or optimize popups, modals, overlays, slide-ins, or banners for conversion purposes. Also use when the user mentions "exit intent," "popup conversions," "modal optimization," "lead capture popup," "email popup," "announcement banner," or "overlay." For forms outside of popups, see form-cro. For general page conversion optimization, see page-cro.
+description: >-
+  Specifies, builds and audits website popups: modal dialogs, slide-ins, sticky bars and exit prompts
+  that collect an email, show an offer or make an announcement. Picks the format and trigger, keeps
+  the overlay inside Google's intrusive-interstitial guidance, makes the dialog accessible, caps how
+  often it appears and defines how to measure its net effect. Use when someone asks to "add an email
+  popup", "design an exit-intent popup", "our popup converts badly", "is this popup hurting SEO",
+  "make the modal accessible", "announcement bar", or "newsletter slide-in". For a form that sits in
+  the page use form-cro; for upgrade prompts inside a product use paywall-upgrade-cro.
+license: Apache-2.0
+compatibility: >-
+  Any website. Code samples use the native HTML dialog element (Chrome 37+, Firefox 98+, Safari 15.4+)
+  and plain JavaScript, no library. Works with any analytics tool that accepts custom events.
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "2.0.0"
   category: business
-  tags:
-    - popups
-    - modals
-    - lead-capture
+  tags: ["popups", "conversion", "lead-capture", "accessibility", "seo"]
 ---
 
 # Popup CRO
 
 ## Overview
 
-You are an expert in popup and modal optimization. Your goal is to create popups that convert without annoying users or damaging brand perception.
-
-**Check for product marketing context first:**
-If `.claude/product-marketing-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+A popup interrupts a visitor to ask for something. It earns its place only when the visitor gets a
+fair trade at a moment that does not block what they came for. This skill produces a popup
+specification (format, trigger, audience, cap, copy, events) and, when asked, the markup and script.
+Every recommendation has to pass three checks: Google's guidance on intrusive interstitials and
+dialogs; the modal dialog pattern of the WAI-ARIA Authoring Practices with the WCAG 2.2 criteria an
+overlay can break; and restraint, meaning one overlay at a time and a memory of who already answered.
 
 ## Instructions
 
-### Initial Assessment
+### 1. Collect the facts
 
-Before providing recommendations, understand:
+Read `.claude/product-marketing-context.md` if the project has one. Then look in the code before
+asking anything:
 
-1. **Popup Purpose** - Email capture, lead magnet delivery, discount/promotion, announcement, exit intent save, feature promotion, or feedback/survey
-2. **Current State** - Existing popup performance, triggers used, user complaints, mobile experience
-3. **Traffic Context** - Traffic sources, new vs. returning visitors, page types where shown
+```bash
+grep -rnEi "showModal|<dialog|role=\"dialog\"|aria-modal|exit.?intent|popup|slide-?in|mouseleave" src/ app/ components/ 2>/dev/null
+```
 
-### Core Principles
+Note every overlay that already exists (consent banner, chat widget, promo bar, tag-manager
+popups); the new one competes with them. Ask the user only for what the code cannot show:
 
-1. **Timing Is Everything** - Too early = annoying interruption. Too late = missed opportunity. Right time = helpful offer at moment of need.
-2. **Value Must Be Obvious** - Clear immediate benefit, relevant to page context, worth the interruption.
-3. **Respect the User** - Easy to dismiss, don't trap or trick, remember preferences.
+1. What the visitor is asked for and what they receive in return, in one sentence.
+2. Which pages it should cover and what share of those sessions arrives from organic search on a phone.
+3. Current numbers, if a popup exists: views, submissions, dismissals, complaints.
+4. Where the address or lead goes (email platform, CRM) and what consent wording legal has approved.
 
-### Trigger Strategies
+### 2. Choose the format
 
-| Trigger | When to Use | Details |
-|---------|-------------|---------|
-| Time-based | General visitors | Show after 30-60 seconds (not 5 seconds) |
-| Scroll-based | Blog/long-form content | 25-50% scroll depth indicates engagement |
-| Exit intent | E-commerce, lead gen | Detects cursor moving to close/leave |
-| Click-triggered | Lead magnets, gated content | Zero annoyance, user-initiated |
-| Page count | Multi-page journeys | After visiting X pages shows research behavior |
-| Behavior-based | High-intent segments | Cart abandonment, pricing page visitors |
+Start from the least interruptive format that can do the job; move down the table only with a reason.
 
-### Popup Types
+| Format | Blocks the page | Suits | Search risk |
+|---|---|---|---|
+| Block inside the content | No | Newsletter and lead offers on articles | None |
+| Top or bottom bar | No | Shipping thresholds, dates, one-line notices | None when it takes a small fraction of the screen |
+| Corner slide-in (non-modal) | No | Newsletter, related offer, feedback | Low |
+| Modal dialog opened by a click | Yes, on request | "Get the template", "See the size chart" | None, the visitor asked |
+| Modal dialog opened automatically | Yes | A high-value offer after clear engagement | High when it meets a visitor arriving from search |
+| Full-page interstitial | Yes | Legally required gates only | Exempt when mandatory, otherwise avoid |
 
-**Email Capture** - Clear value prop (not just "Subscribe"), specific benefit, single field, consider incentive. CTA: "Get Weekly Tips" not "Submit."
+### 3. Choose the trigger
 
-**Lead Magnet** - Show what they get (cover image, preview), specific tangible promise, minimal fields, instant delivery expectation.
+| Trigger | Signal it reads | Notes |
+|---|---|---|
+| Click | Explicit request | Never capped, never suppressed |
+| Scroll depth | Reading | Begin at half the page and tune from data |
+| Time on page | Dwell | Weak signal by itself; combine with scroll or page count |
+| Second or later pageview | Research | Safe default for automatic modals |
+| Pointer leaves through the top edge | Leaving, desktop only | There is no pointer on touch screens; use the bar or slide-in there |
+| Cart or form state | Intent | Never interrupt a checkout or a form that is being filled in |
 
-**Discount/Promotion** - Clear discount amount, deadline for urgency, single use per visitor, easy to apply code.
+Thresholds are starting points for a test. Never quote a "typical popup conversion rate" as fact;
+the site's own baseline is the only benchmark that counts.
 
-**Exit Intent** - Acknowledge they're leaving, different offer than entry popup, address common objections. Formats: "Wait! Before you go..." or "Get 10% off your first order."
+### 4. Stay inside Google's interstitial guidance
 
-**Announcement Banner** - Top of page (sticky or static), single clear message, dismissable, time-limited.
+Search Central's page "Avoid intrusive interstitials and dialogs" asks for two things: do not
+obscure the entire page with an interstitial, and do not redirect the visitor to a separate page
+for consent or input. It recommends banners that take only a small fraction of the screen. The
+announcement of the original ranking signal lists what counts against a page: a popup covering the
+main content right after arrival from search results or while reading, a standalone interstitial to
+dismiss before the content, and a layout whose first screen imitates one. Not counted: overlays
+required by law (cookie consent, age verification), login walls on content that is not publicly
+indexable, and banners of reasonable size that are easy to dismiss. Working rules:
 
-**Slide-In** - Enters from corner/bottom, doesn't block content, good for chat, support, or secondary CTAs.
+- The first pageview of a session shows no automatic overlay that covers content. Use a bar, a
+  slide-in or the in-content block there; automatic modals wait for the second pageview or a real
+  engagement signal.
+- Render the offer over the content, on the same URL. Never send visitors to an intermediate page.
+- This is one signal among many, and Google states that relevant content can still rank. Do not
+  promise a ranking gain from removing a popup; promise that the page stops carrying the risk.
 
-### Design Best Practices
+### 5. Cap and suppress
 
-**Visual hierarchy:** Headline (largest) → Value prop → Form/CTA → Close option
+- One overlay at a time. Priority: legally required notice, then anything the visitor opened by
+  click, then at most one promotional overlay per pageview.
+- Never show to someone who already did the thing: subscribers, logged-in customers, arrivals from
+  the newsletter. After a dismissal stay silent for at least two weeks; after a submission, for good.
+- Storage reality: Safari's tracking prevention deletes cookies written by script, and all other
+  script-writable storage, after seven days without interaction on the site. A "30-day" cap kept in
+  `localStorage` is forgotten after a week away. For longer memory set a cookie from the server
+  response, or key suppression to the subscriber or account record.
 
-**Sizing:** Desktop 400-600px wide. Mobile full-width bottom or center, not full-screen. Always leave space to close.
+### 6. Build it accessibly
 
-**Close button:** Always visible top-right, large enough to tap on mobile, "No thanks" text link as alternative, click outside to close.
+A modal overlay must behave like the APG modal dialog; a bar or slide-in must not pretend to be one.
 
-**Mobile:** Can't detect exit intent (use alternatives), bottom slide-ups work well, larger touch targets.
+| Requirement | How | Reference |
+|---|---|---|
+| Has a name | `aria-labelledby` pointing at the visible heading | APG dialog (modal) |
+| Focus moves in, stays in, returns | `showModal()` does all three; restore manually only if the opener is gone | APG; WCAG 2.4.3 |
+| Escape closes | Default for `showModal()`; never cancel it | APG; WCAG 2.1.2 |
+| A visible close control in the tab order | A real `button`, at least 24 by 24 CSS pixels | WCAG 2.5.8 |
+| Page behind is inert | Automatic with `showModal()` | APG |
+| Sticky bar does not hide the focused element | `scroll-padding` equal to the bar height | WCAG 2.4.11 |
+| Result is announced | `role="status"` on the confirmation text | WCAG 4.1.3 |
+| No self-closing timer; animation can be switched off | No auto-dismiss; honour `prefers-reduced-motion` | WCAG 2.2.1, 2.3.3 |
 
-### Copy Formulas
+Non-modal formats (bar, slide-in) are a labelled `aside`; they do not take focus or set `aria-modal`.
 
-**Headlines:** Benefit-driven ("Get [result] in [timeframe]"), Question ("Want [outcome]?"), Social proof ("Join [X] people who..."), Curiosity hook.
+```html
+<dialog id="offer" closedby="any" aria-labelledby="offer-title">
+  <div class="offer-body">
+    <h2 id="offer-title">The month-end close checklist</h2>
+    <p>One page, 14 steps. You also get one email a week; every one has an unsubscribe link.</p>
+    <form id="offer-form">
+      <label for="offer-email">Work email</label>
+      <input id="offer-email" name="email" type="email" autocomplete="email" required>
+      <button type="submit">Send me the checklist</button>
+    </form>
+    <p id="offer-status" role="status"></p>
+    <button type="button" id="offer-close">Not now</button>
+  </div>
+</dialog>
+```
 
-**CTA Buttons:** First person ("Get My Discount"), specific over generic ("Send Me the Guide" vs "Submit"), value-focused ("Claim My 10% Off").
+```js
+const KEY = 'offer-checklist', DAY = 86400000;
+const dialog = document.getElementById('offer');
+const closeBtn = document.getElementById('offer-close');
+const status = document.getElementById('offer-status');
+function mayShow(now = Date.now()) {
+  let seen = null;
+  try { seen = JSON.parse(localStorage.getItem(KEY)); } catch { /* storage blocked */ }
+  return !seen || (!seen.done && now - seen.at > 14 * DAY);
+}
+function remember(done) {
+  try { localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), done })); } catch {}
+}
+function openOffer(trigger) {
+  if (document.querySelector('dialog[open]')) return;      // one overlay at a time
+  dialog.showModal();   // focus moves inside, the page behind turns inert, Esc closes
+  window.dataLayer?.push({ event: 'popup_view', popup_id: KEY, trigger });
+}
+closeBtn.addEventListener('click', () => dialog.close());
+dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+dialog.addEventListener('close', () => {
+  if (dialog.dataset.done) return;
+  remember(false);
+  window.dataLayer?.push({ event: 'popup_dismiss', popup_id: KEY });
+});
+document.getElementById('offer-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const res = await fetch('/api/subscribe', { method: 'POST', body: new FormData(e.target) });
+  if (!res.ok) { status.textContent = 'That did not go through. Please try again.'; return; }
+  dialog.dataset.done = '1';
+  remember(true);
+  e.target.hidden = true;
+  status.textContent = 'Sent. The checklist is on its way to your inbox.';
+  closeBtn.textContent = 'Close';
+  closeBtn.focus();
+  window.dataLayer?.push({ event: 'popup_submit', popup_id: KEY });
+});
+document.querySelector('[data-open-offer]')?.addEventListener('click', () => openOffer('click'));
+if (mayShow()) {
+  const onScroll = () => {
+    if ((scrollY + innerHeight) / document.documentElement.scrollHeight < 0.5) return;
+    removeEventListener('scroll', onScroll);
+    openOffer('scroll_50');
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+}
+```
 
-**Decline Options:** Polite, not guilt-trippy. Use "No thanks" / "Maybe later." Avoid manipulative: "No, I don't want to save money."
+`closedby="any"` lets a click outside close the dialog in Chrome 134+ and Firefox 141+. Safari has
+not shipped it in a stable release, so the `click` listener on the dialog does that job there. Set
+`padding: 0` on the dialog and pad `.offer-body`; otherwise a click on the dialog's own padding
+counts as a click outside.
 
-### Frequency and Targeting Rules
+### 7. Write the copy
 
-- Show maximum once per session, remember dismissals (cookie/localStorage), 7-30 days before reshowing
-- Different popups for new vs. returning visitors, by traffic source, by page type
-- Exclude checkout/conversion flows and recently dismissed or converted users
+- Heading: the thing they receive, in the visitor's words. Body: one sentence on what happens next.
+- One field. Each extra field needs a reason the visitor would accept.
+- Button label names the action ("Send me the checklist"). The way out is neutral ("Not now"); it
+  never makes the visitor insult themselves.
+- Consent: say what will be sent and how often, and link the privacy notice. Under GDPR consent
+  needs a clear affirmative act, so no pre-ticked boxes and no consent buried in the terms.
+- Deadlines, stock counts and subscriber counts must be true. A countdown that restarts on reload
+  is deception, and US rule 16 CFR 465 prohibits fabricated testimonials.
 
-### Compliance and Accessibility
+### 8. Measure the net effect
 
-**GDPR/Privacy:** Clear consent language, link to privacy policy, don't pre-check opt-ins.
+Send `popup_view`, `popup_submit` and `popup_dismiss` with `popup_id` and `trigger`, then report:
 
-**Accessibility:** Keyboard navigable (Tab, Enter, Esc), focus trap while open, screen reader compatible, sufficient color contrast.
+- Submit rate = submissions / views. View rate = views / eligible sessions.
+- **Net lift:** keep 10% of eligible visitors as a holdout that never sees the overlay and compare
+  total signups per session, including the in-page form. Popups often move signups from one place
+  to another; only the holdout shows what was added.
+- Guardrails on the same split: bounce rate, pages per session, checkout completion, and
+  unsubscribes or spam complaints from the addresses collected.
 
-**Google Guidelines:** Intrusive interstitials hurt SEO. Mobile especially sensitive. Avoid full-screen before content on mobile.
+### 9. Deliver the specification
 
-### Measurement
-
-**Key metrics:** Impression rate, conversion rate (impressions to submissions), close rate, engagement rate, time to close.
-
-**Benchmarks:** Email popup 2-5% conversion, exit intent 3-10%, click-triggered 10%+ (self-selected audience).
-
-### Output Format
-
-For each popup recommendation provide: Type, Trigger, Targeting, Frequency, Copy (headline, subhead, CTA, decline), and Design notes. For multiple popups, include conflict rules to prevent overlap.
+Hand over one plain-text block per popup with these lines, in this order: Popup (id), Goal (with
+the current baseline), Format, Trigger, Audience, Cap, Copy (heading, sentence, field label,
+button, way out, consent line), Events, Measure. Example 1 shows the block filled in. With several
+popups, add the priority order between them. Code follows the block only when the user asked for it.
 
 ## Examples
 
-### Example 1: Exit-Intent Discount Popup for DTC Skincare Brand
+### Example 1: newsletter popup for a bookkeeping blog
 
-**User prompt:** "We run an organic skincare DTC store. Cart abandonment is around 72%. Create an exit-intent popup to recover abandoning shoppers."
+Request: "Pennybriar gets 38,000 blog sessions a month and about 340 signups from the footer
+form. Add a popup, but 71% of our traffic is organic and mostly on phones." Result:
 
-The agent will assess the e-commerce context, then design an exit-intent popup:
-- **Trigger:** Exit intent on product and cart pages, not on checkout
-- **Targeting:** New visitors who have items in cart, exclude returning customers with active orders
-- **Frequency:** Once per session, suppress for 14 days after dismissal
-- **Headline:** "Your skin deserves this"
-- **Subhead:** "Complete your order in the next 15 minutes and get free shipping"
-- **CTA:** "Claim Free Shipping"
-- **Decline:** "No thanks, I'll pay for shipping"
-- **Design notes:** Show product thumbnail from cart, countdown timer, mobile bottom slide-up variant
-- **Test hypothesis:** Free shipping vs. 10% discount as incentive
+```text
+Popup: month-end-checklist
+Format: phones - slide-in from the bottom, non-modal, 30% of the viewport at most;
+        desktop - modal dialog
+Trigger: phones - 50% scroll, any pageview (it covers no content);
+         desktop - 50% scroll from the second pageview on; "Get the checklist" link always opens it
+Audience: no subscriber cookie, utm_source is not "newsletter"
+Cap: 1 per session, 14 days after dismissal, never after signup (server-set cookie, 180 days)
+Copy: "The month-end close checklist" / "One page, 14 steps. Plus one email a week." /
+      "Work email" / "Send me the checklist" / "Not now"
+Measure: 10% holdout for 4 weeks; primary metric signups per session;
+         guardrails: pages per session, organic entrances to the blog
+```
 
-### Example 2: B2B SaaS Newsletter Signup Popup for Blog Readers
+After four weeks the holdout shows 0.9% signups per session and the exposed group 2.1%, pages per
+session unchanged. The popup stays; the next test changes only the trigger.
 
-**User prompt:** "Our project management tool blog gets 45K monthly visitors but only 200 email signups. Design a popup to grow the list without hurting the reading experience."
+### Example 2: audit of a welcome discount on a shop
 
-The agent will analyze the content-heavy context and recommend a scroll-triggered popup:
-- **Trigger:** 50% scroll depth on blog posts only, not on product or pricing pages
-- **Targeting:** Visitors who have read at least 2 blog posts this session, exclude existing subscribers
-- **Frequency:** Once per session, suppress 30 days after dismissal
-- **Headline:** "Get the PM playbook every Tuesday"
-- **Subhead:** "Join 8,400 product managers getting one actionable workflow tip per week. No fluff."
-- **CTA:** "Send Me the Tips"
-- **Decline:** "Maybe later"
-- **Design notes:** Right-side slide-in on desktop (doesn't block reading), bottom slide-up on mobile, single email field, author avatar for trust
-- **Test hypothesis:** Slide-in vs. center modal, with/without subscriber count social proof
+Request: "Our tea shop Larch & Kettle shows a 10% welcome popup on every page load. Mobile revenue
+from Google dropped. Is the popup the reason?"
+
+The agent reads the theme code, finds a full-screen overlay opened by a 0-second timer, and reports:
+
+| Finding | Evidence | Fix |
+|---|---|---|
+| Covers the whole page on the first pageview, including arrivals from search | `setTimeout(open, 0)` in `theme.js`; overlay is 100vw by 100vh | Bottom bar "10% off your first order" on the first pageview; modal only on click |
+| No Escape handling, focus stays behind the overlay | `div.overlay` without dialog semantics | Rebuild on `dialog` with `showModal()` |
+| Close icon is 14 by 14 pixels | Computed style | Text button "Not now", 44 pixels tall |
+| Shown again on every page | No stored state | 14-day silence after dismissal, none for customers |
+| Timer says "offer ends in 10:00" and restarts on reload | `startCountdown(600)` on load | Remove; the code has no deadline |
+
+It adds a caveat: the overlay breaks Google's guidance and gets fixed regardless, but the revenue
+drop is not proven to come from it; seo-audit should check rankings for the same dates first.
 
 ## Guidelines
 
-- Always check `.claude/product-marketing-context.md` before asking discovery questions
-- Never recommend full-screen overlays on mobile as they violate Google's interstitial guidelines and damage SEO
-- Always include a visible, easy-to-reach close mechanism on every popup
-- Design popups with frequency capping and dismissal memory from the start, not as an afterthought
-- Match popup offers to page context: product pages get product-related popups, blog posts get content offers
-- Prioritize click-triggered popups for lead magnets since they have zero annoyance and highest conversion rates
-- Test one variable at a time: trigger timing, copy, incentive, or format, but not all simultaneously
-- Keep form fields minimal inside popups: email-only is ideal, email plus name is the maximum for most use cases
-- Always provide mobile-specific design recommendations since popup UX differs significantly between desktop and mobile
+- Prefer a trigger the visitor controls. A click-opened dialog needs no cap and carries no search risk.
+- Do not build exit prompts for phones from back-button traps or history manipulation. Google's
+  spam policies name back button hijacking as a malicious practice.
+- Do not hide the popup from Googlebot while visitors get it; showing crawlers and people different
+  pages is what the cloaking policy covers. The one documented allowance is letting verified
+  Googlebot past a mandatory age gate.
+- A consent banner is not marketing. Never stack a promotion over or behind it; wait for the answer.
+- Inserting a bar above the content after load shifts the layout and counts toward Cumulative
+  Layout Shift (good is 0.1 or lower). Reserve its height or overlay it at the bottom.
+- Do not use a popup when the offer is weak, on checkout, signup, login and payment pages, or when
+  the same ask already sits visibly in the page. Upgrade prompts in a product: paywall-upgrade-cro.
+- Test the finished overlay with a keyboard only and with a screen reader before it ships: open,
+  Tab through, submit, Escape, and check where focus lands.
