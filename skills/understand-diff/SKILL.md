@@ -61,7 +61,7 @@ A missing graph file ends the job with one sentence: the project needs `/underst
 git -c core.quotePath=false diff -U0 --no-color --no-ext-diff --no-renames \
   --src-prefix=a/ --dst-prefix=b/ "$FORK" \
   -- . ':(exclude).ua' ':(exclude).understand-anything' > /tmp/ua-change.diff
-git ls-files --others --exclude-standard > /tmp/ua-untracked.txt
+git ls-files --others --exclude-standard -- . ':(exclude).ua' ':(exclude).understand-anything' > /tmp/ua-untracked.txt
 ```
 
 With a single commit argument git compares that commit with the working tree, so committed, staged and unstaged edits all land in one diff. `-U0` makes every hunk header state exactly which old lines were replaced. `--no-renames` reports a moved file as a deletion plus an addition, which is what the graph needs: the old path is the one it knows. Brand-new files that were never added to git appear only in the second list.
