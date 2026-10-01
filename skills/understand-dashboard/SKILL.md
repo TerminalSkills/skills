@@ -178,7 +178,7 @@ The user bookmarked `http://127.0.0.1:5173/` yesterday. The viewer was restarted
 
 - Always pass the project root, never the `.ua` folder, to the viewer and to `GRAPH_DIR`.
 - When both `.understand-anything/` and `.ua/` exist, the older directory wins. A graph that looks out of date may simply be the wrong one of the two.
-- Do not run the viewer tarball straight from a URL with `npx`: that executes code nobody checked. Pointing `npx` at the downloaded file fails as well (npm 11 tries to execute the archive); unpack it and use `node`.
+- Do not run the viewer tarball straight from a URL with `npx`: that executes code nobody checked. After checking the hash, unpack the file and use `node`.
 - The overlay and the graph are read when the page loads. After a new `/understand` or `/understand-diff`, reload the tab.
 - The dashboard shows what the analysis wrote. Summaries and layer assignments are model output, so treat a surprising picture as a prompt to read the code, not as a finding.
 - Very large graphs are heavy at function level. Stay on Files, enter one layer at a time, and use Search to jump.
