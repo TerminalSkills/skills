@@ -1,50 +1,48 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5cc511aa1b69195f75444d0835b5f2c9f10308e90ee21ec433f0326ce853c526",
-  "scoredAt": "2026-05-13T10:32:31.340Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:918b83931dafedc9c57d3cb0aef4bb5839b979ba723e3611f8b2f37974b94ed9",
+  "scoredAt": "2026-10-01T12:42:48.987Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios and edge cases comprehensively."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 87,
-    "multiplier": 1.64,
+    "multiplier": 1.82,
+    "baselineAvg": 45,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Posts list with Graphcache mutation update",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment correctly uses cache.updateQuery in updates.Mutation.createPost and requestPolicy network-only for refresh; baseline knows hooks but misses Graphcache update API and request policies."
+        "name": "add-urql-to-react-app",
+        "baseline": 25,
+        "treatment": 65,
+        "rationale": "Response A covers most rubric items but misses requestPolicy and GET note, while Response B lacks several required imports, client setup, and query details."
       },
       {
-        "name": "SSR-ready urql Client with auth and subscriptions",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment composes exchanges (cacheExchange, fetchExchange, subscriptionExchange) and uses fetchOptions for bearer token plus Provider; baseline omits exchange pipeline and the SSR hydration pattern."
+        "name": "setup-graphcache-sync",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, while Response A omits the keys object and Query.post resolver."
+      },
+      {
+        "name": "configure-auth-retry-subscriptions",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A meets all technical requirements except the useSubscription example, while Response B fails multiple rubric items such as import sources, exchange order, auth logic, retry settings, and lacks the subscription example."
       }
-    ],
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6"
+    ]
   }
 }
