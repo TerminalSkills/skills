@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5c487f89ce2d56d4a583ca0923334384c07115247ca32d566cae5ef81b449ad2",
-  "scoredAt": "2026-05-13T10:09:50.059Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:db5edeaaf6acc7b84bd2fc961fc630134a58f7589c43a2eaf89d801816e1c401",
+  "scoredAt": "2026-10-01T11:25:48.348Z",
+  "backend": "gemini-api",
+  "model": "gemini-3.5-flash",
   "quality": {
     "score": 100,
     "dimensions": {
