@@ -1,11 +1,17 @@
 ---
 name: tldraw
-description: Expert guidance for tldraw, the open-source library for creating infinite canvas experiences in React applications. Helps developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.
+description: >-
+  tldraw is a React SDK for building infinite-canvas apps — whiteboards, diagram
+  editors, and visual tools — with a shape system, camera controls, snapshots,
+  and real-time multiplayer. Use when embedding a collaborative canvas or
+  whiteboard in a React app, defining custom shapes, driving the editor
+  programmatically, exporting the canvas to an image, or adding multiplayer
+  sync. Note: production use requires a tldraw license key.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "tldraw SDK 5 with React 18.2+ or 19.2.1+. Production use requires a tldraw license key."
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
   tags:
   - canvas
@@ -13,37 +19,36 @@ metadata:
   - drawing
   - collaboration
   - react
+  repository: https://github.com/tldraw/tldraw
 ---
 
 # tldraw — Infinite Canvas SDK
 
-
 ## Overview
 
-
-Tldraw, the open-source library for creating infinite canvas experiences in React applications. Helps developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.
-
+tldraw is a React SDK for building infinite-canvas experiences: whiteboards,
+diagram editors, and visual tools. You drop in the `<Tldraw>` component, extend
+it with custom shapes that render as React/HTML or SVG, drive the canvas through
+the `Editor` API, persist state with snapshots, and add real-time collaboration
+with `@tldraw/sync`.
 
 ## Instructions
 
 ### Basic Setup
 
-Embed a full-featured whiteboard in a React app:
+Install and embed a full-featured canvas. The container needs explicit
+dimensions, and you must import the stylesheet.
 
 ```tsx
-// src/components/Whiteboard.tsx — Basic tldraw canvas
+// src/components/Whiteboard.tsx
 import { Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
 
 export function Whiteboard() {
   return (
     <div style={{ position: "fixed", inset: 0 }}>
-      <Tldraw
-        // Optional: persist to a backend
-        persistenceKey="my-whiteboard"
-        // Optional: customize available tools
-        // tools={[...defaultTools, MyCustomTool]}
-      />
+      {/* persistenceKey saves to the browser's IndexedDB and syncs across tabs */}
+      <Tldraw persistenceKey="design-review-board" />
     </div>
   );
 }
@@ -51,303 +56,238 @@ export function Whiteboard() {
 
 ### Custom Shapes
 
-Define domain-specific shapes for your application:
+Model your domain with a shape util. `BaseBoxShapeUtil` gives you a resizable
+box; `component()` renders it (full React is allowed), `getIndicatorPath()`
+returns the selection outline as a `Path2D` (it replaced the JSX `indicator()`
+in SDK 5).
 
 ```tsx
-// src/shapes/TaskCardShape.tsx — Custom shape for a project management board
-import {
-  BaseBoxShapeUtil,
-  TLBaseShape,
-  HTMLContainer,
-  T,
-  DefaultColorStyle,
-  ShapeUtil,
-} from "tldraw";
+// src/shapes/TaskCardShapeUtil.tsx
+import { BaseBoxShapeUtil, HTMLContainer, T, TLShape } from "tldraw";
 
-// Define the shape's data structure
-type TaskCard = TLBaseShape<
-  "task-card",
-  {
-    title: string;
-    description: string;
-    assignee: string;
-    priority: "low" | "medium" | "high" | "critical";
-    status: "todo" | "in-progress" | "review" | "done";
-    w: number;
-    h: number;
+// Register the props under the shape's type name (a global registry: keep the name unique).
+declare module "tldraw" {
+  export interface TLGlobalShapePropsMap {
+    "task-card": { title: string; assignee: string; priority: "low" | "high"; w: number; h: number };
   }
->;
+}
 
-// Shape utility — tells tldraw how to render and interact with the shape
+type TaskCard = TLShape<"task-card">;
+
 export class TaskCardShapeUtil extends BaseBoxShapeUtil<TaskCard> {
   static override type = "task-card" as const;
+  static override props = {   // validated by the store
+    title: T.string, assignee: T.string, priority: T.literalEnum("low", "high"), w: T.number, h: T.number,
+  };
 
-  // Default values when a new task card is created
   getDefaultProps(): TaskCard["props"] {
-    return {
-      title: "New Task",
-      description: "",
-      assignee: "Unassigned",
-      priority: "medium",
-      status: "todo",
-      w: 280,          // Default width in pixels
-      h: 160,          // Default height
-    };
+    return { title: "New task", assignee: "Unassigned", priority: "low", w: 280, h: 140 };
   }
 
-  // Render the shape as HTML (supports full React components)
   component(shape: TaskCard) {
-    const priorityColors = {
-      low: "#4ade80",
-      medium: "#facc15",
-      high: "#fb923c",
-      critical: "#ef4444",
-    };
-
+    const border = shape.props.priority === "high" ? "#ef4444" : "#4ade80";
     return (
       <HTMLContainer
-        id={shape.id}
         style={{
-          padding: "12px",
-          borderRadius: "8px",
-          border: `2px solid ${priorityColors[shape.props.priority]}`,
-          backgroundColor: "white",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          pointerEvents: "all",    // Enable click/drag on the HTML content
+          padding: 12,
+          border: `2px solid ${border}`,
+          borderRadius: 8,
+          background: "white",
+          pointerEvents: "all", // let the HTML receive clicks
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <strong style={{ fontSize: "14px" }}>{shape.props.title}</strong>
-          <span style={{
-            fontSize: "10px",
-            padding: "2px 6px",
-            borderRadius: "4px",
-            backgroundColor: priorityColors[shape.props.priority],
-            color: "white",
-          }}>
-            {shape.props.priority}
-          </span>
-        </div>
-        <p style={{ fontSize: "12px", color: "#666", margin: 0 }}>
-          {shape.props.description || "No description"}
-        </p>
-        <div style={{ fontSize: "11px", color: "#999", marginTop: "auto" }}>
-          👤 {shape.props.assignee} • {shape.props.status}
-        </div>
+        <strong>{shape.props.title}</strong>
+        <div style={{ fontSize: 11, color: "#666" }}>{shape.props.assignee}</div>
       </HTMLContainer>
     );
   }
 
-  // Render a simplified version when zoomed out (performance optimization)
-  indicator(shape: TaskCard) {
-    return <rect width={shape.props.w} height={shape.props.h} rx={8} />;
+  getIndicatorPath(shape: TaskCard) {
+    const path = new Path2D();
+    path.roundRect(0, 0, shape.props.w, shape.props.h, 8);
+    return path;
   }
 }
 ```
 
-### Accessing the Editor API
+Register it on the component:
 
-Programmatically control the canvas:
+```tsx
+import { Tldraw } from "tldraw";
+import { TaskCardShapeUtil } from "./shapes/TaskCardShapeUtil";
 
-```typescript
-// src/hooks/useCanvasActions.ts — Programmatic canvas manipulation
+<Tldraw shapeUtils={[TaskCardShapeUtil]} persistenceKey="sprint-board" />;
+```
+
+### Driving the Editor API
+
+Grab the `Editor` with the `useEditor()` hook (inside the `<Tldraw>` tree) or
+from the `onMount` callback. Create/update use singular and plural forms.
+
+```tsx
+// src/hooks/useCanvasActions.ts
 import { useEditor } from "tldraw";
 
 export function useCanvasActions() {
   const editor = useEditor();
 
-  // Create shapes programmatically
   function addTaskCard(title: string, x: number, y: number) {
-    editor.createShape({
-      type: "task-card",
-      x,
-      y,
-      props: {
-        title,
-        description: "",
-        assignee: "Unassigned",
-        priority: "medium",
-        status: "todo",
-        w: 280,
-        h: 160,
-      },
-    });
+    editor.createShape({ type: "task-card", x, y, props: { title } });
   }
 
-  // Export canvas as image
-  async function exportAsImage() {
-    const shapeIds = editor.getCurrentPageShapeIds();
-    if (shapeIds.size === 0) return;
-
-    const blob = await editor.getSvg([...shapeIds], {
-      scale: 2,            // 2x resolution
-      background: true,    // Include background color
-    });
+  // Export selection (or whole page) to a PNG blob.
+  // getSvg() was removed — use toImage(), getSvgString(), or getSvgElement().
+  async function exportPng() {
+    const ids = [...editor.getCurrentPageShapeIds()];
+    if (ids.length === 0) return null;
+    const { blob } = await editor.toImage(ids, { format: "png", scale: 2, background: true });
     return blob;
   }
 
-  // Zoom to fit all content
   function zoomToFit() {
     editor.zoomToFit({ animation: { duration: 300 } });
   }
 
-  // Get all shapes of a specific type
-  function getTaskCards() {
-    return editor
-      .getCurrentPageShapes()
-      .filter((s) => s.type === "task-card") as TaskCard[];
-  }
-
-  // Update a shape's properties
-  function updateTaskStatus(shapeId: string, status: string) {
-    editor.updateShape({
-      id: shapeId,
-      type: "task-card",
-      props: { status },
-    });
-  }
-
-  // Listen to selection changes
-  function onSelectionChange(callback: (shapes: TLShape[]) => void) {
-    return editor.store.listen(
-      () => {
-        const selectedIds = editor.getSelectedShapeIds();
-        const shapes = selectedIds.map((id) => editor.getShape(id)!);
-        callback(shapes);
-      },
-      { source: "user", scope: "session" }
-    );
-  }
-
-  return {
-    addTaskCard,
-    exportAsImage,
-    zoomToFit,
-    getTaskCards,
-    updateTaskStatus,
-    onSelectionChange,
-  };
+  return { addTaskCard, exportPng, zoomToFit };
 }
 ```
 
-### Multiplayer with Yjs
+### Snapshots (save & restore)
 
-Add real-time collaboration using Yjs:
+`getSnapshot`/`loadSnapshot` are top-level functions imported from `tldraw`.
+`getSnapshot` returns `{ document, session }`; persist the `document` part.
+
+```typescript
+// src/persistence/snapshots.ts
+import { Editor, getSnapshot, loadSnapshot } from "tldraw";
+
+export async function saveToServer(editor: Editor, documentId: string) {
+  const { document } = getSnapshot(editor.store);
+  await fetch(`/api/boards/${documentId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(document),
+  });
+}
+
+export async function loadFromServer(editor: Editor, documentId: string) {
+  const document = await fetch(`/api/boards/${documentId}`).then((r) => r.json());
+  loadSnapshot(editor.store, { document });
+}
+
+// Debounce auto-save — canvas changes fire rapidly while drawing.
+export function setupAutoSave(editor: Editor, documentId: string) {
+  let timer: ReturnType<typeof setTimeout>;
+  return editor.store.listen(
+    () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => saveToServer(editor, documentId), 2000);
+    },
+    { source: "user", scope: "document" }
+  );
+}
+```
+
+### Multiplayer with @tldraw/sync
+
+Official real-time collaboration uses the `useSync` hook from `@tldraw/sync`
+talking to a websocket backend you host (tldraw ships a Cloudflare Durable
+Objects server template). For a prototype, `useSyncDemo({ roomId })` connects to
+tldraw's demo server with temporary rooms. There is no `@tldraw/yjs` package.
 
 ```tsx
-// src/components/MultiplayerWhiteboard.tsx — Collaborative canvas with Yjs sync
-import { Tldraw, useEditor } from "tldraw";
-import { useYjsStore } from "@tldraw/yjs";
-import * as Y from "yjs";
-import { WebsocketProvider } from "y-websocket";
+// src/components/MultiplayerBoard.tsx
+import { Tldraw, TLAssetStore, uniqueId } from "tldraw";
+import { useSync } from "@tldraw/sync";
 
-export function MultiplayerWhiteboard({ roomId }: { roomId: string }) {
-  const doc = useMemo(() => new Y.Doc(), []);
-  const provider = useMemo(
-    () => new WebsocketProvider("wss://yjs.example.com", roomId, doc),
-    [doc, roomId]
-  );
+// `assets` is required: images and videos go to your own storage, the document keeps the URL.
+// The /api/uploads and /api/connect routes are the ones tldraw's sync-cloudflare template serves.
+const assets: TLAssetStore = {
+  async upload(_asset, file) {
+    const name = `${uniqueId()}-${file.name}`.replace(/[^a-zA-Z0-9.]/g, "-");
+    const res = await fetch(`/api/uploads/${name}`, { method: "POST", body: file });
+    if (!res.ok) throw new Error(`Failed to upload asset: ${res.statusText}`);
+    return { src: `/api/uploads/${name}` };
+  },
+  resolve: (asset) => asset.props.src,
+};
 
-  // useYjsStore bridges tldraw's store with Yjs for real-time sync
-  const store = useYjsStore({
-    yDoc: doc,
-    provider,
-    roomId,
-  });
+export function MultiplayerBoard({ roomId }: { roomId: string }) {
+  // useSync manages the websocket and reconciles document + presence state.
+  // An http(s) URI is upgraded to ws(s).
+  const store = useSync({ uri: `${window.location.origin}/api/connect/${roomId}`, assets });
 
   return (
     <div style={{ position: "fixed", inset: 0 }}>
-      <Tldraw
-        store={store}
-        // Users see each other's cursors and selections automatically
-      />
+      <Tldraw store={store} />
     </div>
   );
-}
-```
-
-### Snapshot and Restore
-
-Save and load canvas state:
-
-```typescript
-// src/persistence/snapshots.ts — Save/load canvas state
-import { Editor, TLStoreSnapshot } from "tldraw";
-
-// Save the current canvas state as a JSON snapshot
-function saveSnapshot(editor: Editor): TLStoreSnapshot {
-  return editor.store.getSnapshot();
-}
-
-// Restore canvas from a saved snapshot
-function loadSnapshot(editor: Editor, snapshot: TLStoreSnapshot) {
-  editor.store.loadSnapshot(snapshot);
-}
-
-// Save to your backend
-async function persistToServer(editor: Editor, documentId: string) {
-  const snapshot = saveSnapshot(editor);
-  await fetch(`/api/documents/${documentId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(snapshot),
-  });
-}
-
-// Auto-save on changes (debounced)
-function setupAutoSave(editor: Editor, documentId: string) {
-  let timeout: NodeJS.Timeout;
-  editor.store.listen(() => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => persistToServer(editor, documentId), 2000);
-  }, { source: "user", scope: "document" });
 }
 ```
 
 ## Installation
 
 ```bash
-npm install tldraw
+npm install tldraw          # core SDK (includes the Editor and default UI)
 
 # For multiplayer
-npm install @tldraw/yjs yjs y-websocket
+npm install @tldraw/sync
 ```
-
 
 ## Examples
 
-
-### Example 1: Setting up Tldraw with a custom configuration
-
-**User request:**
-
-```
-I just installed Tldraw. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Tldraw with custom functionality
+### Example 1: Embed a whiteboard with a custom shape
 
 **User request:**
 
 ```
-I want to add a custom custom shapes to Tldraw. How do I build one?
+Add a tldraw canvas to our React dashboard and give it a "task-card" shape so
+users can drop task cards on the board.
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Tldraw's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
+The agent runs `npm install tldraw`, creates a `Whiteboard` component that
+imports `tldraw/tldraw.css` and renders `<Tldraw shapeUtils={[TaskCardShapeUtil]}
+persistenceKey="sprint-board" />` inside a `position: fixed; inset: 0` container,
+and defines `TaskCardShapeUtil extends BaseBoxShapeUtil`. Result: an infinite
+canvas that persists to IndexedDB, with draggable task cards whose React
+content stays interactive.
 
+### Example 2: Export the current board as a PNG
+
+**User request:**
+
+```
+Add a "Download PNG" button that exports whatever is on the tldraw canvas.
+```
+
+The agent wires a button to `editor.toImage([...editor.getCurrentPageShapeIds()],
+{ format: "png", scale: 2, background: true })`, turns the returned `blob` into
+an object URL, and triggers a download. Result: a 2x-resolution PNG of the whole
+page; if the page is empty the handler returns early.
 
 ## Guidelines
 
-1. **Full viewport container** — tldraw needs a container with explicit dimensions; `position: fixed; inset: 0` is the simplest approach
-2. **Custom shapes for domain logic** — Don't force everything into draw/text; create shapes that represent your domain (tasks, nodes, cards)
-3. **Use HTMLContainer for complex UI** — Custom shapes can render full React components, not just SVG
-4. **Indicator for zoom performance** — Always implement `indicator()` — it renders when zoomed out instead of the full component
-5. **Persist with snapshots** — Use `store.getSnapshot()` for server persistence; use Yjs for real-time sync
-6. **Debounce auto-save** — Canvas changes fire rapidly during drawing; save every 2-3 seconds, not on every change
-7. **Export as SVG, not PNG** — SVG exports are resolution-independent and much smaller in file size
-8. **Test on touch devices** — tldraw supports touch natively, but custom shapes may need pointer event adjustments
+1. **Production needs a license key** — since SDK 4, running tldraw in
+   production (HTTPS, non-loopback host, `NODE_ENV=production`) requires a
+   license key; without one the editor stops rendering after five seconds.
+   Commercial use needs a commercial license (no watermark; a free 100-day
+   trial key exists). The free hobby license is for non-commercial projects,
+   is granted on request and keeps the "made with tldraw" watermark.
+   Development needs no key. Pass the key with the `licenseKey` prop on
+   `<Tldraw>` or an env var such as `VITE_TLDRAW_LICENSE_KEY`.
+2. **Container needs dimensions** — tldraw fills its parent; give it explicit
+   size (e.g. `position: fixed; inset: 0`) or it renders at zero height.
+3. **Custom shapes for domain data** — represent tasks, nodes, or cards as
+   shapes instead of forcing everything into draw/text.
+4. **Always implement `getIndicatorPath()`** — it returns the selection/hover
+   outline of a custom shape; SDK 5 no longer renders the JSX `indicator()`.
+5. **`getSvg()` was removed** — use `editor.toImage()` (blob), or
+   `editor.getSvgString()` / `editor.getSvgElement()` for vector output.
+   SVG exports are resolution-independent and smaller than raster.
+6. **Persist the `document` snapshot** — `getSnapshot(editor.store)` returns
+   `{ document, session }`; store `document` on your backend, keep `session`
+   per-client if you want to restore the viewport.
+7. **Debounce auto-save** — `editor.store.listen` fires on every change; save
+   every 2–3 seconds, not per event.
+8. **Multiplayer is `@tldraw/sync`, not Yjs** — the old community Yjs example is
+   not a maintained package; use `useSync` against a websocket server.
