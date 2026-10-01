@@ -7,6 +7,7 @@ skills:
   - tailwindcss
   - vitest
   - nextjs
+  - material-ui
 category: development
 tags:
   - design-system
@@ -492,3 +493,7 @@ After launching the design system across 4 product teams:
 - **Accessibility audit violations dropped from 47 to 3** — built-in ARIA attributes, focus management, and keyboard navigation mean developers get accessibility for free
 - **New feature development 35% faster** — developers compose UIs from pre-built, tested components instead of building from scratch; a typical form that took 4 hours now takes 1 hour
 - **Design-to-code fidelity improved** — designers and developers share the same token vocabulary; "primary-600" means the same thing in Figma and in code
+
+## Related Skills
+
+- [material-ui](/skills/material-ui) — Choose material-ui when the teams would rather adopt a mature, accessible React component set and enforce the brand through one shared createTheme (palette, typography, component defaultProps/variants) than build every Button, Modal and DatePicker in-house.
