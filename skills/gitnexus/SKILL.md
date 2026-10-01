@@ -1,20 +1,26 @@
 ---
 name: gitnexus
 description: >-
-  Build client-side code knowledge graphs with built-in Graph RAG for code exploration.
-  Use when: analyzing large codebases in the browser, building zero-server code intelligence
-  tools, creating interactive code exploration UIs.
+  GitNexus indexes a codebase into a local knowledge graph of symbols, calls,
+  imports, clusters and execution flows, and serves it to AI coding agents
+  through an MCP server and a CLI. Use when a user asks to index a repo with
+  GitNexus, set up the GitNexus MCP server for Claude Code, Cursor or Codex,
+  check what breaks before changing a function (impact, blast radius), see how
+  a feature flows through the code, review the impact of uncommitted changes,
+  run Cypher queries on a code graph, or explore a repository in the GitNexus
+  web UI.
 license: MIT
-compatibility: "Browser, TypeScript"
+compatibility: "Node.js 22.18+ or 24.11+. Linux, macOS or Windows. An MCP-capable agent (Claude Code, Cursor, Codex, OpenCode, Windsurf) for the MCP tools."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
-  tags: [knowledge-graph, code-analysis, graph-rag, browser, visualization]
+  repository: https://github.com/abhigyanpatwari/GitNexus
+  tags: [knowledge-graph, code-analysis, graph-rag, mcp, ai-agents]
   use-cases:
-    - "Build a browser-based code exploration tool from a GitHub repo URL"
-    - "Create an interactive knowledge graph of any codebase without a server"
-    - "Ask questions about code using Graph RAG in the browser"
+    - "Index a repository and give an AI agent MCP tools for impact analysis"
+    - "Find every caller and execution flow affected before changing a function"
+    - "Query a codebase's call graph with Cypher from the terminal"
   agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
 
@@ -22,210 +28,167 @@ metadata:
 
 ## Overview
 
-Build client-side code knowledge graphs that run entirely in the browser — no server required. Parse code with tree-sitter WASM, construct a graph of files, functions, classes, and dependencies, visualize it with force-directed layouts, and query it with Graph RAG for natural-language code exploration.
+GitNexus parses a repository with Tree-sitter, resolves imports and calls across files, groups symbols into clusters, traces execution flows from entry points, and stores the result in an embedded graph database inside the repo (`.gitnexus/`). Agents query that graph through an MCP server (`gitnexus mcp`); people query it with the same commands on the CLI. Indexing and queries run locally. A browser UI at gitnexus.vercel.app can explore small repos in WebAssembly or connect to a local `gitnexus serve`. This skill follows GitNexus 1.6.12.
 
 ## Instructions
 
-When a user asks to build a code knowledge graph, browser-based code explorer, or Graph RAG for code:
+### Install and index a repository
 
-1. **Set up tree-sitter WASM** — Load language grammars for the target languages
-2. **Parse the codebase** — Extract AST nodes (functions, classes, imports, exports)
-3. **Build the graph** — Create nodes and edges representing code relationships
-4. **Visualize** — Render with force-directed graph (D3 or force-graph library)
-5. **Enable Graph RAG** — Embed graph nodes, allow natural-language queries
+```bash
+npm install -g gitnexus          # or run each command as: npx gitnexus@latest ...
+cd ~/code/checkout-service
+gitnexus analyze                 # index the repo that contains the current directory
+gitnexus list                    # all indexed repos (registry in ~/.gitnexus/registry.json)
+gitnexus status                  # freshness of this repo's index (needs a Git repository)
+```
 
-### Code Parsing with Tree-sitter WASM
+`analyze` writes more than the index. By default it also creates or updates a GitNexus section in `AGENTS.md` and `CLAUDE.md` and installs six skills under `.claude/skills/gitnexus-*`. Control that with flags:
 
-```typescript
-import Parser from "web-tree-sitter";
+```bash
+gitnexus analyze --index-only        # index only: no AGENTS.md, CLAUDE.md or skills
+gitnexus analyze --skip-agents-md    # keep your own AGENTS.md / CLAUDE.md untouched
+gitnexus analyze --skip-skills       # do not install the standard skills
+gitnexus analyze --force             # full rebuild instead of an incremental update
+gitnexus analyze --embeddings        # add semantic vectors (off by default, slower)
+gitnexus analyze --skip-git          # index a folder that is not a Git repository
+gitnexus analyze --watch             # keep the index current while you edit (Git repos only)
+```
 
-interface CodeNode {
-  id: string;
-  type: "file" | "function" | "class" | "method" | "import" | "export";
-  name: string;
-  filePath: string;
-  startLine: number;
-  endLine: number;
-  code: string;
-}
+Recurring options can live in a committed `.gitnexusrc` JSON file at the repo root, for example `{ "skipSkills": true, "defaultBranch": "develop" }`; CLI flags override it. Files are skipped according to `.gitignore` and `.gitnexusignore`, and anything over 512 KB is skipped unless `--max-file-size` raises the limit.
 
-interface CodeEdge {
-  source: string;
-  target: string;
-  type: "contains" | "calls" | "imports" | "extends" | "implements";
-}
+### Connect an agent over MCP
 
-async function initParser(language: string): Promise<Parser> {
-  await Parser.init();
-  const parser = new Parser();
-  const lang = await Parser.Language.load(`/tree-sitter-${language}.wasm`);
-  parser.setLanguage(lang);
-  return parser;
-}
+```bash
+gitnexus setup                       # detect installed editors; write their MCP config, skills and hooks
+gitnexus setup -c cursor,codex       # only the listed agents
 
-function extractNodes(tree: Parser.Tree, filePath: string): CodeNode[] {
-  const nodes: CodeNode[] = [];
-  nodes.push({ id: `file:${filePath}`, type: "file", name: filePath.split("/").pop()!, filePath, startLine: 0, endLine: tree.rootNode.endPosition.row, code: "" });
+# Or register the server by hand
+claude mcp add gitnexus -- npx -y gitnexus@latest mcp
+codex mcp add gitnexus -- npx -y gitnexus@latest mcp
+```
 
-  function walk(node: Parser.SyntaxNode) {
-    const nameNode = node.childForFieldName("name");
-    if ((node.type === "function_declaration" || node.type === "arrow_function") && nameNode) {
-      nodes.push({ id: `fn:${filePath}:${nameNode.text}`, type: "function", name: nameNode.text, filePath, startLine: node.startPosition.row, endLine: node.endPosition.row, code: node.text.slice(0, 500) });
-    }
-    if (node.type === "class_declaration" && nameNode) {
-      nodes.push({ id: `class:${filePath}:${nameNode.text}`, type: "class", name: nameNode.text, filePath, startLine: node.startPosition.row, endLine: node.endPosition.row, code: node.text.slice(0, 500) });
-    }
-    if (node.type === "import_statement") {
-      const source = node.descendantsOfType("string")[0];
-      if (source) nodes.push({ id: `import:${filePath}:${source.text}`, type: "import", name: source.text.replace(/['"]/g, ""), filePath, startLine: node.startPosition.row, endLine: node.endPosition.row, code: node.text });
-    }
-    for (const child of node.children) walk(child);
+For Cursor, add the same server to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "gitnexus": { "command": "npx", "args": ["-y", "gitnexus@latest", "mcp"] }
   }
-  walk(tree.rootNode);
-  return nodes;
 }
 ```
 
-### Graph Construction
+One server process serves every indexed repo. The tools an agent gets in 1.6.12:
 
-```typescript
-function buildGraph(fileNodes: Map<string, CodeNode[]>): { nodes: CodeNode[]; edges: CodeEdge[] } {
-  const allNodes: CodeNode[] = [];
-  const edges: CodeEdge[] = [];
-  const functionIndex = new Map<string, string>();
+| Tool | Purpose |
+| --- | --- |
+| `list_repos` | Indexed repositories |
+| `query` | Hybrid search that returns execution flows related to a concept |
+| `context` | One symbol with its callers, callees and the flows it takes part in |
+| `impact` | Blast radius of changing a symbol, grouped by depth, with a risk level |
+| `trace` | Shortest call path between two symbols |
+| `detect_changes` | Maps the current Git diff to changed symbols and affected flows |
+| `rename` | Coordinated multi-file rename; call it with `dry_run: true` first |
+| `cypher` | Raw Cypher against the graph |
+| `check` | Structural checks such as circular imports |
+| `route_map`, `tool_map`, `shape_check`, `api_impact` | API routes, their consumers and response shapes |
+| `explain`, `pdg_query` | Taint findings and statement-level dependence (index built with `--pdg`) |
+| `group_list`, `group_sync` | Cross-repository groups |
 
-  for (const [, nodes] of fileNodes) {
-    allNodes.push(...nodes);
-    for (const node of nodes) {
-      if (node.type === "function" || node.type === "method") functionIndex.set(node.name, node.id);
-    }
-  }
+Set `GITNEXUS_MCP_READ_ONLY=1` in the server's environment to hide `cypher`, `rename` and the group tools.
 
-  for (const node of allNodes) {
-    const fileId = `file:${node.filePath}`;
-    if (node.type !== "file") edges.push({ source: fileId, target: node.id, type: "contains" });
-    if (node.type === "import") {
-      const targetFile = resolveImport(node.name, node.filePath);
-      if (targetFile) edges.push({ source: fileId, target: `file:${targetFile}`, type: "imports" });
-    }
-    if (node.type === "function" || node.type === "method") {
-      for (const [fnName, fnId] of functionIndex) {
-        if (fnId !== node.id && node.code.includes(fnName + "(")) edges.push({ source: node.id, target: fnId, type: "calls" });
-      }
-    }
-  }
-  return { nodes: allNodes, edges };
-}
+### Query from the terminal
 
-function resolveImport(importPath: string, fromFile: string): string | null {
-  if (importPath.startsWith(".")) {
-    return `${fromFile.split("/").slice(0, -1).join("/")}/${importPath.replace(/^\.\//, "")}.ts`;
-  }
-  return null;
-}
+The CLI mirrors the MCP tools and prints JSON:
+
+```bash
+gitnexus query "checkout total"                         # flows related to a concept
+gitnexus context OrderService                           # callers, callees, methods, flows
+gitnexus impact calculateTotal                          # who breaks if this changes (upstream)
+gitnexus impact calculateTotal --direction downstream   # what it depends on
+gitnexus impact subtotal --file src/pricing.ts          # disambiguate a common name
+gitnexus trace handleCheckout applyDiscount             # shortest call path
+gitnexus detect-changes --scope all                     # staged + unstaged diff -> affected flows
+gitnexus detect-changes --scope compare --base-ref main # branch vs main
+gitnexus check --cycles                                 # non-zero exit on circular imports
+gitnexus cypher "MATCH (f:Function) RETURN f.name, f.filePath LIMIT 5"
 ```
 
-### Visualization with Force-Graph
+Add `-r checkout-service` (name or path) when more than one repository is indexed.
 
-```typescript
-import ForceGraph from "force-graph";
+### Web UI and wiki
 
-function renderGraph(container: HTMLElement, graph: { nodes: CodeNode[]; edges: CodeEdge[] }) {
-  const colorMap: Record<string, string> = { file: "#4a9eff", function: "#50c878", class: "#ff6b6b", method: "#ffa500", import: "#888888", export: "#dda0dd" };
-  ForceGraph()(container)
-    .graphData({
-      nodes: graph.nodes.map((n) => ({ id: n.id, name: n.name, type: n.type, val: n.type === "file" ? 8 : n.type === "class" ? 5 : 3 })),
-      links: graph.edges.map((e) => ({ source: e.source, target: e.target, type: e.type })),
-    })
-    .nodeColor((node: any) => colorMap[node.type] || "#999")
-    .nodeLabel((node: any) => `${node.type}: ${node.name}`)
-    .linkDirectionalArrowLength(4);
-}
+```bash
+gitnexus serve                       # HTTP API on http://127.0.0.1:4747 for the web UI
+gitnexus wiki --provider openai --model gpt-4o   # LLM-written docs; reads OPENAI_API_KEY
 ```
 
-### Graph RAG Query
+With `gitnexus serve` running, gitnexus.vercel.app connects to the local server and shows the repos you already indexed. Without it the page indexes an uploaded repo in the browser, which is limited by browser memory (about 5,000 files).
 
-```typescript
-import { pipeline } from "@xenova/transformers";
+### Remove
 
-async function embedNodes(graph: { nodes: CodeNode[] }): Promise<Map<string, number[]>> {
-  const embeddings = new Map<string, number[]>();
-  const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-  for (const node of graph.nodes) {
-    const text = `${node.type} "${node.name}" in ${node.filePath}: ${node.code.slice(0, 200)}`;
-    const result = await embedder(text, { pooling: "mean", normalize: true });
-    embeddings.set(node.id, Array.from(result.data));
-  }
-  return embeddings;
-}
-
-function searchGraph(query: number[], embeddings: Map<string, number[]>, topK = 10): string[] {
-  const scores: [string, number][] = [];
-  for (const [id, emb] of embeddings) {
-    let dot = 0, magA = 0, magB = 0;
-    for (let i = 0; i < query.length; i++) { dot += query[i] * emb[i]; magA += query[i] ** 2; magB += emb[i] ** 2; }
-    scores.push([id, dot / (Math.sqrt(magA) * Math.sqrt(magB))]);
-  }
-  return scores.sort((a, b) => b[1] - a[1]).slice(0, topK).map(([id]) => id);
-}
+```bash
+gitnexus clean          # show which index would be deleted for this repo; --force deletes it
+gitnexus uninstall      # preview removal of MCP entries, skills and hooks; --force applies it
 ```
 
 ## Examples
 
-### Example 1: Build a Browser-Based Code Explorer for a React Project
+### Example 1: What breaks if I change this function?
+
+**User request:** "Index this repo and tell me what depends on `calculateTotal` before I change its signature."
 
 ```bash
-npm create vite@latest code-nexus -- --template vanilla-ts
-cd code-nexus
-npm install web-tree-sitter force-graph @xenova/transformers
+cd ~/code/checkout-service
+gitnexus analyze --index-only
+gitnexus impact calculateTotal --summary-only
 ```
 
-```typescript
-// main.ts — Parse a GitHub repo and render its knowledge graph
-const parser = await initParser("typescript");
-const files = await fetchRepoFiles("facebook/react", "packages/react/src");
-const fileNodes = new Map<string, CodeNode[]>();
-for (const file of files) {
-  const tree = parser.parse(file.content);
-  fileNodes.set(file.path, extractNodes(tree, file.path));
+```text
+  Repository indexed successfully (7.1s)
+  28 nodes | 47 edges | 4 clusters | 2 flows
+
+{
+  "target": { "id": "Function:src/pricing.ts:calculateTotal", "type": "Function", "filePath": "src/pricing.ts" },
+  "direction": "upstream",
+  "impactedCount": 2,
+  "risk": "LOW",
+  "summary": { "direct": 1, "processes_affected": 1, "modules_affected": 1 },
+  "byDepthCounts": { "1": 1, "2": 1 },
+  "affected_processes": [ { "name": "handleCheckout", "filePath": "src/api.ts", "earliest_broken_step": 1 } ]
 }
-const graph = buildGraph(fileNodes);
-renderGraph(document.getElementById("graph")!, graph);
-// Result: interactive force-directed graph showing React's internal module structure
 ```
 
-### Example 2: Natural-Language Code Query with Graph RAG
+The JSON is trimmed to its main fields. Depth 1 is the direct caller (`OrderService.placeOrder`), depth 2 the route handler that reaches it. Drop `--summary-only` to list each symbol with its file. An agent connected over MCP gets the same data from `impact({target: "calculateTotal", direction: "upstream"})`.
 
-```typescript
-// After building the graph, embed all nodes and query
-const graph = buildGraph(fileNodes);
-const embeddings = await embedNodes(graph);
+### Example 2: How does a request reach this code?
 
-// User asks a question about the codebase
-const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-const qEmb = Array.from((await embedder("How does the authentication middleware work?", { pooling: "mean", normalize: true })).data);
-const relevantIds = searchGraph(qEmb, embeddings, 5);
-const context = relevantIds
-  .map((id) => graph.nodes.find((n) => n.id === id))
-  .filter(Boolean)
-  .map((n) => `[${n!.type}] ${n!.name} (${n!.filePath})\n${n!.code.slice(0, 300)}`)
-  .join("\n---\n");
+**User request:** "Show me how the checkout handler ends up in the discount logic, and who else calls `calculateTotal`."
 
-// Pass context to LLM for a grounded answer about the codebase
-const response = await fetch("/api/chat", {
-  method: "POST",
-  body: JSON.stringify({ messages: [
-    { role: "system", content: `Answer using this code context:\n${context}` },
-    { role: "user", content: "How does the authentication middleware work?" },
-  ]}),
-});
+```bash
+gitnexus trace handleCheckout applyDiscount
+gitnexus cypher "MATCH (a)-[r:CodeRelation {type: 'CALLS'}]->(b:Function {name: 'calculateTotal'}) RETURN a.name, a.filePath"
 ```
+
+```text
+{ "status": "ok", "hopCount": 3,
+  "hops": [ { "name": "handleCheckout", "filePath": "src/api.ts", "startLine": 4 },
+            { "name": "placeOrder", "filePath": "src/orders.ts", "startLine": 5 },
+            { "name": "calculateTotal", "filePath": "src/pricing.ts", "startLine": 10 },
+            { "name": "applyDiscount", "filePath": "src/pricing.ts", "startLine": 6 } ] }
+
+{ "markdown": "| a.name | a.filePath |\n| --- | --- |\n| placeOrder | src/orders.ts |", "row_count": 1 }
+```
+
+All relationships are `CodeRelation` edges with a `type` property, such as `CALLS`, `IMPORTS`, `EXTENDS`, `IMPLEMENTS`, `HAS_METHOD`, `MEMBER_OF` (symbol to cluster) and `STEP_IN_PROCESS` (symbol to execution flow). The MCP resource `gitnexus://repo/checkout-service/schema` lists the full schema.
 
 ## Guidelines
 
-1. **Lazy-load grammars** — Only load tree-sitter WASM grammars for languages present in the repo
-2. **OPFS for large repos** — Store cloned files in Origin Private File System for persistence
-3. **Incremental parsing** — Re-parse only changed files, not the entire repo
-4. **Limit graph size** — For repos with 1000+ files, allow filtering by directory or file type
-5. **Web Workers** — Run parsing and embedding in Web Workers to keep the UI responsive
-6. **Cache embeddings** — Store in IndexedDB so you don't re-embed on every page load
+1. **License** — GitNexus is published under PolyForm Noncommercial 1.0.0. Commercial use needs a license from the maintainers (Akon Labs); check before adding it to a company workflow.
+2. **`analyze` edits the repo** — it rewrites the GitNexus block in `AGENTS.md` and `CLAUDE.md` and adds `.claude/skills/`. Use `--index-only` in CI and in repos where those files are maintained by hand. `.gitnexus/` ignores itself, so the index is never committed.
+3. **A stale index gives wrong answers** — re-run `gitnexus analyze` after pulling or committing, or keep `gitnexus analyze --watch` running. `gitnexus status` shows whether the index matches the current commit.
+4. **Empty impact is not proof** — dynamic dispatch, reflection and cross-language calls may not resolve. A result with `risk: UNKNOWN` or zero callers should be confirmed with a text search before deleting or renaming.
+5. **Keep the servers on loopback** — `gitnexus serve` and `gitnexus mcp --http` bind to 127.0.0.1. Binding `mcp --http` to another interface requires `--auth-token` or `GITNEXUS_MCP_AUTH_TOKEN`; anyone who reaches the API can read every indexed repo.
+6. **Limit what agents can do** — `rename` edits files and `cypher` can run any query. Use `GITNEXUS_MCP_READ_ONLY=1`, and `GITNEXUS_MCP_ALLOWED_REPOS` to expose only named repositories.
+7. **Install problems** — on npm 11 `npx gitnexus` can crash with `Cannot destructure property 'package' of 'node.target'`; install globally instead. A global install also starts the MCP server faster than `npx`. Without a C++ toolchain, set `GITNEXUS_SKIP_OPTIONAL_GRAMMARS=1` before installing (Dart, Proto, Swift, Kotlin and Zig files are then not parsed).
+8. **Wiki sends code to an LLM** — unlike indexing and querying, `gitnexus wiki` sends repository content to the LLM provider you configure, and `--api-key` saves the key in `~/.gitnexus/config.json`. Prefer `GITNEXUS_API_KEY` or `OPENAI_API_KEY` in the environment.
+9. **When not to use it** — for a small project that fits in the agent's context, plain search is enough; the graph pays off on large or unfamiliar codebases and before risky refactors.
