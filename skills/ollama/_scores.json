@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:615d651a2d3e057c37a81ffe1c3565604fbe7f31c5a3a5190dc0307f0413edb7",
-  "scoredAt": "2026-05-13T09:43:32.585Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:79339dd41b92d8aad145bc4fc3ffdce1db1f6cda36f2b28f08e5aacfd1131371",
+  "scoredAt": "2026-10-01T12:07:45.072Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "Documentation contains verbose explanatory sections that could be trimmed."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Installation script downloaded via curl without verifying checksum."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 94,
-    "multiplier": 2.69,
+    "multiplier": 10,
+    "baselineAvg": 7,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Private offline code assistant on a laptop",
-        "baseline": 40,
-        "treatment": 94,
-        "rationale": "One response gestures at llama.cpp / GGUF / Hugging Face downloads with no Modelfile workflow; the other installs via the official script, pulls codellama, builds a custom Modelfile with FROM/SYSTEM/PARAMETER + ollama create, and connects via the OpenAI SDK at http://localhost:11434/v1."
+        "name": "json-http-methods",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B contains the required single ollama run command with gemma4, --format json, and the correct prompt; Response A does not."
       },
       {
-        "name": "On-prem RAG pipeline with no cloud LLM dependency",
-        "baseline": 30,
-        "treatment": 93,
-        "rationale": "One response defaults to OpenAI embeddings or vague HuggingFace+FAISS code without keeping inference local; the other uses ollama.embed for embeddings and ollama.chat for generation against http://localhost:11434, with ChromaDB as a local vector store — fully on-prem."
+        "name": "local-embeddings",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes the required curl command; Response B does not."
+      },
+      {
+        "name": "custom-code-reviewer",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric by providing a Modelfile with the required components and the correct commands, whereas Response A omits the Modelfile and uses a different creation method."
       }
     ]
   }
