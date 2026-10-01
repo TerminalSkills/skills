@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:3969c8bf4eabe0a084af0ed3693dc8c248b6bf6470095e689237d9188629ea73",
+  "scoredAt": "2026-10-01T08:50:48.732Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose sections that could be trimmed for conciseness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 7,
+    "baselineAvg": 5,
+    "treatmentAvg": 70,
+    "scenarios": [
+      {
+        "name": "summarize-youtube-with-timestamps",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B includes the required fabric command but omits the actual summary content, whereas Response A provides a summary but lacks the fabric command."
+      },
+      {
+        "name": "custom-extract-release-risks",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A lacks the required system.md, environment variable, and fabric command."
+      },
+      {
+        "name": "chain-summarize-create-flashcards-workflow",
+        "baseline": 10,
+        "treatment": 45,
+        "rationale": "Response B includes a workflow.yaml and fabric command but omits vendor/model, while Response A lacks a workflow.yaml and fabric usage entirely."
+      }
+    ]
+  }
+}
