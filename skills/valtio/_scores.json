@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:171ee754daba07784d2b96d982b38d15bb8dc7dfd488e951a55209ee8417adb3",
-  "scoredAt": "2026-05-13T10:33:17.102Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2c547cd36c86c804e85b60ebcb8fc40d4b1cd8a6252e6d1d7e7bd0163f0d9b58",
+  "scoredAt": "2026-10-01T12:43:37.317Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "Skill does not cover error handling for network failures or invalid data scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Skill is tailored to React and Valtio, limiting applicability to other frameworks or environments."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 7.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Shopping cart store with add/remove/update quantity",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline defaults to Zustand or useReducer rather than Valtio idioms, while treatment uses the documented proxy() + direct mutation (push/splice, item.quantity = n) + useSnapshot() pattern straight from the skill."
+        "name": "counter-with-computed-double",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not use Valtio or React at all."
       },
       {
-        "name": "Persist user preferences (theme, language, sidebar) to localStorage",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline tends to wire persistence inside a component useEffect or pick a different library, while treatment uses the skill's proxy() + subscribe() side effect to write to localStorage and useSnapshot() in components."
+        "name": "persist-preferences-with-subscribe",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A covers most rubric items but omits subscribeKey and DOM update; Response B lacks Valtio entirely."
+      },
+      {
+        "name": "async-task-list-with-proxymap",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A does not use Valtio at all, while Response B implements most of the required Valtio logic but omits the subscribe logging requirement."
       }
     ]
   }
