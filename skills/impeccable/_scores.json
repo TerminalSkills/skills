@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:ec0c1bf11b4997fd3061f3eee7198f617c90488534941ffcbc5f27cda7d9015f",
+  "scoredAt": "2026-09-30T22:01:24.567Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 3.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 37,
+    "scenarios": [
+      {
+        "name": "audit-directory-json-report",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the exact required command and a JSON object with an anti‑pattern key."
+      },
+      {
+        "name": "ignore-brand-font-ci",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required command but omits the config.json snippet, while Response A lacks both the command and the snippet."
+      },
+      {
+        "name": "install-impeccable-global",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A includes the required command but omits the mention of writing to the global skill directory and adding provider hook manifests, whereas Response B lacks the required command entirely."
+      }
+    ]
+  }
+}

@@ -124,4 +124,4 @@ The agent uses the correct surface color, border radius, shadow level, and typog
 - Update it when your design evolves (it's version-controlled markdown)
 - For dark/light themes, include both color sets in the palette section
 - Test with a simple component first to verify the agent reads it correctly
-- Combine with `impeccable-design` skill for additional design quality rules
+- Combine with `impeccable` skill for additional design quality rules
