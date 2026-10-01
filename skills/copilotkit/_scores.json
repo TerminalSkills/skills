@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b8640e4001f5cb0420538137c06d6a26ae35b4f97fc5d5ae1aaafdec8f5c60d2",
-  "scoredAt": "2026-05-13T16:01:11.366Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:54be0531e9bfea9e9f19c10910755a69a50c13ab9755ea379e9e87c24f3d4418",
+  "scoredAt": "2026-10-01T11:35:23.879Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path examples."
+        "detail": "The skill does not explicitly cover all possible error scenarios such as missing environment variables or runtime failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanatory text that could be trimmed for brevity."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to CopilotKit and does not support other AI agent frameworks."
+        "detail": "The skill is tightly coupled to CopilotKit and does not support arbitrary AI agents."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 6.7,
+    "baselineAvg": 3,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "setup-chat-sidebar",
-        "baseline": 0,
+        "name": "add-ai-sidebar-with-task-tool",
+        "baseline": 10,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B omits the required CopilotKit wrapper, sidebar, and runtime setup."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use CopilotKit or the required runtime setup."
       },
       {
-        "name": "define-project-actions",
+        "name": "migrate-v1-to-v2-copilotkit",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required v1‑to‑v2 mapping, import updates, and example code with a zod schema."
+      },
+      {
+        "name": "add-human-in-the-loop-approval",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not use the required Copilot hooks."
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A is missing key details."
       }
     ]
   }
