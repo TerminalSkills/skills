@@ -153,7 +153,7 @@ The user pastes notes from a call about a veterinary clinic's scheduling tool an
 |---|---|---|---|---|---|
 | Patient | Entity | An animal registered with the clinic for care. | Biscuit, a 4-year-old beagle | `Patient` | pet, animal |
 | Owner | Role | The person responsible for a Patient and for paying for its care. | Dana Okafor, Owner of Biscuit | `Client` | client, customer |
-| Appointment | Entity | A reserved time for one Patient with one Vet. Exists from booking until it is checked in, cancelled or missed. | 14 Oct 09:30, Biscuit with Dr Imre | `Booking` | booking, slot |
+| Appointment | Entity | A reserved time for one Patient with one vet. Exists from booking until it is checked in, cancelled or missed. | 14 Oct 09:30, Biscuit with Dr Imre | `Booking` | booking, slot |
 | Visit | Entity | What happened when a Patient was seen. Starts at Check-in, ends at discharge. | Biscuit's Visit on 14 Oct, 09:41 to 10:05 | `Visit` | appointment |
 | Walk-in | State | A Visit that began without an Appointment. | | `Visit.appointmentId = null` | drop-in |
 | Check-in | Action | The front desk confirms the Patient has arrived; this starts the Visit. | | `startVisit()` | arrival |
