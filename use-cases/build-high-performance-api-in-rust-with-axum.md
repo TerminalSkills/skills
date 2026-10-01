@@ -2,7 +2,7 @@
 title: Build a High-Performance API in Rust with Axum
 slug: build-high-performance-api-in-rust-with-axum
 description: Build a production REST API using Axum for the web framework, Tokio for async runtime, and SQLx for compile-time checked database queries — handling 100K concurrent connections on a single $20/month server with sub-millisecond response times and zero garbage collection pauses.
-skills: [axum, tokio]
+skills: [axum, tokio, rust]
 category: development
 tags: [rust, api, high-performance, async, production, backend]
 ---
@@ -175,3 +175,7 @@ Jun deploys on a single $20/month Hetzner server (4 vCPU, 8GB RAM).
 - **Infrastructure cost**: $20/month vs $2,400/month (99.2% reduction)
 - **Binary size**: 12MB static binary, no runtime dependencies
 - **Cold start**: 15ms (instant, no JIT warmup)
+
+## Related Skills
+
+- [rust](/skills/rust) — Choose rust to install/pin the toolchain, lay out the Cargo workspace, and gate the Axum service on cargo fmt, clippy -D warnings and cargo test before a release build.

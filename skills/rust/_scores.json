@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:11bdae217877aaa910839ba02eecf3d67d38af7197b6fd11e434c4f35553a7dc",
+  "scoredAt": "2026-10-01T08:58:01.251Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 1.82,
+    "baselineAvg": 40,
+    "treatmentAvg": 73,
+    "scenarios": [
+      {
+        "name": "pin-toolchain-ci",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response A includes the correct rust-toolchain.toml but omits CI details; Response B is incorrect about the version and lacks required content."
+      },
+      {
+        "name": "workspace-lint-format",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, while Response A omits the resolver, uses incorrect member paths, and does not list the required cargo add commands."
+      },
+      {
+        "name": "fix-borrow-error",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Response A directly modifies the notify function and main as required, but omits the rustc explain output; Response B lacks the specific code changes and also omits the explain output, making it less complete."
+      }
+    ]
+  }
+}
