@@ -1,11 +1,11 @@
 ---
 name: ionic
-description: Expert guidance for Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Helps developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.
+description: Ionic is an open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Use when building apps with Ionic's UI components, integrating native device APIs via Capacitor, or deploying to iOS, Android, and web from a single codebase.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: Node.js 22+ and npm; Xcode on macOS for iOS builds, Android Studio for Android builds
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
   tags:
   - mobile
@@ -13,16 +13,14 @@ metadata:
   - hybrid
   - capacitor
   - angular
+  repository: https://github.com/ionic-team/ionic-framework
 ---
 
 # Ionic — Cross-Platform Apps with Web Technologies
 
-
 ## Overview
 
-
-Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Helps developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.
-
+Ionic is an open-source (MIT) framework for building cross-platform mobile, desktop, and progressive web apps with web technologies (HTML, CSS, JavaScript/TypeScript). Its UI components are Web Components that work with React, Angular, or Vue, adapt to the iOS and Android look automatically, and reach native device APIs through Capacitor — letting you ship to iOS, Android, and the web from a single codebase.
 
 ## Instructions
 
@@ -52,25 +50,27 @@ ionic cap open android      # Opens Android Studio
 ### UI Components
 
 ```tsx
-// src/pages/Home.tsx — Ionic React component with native-feeling UI
-// Ionic provides 100+ UI components that adapt to iOS/Android automatically.
+// src/pages/Home.tsx — Ionic React page; the components adapt to iOS/Android automatically
 
 import {
   IonContent, IonHeader, IonPage, IonTitle, IonToolbar,
   IonList, IonItem, IonLabel, IonBadge, IonSearchbar,
   IonRefresher, IonRefresherContent, IonFab, IonFabButton,
-  IonIcon, IonSegment, IonSegmentButton, IonCard, IonCardHeader,
-  IonCardTitle, IonCardContent, IonChip, IonAvatar,
+  IonIcon, IonSegment, IonSegmentButton, IonAvatar,
 } from "@ionic/react";
-import { add, filterOutline } from "ionicons/icons";
+import { add } from "ionicons/icons";
 import { useState } from "react";
+
+type Task = { id: string; title: string; description: string; priority: "high" | "normal"; done: boolean; assignee: { avatar: string } };
 
 const Home: React.FC = () => {
   const [segment, setSegment] = useState("all");
   const [searchText, setSearchText] = useState("");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const visible = tasks.filter((t) => (segment === "all" || (segment === "done") === t.done) && t.title.toLowerCase().includes(searchText.toLowerCase()));
 
   const handleRefresh = async (event: CustomEvent) => {
-    await fetchTasks();
+    setTasks(await (await fetch("/api/tasks")).json());   // your tasks endpoint
     event.detail.complete();    // Dismiss the refresher spinner
   };
 
@@ -102,7 +102,7 @@ const Home: React.FC = () => {
         </IonRefresher>
 
         <IonList>
-          {tasks.map((task) => (
+          {visible.map((task) => (
             <IonItem key={task.id} routerLink={`/task/${task.id}`}>
               <IonAvatar slot="start">
                 <img src={task.assignee.avatar} alt="" />
@@ -127,28 +127,24 @@ const Home: React.FC = () => {
     </IonPage>
   );
 };
+export default Home;
 ```
 
 ### Native APIs with Capacitor
 
 ```typescript
 // src/services/native.ts — Access device features via Capacitor plugins
-import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Camera } from "@capacitor/camera";
 import { Geolocation } from "@capacitor/geolocation";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Share } from "@capacitor/share";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Preferences } from "@capacitor/preferences";
 
-// Camera — take photo or pick from gallery
+// Camera — take a photo (Camera.chooseFromGallery() picks existing ones; getPhoto() is deprecated since plugin 8.1)
 export async function takePhoto(): Promise<string> {
-  const image = await Camera.getPhoto({
-    quality: 80,
-    allowEditing: false,
-    resultType: CameraResultType.Uri,
-    source: CameraSource.Prompt,          // Let user choose camera or gallery
-  });
-  return image.webPath!;
+  const photo = await Camera.takePhoto({ quality: 80 });
+  return photo.webPath!;
 }
 
 // Geolocation
@@ -168,7 +164,7 @@ export async function scheduleReminder(title: string, body: string, date: Date) 
     notifications: [{
       title,
       body,
-      id: Date.now(),
+      id: Date.now() % 2147483647,   // must fit a 32-bit int on Android
       schedule: { at: date },
     }],
   });
@@ -203,13 +199,10 @@ export async function getPreference(key: string): Promise<string | null> {
   --ion-color-primary: #4f46e5;
   --ion-color-primary-rgb: 79, 70, 229;
   --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
   --ion-color-primary-shade: #463ec9;
   --ion-color-primary-tint: #6158e8;
-
-  --ion-color-secondary: #06b6d4;
-  --ion-color-success: #22c55e;
-  --ion-color-warning: #f59e0b;
-  --ion-color-danger: #ef4444;
+  /* Override secondary, success, warning, danger the same way — set all six variables per color */
 
   --ion-font-family: 'Inter', system-ui, sans-serif;
 }
@@ -233,30 +226,57 @@ npm install @capacitor/core @capacitor/cli
 npm install @capacitor/camera @capacitor/geolocation  # Per-plugin
 ```
 
-
 ## Examples
 
-
-### Example 1: Setting up Ionic with a custom configuration
-
-**User request:**
-
-```
-I just installed Ionic. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Ionic with custom functionality
+### Example 1: Scaffold a tabbed React app and preview it
 
 **User request:**
 
 ```
-I want to add a custom ui components to Ionic. How do I build one?
+Start a new Ionic React app called field-notes with tabs, then open it in the browser.
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Ionic's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
+The agent runs:
 
+```bash
+npm install -g @ionic/cli
+ionic start field-notes tabs --type=react
+cd field-notes
+ionic serve
+```
+
+Result: a new project with three starter tab pages and routing wired up, served
+at `http://localhost:8100` with live reload. `--type=react` picks the React
+flavor (`--type=angular` or `--type=vue` for the others).
+
+### Example 2: Add the camera on a real device
+
+**User request:**
+
+```
+Let users attach a photo to a note using the device camera on iOS.
+```
+
+The agent installs the plugin, adds the iOS platform, and calls it from a
+service:
+
+```bash
+npm install @capacitor/camera
+ionic cap add ios
+ionic cap sync
+```
+
+```typescript
+import { Camera } from "@capacitor/camera";
+
+const photo = await Camera.takePhoto({ quality: 80 });
+// photo.webPath -> use as an <img> src
+```
+
+Result: on a device, tapping the button opens the camera and returns a usable
+image path. `ionic cap open ios` launches Xcode to run it; add the
+`NSCameraUsageDescription` key to `Info.plist` first (and
+`NSPhotoLibraryUsageDescription` if you also call `Camera.chooseFromGallery()`).
 
 ## Guidelines
 
@@ -265,6 +285,6 @@ The agent scaffolds the extension/plugin project, implements the core functional
 3. **Lazy load pages** — Use React.lazy or Angular lazy modules for each page; keeps initial bundle small
 4. **Test in browser first** — Develop and debug with `ionic serve`; only test on device for native features (camera, GPS)
 5. **Use Ionic's CSS utilities** — Ionic includes padding, margin, text alignment utilities; avoid writing custom CSS for spacing
-6. **Progressive Web App first** — Ionic apps are PWAs by default; test the web version before adding native platforms
+6. **Progressive Web App first** — Test the web version before adding native platforms; a new app has no service worker, so add `vite-plugin-pwa` (React/Vue) or `ng add @angular/pwa` to make it an installable PWA
 7. **Capacitor plugins for native** — Always use Capacitor plugins over direct Cordova plugins; they have better TypeScript support
 8. **Live reload on device** — `ionic cap run ios --livereload --external` for instant feedback during native testing
