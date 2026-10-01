@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cda1aff23057ac837bda5d90aef5dce7d74c9acc281d31aac0e3570bac0233d8",
-  "scoredAt": "2026-05-13T11:34:37.785Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c4d89de312b7542dbaafa6792c19455ab4c3e7b3b76b32155c889de5b8921b63",
+  "scoredAt": "2026-10-01T11:15:07.120Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,13 +17,13 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill file lacks explicit instructions for the AI on how to use the skill, making it ambiguous."
+        "category": "completeness",
+        "detail": "Skill does not cover error handling or edge cases such as connection failures or token expiration."
       },
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, limiting robustness."
+        "category": "conciseness",
+        "detail": "Skill contains verbose sections and extensive commentary that may be considered padded."
       }
     ]
   },
@@ -32,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.6,
-    "baselineAvg": 20,
-    "treatmentAvg": 92,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "presence-tracking-welcome",
+        "name": "chat-room-with-typing-and-reactions",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with Ably code, while Response B uses Laravel Echo/Pusher and misses all required Ably elements."
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use Ably or the required ChatClient API at all."
       },
       {
-        "name": "batch-publish-serverless",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response A covers the required POST to /messages with an array of messages but omits token generation, while Response B fails to use ably.request and also omits token generation."
+        "name": "serverless-batch-publish",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets rubric, A does not."
       },
       {
-        "name": "chat-room-typing-reactions",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not use the Chat SDK or required methods."
+        "name": "jwt-auth-and-presence",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not mention Ably or the required JWT flow."
       }
     ]
   }
