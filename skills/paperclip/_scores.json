@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:e2a69ac55f1184582c8feee7405d67c0b81809cd0f9b21c4b003c83f623c3600",
+  "scoredAt": "2026-10-01T08:56:34.335Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains excessive verbosity and redundant explanations, reducing conciseness."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 5.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 58,
+    "scenarios": [
+      {
+        "name": "setup-local-instance-and-hire-agent",
+        "baseline": 0,
+        "treatment": 90,
+        "rationale": "Response B includes all required commands, JSON payloads, ID extraction, and issue creation, but omits the mention of the issue ID AC-1; Response A provides no relevant content."
+      },
+      {
+        "name": "budget-agent-and-check-cost",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response A includes most commands but not the exact budget update syntax and does not explicitly show spendCents <= budgetCents; Response B provides no relevant commands."
+      },
+      {
+        "name": "rest-api-list-issues",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response B includes the base URL and a listing command, but omits the company ID in the PATCH request; Response A lacks the required base URL, company ID, and correct status filter entirely."
+      }
+    ]
+  }
+}
