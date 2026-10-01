@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9a424b09e05222eef8f023ddf9143c521d91ecc2ddf74c7b70352979d1f7c587",
-  "scoredAt": "2026-05-13T09:58:07.905Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4be4eae21b50cab34c3eed8f10a87e34078cb68ccd2e1f56d787eeab983ca6b3",
+  "scoredAt": "2026-10-01T12:20:54.370Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as missing API keys or network failures."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill is vendor-locked to promptfoo, not platform-agnostic."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 19,
-    "treatmentAvg": 93,
-    "multiplier": 4.89,
+    "multiplier": 7.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "Automated eval suite for SaaS support chatbot with CI",
-        "baseline": 18,
-        "treatment": 94,
-        "rationale": "Baseline rolls a hand-built Python test runner with no Promptfoo at all; treatment delivers a complete promptfooconfig.yaml with contains, llm-rubric, contains-any, and not-contains assertions across normal/edge/hostile cases plus a GitHub Actions CI workflow using npx promptfoo@latest eval --ci."
+        "name": "create-basic-eval-suite",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not mention any promptfoo commands or the required YAML structure."
       },
       {
-        "name": "Compare GPT-4o, Claude Sonnet, and Gemini Flash for code review with cost and latency limits",
+        "name": "compare-models-code-review",
         "baseline": 20,
-        "treatment": 92,
-        "rationale": "Baseline proposes a manual spreadsheet comparison and ignores the framework; treatment writes a multi-provider promptfooconfig with llm-rubric for quality, latency and cost threshold assertions, file:// test inputs, and the eval + view CLI commands."
+        "treatment": 65,
+        "rationale": "Response A includes tests and latency assertions and a near‑complete command, while Response B lacks tests, assertions, and the required command structure."
+      },
+      {
+        "name": "run-redteam-attack",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response B lists the required commands but does not explicitly describe the vulnerabilities found in the report, whereas Response A provides no relevant content."
       }
     ]
   }
