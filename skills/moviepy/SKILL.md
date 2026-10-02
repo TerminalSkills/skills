@@ -9,10 +9,11 @@ description: >-
   integrate video editing into Python applications. Covers MoviePy 2.x for
   compositing, effects, text, and rendering.
 license: Apache-2.0
-compatibility: 'Python 3.8+, ffmpeg required'
+compatibility: 'Python 3.9+. ffmpeg is bundled through imageio-ffmpeg; a system ffmpeg is optional.'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/Zulko/moviepy
   category: content
   tags:
     - moviepy
@@ -33,10 +34,10 @@ Edit video programmatically with MoviePy — the Python library for video compos
 ### Step 1: Installation
 
 ```bash
-pip install moviepy
-apt install -y ffmpeg         # Ubuntu/Debian
-# Optional for text: apt install -y imagemagick
-# Or: pip install Pillow (MoviePy v2.x uses PIL for text)
+pip install moviepy           # 2.2.1 (May 2025); pulls Pillow, numpy, imageio-ffmpeg
+# imageio-ffmpeg ships an ffmpeg binary; to use your own: apt install -y ffmpeg
+# and set IMAGEIO_FFMPEG_EXE=/usr/bin/ffmpeg
+# No ImageMagick needed: v2 draws text with Pillow
 ```
 
 ### Step 2: Basic Operations
@@ -63,7 +64,7 @@ clip.close()
 ### Step 3: Concatenation & Composition
 
 ```python
-from moviepy import VideoFileClip, concatenate_videoclips, CompositeVideoClip, ColorClip
+from moviepy import VideoFileClip, concatenate_videoclips, CompositeVideoClip, ColorClip, ImageClip
 
 # Concatenate clips sequentially
 final = concatenate_videoclips([
@@ -75,7 +76,7 @@ final = concatenate_videoclips([
 # Composite (overlay layers)
 bg = ColorClip(size=(1920, 1080), color=(15, 23, 42), duration=10)
 main = VideoFileClip("main.mp4").resized(height=800).with_position("center")
-logo = (VideoFileClip("logo.png", duration=10)
+logo = (ImageClip("logo.png").with_duration(10)
         .resized(height=60).with_position((1820, 30)))
 
 composite = CompositeVideoClip([bg, main, logo], size=(1920, 1080))
@@ -84,19 +85,21 @@ composite.write_videofile("composite.mp4", fps=30)
 
 ### Step 4: Text Overlays
 
+`font` must be the path to a `.ttf`/`.otf` file (a name like `Arial-Bold` raises "Invalid font"); leave it out for Pillow's default. Pass `margin=(0, 10)` if strokes or descenders get clipped, and `method="caption", size=(900, None)` to wrap long text inside a fixed width.
+
 ```python
-from moviepy import TextClip, CompositeVideoClip, VideoFileClip
+from moviepy import TextClip, CompositeVideoClip, VideoFileClip, vfx
 
 video = VideoFileClip("input.mp4")
 title = (TextClip(text="Episode 1: Getting Started",
-                  font_size=60, color="white", font="Arial-Bold",
+                  font_size=60, color="white", font="fonts/Inter-Bold.ttf",
                   stroke_color="black", stroke_width=2)
          .with_duration(5).with_position("center").with_start(1))
 
 subtitle = (TextClip(text="Welcome to the show",
-                     font_size=36, color="white", bg_color="rgba(0,0,0,128)")
+                     font_size=36, color="white", bg_color=(0, 0, 0))
             .with_duration(4).with_position(("center", 900))
-            .with_start(3).crossfadein(0.5).crossfadeout(0.5))
+            .with_start(3).with_effects([vfx.CrossFadeIn(0.5), vfx.CrossFadeOut(0.5)]))
 
 final = CompositeVideoClip([video, title, subtitle])
 final.write_videofile("titled.mp4")
@@ -128,6 +131,8 @@ clip = VideoFileClip("input.mp4")
 clip.with_effects([vfx.MirrorX()])           # Mirror horizontally
 clip.with_effects([vfx.BlackAndWhite()])      # Grayscale
 clip.with_effects([vfx.FadeIn(1), vfx.FadeOut(2)])
+clip.with_effects([vfx.MultiplySpeed(2)])    # same as with_speed_scaled(2)
+# Effects return new clips; keep the result: clip = clip.with_effects([...])
 
 # Custom frame-by-frame effect
 def add_vignette(frame):
@@ -168,7 +173,7 @@ for f in os.listdir(input_dir):
 ### Example 1: Generate 30 Instagram story videos from a JSON config
 **User prompt:** "I have a products.json file with 30 entries, each containing name, price, tagline, and image_path. Write a Python script that generates a 1080x1920 Instagram story for each product with the product image as background, name in bold white at the top, price in green, and tagline at the bottom with a fade-in."
 
-The agent will write a script that loads `products.json`, iterates over each entry, creates a `ColorClip` background at 1080x1920, loads the product image and resizes it to fill the frame, creates `TextClip` layers for the name (72px, bold, top), price (56px, green `#22c55e`, center), and tagline (36px, bottom with `crossfadein(0.5)`), composites them with `CompositeVideoClip`, renders each to `stories/{name}.mp4` at 30fps, and closes all clips.
+The agent will write a script that loads `products.json`, iterates over each entry, creates a `ColorClip` background at 1080x1920, loads the product image and resizes it to fill the frame, creates `TextClip` layers for the name (72px, bold, top), price (56px, green `#22c55e`, center), and tagline (36px, bottom with `vfx.CrossFadeIn(0.5)`), composites them with `CompositeVideoClip`, renders each to `stories/{name}.mp4` at 30fps, and closes all clips.
 
 ### Example 2: Concatenate interview clips with title cards and background music
 **User prompt:** "I have 5 interview clips in /footage/ named q1.mp4 through q5.mp4. Create a script that puts a 3-second dark title card with white text before each clip showing 'Question 1' through 'Question 5', concatenates everything, adds background music from ambient.mp3 at 20% volume, and exports as interview_final.mp4."
@@ -178,7 +183,8 @@ The agent will write a script that builds title cards using `ColorClip` with dar
 ## Guidelines
 
 - Always call `clip.close()` after writing output to free ffmpeg processes and file handles, especially in batch loops
-- MoviePy 2.x changed many method names from 1.x; use `subclipped()` not `subclip()`, `resized()` not `resize()`, `with_position()` not `set_position()`
+- MoviePy 2 renamed and removed v1 methods: `subclipped()` not `subclip()`, `resized()` not `resize()`, `cropped()`, `with_position()`/`with_duration()`/`with_start()` not `set_*`, `with_volume_scaled()` not `volumex()`, `with_effects([vfx.X()])` not `.fx(vfx.x)`, and `crossfadein()`/`crossfadeout()` no longer exist (use `vfx.CrossFadeIn`). Old tutorials and `from moviepy.editor import *` (gone in v2) will fail
+- `moviepy.__version__` may report 2.1.2 on a 2.2.1 install; check with `pip show moviepy`
 - Set `threads=4` or higher in `write_videofile()` for multi-core encoding, and use `preset="fast"` for batch jobs where speed matters more than file size
-- For text rendering, MoviePy 2.x uses Pillow by default; install ImageMagick only if you need the `method="caption"` word-wrapping feature
+- Text is rendered by Pillow with a font file path; `method="caption"` wraps text in a fixed `size` width, so ImageMagick is not needed
 - Large batch jobs can exhaust RAM since each clip keeps decoded frames in memory; process one clip at a time and close it before starting the next

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:13fd4ea12d9a0dbf19270a1cc25e859e7f6a365e56a8c423971fc15c85a52c92",
-  "scoredAt": "2026-05-13T09:20:06.945Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b44d79cf5ac45a7bf6e93efe7764336c3f766c483808cc6ad924a675d15b6db3",
+  "scoredAt": "2026-10-02T22:51:12.824Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
+        "detail": "Covers the main flows and notes the lack of a dry-run flag, but gives little guidance on troubleshooting failures such as monorepo misconfiguration, plugin errors, or false positives in dynamically loaded code."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 1 is mostly prose with a short command block and Example 2 contains no code beyond a reference to the earlier workflow, so neither shows realistic end-to-end input and output."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 92,
-    "multiplier": 2.3,
+    "multiplier": 1.5,
+    "baselineAvg": 58,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Audit a Next.js codebase for unused files, exports, and dependencies",
-        "baseline": 40,
+        "name": "audit-legacy-project-safely",
+        "baseline": 55,
         "treatment": 92,
-        "rationale": "Treatment ran npx knip with a knip.json that declared the next plugin entry (pages/**, app/**) and ignored test files, distinguishing unused files/exports/deps/unlisted as separate categories; baseline reached for depcheck and ts-prune separately without the Next.js entry handling."
+        "rationale": "A matches the rubric closely: it starts with a clean-tree check, runs knip and the JSON reporter, says a framework-convention 'unused' file means a missing entry pattern to fix in config, and applies `--fix-type dependencies` afterward with `git diff` review; B starts with npm ci, tsc and tests instead of a git status check, and it suggests deleting with `git rm`, cross-checking with other tools and adding runtime markers. It does mention adding the file to `entry`, but it never says that an unused file points to a config gap, and it applies fixes only after manual deletion steps, with `--fix` only as an aside."
       },
       {
-        "name": "Add a CI gate that blocks PRs introducing unused code",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Treatment added a GitHub Actions pull_request workflow running npx knip with framework-aware entry points and used --fix / --allow-remove-files only locally; baseline wired up a custom grep/depcheck step that misses unused exports and orphan files."
+        "name": "knip-ci-gate-legacy-codebase",
+        "baseline": 38,
+        "treatment": 80,
+        "rationale": "A matches the rubric closely (npm install -D knip, a knip script with --max-issues 40, a pull_request workflow running npm ci and the knip script, a knip.json with entry files, and branch protection so a failing exit blocks merges), while B replaces --max-issues with a custom baseline ratchet script and never uses the required flag, and it also did not actually install or write anything."
+      },
+      {
+        "name": "safe-autofix-unused-exports-and-files",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "Both give the `--fix-type exports,types` limit, the `--allow-remove-files` note, the clean-tree warning and a `git diff` review, and both say Knip removes the `export` keyword; A explicitly says there is no dry-run, while B implies a 'dry look' and a JSON preview, and so never states there is no dry-run flag (its 'preview' is only the report, not a dry-run of the fix), so A matches the rubric more closely."
       }
     ]
   }

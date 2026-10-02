@@ -1,34 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f1b7e0fd5e0a2251a67b3d9c8addc0379fb4a48e2c83553bc7fb9909f667bd92",
-  "scoredAt": "2026-05-13T13:39:48.964Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:e211cb2f74cac2ea04266e67fd43b06263ed3cdf2793aee11f9c49df46efb225",
+  "scoredAt": "2026-10-02T22:47:27.701Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "WEAK",
       "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not specify how to handle API failures or malformed responses, leaving error handling undefined."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "actionability",
-        "detail": "The instructions lack concrete code or example prompts, making it difficult to implement the detection pipeline directly."
+        "detail": "Only the local pass and a bare LLM call are runnable code; the judge prompt/RULESET is never defined, the score-averaging and combination logic is not shown, and the GPTZero/Originality.ai step is delegated to external docs."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill requires Node.js 18+ and the Anthropic SDK, limiting compatibility to specific environments."
+        "detail": "The LLM-judge layer is hard-wired to the Anthropic SDK and ANTHROPIC_API_KEY, and the skill gives no guidance for using a different model provider."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The examples are short text excerpts showing pseudo-output only; the 'Local score' and 'Combined score' values are not produced by the provided code, and Example 1 lists 'research shows' as a found phrase although it is not in the PHRASES list, so the examples are inconsistent with the code and cannot be reproduced."
       }
     ]
   },
@@ -37,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0,
-    "baselineAvg": 0,
-    "treatmentAvg": 0,
+    "multiplier": 1.75,
+    "baselineAvg": 52,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "short-text-skip",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses omit the required statement about skipping automated scoring for texts under 200 words and the explanation of why short texts yield unreliable results."
+        "name": "local-burstiness-and-phrase-pass",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "A computes burstiness as sd/mean, checks case-insensitive phrases, and states that above 0.5 leans human and below 0.3 leans AI as rough heuristics to calibrate on known texts; B computes CV but uses different cut-offs (0.55/0.40), never gives 0.5/0.3, and only says it hasn't validated them, without advising calibration on known-origin texts."
       },
       {
-        "name": "full-detection-pipeline",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Neither response provides the required analysis results, verdicts, or scores; both fall short of the rubric."
+        "name": "llm-judge-call-with-safe-handling",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "B matches the rubric closely: it uses the requested fields (score 0-10, verdict, confidence, signals_found, reasoning, suspicious_phrases), reads the model from an env var, retries once on validation failure, and tells the judge the article is untrusted data. A also reads the model from an env var and treats the article as data, but it omits the requested fields (it has ai_likelihood 0-1, signals and rationale, with no verdict, suspicious_phrases or signals_found), and it has no retry on parse failure. A also has a hardcoded default model name, though it can be overridden by the env var."
+      },
+      {
+        "name": "student-essay-fairness-review",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "B explicitly covers all three rubric points (the under-200-word rule so no automated score, the Stanford TOEFL false-positive finding with raising thresholds or not auto-flagging, and score-is-not-proof with routing to a human reviewer), while A covers the non-native bias and not-sole-evidence points well but gives only a vague short-text threshold (250–300 words) and never states the under-200 skip rule or human-reviewer routing."
       }
     ]
   }

@@ -9,10 +9,11 @@ description: >-
   OpenClaw gateway issues. Covers installation, channel setup, agent
   configuration, cron scheduling, webhooks, and sub-agents.
 license: Apache-2.0
-compatibility: "Requires Node.js 22+ and npm. Install: npm install -g openclaw@latest"
+compatibility: "Node.js 24.16+ or 26.1+ (Node 26 recommended). Install: npm install -g openclaw@latest"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/openclaw/openclaw
   category: automation
   tags: ["openclaw", "messaging", "ai-agents", "gateway", "self-hosted"]
 ---
@@ -21,265 +22,264 @@ metadata:
 
 ## Overview
 
-Manage OpenClaw, an open-source self-hosted gateway that connects messaging platforms (WhatsApp, Telegram, Discord, Slack, Signal, iMessage) to AI coding agents. Covers the full lifecycle from installation through multi-agent routing, cron scheduling, webhooks, and sub-agent orchestration. Configuration lives at `~/.openclaw/openclaw.json`.
+Manage OpenClaw, an open-source self-hosted gateway that connects messaging platforms (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Microsoft Teams and more) to AI agents. Covers installation, channels, multi-agent routing, scheduled automations (cron), inbound webhooks and sub-agents. Configuration is JSON5 at `~/.openclaw/openclaw.json` and is validated strictly: an unknown key or wrong type stops the Gateway from starting. Checked against openclaw 2026.9.7 (npm, 2026-09-30) and docs.openclaw.ai.
 
 ## Instructions
 
-When a user asks for help with OpenClaw, determine which task they need:
+When a user asks for help with OpenClaw, determine which task they need. Config keys change between releases; when unsure, run `openclaw config schema` or `openclaw docs <topic>` instead of guessing a key.
 
 ### Task A: Install and onboard
 
 ```bash
-# Install globally
-npm install -g openclaw@latest
-
-# Interactive onboarding (creates config, pairs first channel, starts gateway)
-openclaw onboard --install-daemon
-
-# Or manual setup
-openclaw channels login      # Scan QR to pair WhatsApp
-openclaw gateway --port 18789  # Start the gateway
+node --version                                   # needs 24.16+ or 26.1+
+npm install -g openclaw@latest --allow-scripts=openclaw   # npm 12 / 11.16+; on older npm omit the flag
+openclaw onboard --install-daemon                # wizard: model access, workspace, Gateway service
+openclaw gateway status                          # should show the Gateway on port 18789
+openclaw dashboard                               # opens the Control UI (http://127.0.0.1:18789/)
 ```
 
-The Control UI is accessible at `http://127.0.0.1:18789/` after the gateway starts.
+The project also publishes an install script and a Docker/Nix path (see docs.openclaw.ai/install); prefer npm so the package comes from the registry. `openclaw gateway install` installs the background service (LaunchAgent, systemd user unit or Windows scheduled task); `openclaw gateway` runs it in the foreground. Onboarding reuses an existing Claude Code or Codex CLI login or a provider API key.
 
 ### Task B: Configure channels
 
-Edit `~/.openclaw/openclaw.json` to enable channels. Each channel has `dmPolicy` (`pairing`, `allowlist`, `open`, `disabled`) and `groupPolicy` (`open`, `allowlist`, `disabled`).
+Each channel lives under `channels.<provider>`. Every channel uses the same DM policy: `dmPolicy` is `pairing` (default; unknown senders get a code), `allowlist`, `open` (requires `allowFrom: ["*"]`) or `disabled`. Groups use `groupPolicy` and default to requiring a mention. Keep tokens out of the file: set the environment variable or use a SecretRef.
 
-**WhatsApp:**
+**Telegram** (create the bot with @BotFather):
+```bash
+export TELEGRAM_BOT_TOKEN=...            # default account; or: openclaw channels add --channel telegram --token ...
+```
 ```json5
-{ channels: { whatsapp: { enabled: true, allowFrom: ["+15555550123"], groups: { "*": { requireMention: true } } } } }
+{ channels: { telegram: { enabled: true, dmPolicy: "pairing", groups: { "*": { requireMention: true } } } } }
 ```
 
-**Telegram:**
+**WhatsApp** (plugin installs on first use; scan the QR code with the phone):
+```bash
+openclaw channels login --channel whatsapp
+```
 ```json5
-{ channels: { telegram: {
-  enabled: true, token: "BOT_TOKEN", dmPolicy: "pairing", groupPolicy: "allowlist",
-  allowedGroups: { "-100123456789": { allowedUsers: ["987654321"] } }
-} } }
+{ channels: { whatsapp: { dmPolicy: "allowlist", allowFrom: ["+15551234567"], groups: { "*": { requireMention: true } } } } }
 ```
 
-**Discord:**
+**Discord** (token from the Developer Portal Bot page, read from the environment):
 ```json5
 { channels: { discord: {
-  enabled: true, token: "BOT_TOKEN", groupPolicy: "allowlist",
-  guilds: { "123456789012345678": { requireMention: true, users: ["987654321098765432"], channels: { "general": { allow: true } } } }
+  enabled: true,
+  token: { source: "env", provider: "default", id: "DISCORD_BOT_TOKEN" },
+  groupPolicy: "allowlist",
+  guilds: { "123456789012345678": { requireMention: true, users: ["987654321098765432"] } }
 } } }
 ```
 
-Verify connectivity with `openclaw channels status --probe`.
+Approve the first DM and verify:
+```bash
+openclaw pairing list telegram
+openclaw pairing approve telegram K7M2QX      # codes expire after 1 hour
+openclaw channels status --probe
+```
+
+Config edits hot-reload; use `openclaw config validate` before relying on a change, and `openclaw config set <path> <value>` for one-line edits.
 
 ### Task C: Set up agents and routing
 
-Define multiple agents in `agents.list`. Each agent gets an isolated workspace, session store, and tool access.
+Agents live in `agents.entries` (the key is the agent id); shared behavior goes in `agents.defaults`. Each agent has its own workspace and session store.
 
 ```json5
 {
   agents: {
-    list: [
-      { id: "alfred", name: "Alfred", workspace: "~/.openclaw/workspace-alfred", default: true },
-      { id: "support", name: "Support Agent", workspace: "~/agents/support" }
-    ],
+    ownership: "explicit",
     defaults: {
-      model: { provider: "anthropic", name: "claude-sonnet-4-20250514" },
-      thinking: "off",
-      heartbeat: { every: "30m", activeHours: { start: "08:00", end: "22:00", timezone: "America/New_York" } }
+      model: { primary: "anthropic/claude-sonnet-4-6", fallbacks: ["openai/gpt-5.4"] },
+      heartbeat: { every: "30m", activeHours: { start: "08:00", end: "22:00", timezone: "America/New_York" } },
+      sandbox: { mode: "non-main", scope: "agent" }
+    },
+    entries: {
+      alfred: { workspace: "~/.openclaw/workspace-alfred" },
+      support: { workspace: "~/agents/support" }
     }
-  }
-}
-```
-
-Route messages to agents using bindings (evaluated in priority order):
-
-```json5
-{
+  },
   bindings: [
-    { match: { channel: "whatsapp", peer: { kind: "group", id: "120363403215116621@g.us" } }, agentId: "support" },
-    { match: { channel: "telegram", peer: { kind: "group", id: "-100123" } }, agentId: "alfred" },
-    { match: { channel: "discord", guildId: "123456789012345678", roles: ["111111111111111111"] }, agentId: "alfred" }
+    { agentId: "support", match: { channel: "whatsapp", peer: { kind: "group", id: "120363403215116621@g.us" } } },
+    { agentId: "alfred", match: { channel: "discord", guildId: "123456789012345678" } },
+    { agentId: "alfred", match: { channel: "telegram", accountId: "*" } }
   ]
 }
 ```
 
-CLI commands: `openclaw agents list`, `openclaw agents info <id>`, `openclaw agents create`.
-
-### Task D: Schedule cron jobs
-
-Cron runs inside the gateway and persists jobs at `~/.openclaw/cron/`. Enable with `"cron": { "enabled": true }`.
+Bindings match in a fixed order: exact peer, guild, team, exact account, then channel-wide (`accountId: "*"`). With several agents and no matching binding, the message is not routed, so always add a channel-wide fallback. Manage them from the CLI:
 
 ```bash
-# One-shot reminder (UTC, auto-deletes after run)
-openclaw cron add --name "Reminder" --at "2026-02-15T16:00:00Z" \
-  --session main --system-event "Check project deadlines" --wake now --delete-after-run
-
-# Recurring isolated job with delivery to WhatsApp
-openclaw cron add --name "Morning brief" --cron "0 7 * * *" \
-  --tz "America/Los_Angeles" --session isolated \
-  --message "Summarize overnight updates" \
-  --announce --channel whatsapp --to "+15551234567"
-
-# Manage jobs
-openclaw cron list
-openclaw cron run <job-id>           # Run immediately
-openclaw cron runs --id <job-id>     # View run history
-openclaw cron edit <job-id> --message "Updated prompt"
+openclaw agents list --bindings
+openclaw agents add work --workspace ~/.openclaw/workspace-work --bind telegram:*
+openclaw agents bind --agent work --bind telegram:ops
 ```
 
-Schedule types: `at` (one-shot), `every` (fixed interval), `cron` (5-field expression with timezone).
+Workspace files the agent reads: `AGENTS.md` (instructions), `SOUL.md` (persona), `IDENTITY.md` (name, emoji), optional `USER.md` and `MEMORY.md`, and `memory/YYYY-MM-DD.md` daily notes. The heartbeat checklist is no longer a `HEARTBEAT.md` file; run `openclaw doctor --fix` after upgrading to migrate an old one.
+
+### Task D: Schedule automations (cron)
+
+Jobs run inside the Gateway and are stored in its state database (`cron.enabled` defaults to on). The command is `openclaw cron` with `openclaw automations` as an alias; mutating commands need the operator admin role and a running Gateway.
+
+```bash
+# One-shot reminder in the main session
+openclaw cron add --name "Calendar check" --at "20m" \
+  --session main --system-event "Next heartbeat: check calendar." --wake now
+
+# Recurring isolated job, schedule first and prompt second, announced on Telegram
+openclaw cron create "0 7 * * *" "Summarize overnight updates." \
+  --name "Morning brief" --tz "America/Los_Angeles" --session isolated \
+  --announce --channel telegram --to "-1001234567890"
+
+openclaw cron list
+JOB=5b1e7c42                             # job id from `openclaw cron list`
+openclaw cron run "$JOB" --wait           # run now and wait for the result
+openclaw cron runs "$JOB" --limit 20      # history
+openclaw cron edit "$JOB" --message "Updated prompt"
+openclaw cron disable "$JOB"
+```
+
+Schedules: `--at` (one-shot: ISO time or `20m`), `--every`, or a 5-field `--cron` expression with `--tz`. Output can also go to `--webhook <url>` (cannot be combined with `--announce/--channel/--to`).
 
 ### Task E: Set up webhooks
-
-Enable webhook ingestion for external triggers:
 
 ```json5
 {
   hooks: {
     enabled: true,
-    token: "SHARED_SECRET",
+    token: "a-long-random-token-used-only-for-hooks",   // not the Gateway token
     path: "/hooks",
-    allowedAgentIds: ["hooks", "main"]
+    allowedAgentIds: ["main"],
+    allowRequestSessionKey: false
   }
 }
 ```
 
-Endpoints:
-- `POST /hooks/wake` — enqueue a system event: `{"text": "description", "mode": "now"}`
-- `POST /hooks/agent` — isolated agent run: `{"message": "task", "deliver": true, "channel": "slack", "to": "channel:C123"}`
-- `POST /hooks/<name>` — custom mapped endpoints via `hooks.mappings`
+All endpoints are `POST` only, authenticated with `Authorization: Bearer <token>` or `x-openclaw-token` (query-string tokens are rejected):
+- `/hooks/wake` - queue a system event: `{"text": "Import finished", "mode": "now", "agentId": "main"}`
+- `/hooks/agent` - run an agent turn: `{"message": "task", "agentId": "main", "deliver": false}`; add `"waitForCompletion": true` to get the outcome in the response, and an `Idempotency-Key` header to make retries safe
+- `/hooks/<name>` - custom paths resolved through `hooks.mappings` (templates like `{{payload.field}}`, `forEach`, optional transforms)
 
-Authenticate with `Authorization: Bearer <token>` header.
+HTTP 200 on `/hooks/agent` means the run was admitted, not that a message was delivered. Check `openclaw logs --follow` for `hook agent run completed`.
 
 ### Task F: Use sub-agents
 
-Sub-agents run background tasks in isolated sessions. No configuration needed for defaults.
+Sub-agents are background runs spawned by an agent (tool `sessions_spawn`) in their own session; results are announced back to the requester. Defaults work without configuration. Tune them under `agents.defaults.subagents`:
 
 ```json5
-{
-  agents: {
-    defaults: {
-      subagents: {
-        model: "minimax/MiniMax-M2.1",
-        thinking: "low",
-        maxConcurrent: 4,
-        archiveAfterMinutes: 120
-      }
-    }
-  }
-}
+{ agents: { defaults: { subagents: { model: "openai/gpt-5.4", maxSpawnDepth: 2, maxChildrenPerAgent: 5, maxConcurrent: 8, runTimeoutSeconds: 900 } } } }
 ```
 
-Spawn by telling the agent: "Spawn a sub-agent to research the latest Node.js release notes."
-
-Manage with `/subagents list`, `/subagents stop <id>`, `/subagents log <id>`.
+Ask in chat: "Spawn a sub-agent to research the latest Node.js release notes." Inspect from the parent chat with `/subagents list`, `/subagents info <id>`, `/subagents log <id>`.
 
 ### Task G: Monitor and troubleshoot
 
 ```bash
-openclaw status              # Local creds and sessions
-openclaw status --deep       # Gateway health checks
-openclaw gateway status      # Gateway process info
-openclaw logs --follow       # Stream gateway logs
-openclaw doctor              # Diagnose common issues
-openclaw channels status --probe  # Test channel connectivity
+openclaw gateway status
+openclaw logs --follow
+openclaw channels status --probe     # channel connectivity
+openclaw doctor                      # diagnose; `openclaw doctor --fix` repairs legacy config keys
+openclaw triage                      # read-only diagnosis, optionally handed to a coding agent
 ```
-
-Workspace files: `IDENTITY.md` (personality), `SOUL.md` (memory), `HEARTBEAT.md` (periodic tasks), `TOOLS.md` (tool access), `AGENTS.md` (subagent allowlist).
 
 ## Examples
 
-### Example 1: Personal WhatsApp assistant with heartbeats
+### Example 1: Personal Telegram assistant with heartbeats
 
-**User request:** "Set up OpenClaw as a personal assistant on WhatsApp with periodic check-ins"
+**User request:** "Set up OpenClaw as a personal assistant on Telegram with periodic check-ins"
 
 ```bash
-$ npm install -g openclaw@latest
-$ openclaw channels login   # Scan QR with assistant's phone
+npm install -g openclaw@latest --allow-scripts=openclaw
+export TELEGRAM_BOT_TOKEN=...      # from @BotFather
+openclaw onboard --install-daemon
 ```
 
 Config (`~/.openclaw/openclaw.json`):
 ```json5
 {
-  agent: {
-    model: "anthropic/claude-sonnet-4-20250514",
+  agents: { defaults: {
     workspace: "~/.openclaw/workspace",
     heartbeat: { every: "30m", activeHours: { start: "08:00", end: "22:00", timezone: "America/New_York" } }
-  },
-  channels: { whatsapp: { allowFrom: ["+15555550123"], groups: { "*": { requireMention: true } } } },
-  session: { scope: "per-sender", reset: { mode: "daily", atHour: 4, idleMinutes: 10080 } }
+  } },
+  channels: { telegram: { enabled: true, dmPolicy: "pairing" } }
 }
 ```
 
 ```bash
-$ openclaw gateway --port 18789
-Gateway started on http://127.0.0.1:18789/
-# Agent now responds via WhatsApp and runs heartbeat checks every 30 min
+openclaw channels status --probe
+openclaw pairing list telegram        # after sending the bot a message
+openclaw pairing approve telegram K7M2QX
 ```
+Result: the bot answers the approved account, and a check-in turn runs every 30 minutes between 08:00 and 22:00.
 
-### Example 2: Multi-agent team with cron and Discord routing
+### Example 2: Two agents with Discord routing and a standup cron job
 
-**User request:** "Set up two agents — one for code review in Discord, one for daily standup via Telegram"
+**User request:** "Set up two agents - one for code review in Discord, one for a daily standup in Telegram"
 
-Config:
 ```json5
 {
-  agents: { list: [
-    { id: "reviewer", name: "Code Reviewer", workspace: "~/agents/reviewer", default: true },
-    { id: "standup", name: "Standup Bot", workspace: "~/agents/standup" }
-  ] },
+  agents: {
+    ownership: "explicit",
+    entries: {
+      reviewer: { workspace: "~/agents/reviewer" },
+      standup: { workspace: "~/agents/standup" }
+    }
+  },
   bindings: [
-    { match: { channel: "discord", guildId: "123456789012345678" }, agentId: "reviewer" },
-    { match: { channel: "telegram", peer: { kind: "group", id: "-1001234567890" } }, agentId: "standup" }
+    { agentId: "reviewer", match: { channel: "discord", guildId: "123456789012345678" } },
+    { agentId: "standup", match: { channel: "telegram", accountId: "*" } }
   ],
   channels: {
-    discord: { enabled: true, token: "DISCORD_BOT_TOKEN", guilds: { "123456789012345678": { requireMention: true } } },
-    telegram: { enabled: true, token: "TELEGRAM_BOT_TOKEN", groupPolicy: "allowlist", allowedGroups: { "-1001234567890": {} } }
-  },
-  cron: { enabled: true }
-}
-```
-
-```bash
-$ openclaw cron add --name "Daily standup" --cron "0 9 * * 1-5" \
-  --tz "America/New_York" --session isolated \
-  --message "Compile yesterday's commits and open PRs into a standup summary" \
-  --announce --channel telegram --to "group:-1001234567890"
-Cron job created: job-abc123
-```
-
-### Example 3: Webhook-triggered CI notifications to WhatsApp
-
-**User request:** "Send me a WhatsApp message whenever my CI pipeline finishes"
-
-Config addition:
-```json5
-{
-  hooks: {
-    enabled: true, token: "ci-webhook-secret-2024",
-    mappings: [{ match: { path: "ci-notify" }, action: "agent", deliver: true, channel: "whatsapp", to: "+15555550123" }]
+    discord: { enabled: true, token: { source: "env", provider: "default", id: "DISCORD_BOT_TOKEN" },
+      groupPolicy: "allowlist", guilds: { "123456789012345678": { requireMention: true } } },
+    telegram: { enabled: true, dmPolicy: "pairing" }
   }
 }
 ```
 
-GitHub Actions step:
+```bash
+openclaw cron create "0 9 * * 1-5" "Compile yesterday's commits and open PRs into a standup summary" \
+  --name "Daily standup" --tz "America/New_York" --session isolated --agent standup \
+  --announce --channel telegram --to "-1001234567890"
+openclaw agents list --bindings
+```
+Result: `agents list --bindings` shows each agent with its routes, and the standup lands in the Telegram group on weekdays at 09:00.
+
+### Example 3: CI notifications through a webhook
+
+**User request:** "Send me a Telegram message whenever my CI pipeline finishes"
+
+```json5
+{
+  hooks: {
+    enabled: true, token: "a-long-random-token-used-only-for-hooks", path: "/hooks",
+    allowedAgentIds: ["main"],
+    mappings: [{
+      match: { path: "ci-notify" }, action: "agent", agentId: "main",
+      messageTemplate: "CI finished for {{repository}}: {{status}}. Write a one-line summary.",
+      deliver: true, channel: "telegram", to: "123456789"
+    }]
+  }
+}
+```
+
 ```yaml
 - name: Notify via OpenClaw
   run: |
-    curl -X POST "https://openclaw.example.com/hooks/ci-notify" \
+    curl -fsS -X POST "https://openclaw.acme-labs.dev/hooks/ci-notify" \
       -H "Authorization: Bearer ${{ secrets.OPENCLAW_HOOK_TOKEN }}" \
       -H "Content-Type: application/json" \
-      -d '{"message": "Deploy of ${{ github.repository }} completed (${{ job.status }})"}'
+      -d '{"repository": "${{ github.repository }}", "status": "${{ job.status }}"}'
 ```
+Result: the call returns `{"ok": true, "runId": ...}` and the agent's summary arrives in Telegram.
 
 ## Guidelines
 
-- Use a **separate phone number** for the WhatsApp assistant to avoid mixing personal and agent messages.
-- Always configure `allowFrom` on WhatsApp to restrict who can message the agent.
-- Start with `heartbeat.every: "0m"` (disabled) until you trust the setup, then increase to `"30m"`.
-- Agent workspaces should be treated as the agent's memory — back them up with git (use a private repo).
-- Session keys follow the pattern `agent:<agentId>:<channel>:<kind>:<id>`. Use `dmScope: "per-channel-peer"` for multi-user setups.
-- Cron jobs without `--tz` use the gateway host's timezone. Always specify `--tz` for predictable scheduling.
-- Webhook tokens should be stored securely and rotated periodically. Never use query string authentication.
-- Sub-agents cannot spawn their own sub-agents (no nesting). Use `maxConcurrent` to control resource usage.
-- For troubleshooting, start with `openclaw doctor` and `openclaw logs --follow` to identify issues quickly.
-- OpenClaw config uses JSON5 format (comments and trailing commas are allowed).
+- **Treat inbound messages as untrusted.** Keep `dmPolicy: "pairing"` or `allowlist`; tools run on the host unless sandboxing is enabled (`agents.defaults.sandbox.mode`). Read docs.openclaw.ai/gateway/security before exposing the Gateway beyond loopback.
+- Use a separate phone number for a WhatsApp assistant and restrict `allowFrom`.
+- Strict config: after any edit run `openclaw config validate`; after upgrading run `openclaw doctor --fix` to migrate renamed keys (older guides use `agents.list`, `agent`, and a `HEARTBEAT.md` file, none of which work any more).
+- Set `heartbeat.every: "0m"` to disable recurring check-ins until you trust the setup.
+- Use `session.dmScope: "per-channel-peer"` when several people message the same agent.
+- Specify `--tz` on cron jobs; without it the Gateway host's timezone applies.
+- Use a dedicated hook token, keep hook endpoints behind loopback, a tailnet or an HTTPS proxy, and treat webhook payloads as untrusted data.
+- Sub-agents cost tokens of their own: set a cheaper `subagents.model` and a low `maxSpawnDepth` for routine work.
+- Back up agent workspaces in a private git repository; they hold the agent's memory.
+- Start troubleshooting with `openclaw doctor` and `openclaw logs --follow`.

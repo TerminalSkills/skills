@@ -7,10 +7,11 @@ description: >-
   styling for mobile". Covers setup, responsive design, dark mode, animations,
   and platform-specific styles.
 license: Apache-2.0
-compatibility: "React Native / Expo. Tailwind CSS v3.4+."
+compatibility: "Expo or React Native with Metro. Nativewind 4.2 needs Tailwind CSS 3.4 (v5 release candidate needs Tailwind 4)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/nativewind/nativewind
   category: development
   tags: ["tailwind", "react-native", "styling", "nativewind", "mobile"]
 ---
@@ -31,19 +32,26 @@ NativeWind lets you use Tailwind CSS classes in React Native — write `classNam
 
 ## Instructions
 
-### Setup with Expo
+### Setup with Expo (Nativewind 4.2.7, stable, Tailwind CSS 3)
+
+Fastest start: `npx rn-new --nativewind` creates an Expo project already wired up. To add it to an existing project:
 
 ```bash
-npx expo install nativewind tailwindcss react-native-reanimated react-native-safe-area-context
+npx expo install nativewind@4.2.7 react-native-reanimated react-native-safe-area-context
+npx expo install --dev tailwindcss@^3.4.17 babel-preset-expo
 npx tailwindcss init
+# Expo SDK 57 / Reanimated 4 also needs: npx expo install react-native-worklets
 ```
+
+Do not run `npm install tailwindcss` unpinned: it now installs Tailwind 4, which Nativewind 4 does not support.
 
 ```javascript
 // tailwind.config.js
 module.exports = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: { extend: {} },
+  plugins: [],
 };
 ```
 
@@ -54,8 +62,29 @@ module.exports = {
 @tailwind utilities;
 ```
 
+```javascript
+// babel.config.js — required, without it className does nothing
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: [
+      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
+      "nativewind/babel",
+    ],
+  };
+};
+```
+
+```javascript
+// metro.config.js
+const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require("nativewind/metro");
+
+module.exports = withNativeWind(getDefaultConfig(__dirname), { input: "./global.css" });
+```
+
 ```typescript
-// app/_layout.tsx — Import global CSS
+// app/_layout.tsx — import global CSS once, in the root component
 import "../global.css";
 import { Stack } from "expo-router";
 
@@ -63,6 +92,10 @@ export default function Layout() {
   return <Stack />;
 }
 ```
+
+For TypeScript add a `nativewind-env.d.ts` file containing `/// <reference types="nativewind/types" />` (do not name it `nativewind.d.ts`). For Expo web set `"web": { "bundler": "metro" }` in `app.json`. Restart Metro with `npx expo start -c` after changing config files.
+
+**Nativewind 5** (`nativewind@5.0.0-rc.0`, September 2026) is a release candidate for Tailwind CSS 4: it needs `react-native-css`, `@tailwindcss/postcss`, `withNativewind(config)` in Metro (lowercase w), CSS `@import` lines instead of `@tailwind` directives, and drops the Babel preset. Stay on 4.2.7 for production and follow https://www.nativewind.dev/v5/guides/migrate-from-v4 when you move.
 
 ### Basic Usage
 
@@ -102,33 +135,33 @@ export function ProductCard({ product }) {
 ### Dark Mode
 
 ```tsx
-// Automatic dark mode with system preference
+// Automatic: follows the system appearance
 <View className="bg-white dark:bg-gray-900">
-  <Text className="text-black dark:text-white">
-    Adapts to system theme
-  </Text>
+  <Text className="text-black dark:text-white">Adapts to system theme</Text>
 </View>
+```
 
-// Toggle programmatically
+In Expo, set `"userInterfaceStyle": "automatic"` in `app.json`, or the app stays light. A manual toggle needs `darkMode: "class"` in `tailwind.config.js`; with the default (`media`) `setColorScheme` and `toggleColorScheme` throw.
+
+```tsx
 import { useColorScheme } from "nativewind";
 
 function ThemeToggle() {
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-
+  const { colorScheme, setColorScheme } = useColorScheme();   // setColorScheme accepts "light" | "dark" | "system"
   return (
-    <Pressable onPress={toggleColorScheme} className="p-3">
-      <Text className="text-gray-900 dark:text-white">
-        Current: {colorScheme}
-      </Text>
+    <Pressable onPress={() => setColorScheme(colorScheme === "dark" ? "light" : "dark")} className="p-3">
+      <Text className="text-gray-900 dark:text-white">Current: {colorScheme}</Text>
     </Pressable>
   );
 }
 ```
 
+Offer a "System" option next to a manual toggle and persist the choice yourself (for example with AsyncStorage).
+
 ### Platform-Specific Styles
 
 ```tsx
-// Different styles per platform
+// Different styles per platform (ios:, android:, web:, windows:, osx:, native: for everything except web)
 <View className="p-4 ios:pt-12 android:pt-8">
   <Text className="text-base ios:text-lg android:text-sm">
     Platform-aware text
@@ -139,7 +172,7 @@ function ThemeToggle() {
 ### Responsive Design
 
 ```tsx
-// Responsive breakpoints (useful for tablets/web)
+// Tailwind breakpoints apply to window width; the defaults were designed for web, so tune `theme.screens` for phones
 <View className="flex-col md:flex-row gap-4">
   <View className="w-full md:w-1/3">
     <Text>Sidebar</Text>
@@ -154,25 +187,35 @@ function ThemeToggle() {
 
 ### Example 1: Build a mobile UI with Tailwind
 
-**User prompt:** "Style a React Native chat app using Tailwind CSS classes."
+**User prompt:** "Style the chat screen of my Expo app with Tailwind classes: message bubbles, an input bar, and online status dots."
 
-The agent will create styled components with NativeWind — message bubbles, input bar, avatar groups, and status indicators using utility classes.
+The agent checks that `babel.config.js`, `metro.config.js` and `global.css` are set up as above, then writes components such as:
 
-### Example 2: Add dark mode to existing app
+```tsx
+export function Bubble({ text, mine }: { text: string; mine: boolean }) {
+  return (
+    <View className={`max-w-[80%] rounded-2xl px-4 py-2 ${mine ? "self-end bg-blue-600" : "self-start bg-gray-200 dark:bg-gray-700"}`}>
+      <Text className={mine ? "text-white" : "text-gray-900 dark:text-white"}>{text}</Text>
+    </View>
+  );
+}
+```
 
-**User prompt:** "Add dark mode to my Expo app. I want it to follow the system setting."
+Result: bubbles align left or right, and the received style switches with the system theme. Class names are built from complete literal strings so Tailwind can see them.
 
-The agent will set up NativeWind, add `dark:` variants to existing styles, and configure the color scheme provider.
+### Example 2: Add dark mode to an existing app
+
+**User prompt:** "Add dark mode to my Expo app. I want it to follow the system setting, with a toggle in settings."
+
+The agent sets `"userInterfaceStyle": "automatic"` in `app.json`, sets `darkMode: "class"` in `tailwind.config.js`, adds paired `bg-white dark:bg-gray-900` and `text-black dark:text-white` classes to existing screens, and adds the `ThemeToggle` above using `setColorScheme("system" | "light" | "dark")`. After `npx expo start -c` the app switches when the device appearance changes.
 
 ## Guidelines
 
-- **`className` works on all RN components** — View, Text, Image, Pressable, etc.
-- **Dark mode with `dark:` prefix** — follows system preference by default
-- **`active:` for press states** — `active:scale-95`, `active:bg-blue-700`
-- **No StyleSheet needed** — Tailwind classes compile to native styles
-- **`ios:` and `android:` prefixes** — platform-specific styles
-- **Responsive with `md:`, `lg:`** — useful for tablets and web
-- **Animations require reanimated** — `animate-` classes need react-native-reanimated
-- **Custom values in config** — extend `tailwind.config.js` theme as usual
-- **Performance** — styles are compiled at build time, not runtime
-- **Web compatible** — same classes work on web via Expo web
+- **`className` works on core RN components** (View, Text, Image, Pressable, TextInput...). Third-party components need `cssInterop` or `remapProps`, or a wrapper passing `style`.
+- **Declare both sides of a variant** — write `text-black dark:text-white`, not only `dark:text-white`; React Native handles conditionally appearing styles badly.
+- **Pseudo-classes need the matching event** — `active:` works on `Pressable`, `hover:` needs `onHoverIn`, so it does not work on `View`.
+- **Units** — React Native uses dp, so write `10px` in theme values and Nativewind converts; `rem` is 14 on native and 16 on web. Add `flex-1` and an explicit `flex-row` where web habits assume other defaults.
+- **Opacity utilities** — color opacity (`bg-black/50`) is static; the dynamic `*-opacity-*` core plugins are off by default for speed.
+- **Animations** use `react-native-reanimated` (Reanimated 4 needs `react-native-worklets` on new Expo SDKs).
+- **Missing styles** are almost always a config problem: wrong `content` globs, missing Babel preset, or `global.css` not imported; restart Metro with `-c`.
+- **Versions** — Nativewind 4 is for Tailwind 3; do not mix with Tailwind 4 or the v5 RC packages.

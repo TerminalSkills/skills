@@ -6,10 +6,10 @@ description: >-
   and code parameters. Use when: reading PDF floor plans, analyzing architectural drawings,
   extracting building data from images or scanned documents.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.9+"
+compatibility: "Python 3.9+ with the anthropic package, or Node.js 20+ with @anthropic-ai/sdk; ANTHROPIC_API_KEY set. Optional: poppler-utils (pdftoppm)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: [architecture, vision-ai, floor-plan, building-codes, pdf-parsing]
 ---
@@ -50,17 +50,40 @@ The parser returns a `BuildingData` JSON object with these fields:
 
 ### Parsing Approach
 
-1. Send the drawing image to Claude's vision API with a structured extraction prompt
-2. Request all building data as a single JSON object
+1. Send the drawing to Claude's vision API with a structured extraction prompt: put the image (or PDF) block first and the instructions after it
+2. Request all building data as a single JSON object and state the schema in the prompt
 3. Convert all areas to both sqft and sqm (1 sqft = 0.0929 sqm)
 4. Convert all distances to both feet and meters (1 foot = 0.3048 m)
-5. Parse the JSON from the response text
+5. Parse the JSON from the response text and reject the result if required fields are missing
+
+```python
+import anthropic, base64, json, pathlib
+
+client = anthropic.Anthropic()   # reads ANTHROPIC_API_KEY from the environment
+page = base64.standard_b64encode(pathlib.Path("A-101-level-1.jpg").read_bytes()).decode()
+
+message = client.messages.create(
+    model="claude-opus-5-5",     # any current vision-capable Claude model
+    max_tokens=4096,
+    messages=[{"role": "user", "content": [
+        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": page}},
+        {"type": "text", "text": "Extract occupancy, constructionType, sprinklerSystem, stories, height, "
+            "totalBuildingArea, units, travelDistances, scale and rooms from this drawing. Give areas in sqft and sqm, "
+            "distances in feet and meters. Use null for anything not shown. Reply with one JSON object only."},
+    ]}],
+)
+building = json.loads(message.content[0].text)
+```
+
+For a whole PDF set, send it as a `document` block (base64 or a Files API `file_id`) instead of an image; the API takes up to 32 MB and 100 pages per request on 200k-context models (600 on 1M-context models). Per image, the limits are 10 MB and 8000x8000 px, and images are downscaled to a 1568 px long edge on standard models (2576 px on Claude 4.7 and later), so tiny dimension text on a large sheet can be lost.
 
 ### Best Practices
 
-- Use 150 DPI or higher for scanned drawings
-- JPEG or PNG format; convert PDFs to images first (`pdftoppm -jpeg -r 150 drawing.pdf output`)
+- Use 150 DPI or higher for scanned drawings; keep text legible after the long edge is capped
+- JPEG or PNG; for sheets with dense notes convert PDFs to images and crop to the table or plan area (`pdftoppm -png -r 200 -f 3 -l 3 drawing.pdf sheet`)
 - Process multi-sheet PDFs one page at a time, then merge results
+- Label each image ("Sheet A-101:") when sending several in one request
+- Treat dimensions read from linework as approximate: prefer dimensions printed on the sheet over measuring from the scale
 - Always verify extracted data against the source before structural calculations
 
 ## Examples
@@ -127,4 +150,5 @@ This data feeds into the `ibc-building-codes` skill for compliance validation an
 - Proprietary symbols or non-standard abbreviations may not be recognized
 - Always treat extracted data as an estimate; verify critical measurements manually
 - For multi-sheet sets, parse each sheet separately and merge the structured data
+- Permitted stories, heights and areas depend on the IBC edition and local amendments; read them from the sheet rather than inferring them from the occupancy and construction type
 - The parser works best with US-standard architectural drawings; metric-only drawings may need prompt adjustments

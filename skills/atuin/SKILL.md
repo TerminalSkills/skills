@@ -1,129 +1,139 @@
 ---
 name: atuin
 description: >-
-  You are an expert in Atuin, the Rust-based shell history tool that replaces
-  your shell's built-in history with a searchable, syncable, context-aware
-  database. You help developers set up fuzzy search across shell history, sync
-  history across machines, filter by directory/host/session, and analyze
-  command usage — turning shell history from a flat text file into a powerful
-  productivity tool.
+  Atuin replaces your shell history file with a searchable SQLite database that
+  records directory, exit code, duration and host for every command, and can sync
+  it end-to-end encrypted between machines. Use when a user asks to "search shell
+  history", "replace Ctrl+R", "sync history across machines", "find the command I
+  ran in this directory", "import bash/zsh history", "see my most used commands"
+  or "self-host Atuin".
 license: Apache-2.0
-compatibility: ''
+compatibility: "bash (needs ble.sh 0.4+ or bash-preexec), zsh, fish, nushell, xonsh or PowerShell. Linux, macOS, Windows."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Developer Tools
-  tags:
-    - shell
-    - history
-    - sync
-    - search
-    - terminal
-    - productivity
-    - rust
+  version: "1.1.0"
+  category: productivity
+  tags: ["shell", "history", "sync", "search", "terminal"]
+  repository: https://github.com/atuinsh/atuin
 ---
 
-# Atuin — Magical Shell History
+# Atuin
 
-You are an expert in Atuin, the Rust-based shell history tool that replaces your shell's built-in history with a searchable, syncable, context-aware database. You help developers set up fuzzy search across shell history, sync history across machines, filter by directory/host/session, and analyze command usage — turning shell history from a flat text file into a powerful productivity tool.
+## Overview
 
-## Core Capabilities
+Atuin hooks into your shell, stores each command with its working directory, exit code, duration, session and host in a local database, and replaces Ctrl+R (and optionally the Up arrow) with an interactive search over it. Optional sync copies history between machines, encrypted client-side so the server only sees ciphertext; you can use the hosted server at `api.atuin.sh` or run your own. Your original shell history file keeps being written, so installing Atuin loses nothing.
 
-### Setup and Usage
+## Instructions
+
+### 1. Install
 
 ```bash
-# Install
-curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-
-# Import existing history
-atuin import auto                         # Detects bash/zsh/fish
-
-# Interactive search (Ctrl+R replacement)
-# Press Ctrl+R → fuzzy search across all history
-# Filter modes:
-#   - Global: all history across all machines
-#   - Host: only current machine
-#   - Session: only current terminal session
-#   - Directory: only commands run in current directory
-
-# Sync across machines
-atuin register -u username -e email -p password
-atuin sync                                # E2E encrypted sync
-atuin login -u username -p password       # On another machine
-atuin sync                                # History from all machines!
-
-# Search
-atuin search "docker"                     # Full-text search
-atuin search --after "2026-03-01" "deploy"
-atuin search --cwd /project "git"         # Only in this directory
-atuin search --exit 0 "make"              # Only successful commands
-
-# Stats
-atuin stats                               # Most used commands, frequency
-atuin stats --count 20                    # Top 20 commands
+brew install atuin            # macOS / Linuxbrew
+pacman -S atuin               # Arch
+cargo install atuin --locked  # from source (needs a current Rust toolchain)
+winget install -e Atuinsh.Atuin   # Windows
 ```
 
-### Configuration
+The project also documents an installer script at setup.atuin.sh; if you use a script, download and read it first rather than piping it into a shell.
+
+### 2. Enable the shell integration
+
+Add one line to the shell's startup file, then open a new terminal:
+
+```bash
+eval "$(atuin init zsh)"            # ~/.zshrc
+eval "$(atuin init bash)"           # ~/.bashrc (requires ble.sh or bash-preexec loaded BEFORE this line)
+atuin init fish | source            # ~/.config/fish/config.fish
+```
+
+Useful options: `atuin init zsh --disable-up-arrow` keeps Up as the shell default; `--disable-ctrl-r` keeps the default Ctrl+R.
+
+### 3. Import existing history
+
+```bash
+atuin import auto        # detects the current shell; or: atuin import zsh | bash | fish
+```
+
+### 4. Search
+
+Ctrl+R opens the interactive UI; Tab/Enter behaviour follows `enter_accept`. From scripts or an agent use the non-interactive command (a prefix search by default; `*` and `%` are wildcards):
+
+```bash
+atuin search docker
+atuin search --cwd ~/code/billing-api --exit 0 "make"      # only successes in one directory
+atuin search --after "2026-09-01" --before "2026-09-30" deploy
+atuin search --exclude-exit 0 --limit 10 "npm test"        # recent failures
+atuin search --format "{time} {exit} {command}" --limit 20 kubectl
+atuin search --delete "AWS_SECRET"                         # remove matching entries
+```
+
+Other flags: `--exclude-cwd`, `--human`, `--reverse`, `--offset`, `--interactive`. In the UI, Ctrl+R again cycles the filter (global, host, session, directory, workspace).
+
+### 5. Stats
+
+```bash
+atuin stats              # all time: most used commands, totals, unique count
+atuin stats week         # also: today, month, year, or a date like 2026-09-01 or "last friday"
+```
+
+### 6. Sync
+
+```bash
+atuin register -u mira.kowalski -e mira@kowalski.dev   # prompts for a password
+atuin key                                              # shows the encryption key: store it in a password manager
+atuin sync                                             # manual sync; auto_sync runs it in the background
+
+# on a second machine
+atuin login -u mira.kowalski                           # prompts for password and the key
+atuin sync -f                                          # full re-sync if entries look missing
+```
+
+### 7. Configure
+
+`~/.config/atuin/config.toml` (created on first run; keys are top-level, no `[settings]` table):
 
 ```toml
-# ~/.config/atuin/config.toml
-[settings]
 dialect = "us"
 auto_sync = true
-update_check = true
 sync_frequency = "5m"
-search_mode = "fuzzy"                     # fuzzy | prefix | fulltext | skim
-filter_mode = "global"                    # global | host | session | directory
-style = "compact"                         # compact | full
-inline_height = 40
-show_preview = true
-show_help = true
-exit_mode = "return-original"
-
-# Key bindings
-[keys]
-scroll_exits = false
-
-# Sync settings
-[sync]
-records = true                            # Sync all history records
+search_mode = "fuzzy"             # prefix | fulltext | fuzzy | daemon-fuzzy
+filter_mode = "global"            # global | host | session | session-preload | directory | workspace
+filter_mode_shell_up_key_binding = "directory"   # Up arrow stays project-local
+style = "compact"                 # auto | full | compact
+inline_height = 20
+enter_accept = false              # Enter edits the command instead of running it
+history_filter = ["^export .*TOKEN", "^psql .*password"]
+secrets_filter = true             # on by default: skips commands containing known secret patterns
 ```
 
-### ZSH/Bash/Fish Integration
+### 8. Self-host
+
+Run the server image `ghcr.io/atuinsh/atuin at the current release tag (for example 18.23.0)` with command `start`, backed by PostgreSQL, port 8888. Required environment: `ATUIN_DB_URI`, `ATUIN_HOST=0.0.0.0`, and `ATUIN_OPEN_REGISTRATION=true` only until accounts exist. Then set `sync_address = "https://atuin.northwind-labs.net"` in each client's config **before** registering. Put it behind TLS.
+
+## Examples
+
+### Example 1: Find last week's command in one project
+
+**User prompt:** "What was the docker compose command I used in the billing-api folder that worked?"
 
 ```bash
-# Add to ~/.zshrc
-eval "$(atuin init zsh)"
-
-# Or ~/.bashrc
-eval "$(atuin init bash)"
-
-# Or ~/.config/fish/config.fish
-atuin init fish | source
-
-# Now Ctrl+R opens Atuin's interactive search instead of default
+cd ~/code/billing-api
+atuin search --cwd "$PWD" --exit 0 --after "last week" --format "{time}  {command}" "docker compose"
 ```
 
-## Installation
+Result: a list such as `2026-09-28 14:02:11  docker compose -f compose.prod.yml up -d --build`, newest matches included, failed runs excluded.
 
-```bash
-# macOS
-brew install atuin
+### Example 2: Move history to a new laptop
 
-# Linux
-curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+**User prompt:** "I got a new MacBook, I want my shell history there."
 
-# Cargo
-cargo install atuin
-```
+On the old machine: `atuin sync` then `atuin key` (copy the key). On the new one: `brew install atuin`, add `eval "$(atuin init zsh)"` to `~/.zshrc`, open a new shell, `atuin login -u mira.kowalski`, paste the password and key, `atuin sync`. `atuin stats` then shows the full history count from both machines.
 
-## Best Practices
+## Guidelines
 
-1. **Fuzzy search** — Set `search_mode = "fuzzy"`; find commands even with typos or partial recall
-2. **Directory filtering** — Use `filter_mode = "directory"` to see only commands relevant to current project
-3. **Sync across machines** — Register for E2E encrypted sync; history follows you to any machine
-4. **Exit code filtering** — Search `--exit 0` for successful commands; avoid repeating failed attempts
-5. **Stats for optimization** — Run `atuin stats` to identify frequent commands worth aliasing
-6. **Import history** — Run `atuin import auto` immediately after install; don't lose existing history
-7. **Session mode** — Use session filter when debugging; see exactly what you ran in this terminal
-8. **Self-hosted** — Deploy your own Atuin server for teams; `docker run ghcr.io/atuinsh/atuin`
+- The encryption key cannot be recovered; losing it means losing synced history. Never paste it into chats or commit it.
+- Atuin records every command, including inline secrets. Add `history_filter` patterns for your own token formats, keep `secrets_filter` on, and use `atuin search --delete` to purge a leaked entry; rotate the secret anyway.
+- On bash, load ble.sh or bash-preexec first; without them history capture is incomplete.
+- Set `sync_address` before `register` when self-hosting, or you create an account on the hosted server.
+- `filter_mode = "directory"` suits project work; keep `global` for general recall.
+- Not for hiding commands from other users or auditing: it is a convenience history, not a tamper-proof log.

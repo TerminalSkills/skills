@@ -1,13 +1,13 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fa6758c696bb6cd409021fd94214fe3cb8b010dd57a0faf1f6de032adcfc42e3",
-  "scoredAt": "2026-05-13T09:28:37.988Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4ba3352b5bcc8fa88e3693cd985f3ad93afffe40f65b62e8d864cb43f82cff92",
+  "scoredAt": "2026-10-02T22:53:27.080Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill file lacks explicit, step-by-step instructions for the AI agent, making it ambiguous."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios or edge cases beyond the provided examples."
+        "detail": "Covers the happy path and a few caveats (buffering proxies, git identity, Marko 5 migration), but gives little troubleshooting for compile or hydration errors, no guidance on testing, and the Marko 5 migration notes are only a one-line summary."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 13,
-    "treatmentAvg": 98,
-    "multiplier": 7.54,
+    "multiplier": 1.63,
+    "baselineAvg": 56,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Streaming product list page",
-        "baseline": 15,
-        "treatment": 98,
-        "rationale": "Baseline used Marko 4 class/state and client-side fetch with no streaming; treatment used <await|products| from=products> with <@placeholder>/<@then>/<@catch> and <for|product| of=products>."
+        "name": "streaming-products-page-with-error-handling",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "B uses a `static async` function that throws on non-ok, `<await|products|=...>` in `<try>` with `<@placeholder>` and `<@catch|err|>`, and `<for ... by=\"id\">`, so it matches the rubric closely; A uses a promise const rather than a static async function and omits `by=\"id\"`, so it only partly matches."
       },
       {
-        "name": "Reactive todo list component",
-        "baseline": 10,
-        "treatment": 98,
-        "rationale": "Baseline used legacy Marko 4 class/setStateDirty and in-place mutation; treatment used <let/> reactive state, inline onSubmit/onInput/onChange handlers, and immutable reassignment."
+        "name": "migrate-marko5-class-component",
+        "baseline": 72,
+        "treatment": 92,
+        "rationale": "Both convert the counter to `<let/count=0>` with an inline `count++` handler and the async section to `<try><await|data|=promise>` with `<@placeholder>` on `<try>`, but A also notes that unmigrated pages can stay on `marko@5` until each is converted, which B omits and B adds a hedge about the API."
+      },
+      {
+        "name": "todo-list-derived-state-immutable-update",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": ""
       }
     ]
   }

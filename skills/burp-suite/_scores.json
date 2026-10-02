@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c298ae4ef6ee4c07740016b867701ea92bf62436b23c90e267d50dfc60709252",
-  "scoredAt": "2026-05-13T15:00:10.231Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:d9a2a3f752a06b4dd7660911b68a983b9f5524eaad4f34c556e668c5dbe3bd69",
+  "scoredAt": "2026-10-02T22:47:31.127Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases such as certificate installation failures or network errors."
+        "category": "crossPlatform",
+        "detail": "The skill is tied to Burp Suite's Java-based GUI workflow (Proxy, Repeater, Intruder, Scanner tabs, BApp Store extensions), which is not something a non-interactive AI agent can drive directly without a human operating the GUI."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1,
-    "baselineAvg": 50,
-    "treatmentAvg": 50,
+    "multiplier": 1.37,
+    "baselineAvg": 60,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "idor-profile-test",
-        "baseline": 100,
-        "treatment": 100,
-        "rationale": "Both responses fully cover the required steps: capturing via intercept, sending to Repeater, modifying the ID, resending, and checking for a 200 OK with different data."
+        "name": "idor-order-enumeration",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both cover Repeater manual ID swap and Intruder with §id§ injection point sweeping a numeric range filtered by status/length to measure exposure, with comparable completeness and specificity."
       },
       {
-        "name": "intruder-sql-fuzz",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to provide the required instructions and thus score zero."
+        "name": "jwt-privilege-escalation-check",
+        "baseline": 88,
+        "treatment": 62,
+        "rationale": "A covers the full rubric (proxy/capture, Repeater, token swap, 200 OK check, Autorize, JWT Editor mention) with more depth, while B covers Repeater/token-swap/200/Autorize but was truncated by a safety classifier before completing the response and never mentions JWT Editor or explicit interception of the member's own request."
+      },
+      {
+        "name": "hidden-param-discovery-before-fuzzing",
+        "baseline": 2,
+        "treatment": 93,
+        "rationale": "Response B correctly recommends Param Miner from the BApp Store, right-clicking to guess params, and confirming in Repeater before Intruder, fully matching the rubric, while Response A refuses and offers unrelated alternatives, not addressing the rubric at all."
       }
     ]
   }

@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8d7bcf51f709891d60846cc01dad9ca79c68b78080c16700ca3593cd7c736044",
-  "scoredAt": "2026-05-13T09:15:12.662Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cf726c9ae92ead911ae248898cd1b066aeaa0a1379502c268d4cb15b8dccfff5",
+  "scoredAt": "2026-10-02T22:51:24.794Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
+        "category": "actionability",
+        "detail": "Several snippets are not runnable as written: the UDF example uses `con` and `_` without defining or importing them, the portability example references an undefined `test_data_df`, and the Snowflake connection is left as `connect(...)` with no parameters."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 24,
-    "treatmentAvg": 94,
-    "multiplier": 3.92,
+    "multiplier": 1.73,
+    "baselineAvg": 49,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Port a pandas cohort retention script to BigQuery via Ibis",
-        "baseline": 22,
-        "treatment": 95,
-        "rationale": "Baseline keeps pandas and pulls all rows into memory; treatment uses ibis.bigquery.connect, builds a lazy expression with group_by/mutate/agg, prints ibis.to_sql, and calls .execute() so aggregation is pushed to the warehouse."
+        "name": "pandas-to-bigquery-retention-pushdown",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "A matches the rubric closely (window .min().over(group_by).truncate('M'), .delta(unit='month'), nunique, ibis.to_sql, to_pandas), while B uses a join with year/month arithmetic instead of the window and delta approach, though it does connect, filter, print SQL and materialize only the result."
       },
       {
-        "name": "Portable DAU + revenue-per-plan module on DuckDB locally, Snowflake in prod",
-        "baseline": 25,
-        "treatment": 93,
-        "rationale": "Baseline writes backend-specific code with pandas; treatment factors a get_connection() helper, wires DuckDB+read_parquet for dev and ibis.snowflake.connect for prod, and reuses the same Ibis expression functions across both backends."
+        "name": "portable-report-dev-duckdb-prod-snowflake",
+        "baseline": 66,
+        "treatment": 72,
+        "rationale": "B names its connection function get_connection, uses ibis.memtable (via create_table) and calls out the missing backend extras and checking on Snowflake, but its Snowflake connect is a `...` stub; A gives a full connect, passes memtable directly and lists the extras, but never says to verify on the target backend and doesn't name its function get_connection."
+      },
+      {
+        "name": "customer-segments-rank-days-inactive",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "B matches the rubric: rank with order_by=ibis.desc plus 1, ibis.cases with else_, and ibis.now().delta using a concrete table column. A computes days with epoch-seconds division and only mentions delta as an alternative, so it misses the key delta requirement, though its rank and cases are correct."
       }
     ]
   }

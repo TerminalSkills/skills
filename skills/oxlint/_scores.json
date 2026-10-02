@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7858035546c26ce1d9d6594e8093614b923ee08812761091c571075e22260e41",
-  "scoredAt": "2026-05-13T09:47:08.075Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e12eddc283a9eb2e97d651772aadbded868590b6f9a5cecdce7118b6fc19fe9d",
+  "scoredAt": "2026-10-02T22:51:45.504Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as missing configuration files or unsupported file types."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Instructions rely on npm and Homebrew, which may not be available on all operating systems, limiting cross-platform compatibility."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of what the agent does, with no concrete config files, commands with full output, or before/after diffs, so they are less demonstrative than runnable examples."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 89,
-    "multiplier": 2.34,
+    "multiplier": 1.12,
+    "baselineAvg": 74,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Cut 45s ESLint CI step with oxlint",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment uses the documented eslint-plugin-oxlint flat/recommended config plus oxc-project/oxlint-action with deny-warnings, while baseline only suggests generic ESLint parallelization and caching."
+        "name": "migrate-eslint-flat-config-hybrid",
+        "baseline": 62,
+        "treatment": 80,
+        "rationale": "A covers all three rubric items (runs `npx @oxlint/migrate`, installs eslint-plugin-oxlint and spreads `oxlint.configs[\"flat/recommended\"]` last, and runs oxlint before ESLint in the script), while B only recommends flat/recommended as a fallback, preferring `buildFromOxlintConfigFile`, and its migrate command is less precise."
       },
       {
-        "name": "Pre-commit hook on TypeScript repo",
-        "baseline": 40,
+        "name": "ts-project-config-with-plugins-and-overrides",
+        "baseline": 88,
+        "treatment": 82,
+        "rationale": "Both configs set categories, an explicit plugin list including typescript and react, namespaced rules, and ignorePatterns, but A's test override globs (test, spec and __tests__) are broader than B's (only .test.ts and .test.tsx), and B adds an unneeded 'import' plugin."
+      },
+      {
+        "name": "github-actions-ci-fail-on-warnings-and-precommit",
+        "baseline": 72,
         "treatment": 88,
-        "rationale": "Treatment configures lint-staged with `oxlint --fix` and the documented correctness/suspicious categories in .oxlintrc.json, while baseline defaults to husky+eslint without the speed-critical oxlint pattern."
+        "rationale": "A uses `npx oxlint --deny-warnings` in the workflow, lint-staged with a js/jsx/ts/tsx glob running plain `oxlint --fix`, and says warnings never fail the build without the flag; B has the same pieces but adds `--deny-warnings` to the hook, runs the lint through an npm script, and never says warnings don't fail the build without the flag."
       }
     ]
   }

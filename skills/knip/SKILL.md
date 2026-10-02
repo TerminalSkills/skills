@@ -7,10 +7,11 @@ description: >-
   bundle size by removing unused files", or "audit npm dependencies". Covers
   unused files, dependencies, exports, types, and CI integration.
 license: Apache-2.0
-compatibility: "Node.js 18+. TypeScript/JavaScript projects."
+compatibility: "Node.js 20.19+ or 22.12+ (Knip 6). TypeScript/JavaScript projects."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/webpro-nl/knip
   category: devops
   tags: ["unused-code", "dependencies", "knip", "cleanup", "dead-code"]
 ---
@@ -67,19 +68,26 @@ npx knip
 
 ### Configuration
 
-```json
-// knip.json — Customize detection
+Knip reads `knip.json`, `knip.jsonc`, `.knip.json`, `knip.ts` or a `knip` key in `package.json`. Most projects need little: plugins read the framework and tool configs and add entry files themselves.
+
+```jsonc
+// knip.json
 {
-  "entry": ["src/index.ts", "src/server.ts"],
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["src/index.ts", "src/server.ts!"],   // "!" = also an entry in --production mode
   "project": ["src/**/*.{ts,tsx}"],
-  "ignore": ["**/*.test.ts", "**/*.spec.ts"],
   "ignoreDependencies": ["@types/node"],
   "ignoreBinaries": ["docker"],
-  // Framework plugins (auto-detected)
-  "next": { "entry": ["pages/**/*.tsx", "app/**/*.tsx"] },
-  "vitest": { "entry": ["**/*.test.ts"] }
+  "ignoreIssues": { "src/generated/**": ["exports", "types"] },
+  // Plugin options: override a plugin's entry/config, or set false to disable it
+  "next": { "entry": ["app/**/page.tsx"] },
+  "vitest": true
 }
 ```
+
+For monorepos, use `workspaces` with one entry per package directory (`"packages/api": { "entry": ["src/main.ts"] }`). Prefer tuning `entry` and `project` over the `ignore` option, which hides every issue in the matched files.
+
+Useful flags: `--production` (skip tests and devDependencies, so code used only by tests is reported), `--strict`, `--include dependencies,exports` / `--exclude types`, `--reporter json`, `--max-issues 10`, `--no-exit-code`.
 
 ### CI Integration
 
@@ -94,22 +102,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - run: npm ci
       - run: npx knip
 ```
 
 ### Fix Mode
 
+Commit or stash first: `--fix` rewrites files and `package.json`.
+
 ```bash
-# Auto-remove unused exports (adds underscore prefix)
+# Remove the "export" keyword from unused exports and unused dependencies from package.json
 npx knip --fix
 
-# Remove unused files
+# Also delete unused files
 npx knip --fix --allow-remove-files
 
-# Dry run — see what would change
-npx knip --fix --dry-run
+# Fix only some issue types: dependencies, exports, types, files, catalog
+npx knip --fix-type exports,types
+
+# Format touched files with the project's formatter
+npx knip --fix --format
 ```
+
+There is no dry-run flag; review the plain `npx knip` report, then use `git diff` after fixing. After removing dependencies, run your package manager's install to refresh the lockfile.
 
 ## Examples
 
@@ -117,22 +134,26 @@ npx knip --fix --dry-run
 
 **User prompt:** "This project has 200+ files and we're not sure what's still used. Find all dead code."
 
-The agent will run Knip to identify unused files, exports, and dependencies, then categorize results by confidence level and provide a cleanup plan.
+```bash
+git status --short            # confirm a clean tree
+npx knip --reporter json > knip-report.json   # machine-readable
+npx knip                      # human-readable report
+```
+
+The report lists Unused files, Unused dependencies, Unused devDependencies, Unlisted dependencies and Unused exports. The agent checks suspicious entries (a "unused" file that a framework loads by convention means a missing entry pattern), fixes config, re-runs, then applies `npx knip --fix-type dependencies` and reviews `git diff package.json`.
 
 ### Example 2: Add to CI pipeline
 
 **User prompt:** "Prevent new dead code from being merged. Add a CI check."
 
-The agent will configure Knip with the project's entry points, add a GitHub Actions workflow, and set up framework plugins for accurate detection.
+The agent runs `npm install -D knip`, adds `"knip": "knip"` to `package.json` scripts, creates `knip.json` with the real entry files, confirms `npm run knip` exits 0 (or sets `--max-issues` to the current count to ratchet down), and adds the workflow above. A PR that leaves an unused export now fails with exit code 1 and the file listed.
 
 ## Guidelines
 
-- **Zero config works** — Knip auto-detects frameworks (Next.js, Remix, Vite, etc.)
-- **Framework plugins are key** — they tell Knip about framework-specific entry points
-- **Start with `npx knip`** — see what it finds before configuring
-- **`--fix` is cautious** — it prefixes unused exports with `_`, doesn't delete
-- **`--allow-remove-files` for cleanup** — actually removes orphan files
-- **Ignore test files in `ignore`** — tests reference things that aren't "used" by app code
-- **`ignoreDependencies` for false positives** — runtime-only deps that Knip can't trace
-- **Run before major refactors** — know what's dead before restructuring
-- **CI enforcement prevents regression** — new dead code fails the build
+- **Zero config works**: Knip detects frameworks and tools (Next.js, Vite, Vitest, ESLint, ...) from `package.json` and enables their plugins.
+- **Start with `npx knip`** and read the report before configuring anything; most false positives are a missing entry file or a disabled plugin, not a reason to ignore.
+- **`--fix` removes code**: it strips `export` keywords and dependencies (it does not rename with an underscore). Files go only with `--allow-remove-files`. Always work on a clean git tree.
+- **Prefer `entry`/`project` over `ignore`**; use `ignoreDependencies` only for packages loaded in ways Knip cannot trace (runtime-only, CLI-invoked).
+- **Test files are entries**, via the test-runner plugins; run `--production` to see what only tests keep alive.
+- **Public libraries**: exports of the package entry are API, not unused; keep them in `entry`.
+- **CI enforcement** with `npx knip` (non-zero exit on issues) stops regressions; use `--max-issues` to adopt gradually on a legacy codebase.

@@ -291,8 +291,8 @@
     {
       "name": "aider",
       "slug": "aider",
-      "description": "You are an expert in Aider, the terminal-based AI coding assistant that reads your codebase, makes changes across multiple files, and creates proper git commits. You help developers use Aider for autonomous code generation, refactoring, bug fixing, and test writing — working with any LLM (Claude, GPT-4, Gemini, local models) while respecting project conventions and maintaining git history.",
-      "category": "Developer Tools",
+      "description": "Aider is an open-source terminal AI pair programmer that edits files in your git repository with an LLM and commits each change. Use when a user asks to run Aider, let an AI refactor or fix code from the command line, script Aider with --message, auto-run lint and tests after edits, or point Aider at Claude, GPT, Gemini, DeepSeek or a local model.",
+      "category": "development",
       "tags": []
     },
     {
@@ -653,9 +653,15 @@
     {
       "name": "atuin",
       "slug": "atuin",
-      "description": "You are an expert in Atuin, the Rust-based shell history tool that replaces your shell's built-in history with a searchable, syncable, context-aware database. You help developers set up fuzzy search across shell history, sync history across machines, filter by directory/host/session, and analyze command usage — turning shell history from a flat text file into a powerful productivity tool.",
-      "category": "Developer Tools",
-      "tags": []
+      "description": "Atuin replaces your shell history file with a searchable SQLite database that records directory, exit code, duration and host for every command, and can sync it end-to-end encrypted between machines. Use when a user asks to \"search shell history\", \"replace Ctrl+R\", \"sync history across machines\", \"find the command I ran in this directory\", \"import bash/zsh history\", \"see my most used commands\" or \"self-host Atuin\".",
+      "category": "productivity",
+      "tags": [
+        "shell",
+        "history",
+        "sync",
+        "search",
+        "terminal"
+      ]
     },
     {
       "name": "audiowaveform",
@@ -693,8 +699,8 @@
     {
       "name": "authjs",
       "slug": "authjs",
-      "description": "You are an expert in Auth.js (formerly NextAuth.js), the authentication library for web frameworks. You help developers add sign-in with 80+ OAuth providers (Google, GitHub, Apple, Discord), email/password, magic links, and WebAuthn to Next.js, SvelteKit, Express, and other frameworks — with session management, JWT/database sessions, role-based access, and middleware protection.",
-      "category": "Backend Development",
+      "description": "Auth.js (formerly NextAuth.js) is an open-source authentication library that adds OAuth sign-in, magic links, credentials and WebAuthn to Next.js, SvelteKit, Express and other frameworks. Use when a user asks to add login with Google or GitHub, set up NextAuth v5, protect routes with middleware or proxy, add roles to the session, or connect a database adapter such as Drizzle or Prisma. Notes that the project is in maintenance mode under Better Auth.",
+      "category": "development",
       "tags": []
     },
     {
@@ -911,7 +917,7 @@
     {
       "name": "bigcommerce",
       "slug": "bigcommerce",
-      "description": "Build enterprise e-commerce with BigCommerce. Use when a user asks to set up a large-scale online store, use a hosted e-commerce platform with headless API, integrate with Next.js Commerce, or migrate from Shopify to a more API-friendly platform.",
+      "description": "BigCommerce is a hosted e-commerce platform with REST and GraphQL APIs for headless storefronts. Use when a user asks to set up a large-scale online store, build a headless store with the Storefront GraphQL API or the Catalyst Next.js storefront, manage products and orders through the REST API, or migrate from Shopify to a more API-friendly platform.",
       "category": "business",
       "tags": []
     },
@@ -1365,7 +1371,7 @@
     {
       "name": "censys",
       "slug": "censys",
-      "description": "Censys search engine for internet-connected hosts, TLS certificates, and domains. Use when: certificate transparency monitoring, finding hosts by certificate fingerprint, alternative to Shodan for TLS/SSL analysis, discovering hosts running specific services, or tracking infrastructure changes via cert issuance.",
+      "description": "Censys search engine for internet-connected hosts, TLS certificates, and web properties. Use when: certificate transparency monitoring, finding hosts by certificate fingerprint, alternative to Shodan for TLS/SSL analysis, discovering hosts running specific services, or tracking infrastructure changes via cert issuance.",
       "category": "research",
       "tags": [
         "censys",
@@ -1552,7 +1558,7 @@
     {
       "name": "claude-computer-use",
       "slug": "claude-computer-use",
-      "description": "Automate computer tasks using Anthropic's computer use API — Claude controls mouse, keyboard, and screen. Use when automating GUI workflows, browser automation without CSS selectors, desktop app testing, or any task that requires seeing and interacting with a graphical interface.",
+      "description": "Claude computer use is an Anthropic API tool that lets Claude see a desktop through screenshots and operate it with mouse and keyboard. Use when automating GUI workflows, browser automation without CSS selectors, desktop app testing, or any task that requires seeing and interacting with a graphical interface.",
       "category": "data-ai",
       "tags": [
         "computer-use",
@@ -2184,7 +2190,7 @@
     {
       "name": "cube",
       "slug": "cube",
-      "description": "Expert guidance for Cube, the headless BI and semantic layer that sits between your data warehouse and analytics applications. Helps developers define data models, create metrics APIs, and build analytics features in applications with consistent, governed access to business metrics.",
+      "description": "Cube is an open-source semantic layer that sits between a data warehouse and analytics applications and serves governed metrics over REST, GraphQL and SQL APIs. Use when a user asks to define cubes, measures and dimensions, add pre-aggregations, build a metrics API or embedded analytics, set up multi-tenant row-level security, or query Cube from React or the REST API.",
       "category": "data-ai",
       "tags": []
     },
@@ -2555,7 +2561,7 @@
     {
       "name": "direnv",
       "slug": "direnv",
-      "description": "Auto-load environment variables per directory with direnv. Use when a user asks to manage env vars per project, auto-switch configs between projects, or avoid manual .env loading.",
+      "description": "direnv loads and unloads environment variables automatically when you enter and leave a directory, using a per-project .envrc file. Use when a user asks to manage env vars per project, auto-switch configs, avoid manually sourcing .env files, set up .envrc, use dotenv with direnv, or pick a Python or Node version per directory.",
       "category": "development",
       "tags": []
     },
@@ -3602,8 +3608,8 @@
     {
       "name": "gin",
       "slug": "gin",
-      "description": "You are an expert in Gin, the fastest Go web framework with a martini-like API. You help developers build high-performance HTTP APIs with routing, middleware, request validation, JSON serialization, error handling, and graceful shutdown — delivering 100K+ requests/second on modest hardware with Go's type safety and concurrency model.",
-      "category": "Backend Development",
+      "description": "Gin is a Go web framework with a Martini-like API and a zero-allocation router. Use it to build HTTP APIs that need routing, middleware, request binding/validation, JSON responses, and graceful shutdown with low per-request overhead. Use when a user asks to scaffold a Go HTTP API, add route groups or middleware, validate request bodies, or shut a Go server down cleanly.",
+      "category": "development",
       "tags": []
     },
     {
@@ -3799,9 +3805,15 @@
     {
       "name": "graphql-yoga",
       "slug": "graphql-yoga",
-      "description": "You are an expert in GraphQL Yoga, the batteries-included GraphQL server by The Guild. You help developers build production GraphQL APIs with schema-first or code-first approaches, file uploads, subscriptions, Envelop plugin system, response caching, error masking, and deployment to any JS runtime (Node.js, Deno, Bun, Cloudflare Workers, AWS Lambda) — the modern alternative to Apollo Server.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "GraphQL Yoga is a fully featured GraphQL server from The Guild that runs on any JavaScript runtime (Node.js, Bun, Deno, Cloudflare Workers, AWS Lambda). Use this skill when asked to build a GraphQL API with graphql-yoga, add subscriptions, file uploads, response caching, depth limits, rate limiting or error masking, or move from Apollo Server to Yoga and Envelop plugins.",
+      "category": "development",
+      "tags": [
+        "graphql",
+        "server",
+        "api",
+        "typescript",
+        "envelop"
+      ]
     },
     {
       "name": "great-expectations",
@@ -4196,9 +4208,15 @@
     {
       "name": "ibis",
       "slug": "ibis",
-      "description": "Expert guidance for Ibis, the Python dataframe library that provides a pandas-like API but generates SQL for execution on any backend — DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, and more. Helps developers write analytics code once and run it anywhere without rewriting SQL for each database.",
+      "description": "Ibis is a Python dataframe library whose pandas-like expressions compile to SQL and run on the engine that holds the data: DuckDB, PostgreSQL, BigQuery, Snowflake, Spark, Polars and about twenty more. Use this skill when asked to write analytics once and run it on several databases, push pandas-style code down to a warehouse instead of loading it into memory, or develop locally on DuckDB and deploy on BigQuery or Snowflake.",
       "category": "data-ai",
-      "tags": []
+      "tags": [
+        "python",
+        "sql",
+        "dataframe",
+        "analytics",
+        "duckdb"
+      ]
     },
     {
       "name": "idea-refine",
@@ -4441,7 +4459,7 @@
     {
       "name": "istio",
       "slug": "istio",
-      "description": "Istio service mesh for Kubernetes traffic management, security, and observability. Use when the user needs to configure traffic routing, mTLS, circuit breaking, fault injection, or observability for microservices.",
+      "description": "Istio is an open-source service mesh that adds traffic management, mTLS security and observability to Kubernetes workloads through sidecar proxies or ambient mode. Use when the user needs to install Istio, configure traffic routing and canary releases, mTLS, authorization policies, circuit breaking, fault injection, ingress gateways, or tracing for microservices.",
       "category": "devops",
       "tags": []
     },
@@ -4915,9 +4933,15 @@
     {
       "name": "letsencrypt",
       "slug": "letsencrypt",
-      "description": "Get free TLS certificates with Certbot and Let's Encrypt. Use when a user asks to add HTTPS to a website, get a free SSL certificate, auto-renew certificates, or secure a web server with TLS.",
+      "description": "Let's Encrypt is a free, automated certificate authority, and Certbot is its official ACME client for getting and renewing TLS certificates. Use this skill when asked to add HTTPS to a website, get a free SSL certificate, issue a wildcard certificate, set up automatic renewal, fix a Certbot renewal failure, or get certificates automatically in Docker with Traefik.",
       "category": "devops",
-      "tags": []
+      "tags": [
+        "letsencrypt",
+        "tls",
+        "ssl",
+        "https",
+        "certbot"
+      ]
     },
     {
       "name": "librechat",
@@ -5386,8 +5410,8 @@
     {
       "name": "marko",
       "slug": "marko",
-      "description": "You are an expert in Marko, the HTML-first UI framework by eBay that powers ebay.com. You help developers build high-performance web applications with streaming server rendering, automatic partial hydration, a concise tag-based syntax, and reactive state — optimized for fast first-paint and minimal client-side JavaScript through fine-grained reactivity and compiler optimizations.",
-      "category": "Frontend Development",
+      "description": "Marko is an HTML-based UI language and framework from eBay with streaming server rendering, fine-grained reactivity and automatic partial hydration. Use when a user asks to build or migrate a Marko app, write .marko components with <let>, <const>, <for> and <try>/<await>, stream pages with async data, set up Marko Run or Vite, or upgrade from Marko 5 to Marko 6.",
+      "category": "development",
       "tags": []
     },
     {
@@ -6022,9 +6046,15 @@
     {
       "name": "nhost",
       "slug": "nhost",
-      "description": "Expert guidance for Nhost, the open-source backend platform built on PostgreSQL, Hasura GraphQL, and serverless functions. Helps developers set up authentication, database, file storage, and real-time subscriptions with auto-generated GraphQL APIs and a developer-friendly SDK.",
+      "description": "Nhost is an open-source backend platform built on PostgreSQL, the Hasura GraphQL engine, an auth service, S3-compatible file storage and serverless functions. Use this skill when asked to set up Nhost, run it locally with the Nhost CLI, sign users in with the JavaScript SDK, query the auto-generated GraphQL API, upload files, write Nhost functions or define Hasura permissions.",
       "category": "development",
-      "tags": []
+      "tags": [
+        "baas",
+        "graphql",
+        "hasura",
+        "postgres",
+        "auth"
+      ]
     },
     {
       "name": "nikto",
@@ -6579,7 +6609,7 @@
     {
       "name": "owasp-zap",
       "slug": "owasp-zap",
-      "description": "Assists with finding security vulnerabilities in web applications using OWASP ZAP. Use when configuring automated scans, writing scan policies, integrating security scanning into CI/CD pipelines, or analyzing results for OWASP Top 10 vulnerabilities like XSS, SQL injection, and CSRF. Trigger words: owasp zap, security scan, vulnerability scanner, penetration testing, zap-baseline, active scan, passive scan.",
+      "description": "OWASP ZAP (Zed Attack Proxy) is an open-source web application security scanner that crawls a site, passively inspects traffic and optionally attacks it to find XSS, SQL injection, missing security headers and other OWASP Top 10 issues. Use when configuring automated scans, running zap-baseline, zap-full-scan or zap-api-scan, adding security scanning to CI/CD or GitHub Actions, or triaging scan results. Trigger words: owasp zap, security scan, vulnerability scanner, penetration testing, zap-baseline, active scan, passive scan.",
       "category": "devops",
       "tags": [
         "owasp-zap",
@@ -6685,9 +6715,15 @@
     {
       "name": "pandera",
       "slug": "pandera",
-      "description": "Expert guidance for Pandera, the Python library for validating pandas and Polars DataFrames with expressive schemas. Helps developers define data contracts, validate data pipelines, and catch data quality issues before they corrupt downstream systems.",
+      "description": "Pandera is a Python library for validating DataFrames (pandas, Polars, PySpark, Dask and others) against declarative schemas with column types, constraints and custom checks. Use this skill when asked to validate a DataFrame, define a data contract, add data quality checks to a pipeline or pytest suite, or report which rows fail validation.",
       "category": "data-ai",
-      "tags": []
+      "tags": [
+        "data-validation",
+        "pandas",
+        "polars",
+        "python",
+        "schema"
+      ]
     },
     {
       "name": "paperclip",
@@ -6751,7 +6787,7 @@
     {
       "name": "payload-cms",
       "slug": "payload-cms",
-      "description": "Assists with building content management systems using Payload CMS with a code-first approach. Use when defining collections in TypeScript, configuring access control, customizing the admin panel, or integrating with Next.js. Trigger words: payload, payload cms, headless cms, collections, admin panel, content management, payload fields.",
+      "description": "Payload is an open-source, code-first headless CMS and application framework that runs inside a Next.js app, with collections defined in TypeScript. Use this skill when defining collections in TypeScript, configuring access control, customizing the admin panel, or integrating with Next.js. Trigger words: payload, payload cms, headless cms, collections, admin panel, content management, payload fields.",
       "category": "content",
       "tags": [
         "payload-cms",
@@ -6855,7 +6891,7 @@
     {
       "name": "pentagi",
       "slug": "pentagi",
-      "description": "Run AI-powered penetration testing with PentAGI. Use when a user asks to automate security testing, set up autonomous pentesting, deploy an AI-driven vulnerability scanner, build a self-hosted security testing platform, or conduct penetration tests with LLM-powered agents.",
+      "description": "PentAGI is a self-hosted, autonomous AI penetration-testing system: LLM agents plan and run security tools such as nmap and sqlmap inside sandboxed Docker containers and write a vulnerability report. Use when a user asks to automate security testing, set up autonomous pentesting, deploy an AI-driven vulnerability scanner, build a self-hosted security testing platform, or drive pentests through the PentAGI API. Only for systems the user is authorized to test.",
       "category": "devops",
       "tags": []
     },
@@ -6914,9 +6950,15 @@
     {
       "name": "phaser",
       "slug": "phaser",
-      "description": "You are an expert in Phaser, the fast and feature-rich HTML5 game framework for making 2D games that run in web browsers and mobile devices. You help developers build arcade games, puzzle games, RPGs, platformers, and roguelikes using Phaser's scene system, physics engines (Arcade and Matter.js), sprite animations, tilemaps, tweens, particle effects, and input handling — with TypeScript support and Vite for modern development workflow.",
-      "category": "Game Development",
-      "tags": []
+      "description": "Phaser is an open-source HTML5 framework for 2D browser games, with scenes, Arcade and Matter.js physics, sprite animation, tilemaps, tweens, particles and input handling, rendered with WebGL. Use when a user asks to \"make a browser game\", \"build a platformer or arcade game in JavaScript/TypeScript\", \"set up Phaser with Vite\", \"add a tilemap, physics or particles\", or \"upgrade a game from Phaser 3 to Phaser 4\".",
+      "category": "development",
+      "tags": [
+        "game-engine",
+        "html5",
+        "browser-game",
+        "2d",
+        "arcade-physics"
+      ]
     },
     {
       "name": "phoenix",
@@ -6983,9 +7025,15 @@
     {
       "name": "plasmo",
       "slug": "plasmo",
-      "description": "Expert guidance for Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. Helps developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.",
+      "description": "Plasmo is a framework for building browser extensions with React and TypeScript: it generates the Manifest V3 file from your code, bundles popups, content scripts, background workers and options pages, and gives you hot reload. Use when a user asks to \"build a Chrome extension\", \"create a browser extension with React\", \"add a content script UI\", \"use Plasmo storage or messaging\", or \"package an extension for the Chrome Web Store or Firefox\".",
       "category": "development",
-      "tags": []
+      "tags": [
+        "chrome-extension",
+        "browser",
+        "react",
+        "typescript",
+        "manifest-v3"
+      ]
     },
     {
       "name": "plausible",
@@ -8196,7 +8244,7 @@
     {
       "name": "sentry",
       "slug": "sentry",
-      "description": "Assists with monitoring application errors, performance, and user experience using Sentry. Use when integrating Sentry SDKs, configuring alerting, analyzing stack traces, uploading source maps, or tracking release health in production. Trigger words: sentry, error monitoring, error tracking, performance monitoring, source maps, session replay.",
+      "description": "Sentry captures application errors, traces performance, records session replays and tracks release health. Use this skill when integrating Sentry SDKs, configuring alerting, analyzing stack traces, uploading source maps, or tracking release health in production. Trigger words: sentry, error monitoring, error tracking, performance monitoring, source maps, session replay.",
       "category": "development",
       "tags": [
         "sentry",
@@ -8235,8 +8283,8 @@
     {
       "name": "sequelize",
       "slug": "sequelize",
-      "description": "You are an expert in Sequelize, the promise-based ORM for Node.js supporting PostgreSQL, MySQL, MariaDB, SQLite, and MS SQL. You help developers define models, build queries, manage migrations, handle associations, use transactions, and configure connection pooling — providing a mature, battle-tested data access layer for production Node.js applications.",
-      "category": "Backend Development",
+      "description": "Sequelize is a promise-based ORM for Node.js supporting PostgreSQL, MySQL, MariaDB, SQLite, and MS SQL. Use when a user asks to define Sequelize models, write queries with associations and eager loading, create or run migrations with sequelize-cli, use transactions, or tune connection pooling in a Node.js or TypeScript backend.",
+      "category": "development",
       "tags": []
     },
     {
@@ -8327,7 +8375,7 @@
     {
       "name": "signoz",
       "slug": "signoz",
-      "description": "Expert guidance for SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. Helps developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.",
+      "description": "SigNoz is an open-source observability platform that stores traces, metrics and logs in one UI, built natively on OpenTelemetry and available self-hosted or as SigNoz Cloud. Use when a user asks to install SigNoz, send OpenTelemetry traces, metrics or logs from a Node.js app to SigNoz, correlate logs with traces, build dashboards, or set up alerts as a Datadog or New Relic alternative.",
       "category": "devops",
       "tags": []
     },
@@ -9481,7 +9529,7 @@
     {
       "name": "trivy",
       "slug": "trivy",
-      "description": "Scan containers, filesystems, and repos for vulnerabilities with Trivy. Use when a user asks to scan Docker images for CVEs, audit filesystem for secrets, check IaC for misconfigurations, or add security scanning to CI.",
+      "description": "Trivy is an open-source scanner from Aqua Security that finds vulnerabilities, exposed secrets, misconfigurations and license problems in container images, filesystems, git repos and IaC files. Use when a user asks to scan a Docker image for CVEs, audit a repo for leaked secrets, check Terraform or Kubernetes manifests for misconfigurations, generate an SBOM, or add security scanning to CI.",
       "category": "devops",
       "tags": []
     },
@@ -10046,9 +10094,15 @@
     {
       "name": "vllm",
       "slug": "vllm",
-      "description": "You are an expert in vLLM, the high-throughput LLM serving engine. You help developers deploy open-source models (Llama, Mistral, Qwen, Phi, Gemma) with PagedAttention for efficient memory management, continuous batching, tensor parallelism for multi-GPU, OpenAI-compatible API, and quantization support — achieving 2-24x higher throughput than HuggingFace Transformers for production LLM serving.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "vLLM is a high-throughput inference and serving engine for large language models that exposes an OpenAI-compatible HTTP API and a Python batch API. Use this skill when asked to serve an open-weight model (Llama, Qwen, Mistral, Gemma, Phi) on NVIDIA GPUs, run `vllm serve`, split a model across GPUs with tensor parallelism, serve quantized checkpoints, run it in Docker, or call it with the OpenAI SDK.",
+      "category": "data-ai",
+      "tags": [
+        "inference",
+        "llm",
+        "serving",
+        "gpu",
+        "openai-compatible"
+      ]
     },
     {
       "name": "voltagent",
@@ -10572,5 +10626,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-02T15:16:57.173Z"
+  "updatedAt": "2026-10-02T22:56:54.758Z"
 }

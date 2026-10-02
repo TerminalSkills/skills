@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5480da4784753923ccea194fb6a78e63359b751d47192361cc6a9762882b685f",
-  "scoredAt": "2026-05-13T13:48:39.714Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:ac37872cca7e58399e6976fddf9d7e4f4590a3069f7dc0cb6c588b108de5df51",
+  "scoredAt": "2026-10-02T22:48:01.476Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 6,
-    "baselineAvg": 15,
-    "treatmentAvg": 90,
+    "multiplier": 1.25,
+    "baselineAvg": 69,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "autonomous-paginate-fix",
-        "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response B includes the required aider flags, lint and test commands, and a commit message, whereas Response A only provides a manual patch and lacks the automated tooling steps."
+        "name": "scripted-fix-with-tests-on-branch",
+        "baseline": 84,
+        "treatment": 90,
+        "rationale": "Both create a branch, use --message with both files, and include --test-cmd with --auto-test; B also mentions /undo and git show/diff, so it covers every rubric item, while A reviews with git diff/git log but never mentions undo or /undo, and its retry loop is extra."
       },
       {
-        "name": "python-scripting-pagination",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A meets all rubric requirements; Response B is empty."
+        "name": "architect-mode-two-models",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "B uses --architect with --model opus and --editor-model sonnet, passes CONVENTIONS.md with --read, and says the editor applies the proposal automatically unless --no-auto-accept-architect is passed, which covers every rubric item. A has the first two parts right but wrongly says Aider asks for confirmation by default and never mentions --no-auto-accept-architect."
+      },
+      {
+        "name": "persistent-config-lint-test-no-coauthor",
+        "baseline": 82,
+        "treatment": 80,
+        "rationale": "Both give a correct .aider.conf.yml with model, lint-cmd list entry, test-cmd, auto-test, read, and attribute-co-authored-by: false; B adds auto-lint and extra attribution options but A hedges less on key claims, and both mention .env only for the Anthropic key, so neither covers the 'other API keys belong in .env' note explicitly, with B slightly more complete overall."
       }
     ]
   }

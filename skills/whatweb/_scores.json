@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:03f46f06100f35cf389be185e03e01689f7b01f083c2bc321f2e1050f8c49b21",
-  "scoredAt": "2026-05-13T10:37:06.702Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:afd11bb210ac26c79506b74196ccba63f229b7d0bb61dc56eac6e5ef20cfa230",
+  "scoredAt": "2026-10-02T22:55:32.432Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,48 +11,48 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
+        "detail": "Covers limits such as no resume option, false positives and WAF misses, but gives no guidance on handling errors like connection failures, timeouts, redirects to login pages, or rate-limit blocks."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes Ruby 2.7+ or Docker, limiting cross-platform compatibility."
+        "category": "examples",
+        "detail": "The three examples are prompt-only descriptions with no commands or sample outputs, so they do not show concrete runnable usage."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for source installation."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 44,
-    "treatmentAvg": 94,
-    "multiplier": 2.14,
+    "multiplier": 1.85,
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Bulk subdomain fingerprinting with JSON output",
-        "baseline": 42,
-        "treatment": 95,
-        "rationale": "Baseline loops manually with grep filtering while treatment uses -i/--log-json/--wait/--max-threads/-a 3 plus a targeted jq pipeline over .plugins.WordPress."
+        "name": "single-plugin-version-probe",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both correctly recommend -p/--plugins WordPress with -a 3 and explain the reduced-request rationale well; B explicitly notes level 3 still requires permission (a rubric point A omits), giving it a slight edge."
       },
       {
-        "name": "Stealthy WAF + security headers compliance scan",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Baseline offloads WAF and header checks to other tools while treatment runs whatweb -a 1 across all targets with --log-json and post-processes via jq."
+        "name": "subdomain-pipeline-wordpress-extract",
+        "baseline": 2,
+        "treatment": 95,
+        "rationale": "B delivers a correct, complete pipeline matching every rubric requirement with accurate jq filtering and sensible caveats, while A refuses entirely and provides no commands."
+      },
+      {
+        "name": "polite-bulk-scan-cidr",
+        "baseline": 55,
+        "treatment": 82,
+        "rationale": "Response A uses the CIDR target with --url-prefix https://, --no-errors, --wait, --max-threads, --log-brief and states that WhatWeb has no resume option with a split-and-rerun workaround, which covers nearly the whole rubric; Response B omits the CIDR target and --url-prefix, de-emphasizes --wait and recommends a log-subtraction resume instead of simply splitting the list, so it covers less of the rubric even though it also notes there is no resume and mentions chunking."
       }
     ]
   }

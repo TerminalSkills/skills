@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9093dd97ddd83b993dc103585cf9c99d5456708754abd3d2e3e76a3da48814c3",
-  "scoredAt": "2026-05-13T09:17:41.391Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:850c6d111fbdb54720bd7967a27cb715bf97408089b4b1610c4beaa7f6cec891",
+  "scoredAt": "2026-10-02T22:51:55.528Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Does not cover error handling or edge cases for installation and configuration."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Linux/macOS environment, not Windows."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions that reference earlier manifests rather than showing full runnable commands and outputs end to end."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Executing downloaded script without checksum verification during installation."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 96,
-    "multiplier": 4.8,
+    "multiplier": 1.7,
+    "baselineAvg": 53,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "canary-with-resilience",
-        "baseline": 20,
-        "treatment": 96,
-        "rationale": "Baseline produced a single weighted route with no subsets, header match, retries, or outlier detection; treatment combined a header-match route to canary, a 90/10 stable/canary weighted route with retryOn 5xx, and a DestinationRule defining stable/canary subsets plus outlierDetection consecutive5xxErrors: 5."
+        "name": "canary-release-with-qa-header",
+        "baseline": 82,
+        "treatment": 85,
+        "rationale": "Both supply networking.istio.io/v1 manifests with the header match first, a 90/10 split, 5xx retries and istioctl analyze; B names the subsets stable/canary as the rubric asks and also uses istioctl proxy-config routes deploy/web-app -n shop, while A names the subsets v1/v2 and uses a placeholder deploy name in its proxy-config command."
       },
       {
-        "name": "strict-mtls-with-authz",
-        "baseline": 20,
-        "treatment": 96,
-        "rationale": "Baseline put PeerAuthentication in the wrong namespace and used namespace-based AuthorizationPolicy without selector or methods; treatment placed PeerAuthentication in istio-system with STRICT mTLS and an AuthorizationPolicy with matchLabels selector, principals SA, and GET/POST methods on /api/*."
+        "name": "safe-strict-mtls-rollout",
+        "baseline": 66,
+        "treatment": 90,
+        "rationale": "B follows the rubric closely: PERMISSIVE first, confirm callers are in the mesh, STRICT in istio-system, and an ALLOW policy with principal cluster.local/ns/shop/sa/frontend, GET/POST, /api/* and app: api-service, plus warnings about non-mesh pods and deny-all. A is thorough but flips STRICT namespace by namespace instead of mesh-wide in istio-system, and it uses a placeholder namespace in the principal instead of shop. Its dry-run and gotchas are useful extras but depart from the rubric."
+      },
+      {
+        "name": "gateway-api-ingress-and-tracing",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Response A matches the rubric: it installs the Gateway API CRDs, creates a Gateway with gatewayClassName istio and an HTTPS listener that terminates TLS with a certificateRef, adds an HTTPRoute with a PathPrefix /api rule and a default frontend backend, and enables tracing through a Telemetry resource at 1% with a zipkin extensionProvider. Response B uses the classic Istio Gateway and VirtualService instead, with no Gateway API CRDs, no gatewayClassName and no HTTPRoute, so it only meets the tracing part of the rubric."
       }
     ]
   }

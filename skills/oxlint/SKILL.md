@@ -7,10 +7,11 @@ description: >-
   or "lint in CI faster". Covers rule configuration, ESLint migration,
   framework plugins, and CI integration.
 license: Apache-2.0
-compatibility: "Any OS. JavaScript/TypeScript/JSX/TSX. No Node.js required."
+compatibility: "Linux, macOS, Windows. JavaScript/TypeScript/JSX/TSX. The npm package needs Node.js 20.19+ or 22.12+; the Homebrew binary needs no Node.js."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/oxc-project/oxc
   category: devops
   tags: ["linting", "oxlint", "rust", "eslint", "code-quality"]
 ---
@@ -34,67 +35,79 @@ oxlint is a JavaScript/TypeScript linter written in Rust — 50-100x faster than
 ### Setup
 
 ```bash
-# Install
+# Per project (recommended): pins the version for everyone
 npm install -D oxlint
 
-# Or standalone binary via Homebrew (no Node.js needed)
+# Standalone binary, no Node.js needed
 brew install oxlint
+
+npx oxlint --version      # checked against 1.86.0
+npx oxlint --init         # writes a starter .oxlintrc.json
 ```
 
 ### Basic Usage
 
 ```bash
-# Lint entire project
-npx oxlint .
-
-# Lint specific files/directories
-npx oxlint src/
-
-# Fix auto-fixable issues
-npx oxlint --fix src/
-
-# Specific rule categories
-npx oxlint --deny-warnings -D correctness -D suspicious .
+npx oxlint                       # lint the current directory (respects .gitignore)
+npx oxlint src/ tests/           # specific paths
+npx oxlint --fix src/            # apply safe fixes only
+npx oxlint --fix-suggestions src/   # also apply suggestions (may change behavior)
+npx oxlint -D correctness -W suspicious .   # categories on the command line
+npx oxlint --deny-warnings .     # warnings fail the build
+npx oxlint -f github .           # output format: default, github, gitlab, json, junit, sarif, stylish, unix, checkstyle
+npx oxlint --rules               # list registered rules
 ```
+
+By default only the `correctness` category is enabled (as errors). Other categories are `suspicious`, `pedantic`, `perf`, `style`, `restriction` and `nursery`.
 
 ### Configuration
 
+Oxlint reads `.oxlintrc.json` (comments allowed), `.oxlintrc.jsonc`, or `oxlint.config.ts` (Node 22.18+ or 24+, npm package only) from the working directory. The format follows ESLint v8's `eslintrc` shape.
+
 ```json
-// .oxlintrc.json — Rule configuration
 {
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "import"],
+  "categories": { "correctness": "error", "suspicious": "warn" },
   "rules": {
-    "no-unused-vars": "warn",
-    "no-console": "warn",
     "eqeqeq": "error",
     "no-var": "error",
     "prefer-const": "warn",
+    "no-console": "warn",
     "no-debugger": "error"
   },
-  "plugins": ["typescript", "react", "import"],
-  "categories": {
-    "correctness": "error",
-    "suspicious": "warn",
-    "pedantic": "off"
-  },
-  "ignorePatterns": ["dist/", "node_modules/", "*.config.*"]
+  "overrides": [
+    { "files": ["**/*.test.ts"], "rules": { "no-console": "off" } }
+  ],
+  "ignorePatterns": ["dist/", "coverage/"]
 }
 ```
 
-### Use Alongside ESLint
+Notes: setting `plugins` replaces the default list (`typescript`, `unicorn`, `oxc`), so list every plugin you want. Rules from non-core plugins are namespaced, for example `"typescript/no-explicit-any": "warn"` and `"react/rules-of-hooks": "error"`. `ignorePatterns` complements `.gitignore`, which is honored automatically.
+
+### Type-aware rules
+
+```bash
+npm install -D oxlint-tsgolint@latest
+npx oxlint --type-aware
+```
+
+Or set `"options": { "typeAware": true }` in the root config only. It covers most typescript-eslint type-aware rules (such as no-floating-promises) and needs resolvable types, so build workspace packages first in a monorepo.
+
+### Migrate from ESLint
+
+```bash
+npx @oxlint/migrate                 # converts an ESLint v9+ flat config to .oxlintrc.json
+npx @oxlint/migrate --type-aware    # keep typescript-eslint type-aware rules
+```
+
+ESLint v8 `.eslintrc` files must first be converted to a flat config. ESLint plugins that Oxlint lacks natively can be kept through `jsPlugins` (alpha). To run both linters during the transition:
 
 ```json
-// package.json — Run oxlint first (fast), then ESLint (thorough)
-{
-  "scripts": {
-    "lint": "oxlint . && eslint .",
-    "lint:fast": "oxlint ."
-  }
-}
+{ "scripts": { "lint": "oxlint && eslint .", "lint:fast": "oxlint" } }
 ```
 
 ```bash
-# In eslint.config.js — disable rules that oxlint covers
-# eslint-plugin-oxlint does this automatically
 npm install -D eslint-plugin-oxlint
 ```
 
@@ -103,8 +116,8 @@ npm install -D eslint-plugin-oxlint
 import oxlint from "eslint-plugin-oxlint";
 
 export default [
-  // Your ESLint config...
-  oxlint.configs["flat/recommended"],  // Disables ESLint rules covered by oxlint
+  // ...your ESLint config
+  ...oxlint.configs["flat/recommended"],   // keep last: turns off rules Oxlint already runs
 ];
 ```
 
@@ -114,28 +127,34 @@ export default [
 # .github/workflows/lint.yml
 name: Lint
 on: [pull_request]
-
+permissions: {}
 jobs:
   oxlint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oxc-project/oxlint-action@v0
         with:
-          deny-warnings: true
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - run: npx oxlint --deny-warnings
 ```
+
+Oxlint switches to GitHub annotations automatically inside Actions. For GitLab use `--format=gitlab > gitlab-oxlint-report.json` as a Code Quality artifact.
 
 ### Pre-commit Hook
 
 ```bash
-# With lint-staged (runs in ~100ms even on large projects)
 npm install -D lint-staged
-
-# .lintstagedrc
-{
-  "*.{ts,tsx,js,jsx}": "oxlint --fix"
-}
 ```
+
+```json
+{ "lint-staged": { "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix" } }
+```
+
+`pre-commit` users can use the `https://github.com/oxc-project/mirrors-oxlint` repository (hook id `oxlint`, pin `rev` to a release tag).
 
 ## Examples
 
@@ -143,22 +162,21 @@ npm install -D lint-staged
 
 **User prompt:** "Our ESLint step takes 45 seconds in CI. Make it faster."
 
-The agent will add oxlint for fast first-pass linting, disable overlapping ESLint rules with eslint-plugin-oxlint, and parallelize the remaining ESLint checks.
+The agent installs oxlint, runs `npx @oxlint/migrate` to convert the flat config, adds `eslint-plugin-oxlint` so ESLint skips rules Oxlint covers, and changes the CI step to `oxlint --deny-warnings && eslint .`. The log shows Oxlint finishing in well under a second and ESLint only running the leftover rules.
 
 ### Example 2: Set up linting for a new project
 
 **User prompt:** "Set up linting for my TypeScript project. I want it fast."
 
-The agent will configure oxlint with correctness + suspicious rules, add pre-commit hooks with lint-staged, and set up CI with the oxlint GitHub Action.
+The agent runs `npx oxlint --init`, enables `correctness` as errors and `suspicious` as warnings, adds a `lint` script and a lint-staged hook, and writes a GitHub Actions job that runs `npx oxlint --deny-warnings`. A first run prints findings like `src/a.js:3:7: error eslint(eqeqeq): Expected === and instead saw ==` and exits 1.
 
 ## Guidelines
 
-- **Run oxlint before ESLint** — catch common issues instantly
-- **`eslint-plugin-oxlint`** — prevents duplicate rule checking
-- **`--fix` for auto-fixes** — works for many rules
-- **Categories: correctness > suspicious > pedantic** — start with correctness
-- **No config needed** — sensible defaults work for most projects
-- **Pre-commit hooks** — fast enough for every commit (<500ms)
-- **Not a full ESLint replacement (yet)** — missing some plugin ecosystems
-- **Binary distribution** — no Node.js runtime needed for CI runners
-- **TypeScript support built-in** — no @typescript-eslint setup required
+- **Run oxlint before ESLint** - it catches common issues in milliseconds.
+- **Start with `correctness`** (the default), add `suspicious` as warnings, and only then try `pedantic` or `style`.
+- **`--fix` is safe by default**; `--fix-suggestions` and `--fix-dangerously` can change behavior, so review the diff.
+- **`--deny-warnings` or `--max-warnings`** in CI, otherwise warnings never fail a build.
+- **Declare `plugins` explicitly** - the list replaces the defaults, and a rule from a plugin that is not enabled is silently inactive.
+- **Not a complete ESLint replacement** - check the compatibility matrix at oxc.rs for the plugins you rely on, and use `jsPlugins` or ESLint for the rest.
+- **Nested configs** are picked up automatically in monorepos; `-c` disables that lookup. `typeAware` options belong in the root config only.
+- **`oxlint.config.ts` needs the npm package and a Node that runs TypeScript**; the standalone binary reads JSON configs only.

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:47038a4e03e4875548acb26c6941f5554b2abc6903ef2a092f752b0344abbed2",
-  "scoredAt": "2026-05-13T09:53:29.695Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b19fd879ac7587c783d566d1de5cb704f7bdb7e3e443d27c567a2ffc6b2d1861",
+  "scoredAt": "2026-10-02T22:54:20.129Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks error handling and edge case coverage in its API functions."
+        "detail": "Error handling is thin: several helpers (get_midpoint, get_market_history, get_orderbook, get_balance, search_markets) skip raise_for_status and lack retry/rate-limit handling, pagination for Gamma/Manifold, and handling of missing or malformed fields."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The three examples are single-sentence prompts with no sample inputs, outputs, or code, and the Kalshi order and Polymarket trading flows are described but never demonstrated."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 97,
-    "multiplier": 4.85,
+    "multiplier": 1.33,
+    "baselineAvg": 57,
+    "treatmentAvg": 76,
     "scenarios": [
       {
-        "name": "Rank Polymarket events by 24h volume with prominence scoring",
-        "baseline": 15,
-        "treatment": 98,
-        "rationale": "Baseline guesses at a polymarket.com endpoint and uses raw volume sort, missing the scoring formula entirely; treatment hits the documented gamma-api.polymarket.com/events endpoint with order=volume24hr and reproduces the volume-tier plus uncertainty plus probability-change-24h scoring function capped at 100."
+        "name": "polymarket-gamma-outcome-parsing",
+        "baseline": 82,
+        "treatment": 80,
+        "rationale": "Both call Gamma /events with all four required params, parse outcomes/outcomePrices with json.loads and use the Yes token from clobTokenIds for /midpoint rather than conditionId; B is slightly cleaner but skips non-Yes/No markets, while A also handles them and prints all prices, so they are nearly equal on the rubric."
       },
       {
-        "name": "Detect mispriced binary markets and compute expected value",
-        "baseline": 25,
-        "treatment": 96,
-        "rationale": "Baseline does a rough Yes+No sum check with no threshold parameter, no volume context, no sort, and no EV math; treatment supplies the threshold-based deviation detector that returns volume24h and the documented EV formula probability*(1-cost) - (1-probability)*cost with cost = buy_price*(1+fees)."
+        "name": "kalshi-signed-balance-check",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "B uses the rubric's external-api host with /trade-api/v2, rejects the old host and /login, signs timestamp+METHOD+path without the query string, sends the three headers with a base64 signature, and reads the key ID and key file from environment variables; A uses a different host (api.elections.kalshi.com) and takes the key ID and key path as function arguments instead of reading them from environment variables, though it signs and sends headers correctly."
+      },
+      {
+        "name": "binary-market-mispricing-scan",
+        "baseline": 55,
+        "treatment": 52,
+        "rationale": "Neither response ran the scan, and neither computes expected value from a probability estimate, buy price and fees. A parses `outcomePrices` with json.loads, keeps two-outcome markets, flags deviations above 0.03, sorts descending and notes that small gaps are normal spread, but it only mentions volume in output and never filters on liquidity. B parses with json.loads, keeps two-outcome markets, filters on liquidity above 1000, records 24h volume and checks depth. It also notes that midpoint sums are rarely off, that flagged gaps are mostly fake, and that fees matter, so it covers slightly more of the rubric."
       }
     ]
   }

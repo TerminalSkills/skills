@@ -8,10 +8,11 @@ description: >-
   data from websites reliably". Covers HTTP crawling, browser crawling,
   request queues, proxy rotation, and data export.
 license: Apache-2.0
-compatibility: "Node.js 18+. Optional: Playwright or Puppeteer for JS-rendered pages."
+compatibility: "Node.js 16+ (20+ recommended). Optional: Playwright or Puppeteer for JS-rendered pages."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/apify/crawlee
   category: data-ai
   tags: ["scraping", "crawling", "crawlee", "apify", "playwright"]
 ---
@@ -35,125 +36,105 @@ Crawlee is a web scraping and crawling library that handles the hard parts — r
 ### Setup
 
 ```bash
-npm install crawlee playwright
-npx playwright install chromium  # Only for browser crawling
+npx crawlee create my-crawler        # official template, or add to an existing project:
+npm install crawlee                  # CheerioCrawler / HttpCrawler only
+npm install crawlee playwright       # browser crawling (Playwright or Puppeteer are separate installs)
+npx playwright install chromium
 ```
 
-### HTTP Crawling (Fast, No Browser)
+Use ES modules (`"type": "module"` in package.json) so top-level `await crawler.run(...)` works. Checked against crawlee 3.18.
+
+### HTTP Crawling with Routing (Fast, No Browser)
+
+Give start requests a `label` and route them to handlers with a router; `enqueueLinks` stays on the same hostname by default and deduplicates URLs.
 
 ```typescript
-// scraper.ts — Fast scraping with Cheerio (no browser needed)
-import { CheerioCrawler, Dataset } from "crawlee";
+// scraper.ts
+import { CheerioCrawler, Dataset, createCheerioRouter } from "crawlee";
+
+const router = createCheerioRouter();
+
+router.addHandler("LISTING", async ({ enqueueLinks }) => {
+  await enqueueLinks({ selector: "article.product_pod h3 a", label: "DETAIL" });
+  await enqueueLinks({ selector: "li.next a", label: "LISTING" }); // pagination
+});
+
+router.addHandler("DETAIL", async ({ request, $, pushData }) => {
+  await pushData({
+    url: request.loadedUrl,
+    title: $("h1").text().trim(),
+    price: $(".price_color").first().text().trim(),
+    scrapedAt: new Date().toISOString(),
+  });
+});
 
 const crawler = new CheerioCrawler({
-  maxConcurrency: 10,          // Parallel requests
-  maxRequestRetries: 3,        // Retry failed requests
-  requestHandlerTimeoutSecs: 30,
-
-  async requestHandler({ request, $, enqueueLinks, pushData }) {
-    // $ is Cheerio — jQuery-like selector API
-    const title = $("h1").text().trim();
-    const price = $("[data-testid='price']").text().trim();
-    const description = $("meta[name='description']").attr("content");
-
-    // Save structured data
-    await pushData({
-      url: request.url,
-      title,
-      price,
-      description,
-      scrapedAt: new Date().toISOString(),
-    });
-
-    // Follow pagination links
-    await enqueueLinks({
-      selector: "a.next-page",
-      label: "LISTING",
-    });
-  },
-
-  // Handle different page types
-  async failedRequestHandler({ request }) {
-    console.error(`Failed: ${request.url} after ${request.retryCount} retries`);
+  requestHandler: router,
+  maxConcurrency: 10,
+  maxRequestRetries: 3,
+  maxRequestsPerMinute: 300,       // politeness cap
+  maxRequestsPerCrawl: 500,        // safety limit while developing
+  respectRobotsTxtFile: true,      // skip URLs disallowed by robots.txt
+  failedRequestHandler({ request, log }) {
+    log.error(`Failed: ${request.url} after ${request.retryCount} retries`);
   },
 });
 
-// Start crawling
-await crawler.run(["https://example-shop.com/products"]);
+await crawler.run([{ url: "https://books.toscrape.com/", label: "LISTING" }]);
 
-// Export data
 const dataset = await Dataset.open();
-await dataset.exportToCSV("products");
+await dataset.exportToCSV("books");   // saved in the key-value store as books.csv
 ```
+
+Run it with `npx tsx scraper.ts`. Results land in `./storage/datasets/default/*.json` and the CSV in `./storage/key_value_stores/default/books.csv`. Set `CRAWLEE_STORAGE_DIR` to move the folder.
 
 ### Browser Crawling (JavaScript-Rendered Pages)
 
 ```typescript
-// browser-scraper.ts — Scrape JS-rendered pages with Playwright
+// browser-scraper.ts
 import { PlaywrightCrawler } from "crawlee";
 
 const crawler = new PlaywrightCrawler({
-  maxConcurrency: 5,           // Fewer concurrent — browsers are heavy
-  headless: true,
-  launchContext: {
-    launchOptions: {
-      args: ["--disable-blink-features=AutomationControlled"],
-    },
-  },
+  maxConcurrency: 5,           // browsers are heavy
+  headless: true,              // set false to watch while developing
 
-  async requestHandler({ page, request, pushData, enqueueLinks }) {
-    // Wait for dynamic content to load
-    await page.waitForSelector("[data-loaded='true']", { timeout: 10000 });
+  async requestHandler({ page, request, pushData, infiniteScroll, log }) {
+    await page.waitForSelector(".product-card");   // wait for the rendered content
+    await infiniteScroll({ timeoutSecs: 20 });     // built-in helper for lazy lists
 
-    // Extract data using Playwright selectors
     const items = await page.$$eval(".product-card", (cards) =>
       cards.map((card) => ({
         name: card.querySelector("h3")?.textContent?.trim(),
         price: card.querySelector(".price")?.textContent?.trim(),
-        rating: card.querySelector(".stars")?.getAttribute("data-rating"),
       }))
     );
-
-    for (const item of items) {
-      await pushData({ ...item, sourceUrl: request.url });
-    }
-
-    // Scroll to load more (infinite scroll)
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(2000);
-
-    // Click "Load More" if exists
-    const loadMore = page.locator("button:has-text('Load More')");
-    if (await loadMore.isVisible()) {
-      await loadMore.click();
-      await page.waitForLoadState("networkidle");
-    }
+    log.info(`${items.length} products on ${request.url}`);
+    await pushData(items.map((item) => ({ ...item, sourceUrl: request.url })));
   },
 });
 
-await crawler.run(["https://spa-example.com/products"]);
+await crawler.run(["https://shop.acme-outdoors.com/products"]);
 ```
+
+Crawlee's browser crawlers apply browser fingerprints by default, so extra launch flags to hide automation are rarely needed. Prefer `waitForSelector` or `locator` waits over fixed `waitForTimeout` sleeps.
 
 ### Proxy Rotation
 
 ```typescript
-// proxy-scraper.ts — Rotate proxies to avoid blocking
 import { CheerioCrawler, ProxyConfiguration } from "crawlee";
 
-const proxyConfig = new ProxyConfiguration({
+const proxyConfiguration = new ProxyConfiguration({
   proxyUrls: [
-    "http://user:pass@proxy1.example.com:8080",
-    "http://user:pass@proxy2.example.com:8080",
-    "http://user:pass@proxy3.example.com:8080",
+    `http://${process.env.PROXY_USER}:${process.env.PROXY_PASS}@proxy-eu.acme-proxies.net:8080`,
+    `http://${process.env.PROXY_USER}:${process.env.PROXY_PASS}@proxy-us.acme-proxies.net:8080`,
   ],
 });
 
 const crawler = new CheerioCrawler({
-  proxyConfiguration: proxyConfig,
-  // Crawlee automatically rotates and retires failing proxies
-  async requestHandler({ request, $, pushData, proxyInfo }) {
-    console.log(`Using proxy: ${proxyInfo?.url}`);
-    // ... scraping logic
+  proxyConfiguration,
+  useSessionPool: true,   // ties cookies and proxies to sessions; blocked sessions are retired
+  async requestHandler({ request, proxyInfo, log }) {
+    log.info(`${request.url} via ${proxyInfo?.hostname}`);
   },
 });
 ```
@@ -162,25 +143,23 @@ const crawler = new CheerioCrawler({
 
 ### Example 1: Scrape product data from an e-commerce site
 
-**User prompt:** "Scrape all product names, prices, and ratings from example-shop.com and export to CSV."
+**User prompt:** "Scrape all product names, prices, and ratings from books.toscrape.com and export to CSV."
 
-The agent will create a CheerioCrawler with pagination handling, structured data extraction, and CSV export.
+The agent installs crawlee, builds a CheerioCrawler with a LISTING/DETAIL router following the "next" links, runs it, and exports `books.csv` from the default key-value store. The run log ends with `Finished! Total N requests: N succeeded, 0 failed`.
 
 ### Example 2: Monitor competitor prices
 
 **User prompt:** "Build a daily scraper that checks competitor prices and alerts when they change."
 
-The agent will create a PlaywrightCrawler for JS-rendered pages, store prices in a dataset, compare with previous runs, and send alerts on changes.
+The agent builds a PlaywrightCrawler for the JS-rendered shop, saves prices into a named dataset (so the default purge does not erase history), compares each run with the previous one, and prints or sends the price changes.
 
 ## Guidelines
 
-- **Cheerio for static HTML** — 10x faster than browser crawling
-- **Playwright for SPAs** — use only when JavaScript rendering is required
-- **`enqueueLinks` for crawling** — automatically follows and deduplicates links
-- **`pushData` for structured output** — builds a dataset that exports to CSV/JSON
-- **Proxy rotation for scale** — Crawlee retires failing proxies automatically
-- **Respect robots.txt** — check `robotsTxtUrl` in crawler config
-- **Rate limit** — `maxRequestsPerMinute` to avoid overwhelming targets
-- **Request labels** — use labels to route different page types to different handlers
-- **Error handling** — `failedRequestHandler` catches and logs failed URLs
-- **Storage persists** — datasets and queues survive restarts by default
+- **Cheerio for static HTML** - much faster and lighter than a browser; use Playwright only when content needs JavaScript.
+- **Routers and labels** - one handler per page type keeps listing and detail logic apart.
+- **`pushData` for output** - writes to the default dataset; export with `exportToCSV` / `exportToJSON` or read with `getData()`.
+- **Default storage is purged at the start of each run** - copy results out, or use a named storage (`Dataset.open("books")`) to keep data across runs. Do not rely on it for incremental "compare with last run" without a named dataset.
+- **Be polite** - keep `respectRobotsTxtFile: true`, set `maxRequestsPerMinute`, and check the site's terms before scraping.
+- **Limit while developing** - `maxRequestsPerCrawl` stops a runaway crawl.
+- **Handle failures** - `failedRequestHandler` runs after retries are exhausted; check `request.retryCount`.
+- **Proxy credentials from the environment** - never hardcode them in source.

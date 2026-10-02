@@ -1,24 +1,34 @@
 {
-  "version": "1.0.1",
-  "skillHash": "sha256:3fc9293c6ff16f3b24998ab45f8c1811a1c6a69916ada9e17429be06a54f01b3",
-  "scoredAt": "2026-05-13T09:25:24.663Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:829003dc74177ff0fee461dafbf093df6914babd4c8fbd79a1e0a294a84df62c",
+  "scoredAt": "2026-10-02T22:52:49.672Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
-      "actionability": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "category": "conciseness",
+        "detail": "Several guidelines repeat the same points (max_output_tokens sizing, reasoning off, native-vs-compatible endpoint) across Overview, Task B, the fallback section and Guidelines."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Task E's smart_route calls undefined ask_cloud and uses ask_local from two conflicting definitions (native dict return vs OpenAI str return), Task C and D examples use the compat route while the 'preferred' native route is not reused, and the 'continue via native flow' recovery for truncated items is described but never shown for the batch path."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Examples rely on undefined helpers and placeholders (load_tickets_from_csv, emails, contracts, a literal '...' in the documents list, which is not valid Python), the '$15 with GPT-4' cost claim is unsupported, and the extraction and classification examples do not validate or handle truncated or malformed output."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 89,
-    "multiplier": 1.53,
+    "multiplier": 1.56,
+    "baselineAvg": 43,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Batch-summarize support tickets via local LM Studio",
-        "baseline": 60,
+        "name": "native-api-truncation-continuation",
+        "baseline": 55,
         "treatment": 90,
-        "rationale": "Treatment uses AsyncOpenAI with base_url='http://localhost:1234/v1', a process_batch function with asyncio.Semaphore set to max_concurrent=1-2 (matching the skill's note that LM Studio handles one request at a time), and temperature 0.2 with the deterministic settings called out in guidelines; baseline ignores the concurrency-of-1 constraint or fails to use the OpenAI-compatible base_url pattern."
+        "rationale": "B hits nearly every rubric item (4096 default, reasoning off, store true, token-count truncation check, previous_response_id continue, long timeout), while A uses a 1024 cap, omits reasoning off, adds a punctuation heuristic, and uses a shorter timeout, though it does cover the core continuation mechanism."
       },
       {
-        "name": "Build specialized local classifier and extractor subagents",
-        "baseline": 56,
-        "treatment": 88,
-        "rationale": "Treatment defines reusable LocalSubagent class with per-task system_prompt and temperature=0.0 for classification/extraction tasks as the skill prescribes, points the OpenAI client at localhost:1234/v1 with api_key='lm-studio', and uses 8B-class quantized models per guidelines; baseline doesn't apply the temperature=0 determinism rule or class abstraction."
+        "name": "async-batch-classify-with-truncation-flags",
+        "baseline": 18,
+        "treatment": 22,
+        "rationale": "Neither uses AsyncOpenAI, a semaphore, asyncio.gather(return_exceptions=True), or finish_reason checks on /v1; A earns slightly more for temperature 0.0, per-item error/truncation flags, a generous 4096 max_output_tokens, and 2 workers, while B uses a tiny max_tokens=30 (against the rubric) though it does isolate failures with 2 workers and temperature 0."
+      },
+      {
+        "name": "lm-studio-server-setup-and-auth",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely (local-worker identifier, --context-length, Developer > Server Settings auth, Manage Tokens, LM_API_TOKEN export, Bearer header, model id passed as `model`), while A uses a different identifier and env var, doesn't mention Manage Tokens, and hedges on key details, though it covers the server start, load and curl verification."
       }
     ]
   }

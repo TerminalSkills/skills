@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3e89b3ebd57c5a79380ef984ea78406c5b5cdc9c7783fa981bd76ad059e8226e",
-  "scoredAt": "2026-05-13T16:37:57.580Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:375b4ec436e4a02e35c320e85e51da7bf8ca087be6a5c26795f78c54402b35e1",
+  "scoredAt": "2026-10-02T22:46:30.095Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No separate examples section with realistic demonstrations provided."
+        "category": "crossPlatform",
+        "detail": "Install commands and hook setup cover only bash/zsh/fish and Linux/macOS package managers (brew, apt, dnf, nix), leaving tcsh, elvish, nushell, PowerShell and Windows users to external docs despite the compatibility claim."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.86,
-    "baselineAvg": 35,
-    "treatmentAvg": 100,
+    "multiplier": 1.01,
+    "baselineAvg": 82,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "nodejs-project-setup",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits key elements such as the correct .envrc syntax, node version specification, PATH additions, and direnv commands."
+        "name": "per-project-env-with-secret-file",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both supply an .envrc with exports, dotenv_if_exists for the secrets file, PATH_add node_modules/.bin, a gitignore entry, and direnv allow; A also includes env_vars_required, which the rubric mentions, while B adds a verification step, chmod 600 and an example template but omits env_vars_required."
       },
       {
-        "name": "python-venv-setup",
-        "baseline": 70,
-        "treatment": 100,
-        "rationale": "Response A meets all rubric items; Response B omits adding .envrc to .gitignore."
+        "name": "python-venv-auto-activate",
+        "baseline": 78,
+        "treatment": 80,
+        "rationale": "Both cover installing direnv, the zsh hook, the .envrc with layout python3 and watch_file, direnv allow, and the .direnv/ gitignore entry; A is the minimal, rubric-aligned answer with accurate caveats, while B adds an extra hash-based pip install block beyond the rubric and presents the gitignore step after direnv allow, which is a minor distraction but still correct."
+      },
+      {
+        "name": "monorepo-layered-envrc-and-blocked-error",
+        "baseline": 80,
+        "treatment": 80,
+        "rationale": "Both use source_up plus QUEUE_NAME in the worker and explain the security block with direnv allow; A puts source_env_if_exists in the worker and also the root and uses .git/info/exclude (or .gitignore), while B puts it in the root as the rubric specifies, uses .gitignore, and advises reading the file first, but A also advises reviewing and warns that parent edits block children."
       }
     ]
   }

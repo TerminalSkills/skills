@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2747ffb92e990df2ee72af8960f49bac9b579d09588b439df44a187b1d300aa4",
-  "scoredAt": "2026-05-13T10:08:02.042Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f7573d1657f25bc9342d1f2f70c31a0cc94c6aa265369c79821535401f8893e2",
+  "scoredAt": "2026-10-02T22:55:23.739Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for deployment and instrumentation."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The examples are placeholders and lack concrete code or step-by-step instructions."
+        "detail": "Mostly happy-path: lacks troubleshooting for common failures such as no data appearing, ClickHouse/Keeper startup errors, or failed checksum verification, and the ES-module loader setup is only mentioned rather than shown."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 89,
-    "multiplier": 1.53,
+    "multiplier": 1.6,
+    "baselineAvg": 55,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "instrument-node-traces-with-correlated-logs",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Treatment uses the exact NodeSDK Resource pattern with ATTR_SERVICE_NAME/deployment.environment, OTLP exporters to :4318, getNodeAutoInstrumentations with fs disabled, and a pino mixin that injects trace_id/span_id/trace_flags from trace.getSpan(context.active()) — baseline covers OTel basics but misses the pino correlation pattern."
+        "name": "selfhost-signoz-foundry-casting",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "A matches the rubric: it names foundryctl and the casting.yaml with the right fields, gives the `foundryctl cast -f casting.yaml` command, puts the UI on 8080 with OTLP on 4317 and 4318, and verifies the download against a checksums file instead of piping curl to bash; B recommends the deprecated deploy/ compose files and install.sh, never mentions foundryctl, and does not cover checksum verification, so only the ports are right."
       },
       {
-        "name": "tail-sampling-and-clickhouse-retention",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment cites the skill's tail-based sampling in the OTel Collector for high-traffic services, ClickHouse retention tuning, and per-service RED dashboards; baseline gives generic tail_sampling advice without skill-specific guidance."
+        "name": "node-autoinstrument-cloud-logs-traces",
+        "baseline": 62,
+        "treatment": 80,
+        "rationale": ""
+      },
+      {
+        "name": "custom-span-order-processing",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both meet the code requirements (startActiveSpan, order.id, recordException, setStatus ERROR, rethrow, finally span.end(), counter, warning against order/user ids on metrics); A adds an allowlist, a failure counter and a longer cardinality list, but B's counter uses the rubric's exact order.plan attribute and is more concise, so A leads only slightly."
       }
     ]
   }

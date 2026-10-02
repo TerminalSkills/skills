@@ -1,144 +1,135 @@
 ---
 name: graphql-yoga
 description: >-
-  You are an expert in GraphQL Yoga, the batteries-included GraphQL server by
-  The Guild. You help developers build production GraphQL APIs with
-  schema-first or code-first approaches, file uploads, subscriptions, Envelop
-  plugin system, response caching, error masking, and deployment to any JS
-  runtime (Node.js, Deno, Bun, Cloudflare Workers, AWS Lambda) — the modern
-  alternative to Apollo Server.
+  GraphQL Yoga is a fully featured GraphQL server from The Guild that runs on
+  any JavaScript runtime (Node.js, Bun, Deno, Cloudflare Workers, AWS Lambda).
+  Use this skill when asked to build a GraphQL API with graphql-yoga, add
+  subscriptions, file uploads, response caching, depth limits, rate limiting or
+  error masking, or move from Apollo Server to Yoga and Envelop plugins.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Node.js 18+ (or Bun, Deno, Workers); graphql-yoga v5 with graphql 15, 16 or 17"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Backend Development
-  tags:
-    - graphql
-    - server
-    - api
-    - typescript
-    - envelop
-    - schema
-    - node
+  version: "1.1.0"
+  category: development
+  repository: https://github.com/graphql-hive/graphql-yoga
+  tags: ["graphql", "server", "api", "typescript", "envelop"]
 ---
 
-# GraphQL Yoga — Modern GraphQL Server
+# GraphQL Yoga
 
-You are an expert in GraphQL Yoga, the batteries-included GraphQL server by The Guild. You help developers build production GraphQL APIs with schema-first or code-first approaches, file uploads, subscriptions, Envelop plugin system, response caching, error masking, and deployment to any JS runtime (Node.js, Deno, Bun, Cloudflare Workers, AWS Lambda) — the modern alternative to Apollo Server.
+## Overview
 
-## Core Capabilities
+GraphQL Yoga (v5) is a spec-compliant GraphQL server built on the WHATWG Fetch API, so the same `yoga` object works as a Node `http` handler, a Fetch handler (`yoga.fetch`) in Workers, Bun and Deno, or behind Express, Fastify and Next.js. It is extended with Envelop plugins. It ships with GraphQL over SSE subscriptions, multipart file uploads, CORS, GraphiQL and error masking; you add caching, rate limiting and depth limits as plugins. Schemas can be written with `createSchema` (SDL plus resolvers) or with code-first builders such as Pothos.
 
-### Server Setup
+## Instructions
+
+1. Install: `npm install graphql-yoga graphql`.
+2. Build the schema with `createSchema({ typeDefs, resolvers })`, pass it to `createYoga`, and hand the result to `createServer` from `node:http`. The endpoint defaults to `/graphql`; change it with `graphqlEndpoint`.
+3. Per-request state (database handle, current user) goes in the `context` option, which receives `{ request }` (a Fetch `Request`) plus runtime-specific fields such as `req`/`res` on Node.
+4. Subscriptions: use `createPubSub()` exported by `graphql-yoga`; `pubSub.publish(topic, payload)` and `pubSub.subscribe(topic)` (an async iterable). Clients connect over SSE by default; no WebSocket server is needed. For several instances, back the pub/sub with Redis using `@graphql-yoga/redis-event-target`.
+5. File uploads: declare `scalar File` in the schema and accept `File!` arguments. The value is a standard `File`/`Blob` (`.text()`, `.arrayBuffer()`, `.stream()`). Multipart parsing is on by default; `multipart: false` turns it off.
+6. Errors: Yoga masks unexpected errors by default. Throw `GraphQLError` (from `graphql`) with `extensions.code` for errors clients should see. `maskedErrors: false` disables masking (development only). With `NODE_ENV=development` the original error appears in `extensions.originalError`.
+7. GraphiQL is enabled only in development by default; set `graphiql: false` or a function to control it.
+8. Plugins go in `plugins: []`. Packages verified to exist:
+   - `@graphql-yoga/plugin-response-cache` exports `useResponseCache({ session, ttl, invalidateViaMutation })`; `ttl` is milliseconds, `session` returns a string per user or `null` for a global cache.
+   - `@envelop/rate-limiter` exports `useRateLimiter({ identifyFn })`; limits are declared in the schema with the `@rateLimit(max: 10, window: "5s")` directive (you must define the directive in your SDL).
+   - `@envelop/depth-limit` exports `useDepthLimit({ maxDepth })`. `@escape.tech/graphql-armor-max-depth` is an alternative.
+
+## Examples
+
+### Example 1: Users API with SSE subscription and masked errors
+
+Request: "Build a GraphQL API on port 4000 where clients can list users and get notified when one is created."
 
 ```typescript
-import { createSchema, createYoga } from "graphql-yoga";
-import { createServer } from "http";
+// server.ts
+import { createServer } from "node:http";
+import { GraphQLError } from "graphql";
+import { createPubSub, createSchema, createYoga } from "graphql-yoga";
+
+const pubSub = createPubSub<{ userCreated: [user: { id: string; name: string }] }>();
+const users = [{ id: "1", name: "Maria Lopez" }];
 
 const yoga = createYoga({
   schema: createSchema({
-    typeDefs: `
-      type Query {
-        users(limit: Int, offset: Int): [User!]!
-        user(id: ID!): User
-      }
-      type Mutation {
-        createUser(input: CreateUserInput!): User!
-        updateUser(id: ID!, input: UpdateUserInput!): User!
-      }
-      type Subscription {
-        newUser: User!
-      }
-      type User {
-        id: ID!
-        name: String!
-        email: String!
-        posts: [Post!]!
-        createdAt: String!
-      }
-      type Post {
-        id: ID!
-        title: String!
-        author: User!
-      }
-      input CreateUserInput { name: String!, email: String! }
-      input UpdateUserInput { name: String, email: String }
+    typeDefs: /* GraphQL */ `
+      type User { id: ID! name: String! }
+      type Query { users: [User!]! user(id: ID!): User }
+      type Mutation { createUser(name: String!): User! }
+      type Subscription { userCreated: User! }
     `,
     resolvers: {
       Query: {
-        users: (_, { limit = 10, offset = 0 }, ctx) =>
-          ctx.db.users.findAll({ limit, offset }),
-        user: (_, { id }, ctx) => ctx.db.users.findById(id),
+        users: () => users,
+        user: (_, { id }) => {
+          const found = users.find((u) => u.id === id);
+          if (!found) throw new GraphQLError(`User ${id} not found`, { extensions: { code: "NOT_FOUND" } });
+          return found;
+        },
       },
       Mutation: {
-        createUser: async (_, { input }, ctx) => {
-          const user = await ctx.db.users.create(input);
-          ctx.pubsub.publish("newUser", { newUser: user });
+        createUser: (_, { name }) => {
+          const user = { id: String(users.length + 1), name };
+          users.push(user);
+          pubSub.publish("userCreated", user);
           return user;
         },
       },
       Subscription: {
-        newUser: {
-          subscribe: (_, __, ctx) => ctx.pubsub.subscribe("newUser"),
-        },
-      },
-      User: {
-        posts: (user, _, ctx) => ctx.db.posts.findByAuthor(user.id),
+        userCreated: { subscribe: () => pubSub.subscribe("userCreated"), resolve: (u) => u },
       },
     },
   }),
-  context: ({ request }) => ({
-    db: database,
-    pubsub: pubSub,
-    user: authenticateRequest(request),
-  }),
-  maskedErrors: process.env.NODE_ENV === "production",
-  cors: { origin: ["https://app.example.com"], credentials: true },
-  graphiql: process.env.NODE_ENV !== "production",
+  cors: { origin: ["https://app.northwind.dev"], credentials: true },
 });
 
-const server = createServer(yoga);
-server.listen(4000, () => console.log("GraphQL on http://localhost:4000/graphql"));
+createServer(yoga).listen(4000, () => console.log("http://localhost:4000/graphql"));
 ```
 
-### Envelop Plugins
+Run with `npx tsx server.ts`. Opening `http://localhost:4000/graphql` shows GraphiQL; `{ user(id: "9") { name } }` returns the `NOT_FOUND` error message, while a thrown plain `Error` comes back as "Unexpected error.".
 
-```typescript
-import { useResponseCache } from "@graphql-yoga/plugin-response-cache";
-import { useRateLimiter } from "@graphql-yoga/plugin-rate-limiter";
-import { useDepthLimit } from "envelop-depth-limit";
+### Example 2: Cache, depth limit and a test without a network
 
-const yoga = createYoga({
-  schema,
-  plugins: [
-    useResponseCache({
-      session: (req) => req.headers.get("authorization"),
-      ttl: 60_000,                        // 60s cache
-      invalidateViaMutation: true,
-    }),
-    useRateLimiter({
-      identifyFn: (ctx) => ctx.user?.id || ctx.request.headers.get("x-forwarded-for"),
-      max: 100,
-      window: "1m",
-    }),
-    useDepthLimit({ maxDepth: 10 }),
-  ],
-});
-```
-
-## Installation
+Request: "Cache public queries for a minute and reject queries nested deeper than 8 levels."
 
 ```bash
-npm install graphql-yoga graphql
+npm install @graphql-yoga/plugin-response-cache @envelop/depth-limit
 ```
 
-## Best Practices
+```typescript
+import { createSchema, createYoga } from "graphql-yoga";
+import { useResponseCache } from "@graphql-yoga/plugin-response-cache";
+import { useDepthLimit } from "@envelop/depth-limit";
 
-1. **Envelop plugins** — Use the plugin system for auth, caching, rate limiting, logging; composable and reusable
-2. **Response caching** — Enable response cache for public queries; cache by session for authenticated queries
-3. **Depth limiting** — Set max query depth (10-15) to prevent abuse from deeply nested queries
-4. **Error masking** — Enable in production; prevents leaking internal error details to clients
-5. **Subscriptions** — Built-in SSE and WebSocket support; use PubSub for real-time updates
-6. **File uploads** — Native multipart support; no extra libraries needed for file upload mutations
-7. **Any runtime** — Deploy to Node.js, Deno, Bun, CF Workers, Lambda with the same code; runtime-agnostic
-8. **DataLoader for N+1** — Use DataLoader in resolvers to batch database queries; prevents N+1 query problem
+export const yoga = createYoga({
+  schema: createSchema({ typeDefs, resolvers }),
+  plugins: [
+    useResponseCache({
+      session: (request) => request.headers.get("authorization"),
+      ttl: 60_000,
+    }),
+    useDepthLimit({ maxDepth: 8 }),
+  ],
+});
+
+// yoga.fetch needs no running server, so it works in unit tests:
+const res = await yoga.fetch("http://localhost/graphql", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ query: "{ users { id } }" }),
+});
+console.log(await res.json()); // { data: { users: [...] } }
+```
+
+A query deeper than the limit returns HTTP 200 with `errors[0].extensions.code` of `GRAPHQL_VALIDATION_FAILED` and a message such as "exceeds maximum operation depth of 8".
+
+## Guidelines
+
+- The old `useRateLimiter` import from `@graphql-yoga/plugin-rate-limiter` and the `envelop-depth-limit` package do not exist; use the `@envelop/*` packages above.
+- Keep GraphiQL off in production and keep masking on; expose failures deliberately via `GraphQLError`.
+- Use DataLoader (one instance per request, created in `context`) to avoid N+1 queries in nested resolvers.
+- An in-memory response cache and in-memory PubSub work for a single process only; use a shared cache and the Redis event target when you run several replicas.
+- Cache by `session` for authenticated data, otherwise one user's response can be served to another.
+- Depth limiting alone does not stop expensive wide queries; add query complexity limits, persisted operations or timeouts for public APIs.
+- Check the migration guide on the-guild.dev before upgrading from v3/v4 to v5.

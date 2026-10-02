@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1e1c0ba99ec5b6581599b9c15b72a73d4bdaeedb1bca13a284cdf7b2525d8c1c",
-  "scoredAt": "2026-05-13T16:25:11.085Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:01eec48af1a9aaa1d09e412bf92bddca7c13ecf4578b86b4987f7f5554b2effa",
+  "scoredAt": "2026-10-02T22:48:52.400Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,19 +11,19 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks explicit error handling and edge case coverage, such as handling missing modules or Resolve not running."
+        "detail": "Error handling is mostly limited to a guideline to check returned Bools and a note that scriptapp returns None, with no concrete recovery code or edge cases such as failed imports, empty timelines, or render job failures."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The code assumes a Linux path for the scripting module, limiting portability across OSes."
+        "category": "examples",
+        "detail": "Both examples describe in prose what the agent will write rather than showing complete runnable scripts, and Example 1 outlines a loop without any code or output."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.33,
-    "baselineAvg": 15,
-    "treatmentAvg": 50,
+    "multiplier": 1.39,
+    "baselineAvg": 61,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "create-auto-project-render",
-        "baseline": 30,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key steps such as timeline creation, LUT application, rendering, and project saving."
+        "name": "batch-render-one-job-per-timeline",
+        "baseline": 74,
+        "treatment": 80,
+        "rationale": "Both load the preset before SetRenderSettings, set TargetDir and CustomName per timeline, call SetCurrentTimeline first, collect the job ids and pass them to StartRendering. A polls with IsRenderingInProgress, GetRenderJobStatus and time.sleep exactly as the rubric asks, but it has an odd SaveProject line that it flags itself. B's loop also polls all three, but it leaves a stray placeholder line in the code and tells the user to delete it, which is sloppier."
       },
       {
-        "name": "import-bin-markers-fusion-overlay",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Unable to assess responses because their content is not provided."
+        "name": "apply-lut-and-cdl-to-track",
+        "baseline": 18,
+        "treatment": 93,
+        "rationale": "A matches the rubric: it calls OpenPage(\"color\"), applies the LUT with item.GetNodeGraph().SetLUT(1, path), and calls SetCDL with a dict that has NodeIndex, space-separated Slope/Offset/Power strings and a string Saturation. B calls SetLUT directly on the clip, which the rubric explicitly forbids, although its SetCDL call and its OpenPage call are correct."
+      },
+      {
+        "name": "external-script-setup-and-import-timeline",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both cover enabling Local scripting, the three environment variables, dvr.scriptapp, CreateProject, string SetSetting values, ImportTimelineFromFile and SaveProject, and both note that Resolve must be running. A states more clearly that scriptapp returns None if Resolve isn't running, and it checks each SetSetting result and sets the playback frame rate. B only implies the None case in its error message, and it adds an unneeded hardcoded sourceClipsPath guess."
       }
     ]
   }

@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3945bd80a69731239c4f563d7c186caa1dee8191a0fa018f0ca5d890e369220a",
-  "scoredAt": "2026-05-13T09:22:46.348Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a65cd9d39105264a08faade1d3bae3c61c04155fcdab6daeca8fe409ba7cea20",
+  "scoredAt": "2026-10-02T22:51:59.173Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as rate limits or certificate renewal failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The instructions assume a Debian-based Linux environment with apt and systemd, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 63,
+    "multiplier": 0.99,
+    "baselineAvg": 90,
     "treatmentAvg": 89,
-    "multiplier": 1.41,
     "scenarios": [
       {
-        "name": "nginx-domain-cert",
-        "baseline": 70,
+        "name": "wildcard-cert-private-staging",
+        "baseline": 90,
         "treatment": 88,
-        "rationale": "Both responses correctly invoke certbot --nginx with -d flags; treatment additionally checks the certbot.timer systemd unit and runs certbot renew --dry-run as documented."
+        "rationale": "Both use DNS-01 with --dns-cloudflare, a credentials file at mode 600, and both -d names, and both explain that the wildcard doesn't cover the bare domain; A spells out the token scope (Zone→DNS→Edit on the specific zone) in dashboard steps, while B states the scope more briefly but correctly, so A is slightly more complete on the token-scoping point."
       },
       {
-        "name": "traefik-docker-tls",
-        "baseline": 55,
+        "name": "nginx-https-with-reload-hook",
+        "baseline": 90,
         "treatment": 90,
-        "rationale": "Treatment uses the exact certificatesresolvers.le.acme.* CLI flags and acme.json volume per skill; baseline knows Traefik+ACME conceptually but mis-names flags."
+        "rationale": "Both install Certbot, issue the cert with `certbot --nginx -d shop.northwind.dev`, verify with `certbot renew --dry-run`, add a deploy hook in `/etc/letsencrypt/renewal-hooks/deploy/`, and avoid force-renewal on production; A mentions `fullchain.pem` explicitly and notes the nginx plugin reloads, while B gives more verification steps and correctly says dry-run does not run deploy hooks but never names the cert paths."
+      },
+      {
+        "name": "traefik-docker-compose-https",
+        "baseline": 91,
+        "treatment": 90,
+        "rationale": "Both meet every core rubric item (Traefik v3, HTTP challenge on web, persistent ACME volume, ports 80/443, Host/websecure/certresolver labels, HTTP→HTTPS redirect, staging caserver and Docker-socket caveat); B adds an explicit server port label, .env email and a private-registry note, while A gives a clearer socket caveat and a more cautious optional port label, so they are nearly equal."
       }
     ]
   }

@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9870cae6d7686f8640c48c1fb0c8ec931f0ce584ca7e20b78294e07c165546b8",
-  "scoredAt": "2026-05-13T09:49:35.041Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3e854bb70f3ae2d802df2daed31d34c4aadcde2c1d10778279817772f978fa3d",
+  "scoredAt": "2026-10-02T22:52:41.159Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases for deployment failures or missing configuration."
+        "category": "examples",
+        "detail": "Example 1 is a prose description of UI steps and expected outcomes, and Example 2 gives no CI job snippet or status-polling code, so neither shows concrete runnable output."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 22,
-    "treatmentAvg": 86,
-    "multiplier": 3.91,
+    "multiplier": 1.76,
+    "baselineAvg": 50,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Self-host PentAGI with local Ollama for an authorized internal pentest",
-        "baseline": 20,
-        "treatment": 88,
-        "rationale": "Treatment clones github.com/vxcontrol/pentagi, configures .env with OLLAMA_SERVER_URL and LLM_PROVIDER=ollama, runs docker compose up -d, then opens localhost:3000 and stresses written authorization; baseline guesses a generic pentest stack without the actual repo, env keys, or web UI."
+        "name": "deploy-pentagi-with-secure-env",
+        "baseline": 74,
+        "treatment": 80,
+        "rationale": "Both set ANTHROPIC_API_KEY, fetch .env and docker-compose.yml, run docker compose up -d, set PENTAGI_LISTEN_IP/PUBLIC_URL/CORS_ORIGINS, and firewall 8443; A also covers the Neo4j password and tells the user to change the default login, while B omits Neo4j and adds extras like embeddings, but its hedging about recall is slightly weaker."
       },
       {
-        "name": "Trigger an engagement via PentAGI GraphQL API with rules of engagement",
-        "baseline": 25,
-        "treatment": 84,
-        "rationale": "Treatment POSTs to http://localhost:3000/graphql with the createTask mutation and scope/constraints fields (no-dos, no-data-exfil) then polls the task query for findings; baseline fabricates a generic REST API and misses the GraphQL schema."
+        "name": "trigger-flow-from-ci-via-api",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "A covers every rubric point: the token is created under Settings → API Tokens and stored as a secret, the GraphQL createFlow call carries a Bearer header and a scope-limited prompt, it polls GET /api/v1/flows until the flow is finished, and it notes that -k is only for the default self-signed certificate. B polls via a GraphQL flow query instead of GET /api/v1/flows, never mentions -k, and hedges that its API details come from memory, though its scope-limited createFlow call and secret handling are fine."
+      },
+      {
+        "name": "run-scoped-flow-and-handle-report",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "A covers every rubric item (Automation flow, prompt with target/scope limits/confirmed findings with reproduction steps, Report menu download as Markdown or PDF with no JSON, LLM-generated findings needing manual verification, supervised run) with PentAGI-specific detail, while B stays generic, never mentions the Automation flow or the Report menu or export formats, and opens with a partial refusal, though it does cover supervision and hand-verification."
       }
     ]
   }

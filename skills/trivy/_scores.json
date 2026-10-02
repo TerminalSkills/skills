@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f668e3643d857f6260979c09928be1fa11b3a33ffef1f643df53a8c553c60761",
-  "scoredAt": "2026-05-13T10:27:51.251Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ef9bb2433139dfe013b698f1a863471a47313d5bd9fd6df9fe9a9fd9487b7423",
+  "scoredAt": "2026-10-02T22:55:30.071Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case scenarios."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes brew installation, limiting use to macOS/Linux environments."
+        "detail": "Covers the happy path and some caveats (unfixed CVEs, Docker socket) but gives no guidance on failure scenarios such as DB download failures or rate limiting, scan timeouts, unsupported targets, or how to interpret exit codes other than 1."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 69,
-    "treatmentAvg": 92,
-    "multiplier": 1.33,
+    "multiplier": 3.44,
+    "baselineAvg": 27,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Image scan, severity filter, JSON output",
-        "baseline": 78,
-        "treatment": 92,
-        "rationale": "Trivy's CLI is well known so baseline usually constructs the right flags; treatment matches exactly: trivy image --severity CRITICAL,HIGH --format json --output results.json my-app:latest."
+        "name": "ci-gate-image-and-terraform",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "A installs Trivy from a checksum-verified release and uses the exact required `trivy image` and `trivy config` commands, so it meets the rubric (its only gap is that it doesn't show a SHA-pinned action). B uses `trivy-action` pinned to a tag, which the rubric explicitly forbids, and its own checkout step uses `actions/checkout@v4`, also a tag, so it fails the pinning requirement and doesn't use the CLI commands."
       },
       {
-        "name": "Combined filesystem scan for vuln/secret/misconfig",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Baseline often runs separate trivy fs and trivy config calls or misses the --scanners syntax; treatment uses the single documented trivy fs --scanners vuln,secret,misconfig . form."
+        "name": "prerelease-node-repo-scan",
+        "baseline": 12,
+        "treatment": 90,
+        "rationale": "B gives the exact Trivy command with vuln and secret scanners and HIGH,CRITICAL severity, notes that no install is needed, says Trivy does not remove secrets from git history, and advises rotating the key and bumping packages before re-running. A uses npm audit and gitleaks instead of Trivy, ran nothing, and never says to bump to the fixed version."
+      },
+      {
+        "name": "sbom-and-offline-tar-scan",
+        "baseline": 45,
+        "treatment": 93,
+        "rationale": "Response A gives exactly the rubric's Trivy commands (`trivy fs --format cyclonedx --output`, `trivy image --input api-image.tar`, `trivy sbom`) and notes that the Trivy container would otherwise get root on the host through the Docker socket, while Response B makes Syft and Grype its main answer and mentions Trivy only as an alternative, without the socket-risk explanation."
       }
     ]
   }

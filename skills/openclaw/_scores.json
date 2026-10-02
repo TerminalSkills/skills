@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:85f5ca39f3dfca37d3727165ebb6c2facf4b76b2c3a84d4e3c29203a61ff80b0",
-  "scoredAt": "2026-05-13T09:45:21.121Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d44e0a9087c7c531185336aaaebe1022e75ff57bbb5bc1b77a68006c779fcc47",
+  "scoredAt": "2026-10-02T22:52:30.495Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 12,
-    "treatmentAvg": 90,
-    "multiplier": 7.5,
+    "multiplier": 2.53,
+    "baselineAvg": 36,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Pair WhatsApp to an AI agent with daily 9am Telegram standup",
-        "baseline": 12,
+        "name": "telegram-heartbeat-assistant-setup",
+        "baseline": 55,
         "treatment": 90,
-        "rationale": "Treatment runs npm install -g openclaw@latest, openclaw channels login for QR pairing, edits ~/.openclaw/openclaw.json with channels.whatsapp.allowFrom and bindings, and uses openclaw cron add with --cron, --tz, --announce, --channel, --to as documented; baseline cannot produce any of these CLI invocations because the project is OpenClaw-specific and unknown without the skill."
+        "rationale": ""
       },
       {
-        "name": "Webhook from GitHub Actions to deliver a WhatsApp CI notification",
-        "baseline": 12,
+        "name": "multi-agent-routing-with-fallback-binding",
+        "baseline": 22,
         "treatment": 90,
-        "rationale": "Treatment enables hooks with token + mappings (action: 'agent', deliver: true, channel: 'whatsapp', to: '+1...') and POSTs to /hooks/<name> with Authorization: Bearer header as in the skill; baseline invents a Twilio/CallMeBot flow because OpenClaw's hooks API is project-specific."
+        "rationale": "A uses `agents.entries`, per-agent workspaces, a peer group binding, a guildId binding, a Telegram `accountId: \"*\"` binding, explains that unmatched messages are not routed, and gives both `openclaw config validate` and `openclaw agents list --bindings`; B uses the legacy `agents.list`, has no `accountId: \"*\"` binding, claims unmatched messages go to a default agent (contradicting the rubric), and never mentions `openclaw config validate` as a verification step."
+      },
+      {
+        "name": "ci-webhook-to-telegram-notification",
+        "baseline": 30,
+        "treatment": 93,
+        "rationale": "B covers every rubric element: a dedicated hook token, path, allowedAgentIds, a full mappings entry with deliver/channel/to, a POST to /hooks/ci-notify with a Bearer header, and the note that 200 means admitted plus `openclaw logs --follow`. A has no mappings entry, calls /hooks/agent directly, and omits both the 200-means-admitted note and the logs command."
       }
     ]
   }

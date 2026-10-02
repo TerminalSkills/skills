@@ -1,63 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7a91ece3f02bd98fc4f81893e3296fce5d2f6b20aed3cc3dd00cfb6cc2996b43",
-  "scoredAt": "2026-05-13T09:51:48.705Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:936bc91323a1192aa2ccf004c50b3ac4413624a26c0c04ee22375dc74020ab0a",
+  "scoredAt": "2026-10-02T22:56:54.288Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "WEAK"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in the instructions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes a Unix-like shell environment, limiting compatibility with non-Unix agents."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "No dedicated examples section; code blocks are embedded within instructions, lacking separate realistic demonstrations."
+        "detail": "Covers mostly the happy path and omits error scenarios such as resolver conflicts, lock file out of sync with pyproject.toml, PyPI authentication or token setup for publishing, and private repository sources."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Uses curl to download and execute a script from an external source without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
+    "multiplier": 1.48,
+    "baselineAvg": 63,
     "treatmentAvg": 93,
-    "multiplier": 4.04,
     "scenarios": [
       {
-        "name": "Set up FastAPI project with dev tools and custom script",
-        "baseline": 20,
-        "treatment": 92,
-        "rationale": "Baseline fell back to pip + venv + requirements.txt with no dev grouping; treatment used poetry new, poetry add --group dev, and [tool.poetry.scripts] for the serve entry as documented."
+        "name": "fastapi-project-with-dev-group",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both give the poetry new scaffolding, poetry add for runtime deps, poetry add --group dev for pytest and ruff, and the correct Poetry 2.x layout with [project] dependencies and [tool.poetry.group.dev.dependencies]; A is cleaner and more concrete, while B adds Poetry 1.x and PEP 735 alternatives plus placeholder 'x' versions, which are slightly less runnable but more thorough."
       },
       {
-        "name": "Deploy Poetry project to Docker without Poetry in the image",
-        "baseline": 25,
+        "name": "activate-venv-poetry-2",
+        "baseline": 95,
         "treatment": 93,
-        "rationale": "Baseline installed Poetry inside the production container; treatment used poetry export -f requirements.txt -o requirements.txt --without-hashes and a slim image with pip install, matching the guideline."
+        "rationale": "Both explain the removal of `poetry shell` in 2.0 and give `eval $(poetry env activate)`, the `poetry self add poetry-plugin-shell` plugin route, and `poetry run pytest`; A adds more detail (other shells, direct activation, in-project venv) while B is more concise but equally complete on the rubric."
+      },
+      {
+        "name": "docker-image-without-poetry",
+        "baseline": 5,
+        "treatment": 96,
+        "rationale": "Response A matches the rubric: its builder stage installs poetry with poetry-plugin-export, runs the specified export command, and the final stage installs only requirements.txt with pip, while Response B uses `poetry install` into a copied venv and never uses the export approach."
       }
     ]
   }
