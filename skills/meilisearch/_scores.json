@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f60a3c45ea4e7834e003e857afd61221856922a8194033a6691f5d4d16ff75da",
-  "scoredAt": "2026-05-13T09:34:15.607Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:deb2417cb00d9811b400c11c0757b95f861021f8e606e239160db2fe4a6e01db",
+  "scoredAt": "2026-10-02T22:54:12.270Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as network failures or invalid API keys."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains extensive explanatory comments that may be considered verbose."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes Linux/macOS environments and does not provide instructions for Windows."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 1.02,
+    "baselineAvg": 81,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Product catalog with facets and filters",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline indexes documents and searches but typically skips updateFilterableAttributes (so filters silently fail) and doesn't request facetDistribution; treatment configures searchable/filterable/sortable attributes then searches with facets and reads facetDistribution per the SKILL.md."
+        "name": "secure-docker-deploy-with-master-key",
+        "baseline": 90,
+        "treatment": 72,
+        "rationale": "A covers nearly all rubric items (pinned tag, production env, localhost bind, volume, health check, master key via openssl, dump backup before upgrade, search key for frontend) with detailed runnable commands, though it uses `openssl rand -hex 32` rather than `-hex 16`; B hits the core setup items precisely (including `-hex 16`) but gives only vague upgrade/backup advice with no dump or snapshot commands and says to check the docs for them."
       },
       {
-        "name": "Multi-tenant per-customer search",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline proposes separate indexes per tenant or server-side filtering, missing Meilisearch's tenant-token feature; treatment uses client.generateTenantToken with index-level filter rules and expiresAt exactly as the SKILL.md documents."
+        "name": "ecommerce-filters-and-async-settings",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it uses `.waitTask()`, the separate updateFilterableAttributes/updateSortableAttributes calls, `brand IN [\"Apple\", ...]` with quoted values, and the `Meilisearch` import, and it names `invalid_search_filter`. A configures settings through updateSettings and waits with client.tasks.waitForTask, which is acceptable, but it never names the `invalid_search_filter` error and uses unquoted IN values."
+      },
+      {
+        "name": "multi-tenant-search-tokens",
+        "baseline": 80,
+        "treatment": 88,
+        "rationale": "Both cover the main points, but A matches the rubric's imports and API more exactly (generateTenantToken from 'meilisearch/token', apiKeyUid from client.getKeys()), while B uses a created key and a client method, which is acceptable but a looser match, and neither explicitly says the token is used as the browser's API key as clearly as B does."
       }
     ]
   }

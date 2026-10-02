@@ -1,15 +1,16 @@
 ---
 name: claude-computer-use
 description: >-
-  Automate computer tasks using Anthropic's computer use API — Claude controls
-  mouse, keyboard, and screen. Use when automating GUI workflows, browser
-  automation without CSS selectors, desktop app testing, or any task that
+  Claude computer use is an Anthropic API tool that lets Claude see a desktop
+  through screenshots and operate it with mouse and keyboard. Use when
+  automating GUI workflows, browser automation without CSS selectors, desktop app testing, or any task that
   requires seeing and interacting with a graphical interface.
 license: Apache-2.0
-compatibility: "Anthropic API (claude-3-5-sonnet-20241022+), Python 3.9+, Linux/macOS/Windows with display"
+compatibility: "Anthropic API key, Python 3.9+, a sandboxed Linux desktop (Xvfb) or VM"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/anthropics/anthropic-quickstarts
   category: data-ai
   tags: ["computer-use", "claude", "anthropic", "automation", "gui"]
   use-cases:
@@ -23,314 +24,197 @@ metadata:
 
 ## Overview
 
-Claude's computer use capability lets the model see your screen (via screenshots) and control mouse and keyboard. Unlike Playwright or Selenium, it requires no selectors — Claude navigates visually, the same way a human would. It's ideal for legacy software, complex multi-app workflows, and tasks that are hard to automate programmatically.
+Computer use is a client-side tool of the Claude API. Claude asks for actions (take a screenshot, click, type, scroll), your program performs them on a desktop you control and returns the result, and the loop repeats until the task is done. No selectors are needed, so it suits legacy apps and GUIs with no API. For tasks that stay inside web pages, Anthropic's browser use tool is the closer fit.
 
-**⚠️ Always run in a sandboxed environment (Docker, VM, or dedicated machine). Never run on a machine with access to sensitive accounts or production systems.**
+Current API shape (checked 2026-10): a single entry `{"type": "computer_toolset_20260801"}` in `tools`, no beta header. Claude 5.5 and later models on the Claude API and Google Cloud accept only this toolset. Older models (Opus 4.5 to 4.8, Sonnet 4.6) use `computer_20251124` with beta header `computer-use-2025-11-24`; Opus 5 and Sonnet 5 accept both shapes. Sonnet 4.5 and Haiku 4.5 use `computer_20250124` with `computer-use-2025-01-24`. The `computer_20241022` version from the first beta is gone.
 
-## Setup
+**Always run it in a sandbox (container or VM) without credentials or production access.** Web pages and images can contain prompt injections.
 
-### Install Dependencies
+## Instructions
+
+### Setup
 
 ```bash
 pip install anthropic pillow pyautogui
-# Linux: also install scrot or gnome-screenshot for screenshots
-apt-get install -y scrot
+sudo apt-get install -y xvfb scrot xdotool     # Linux sandbox display and screenshots
+export ANTHROPIC_API_KEY=...                    # from the environment, never in code
 ```
 
-### Environment
-
-Use Docker for safety:
-
-```dockerfile
-FROM ubuntu:22.04
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip \
-    xvfb x11vnc \
-    scrot \
-    chromium-browser \
-    && pip install anthropic pillow pyautogui
-ENV DISPLAY=:1
-CMD ["Xvfb", ":1", "-screen", "0", "1280x800x24"]
-```
+The fastest safe start is Anthropic's reference container (Linux desktop, VNC viewer, Streamlit UI, agent loop):
 
 ```bash
-docker build -t computer-use-sandbox .
-docker run -d --name sandbox \
-  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
-  -p 5900:5900 \  # VNC to monitor what's happening
-  computer-use-sandbox
+docker run -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
+  -v $HOME/.anthropic:/home/computeruse/.anthropic \
+  -p 127.0.0.1:5900:5900 -p 127.0.0.1:8501:8501 -p 127.0.0.1:6080:6080 -p 127.0.0.1:8080:8080 \
+  -it ghcr.io/anthropics/anthropic-quickstarts:computer-use-demo-latest
 ```
 
-## Core Implementation
+Open http://localhost:8080 for the combined view. Source: github.com/anthropics/anthropic-quickstarts, `computer-use-demo`.
 
-### Tool Definitions
-
-The computer use beta provides three tools:
-
-```python
-TOOLS = [
-    {
-        "type": "computer_20241022",  # Screen + mouse + keyboard
-        "name": "computer",
-        "display_width_px": 1280,
-        "display_height_px": 800,
-        "display_number": 1
-    },
-    {
-        "type": "bash_20241022",      # Run shell commands
-        "name": "bash"
-    },
-    {
-        "type": "text_editor_20241022",  # View and edit files
-        "name": "str_replace_editor"
-    }
-]
-```
-
-### Take a Screenshot
-
-```python
-import subprocess
-import base64
-from pathlib import Path
-
-def take_screenshot() -> str:
-    """Take a screenshot and return as base64 PNG."""
-    path = "/tmp/screenshot.png"
-    subprocess.run(["scrot", path], check=True)
-    return base64.standard_b64encode(Path(path).read_bytes()).decode("utf-8")
-
-def get_screenshot_block() -> dict:
-    """Return an image content block for the API."""
-    return {
-        "type": "image",
-        "source": {
-            "type": "base64",
-            "media_type": "image/png",
-            "data": take_screenshot()
-        }
-    }
-```
-
-### Execute Computer Actions
-
-```python
-import pyautogui
-import time
-
-def execute_computer_action(action: dict) -> str:
-    """Execute a computer action from Claude's tool use response."""
-    action_type = action["action"]
-
-    if action_type == "screenshot":
-        return take_screenshot()
-
-    elif action_type == "mouse_move":
-        pyautogui.moveTo(action["coordinate"][0], action["coordinate"][1])
-        return "Mouse moved"
-
-    elif action_type == "left_click":
-        pyautogui.click(action["coordinate"][0], action["coordinate"][1])
-        time.sleep(0.5)
-        return "Clicked"
-
-    elif action_type == "double_click":
-        pyautogui.doubleClick(action["coordinate"][0], action["coordinate"][1])
-        time.sleep(0.5)
-        return "Double-clicked"
-
-    elif action_type == "right_click":
-        pyautogui.rightClick(action["coordinate"][0], action["coordinate"][1])
-        return "Right-clicked"
-
-    elif action_type == "type":
-        pyautogui.write(action["text"], interval=0.02)
-        return "Typed text"
-
-    elif action_type == "key":
-        pyautogui.hotkey(*action["key"].replace("+", " ").split())
-        return f"Pressed {action['key']}"
-
-    elif action_type == "scroll":
-        direction = action.get("direction", "down")
-        clicks = action.get("clicks", 3)
-        pyautogui.scroll(-clicks if direction == "down" else clicks)
-        return f"Scrolled {direction}"
-
-    else:
-        return f"Unknown action: {action_type}"
-
-
-def execute_bash(command: str) -> str:
-    """Execute a bash command and return output."""
-    result = subprocess.run(
-        command, shell=True, capture_output=True, text=True, timeout=30
-    )
-    return result.stdout + result.stderr
-```
-
-### Full Action Loop
+### Declare the tools
 
 ```python
 import anthropic
 
 client = anthropic.Anthropic()
+MODEL = "claude-sonnet-5-5"
 
-def run_computer_use_agent(task: str, max_steps: int = 20) -> str:
-    """
-    Run Claude computer use to complete a task.
-
-    Args:
-        task: Natural language description of what to do
-        max_steps: Safety limit on number of actions
-
-    Returns:
-        Claude's final response describing what was done
-    """
-    # Start with screenshot so Claude sees current state
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": task},
-                get_screenshot_block()
-            ]
-        }
-    ]
-
-    for step in range(max_steps):
-        print(f"\n[Step {step + 1}/{max_steps}]")
-
-        response = client.beta.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=4096,
-            tools=TOOLS,
-            messages=messages,
-            betas=["computer-use-2024-10-22"]
-        )
-
-        # Add Claude's response to history
-        messages.append({"role": "assistant", "content": response.content})
-
-        # Check if Claude is done
-        if response.stop_reason == "end_turn":
-            final_text = next(
-                (b.text for b in response.content if hasattr(b, "text")), ""
-            )
-            print(f"\n✅ Task complete: {final_text}")
-            return final_text
-
-        # Process tool uses
-        if response.stop_reason == "tool_use":
-            tool_results = []
-
-            for block in response.content:
-                if block.type != "tool_use":
-                    continue
-
-                print(f"  → Tool: {block.name}, Action: {block.input.get('action', block.name)}")
-
-                if block.name == "computer":
-                    result = execute_computer_action(block.input)
-
-                    # Always include a fresh screenshot after actions
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": [
-                            {"type": "text", "text": result},
-                            get_screenshot_block()
-                        ]
-                    })
-
-                elif block.name == "bash":
-                    output = execute_bash(block.input["command"])
-                    print(f"  ← Output: {output[:200]}")
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": output
-                    })
-
-                elif block.name == "str_replace_editor":
-                    # Handle file viewing/editing
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": "File operation completed"
-                    })
-
-            messages.append({"role": "user", "content": tool_results})
-
-    return "Max steps reached without completion"
+TOOLS = [
+    {"type": "computer_toolset_20260801"},
+    {"type": "bash_20250124", "name": "bash"},
+    {"type": "text_editor_20250728", "name": "str_replace_based_edit_tool"},
+]
 ```
 
-## Human-in-the-Loop
+The toolset takes no display size: coordinates are in the pixel space of the screenshots you return. It rejects `name`, `display_width_px`, `display_height_px`, `display_number` and `enable_zoom`. To withhold a member, use `"configs": {"zoom": {"enabled": false}}`. Declaring the toolset costs about 4,500 input tokens per request.
 
-For sensitive tasks, add approval checkpoints:
+### Member tools
+
+Claude's `tool_use` blocks have `"toolset_name": "computer"` and a `name` that is one of 17 members; `input` has no `action` field.
+
+| Member | Input |
+|---|---|
+| `screenshot`, `cursor_position` | none |
+| `zoom` | `region: [x0, y0, x1, y1]` (returns an image) |
+| `left_click`, `right_click`, `middle_click`, `double_click`, `triple_click` | optional `coordinate: [x, y]`, optional `text` modifiers such as `shift` or `ctrl+shift` |
+| `left_click_drag` | `start_coordinate`, `coordinate` |
+| `mouse_move` | `coordinate` |
+| `left_mouse_down`, `left_mouse_up` | none |
+| `scroll` | `scroll_direction` (up/down/left/right), `scroll_amount`, optional `coordinate` |
+| `type` | `text` |
+| `key` | `text` such as `ctrl+s`, optional `repeat` 1-100 |
+| `hold_key` | `text`, `duration` seconds (max 300) |
+| `wait` | `duration` seconds (max 300) |
+
+### Agent loop
 
 ```python
-SENSITIVE_ACTIONS = ["left_click", "type", "key"]
-REQUIRE_APPROVAL_FOR = ["submit", "delete", "purchase", "send"]
+import base64, subprocess, time
+from pathlib import Path
+import pyautogui
 
-def execute_with_approval(action: dict, task_context: str) -> str:
-    """Pause and ask for human approval on potentially dangerous actions."""
-    action_type = action.get("action", "")
-    text = action.get("text", "")
+def screenshot_block() -> dict:
+    subprocess.run(["scrot", "-o", "/tmp/screen.png"], check=True)
+    # Images must fit the model limit (2576 px long edge for 5.x models): downscale
+    # larger screens with Pillow and scale Claude's coordinates back up.
+    data = base64.standard_b64encode(Path("/tmp/screen.png").read_bytes()).decode()
+    return {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": data}}
 
-    # Check if this looks like a high-risk action
-    is_risky = any(word in task_context.lower() for word in REQUIRE_APPROVAL_FOR)
+def run_member(name: str, a: dict):
+    """Perform one computer member call; return text or an image block."""
+    xy = a.get("coordinate")
+    if name == "screenshot":
+        return [screenshot_block()]
+    if name == "left_click":
+        pyautogui.click(*xy)
+    elif name == "right_click":
+        pyautogui.rightClick(*xy)
+    elif name == "double_click":
+        pyautogui.doubleClick(*xy)
+    elif name == "mouse_move":
+        pyautogui.moveTo(*xy)
+    elif name == "type":
+        pyautogui.write(a["text"], interval=0.02)
+    elif name == "key":
+        for _ in range(a.get("repeat", 1)):
+            pyautogui.hotkey(*a["text"].lower().split("+"))
+    elif name == "scroll":
+        amount = a["scroll_amount"] * (-1 if a["scroll_direction"] == "down" else 1)
+        pyautogui.scroll(amount, *(xy or pyautogui.position()))
+    elif name == "wait":
+        time.sleep(a["duration"])
+    else:
+        raise NotImplementedError(name)   # implement the rest as needed (zoom, drag, ...)
+    time.sleep(0.5)
+    return "OK"
 
-    if is_risky and action_type in SENSITIVE_ACTIONS:
-        print(f"\n⚠️  APPROVAL REQUIRED")
-        print(f"   Action: {action_type}")
-        print(f"   Details: {action}")
-        approval = input("   Approve? (y/n): ")
-        if approval.lower() != "y":
-            raise RuntimeError("Action denied by user")
-
-    return execute_computer_action(action)
+def run_agent(task: str, max_steps: int = 25) -> str:
+    messages = [{"role": "user", "content": task}]
+    for _ in range(max_steps):
+        resp = client.messages.create(model=MODEL, max_tokens=4096, tools=TOOLS, messages=messages)
+        messages.append({"role": "assistant", "content": resp.content})
+        calls = [b for b in resp.content if b.type == "tool_use"]
+        if not calls:
+            return next((b.text for b in resp.content if b.type == "text"), "")
+        results, failed = [], False
+        for call in calls:                       # a turn may hold a batch: run in order
+            res = {"type": "tool_result", "tool_use_id": call.id}
+            if getattr(call, "toolset_name", None) == "computer":
+                res["toolset_name"] = "computer"
+            if failed:
+                res.update(is_error=True, content="Not executed: an earlier computer action in this turn failed.")
+            else:
+                try:
+                    if res.get("toolset_name") == "computer":
+                        out = run_member(call.name, call.input)
+                    else:
+                        out = run_other_tool(call)       # your bash / editor handlers
+                    res["content"] = out
+                except Exception as exc:
+                    failed = True
+                    res.update(is_error=True, content=f"Error: {exc}")
+            results.append(res)
+        messages.append({"role": "user", "content": results})
+    return "Stopped: max_steps reached"
 ```
 
-## Usage Examples
+Rules from the docs: answer every `tool_use` block (an unanswered one is a 400 error), echo `toolset_name` on computer results, stop at the first failure and answer the rest with the exact halt text above, and return an image only for `screenshot` and `zoom` (text `OK` otherwise). `run_other_tool` is yours to write (run the bash command in the sandbox, apply the editor command). With `tool_choice` set to `{"type": "auto", "disable_parallel_tool_use": true}` Claude issues one action per turn.
+
+### Migrating from computer_20251124 or computer_20241022
+
+Remove the beta header, change the tool entry to the toolset, dispatch on `name` plus `toolset_name` instead of `input.action`, iterate over every `tool_use` block, honor `repeat` on `key`, resize screenshots yourself, and decide whether to keep `zoom` (on by default, whereas `enable_zoom` defaulted to off).
+
+### Human approval
+
+Ask a person before irreversible steps. Check before each block runs, because a batch can finish a multi-step action in one turn:
 
 ```python
-# Fill out a web form
-result = run_computer_use_agent(
-    "Open Chrome, go to https://forms.example.com/application, "
-    "fill in Name='John Smith', Email='john@smith.com', and submit the form."
-)
+RISKY_WORDS = ("submit", "delete", "purchase", "send", "pay")
 
-# Extract data from a desktop app
-result = run_computer_use_agent(
-    "Open the Excel file at /home/user/data.xlsx, "
-    "copy all values from column B rows 2-50, and save them to /tmp/extracted.txt"
-)
-
-# Automate a repetitive workflow
-result = run_computer_use_agent(
-    "In the open CRM application, find all contacts with status 'Follow Up', "
-    "change their status to 'Active', and export the list to CSV."
-)
+def approved(call, task: str) -> bool:
+    if call.name in ("left_click", "double_click", "key") and any(w in task.lower() for w in RISKY_WORDS):
+        return input(f"Allow {call.name} {call.input}? [y/N] ").strip().lower() == "y"
+    return True
 ```
 
-## Safety Checklist
+## Examples
 
-- ✅ Always run in Docker or a dedicated VM
-- ✅ Never mount production credentials or sensitive files in the sandbox
-- ✅ Add human-in-the-loop for submit/delete/purchase actions
-- ✅ Set `max_steps` to prevent runaway loops
-- ✅ Monitor via VNC to watch what Claude does in real time
-- ✅ Log all actions and screenshots for audit trail
-- ❌ Do NOT run on your main machine with browser sessions logged into accounts
-- ❌ Do NOT give Claude access to payment methods or admin panels without oversight
+### Fill in a legacy web form
+
+User: "Open the supplier portal in Firefox and register Brightwell Tools, contact maria.lopez@brightwelltools.com. Stop before pressing Submit."
+
+```python
+print(run_agent(
+    "Firefox is open on the supplier portal at http://localhost:8080/register. "
+    "Fill Company='Brightwell Tools' and Email='maria.lopez@brightwelltools.com'. "
+    "After each step take a screenshot and confirm it worked. Do not press Submit; "
+    "tell me when the form is ready."
+))
+```
+
+Result: a handful of `screenshot`, `left_click` and `type` calls, then Claude replies that the form is filled and waiting. Add the approval check before any Submit click.
+
+### Read data from an app with no export
+
+User: "Copy the open invoice numbers from the desktop accounting app into a text file."
+
+```python
+print(run_agent(
+    "In the Ledger app, open Invoices > Open. Read every invoice number in the list "
+    "(scroll if needed, zoom into the table to read small text) and write them one per line "
+    "to /home/computeruse/open_invoices.txt using the bash tool. Done when the file exists."
+))
+```
+
+Result: Claude zooms into the list, scrolls, writes the file with bash, and returns a summary with the count.
 
 ## Guidelines
 
-- Start tasks with a screenshot so Claude has current context
-- Be specific in your task description — vague tasks lead to wrong actions
-- Include success criteria: "task is done when you see the confirmation page"
-- Set a reasonable `max_steps` (10–30 depending on task complexity)
-- Add delays (`time.sleep`) after clicks to let UI render before next screenshot
-- Use bash tool for file operations; computer tool for GUI interactions
-- Monitor token usage — each screenshot adds ~1K tokens to context
+- Use a throwaway container or VM; never your daily desktop with signed-in browsers. Restrict network access to an allowlist of domains.
+- Put the task text before the screenshot in the first user turn; click accuracy improves.
+- Ask Claude to screenshot and verify after each step, and to use keyboard shortcuts for dropdowns and scrollbars that resist the mouse.
+- Always cap the loop (`max_steps`) and log actions and screenshots for audit.
+- Do not hand over passwords casually: logged-in sessions raise prompt-injection risk. Keep payment and admin accounts out of the sandbox.
+- Latency is high and coordinates can be wrong; it is not for speed-critical or precision-critical work. Prefer APIs, then Playwright, when they exist.
+- Each screenshot is billed as image input; keep screens near the model's size limit and trim history of old screenshots in long runs.
+- Everything runs on your side: screenshots and files stay in your environment; Anthropic only sees what you send in each request.

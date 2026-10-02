@@ -1,389 +1,168 @@
 ---
 name: plasmo
-description: Expert guidance for Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. Helps developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.
+description: >-
+  Plasmo is a framework for building browser extensions with React and TypeScript:
+  it generates the Manifest V3 file from your code, bundles popups, content
+  scripts, background workers and options pages, and gives you hot reload. Use when
+  a user asks to "build a Chrome extension", "create a browser extension with
+  React", "add a content script UI", "use Plasmo storage or messaging", or "package
+  an extension for the Chrome Web Store or Firefox".
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Node.js 18+, pnpm/npm/yarn. Chrome/Chromium (MV3), Firefox and Edge targets."
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
-  tags:
-  - chrome-extension
-  - browser
-  - react
-  - typescript
-  - manifest-v3
+  tags: ["chrome-extension", "browser", "react", "typescript", "manifest-v3"]
+  repository: https://github.com/PlasmoHQ/plasmo
 ---
 
-# Plasmo — Browser Extension Framework
-
+# Plasmo
 
 ## Overview
 
+Plasmo is a build framework for browser extensions. File names are the configuration: `popup.tsx` becomes the popup, files in `contents/` become content scripts, `background.ts` becomes the service worker, `options.tsx` the options page. The `manifest.json` is generated, with overrides in `package.json`. `plasmo dev` rebuilds with live reload into `build/chrome-mv3-dev`; `plasmo build` writes `build/chrome-mv3-prod`. Companion packages: `@plasmohq/storage` and `@plasmohq/messaging`.
 
-Plasmo, the framework for building browser extensions with React, TypeScript, and modern tooling. Helps developers create Chrome and Firefox extensions with content scripts, background workers, popup UIs, and messaging — all with hot reload and zero webpack config.
-
+Maintenance note: the latest npm releases are `plasmo` 0.90.5 (May 2025), `@plasmohq/storage` 1.15.0 and `@plasmohq/messaging` 0.7.2. If a user is starting a new project and open to alternatives, WXT is another actively used extension framework; do not migrate an existing Plasmo project unprompted.
 
 ## Instructions
 
-### Project Setup
-
-Create a new extension with Plasmo CLI:
+### Project setup
 
 ```bash
-# Create a new extension project
-pnpm create plasmo my-extension
-# Or with a specific template
-pnpm create plasmo --with-tailwindcss my-extension
-
-# Development with hot reload
-pnpm dev
-# Build for production
-pnpm build
-# Package for Chrome Web Store
-pnpm package
+pnpm create plasmo                       # interactive; or: pnpm create plasmo --with-tailwindcss my-extension
+cd my-extension
+pnpm dev                                 # then load build/chrome-mv3-dev via chrome://extensions > Load unpacked
+pnpm build                               # production bundle in build/chrome-mv3-prod
+pnpm package                             # same plus a .zip for store upload
+pnpm build --target=firefox-mv2          # firefox-mv3 is experimental
 ```
 
-### Popup UI
+Everything lives at the project root by default; a `src/` directory is optional (follow the docs' src guide to enable it). Permissions and manifest overrides go under `manifest` in `package.json`:
 
-Build the extension popup as a React component:
+```json
+{ "manifest": { "host_permissions": ["https://github.com/*"], "permissions": ["alarms", "contextMenus"] } }
+```
+
+Use `.env.chrome` / `.env.firefox` and `process.env.PLASMO_BROWSER` for target-specific values; only `PLASMO_PUBLIC_*` variables reach client code.
+
+### Popup
 
 ```tsx
-// src/popup.tsx — Main popup UI (click the extension icon)
-import { useState, useEffect } from "react";
-import { Storage } from "@plasmohq/storage";
-
-const storage = new Storage();
+// popup.tsx
+import { useStorage } from "@plasmohq/storage/hook"
 
 function IndexPopup() {
-  const [savedCount, setSavedCount] = useState(0);
-  const [isEnabled, setIsEnabled] = useState(true);
-
-  useEffect(() => {
-    // Load state from extension storage (persists across sessions)
-    storage.get<number>("savedCount").then((count) => setSavedCount(count ?? 0));
-    storage.get<boolean>("isEnabled").then((enabled) => setIsEnabled(enabled ?? true));
-  }, []);
-
-  const toggleExtension = async () => {
-    const newState = !isEnabled;
-    setIsEnabled(newState);
-    await storage.set("isEnabled", newState);
-    // Notify content scripts about the state change
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]?.id) {
-      chrome.tabs.sendMessage(tabs[0].id, { type: "TOGGLE", enabled: newState });
-    }
-  };
-
+  const [enabled, setEnabled] = useStorage<boolean>("isEnabled", true)
   return (
     <div style={{ padding: 16, width: 320 }}>
-      <h2>My Extension</h2>
-      <p>Saved items: {savedCount}</p>
-      <button onClick={toggleExtension}>
-        {isEnabled ? "🟢 Enabled" : "🔴 Disabled"}
-      </button>
+      <h2>Repo Notes</h2>
+      <button onClick={() => setEnabled(!enabled)}>{enabled ? "Enabled" : "Disabled"}</button>
     </div>
-  );
+  )
 }
-
-export default IndexPopup;
+export default IndexPopup
 ```
 
-### Content Scripts
+### Content scripts and content-script UI
 
-Inject UI and logic into web pages:
+A `.tsx` file in `contents/` that default-exports a React component is mounted into the page inside a Shadow DOM (overlay on `document.body` unless you export an anchor).
 
 ```tsx
-// src/contents/overlay.tsx — Content script that renders a React component on any page
-import type { PlasmoCSConfig, PlasmoGetOverlayAnchor } from "plasmo";
-import { useState } from "react";
+// contents/repo-overlay.tsx
+import cssText from "data-text:~contents/repo-overlay.css"
+import type { PlasmoCSConfig, PlasmoGetOverlayAnchor, PlasmoGetStyle } from "plasmo"
 
-// Configure which pages this content script runs on
 export const config: PlasmoCSConfig = {
-  matches: ["https://github.com/*"],           // Only on GitHub
-  css: ["contents/overlay.css"],                // Optional custom CSS
-};
-
-// Anchor the overlay to a specific DOM element (optional)
-export const getOverlayAnchor: PlasmoGetOverlayAnchor = async () => {
-  return document.querySelector(".repository-content");
-};
-
-// The React component renders as an overlay on the page
-function GitHubOverlay() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="plasmo-overlay">
-      <button onClick={() => setIsOpen(!isOpen)}>
-        📋 Quick Actions
-      </button>
-      {isOpen && (
-        <div className="plasmo-panel">
-          <button onClick={() => copyRepoInfo()}>Copy repo info</button>
-          <button onClick={() => analyzeReadme()}>Analyze README</button>
-        </div>
-      )}
-    </div>
-  );
+  matches: ["https://github.com/*"],
+  run_at: "document_idle"
 }
 
-async function copyRepoInfo() {
-  const title = document.querySelector("[itemprop='name'] a")?.textContent?.trim();
-  const desc = document.querySelector("[itemprop='about']")?.textContent?.trim();
-  const stars = document.querySelector("#repo-stars-counter-star")?.textContent?.trim();
-  await navigator.clipboard.writeText(`${title}: ${desc} (⭐ ${stars})`);
+// Styles for the shadow DOM must be injected here
+export const getStyle: PlasmoGetStyle = () => {
+  const style = document.createElement("style")
+  style.textContent = cssText
+  return style
 }
 
-export default GitHubOverlay;
-```
+export const getOverlayAnchor: PlasmoGetOverlayAnchor = async () =>
+  document.querySelector(".repository-content")
 
-### Background Service Worker
-
-Handle long-running tasks, alarms, and cross-tab communication:
-
-```typescript
-// src/background.ts — Background service worker (Manifest V3)
-import { Storage } from "@plasmohq/storage";
-
-const storage = new Storage();
-
-// Listen for messages from content scripts and popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  switch (message.type) {
-    case "SAVE_ITEM":
-      handleSaveItem(message.data).then(sendResponse);
-      return true;     // Keep the message channel open for async response
-
-    case "GET_STATS":
-      getStats().then(sendResponse);
-      return true;
+export default function RepoOverlay() {
+  const copy = () => {
+    const name = document.querySelector("[itemprop='name'] a")?.textContent?.trim()
+    return navigator.clipboard.writeText(name ?? "")
   }
-});
-
-async function handleSaveItem(data: { url: string; title: string; content: string }) {
-  const items = (await storage.get<any[]>("savedItems")) ?? [];
-  items.push({ ...data, savedAt: Date.now() });
-  await storage.set("savedItems", items);
-
-  // Update badge count
-  const count = items.length;
-  chrome.action.setBadgeText({ text: count > 0 ? String(count) : "" });
-  chrome.action.setBadgeBackgroundColor({ color: "#6366f1" });
-
-  return { success: true, count };
-}
-
-// Set up periodic tasks with alarms
-chrome.alarms.create("sync-data", { periodInMinutes: 30 });
-
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === "sync-data") {
-    const items = (await storage.get<any[]>("savedItems")) ?? [];
-    if (items.length > 0) {
-      // Sync to your backend API
-      await fetch("https://api.example.com/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
-      });
-    }
-  }
-});
-
-// Context menu (right-click menu)
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "save-selection",
-    title: "Save selection to My Extension",
-    contexts: ["selection"],
-  });
-});
-
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "save-selection" && info.selectionText) {
-    handleSaveItem({
-      url: tab?.url ?? "",
-      title: tab?.title ?? "",
-      content: info.selectionText,
-    });
-  }
-});
-```
-
-### Messaging Between Components
-
-Type-safe communication between popup, content scripts, and background:
-
-```typescript
-// src/messaging.ts — Type-safe messaging with Plasmo messaging API
-import { sendToBackground, sendToContentScript } from "@plasmohq/messaging";
-
-// Define message types
-interface SaveRequest { url: string; title: string; }
-interface SaveResponse { success: boolean; id: string; }
-
-// From content script → background
-async function saveFromContentScript(data: SaveRequest): Promise<SaveResponse> {
-  return sendToBackground({
-    name: "save-item",        // Maps to src/background/messages/save-item.ts
-    body: data,
-  });
-}
-
-// From popup → content script
-async function highlightElements() {
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  return sendToContentScript({
-    name: "highlight",
-    tabId: tabs[0].id!,
-    body: { selector: "h1, h2, h3" },
-  });
+  return <button className="repo-btn" onClick={copy}>Copy repo name</button>
 }
 ```
 
-```typescript
-// src/background/messages/save-item.ts — Background message handler
-import type { PlasmoMessaging } from "@plasmohq/messaging";
+Other exports: `getInlineAnchor` / `getInlineAnchorList` / `getOverlayAnchorList` (anchor types are `"inline"` or `"overlay"`), `getRootContainer` (replaces the Shadow DOM, which disables `getStyle`), `render`. The `css` array in `config` applies to the host page itself, not the shadow root; use it only for things like `@font-face`. A content script without UI is a `.ts` file exporting `config` and running its code at top level. Use `world: "MAIN"` in `config` to run in the page's JS context (no extension APIs there).
 
-const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
-  const { url, title } = req.body;
+### Background service worker and messaging
 
-  // Process the save request
-  const id = crypto.randomUUID();
-  await chrome.storage.local.set({ [id]: { url, title, savedAt: Date.now() } });
+`@plasmohq/messaging` handlers are files in `background/messages/<name>.ts`; `sendToBackground` calls them by file name. There is no `sendToContentScript` in this package: use `chrome.tabs.sendMessage(tabId, ...)` for background-or-popup to content script.
 
-  res.send({ success: true, id });
-};
+```ts
+// background/messages/save-item.ts
+import type { PlasmoMessaging } from "@plasmohq/messaging"
+import { Storage } from "@plasmohq/storage"
 
-export default handler;
-```
+const storage = new Storage({ area: "local" })
 
-### Storage with React Hooks
-
-Reactive storage that syncs across extension components:
-
-```tsx
-// src/popup.tsx — Using storage hooks for reactive state
-import { useStorage } from "@plasmohq/storage/hook";
-
-function SettingsPopup() {
-  // useStorage provides React state that persists and syncs
-  // Changes in popup instantly reflect in content scripts and vice versa
-  const [theme, setTheme] = useStorage<string>("theme", "light");
-  const [apiKey, setApiKey] = useStorage<string>("apiKey", "");
-  const [savedItems, setSavedItems] = useStorage<any[]>("savedItems", []);
-
-  return (
-    <div style={{ padding: 16, width: 350 }}>
-      <h3>Settings</h3>
-
-      <label>Theme</label>
-      <select value={theme} onChange={(e) => setTheme(e.target.value)}>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-
-      <label>API Key</label>
-      <input
-        type="password"
-        value={apiKey}
-        onChange={(e) => setApiKey(e.target.value)}
-        placeholder="Enter your API key"
-      />
-
-      <h3>Saved Items ({savedItems.length})</h3>
-      <ul>
-        {savedItems.slice(-5).map((item, i) => (
-          <li key={i}>{item.title}</li>
-        ))}
-      </ul>
-    </div>
-  );
+const handler: PlasmoMessaging.MessageHandler<{ url: string; title: string }> = async (req, res) => {
+  const items = (await storage.get<object[]>("savedItems")) ?? []
+  items.push({ ...req.body, savedAt: Date.now() })
+  await storage.set("savedItems", items)
+  chrome.action.setBadgeText({ text: String(items.length) })
+  res.send({ success: true, count: items.length })
 }
+export default handler
 ```
 
-### Options Page
-
-Full-page settings interface:
-
-```tsx
-// src/options.tsx — Extension options page (chrome-extension://id/options.html)
-function OptionsPage() {
-  const [settings, setSettings] = useStorage("settings", {
-    autoSave: true,
-    notifications: true,
-    syncInterval: 30,
-    excludedSites: [] as string[],
-  });
-
-  const updateSetting = (key: string, value: any) => {
-    setSettings({ ...settings, [key]: value });
-  };
-
-  return (
-    <div style={{ maxWidth: 600, margin: "40px auto", padding: 20 }}>
-      <h1>Extension Settings</h1>
-      <div>
-        <label>
-          <input type="checkbox" checked={settings.autoSave}
-            onChange={(e) => updateSetting("autoSave", e.target.checked)} />
-          Auto-save highlighted text
-        </label>
-      </div>
-      <div>
-        <label>Sync interval (minutes)</label>
-        <input type="number" value={settings.syncInterval}
-          onChange={(e) => updateSetting("syncInterval", parseInt(e.target.value))} />
-      </div>
-    </div>
-  );
-}
-
-export default OptionsPage;
+```ts
+// from a content script or popup
+import { sendToBackground } from "@plasmohq/messaging"
+const { count } = await sendToBackground({ name: "save-item", body: { url: location.href, title: document.title } })
 ```
 
-## Installation
+Long-lived connections use `background/ports/<name>.ts` with `getPort()` / `usePort()`. To let a web page talk to the background through a content script, use `relayMessage` in the script and `sendToBackgroundViaRelay` from the page. Put alarms and context menus in `background.ts` (or `background/index.ts`) and register listeners at top level, since MV3 workers are stopped when idle and wake on events:
 
-```bash
-pnpm create plasmo my-extension
-cd my-extension
-pnpm dev     # Start dev server with hot reload
+```ts
+// background.ts
+chrome.runtime.onInstalled.addListener(() =>
+  chrome.contextMenus.create({ id: "save-selection", title: "Save selection", contexts: ["selection"] }))
+chrome.alarms.create("sync-data", { periodInMinutes: 30 })
 ```
 
+### Storage
+
+`@plasmohq/storage` adds the `storage` permission automatically. `new Storage()` uses the **sync** area by default (Chrome limits it to about 8 KB per item and 100 KB total), so pass `{ area: "local" }` for lists and larger data. Values are JSON-serialized for you. `storage.watch({ key: cb })` reacts to changes; `@plasmohq/storage/secure` encrypts values with a password you supply. Never store an API key you cannot afford to expose: extension storage is readable by anyone with the machine.
+
+### Other pages
+
+`options.tsx` (options page), `newtab.tsx`, `sidepanel.tsx`, `devtools.tsx` and `tabs/<name>.tsx` (extra pages opened via `chrome.runtime.getURL("tabs/<name>.html")`) follow the same default-export-a-component rule. For Firefox, add a fixed add-on ID under `manifest.browser_specific_settings.gecko.id` in `package.json` or storage and messaging fail in development.
 
 ## Examples
 
+### Example 1: Highlight words on a page from a popup toggle
 
-### Example 1: Setting up Plasmo with a custom configuration
+**User request:** "Build a Chrome extension with a popup switch that highlights every 'TODO' on any page."
 
-**User request:**
+Run `pnpm create plasmo todo-highlighter`, add `"host_permissions": ["https://*/*"]` under `manifest` in `package.json`, create `contents/highlight.ts` exporting `config = { matches: ["https://*/*"] }` that reads `new Storage().get("isEnabled")` and wraps matching text nodes, and subscribes with `storage.watch`. The popup uses `useStorage("isEnabled", true)` as above. `pnpm dev`, load `build/chrome-mv3-dev` unpacked; flipping the switch updates open tabs without messaging code.
 
-```
-I just installed Plasmo. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
+### Example 2: Save selected text from a context menu with a badge
 
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
+**User request:** "Right-click selected text, save it, and show the number saved on the icon."
 
-### Example 2: Extending Plasmo with custom functionality
-
-**User request:**
-
-```
-I want to add a custom popup ui to Plasmo. How do I build one?
-```
-
-The agent scaffolds the extension/plugin project, implements the core functionality following Plasmo's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
-
+Add the `contextMenus` permission, create the menu in `background.ts` `onInstalled` as above, and in `chrome.contextMenus.onClicked` call the same save logic as `background/messages/save-item.ts` (extract it to a shared module). The popup reads the list with `useStorage<object[]>("savedItems", [])` after creating the `Storage` with `area: "local"` in both places. Result: badge shows `1`, `2`, ... and the popup lists the items.
 
 ## Guidelines
 
-1. **Manifest V3 by default** — Plasmo generates MV3 manifests; service workers replace persistent background pages
-2. **Use Plasmo storage over chrome.storage** — `@plasmohq/storage` provides React hooks and cross-component sync
-3. **Content script isolation** — Plasmo uses Shadow DOM for content script UIs; your CSS won't leak into the page
-4. **Minimize permissions** — Request only the permissions you need in `package.json` under `manifest.permissions`
-5. **Hot reload in dev** — `pnpm dev` auto-reloads the extension on file changes; no manual refresh needed
-6. **Type your messages** — Use Plasmo's messaging API for type-safe communication between components
-7. **Test across browsers** — Build for both Chrome (`pnpm build --target=chrome-mv3`) and Firefox (`--target=firefox-mv3`)
-8. **Bundle size matters** — Extensions load on every page; keep content scripts small, lazy-load heavy logic
+- Plasmo emits Manifest V3 for Chrome; service workers sleep, so keep state in storage, not in module variables.
+- Request the fewest permissions and host patterns; broad host patterns like `https://*/*` slows store review.
+- Style content-script UI through `getStyle`; page CSS cannot reach into the Shadow DOM, which is the point.
+- Match the storage `area` across every component that reads a key; `sync` and `local` are separate stores.
+- Build and test each target you ship (`chrome-mv3`, `firefox-mv2`); Firefox MV3 is experimental.
+- Keep content scripts small: they load on every matched page.
+- Do not hard-code secrets in the bundle; anything in the extension package is public.

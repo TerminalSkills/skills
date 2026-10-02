@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:81fa0de7f10df8caa282cdf02e6ab93ee61f2cfdbaae0e7ab8ab945d682cf4ac",
-  "scoredAt": "2026-05-13T10:04:08.339Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:561fe550920ae155cba3b487bc2c453ec95157da7a4072e3dbd325bf7bbc3553",
+  "scoredAt": "2026-10-02T22:54:46.205Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks error handling and edge case coverage, focusing only on happy paths."
+        "detail": "Covers mostly the happy path: there is no handling of load failures (EventType.LoadError is only mentioned in passing), a missing state machine or input name, or a null input, and no example of Data Binding despite recommending it."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The code examples only cover web and React, not all listed platforms like React Native, Flutter, iOS, Android."
+        "detail": "Code and instructions are web and React only, even though the compatibility field lists Flutter, iOS, Android and React Native, and none of those platforms get any usage guidance."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 88,
-    "multiplier": 1.83,
+    "multiplier": 1.25,
+    "baselineAvg": 69,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "React hover-driven Rive button",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment uses useRive + useStateMachineInput from @rive-app/react-canvas to drive a named boolean input on mouse events; baseline instantiates a generic canvas animation library without reading state machine inputs."
+        "name": "hover-icon-react-component",
+        "baseline": 90,
+        "treatment": 92,
+        "rationale": "Both responses use useRive and useStateMachineInput with 'IconStates' in stateMachines, set isHovered true on enter and false on leave with a null guard, and give the component an explicit size. B is slightly ahead because it names the collapse risk directly and mentions the webgl2 option, while A's configurable size prop and className are comparable."
       },
       {
-        "name": "Subscribe to Rive state changes and custom events",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment subscribes via rive.on(EventType.StateChange) and rive.on(EventType.RiveEvent) per the skill; baseline polls or uses generic event listeners that do not match Rive's event API."
+        "name": "press-button-with-click-handler",
+        "baseline": 62,
+        "treatment": 95,
+        "rationale": "B puts the mouse handlers directly on RiveComponent, reads both inputs, resets isPressed on leave and on mouse up, calls onClick on mouse up, and sets an explicit 200x60 size. A uses pointer events instead of the mouse events the rubric names, sets the size on a wrapper div, and gates onClick behind a press-started check, so it only partly follows the rubric's mouse-up behavior."
+      },
+      {
+        "name": "vanilla-player-with-events-and-cleanup",
+        "baseline": 55,
+        "treatment": 72,
+        "rationale": "A includes stateMachines, autoplay, EventType.RiveEvent, cleanup(), and the deprecation note (RiveEvent deprecated, autoBind, Load maintained), though it uses onLoad rather than rive.on(EventType.Load) in the code; B omits stateMachines from the code and has no deprecation note, though it has solid cleanup, off(), and event handling."
       }
     ]
   }

@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:be3f2f53bb2189a9b22b7c515c674dbd355d47f64d2498acd4a6f8e31cd2582e",
-  "scoredAt": "2026-05-13T09:39:09.658Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:98b838ce88b785d50a4cf24962a6062a6612e5937de3bc48f0c84789295e29b8",
+  "scoredAt": "2026-10-02T22:51:03.498Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
+        "category": "crossPlatform",
+        "detail": "The skill is tied to the Expo and Metro toolchain (expo install, expo-router, app.json, Expo-specific Babel preset), and gives no setup steps for bare React Native CLI projects."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 91,
-    "multiplier": 2.39,
+    "multiplier": 1.21,
+    "baselineAvg": 72,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "NativeWind setup in fresh Expo project",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Treatment uses the exact npx expo install command, nativewind/preset, global.css, and layout import; baseline often gives outdated v2 babel-based setup."
+        "name": "expo-nativewind-setup-pinned",
+        "baseline": 55,
+        "treatment": 82,
+        "rationale": "A pins nativewind@4.2.7 and explicitly warns that unpinned tailwindcss pulls Tailwind 4, and it covers all configs and the -c restart; B omits the 4.2.7 pin and never warns about the unpinned tailwindcss install, though its configs and -c restart are otherwise complete."
       },
       {
-        "name": "Dark mode toggle following system",
-        "baseline": 35,
+        "name": "dark-mode-toggle-with-system-option",
+        "baseline": 82,
         "treatment": 90,
-        "rationale": "Treatment uses useColorScheme from nativewind with toggleColorScheme; baseline typically pulls from react-native or builds a manual ThemeContext."
+        "rationale": "Both cover app.json, darkMode class (with the setColorScheme throw), setColorScheme with light/dark/system, paired classes and AsyncStorage persistence; B explicitly calls out paired classes (text-black dark:text-white as the rule) and concisely hits every rubric point, while A shows persistence in more detail but is messier (a stray bogus import) and doesn't explicitly stress the paired-class rule."
+      },
+      {
+        "name": "debug-classname-not-applying",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both cover the config causes (content globs, preset, global.css, -c restart) and hover/Pressable. B states the hover:/onHoverIn mechanism and mentions remapProps and a wrapper passing style. A gives more setup detail but never mentions onHoverIn, and its third-party advice is only cssInterop."
       }
     ]
   }

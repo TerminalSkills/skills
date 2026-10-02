@@ -12,7 +12,8 @@ license: Apache-2.0
 compatibility: 'Linux, macOS, Docker'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/meilisearch/meilisearch
   category: development
   tags:
     - meilisearch
@@ -33,21 +34,21 @@ Meilisearch is a fast, open-source search engine designed for instant, typo-tole
 ### Step 1: Installation and Deployment
 
 ```bash
-# Docker (recommended for production)
+# Docker: pin a version instead of "latest" so upgrades are deliberate
+export MEILI_MASTER_KEY="$(openssl rand -hex 16)"   # 16+ bytes required; keep it in your secret store
 docker run -d --name meilisearch \
-  -p 7700:7700 \
+  -p 127.0.0.1:7700:7700 \
   -v meili_data:/meili_data \
-  -e MEILI_MASTER_KEY="your-master-key-min-16-chars" \
-  getmeili/meilisearch:latest
-
-# Binary install (Linux)
-curl -L https://install.meilisearch.com | sh
-./meilisearch --master-key="your-master-key-min-16-chars"
+  -e MEILI_MASTER_KEY \
+  -e MEILI_ENV=production \
+  getmeili/meilisearch:v1.54
 
 # Verify
 curl http://localhost:7700/health
 # {"status":"available"}
 ```
+
+Without Docker, download the `meilisearch` binary for your platform from the GitHub releases page and start it with `./meilisearch --master-key="$MEILI_MASTER_KEY"`. The docs also offer a `curl | sh` installer; do not pipe a remote script into a shell, fetch the release binary instead. `MEILI_ENV=production` makes the master key mandatory. Meilisearch upgrades between minor versions need a dump or a snapshot import, so back up before changing the image tag.
 
 ### Step 2: Index Documents
 
@@ -55,7 +56,7 @@ curl http://localhost:7700/health
 # Add documents via REST API
 curl -X POST 'http://localhost:7700/indexes/products/documents' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer your-master-key' \
+  -H "Authorization: Bearer $MEILI_MASTER_KEY" \
   --data-binary '[
     {"id": 1, "title": "iPhone 15 Pro", "category": "phones", "brand": "Apple", "price": 999},
     {"id": 2, "title": "Galaxy S24 Ultra", "category": "phones", "brand": "Samsung", "price": 1199},
@@ -67,23 +68,24 @@ With the Node.js SDK:
 
 ```javascript
 // index_products.js — Index documents from a database into Meilisearch
-import { MeiliSearch } from 'meilisearch'
+import { Meilisearch } from 'meilisearch'   // npm i meilisearch (the old `MeiliSearch` name is gone)
 
-const client = new MeiliSearch({
+const client = new Meilisearch({
   host: 'http://localhost:7700',
-  apiKey: 'your-master-key',
+  apiKey: process.env.MEILI_MASTER_KEY,
 })
 
 const index = client.index('products')
 
-// Add documents (Meilisearch auto-detects the primary key)
+// Configure settings first so the first indexing run already uses them.
+// Every call returns an enqueued task; .waitTask() resolves when it has been processed.
+await index.updateSearchableAttributes(['title', 'brand', 'category']).waitTask()
+
+// Add documents (Meilisearch auto-detects a field ending in "id" as the primary key)
 await index.addDocuments([
   { id: 1, title: 'iPhone 15 Pro', category: 'phones', brand: 'Apple', price: 999 },
   { id: 2, title: 'Galaxy S24 Ultra', category: 'phones', brand: 'Samsung', price: 1199 },
-])
-
-// Configure searchable attributes (which fields to search)
-await index.updateSearchableAttributes(['title', 'brand', 'category'])
+]).waitTask()
 
 // Configure filterable attributes (for faceted search)
 await index.updateFilterableAttributes(['category', 'brand', 'price'])
@@ -118,7 +120,7 @@ REST API equivalent:
 ```bash
 curl -X POST 'http://localhost:7700/indexes/products/search' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer your-search-key' \
+  -H "Authorization: Bearer $MEILI_SEARCH_KEY" \
   --data '{"q": "iphon", "filter": "price < 1500", "facets": ["category", "brand"]}'
 # Note: "iphon" still matches "iPhone" — typo tolerance is on by default
 ```
@@ -142,7 +144,9 @@ const results = await index.search('laptop', {
 })
 
 // Geo search (for store locators, nearby results)
-await index.updateFilterableAttributes(['_geo'])
+// Documents carry { _geo: { lat, lng } }; _geo must be both filterable and sortable
+await index.updateFilterableAttributes(['category', 'brand', 'price', 'rating', 'in_stock', '_geo'])
+await index.updateSortableAttributes(['price', 'title', '_geo'])
 const nearby = await index.search('coffee', {
   filter: '_geoRadius(48.8566, 2.3522, 5000)',  // 5km radius from Paris center
   sort: ['_geoPoint(48.8566, 2.3522):asc'],
@@ -154,6 +158,7 @@ const nearby = await index.search('coffee', {
 ```javascript
 // relevancy.js — Fine-tune ranking rules and synonyms
 // Default ranking: words → typo → proximity → attribute → sort → exactness
+// (updateRankingRules replaces the whole list, so repeat the built-ins you want to keep)
 await index.updateRankingRules([
   'words',
   'typo',
@@ -187,29 +192,38 @@ await index.updateTypoTolerance({
 ```javascript
 // tenant_tokens.js — Secure multi-tenant search
 // Each tenant can only search their own data
-import { MeiliSearch } from 'meilisearch'
-import crypto from 'crypto'
+import { Meilisearch } from 'meilisearch'
+import { generateTenantToken } from 'meilisearch/token'
 
-function generateTenantToken(apiKeyUid, tenantId, searchRules) {
-  /**
-   * Generate a JWT token that restricts search to a specific tenant.
-   * Args:
-   *   apiKeyUid: UID of the API key (not the key itself)
-   *   tenantId: The tenant/organization ID to restrict access to
-   *   searchRules: Index-level filter rules
-   */
-  const client = new MeiliSearch({ host: 'http://localhost:7700', apiKey: 'your-master-key' })
+const client = new Meilisearch({ host: 'http://localhost:7700', apiKey: process.env.MEILI_MASTER_KEY })
 
-  return client.generateTenantToken(apiKeyUid, searchRules, {
-    expiresAt: new Date(Date.now() + 3600 * 1000),  // 1 hour
-  })
-}
+// Use the search API key (and its uid) from GET /keys, never the master key:
+// the token is signed with that key and inherits its permissions.
+const keys = await client.getKeys()
+const searchKey = keys.results.find((k) => k.name === 'Default Search API Key')
 
-// Usage: frontend gets a token that auto-filters by their org_id
-const token = generateTenantToken('key-uid', 'org_123', {
-  products: { filter: 'org_id = org_123' },
+const token = await generateTenantToken({
+  apiKey: searchKey.key,
+  apiKeyUid: searchKey.uid,
+  searchRules: { products: { filter: 'org_id = 123' } },   // org_id must be a filterable attribute
+  expiresAt: new Date(Date.now() + 3600 * 1000),            // 1 hour; always set an expiry
 })
+// Send `token` to the browser and use it as the API key for searches.
 ```
+
+### Step 6b: Hybrid (semantic) search
+
+Meilisearch can blend keyword and vector search. Configure an embedder in the index settings, then pass `hybrid` at query time:
+
+```bash
+curl -X PATCH 'http://localhost:7700/indexes/products/settings/embedders' \
+  -H 'Content-Type: application/json' -H "Authorization: Bearer $MEILI_MASTER_KEY" \
+  --data '{"default": {"source": "openAi", "model": "text-embedding-3-small",
+           "apiKey": "'"$OPENAI_API_KEY"'", "documentTemplate": "{{doc.title}} by {{doc.brand}}"}}'
+# then search with: {"q": "phone for photography", "hybrid": {"embedder": "default", "semanticRatio": 0.5}}
+```
+
+Other embedder sources (huggingFace, rest, userProvided, ...) are listed in the AI-powered search docs. Re-embedding runs as a task, so wait for it before judging results.
 
 ### Step 7: Frontend Integration with InstantSearch
 
@@ -218,7 +232,7 @@ const token = generateTenantToken('key-uid', 'org_123', {
 import { InstantSearch, SearchBox, Hits, RefinementList, Pagination } from 'react-instantsearch'
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 
-const { searchClient } = instantMeiliSearch('http://localhost:7700', 'your-search-key')
+const { searchClient } = instantMeiliSearch('http://localhost:7700', process.env.NEXT_PUBLIC_MEILI_SEARCH_KEY)
 
 export function SearchPage() {
   return (
@@ -277,6 +291,7 @@ The agent will:
 - Meilisearch is designed for end-user-facing search (product catalogs, documentation, content). For log analytics or time-series data, use Elasticsearch or ClickHouse instead.
 - Always set a master key in production — without it, anyone can modify your indexes.
 - Use the search API key (not master key) on the frontend. Generate it via the keys API or use tenant tokens for multi-tenant apps.
-- Index updates are asynchronous — `addDocuments` returns a task ID. Poll the task status or use webhooks for sync confirmation.
+- Index and settings updates are asynchronous: `addDocuments` returns a task. Call `.waitTask()` (JS SDK) or poll `GET /tasks/{taskUid}`; a task can end `failed`, so check its status.
+- A filter on an attribute not listed in `filterableAttributes` fails with an `invalid_search_filter` error; add the attribute (and wait for reindexing) first.
 - Meilisearch stores all data in memory-mapped files. For 1M documents with moderate fields, expect ~1-4 GB RAM. Plan capacity accordingly.
 - Re-index from your source of truth (database) on a schedule rather than trying to keep Meilisearch in perfect sync — it's simpler and more reliable.

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1a4935549a0eafbee554e67d8b9784702e46252953416a0d93ee17335bb1faa9",
-  "scoredAt": "2026-05-13T16:37:15.821Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:be06cca301fa9c89777e69ed3b23b0824ed1609027eebc0990d22157306552f7",
+  "scoredAt": "2026-10-02T22:49:44.496Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "Mostly happy-path API calls with little guidance on error handling, token expiry, failed requests, or troubleshooting (e.g., migrating an existing database, rate limits, backup)."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are prose outlines of agent steps without concrete commands, inputs, or outputs, so they are simplistic compared with the detailed step code."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 1.51,
+    "baselineAvg": 59,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "deploy-posts-collection-public-role",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric items, while Response B fails to provide the required Docker run command and uses incorrect API endpoints."
+        "name": "public-read-published-posts-permissions",
+        "baseline": 88,
+        "treatment": 82,
+        "rationale": "Both create the read permission on the Public policy with the correct filter and fields whitelist, but A adds a check for an existing permission, richer verification and extra notes, while B has a shorter but accurate flow with a Studio fallback and a slightly speculative claim about v11 errors."
       },
       {
-        "name": "sdk-fetch-published-posts",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required imports, client instantiation, or request pattern."
+        "name": "production-docker-compose-postgres-redis",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B pins Directus 12.4.1, sets IP_TRUST_PROXY=true, includes all required env vars and mounts volumes for uploads and extensions, while Response A uses an unpinned major-version variable defaulting to 11 and omits IP_TRUST_PROXY entirely."
+      },
+      {
+        "name": "sdk-fetch-and-notify-flow",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it uses a nested author field, `_eq` filter, `-published_at` sort and `limit: 10`, creates the flow with a `POST /flows` curl call using the event trigger and an action/`items.update`/`posts` scope, and says explicitly that the call only creates the trigger and operations still have to be added in Settings > Flows (it does not use `authentication()`). A uses the SDK `createFlow` rather than `POST /flows`, sorts by `-date_published` instead of `-published_at`, and adds a log operation, so it never says operations still need to be added manually. It also uses `staticToken` without `authentication()`, but it does show the correct flow options and mentions the UI route in passing."
       }
     ]
   }

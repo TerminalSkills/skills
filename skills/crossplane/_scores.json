@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c731e6a12211f14f4a49710b8d907022387694e2a1df8835bc9a5df51cef0237",
-  "scoredAt": "2026-05-13T16:08:00.404Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:b798cb317fdcd858bd8332b8161c51bed85f93773ee473a70c6c63b4b0ad4334",
+  "scoredAt": "2026-10-02T22:50:39.504Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,42 +11,54 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only covers happy path scenarios and does not address error handling or edge cases."
+        "detail": "Error handling is limited to a brief note on stuck managed resources; it omits provider install failures, missing Function dependencies, XR composition errors, deletion policies, and credential rotation."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Kubernetes environment with helm and kubectl, limiting its applicability to other platforms."
+        "category": "examples",
+        "detail": "Example 1 relies on an XBucket XRD and Composition that are never shown (only described as 'same shape as XDatabase'), and Example 2 is just a few debug commands, so the examples are not fully runnable or realistic end to end."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "credentials",
+        "detail": "The Secret manifest uses AWS's documented placeholder example keys (AKIAIOSFODNN7EXAMPLE), and the Guidelines explicitly warn against committing real credentials."
+      }
+    ]
   },
   "impact": {
-    "multiplier": 1.75,
-    "baselineAvg": 40,
-    "treatmentAvg": 70,
+    "multiplier": 1.53,
+    "baselineAvg": 57,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "provision-s3-with-versioning",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but omits the kubectl get managed command, while Response B lacks the required BucketVersioning resource, correct API version, providerConfigRef to default, and the kubectl get managed reference."
+        "name": "namespaced-queue-abstraction",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "B matches the rubric: Namespaced scope, required size enum, engine enum, no claimNames, Pipeline with function-patch-and-transform and a map transform from size to instance class, and a direct namespaced XDatabase. A uses function-go-templating with dict lookups instead of patch-and-transform and a map transform, and makes engine required but not size, so it misses key rubric items despite a correct XRD scope and direct XR."
       },
       {
-        "name": "create-database-abstraction",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response B covers the trace command and claim, while Response A lacks the trace and XRD/Composition definitions."
+        "name": "debug-stuck-managed-resource",
+        "baseline": 45,
+        "treatment": 95,
+        "rationale": "B hits every rubric item (kubectl get managed, describe bucket, the events field-selector command, and the missing ProviderConfig and IAM-permission causes), while A skips the events command and only touches the credentials cause in a table of many causes."
+      },
+      {
+        "name": "install-and-configure-aws-provider",
+        "baseline": 82,
+        "treatment": 72,
+        "rationale": "Both install Crossplane via Helm into crossplane-system, pin providers (though both use placeholders or unverified versions, A with a concrete v2.8.2 tag), create a Secret and a default ProviderConfig with source: Secret and secretRef, and warn against committing credentials. B adds a stronger production-safety treatment (IRSA, deletion policies, etc.) and mentions External Secrets/SOPS for keeping secrets out of git, while A only says to keep the secret out of git and to use an external secrets operator in passing, so B edges ahead on the secrets-manager suggestion."
       }
     ]
   }

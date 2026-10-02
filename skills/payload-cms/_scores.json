@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:66b8b3ffe2e7b0b545b75fdbe1786a64cff80ee2af9570755775b240bc18e0c3",
-  "scoredAt": "2026-05-13T09:48:37.546Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6e232cbe39f0af97343f124cfb0b02372508219a9cf89cbc4eca01ca05692ca8",
+  "scoredAt": "2026-10-02T22:53:55.185Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases for Payload CMS configuration."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks runnable code snippets or concrete procedures for implementing the described features."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js 18+ environment with specific databases, limiting cross-platform applicability."
+        "category": "conciseness",
+        "detail": "The skill contains two near-duplicate Overview sections that repeat the same description of Payload, and the Instructions are dense bullets that cram many commands and options into single lines."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 86,
-    "multiplier": 1.91,
+    "multiplier": 0.96,
+    "baselineAvg": 82,
+    "treatmentAvg": 79,
     "scenarios": [
       {
-        "name": "Blog CMS with categories, authors, rich text",
-        "baseline": 48,
-        "treatment": 88,
-        "rationale": "Treatment defines TypeScript collections with relationship fields, enables versions/drafts on posts, and fetches via Local API (payload.find()) in Server Components; baseline gives a generic headless-CMS sketch without versions:{drafts:true} or Local API usage."
+        "name": "local-api-visitor-access",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both name the Local API default and the `overrideAccess: false` fix. A also passes `user` and says not to use `draft: true` on a public page, which matches the rubric closely. B passes `user` only in the editor example and leaves it out of the main fix, and it sets `draft: false`, which is slightly off the rubric's draft guidance but harmless."
       },
       {
-        "name": "Editor/reviewer/admin role permissions",
-        "baseline": 42,
+        "name": "install-into-existing-nextjs-app",
+        "baseline": 85,
+        "treatment": 62,
+        "rationale": "Both list the correct packages, wrap next.config with withPayload, and give a buildConfig with secret, a Postgres adapter and lexicalEditor. B shows the full app/(payload) folder contents and the route-group restructuring, and also suggests copying the folder from a scratch create-payload-app project. A only says to copy the folder from the official template and hedges on details, and B's secret fallback of '' is a minor weakness."
+      },
+      {
+        "name": "role-based-publish-workflow",
+        "baseline": 80,
         "treatment": 84,
-        "rationale": "Treatment uses function-based access control with reusable isAdmin/isLoggedIn helpers at collection and field level (enforced across REST/GraphQL/Local API); baseline reaches for Express-style middleware that Payload would not enforce on Local API."
+        "rationale": "Both enable drafts, restrict the role field's update access to admins, and add a beforeChange hook that blocks publishing for non-reviewers; B defines both isAdmin and isStaff and its hook rejects any publish by a user without the right role, while A defines isAdmin and a role helper but its hook is skipped when req.user is absent, though A adds more caveats."
       }
     ]
   }

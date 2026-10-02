@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:12b593c1eec4ae7c659907458bb9a4f2a8f1980b8e1c0c9e35554b9e956b5e86",
-  "scoredAt": "2026-05-13T09:07:46.333Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:707c06205cd620ce66e60760c7006957840edaa42f90c86fd7933a143284e5fa",
+  "scoredAt": "2026-10-02T22:49:04.147Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Examples reference undefined helpers (store, validateJWT) and omit JWT 'Bearer' prefix handling, listOrders ignores Atoi errors and non-positive page/limit values, and edge cases such as shutdown timeout behavior, trusted proxies, and request body size limits are not covered."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 70,
+    "multiplier": 1.03,
+    "baselineAvg": 89,
     "treatmentAvg": 92,
-    "multiplier": 1.31,
     "scenarios": [
       {
-        "name": "Build authenticated user CRUD with validation",
-        "baseline": 70,
-        "treatment": 92,
-        "rationale": "Treatment uses r.Group(\"/api\") with authMiddleware, ShouldBindJSON with binding tags (required,email,oneof), c.AbortWithStatusJSON for 401, and c.Set/c.Get for auth user per SKILL.md; baseline writes plausible Gin handlers but skips struct binding tags and the group+middleware composition pattern."
+        "name": "versioned-group-jwt-validation",
+        "baseline": 90,
+        "treatment": 96,
+        "rationale": "Both implement the group, abort-401 middleware with c.Next(), ShouldBindJSON and a handler-returned 400; B matches the rubric more exactly by scoping the middleware with an explicit .Use(...) and using min=1, whereas A passes the middleware to Group() and uses gte=1 (functionally equivalent but not the rubric's literal form)."
       },
       {
-        "name": "Add graceful shutdown on SIGTERM",
-        "baseline": 70,
-        "treatment": 92,
-        "rationale": "Treatment uses http.Server wrapping the gin.Engine, signal.Notify on SIGINT/SIGTERM, and srv.Shutdown with context.WithTimeout 5s exactly as documented, plus mentions GIN_MODE=release; baseline often calls r.Run and skips the http.Server.Shutdown timeout pattern."
+        "name": "graceful-shutdown-sigterm",
+        "baseline": 95,
+        "treatment": 90,
+        "rationale": "Both cover the rubric (explicit http.Server, goroutine ignoring ErrServerClosed, signal handling, Shutdown with a timeout); A uses signal.NotifyContext instead of signal.Notify but adds a realistic Kubernetes preStop and timing budget, while B uses signal.Notify exactly as the rubric states, though its 5s timeout is short and its extra notes are thinner."
+      },
+      {
+        "name": "production-hardening-and-bind-choice",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both recommend ShouldBindJSON and JWT middleware, but A explicitly says Gin has no built-in JWT parser and explains BindJSON's auto-abort and double-handling with release mode kept as a point, while B covers release mode and JWT middleware in depth yet never states Gin lacks a built-in JWT parser and pushes replacing gin.Default()."
       }
     ]
   }

@@ -1,15 +1,16 @@
 ---
 name: payload-cms
 description: >-
-  Assists with building content management systems using Payload CMS with a code-first approach.
-  Use when defining collections in TypeScript, configuring access control, customizing the admin
+  Payload is an open-source, code-first headless CMS and application framework that runs inside a Next.js app, with collections defined in TypeScript.
+  Use this skill when defining collections in TypeScript, configuring access control, customizing the admin
   panel, or integrating with Next.js. Trigger words: payload, payload cms, headless cms,
   collections, admin panel, content management, payload fields.
 license: Apache-2.0
-compatibility: "Requires Node.js 18+ with PostgreSQL, MongoDB, or SQLite"
+compatibility: "Requires Node.js 20.9+ and a supported Next.js 15/16 release, with MongoDB, PostgreSQL, or SQLite"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/payloadcms/payload
   category: content
   tags: ["payload-cms", "cms", "headless-cms", "content-management", "nextjs"]
 ---
@@ -20,15 +21,21 @@ metadata:
 
 Payload CMS is a code-first headless CMS where collections and fields are defined in TypeScript, auto-generating an admin panel, REST/GraphQL APIs, and TypeScript types. It supports PostgreSQL, MongoDB, and SQLite, and integrates directly into Next.js applications with the Local API.
 
+## Overview
+
+Payload (3.x) is a code-first headless CMS where collections and fields are defined in TypeScript, auto-generating an admin panel, REST/GraphQL APIs, and TypeScript types. It installs into a Next.js app (the admin lives at `/admin` in your own project), supports MongoDB, PostgreSQL and SQLite through separate database adapters, and exposes a Local API that queries the database directly without HTTP.
+
 ## Instructions
 
-- When defining collections, create TypeScript config objects with `slug`, `fields`, `access`, and `hooks`, using field types like text, richText, relationship, upload, array, group, and blocks.
-- When setting access control, use function-based permissions at the collection, field, and operation level (create, read, update, delete), and create reusable access functions like `isLoggedIn` and `isAdmin`.
-- When building flexible pages, use blocks field type so editors compose pages from predefined block types, and define reusable field groups as functions for DRY configuration across collections.
-- When managing content workflows, enable versions with `versions: { drafts: true }` for draft/published states and full revision history.
-- When integrating with Next.js, use `@payloadcms/next` to run Payload inside the Next.js app, and use the Local API (`payload.find()`, `payload.create()`) in Server Components for typed, fast access without HTTP.
-- When customizing the admin panel, replace specific components with custom React, add custom views for new pages, and configure live preview for real-time frontend content previewing.
-- When building reusable content structures, use relationships over manual ID references for auto-resolution and validation, and define singleton globals for site settings, navigation, and footer.
+- **Install.** New project: `npx create-payload-app@latest`. Existing Next.js app: `pnpm i payload @payloadcms/next @payloadcms/richtext-lexical sharp graphql`, plus one adapter (`@payloadcms/db-mongodb`, `@payloadcms/db-postgres` or `@payloadcms/db-sqlite`), copy the `app/(payload)` folder from the official template, and wrap `next.config` with `withPayload` from `@payloadcms/next/withPayload`. The `payload.config.ts` calls `buildConfig({ secret: process.env.PAYLOAD_SECRET, db, editor, collections, globals, sharp })`; the rich-text editor is not bundled, so pass `lexicalEditor()` from `@payloadcms/richtext-lexical`.
+- **Collections.** Config objects with `slug`, `fields`, `access`, `hooks`, using field types such as text, richText, relationship, upload, array, group, blocks and select. Run `payload generate:types` after schema changes to refresh `payload-types.ts`, and `payload generate:importmap` after adding custom admin components.
+- **Access control.** Functions per operation (`create`, `read`, `update`, `delete`) on the collection and per field, receiving `{ req }` and returning a boolean or a query constraint, for example `({ req: { user } }) => user?.role === 'admin'`. Write reusable functions like `isAdmin` once and import them.
+- **Local API.** `const payload = await getPayload({ config })` (config from `@payload-config`) in Server Components, then `payload.find({ collection, where, depth, limit })` and `payload.create(...)`. **The Local API skips access control by default**; pass `overrideAccess: false` and `user` whenever the call runs on behalf of a visitor.
+- **Drafts and versions.** `versions: { drafts: true }` adds a `_status` field (`draft` or `published`). Saving with `draft: true` writes only to the versions table; publishing means setting `_status: 'published'`. `autosave` and scheduled publishing are options (scheduling needs the jobs queue). Query unpublished content with `draft: true` and restrict who may read it.
+- **Pages from blocks.** A `blocks` field lets editors compose pages from block types you define; share field groups as functions that return field arrays.
+- **Admin panel.** Replace components via `admin.components` using path strings, add custom views, and configure `admin.livePreview` with a `url` and breakpoints for real-time preview.
+- **Globals** hold singletons such as site settings, header and footer; use relationships rather than manual ID references.
+- **Database changes.** MongoDB needs no migrations. For Postgres/SQLite, dev mode pushes schema changes automatically, but production should use `payload migrate:create` and `payload migrate`.
 
 ## Examples
 
@@ -36,32 +43,55 @@ Payload CMS is a code-first headless CMS where collections and fields are define
 
 **User request:** "Set up Payload CMS for a blog with categories, authors, and rich text"
 
-**Actions:**
-1. Define `posts`, `authors`, and `categories` collections with relationships
-2. Configure rich text editor with custom blocks (code, callout, image)
-3. Enable drafts and versions on the posts collection
-4. Integrate with Next.js using the Local API for Server Component data fetching
+```ts
+// src/collections/Posts.ts
+import type { CollectionConfig } from 'payload'
 
-**Output:** A fully featured blog CMS with typed API, auto-generated admin panel, and Next.js integration.
+export const Posts: CollectionConfig = {
+  slug: 'posts',
+  admin: { useAsTitle: 'title' },
+  versions: { drafts: true },
+  access: { read: ({ req: { user } }) => (user ? true : { _status: { equals: 'published' } }) },
+  fields: [
+    { name: 'title', type: 'text', required: true },
+    { name: 'author', type: 'relationship', relationTo: 'users', required: true },
+    { name: 'categories', type: 'relationship', relationTo: 'categories', hasMany: true },
+    { name: 'content', type: 'richText' },
+  ],
+}
+```
+
+```tsx
+// app/(frontend)/blog/page.tsx (Server Component)
+const payload = await getPayload({ config })
+const { docs } = await payload.find({ collection: 'posts', limit: 10, sort: '-createdAt' })
+```
+
+**Result:** `/admin` shows Posts with Save Draft / Publish buttons; the blog page lists only published posts, fully typed.
 
 ### Example 2: Create a multi-role content workflow
 
 **User request:** "Set up Payload with editor, reviewer, and admin roles with different permissions"
 
-**Actions:**
-1. Define user collection with role field (editor, reviewer, admin)
-2. Create access control functions for each role and operation
-3. Apply field-level access to restrict sensitive fields to admins
-4. Add custom publish workflow actions (submit -> review -> publish)
+```ts
+// src/access/roles.ts
+import type { Access, FieldAccess } from 'payload'
 
-**Output:** A role-based CMS where editors create, reviewers approve, and admins manage all content.
+export const isAdmin: Access = ({ req: { user } }) => user?.role === 'admin'
+export const isStaff: Access = ({ req: { user } }) => Boolean(user && ['editor', 'reviewer', 'admin'].includes(user.role))
+export const adminOnlyField: FieldAccess = ({ req: { user } }) => user?.role === 'admin'
+```
+
+Add `{ name: 'role', type: 'select', options: ['editor', 'reviewer', 'admin'], defaultValue: 'editor', access: { update: adminOnlyField } }` to the Users collection, use `isStaff` for `read`/`create`, and let only reviewers and admins change `_status` to `published` with a `beforeChange` hook that throws otherwise.
+
+**Result:** editors can save drafts, reviewers and admins can publish, and only admins can change roles, through the admin panel, REST, GraphQL and Local API alike.
 
 ## Guidelines
 
-- Define reusable field groups as functions for DRY configuration across collections.
-- Use access control functions, not middleware; Payload enforces them on all entry points (REST, GraphQL, Local API).
-- Enable versions on content collections; `versions: { drafts: true }` prevents accidental publishes.
-- Use relationships over manual ID references; Payload auto-resolves and validates them.
-- Use the Local API (`payload.find()`) in Next.js Server Components; it is faster than HTTP and fully typed.
-- Keep admin customizations minimal; the auto-generated panel covers most needs.
-- Use blocks for flexible page building so editors compose pages from predefined block types.
+- Access control functions are enforced on REST and GraphQL, but not on Local API calls unless `overrideAccess: false` is set; this is the most common source of data leaks.
+- Keep `PAYLOAD_SECRET` and the database URL in environment variables; never commit them.
+- Enable versions on content collections so edits cannot publish by accident.
+- Use relationships instead of storing raw IDs; Payload validates and resolves them (`depth` controls how far).
+- Keep admin customizations small; the generated panel covers most needs.
+- Check the supported Next.js range in the installation docs before upgrading Next.js; Payload pins to patched versions.
+- Payload 2.x (webpack admin, `payload.init()`, Slate editor) is a different architecture; do not mix its snippets with 3.x.

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:46cf364e4bd73620bd2aa9ab0350e9cdeabee465276c0e4566715780a2df513e",
-  "scoredAt": "2026-05-13T10:04:45.999Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6d0cf9ba3afe09548fdcae0d818a1620595ac712f65486c8c817139d6751d3f4",
+  "scoredAt": "2026-10-02T22:54:49.808Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
+        "detail": "Covers mostly the happy path; it gives no troubleshooting for failures such as conflicting rule selections, a version mismatch between local, pre-commit and CI, or `--fix` changing code that breaks tests."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 63,
-    "treatmentAvg": 92,
-    "multiplier": 1.46,
+    "multiplier": 1.13,
+    "baselineAvg": 72,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "migrate flake8+black+isort to Ruff with pre-commit",
-        "baseline": 65,
-        "treatment": 92,
-        "rationale": "Baseline tends to use the older [tool.ruff] top-level select rather than the [tool.ruff.lint] namespace and may skip ruff-format, whereas treatment matches the documented config and the ruff-pre-commit repo wiring with both ruff (--fix) and ruff-format hooks."
+        "name": "migrate-flake8-isort-black",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both cover uninstall/install, pyproject [tool.ruff.lint] with E/F/I, removing old configs, and running `ruff check --fix` then `ruff format`; A uses the exact `ruff check . --fix` ordering from the rubric and gives a firmer concrete answer, while B adds helpful FastAPI/Depends notes but hedges as a template and writes `ruff check --fix .` with slightly different argument order."
       },
       {
-        "name": "Ruff in CI with PR annotations",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Baseline knows ruff check and ruff format --check but typically omits the --output-format=github flag that produces PR-annotated failures; treatment uses the exact CI snippet from the skill."
+        "name": "adopt-ruff-legacy-no-big-diff",
+        "baseline": 66,
+        "treatment": 62,
+        "rationale": "Both use `--add-noqa`, confirm `ruff check .` passes, and describe gradual noqa removal. B's RUF100 `--fix` guidance is stronger and it covers more ground, but it only runs `check` in CI, explicitly advises against `ruff format --check`, and adds distractor options. A's CI step also lacks `format --check`, but it treats formatting properly: it offers running `ruff format .` once and then enforcing `ruff format --check .`."
+      },
+      {
+        "name": "precommit-and-ci-setup",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "A matches the rubric closely, with the `ruff-check` hook, `--fix` args, `ruff-format`, a pinned rev, `ruff check .` and `ruff format --check .` in CI, and the Ruff version pinned in both places, while B uses the legacy `ruff` hook id, runs CI through ruff-action rather than the literal `ruff check .` and `ruff format --check .` commands, and pins an outdated version, although it does keep CI non-modifying and the pins aligned."
       }
     ]
   }

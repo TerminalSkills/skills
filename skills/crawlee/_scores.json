@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:022b5d1fc1c75d129d954c98729e62d5c5c386e1d19c66fb98e461ec014926d3",
-  "scoredAt": "2026-05-13T16:05:21.086Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:564281ebfec2b28e7fea697b0d7681546cd197d40f9425c83254ac4ee6e24c54",
+  "scoredAt": "2026-10-02T22:49:35.200Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,19 +11,19 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover all possible error scenarios and edge cases."
+        "detail": "Error handling is limited to a failedRequestHandler log line, with no guidance on CAPTCHA or block detection, session retirement, timeouts, or empty or changed selectors."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is Node.js specific and may not work with agents on other platforms."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of the agent's actions with no concrete code or output, and Example 2 (price monitoring) omits the named dataset, comparison and alerting code."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7.5,
-    "baselineAvg": 5,
-    "treatmentAvg": 75,
+    "multiplier": 1.91,
+    "baselineAvg": 43,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "static-pagination-csv-export",
-        "baseline": 0,
-        "treatment": 70,
-        "rationale": "Response A fails to use CheerioCrawler and the required methods, while Response B meets all functional requirements except for the exact CSV filename, earning it partial credit."
+        "name": "books-router-csv-export",
+        "baseline": 28,
+        "treatment": 88,
+        "rationale": "A uses CheerioCrawler with createCheerioRouter, separate LISTING and DETAIL handlers, enqueueLinks for the next page, pushData, Dataset exportToCSV, and both maxRequestsPerMinute and respectRobotsTxtFile, though maxRequestsPerCrawl is only mentioned in a note; B uses CheerioCrawler but has no router (a single if/else handler), no politeness or robots options, and a manual CSV writer instead of exportToCSV, and its stale-data note contradicts itself."
       },
       {
-        "name": "js-rendered-infinite-scroll-proxy",
-        "baseline": 10,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but omits the required page.locator click; Response B fails to meet the PlaywrightCrawler, ProxyConfiguration, and extraction method requirements."
+        "name": "js-rendered-infinite-scroll-shop",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "B hits nearly every rubric item: PlaywrightCrawler, waitForSelector, the built-in infiniteScroll helper, pushData, and a lowered maxConcurrency (5) with a note that browsers are heavy. A uses PlaywrightCrawler and waitForSelector but scrolls by hand, leans on waitForTimeout and networkidle, doesn't use infiniteScroll, and only mentions maxConcurrency in passing without setting it."
+      },
+      {
+        "name": "daily-price-monitor-named-dataset",
+        "baseline": 62,
+        "treatment": 66,
+        "rationale": "Both explain the default-storage purge and use a named store with diffing, but both use a named KeyValueStore rather than a named Dataset. B does use pushData into a named Dataset (price-history), uses PlaywrightCrawler, and explicitly warns against the default dataset. A uses CheerioCrawler and mentions the Playwright swap, but never uses pushData or a dataset."
       }
     ]
   }

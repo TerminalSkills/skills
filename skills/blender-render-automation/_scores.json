@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3a63d3ca037cb11bd9d70e7dad6cfd03afeaaec078980d2221e7c392e444fbbe",
-  "scoredAt": "2026-05-13T14:48:08.138Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:de173e8d37698b3d93649bbf45098ce1ccb8c2c08ace2d4e6bd9b60b8f27693b",
+  "scoredAt": "2026-10-02T22:48:56.184Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path."
+        "category": "examples",
+        "detail": "The two examples describe the expected script output in prose and give only run commands, so there is no complete runnable product_shot.py or turntable.py to demonstrate the pipeline end to end."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.77,
-    "baselineAvg": 53,
-    "treatmentAvg": 94,
+    "multiplier": 1.21,
+    "baselineAvg": 72,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "cycles-gpu-product-shot",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment sets the OpenImageDenoise denoiser, calls `prefs.get_devices()` after setting `compute_device_type`, enables `film_transparent` with RGBA, and uses a `TRACK_TO` constraint aimed at the Product object; baseline configures Cycles GPU at a high level but typically omits the explicit denoiser name and the get_devices step."
+        "name": "gpu-cycles-ci-config",
+        "baseline": 80,
+        "treatment": 80,
+        "rationale": "Both set the engine, 256 samples, OIDN, OPTIX and call get_devices() (B uses refresh_devices when it exists), and both pass -b, --factory-startup and --python-exit-code 1 before --python. A enables devices with the rubric's non-CPU rule `use = device.type != 'CPU'`, but its command has a flag-ordering problem. Its --python-exit-code comes after the .blend file and before --python, which is acceptable. B restricts devices to type == 'OPTIX', which meets the 'OptiX GPU only' requirement but doesn't use the rubric's exact non-CPU rule. B also adds an unrequested render call and argparse, which is more than the task asked for."
       },
       {
-        "name": "turntable-animation-png-sequence",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Treatment renders a numbered PNG sequence (not direct video) using `frame_start`/`frame_end` and `bpy.ops.render.render(animation=True)` plus the `blender --background --frame-start --frame-end --render-anim` CLI invocation; baseline tends to render straight to MP4, risking lost frames on crash."
+        "name": "turntable-36-frames-to-mp4",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "A matches the rubric closely: it creates a camera, places it in 36 equal steps around the model with cos/sin, and renders numbered PNGs with Cycles and denoising. It also gives the blender -b --python command and the ffmpeg command. B rotates a pivot with the model parented to it and assumes an existing camera, so it never creates a camera or uses cos/sin, though its render loop, Cycles setup and ffmpeg command are sound."
+      },
+      {
+        "name": "transparent-product-shot-with-materials",
+        "baseline": 92,
+        "treatment": 90,
+        "rationale": "Both scripts meet every rubric item (type-based BSDF lookup, metallic and roughness set, material appended, TRACK_TO camera, AREA light, film_transparent with RGBA PNG, 2000x2000, render with write_still), so the gap is small: A mentions a 'reference' for GPU setup that isn't in the answer and uses an operator-based approach, while B adds a bevel and links objects directly and its notes are self-contained and accurate."
       }
     ]
   }

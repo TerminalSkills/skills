@@ -1,18 +1,19 @@
 ---
 name: pandera
-description: Expert guidance for Pandera, the Python library for validating pandas and Polars DataFrames with expressive schemas. Helps developers define data contracts, validate data pipelines, and catch data quality issues before they corrupt downstream systems.
+description: >-
+  Pandera is a Python library for validating DataFrames (pandas, Polars, PySpark,
+  Dask and others) against declarative schemas with column types, constraints
+  and custom checks. Use this skill when asked to validate a DataFrame, define a
+  data contract, add data quality checks to a pipeline or pytest suite, or
+  report which rows fail validation.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Python 3.9+; pandas or polars installed through pandera extras"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: data-ai
-  tags:
-  - data-validation
-  - pandas
-  - polars
-  - python
-  - schema
+  repository: https://github.com/unionai-oss/pandera
+  tags: ["data-validation", "pandas", "polars", "python", "schema"]
 ---
 
 # Pandera — Data Validation for DataFrames
@@ -21,7 +22,7 @@ metadata:
 ## Overview
 
 
-Pandera, the Python library for validating pandas and Polars DataFrames with expressive schemas. Helps developers define data contracts, validate data pipelines, and catch data quality issues before they corrupt downstream systems.
+Pandera validates DataFrames against schemas you declare as classes (`DataFrameModel`) or objects (`DataFrameSchema`). Each column gets a type, constraints (`ge`, `isin`, `str_matches`, `unique`, `nullable`) and optional custom checks; whole-frame rules go in `@pa.dataframe_check`. It works with pandas (`pandera.pandas`), Polars (`pandera.polars`), PySpark, Dask, Modin and Ibis. The pandas API lives in `pandera.pandas`, and the base `pandera` package no longer installs pandas for you.
 
 
 ## Instructions
@@ -32,16 +33,12 @@ Define column types, constraints, and checks:
 
 ```python
 # schemas/orders.py — Order data validation schema
-import pandera as pa
-from pandera.typing import Series, DataFrame
 import pandas as pd
+import pandera.pandas as pa
+from pandera.typing import Series, DataFrame
 
 class OrderSchema(pa.DataFrameModel):
-    """Schema for validated order records.
-
-    Every row represents a single order transaction.
-    Validation runs automatically when data enters the pipeline.
-    """
+    """Schema for validated order records (one row per order)."""
 
     order_id: Series[str] = pa.Field(
         unique=True,
@@ -109,23 +106,14 @@ class OrderSchema(pa.DataFrameModel):
 
 ```python
 # pipelines/orders.py — Data pipeline with validation
-import pandera as pa
+import pandas as pd
+import pandera.pandas as pa
 from pandera.typing import DataFrame
 from schemas.orders import OrderSchema
 
 @pa.check_types                              # Validates return type at runtime
 def load_orders(filepath: str) -> DataFrame[OrderSchema]:
-    """Load and validate order data from a CSV file.
-
-    Args:
-        filepath: Path to the CSV file containing order records.
-
-    Returns:
-        Validated DataFrame conforming to OrderSchema.
-
-    Raises:
-        pa.errors.SchemaError: If validation fails with details of violations.
-    """
+    """Load order data from CSV; raises pa.errors.SchemaError if invalid."""
     df = pd.read_csv(filepath, parse_dates=["created_at", "shipped_at"])
     return df                                # Auto-validated by @check_types
 
@@ -151,7 +139,7 @@ try:
     summary = process_orders(orders)
     print(f"Processed {len(orders)} orders → {len(summary)} daily summaries")
 except pa.errors.SchemaError as err:
-    print(f"❌ Validation failed:\n{err.failure_cases}")
+    print(f"Validation failed:\n{err.failure_cases}")
     # failure_cases is a DataFrame showing exactly which rows/columns failed
 ```
 
@@ -159,21 +147,14 @@ except pa.errors.SchemaError as err:
 
 ```python
 # schemas/custom_checks.py — Reusable validation checks
-import pandera as pa
+import pandas as pd
+import pandera.pandas as pa
 import pandera.extensions as extensions
-import numpy as np
+from pandera.typing import Series
 
-@extensions.register_check_method(
-    statistics=["threshold"],
-    supported_types=pa.Column,
-)
+@extensions.register_check_method(statistics=["threshold"])
 def no_outliers_iqr(series: pd.Series, *, threshold: float = 1.5) -> pd.Series:
-    """Flag values outside the IQR fence as failures.
-
-    Args:
-        series: The column to check.
-        threshold: IQR multiplier (1.5 = standard, 3.0 = extreme only).
-    """
+    """Flag values outside the IQR fence (1.5 = standard, 3.0 = extreme only)."""
     q1 = series.quantile(0.25)
     q3 = series.quantile(0.75)
     iqr = q3 - q1
@@ -210,8 +191,9 @@ validated = UserSchema.validate(df)       # Returns validated Polars DataFrame
 
 ```python
 # tests/test_data_quality.py — Data quality tests
+import pandas as pd
 import pytest
-import pandera as pa
+import pandera.pandas as pa
 from schemas.orders import OrderSchema
 
 def test_orders_schema_on_sample_data():
@@ -233,14 +215,10 @@ def test_orders_schema_on_sample_data():
 def test_orders_schema_rejects_negative_amount():
     """Schema must reject orders with negative amounts."""
     bad_data = pd.DataFrame({
-        "order_id": ["ORD-00000001"],
-        "customer_id": ["cust-1"],
-        "amount": [-10.00],              # Invalid: negative
-        "status": ["completed"],
-        "currency": ["USD"],
+        "order_id": ["ORD-00000001"], "customer_id": ["cust-1"],
+        "amount": [-10.00], "status": ["completed"], "currency": ["USD"],
         "created_at": pd.to_datetime(["2026-01-01"]),
-        "shipped_at": pd.to_datetime(["2026-01-02"]),
-        "items_count": [1],
+        "shipped_at": pd.to_datetime(["2026-01-02"]), "items_count": [1],
     })
     with pytest.raises(pa.errors.SchemaError):
         OrderSchema.validate(bad_data)
@@ -249,39 +227,53 @@ def test_orders_schema_rejects_negative_amount():
 ## Installation
 
 ```bash
-pip install pandera
-
-# With Polars support
-pip install "pandera[polars]"
-
-# With hypothesis for property-based testing
-pip install "pandera[hypotheses]"
+pip install "pandera[pandas]"      # pandas DataFrames (import pandera.pandas)
+pip install "pandera[polars]"      # Polars DataFrames (import pandera.polars)
+pip install "pandera[io]"          # to_yaml / from_yaml schema serialization
+pip install "pandera[hypotheses]"  # hypothesis checks (needs scipy)
+pip install "pandera[strategies]"  # data synthesis with hypothesis
 ```
 
+The plain `pip install pandera` no longer pulls in pandas, so install the extra for the backend you use.
 
 ## Examples
 
+### Example 1: Report every bad row in a CSV before loading it
 
-### Example 1: Setting up an evaluation pipeline for a RAG application
+**User request:** "Our nightly orders.csv sometimes has malformed IDs and negative amounts. Validate it and tell me every failing row, not just the first."
 
-**User request:**
+By default Pandera stops at the first failure. Pass `lazy=True` to collect all of them; they raise `pa.errors.SchemaErrors` (plural) with a `failure_cases` DataFrame.
 
+```python
+import pandas as pd
+import pandera.pandas as pa
+from schemas.orders import OrderSchema
+
+df = pd.read_csv("data/orders_2026_03.csv", parse_dates=["created_at", "shipped_at"])
+try:
+    OrderSchema.validate(df, lazy=True)
+except pa.errors.SchemaErrors as err:
+    print(err.failure_cases[["index", "column", "check", "failure_case"]])
 ```
-I have a RAG chatbot that answers questions from our docs. Set up Pandera to evaluate answer quality.
+
+Result: one row per violation, for example `order_id | str_matches('^ORD-\\d{8}$') | ORD-0002` and `amount | greater_than_or_equal_to(0.01) | -1.0`. Without `lazy=True` only the first violation raises `pa.errors.SchemaError`.
+
+### Example 2: Data contract for a Polars users table in CI
+
+**User request:** "Add a check to our pipeline that fails if users.parquet has duplicate ids or an unknown plan."
+
+```python
+import pandera.polars as pa
+import polars as pl
+
+class UserSchema(pa.DataFrameModel):
+    user_id: int = pa.Field(unique=True, gt=0)
+    plan: str = pa.Field(isin=["free", "pro", "enterprise"])
+
+UserSchema.validate(pl.read_parquet("users.parquet"), lazy=True)
 ```
 
-The agent creates an evaluation suite with appropriate metrics (faithfulness, relevance, answer correctness), configures test datasets from real user questions, runs baseline evaluations, and sets up CI integration so evaluations run on every prompt or retrieval change.
-
-### Example 2: Comparing model performance across prompts
-
-**User request:**
-
-```
-We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Pandera.
-```
-
-The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
-
+A valid frame is returned unchanged. A frame with `user_id` 1 twice and `plan` "x" raises `SchemaErrors`; `failure_cases` is a Polars DataFrame listing `field_uniqueness` failures for `user_id` and the `isin` failure for `plan`. Without `lazy=True` Polars raises `SchemaError` at the first failure.
 
 ## Guidelines
 
@@ -293,3 +285,6 @@ The agent creates a structured experiment with the existing prompt set, configur
 6. **Test your schemas** — Write pytest tests with known-good and known-bad data to verify schema behavior
 7. **Descriptive error messages** — Pandera's `failure_cases` DataFrame shows exactly which rows and columns failed and why
 8. **Schema evolution** — When requirements change, update the schema first; let validation catch all affected data
+9. **Pick the right import** — `import pandera.pandas as pa` for pandas, `import pandera.polars as pa` for Polars; the old top-level `import pandera as pa` still works for pandas, but the submodule is what the documentation uses
+10. **Lazy validation for reports** — use `lazy=True` when you want all failures; leave it off for fail-fast pipelines
+11. **Cost** — validation runs on every call; for large frames validate at boundaries, or use `head`, `tail` or `sample` arguments on `validate` for a cheaper spot check

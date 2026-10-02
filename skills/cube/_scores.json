@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4f72c5c94dd25d322dc18137d3852c69b5da97eebb7540211e3f07153d1c12af",
-  "scoredAt": "2026-05-13T16:10:21.663Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:d815102afce2320e6e1c200d953870044cb2b7e0d1012d3e132f7aecb039154f",
+  "scoredAt": "2026-10-02T22:48:10.405Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for the provided examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js/React environment, limiting its applicability to other platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.2,
-    "baselineAvg": 25,
-    "treatmentAvg": 55,
+    "multiplier": 1.15,
+    "baselineAvg": 72,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "define-products-cube",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response A covers most required elements (cube name, sql_table, measures, dimensions, pre‑aggregation, segment) with a few inaccuracies, while Response B fails to meet several key specifications (sql_table, dimension names, pre‑aggregation dimensions, join, and segment naming)."
+        "name": "orders-metrics-model-with-rollup",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "B matches the rubric directly: Orders and Users cubes, a many_to_one join, a day-granularity rollup with a refresh_key, and revenue_per_user as `revenue / NULLIF(Users.count, 0)`; A is richer but defines revenue_per_user over a count_distinct of ordering users instead of Users.count, which departs from the rubric's specified formula, and its Users cube has fewer measures to match the denominator."
       },
       {
-        "name": "build-active-users-bar-chart",
-        "baseline": 20,
-        "treatment": 50,
-        "rationale": "Response A uses useCubeQuery and Recharts correctly but omits the required timeDimension, while Response B uses CubeProvider/CubeChart and wrong measures, missing all rubric requirements."
+        "name": "multi-tenant-row-level-security",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "B covers the full rubric (queryRewrite with throw and equals filter, contextToAppId, scheduledRefreshContexts, CUBEJS_DEV_MODE=false, two signed JWTs verification); A omits scheduledRefreshContexts and uses lowercase 'orders.tenant_id' and a model-level approach, though it covers dev mode and verification well."
+      },
+      {
+        "name": "react-revenue-chart-and-rest-query",
+        "baseline": 80,
+        "treatment": 80,
+        "rationale": "Both wrap the app in CubeProvider with cube() and an apiUrl ending in /cubejs-api/v1, and both use useCubeQuery with chartPivot(); A's CubeProvider is only a comment, while B shows it in code. For the REST part, A's query includes a timeDimensions entry with granularity month and a dateRange, while B's REST query omits granularity. A handles 'Continue wait' with a retry in code and notes that measures are strings, but its retry loop has no delay or cap. B only describes the retry in a note and notes that measures are strings, so A is slightly more complete on retrying and B on the React wrapper."
       }
     ]
   }

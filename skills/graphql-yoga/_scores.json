@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:adba21ff53b0604422c5841dc6f039d2f0fd6f304d67ffd2329f868011aa250c",
-  "scoredAt": "2026-05-13T09:10:10.075Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b4695bbc5f95f0befab849bfa037dcd0f75cfb07c7239f397acb216e6832807f",
+  "scoredAt": "2026-10-02T22:50:03.174Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill description lacks step-by-step instructions, making it ambiguous for users to implement without prior knowledge."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as invalid input or database failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "While code examples are provided, missing context like database initialization and authentication functions reduce the ability to run the code directly."
+        "detail": "Error handling is covered for masking and depth limits, but there is no worked example for rate limiting (the @rateLimit directive and identifyFn are described but never shown), uploads, or Redis-backed multi-instance setups, and Example 2 uses undefined typeDefs/resolvers."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 97,
-    "multiplier": 2.55,
+    "multiplier": 1.53,
+    "baselineAvg": 58,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "basic-yoga-setup",
-        "baseline": 45,
-        "treatment": 96,
-        "rationale": "Treatment uses createSchema + createYoga together, wires NODE_ENV into maskedErrors and graphiql, and implements Subscription.newUser.subscribe via pubsub.subscribe; baseline uses makeExecutableSchema and an async generator without NODE_ENV gating."
+        "name": "users-api-sse-subscription-masked-errors",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": "A matches the rubric closely, with default error masking left on, GraphQLError NOT_FOUND, createPubSub, and no WebSocket server. B overrides maskedErrors with a custom maskError, which the rubric says not to do (it asks to leave default masking on), though B's other parts are correct."
       },
       {
-        "name": "yoga-plugins-hardening",
-        "baseline": 30,
-        "treatment": 97,
-        "rationale": "Treatment registers useResponseCache, useRateLimiter, and useDepthLimit from the Yoga plugin packages with full config; baseline reaches for incorrect package names and falls back to validationRules-style depth limiting."
+        "name": "response-cache-and-depth-limit-with-fetch-test",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "A matches the rubric closely (ttl 60_000, per-user authorization session, maxDepth 8, POST yoga.fetch with JSON body) while B uses maxDepth 7, a custom x-user header session, and messy leftover helper code, deviating from the rubric's maxDepth 8 despite correct packages and fetch testing."
+      },
+      {
+        "name": "file-upload-and-rate-limit-multi-replica",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "B matches the rubric closely: it declares scalar File, takes a File! argument, reads it with file.text(), uses useRateLimiter with identifyFn, defines the @rateLimit directive with max 10 and window 5s, and notes in-memory PubSub and cache are per-process while recommending the Redis event target and a shared cache. A uses a File! argument and the Redis event target and shared cache, but it never declares scalar File, uses rate-limiter-flexible instead of @envelop/rate-limiter, and has no @rateLimit directive or useRateLimiter."
       }
     ]
   }

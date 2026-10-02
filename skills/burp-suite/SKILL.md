@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: 'Java-based (Linux, macOS, Windows)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - burp-suite
@@ -22,7 +22,7 @@ metadata:
 
 ## Overview
 
-Burp Suite is the standard web application security testing platform. Its intercepting proxy captures and modifies HTTP/HTTPS traffic between browser and server. Includes: Scanner (automated vulnerability detection), Intruder (parameter fuzzing), Repeater (manual request modification), Sequencer (token randomness analysis), and Decoder (encoding/decoding). Community Edition is free; Professional adds the scanner and advanced features.
+Burp Suite is PortSwigger's web application security testing platform. Its intercepting proxy captures and modifies HTTP/HTTPS traffic between browser and server. Includes: Scanner (automated vulnerability detection), Intruder (parameter fuzzing), Repeater (manual request modification), Sequencer (token randomness analysis), and Decoder (encoding/decoding). Burp Suite Community Edition is free and has no Scanner; Burp Suite Professional adds the Scanner and advanced automation; the former Enterprise Edition is now sold as Burp Suite DAST for CI/CD scanning at scale. PortSwigger also sells Burp AT, an agentic AI layer on top of Professional/DAST — none of the steps below depend on it.
 
 ## Instructions
 
@@ -64,9 +64,9 @@ GET /api/v1/users/123/profile HTTP/1.1
 → Change to: GET /api/v1/users/124/profile HTTP/1.1
 → If 200 OK with different user's data → IDOR vulnerability
 
-# Test privilege escalation: Use regular user token on admin endpoint
+# Test privilege escalation: Use a captured regular-user session token on an admin endpoint
 GET /api/v1/admin/users HTTP/1.1
-Authorization: Bearer <regular-user-token>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzQ0MiIsInJvbGUiOiJtZW1iZXIifQ.3fK9pQ2sL0xVYwZqJmR8NcT1uEoIhGaB4dWn7yXqP0M
 → If 200 OK → Broken access control
 
 # Test input validation: Inject payloads
@@ -98,14 +98,14 @@ GET /§admin§/ HTTP/1.1
 
 # Credential stuffing (authorized testing only)
 POST /api/v1/auth/login HTTP/1.1
-{"email": "§user@example.com§", "password": "§password123§"}
+{"email": "§user@beacontowersecurity.com§", "password": "§Spr1ng2026!§"}
 → Payload type: Pitchfork (parallel lists)
 → Payload 1: email list, Payload 2: password list
 → Filter: status 200 or different response length
 
 # Parameter fuzzing for injection
 POST /api/v1/products HTTP/1.1
-{"name": "§test§", "category": "electronics"}
+{"name": "§Wireless Mouse§", "category": "electronics"}
 → Payload: SQL/XSS/SSTI fuzzing wordlist
 → Monitor: response time (time-blind), errors (error-based), content changes
 ```
@@ -129,7 +129,7 @@ POST /api/v1/products HTTP/1.1
 # - Information disclosure
 
 # Configure scan scope to stay within authorized targets:
-# Target → Scope → Include: *.target.example.com
+# Target → Scope → Include: *.staging.beacontowersecurity.com
 ```
 
 ### Step 5: Automation with Burp Extensions
@@ -172,6 +172,24 @@ POST /api/v1/products HTTP/1.1
 # Export sitemap for documentation:
 # Target → Site map → Right-click → Save selected items
 ```
+
+## Examples
+
+### Example 1: "Check whether this API leaks other users' order history (IDOR)"
+
+1. Log in as a low-privilege account, browse to `GET /api/v1/orders/8842`, and confirm it returns your own order.
+2. Send the request to Repeater, change `8842` to a neighboring ID (`8841`), and resend.
+3. If the response is `200 OK` with another account's order data, send the request to Intruder, mark `8842` as an injection point (`§8842§`), and sweep a numeric range (1–10000) to measure how many IDs are exposed, filtering for `200` responses.
+
+Result: a 200/404 split across the swept range shows exactly which order IDs are reachable without authorization — evidence for an IDOR finding, with the Intruder results table as supporting data for the report.
+
+### Example 2: "Find hidden parameters on a login endpoint before fuzzing it"
+
+1. Send `POST /api/v1/auth/login` to the Param Miner extension (BApp Store → install → right-click the request → "Guess params" → "Guess JSON params").
+2. Param Miner replays the request with candidate parameter names and flags any that change the response (for example, a hidden `debug` or `bypass_mfa` field).
+3. Confirm a hit manually in Repeater by adding the discovered parameter and resending.
+
+Result: Param Miner reports the parameter name it found a response difference for; manual confirmation in Repeater turns that signal into a reproducible finding before it goes into Intruder for further fuzzing.
 
 ## Guidelines
 

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3c6d1d319aa251ece6f42a0ccad0fbd166f63d945a0b32a452c94a5f1d681e86",
-  "scoredAt": "2026-05-13T15:12:20.263Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:47fa7b5b105718f8e6feea67544b28d6bc4708a2e3a915ebf95fc416f476be28",
+  "scoredAt": "2026-10-02T22:48:19.827Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not handle all possible error scenarios, such as authentication failures or network errors."
+        "detail": "Covers mostly the happy path: no handling of auth failures, rate limits or exhausted credits, empty results, or pagination beyond the first page, and the f-string query in find_hosts_by_domain_cert does not validate or escape the domain input."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3,
-    "baselineAvg": 0,
-    "treatmentAvg": 30,
+    "multiplier": 3.65,
+    "baselineAvg": 26,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "export-domain-cert-hosts",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Neither response uses the required find_hosts_by_domain_cert and export_hosts_to_json calls with the specified parameters, so both fail to meet the rubric."
+        "name": "cert-pivot-shadow-it-search",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Response B matches the rubric: it installs censys-platform, builds SDK(organization_id, personal_access_token) from env vars, calls sdk.global_data.search(search_query_input_body=...) with the CenQL query and the host.ip, host.services.port and host.services.cert.names fields, and iterates res.result.hits. Response A uses raw requests with an unverified endpoint and a different query syntax, and it never uses the SDK or iterates res.result.hits in the required way."
       },
       {
-        "name": "aggregate-apache-countries",
-        "baseline": 0,
-        "treatment": 60,
-        "rationale": "Response A provides most of the required code and output but omits the port 80 filter, whereas Response B gives no relevant answer."
+        "name": "migrate-legacy-censys-code",
+        "baseline": 62,
+        "treatment": 95,
+        "rationale": "B matches the rubric: it says the old package is retired, uses censys-platform with a PAT and org ID, writes the CenQL query as `host.services: (protocol = \"REDIS\")` and calls `sdk.global_data.search`. A uses the right SDK and call but writes a different query form, `host.services.protocol = \"REDIS\"`, makes the org ID optional, and hedges heavily about whether its names are correct."
+      },
+      {
+        "name": "preview-nginx-countries-before-pull",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response A matches the rubric almost point for point: the SDK aggregate call, the CenQL query combining the Server header and ASN 16509, the country field with num_buckets, the bucket loop, and the credit-preview point, although it says aggregations still consume credits, which is a slight deviation. Response B answers with Shodan, which is off-target, and never uses the Censys SDK."
       }
     ]
   }

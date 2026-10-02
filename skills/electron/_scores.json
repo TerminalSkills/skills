@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:071e94076f90fdfc2ce776c5ac4e19566a512786eca8861aba969075860bcec6",
-  "scoredAt": "2026-05-13T08:47:30.761Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:31211e120d5ddc4b619859c7d7f1405bc092d5476e53a55784eed30a718ba277",
+  "scoredAt": "2026-10-02T22:51:12.245Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as IPC failures or file system errors."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The instructions lack concrete code snippets or step-by-step procedures that can be directly executed."
+        "category": "examples",
+        "detail": "Both examples are high-level action lists with prose outputs rather than runnable demonstrations, and the auto-update example has no config or code (no electron-builder publish block, no electron-updater setup, no latest.yml snippet), so only the minimal skeleton gives concrete code."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 1.03,
+    "baselineAvg": 77,
+    "treatmentAvg": 79,
     "scenarios": [
       {
-        "name": "Secure file-picker IPC bridge",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline enables nodeIntegration and uses the legacy send/reply pattern; treatment uses contextBridge.exposeInMainWorld plus ipcMain.handle/ipcRenderer.invoke with contextIsolation, sandbox, and CSP as the SKILL prescribes."
+        "name": "secure-ipc-file-open-bridge",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": "B uses event.senderFrame.origin for the sender check, as the rubric requires, and exposes a small named API with defaults left on. A checks senderFrame.url with startsWith, which is the exact thing the rubric rules out, though its other security elements are sound."
       },
       {
-        "name": "Auto-update with GitHub Releases",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline confuses the built-in autoUpdater with electron-updater and skips publish config; treatment configures electron-builder publish targets, electron-updater main-process flow, and a renderer progress/restart UI as documented."
+        "name": "harden-electron-window-navigation",
+        "baseline": 80,
+        "treatment": 82,
+        "rationale": "Both responses cover will-navigate, setWindowOpenHandler returning deny, CSP, an openExternal warning, and @electron/fuses with runAsNode and nodeCliInspect; A is more thorough but registers will-navigate via a broader guard and gives a CSP with default-src 'none' rather than the rubric's example, while B uses the rubric's exact CSP and is concise but has a narrower will-navigate check and less depth."
+      },
+      {
+        "name": "github-releases-staged-autoupdate",
+        "baseline": 88,
+        "treatment": 62,
+        "rationale": "B covers all three rubric items with correct, specific detail (stagingPercentage added to every manifest via a script with a raising workflow, plus a Linux breakdown), though it never states outright that Electron's built-in autoUpdater doesn't work on Linux. A covers the same ground more thinly, but it does state that point explicitly. A's main weaknesses are that it only edits latest.yml by hand, says nothing about the updater needing a published (non-draft) release, and hedges on whether staging works for Linux metadata."
       }
     ]
   }

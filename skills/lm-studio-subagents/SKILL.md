@@ -10,8 +10,9 @@ license: Apache-2.0
 compatibility: "Requires LM Studio installed and running locally; the native /api/v1/chat endpoint requires LM Studio 0.4.0+"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: data-ai
+  repository: https://github.com/lmstudio-ai/lmstudio-js
   tags: ["lm-studio", "local-llm", "subagent", "inference", "cost-saving"]
   use-cases:
     - "Offload repetitive LLM tasks to free local models"
@@ -33,23 +34,20 @@ When a user wants to use local models via LM Studio, determine the task:
 ### Task A: Set up LM Studio as a local API server
 
 1. Download and install LM Studio from `https://lmstudio.ai/`
-2. Download a model through the LM Studio UI (recommended starting models):
-   - `lmstudio-community/Llama-3.1-8B-Instruct-GGUF` (general purpose)
-   - `lmstudio-community/Mistral-7B-Instruct-v0.3-GGUF` (fast inference)
-   - `lmstudio-community/Qwen2.5-7B-Instruct-GGUF` (multilingual)
+2. Download a model: in the app use Model Search, or from a terminal run `lms get` (no argument lists curated recommendations; `lms get llama-3.1-8b@q4_k_m` picks a quantization). Instruct models in the 4B-8B range (Qwen, Llama, Mistral families) are a good start; check the memory estimate first with `lms load --estimate-only qwen2.5-7b-instruct`.
 
-3. Start the local server:
-   - Open LM Studio, go to the "Developer" tab
-   - Load a model and click "Start Server"
-   - Server runs at `http://localhost:1234` by default
+3. Start the local server: toggle "Start server" in the Developer tab, or run `lms server start` (add `--port 1234` to pin the port; the CLI otherwise reuses the last port, and 1234 is the usual default). It listens on `127.0.0.1` only unless you pass `--bind`; `--cors` and non-local binds need authentication switched on.
 
-4. Verify the server is running:
+4. Load a model with a stable API name and context size, then verify:
 
 ```bash
+lms load qwen2.5-7b-instruct --identifier local-worker --context-length 16384
 curl http://localhost:1234/v1/models
 ```
 
-5. The native API requires an API token. Generate one under Developer → API tokens and export it as `LM_API_TOKEN`. (The OpenAI-compatible endpoints still accept the placeholder key `lm-studio`.)
+   The `id` values returned are what you pass as `model`. Export it: `export LM_MODEL=local-worker`.
+
+5. Authentication is off by default ("does not require authentication"). To enable it, go to Developer, Server Settings, switch authentication on, then Manage Tokens, Create Token, and copy the token once. Export it as `LM_API_TOKEN`; send it as `Authorization: Bearer $LM_API_TOKEN`. With auth off, the header is harmless. OpenAI-compatible clients still need some non-empty key string.
 
 ### Task B: Call LM Studio from Python (native v1 API, preferred)
 
@@ -60,10 +58,12 @@ import os
 import requests
 
 LM_STUDIO_URL = "http://localhost:1234"
-HEADERS = {"Authorization": f"Bearer {os.environ['LM_API_TOKEN']}"}
+TOKEN = os.environ.get("LM_API_TOKEN")  # only needed when server auth is enabled
+HEADERS = {"Authorization": f"Bearer {TOKEN}"} if TOKEN else {}
+MODEL = os.environ.get("LM_MODEL", "local-worker")
 
 def _chat(**body) -> dict:
-    body.setdefault("model", "loaded-model")
+    body.setdefault("model", MODEL)
     body.setdefault("max_output_tokens", 4096)
     body.setdefault("reasoning", "off")   # reasoning tokens eat the output budget
     body.setdefault("store", True)        # required for previous_response_id
@@ -86,13 +86,13 @@ def continue_local(response_id: str) -> dict:
 
 result = ask_local("Summarize this text in 2 sentences: ...")
 print(result["text"])
-# If stats show the generation hit the output limit, extend it:
+# If stats["total_output_tokens"] reached max_output_tokens, the answer was cut off; extend it:
 # result = continue_local(result["response_id"])
 ```
 
 ### OpenAI-compatible fallback
 
-Use this route when the native API is unavailable (LM Studio older than 0.4.0, or an existing OpenAI-SDK codebase). LM Studio treats `max_tokens: -1` as "no fixed completion cap", which avoids the silent truncation a small hard-coded limit causes. There is no continuation primitive here, so always inspect `finish_reason`.
+Use this route when the native API is unavailable (LM Studio older than 0.4.0, or an existing OpenAI-SDK codebase). Set `max_tokens` generously (4096-8192) because a small hard-coded limit silently truncates answers. There is no continuation primitive here, so always inspect `finish_reason`.
 
 ```python
 from openai import OpenAI
@@ -100,18 +100,18 @@ from openai import OpenAI
 # Point to local LM Studio server
 client = OpenAI(
     base_url="http://localhost:1234/v1",
-    api_key="lm-studio",  # Any string works
+    api_key="lm-studio",  # any non-empty string; only checked when auth is on
 )
 
 def ask_local(prompt: str, system: str = "You are a helpful assistant.") -> str:
     response = client.chat.completions.create(
-        model="loaded-model",  # LM Studio ignores this, uses loaded model
+        model="local-worker",  # the identifier shown by /v1/models
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ],
         temperature=0.3,
-        max_tokens=-1,  # LM Studio: no fixed completion cap
+        max_tokens=4096,  # generous; check finish_reason below
     )
     if response.choices[0].finish_reason == "length":
         raise RuntimeError("LM Studio truncated the response; use the native API continuation flow.")
@@ -136,13 +136,13 @@ class LocalSubagent:
 
     def run(self, user_input: str) -> str:
         response = client.chat.completions.create(
-            model="loaded-model",
+            model="local-worker",
             messages=[
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": user_input},
             ],
             temperature=self.temperature,
-            max_tokens=-1,  # LM Studio: no fixed completion cap
+            max_tokens=4096,  # generous; check finish_reason below
         )
         if response.choices[0].finish_reason == "length":
             raise RuntimeError("Response truncated; retry through the native API continuation flow.")
@@ -184,7 +184,7 @@ async def process_batch(items: list[str], system_prompt: str, max_concurrent: in
     async def process_one(text: str) -> dict:
         async with semaphore:
             response = await client.chat.completions.create(
-                model="loaded-model",
+                model="local-worker",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": text},
@@ -206,7 +206,7 @@ documents = ["doc1 text...", "doc2 text...", ...]  # 100 documents
 summaries = asyncio.run(process_batch(
     documents,
     system_prompt="Summarize in 2 sentences.",
-    max_concurrent=2,  # LM Studio handles one request at a time by default
+    max_concurrent=2,  # keep low on a single local GPU
 ))
 incomplete = [i for i, r in enumerate(summaries) if r.get("truncated") or r.get("error")]
 ```
@@ -282,10 +282,10 @@ for doc in contracts:
 
 ## Guidelines
 
-- LM Studio processes one request at a time by default. Set `max_concurrent=1-2` for batch jobs.
+- Local hardware is the bottleneck: start batch jobs with `max_concurrent=1-2` and raise it only if tokens-per-second (in `stats`) holds up.
 - Prefer the native `/api/v1/chat` endpoint (LM Studio 0.4.0+) for long-form requests; use `/v1/chat/completions` as a compatibility fallback.
-- Never hard-code small output limits such as `512`, `1024`, or `2048` for long-form tasks — that is the usual cause of summaries that stop mid-sentence. Use `max_output_tokens` of 4096-8192 natively, or `max_tokens: -1` on the compatible route.
-- Never present a length-terminated response as complete: check `finish_reason == "length"` on the compatible route and the returned `stats` natively, then resume with `previous_response_id` rather than resending the source.
+- Never hard-code small output limits such as `512`, `1024`, or `2048` for long-form tasks — that is the usual cause of summaries that stop mid-sentence. Use `max_output_tokens` of 4096-8192 natively, or `max_tokens` of 4096-8192 on the compatible route.
+- Never present a length-terminated response as complete: check `finish_reason == "length"` on the compatible route and compare `stats.total_output_tokens` with `max_output_tokens` natively, then resume with `previous_response_id` rather than resending the source.
 - Use `reasoning: "off"` for summaries and extraction; reasoning tokens consume the generation budget without appearing in the returned text.
 - Context length and output length are separate limits — raise `context_length` at model-load time for large inputs, and `max_output_tokens` for long answers.
 - Use quantized models (Q4_K_M or Q5_K_M) for best speed-to-quality ratio on consumer hardware.

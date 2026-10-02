@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ccccb22c21ce23f1cab0bc0af08150eb7eb97d41db6822e4d8f4036f65637bec",
-  "scoredAt": "2026-05-13T14:10:32.905Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:0f3a76a6d221eff2046b8719d5a580ecd136682012529bdd1bc3f06dff28ff45",
+  "scoredAt": "2026-10-02T22:47:27.608Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling for API failures or missing data scenarios."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks concrete code snippets or step-by-step procedures for implementation."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill relies on Claude's vision API, limiting compatibility to that vendor."
+        "detail": "The skill is tied to Claude's vision API and the Anthropic SDK with ANTHROPIC_API_KEY, so it cannot run with other AI agents or providers without rewriting the code."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4,
-    "baselineAvg": 5,
-    "treatmentAvg": 40,
+    "multiplier": 2,
+    "baselineAvg": 45,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "extract-floor-plan-rooms",
-        "baseline": 10,
-        "treatment": 30,
-        "rationale": "Response A offers a workable script that could generate the required JSON if extended, whereas Response B simply refuses to provide any data."
+        "name": "floor-plan-room-extraction-script",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "A matches the rubric: image block before text, a prompt asking for both sqft and sqm, null for anything not shown and one JSON object only, then json.loads and a required-field check. B uses forced tool use instead of json.loads, never asks for sqm in the prompt (computes it in Python), has no null instruction and does no required-field validation, so it misses most of the rubric's specifics despite being a sound design."
       },
       {
-        "name": "extract-ibc-compliance-data",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response A partially meets the rubric by providing some fields, while Response B fails to produce the required JSON structure."
+        "name": "ibc-sheet-to-buildingdata-json",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "A uses the documented BuildingData fields, gives both sqft/sqm and feet/meters with the 0.0929 factor, and sets permitted stories, height and total area to null rather than inferring them. B invents its own field names, never uses the documented schema, and adds derived totals, so it only partly meets the rubric even though its conversions are present."
+      },
+      {
+        "name": "multi-sheet-pdf-dense-notes-strategy",
+        "baseline": 66,
+        "treatment": 90,
+        "rationale": "B covers nearly every rubric item: page-at-a-time processing with merging, pdftoppm at 200 DPI with the `-f 3 -l 3` page flags, cropping, the 1568 px downscale cap, preferring printed dimensions over scale measurement, and verifying against the source. A has a strong tiling and validation pipeline and mentions the 1,568 px downscale, but it never uses pdftoppm, never says to prefer printed dimensions over measuring from scale, and doesn't stress verifying against the source before structural calculations."
       }
     ]
   }

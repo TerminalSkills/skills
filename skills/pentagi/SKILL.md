@@ -1,22 +1,21 @@
 ---
 name: pentagi
 description: >-
-  Run AI-powered penetration testing with PentAGI. Use when a user asks to
-  automate security testing, set up autonomous pentesting, deploy an AI-driven
-  vulnerability scanner, build a self-hosted security testing platform, or
-  conduct penetration tests with LLM-powered agents.
+  PentAGI is a self-hosted, autonomous AI penetration-testing system: LLM agents plan and run security tools such as nmap and sqlmap inside sandboxed Docker containers and write a vulnerability report.
+  Use when a user asks to automate security testing, set up autonomous pentesting, deploy an AI-driven vulnerability scanner,
+  build a self-hosted security testing platform, or drive pentests through the PentAGI API. Only for systems the user is authorized to test.
 license: Apache-2.0
-compatibility: 'Docker, any LLM provider (OpenAI, Anthropic, Ollama, Bedrock, Gemini, DeepSeek)'
+compatibility: 'Docker and Docker Compose (or Podman); 2+ vCPU, 4 GB RAM, 20 GB disk; at least one LLM provider (OpenAI, Anthropic, Gemini, Bedrock, Ollama, DeepSeek and others)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/vxcontrol/pentagi
   category: devops
   tags:
     - pentagi
     - penetration-testing
     - security
     - ai-agents
-    - autonomous
     - vulnerability
 ---
 
@@ -24,220 +23,112 @@ metadata:
 
 ## Overview
 
-PentAGI is a fully autonomous AI agent system for penetration testing. It deploys a multi-agent architecture where specialized AI agents (research, development, infrastructure) collaborate to plan, execute, and report security assessments. All operations run in sandboxed Docker containers with 20+ professional security tools (nmap, metasploit, sqlmap, nikto, gobuster, etc.). Features a knowledge graph (Neo4j + Graphiti) for persistent learning across engagements, web intelligence via built-in browser, and comprehensive monitoring with Grafana/Langfuse. Self-hosted — your data stays on your infrastructure.
+PentAGI (v2.1.0, May 2026) is an open-source platform in which a team of AI agents (orchestrator, researcher, developer, infrastructure and others) carries out a penetration test as a "flow": it plans tasks, runs 20+ professional tools (nmap, metasploit, sqlmap and more) in isolated Docker containers, searches the web for context, stores results in PostgreSQL with pgvector, and produces a report. Optional add-ons are a Graphiti/Neo4j knowledge graph (beta, off by default), Langfuse for LLM tracing, and a Grafana/OpenTelemetry observability stack. Everything is self-hosted; only the LLM and search API calls leave your network (unless you use Ollama or another local model).
+
+Use it only against systems you own or are explicitly authorized in writing to test. It is a pentest assistant, not a breach-and-attack-simulation product with predefined campaigns.
 
 ## Instructions
 
-### Step 1: Quick Deployment
+### Step 1: Deploy with Docker Compose
+
+Requirements: Docker and Compose (Podman is supported), 2 vCPU, 4 GB RAM, 20 GB disk. The repository also offers an interactive installer, but the manual route below needs no extra binary.
 
 ```bash
-# Clone the repository
-git clone https://github.com/vxcontrol/pentagi.git
-cd pentagi
+mkdir pentagi && cd pentagi
+curl -o .env https://raw.githubusercontent.com/vxcontrol/pentagi/master/.env.example
+curl -o docker-compose.yml https://raw.githubusercontent.com/vxcontrol/pentagi/master/docker-compose.yml
+# docker-compose.yml mounts these three files; create them or Docker makes directories in their place
+curl -o example.custom.provider.yml https://raw.githubusercontent.com/vxcontrol/pentagi/master/examples/configs/custom-openai.provider.yml
+curl -o example.ollama.provider.yml https://raw.githubusercontent.com/vxcontrol/pentagi/master/examples/configs/ollama-llama318b.provider.yml
+curl -o example.bedrock.provider.yml https://raw.githubusercontent.com/vxcontrol/pentagi/master/examples/configs/bedrock.provider.yml
+```
 
-# Copy and configure environment
-cp .env.example .env
+Review `.env.example` and the compose file before starting them: the stack mounts the Docker socket for its worker containers.
+
+Edit `.env`. At least one LLM provider is required; the variable names are provider-specific (there is no `LLM_PROVIDER` or `LLM_MODEL`):
+
+```bash
+# LLM providers: set one or more
+OPEN_AI_KEY=your-openai-key
+# ANTHROPIC_API_KEY=...   GEMINI_API_KEY=...   DEEPSEEK_API_KEY=...
+# OLLAMA_SERVER_URL=http://localhost:11434
+# OLLAMA_SERVER_MODEL=llama3.1:8b-instruct-q8_0
+
+# Web search (all optional)
+DUCKDUCKGO_ENABLED=true
+TAVILY_API_KEY=your-tavily-key
+# SEARXNG_URL=http://searxng.internal:8080
+
+# Security: change before real use
+COOKIE_SIGNING_SALT=replace-with-a-long-random-string
+PUBLIC_URL=https://localhost:8443
+PENTAGI_POSTGRES_PASSWORD=replace-with-a-strong-password
+NEO4J_PASSWORD=replace-with-a-strong-password
 ```
 
 ```bash
-# .env — Essential configuration
-# LLM Provider (choose one)
-OPENAI_API_KEY=sk-...                    # OpenAI
-# ANTHROPIC_API_KEY=sk-ant-...           # Anthropic
-# OLLAMA_SERVER_URL=http://host:11434    # Local Ollama
-
-# Primary model for the main agent
-LLM_MODEL=gpt-4o                         # or claude-3-5-sonnet, llama3.1
-LLM_PROVIDER=openai                       # openai, anthropic, ollama, bedrock, gemini, deepseek
-
-# Search provider for web intelligence
-TAVILY_API_KEY=tvly-...                   # Tavily (recommended)
-# GOOGLE_SEARCH_API_KEY=...              # or Google Custom Search
-# SEARXNG_URL=http://localhost:8080      # or self-hosted SearXNG
-
-# Security — change these in production
-POSTGRES_PASSWORD=your-secure-password
-SECRET_KEY=your-secret-key-min-32-chars
-```
-
-```bash
-# Deploy the full stack
 docker compose up -d
-
-# Access the web UI
-open http://localhost:3000
 ```
 
-The stack deploys: React frontend, Go backend (GraphQL API), PostgreSQL with pgvector, Neo4j knowledge graph, security tools container, web scraper, and monitoring (Grafana + Langfuse).
+The web UI is `https://localhost:8443` (self-signed certificate unless you supply `SERVER_SSL_CRT`/`SERVER_SSL_KEY`). There is no public sign-up: the first login is `admin@pentagi.com` / `admin`; change that password immediately. To reach it from other hosts set `PENTAGI_LISTEN_IP=0.0.0.0`, `PUBLIC_URL` and `CORS_ORIGINS`, and firewall port 8443.
 
-### Step 2: Configure AI Agents
+### Step 2: Add monitoring stacks (optional)
 
-PentAGI uses a team of specialized agents that collaborate on the assessment.
-
-```yaml
-# Agent architecture (configured via UI or API)
-#
-# Primary Agent (Orchestrator)
-#   ├── Researches target, plans attack phases
-#   ├── Delegates to specialists:
-#   │   ├── Research Agent — OSINT, web scraping, CVE lookup
-#   │   ├── Development Agent — exploit modification, payload crafting
-#   │   └── Infrastructure Agent — container management, tool setup
-#   ├── Executes security tools in sandboxed containers
-#   └── Generates vulnerability reports
-#
-# Each agent has access to:
-#   - 20+ security tools (nmap, metasploit, sqlmap, nikto, etc.)
-#   - Web browser for research
-#   - Knowledge graph for persistent memory
-#   - Previous engagement learnings
-```
-
-### Step 3: Start a Penetration Test via Web UI
-
-```text
-1. Open http://localhost:3000
-2. Create a new engagement:
-   - Target: IP address, domain, or CIDR range
-   - Scope: Which services/ports to test
-   - Rules of engagement: What's allowed (e.g., no DoS, no data exfiltration)
-   - Objective: "Full security assessment" or specific focus
-3. The AI agent:
-   - Performs reconnaissance (nmap, whois, DNS enumeration)
-   - Identifies services and versions
-   - Searches for known vulnerabilities (CVE databases)
-   - Attempts exploitation with appropriate tools
-   - Documents findings with evidence
-   - Generates a vulnerability report
-```
-
-### Step 4: GraphQL API Integration
-
-```typescript
-// Integrate PentAGI into your security pipeline via GraphQL
-const PENTAGI_URL = 'http://localhost:3000/graphql'
-
-// Create a new engagement
-const createEngagement = await fetch(PENTAGI_URL, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_TOKEN}`,
-  },
-  body: JSON.stringify({
-    query: `
-      mutation CreateTask($input: CreateTaskInput!) {
-        createTask(input: $input) {
-          id
-          status
-          createdAt
-        }
-      }
-    `,
-    variables: {
-      input: {
-        target: '192.168.1.0/24',
-        objective: 'Perform a comprehensive security assessment of the internal network segment. Focus on identifying exposed services, default credentials, unpatched vulnerabilities, and potential lateral movement paths.',
-        scope: ['port-scan', 'service-enum', 'vuln-scan', 'web-app-test'],
-        constraints: ['no-dos', 'no-data-exfil', 'business-hours-only'],
-      },
-    },
-  }),
-})
-
-// Monitor progress
-const checkStatus = await fetch(PENTAGI_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_TOKEN}` },
-  body: JSON.stringify({
-    query: `
-      query TaskStatus($id: ID!) {
-        task(id: $id) {
-          id
-          status
-          progress
-          currentPhase
-          findings {
-            severity
-            title
-            description
-            evidence
-            remediation
-          }
-          logs {
-            timestamp
-            agent
-            action
-            output
-          }
-        }
-      }
-    `,
-    variables: { id: engagement.id },
-  }),
-})
-```
-
-### Step 5: Knowledge Graph — Persistent Learning
-
-```text
-# PentAGI remembers findings across engagements via Neo4j + Graphiti
-#
-# After each engagement, the knowledge graph stores:
-# - Vulnerability patterns found per technology stack
-# - Successful exploitation techniques
-# - Network topology relationships
-# - Service fingerprints and their known weaknesses
-#
-# In future engagements, the agent queries this knowledge to:
-# - Prioritize attack vectors that worked before on similar targets
-# - Skip techniques known to fail on specific configurations
-# - Correlate findings across multiple assessments
-# - Identify systemic issues across the organization
-```
-
-### Step 6: Monitoring and Reporting
+The overlays reuse networks created by the main compose file, so start that first:
 
 ```bash
-# Grafana dashboards — real-time monitoring
-open http://localhost:3001
-# Dashboards include:
-# - Active agent operations and tool execution
-# - Token usage and LLM cost tracking
-# - Container resource utilization
-# - Engagement timeline and progress
-
-# Langfuse — LLM observability
-open http://localhost:3002
-# Track:
-# - Agent reasoning chains
-# - Prompt effectiveness
-# - Token usage per engagement phase
-# - Model performance comparison
+curl -O https://raw.githubusercontent.com/vxcontrol/pentagi/master/docker-compose-langfuse.yml
+curl -O https://raw.githubusercontent.com/vxcontrol/pentagi/master/docker-compose-observability.yml
+docker compose -f docker-compose.yml -f docker-compose-langfuse.yml up -d          # Langfuse at http://localhost:4000
+docker compose -f docker-compose.yml -f docker-compose-observability.yml up -d     # Grafana at http://localhost:3000 (set OTEL_HOST=otelcol:8148)
 ```
+
+Langfuse needs its own `LANGFUSE_*` secrets and initial admin values in `.env`. Graphiti is `docker-compose-graphiti.yml` plus `GRAPHITI_ENABLED=true` and `GRAPHITI_URL`; it is beta, and complements (does not replace) the pgvector memory.
+
+### Step 3: Run a flow in the web UI
+
+Create a new flow, choose **Automation** (fully autonomous) or **Assistant** (interactive; the "Use Agents" toggle lets it delegate to sub-agents), pick the LLM provider, and describe the target, scope and rules of engagement in plain language. Templates can prefill the box. While it runs, follow tasks, subtasks, terminal output and tool activity on the flow page, steer it through the Assistant view, and upload files in the Files tab (mirrored at `/work/uploads/` in the agent container). When enough results exist, the **Report** menu opens a web view, copies the report, or downloads Markdown or PDF. JSON report export is not a supported format.
+
+### Step 4: Automate through the API
+
+Create a token under Settings, API Tokens (name, expiry from 1 minute to 3 years; shown once). Use it as a Bearer token. The OpenAPI UI is at `/api/v1/swagger/index.html`, the GraphQL playground at `/api/v1/graphql/playground`.
 
 ```bash
-# Export vulnerability report
-curl -H "Authorization: Bearer $API_TOKEN" \
-  "http://localhost:3000/api/v1/tasks/$TASK_ID/report" \
-  -o vulnerability-report.pdf
+export PENTAGI_URL=https://pentagi.lab.internal:8443
+curl -k -X POST "$PENTAGI_URL/api/v1/graphql" \
+  -H "Authorization: Bearer $PENTAGI_API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"query":"mutation { createFlow(modelProvider: \"openai\", input: \"Assess https://staging.acme-shop.io for injection and authentication flaws. Stay on that host only.\") { id title status } }"}'
 
-# Report includes:
-# - Executive summary
-# - Detailed findings with CVSS scores
-# - Evidence (screenshots, command output)
-# - Remediation recommendations
-# - Risk matrix
+curl -k "$PENTAGI_URL/api/v1/flows" -H "Authorization: Bearer $PENTAGI_API_TOKEN"
 ```
+
+`-k` is only for the default self-signed certificate; install a real certificate instead for anything shared. The full GraphQL schema is downloadable from the UI settings.
+
+### Step 5: Choosing models
+
+Strong hosted models give the best results. For private assessments, use Ollama or any OpenAI-compatible endpoint through `LLM_SERVER_URL`/`LLM_SERVER_KEY` (see the README's custom-provider section and its vLLM guide). Small open models need the execution-monitoring and task-planning options described in the README.
+
+## Examples
+
+### Example 1: Authorized assessment of a staging site
+
+**User request:** "Run an automated web pentest against our staging site https://staging.acme-shop.io, we have written approval."
+
+Start the stack, log in, create an Automation flow with the prompt "Assess https://staging.acme-shop.io for common web vulnerabilities: authentication, file upload, injection. Do not test other hosts, no denial of service, no data exfiltration. Report confirmed findings with reproduction steps." The agents scan, probe and validate; the result is a flow page with tasks, terminal output and a downloadable PDF/Markdown report listing confirmed findings and remediation advice. Review it manually before acting on anything.
+
+### Example 2: Kick off flows from CI
+
+**User request:** "Trigger a PentAGI run after each staging deploy."
+
+Store `PENTAGI_API_TOKEN` as a CI secret and call the `createFlow` mutation from Step 4 in the deploy job, then poll `GET /api/v1/flows` until its `status` shows the flow has finished. The job output is the flow `id` and `title`; link the report URL from the web UI in the build summary.
 
 ## Guidelines
 
-- **Always get written authorization** before running PentAGI against any target. Unauthorized penetration testing is illegal.
-- Deploy on an isolated network segment — PentAGI's sandboxed containers contain offensive tools.
-- Use `constraints` to enforce rules of engagement — prevent DoS, data exfiltration, or out-of-scope testing.
-- Start with `Ollama` for local/private assessments — no data leaves your infrastructure.
-- The knowledge graph improves over time — run PentAGI consistently to build organizational security intelligence.
-- Review agent actions in real-time via the web UI — autonomous doesn't mean unsupervised.
-- PentAGI complements manual testing — use it for initial reconnaissance and known vulnerability scanning, then have humans investigate complex logic flaws.
-- Resource requirements: 8GB+ RAM, 4+ CPU cores. GPU optional (only for local LLM via Ollama).
-- Langfuse integration helps optimize LLM costs — track which models give best results per phase.
+- Get written authorization and define scope before every test; unauthorized testing is illegal. The project's EULA sets acceptable-use terms.
+- Put the host on an isolated network. Worker containers contain offensive tools and the stack touches the Docker daemon; the README recommends a hardened Docker-in-Docker daemon over TLS (`DOCKER_INSIDE=true`) rather than bind-mounting the socket.
+- Change the default admin password and every secret in `.env` before exposing the UI; never commit `.env`.
+- Autonomous is not unsupervised: watch the flow, put scope limits in the prompt, and stop it from the Assistant view if it drifts.
+- Findings are LLM-generated; confirm each one by hand before reporting it. Use PentAGI for reconnaissance and known-vulnerability checks and humans for business-logic flaws.
+- Web search and LLM calls send target details to third parties unless you use local models and SearXNG.
+- Deleting a flow does not remove its `flow-{id}-data/` directory; clean it up manually.
+- Use the same embedding provider throughout; switching providers invalidates stored memory.

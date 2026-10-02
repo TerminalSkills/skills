@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:936198f9d49aea644ccf30e7ca458bb04ec1adf5a1539f2d42166f288ad8e88d",
-  "scoredAt": "2026-05-13T10:06:55.548Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:941cce303c8687ad0e14397033bac1166d7c50ec5ebdfefe3958eccdf6c081f3",
+  "scoredAt": "2026-10-02T22:54:43.623Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling scenarios or edge cases such as missing DSN or network failures."
+        "detail": "Covers setup and best practices well but gives little troubleshooting for failure cases such as source maps not resolving, events not arriving, wrong DSN, or set-commits failing without a repository integration."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 51,
-    "treatmentAvg": 96,
-    "multiplier": 1.88,
+    "multiplier": 1.14,
+    "baselineAvg": 77,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Next.js source map setup tied to release",
-        "baseline": 72,
-        "treatment": 95,
-        "rationale": "Treatment explicitly sets dsn/environment/release together and ties source map upload via @sentry/nextjs webpack plugin to that release; baseline covers source maps but omits release association as core requirement."
+        "name": "nextjs-sentry-setup-secure-sourcemaps",
+        "baseline": 68,
+        "treatment": 80,
+        "rationale": "A runs the wizard command the rubric requires and sets `release` in `instrumentation-client.ts`, plus the 0.1 traces rate, replay integration with 0.1/1.0 sample rates, a CI-secret auth token and `withSentryConfig({org, project})`. B never runs the wizard (it uses `npm i @sentry/nextjs`) and omits `release`, though its token handling and CI secret guidance are more thorough."
       },
       {
-        "name": "Production sampling + session replay configuration",
-        "baseline": 30,
-        "treatment": 96,
-        "rationale": "Treatment hits the 0.1-0.2 tracesSampleRate guidance, both replaysOnErrorSampleRate: 1.0 and replaysSessionSampleRate: 0.1, plus Web Vitals (LCP/CLS/INP) and Sentry.startSpan(); baseline defaults to 1.0 and lacks Web Vitals."
+        "name": "python-release-tracking-regression",
+        "baseline": 72,
+        "treatment": 95,
+        "rationale": "B matches the rubric almost exactly: SDK init with the DSN from an env var, environment, release set to the git SHA, and traces_sample_rate 0.1, plus the exact set-commits --auto and deploys commands with --org billing-platform, and a note that a repository integration is required. A has the integration note and mostly correct commands, but it sets release to billing-service@SHA instead of the git SHA, its deploy command omits `--org billing-platform` (it relies on SENTRY_ORG instead), and it adds extra material."
+      },
+      {
+        "name": "vite-sourcemaps-and-adblock-noise",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both configure the Sentry Vite plugin last with hidden sourcemaps, an env-based auth token, filesToDeleteAfterUpload, and ignoreErrors for ResizeObserver and extension noise; A adds more extras (allowUrls, beforeSend, a note on already-public maps, a disable guard) while B is more concise and also covers the core, so A is slightly more thorough."
       }
     ]
   }

@@ -1,35 +1,41 @@
 ---
 name: phaser
 description: >-
-  You are an expert in Phaser, the fast and feature-rich HTML5 game framework
-  for making 2D games that run in web browsers and mobile devices. You help
-  developers build arcade games, puzzle games, RPGs, platformers, and
-  roguelikes using Phaser's scene system, physics engines (Arcade and
-  Matter.js), sprite animations, tilemaps, tweens, particle effects, and input
-  handling — with TypeScript support and Vite for modern development workflow.
+  Phaser is an open-source HTML5 framework for 2D browser games, with scenes,
+  Arcade and Matter.js physics, sprite animation, tilemaps, tweens, particles and
+  input handling, rendered with WebGL. Use when a user asks to "make a browser
+  game", "build a platformer or arcade game in JavaScript/TypeScript", "set up
+  Phaser with Vite", "add a tilemap, physics or particles", or "upgrade a game from
+  Phaser 3 to Phaser 4".
 license: Apache-2.0
-compatibility: ''
+compatibility: "Node.js 18+ and a bundler such as Vite for development; runs in any modern browser."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Game Development
-  tags:
-    - game-engine
-    - html5
-    - browser-game
-    - 2d
-    - arcade-physics
-    - webgl
-    - canvas
+  version: "1.1.0"
+  category: development
+  tags: ["game-engine", "html5", "browser-game", "2d", "arcade-physics"]
+  repository: https://github.com/phaserjs/phaser
 ---
 
-# Phaser — HTML5 Game Framework for Browser Games
 
-You are an expert in Phaser, the fast and feature-rich HTML5 game framework for making 2D games that run in web browsers and mobile devices. You help developers build arcade games, puzzle games, RPGs, platformers, and roguelikes using Phaser's scene system, physics engines (Arcade and Matter.js), sprite animations, tilemaps, tweens, particle effects, and input handling — with TypeScript support and Vite for modern development workflow.
+# Phaser
 
-## Core Capabilities
+## Overview
 
-### Game Configuration
+Phaser is a JavaScript/TypeScript game framework. A `Phaser.Game` runs a list of scenes (`preload`, `create`, `update`), each with its own physics world, cameras, input, tweens and timers. The current release is Phaser 4 (4.2.1, July 2026; `npm install phaser` installs it). Most Phaser 3 scene code keeps working, but v4 replaced the WebGL pipeline system, so check the migration notes below before upgrading or when copying older tutorials.
+
+## Instructions
+
+### 1. Create a project
+
+```bash
+npm create vite@latest star-collector -- --template vanilla-ts
+cd star-collector && npm install phaser && npm run dev
+```
+
+Official starters also exist: `create-phaser` and the `phaserjs/template-vite-ts` repository. Put images, tilemap JSON and audio in `public/assets/` and load them with `this.load.setPath("assets")`.
+
+### 2. Game configuration
 
 ```typescript
 // src/main.ts — Phaser game entry point
@@ -39,11 +45,11 @@ import { GameScene } from "./scenes/GameScene";
 import { HUDScene } from "./scenes/HUDScene";
 
 const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,                      // WebGL → Canvas fallback
+  type: Phaser.AUTO,                      // WebGL; the Canvas renderer is deprecated in v4
   width: 800,
   height: 600,
-  pixelArt: true,                         // No anti-aliasing on sprites
-  roundPixels: true,                      // Snap to pixel grid
+  pixelArt: true,                         // Nearest-neighbour scaling, no smoothing
+  // roundPixels defaults to false in v4; set it only if you see seams in pixel art
   scale: {
     mode: Phaser.Scale.FIT,               // Fit viewport, keep aspect ratio
     autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -61,7 +67,7 @@ const config: Phaser.Types.Core.GameConfig = {
 new Phaser.Game(config);
 ```
 
-### Scene System
+### 3. Scenes, tilemaps, animation
 
 ```typescript
 // src/scenes/GameScene.ts — Main game loop
@@ -70,6 +76,7 @@ export class GameScene extends Phaser.Scene {
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
   private coins!: Phaser.Physics.Arcade.Group;
   private score: number = 0;
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
   constructor() {
     super("GameScene");
@@ -93,6 +100,11 @@ export class GameScene extends Phaser.Scene {
       frameRate: 10,
       repeat: -1,                         // Loop forever
     });
+    this.anims.create({
+      key: "idle",
+      frames: [{ key: "hero", frame: 6 }],
+    });
+    this.cursors = this.input.keyboard!.createCursorKeys();   // create once, not in update()
 
     // Collisions
     this.physics.add.collider(this.player, ground);
@@ -117,7 +129,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update() {
-    const cursors = this.input.keyboard!.createCursorKeys();
+    const cursors = this.cursors;
 
     if (cursors.left.isDown) {
       this.player.setVelocityX(-160);
@@ -147,19 +159,20 @@ export class GameScene extends Phaser.Scene {
     this.events.emit("score-changed", this.score);
 
     // Particle burst effect
-    const particles = this.add.particles(coin.body!.position.x, coin.body!.position.y, "sparkle", {
+    const { x, y } = coin.body!.position;
+    const particles = this.add.particles(x, y, "sparkle", {
       speed: 100,
       lifespan: 300,
-      quantity: 8,
       scale: { start: 0.5, end: 0 },
       emitting: false,
     });
-    particles.explode();
+    particles.explode(8);
+    this.time.delayedCall(400, () => particles.destroy());   // emitters are game objects: clean up
   }
 }
 ```
 
-### Physics, Tweens, and Effects
+### 4. Physics, tweens, effects
 
 ```typescript
 // Arcade physics — fast, axis-aligned
@@ -194,23 +207,37 @@ this.time.addEvent({
 });
 ```
 
-## Installation
+### 5. Phaser 3 to 4 migration notes
 
-```bash
-# New project with Vite
-npm create vite@latest my-game -- --template vanilla-ts
-cd my-game
-npm install phaser
-npm run dev
-```
+Per the official v4 migration guide:
 
-## Best Practices
+- **Renderer**: custom WebGL pipelines are gone, replaced by render nodes; Canvas is deprecated; `Mesh`, `Plane`, `Camera3D`, `Layer3D` and `Create.GenerateTexture` are removed.
+- **Filters** replace FX and masks: no `preFX`/`postFX`, `BitmapMask` is replaced by the `Mask` filter.
+- **Removed or changed APIs**: `Phaser.Geom.Point` (use `Vector2`), `Phaser.Struct.Set`/`Map` (use native `Set`/`Map`), `setTintFill()` (use `setTintMode(Phaser.TintModes.FILL)`), `Math.PI2` (use `Math.TAU`; `TAU` now equals 2 PI), and `DynamicTexture`/`RenderTexture` need an explicit `render()` call.
+- **Defaults**: `roundPixels` is now false. Particle emitters (`this.add.particles(x, y, key, config)`), Arcade and Matter physics, tilemaps, tweens and scenes work as in 3.60+.
 
-1. **Scene system** — Use separate scenes for menu, game, HUD, pause, game-over; HUD as parallel scene overlay
-2. **Arcade physics for simple games** — AABB collision is fast and sufficient for most 2D games; Matter.js only when you need complex shapes
-3. **Tilemap integration** — Design levels in Tiled, export as JSON, load with `this.make.tilemap`; use object layers for spawn points
-4. **Object pooling** — Use `this.physics.add.group({ maxSize: 50 })` for bullets, particles, enemies; recycle instead of create/destroy
-5. **Pixel art** — Set `pixelArt: true` and `roundPixels: true` in config; prevents blurry scaling on retina displays
-6. **Mobile input** — Add virtual joystick for touch; Phaser has built-in pointer events for multi-touch
-7. **Texture atlases** — Pack sprites into atlases (TexturePacker); reduces draw calls from 200+ to 5-10
-8. **Camera** — Use `startFollow` with lerp values (0.05-0.1) for smooth camera; set bounds to tilemap size
+## Examples
+
+### Example 1: Coin-collecting platformer prototype
+
+**User request:** "Make a small platformer in the browser where I run, jump and collect coins, with Phaser and TypeScript."
+
+Scaffold with Vite as above, then add `PreloadScene` (loads `hero` spritesheet, `coin`, `terrain-tiles`, `level-1` Tiled JSON), `GameScene` as shown (Arcade gravity 300, `setCollisionByProperty({ collides: true })`, overlap with coins) and `HUDScene` listening to `score-changed`. `npm run dev` serves it at http://localhost:5173; the hero runs at 160 px/s, jumps only when `body.blocked.down`, and the score text updates on each coin.
+
+### Example 2: Fix a Phaser 3 tutorial that breaks on v4
+
+**User request:** "I copied a shooter tutorial and `new Phaser.Struct.Set()` and `setTintFill()` throw errors after installing phaser."
+
+Replace `Phaser.Struct.Set` with `new Set()` (`add`, `has`, `delete`, `forEach`) and `sprite.setTintFill(0xffffff)` with `sprite.setTintMode(Phaser.TintModes.FILL).setTint(0xffffff)`. Run `npm ls phaser` to confirm 4.x; if the tutorial needs v3 internals, pin `npm install phaser@3.90` rather than patching around them.
+
+## Guidelines
+
+1. **One scene per concern**: menu, game, HUD (launched in parallel with `this.scene.launch`), pause, game over.
+2. **Arcade physics first**: AABB collisions are enough for most 2D games; use Matter.js only for polygons, joints or realistic stacking.
+3. **Tiled for levels**: export JSON, load with `this.make.tilemap`, use object layers for spawn points.
+4. **Pool objects**: `this.physics.add.group({ maxSize: 50 })` and reuse bullets and enemies; destroy particle emitters you no longer need.
+5. **Input in `create()`**: build `createCursorKeys()` and key objects once, read them in `update()`.
+6. **Texture atlases** (TexturePacker, Free Texture Packer) cut draw calls and load time.
+7. **Mobile**: set `scale.mode = Phaser.Scale.FIT`, use pointer events for touch and add on-screen buttons; the default is single touch plus mouse, add `this.input.addPointer(2)` for multi-touch.
+8. **Browsers block audio until a user gesture**: start music after the first click or key press.
+9. **Serve over HTTP**: loading assets from `file://` fails; use the Vite dev server.

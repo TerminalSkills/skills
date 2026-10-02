@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:70245e823691676155807744c42ef15a21dbe116c64df8851c4aa95a277b90c6",
-  "scoredAt": "2026-05-13T09:46:57.425Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:913d70f152a049d0e05cc77ccdc20de26770e77385b8ba08ce66c723294323af",
+  "scoredAt": "2026-10-02T22:53:11.068Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as authentication failures or missing API specs."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 88,
-    "multiplier": 2.05,
+    "multiplier": 0.99,
+    "baselineAvg": 79,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "Add ZAP scan to every pull request",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment correctly picks the non-destructive zap-baseline.py via zaproxy/action-baseline with High-only fail threshold and HTML/JSON reports, while baseline reaches for an active scan that risks breaking PRs."
+        "name": "pr-scan-github-actions-low-noise",
+        "baseline": 80,
+        "treatment": 62,
+        "rationale": "A has the zaproxy/action-baseline action with fail_action: true, a rules.tsv with tab-separated IGNORE for 10015, and allow_issue_writing: false, but it never grants issues: write; B covers fail_action, the rules file and issues: write, but it gives the rules file as a printf command rather than file content, hardcodes pr-123, and fails on any WARN, which works against 'only real issues'."
       },
       {
-        "name": "Pre-launch staging audit of an SPA with REST API",
-        "baseline": 40,
-        "treatment": 87,
-        "rationale": "Treatment combines zap-full-scan.py with authenticated session, Ajax Spider for the SPA, and zap-api-scan.py against the OpenAPI spec, while baseline runs a single unauthenticated active scan and misses login-gated endpoints."
+        "name": "staging-api-scan-with-reports",
+        "baseline": 66,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it uses the right image and flags, gives chmod a+w, omits -S, warns to scan only systems the user owns or has permission to test, and gives the exit codes correctly (2 = warnings only). A adds -I, which suppresses the warning exit code and so weakens the exit-code explanation. A also gives a looser authorization warning and describes code 2 as 'at least one WARN'."
+      },
+      {
+        "name": "authenticated-spa-automation-plan",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both give an AF plan with env context, spiderAjax, browser authentication with autodetect verification, a report job, a docker zap.sh -cmd -autorun run, and credentials in env vars; A adds explicit exclude paths, an env-file, CI example, and a fallback to explicit verification (response/poll), making it somewhat more thorough, while B is more concise and its read -rs approach is nice but its verification and caveats are slightly thinner."
       }
     ]
   }

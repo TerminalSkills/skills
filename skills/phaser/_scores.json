@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3c5228b3d68df5a97576c246b4c0752be7e0eae4e3290ed681fbb5bd1bf0572f",
-  "scoredAt": "2026-05-13T09:50:12.542Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:09a12d7170f11f66d79656440bdeaf20a2a164e462c4722b77046eea5b82ea52",
+  "scoredAt": "2026-10-02T22:53:27.868Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "detail": "Covers mostly the happy path; it gives no guidance on asset load failures, missing Tiled layers (the non-null assertions on getObjectLayer/createLayer would crash), or scene shutdown and cleanup of listeners."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are short prose descriptions that refer back to code and have no concrete inputs, outputs or runnable steps, and PreloadScene and HUDScene are referenced but never shown."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
+    "multiplier": 1.28,
     "baselineAvg": 60,
-    "treatmentAvg": 95,
-    "multiplier": 1.58,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "Platformer with Tiled tilemap and coin overlap",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline knows Phaser scenes broadly but is imprecise about make.tilemap/getObjectLayer/setCollisionByProperty and physics.add.overlap wiring; treatment lifts the documented tilemap + arcade group + camera.startFollow pattern exactly."
+        "name": "platformer-vite-ts-scaffold",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both meet the scaffold, Arcade physics, Scale.FIT, `make.tilemap`, `setCollisionByProperty` and `blocked.down` items; A creates cursors once in `create()` and gates jumping on `blocked.down` with coyote time, and B does the same more simply, but B's `update()` cost it on small points (its explicit comment is helpful, but it creates animations in the scene's `create()`, which is awkward, and it has less complete setup detail), while A's gravity of 900 and its explicit Tiled conventions and separate BootScene are more thorough."
       },
       {
-        "name": "Pixel-art Phaser config that fits any viewport",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "Scale config options (pixelArt, roundPixels, Phaser.Scale.FIT, CENTER_BOTH) are documented widely so baseline does reasonably well, while treatment matches the exact GameConfig snippet."
+        "name": "fix-phaser3-tutorial-on-v4",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "A matches the rubric directly: native Set, setTintMode(FILL) with setTint, identifies these as Phaser 4 removals, and gives npm ls phaser and a phaser@3.90 pin. B wrongly claims Phaser.Struct is a typo for Structs and hedges on the v4 cause, pins 3.55.2 instead of 3.90, and gets partial credit only for the tint fix and npm ls phaser."
+      },
+      {
+        "name": "coin-pickup-particles-hud",
+        "baseline": 50,
+        "treatment": 55,
+        "rationale": "Both use a single reusable emitter with emitting:false and explode(), both destroy the coin with coin.destroy() instead of disableBody(true,true), and both skip the delayedCall emitter destroy; A is closer to the rubric because it emits a scene event via this.events.emit and listens from the HUD launched with scene.launch, while B uses registry events instead of a scene event."
       }
     ]
   }

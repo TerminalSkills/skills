@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8c21156a60a7e60125248f0fc69ce60b95d400e125dff63b8b041c65f947869e",
-  "scoredAt": "2026-05-13T09:37:50.064Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:93fcc5b881e55d4af72142e711921eec23ae21a001e130e595f5e212c3c8f6a3",
+  "scoredAt": "2026-10-02T22:50:24.565Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Some method names like with_effects are not standard MoviePy, causing ambiguity for users unfamiliar with the agent's custom wrappers."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack error handling guidance for missing files, ffmpeg installation failures, or unsupported formats."
+        "detail": "Error handling is thin: the batch loop has no try/except, no handling of videos without audio, missing files, or ffmpeg failures, and clips are not closed on exceptions (no try/finally)."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation steps assume a Debian-based Linux environment, limiting applicability on Windows or macOS."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of what the agent will write rather than runnable code or concrete inputs and outputs, so they only partly demonstrate realistic usage."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
+    "multiplier": 1.06,
+    "baselineAvg": 83,
     "treatmentAvg": 88,
-    "multiplier": 1.96,
     "scenarios": [
       {
-        "name": "Composite a 1920x1080 colored background, a centered main video resized to height 800, and a top-right logo",
-        "baseline": 45,
+        "name": "title-cards-wrapped-caption-text",
+        "baseline": 80,
         "treatment": 90,
-        "rationale": "Baseline uses MoviePy 1.x methods like resize() and set_position() that fail in 2.x, while treatment uses ColorClip with size and color, .resized(height=800), .with_position(\"center\"), .with_position((1820, 30)), and CompositeVideoClip([...], size=(1920,1080)) as documented for 2.x."
+        "rationale": "Both use TextClip text=, method=\"caption\", size=(900, None), a .ttf font path, with_* methods, CrossFadeIn/Out via with_effects, CompositeVideoClip and write_videofile; B is cleaner and uses vfx.CrossFadeIn/Out as the rubric states, while A has a redundant double with_position and a lambda position that is awkward and wrong in the first call, plus an unverified disclaimer."
       },
       {
-        "name": "Add a fade-in/fade-out title text overlay to a video with MoviePy 2.x",
-        "baseline": 45,
-        "treatment": 86,
-        "rationale": "Baseline reaches for v1 method names (set_duration, set_position) which break, while treatment uses TextClip(text=, font_size=, color=, stroke_color=) chained with .with_duration(), .with_position(), .with_start(), .crossfadein()/.crossfadeout() and CompositeVideoClip as documented."
+        "name": "mix-voiceover-with-ducked-music",
+        "baseline": 90,
+        "treatment": 92,
+        "rationale": "Both meet every rubric item (with_volume_scaled at 0.3 and 0.15, CompositeAudioClip, with_audio before write_videofile, video.audio.write_audiofile extraction, imports from moviepy directly); B follows the rubric's literal form more closely by calling video.audio.write_audiofile directly, while A extracts via an intermediate variable and adds a None check and looping, which is more robust but slightly less literal."
+      },
+      {
+        "name": "port-v1-script-and-batch-watermark",
+        "baseline": 80,
+        "treatment": 82,
+        "rationale": "Both use the right v2 API (moviepy imports, subclipped, resized, with_effects FadeIn, TextClip(text=...), with_opacity, CompositeVideoClip, close()), but A leaves a clumsy placeholder position line and doesn't close the source clip explicitly (though it uses a context manager), while B explicitly closes both clips, shows the direct one-liner fix, and gives cleaner structure, though its hard-coded subclipped(0,10) can fail on short videos and the font path is a placeholder."
       }
     ]
   }

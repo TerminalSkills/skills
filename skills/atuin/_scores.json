@@ -1,53 +1,59 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:87075576d14afc2b862026798f76f55622bc38f35a159103847c3c89403a6f8d",
-  "scoredAt": "2026-05-13T14:16:04.317Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:9f49d810f79625d7630e64841a53737a21122f93f7bf9a38f5084a5b914f3194",
+  "scoredAt": "2026-10-02T22:47:24.339Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file only covers happy path scenarios and does not address error handling or edge cases."
+        "category": "actionability",
+        "detail": "The self-hosting section is prose only, with no runnable docker command or compose file, and the image reference 'ghcr.io/atuinsh/atuin at the current release tag (for example 18.23.0)' is not a valid image string that could be copied and run."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
+    "verdict": "SAFE",
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Installation script is fetched via curl without verifying a checksum."
+        "severity": "INFO",
+        "category": "guidance",
+        "detail": "The skill advises downloading and reading the installer script before running it, and it warns about secrets in history and about key handling, so no unsafe instruction was found."
       }
     ]
   },
   "impact": {
-    "multiplier": 5.67,
-    "baselineAvg": 15,
-    "treatmentAvg": 85,
+    "multiplier": 1.87,
+    "baselineAvg": 47,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "sync-successful-commands-fuzzy-search",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A only provides installation steps."
+        "name": "project-local-successful-command-search",
+        "baseline": 3,
+        "treatment": 92,
+        "rationale": "Response A gives a non-interactive `atuin search` command with `--cwd`, `--exit 0`, `--after`/`--before` bounds for September 2026 and `--format` for time and command, which covers the whole rubric. Response B ignores atuin and parses `~/.bash_history` with awk, so it lacks `--cwd` and `--exit 0` and can't confirm success."
       },
       {
-        "name": "import-history-directory-filter-stats",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response A covers most rubric items but omits the exact --cwd search syntax, while Response B misses several key requirements."
+        "name": "self-host-sync-server-setup",
+        "baseline": 55,
+        "treatment": 82,
+        "rationale": "A matches the rubric closely: `start` command, port 8888, the three env vars with registration limited to until the account exists, sync_address set before register with an explicit warning about the hosted server, TLS, and saving `atuin key`. B covers most elements but uses `server start` rather than `start`, sets sync_address before register without explaining the hosted-server risk, and puts `atuin key` after registration while still mentioning TLS and registration closing."
+      },
+      {
+        "name": "bash-setup-and-secret-leak-cleanup",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both cover the init line, import, purge, history_filter with secrets_filter, and rotation, but B states plainly that ble.sh or bash-preexec must load before the init line (A mentions only bash-preexec) and gives tighter, more accurate guidance, while A adds extra detail such as AWS rotation commands and a claim about `$(...)` in history that is somewhat questionable."
       }
     ]
   }

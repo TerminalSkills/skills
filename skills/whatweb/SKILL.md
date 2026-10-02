@@ -7,10 +7,11 @@ description: >-
   (Apache, Nginx, IIS), finding JavaScript frameworks, discovering WAF presence,
   or mapping the technology stack of a target during reconnaissance.
 license: Apache-2.0
-compatibility: "Ruby 2.7+ or Docker"
+compatibility: "Ruby (0.6.4), or a distro package"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/urbanadventurer/WhatWeb
   category: devops
   tags:
     - fingerprinting
@@ -31,80 +32,84 @@ Identify web technologies on target websites. WhatWeb recognizes CMS platforms, 
 ### Installation
 
 ```bash
-# Debian/Ubuntu
+# Debian/Ubuntu/Kali
 sudo apt install whatweb
 
 # macOS
 brew install whatweb
 
-# From source
+# From source (latest release is 0.6.4, April 2026; needs Ruby)
 git clone https://github.com/urbanadventurer/WhatWeb.git
-cd WhatWeb && sudo make install
-
-# Docker
-docker run --rm guidelacour/whatweb https://example.com
+cd WhatWeb && bundle install
+./whatweb --version
 ```
+
+The repository also ships a `make install` target for a system-wide install. Check `whatweb --version` after installing: distro packages often lag behind the release.
 
 ### Basic Usage
 
 ```bash
 # Scan a single URL
-whatweb https://example.com
+whatweb https://www.northwind-logistics.com
 
 # Scan multiple URLs
-whatweb https://example.com https://example.org
+whatweb https://www.northwind-logistics.com https://blog.northwind-logistics.com
 
 # Scan from a file
 whatweb -i urls.txt
 
 # Output formats
-whatweb https://example.com --log-json=results.json   # JSON
-whatweb https://example.com --log-xml=results.xml      # XML
-whatweb https://example.com --log-csv=results.csv      # CSV
-whatweb https://example.com -v                          # Verbose
+whatweb https://www.northwind-logistics.com --log-json=results.json   # JSON
+whatweb https://www.northwind-logistics.com --log-xml=results.xml     # XML
+whatweb https://www.northwind-logistics.com --log-brief=results.txt    # one line per target, greppable
+whatweb https://www.northwind-logistics.com -v                          # Verbose
 ```
 
 ### Aggression Levels
 
-WhatWeb has 4 aggression levels that control how much it probes the target:
+Levels control how much WhatWeb probes the target (`-a` / `--aggression`):
 
 ```bash
-# Level 1 (Stealthy) — default
-# One HTTP request per target. Analyzes headers, body, and cookies.
-whatweb -a 1 https://example.com
+# Level 1 (Stealthy) - default
+# One HTTP request per target, follows redirects. Analyzes headers, body, cookies.
+whatweb -a 1 https://shop.northwind-logistics.com
 
-# Level 2 (Passive) — not implemented, same as 1
+# Level 2 is unused
 
 # Level 3 (Aggressive)
-# Makes additional requests: /robots.txt, /sitemap.xml, common paths
-# Sends requests to identify specific versions
-whatweb -a 3 https://example.com
+# Plugins that matched at level 1 make extra requests (guess URLs, pin down versions)
+whatweb -a 3 https://shop.northwind-logistics.com
 
 # Level 4 (Heavy)
-# Brute-force checks, tries many paths and payloads
-# Noisy — will appear in logs, may trigger WAF
-whatweb -a 4 https://example.com
+# Aggressive tests of ALL plugins run against every URL. Noisy, may trigger a WAF
+whatweb -a 4 https://shop.northwind-logistics.com
 ```
 
-For authorized pentests, use level 3 or 4. For passive recon, stick with level 1.
+To find an exact version, combine level 3 with one plugin (`-p wordpress -a 3`): far fewer requests than a full level 3 scan. WhatWeb has no intrusion or exploit tests, but levels 3-4 still need permission. WhatWeb does not cache, so aggressive scans of redirecting URLs repeat requests.
 
 ### Plugin System
 
-WhatWeb's power comes from its 1,800+ plugins. Each plugin detects a specific technology:
+WhatWeb's power comes from its 1,800+ plugins. Each plugin detects one technology:
 
 ```bash
 # List all plugins
 whatweb --list-plugins
 
-# Search for specific plugins
-whatweb --list-plugins | grep -i wordpress
+# Search plugin names and descriptions, or show details for one
+whatweb --search-plugins wordpress
+whatweb --info-plugins phpBB
 
-# Use only specific plugins
-whatweb --plugins WordPress,Apache,PHP https://example.com
+# Use only specific plugins (comma separated)
+whatweb --plugins WordPress,Apache,PHP https://blog.northwind-logistics.com
 
-# Disable specific plugins
-whatweb --no-plugins=google-analytics,facebook-pixel https://example.com
+# Remove a plugin from the full set with a minus modifier
+whatweb --plugins=-md5 https://blog.northwind-logistics.com
+
+# Quick custom match without writing a plugin
+whatweb --custom-plugin ":text=>'powered by OpenCart'" https://shop.northwind-logistics.com
 ```
+
+A `+` modifier adds to the full set (for example `+plugins-disabled`), `-` removes from it, and a plain list selects only those plugins.
 
 ### What WhatWeb detects
 
@@ -136,12 +141,10 @@ JAVASCRIPT LIBRARIES
 ├── Bootstrap (version)
 └── 200+ JS library plugins
 
-SECURITY
-├── WAF detection (Cloudflare, AWS WAF, Akamai)
-├── HTTP security headers
-├── SSL/TLS configuration
-├── Cookie flags (HttpOnly, Secure, SameSite)
-└── Content Security Policy
+SECURITY-RELATED HEADERS
+├── Strict-Transport-Security, X-Frame-Options, UncommonHeaders
+├── Cookie flags (HttpOnly, Secure)
+└── Some WAF/CDN products (Cloudflare, Akamai, Sucuri) via plugins
 
 OTHER
 ├── Analytics (Google Analytics, Matomo)
@@ -155,9 +158,9 @@ OTHER
 
 ```bash
 # Example output:
-# https://example.com [200 OK] Apache[2.4.52], Bootstrap[5.2.3],
+# https://www.northwind-logistics.com [200 OK] Apache[2.4.52], Bootstrap[5.2.3],
 # Country[US], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.52 (Ubuntu)],
-# JQuery[3.6.0], PHP[8.1.12], Script, Title[Example Site],
+# JQuery[3.6.0], PHP[8.1.12], Script, Title[Northwind Logistics],
 # WordPress[6.3.1], X-Powered-By[PHP/8.1.12]
 
 # What this tells a pentester:
@@ -172,50 +175,46 @@ OTHER
 ### Pipeline Integration
 
 ```bash
-# Combine with subfinder and httpx for full recon:
+# Combine with subfinder and ProjectDiscovery httpx (not the Python httpx package)
 
 # 1. Find subdomains
-subfinder -d target.com -silent > subs.txt
+subfinder -d northwind-logistics.com -silent > subs.txt
 
-# 2. Check which are live
-cat subs.txt | httpx -silent > live.txt
+# 2. Keep the live ones
+httpx -l subs.txt -silent > live.txt
 
-# 3. Fingerprint all live hosts
-whatweb -i live.txt --log-json=tech-stack.json -a 3
+# 3. Fingerprint all live hosts (JSON log is one array of result objects)
+whatweb -i live.txt --log-json=tech-stack.json -a 1
 
-# 4. Parse results to find interesting targets
-cat tech-stack.json | jq -r '
-  select(.plugins.WordPress) |
-  .target + " - WordPress " + .plugins.WordPress.version[0]
-'
+# 4. Pick out WordPress sites with their version
+jq -r '.[] | select(.plugins.WordPress) |
+  .target + " - WordPress " + (.plugins.WordPress.version[0] // "unknown")' tech-stack.json
 ```
 
 ### Bulk Scanning
 
 ```bash
-# Scan a large list with rate limiting
-whatweb -i urls.txt \
-  --wait=1 \           # 1 second between requests
-  --max-threads=10 \   # 10 concurrent threads
-  --log-json=results.json \
-  -a 3                 # Aggressive mode
+# Large list, polite pacing: one request per second per thread, 10 threads
+whatweb -i urls.txt --wait=1 --max-threads=10 --log-json=results.json -a 1
 
-# Resume interrupted scan
-whatweb -i urls.txt --log-json=results.json --resume
+# Hostnames, CIDR ranges and ranges like 10.0.0-3.1-254 are valid targets
+whatweb --no-errors --url-prefix https:// 192.168.10.0/24
 ```
+
+Defaults: 25 threads, 15 s open timeout, 30 s read timeout. There is no resume option: split large lists and re-run the unfinished part. Add `--no-cookies` for very high thread counts.
 
 ## Examples
 
 ### Fingerprint all subdomains of a target
 
 ```prompt
-We've discovered 150 subdomains for target.com using subfinder. Run WhatWeb against all live hosts to identify the technology stack — CMS platforms, web servers, frameworks, and JavaScript libraries. Flag any outdated versions with known CVEs. Produce a summary table showing each subdomain, its tech stack, and risk level.
+We've discovered 150 subdomains for northwind-logistics.com using subfinder. Run WhatWeb against all live hosts to identify the technology stack — CMS platforms, web servers, frameworks, and JavaScript libraries. Flag any outdated versions with known CVEs. Produce a summary table showing each subdomain, its tech stack, and risk level.
 ```
 
 ### Detect WAF and security headers
 
 ```prompt
-Scan our 5 production domains and check for: WAF presence (Cloudflare, AWS WAF, etc.), security headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options), cookie security flags, and TLS configuration. Produce a compliance report showing which domains pass and which need fixes.
+Scan our 5 production domains with WhatWeb and report which ones show a recognizable WAF or CDN (Cloudflare, Akamai, Sucuri), which send Strict-Transport-Security and X-Frame-Options, and which set cookies without HttpOnly. Note that WhatWeb does not test TLS configuration or full CSP; say which checks need another tool.
 ```
 
 ### Map technology stack for vulnerability assessment
@@ -226,6 +225,8 @@ Before starting a penetration test on our client's web application at app.client
 
 ## Guidelines
 
+- WhatWeb is GPLv2 and sends a `WhatWeb/<version>` User-Agent by default; change it with `-U` when policy requires
+- WhatWeb reports what the target advertises; hidden versions and WAFs can be missed
 - Only scan targets you have explicit written authorization to test
 - Start with aggression level 1 (stealthy) for initial recon; only escalate to level 3-4 on authorized pentests
 - Level 4 (heavy) is noisy and will appear in target logs — use only when stealth is not a concern

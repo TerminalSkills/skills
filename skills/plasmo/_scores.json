@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:58c78052209faf24c5335d912cedf962e7c1970024cfdb0bb52867f7d661bed5",
-  "scoredAt": "2026-05-13T09:51:07.578Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6dbd305a3344879ceae47b1d302f4b3a52f4943778ba60d428d5a4a67ccb1461",
+  "scoredAt": "2026-10-02T22:53:25.786Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, limiting completeness."
+        "detail": "Covers few error scenarios such as build failures, messages sent while the service worker is asleep, missing host permissions, or sendToBackground errors, and gives no debugging steps beyond Firefox ID and storage area notes."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are prose descriptions with no complete runnable code, such as the highlight content script, the context-menu click handler, or the shared save module, so they are less demonstrative than the code in the Instructions."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 94,
-    "multiplier": 2.47,
+    "multiplier": 1.22,
+    "baselineAvg": 68,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Reactive cross-component storage for theme and API key",
-        "baseline": 40,
-        "treatment": 93,
-        "rationale": "Treatment uses useStorage from @plasmohq/storage/hook with default values so state syncs automatically between popup and content scripts; baseline wires raw chrome.storage.local with onChanged listeners and re-implements sync by hand."
+        "name": "content-script-overlay-shadow-dom-style",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": ""
       },
       {
-        "name": "Type-safe popup-to-background save messaging",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Treatment calls sendToBackground({ name: 'save-item', body }) from @plasmohq/messaging and pairs it with src/background/messages/save-item.ts exporting a PlasmoMessaging.MessageHandler; baseline relies on chrome.runtime.sendMessage with manual onMessage switches."
+        "name": "background-save-with-badge-and-storage-area",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both meet every rubric point: a background/messages handler called through sendToBackground with the matching name, Storage with area \"local\" in the handler and popup, and no invented sendToContentScript; B calls chrome.action.setBadgeText directly in the handler, as the rubric describes, while A sets the badge from a storage watcher in background/index.ts, which is valid but less direct, and A's inline require in the popup is messy even though it offers a cleaner alternative."
+      },
+      {
+        "name": "firefox-build-and-env-setup",
+        "baseline": 55,
+        "treatment": 70,
+        "rationale": "A covers the rubric's core: fixed gecko ID, firefox-mv2 with MV3 experimental, pnpm build/package, .env.firefox or PLASMO_BROWSER, and testing each target; B puts the ID under a __firefox__ key rather than manifest.browser_specific_settings.gecko.id, uses npx instead of pnpm, omits .env.firefox/PLASMO_BROWSER, and doesn't say MV3 is experimental, though it adds useful publishing extras."
       }
     ]
   }

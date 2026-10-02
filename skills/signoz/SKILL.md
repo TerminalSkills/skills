@@ -1,281 +1,192 @@
 ---
 name: signoz
-description: Expert guidance for SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. Helps developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.
+description: >-
+  SigNoz is an open-source observability platform that stores traces, metrics
+  and logs in one UI, built natively on OpenTelemetry and available self-hosted
+  or as SigNoz Cloud. Use when a user asks to install SigNoz, send OpenTelemetry
+  traces, metrics or logs from a Node.js app to SigNoz, correlate logs with
+  traces, build dashboards, or set up alerts as a Datadog or New Relic
+  alternative.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Docker Engine 20.10+ with Compose v2 and 4 GB RAM for self-hosting; Node.js 20.6+ for the examples"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
+  repository: https://github.com/SigNoz/signoz
   category: devops
   tags:
-  - observability
-  - apm
-  - traces
-  - metrics
-  - logs
+    - observability
+    - opentelemetry
+    - tracing
+    - metrics
+    - logs
 ---
 
 # SigNoz — Open-Source Observability Platform
 
-
 ## Overview
 
-
-SigNoz, the open-source observability platform that provides traces, metrics, and logs in a single UI. Built natively on OpenTelemetry, SigNoz is a self-hosted alternative to Datadog and New Relic. Helps developers set up distributed tracing, application performance monitoring, log management, and custom dashboards.
-
+SigNoz receives OpenTelemetry (OTLP) data and shows traces, metrics, logs, exceptions, dashboards and alerts in one UI, with ClickHouse as the telemetry store. Applications are instrumented with the standard OpenTelemetry SDKs; nothing is SigNoz-specific, so the same code can send to another backend. Latest release checked: v0.144.0 (2026-09-29).
 
 ## Instructions
 
-### Deployment
+### Deploy self-hosted with Foundry
+
+Since v0.130.0 the old `deploy/` Docker Compose files and `install.sh` are deprecated and no longer maintained. The supported installer is `foundryctl` (Foundry), which turns one YAML "casting" into a Compose, Swarm, Kubernetes (Helm or Kustomize) or systemd deployment.
+
+Install the binary from a release archive and verify it first (the project's own installer is a `curl | bash` script; do not pipe it blindly):
 
 ```bash
-# Docker Compose (quickstart)
-git clone -b main https://github.com/SigNoz/signoz.git
-cd signoz/deploy
-docker compose -f docker/clickhouse-setup/docker-compose.yaml up -d
-
-# SigNoz UI at http://localhost:3301
-# OTel Collector at localhost:4317 (gRPC) / localhost:4318 (HTTP)
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+VERSION=0.3.0
+BASE="https://github.com/SigNoz/foundry/releases/download/v${VERSION}"
+curl -fsSLO "${BASE}/foundry_linux_${ARCH}.tar.gz"
+curl -fsSLO "${BASE}/foundry_${VERSION}_checksums.txt"
+sha256sum --check --ignore-missing "foundry_${VERSION}_checksums.txt"     # must print OK
+tar -xzf "foundry_linux_${ARCH}.tar.gz"
+mkdir -p "$HOME/.local/bin" && mv foundry_*/bin/foundryctl "$HOME/.local/bin/"
+foundryctl --help
 ```
 
-### Instrument a Node.js Application
+Then describe the deployment and cast it:
 
-```typescript
-// tracing.ts — OpenTelemetry auto-instrumentation for SigNoz
-// Import this file BEFORE any other imports in your app entry point.
+```yaml
+# casting.yaml
+apiVersion: v1alpha1
+metadata:
+  name: signoz-dev
+spec:
+  deployment:
+    mode: docker
+    flavor: compose
+```
 
-import { NodeSDK } from "@opentelemetry/sdk-node";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
-import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
-import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
-import { Resource } from "@opentelemetry/resources";
-import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions";
+```bash
+foundryctl cast -f casting.yaml       # validates prerequisites, generates files into pours/, deploys
+foundryctl gen examples               # writes example castings for Docker, Kubernetes, systemd, ...
+```
+
+Ports: UI on **8080** (http://localhost:8080; older versions used 3301), OTLP gRPC **4317**, OTLP HTTP **4318**, optional MCP server **8000**. On Windows use a WSL 2 distribution with Docker Engine installed inside it; Docker Desktop can crash ClickHouse Keeper.
+
+SigNoz Cloud needs no deployment: send data to `https://ingest.<region>.signoz.cloud:443` with the header `signoz-ingestion-key=<key>` (region and key are shown under Settings in your account).
+
+### Instrument a Node.js service
+
+```bash
+npm install @opentelemetry/api @opentelemetry/sdk-node \
+  @opentelemetry/auto-instrumentations-node \
+  @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http \
+  @opentelemetry/exporter-logs-otlp-http @opentelemetry/sdk-metrics \
+  @opentelemetry/resources @opentelemetry/semantic-conventions
+```
+
+Quickest path, no code changes (traces and metrics; add `OTEL_LOGS_EXPORTER=otlp` for logs):
+
+```bash
+export OTEL_SERVICE_NAME=api-gateway
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318          # self-hosted
+export OTEL_RESOURCE_ATTRIBUTES=service.version=1.4.2,deployment.environment.name=staging
+export OTEL_LOGS_EXPORTER=otlp
+node --require @opentelemetry/auto-instrumentations-node/register server.js
+```
+
+For SigNoz Cloud set the endpoint to the ingest URL and add `OTEL_EXPORTER_OTLP_HEADERS="signoz-ingestion-key=$SIGNOZ_INGESTION_KEY"`; for self-hosted do not set the header. Use Node 20.6+ (18.19+ at minimum).
+
+Code-based setup (tested with `sdk-node` 0.222 and `resources` 2.x; CommonJS, loaded first with `node --require ./tracing.js server.js`):
+
+```javascript
+// tracing.js
+const { NodeSDK } = require("@opentelemetry/sdk-node");
+const { OTLPTraceExporter } = require("@opentelemetry/exporter-trace-otlp-http");
+const { OTLPMetricExporter } = require("@opentelemetry/exporter-metrics-otlp-http");
+const { PeriodicExportingMetricReader } = require("@opentelemetry/sdk-metrics");
+const { getNodeAutoInstrumentations } = require("@opentelemetry/auto-instrumentations-node");
+const { resourceFromAttributes } = require("@opentelemetry/resources");
+const { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } = require("@opentelemetry/semantic-conventions");
 
 const sdk = new NodeSDK({
-  resource: new Resource({
+  resource: resourceFromAttributes({
     [ATTR_SERVICE_NAME]: "api-gateway",
     [ATTR_SERVICE_VERSION]: "1.4.2",
-    "deployment.environment": process.env.NODE_ENV ?? "development",
+    "deployment.environment.name": process.env.NODE_ENV ?? "development",
   }),
-  traceExporter: new OTLPTraceExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318/v1/traces",
-  }),
-  metricReader: new PeriodicExportingMetricReader({
-    exporter: new OTLPMetricExporter({
-      url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318/v1/metrics",
-    }),
-    exportIntervalMillis: 30000,       // Export metrics every 30s
-  }),
-  instrumentations: [
-    getNodeAutoInstrumentations({
-      // Auto-instruments: HTTP, Express, pg, mysql, redis, MongoDB, gRPC
-      "@opentelemetry/instrumentation-fs": { enabled: false },  // Too noisy
-    }),
-  ],
+  traceExporter: new OTLPTraceExporter(),     // endpoint and headers come from OTEL_EXPORTER_OTLP_*
+  metricReaders: [new PeriodicExportingMetricReader({ exporter: new OTLPMetricExporter(), exportIntervalMillis: 30000 })],
+  instrumentations: [getNodeAutoInstrumentations({ "@opentelemetry/instrumentation-fs": { enabled: false } })],
 });
-
 sdk.start();
-
-// Graceful shutdown
 process.on("SIGTERM", () => sdk.shutdown());
 ```
 
-### Custom Spans and Attributes
+In OpenTelemetry JS 2.x the `Resource` class is gone: use `resourceFromAttributes`. With ES modules, instrumentation needs the loader hooks from the OpenTelemetry docs (`--import`), otherwise libraries are not patched.
 
-```typescript
-// src/services/order-service.ts — Add business context to traces
-import { trace, SpanStatusCode, context } from "@opentelemetry/api";
+### Custom spans and metrics
 
+```javascript
+const { trace, metrics, SpanStatusCode } = require("@opentelemetry/api");
 const tracer = trace.getTracer("order-service");
+const ordersProcessed = metrics.getMeter("business").createCounter("orders.processed");
 
-async function processOrder(orderId: string, userId: string) {
-  // Create a span for the entire order processing
+async function processOrder(orderId, plan) {
   return tracer.startActiveSpan("process-order", async (span) => {
-    // Add business attributes — visible in SigNoz trace details
     span.setAttribute("order.id", orderId);
-    span.setAttribute("user.id", userId);
-
     try {
-      // Child span for payment
-      const paymentResult = await tracer.startActiveSpan("charge-payment", async (paymentSpan) => {
-        paymentSpan.setAttribute("payment.method", "stripe");
-        const result = await stripe.charges.create({ amount: order.total, currency: "usd" });
-        paymentSpan.setAttribute("payment.charge_id", result.id);
-        paymentSpan.end();
-        return result;
-      });
-
-      // Child span for inventory
-      await tracer.startActiveSpan("update-inventory", async (inventorySpan) => {
-        inventorySpan.setAttribute("items.count", order.items.length);
-        await inventoryService.reserve(order.items);
-        inventorySpan.end();
-      });
-
-      // Child span for notification
-      await tracer.startActiveSpan("send-confirmation", async (notifSpan) => {
-        await emailService.sendOrderConfirmation(userId, orderId);
-        notifSpan.end();
-      });
-
-      span.setAttribute("order.status", "completed");
-      span.setStatus({ code: SpanStatusCode.OK });
-    } catch (error) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
-      span.recordException(error);
-      throw error;
+      await chargePayment(orderId);
+      ordersProcessed.add(1, { "order.plan": plan });
+    } catch (err) {
+      span.recordException(err);
+      span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+      throw err;
     } finally {
-      span.end();
+      span.end();                              // always end the span
     }
   });
 }
 ```
 
-### Custom Metrics
+### Logs correlated with traces
 
-```typescript
-// src/metrics/business-metrics.ts — Track business KPIs in SigNoz
-import { metrics } from "@opentelemetry/api";
+With the auto-instrumentation (or `@opentelemetry/instrumentation-pino`) loaded first, a plain `pino()` logger gets `trace_id`, `span_id` and `trace_flags` added to every record written inside an active span, and `OTEL_LOGS_EXPORTER=otlp` ships them to SigNoz, which links a log line to its trace. No custom mixin is needed. Verified locally against a stub OTLP receiver: traces, metrics and logs each arrived on `/v1/traces`, `/v1/metrics`, `/v1/logs`.
 
-const meter = metrics.getMeter("business-metrics");
+### Dashboards and alerts
 
-// Counter — total orders processed
-const ordersProcessed = meter.createCounter("orders.processed", {
-  description: "Total number of orders processed",
-  unit: "orders",
-});
+Dashboards use the query builder, PromQL or ClickHouse SQL. Alerts (UI, Alerts section) can fire on metrics, traces, logs or exceptions and notify Slack, PagerDuty, Opsgenie, Microsoft Teams, e-mail or a webhook. Useful first rules: p99 latency of a route above 2 s, error rate above 5% for 5 minutes, a business counter at zero for 10 minutes.
 
-// Histogram — order value distribution
-const orderValue = meter.createHistogram("orders.value", {
-  description: "Order value in cents",
-  unit: "cents",
-});
+### Agents
 
-// Up/down counter — active users
-const activeUsers = meter.createUpDownCounter("users.active", {
-  description: "Currently active users",
-});
-
-// Usage
-function onOrderCompleted(order: Order) {
-  ordersProcessed.add(1, {
-    "order.plan": order.plan,
-    "order.region": order.region,
-  });
-  orderValue.record(order.totalCents, {
-    "order.plan": order.plan,
-  });
-}
-```
-
-### Structured Logging
-
-```typescript
-// src/lib/logger.ts — Logs that correlate with traces in SigNoz
-import pino from "pino";
-import { context, trace } from "@opentelemetry/api";
-
-const logger = pino({
-  mixin() {
-    // Inject trace context into every log line
-    // SigNoz correlates logs with traces using these fields
-    const span = trace.getSpan(context.active());
-    if (span) {
-      const spanContext = span.spanContext();
-      return {
-        trace_id: spanContext.traceId,
-        span_id: spanContext.spanId,
-        trace_flags: `0${spanContext.traceFlags.toString(16)}`,
-      };
-    }
-    return {};
-  },
-  transport: {
-    target: "pino-opentelemetry-transport",
-    options: {
-      resourceAttributes: { "service.name": "api-gateway" },
-      logRecordProcessorOptions: [{
-        exporterOptions: {
-          protocol: "http",
-          httpExporterPath: "/v1/logs",
-          hostname: "localhost",
-          port: 4318,
-        },
-      }],
-    },
-  },
-});
-
-export default logger;
-```
-
-### Alerts
-
-```yaml
-# SigNoz supports alerting on any metric or trace-based condition.
-# Configure via the SigNoz UI under Settings → Alerts
-
-# Example alert rules:
-# 1. P99 latency > 2s on /api/checkout endpoint
-# 2. Error rate > 5% on any service in the last 5 minutes
-# 3. Orders processed = 0 for 10 minutes (business metric)
-# 4. CPU usage > 80% for 5 minutes
-
-# Notification channels: Slack, PagerDuty, webhook, email, MS Teams, Opsgenie
-```
-
-## Installation
-
-```bash
-# Self-hosted (Docker Compose)
-git clone https://github.com/SigNoz/signoz.git
-cd signoz/deploy && docker compose up -d
-
-# Helm (Kubernetes)
-helm repo add signoz https://charts.signoz.io
-helm install signoz signoz/signoz -n observability --create-namespace
-
-# SigNoz Cloud (managed)
-# https://signoz.io/teams/
-
-# Client instrumentation
-npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node
-npm install @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http
-```
-
+SigNoz publishes an MCP server (port 8000 in the self-hosted stack) and agent skills so coding agents can query telemetry; see the SigNoz docs under "AI".
 
 ## Examples
 
+### Instrument a Dockerized API and watch it in SigNoz
 
-### Example 1: Setting up Signoz for a microservices project
+User: "My Express API runs in Docker. Get traces into a local SigNoz."
 
-**User request:**
-
-```
-I have a Node.js API and a React frontend running in Docker. Set up Signoz for monitoring/deployment.
-```
-
-The agent creates the necessary configuration files based on patterns like `# Docker Compose (quickstart)`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
-
-### Example 2: Troubleshooting instrument a node.js application issues
-
-**User request:**
-
-```
-Signoz is showing errors in our instrument a node.js application. Here are the logs: [error output]
+```bash
+foundryctl cast -f casting.yaml
+docker run --rm -p 3000:3000 \
+  -e OTEL_SERVICE_NAME=checkout-api \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4318 \
+  -e NODE_OPTIONS="--require @opentelemetry/auto-instrumentations-node/register" \
+  --add-host host.docker.internal:host-gateway \
+  registry.northwind-outfitters.com/checkout-api:2.7.0
+curl -s localhost:3000/api/orders > /dev/null
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Signoz issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+Result: after a minute `checkout-api` appears under Services at http://localhost:8080 with latency and error charts, and each request shows as a trace including its Postgres and HTTP client spans. The image must already contain the `@opentelemetry/*` packages.
 
+### Find out why a checkout is slow
+
+User: "p99 on /api/checkout jumped to 4 seconds. Where is the time going?"
+
+Open Traces, filter `serviceName = checkout-api` and `durationNano > 2000000000`, open the slowest trace and read the waterfall: the wide child span (for example `charge-payment` or a `pg.query`) is the cause. Check the logs tab for lines carrying the same `trace_id`, then create an alert on that route's p99 so it pages next time.
 
 ## Guidelines
 
-1. **OpenTelemetry native** — SigNoz uses OTel as the standard; instrument with OTel SDKs and switch between SigNoz/Datadog/Jaeger without code changes
-2. **Auto-instrumentation first** — Start with auto-instrumentation packages; add custom spans only for business-critical paths
-3. **Correlate logs, traces, metrics** — Inject trace_id into logs; SigNoz links them together in the UI for root cause analysis
-4. **Business metrics** — Track revenue, orders, signups as OTel metrics; monitor them alongside infrastructure metrics
-5. **Tail-based sampling** — For high-traffic services, configure tail-based sampling in the OTel Collector to keep errors and slow traces
-6. **ClickHouse storage** — SigNoz uses ClickHouse for storage; tune retention policies based on your data volume
-7. **Dashboard per service** — Create a SigNoz dashboard for each service with RED metrics (Rate, Errors, Duration)
-8. **Self-host for cost** — SigNoz on your infrastructure costs 5-10x less than Datadog/New Relic for the same data volume
+- Initialize OpenTelemetry before anything else is imported, or auto-instrumentation will not patch those libraries.
+- Spans need `span.end()` on every path; leaked spans never export.
+- Do not put secrets or personal data in span attributes or log fields; keep ingestion keys in environment variables.
+- Expose OTLP ports 4317 and 4318 only to your own network; they accept unauthenticated data in the self-hosted stack.
+- Budget at least 4 GB RAM for Docker; ClickHouse disk use grows with volume, so set retention in Settings and use sampling in the OpenTelemetry Collector (tail-based sampling keeps errors and slow traces) for busy services.
+- Ports and install steps changed in recent releases: when an older tutorial mentions `localhost:3301` or `deploy/docker/clickhouse-setup`, use the Foundry steps above.
+- Keep metric attribute values low-cardinality (plan, region), never user or order ids.
