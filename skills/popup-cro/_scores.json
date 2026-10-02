@@ -1,31 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:34d2d02fa0daf83bf5fa026e3d3d0419aed428971f7b3608e072f0929c75c64b",
-  "scoredAt": "2026-05-13T09:52:07.168Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:db3f9c9356c4db0d6f55288077c2ed9972d7c7d770e4b3052e6e5885969a2616",
+  "scoredAt": "2026-10-01T20:29:46.194Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly address error handling or edge cases for missing user context."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a .claude-specific file, limiting applicability to Claude agents."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ba8f3f1b6a441e9c8cab23974ff4fb01fa176cd30540bdb005d59fd54e2c712b",
-  "scoredAt": "2026-05-13T09:12:23.145Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:71822a16588512fa91538eefd49c7a2f2f5880a978b9d58e565530ed2c958300",
+  "scoredAt": "2026-10-01T18:39:20.331Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -17,18 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling for API failures and edge cases such as large memory or invalid JSON responses."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "Skill file contains extensive narrative explanations that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Implementation is Python-specific, limiting compatibility with other AI agent platforms."
+        "detail": "The instructions assume specific platform tools and configurations, limiting cross-platform compatibility."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 84,
-    "multiplier": 2.63,
+    "multiplier": 1.26,
+    "baselineAvg": 38,
+    "treatmentAvg": 48,
     "scenarios": [
       {
-        "name": "Self-improving Python agent with persisted preferences",
-        "baseline": 35,
-        "treatment": 86,
-        "rationale": "Treatment defines a class that persists config to a JSON file across instantiations, runs a reflection LLM call returning structured JSON with NEW_FACTS/PREFERENCES, and only updates the system prompt via the reflection pipeline rather than letting user input overwrite it; baseline shows a generic memory dict without disk persistence or a separate reflection model."
+        "name": "install-and-configure-hermes-docker",
+        "baseline": 55,
+        "treatment": 75,
+        "rationale": "Response A covers more rubric items (wizard, provider, model, doctor) while Response B only covers chat, doctor, and key via env vars, missing config set commands."
       },
       {
-        "name": "Avoid degrading good behavior during self-improvement",
-        "baseline": 30,
-        "treatment": 82,
-        "rationale": "Treatment applies the documented QUALITY_SCORE < 7 guard, uses claude-haiku-4-5 as a cheaper reflection model, and bumps config version on prompt merges; baseline gives generic LLM evaluation advice without the specific threshold or version bump pattern."
+        "name": "learn-python-code-preference",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Response B better meets the rubric by showing the expected memory file content line, whereas Response A only shows a grep command without displaying the actual preference block."
+      },
+      {
+        "name": "curator-dry-run-and-pin",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required dry‑run output listing at least one skill."
       }
     ]
   }

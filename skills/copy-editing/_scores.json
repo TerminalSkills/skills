@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ce6c96a9fee33e80a55b1d6494b4b278c618c28da4d63a05c75c619694dd0da8",
-  "scoredAt": "2026-05-13T16:01:37.098Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:989244002a47a5c3398d9cedbb19a80796c8fa28d7d0c92a261195538e549017",
+  "scoredAt": "2026-10-01T19:45:08.555Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address scenarios where the user provides incomplete copy or missing context."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a .claude-specific file path, limiting use to Claude agents."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered padded, reducing conciseness."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2,
-    "baselineAvg": 45,
-    "treatmentAvg": 90,
+    "multiplier": 0,
+    "baselineAvg": 0,
+    "treatmentAvg": 0,
     "scenarios": [
       {
-        "name": "seven-sweeps-landing-page-edit",
-        "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response A better applies the sweeps and annotations, but lacks explicit recheck statement; Response B fails to apply the framework."
+        "name": "proofread-email-launch",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide any edited copy, change log, queries, evidence flags, or mechanical check summary, so neither meets the rubric."
       },
       {
-        "name": "quick-pass-tweet-polish",
-        "baseline": 60,
-        "treatment": 100,
-        "rationale": "Response B fully meets all rubric criteria with detailed explanations, while Response A lacks the required edit explanations."
+        "name": "clean-landing-page-copy",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the edited copy, change log, evidence flag, and mechanical check summary required by the rubric; A is more detailed but still incomplete, while B is even less comprehensive."
+      },
+      {
+        "name": "light-proofread-newsletter",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required proofread details."
       }
     ]
   }

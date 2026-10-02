@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ba70d828e56a0bf09975520090292f054db00685a3708c76398a48da53b5f2b4",
-  "scoredAt": "2026-05-13T09:38:13.934Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:aeefd8f04f8fd06626adde4371820df14ef65ac2e4a6dd51aa1910511999ad3b",
+  "scoredAt": "2026-10-01T20:20:00.782Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing only on the happy path."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 84,
-    "multiplier": 2.21,
+    "multiplier": 9,
+    "baselineAvg": 7,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Reduce a multi-feature SaaS idea into a weekend-shippable MVP",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment applies the Three Stages (Manual/Processized/Productized), the Four Build Questions (weekend, life-better, willing-to-pay, fast-feedback), and recommends existing tools (Carrd/Gumroad/Stripe) per the skill; baseline gives generic 'cut scope, talk to users' advice without the structured framework."
+        "name": "scope-mvp-marketplace",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits all required sections."
       },
       {
-        "name": "Decide what to deliberately NOT build for a v1 freelancer tool",
-        "baseline": 35,
-        "treatment": 83,
-        "rationale": "Treatment names a single thing, sets a paid price from day one, defers features until N+ paying customers, and explicitly lists what NOT to build (accounts, polish, mobile) following the skill's checklist; baseline produces a generic feature-cut list without the 'charge from day one' and 'forms and lists' framing."
+        "name": "cut-feature-list",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A includes the required classification, half‑day estimates, and justification, while Response B lacks these core elements."
+      },
+      {
+        "name": "plan-saas-mvp",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B lacks all required elements."
       }
     ]
   }

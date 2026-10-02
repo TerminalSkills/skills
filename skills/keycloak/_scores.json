@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:56c5f799d3c09ba31d7e7b2e41348f08717206e145152bb8d4ed77dc02244651",
-  "scoredAt": "2026-05-13T09:19:39.530Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1a11069204ef2fdb379d25afb20c45603d9f97465b90fa6a3566ee9acc5e50af",
+  "scoredAt": "2026-10-01T18:45:04.724Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are descriptive but lack specific, step-by-step guidance for the agent."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling and edge case scenarios are not addressed in the examples."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 86,
-    "multiplier": 1.56,
+    "multiplier": 2.41,
+    "baselineAvg": 32,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "Programmatically create a Keycloak user and assign a role",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment matches the SKILL.md admin-API pattern: client_credentials token from /realms/master/protocol/openid-connect/token, POST to /admin/realms/{REALM}/users with enabled/emailVerified/credentials, then GET /roles/{name} and POST to /users/{id}/role-mappings/realm; baseline misses the role-mappings endpoint shape and uses ad-hoc token fetching."
+        "name": "local-keycloak-nextjs-client",
+        "baseline": 40,
+        "treatment": 70,
+        "rationale": "Response B meets most rubric items except the exact clientId name, while Response A fails on the bootstrap admin variables, clientId, redirect URI, and secret retrieval command."
       },
       {
-        "name": "Integrate Keycloak SSO into a Next.js app with NextAuth",
+        "name": "reverse-proxy-https-setup",
+        "baseline": 0,
+        "treatment": 85,
+        "rationale": "Response B covers most rubric items but omits the issuer URL detail, while Response A is not provided and thus cannot be evaluated."
+      },
+      {
+        "name": "create-user-admin-api",
         "baseline": 55,
-        "treatment": 87,
-        "rationale": "Treatment uses next-auth/providers/keycloak with issuer built as `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}` and persists access/refresh/id tokens in the jwt callback per SKILL.md; baseline uses a generic OAuth setup without the realm-scoped issuer pattern or token persistence callbacks."
+        "treatment": 75,
+        "rationale": "Response B better meets the rubric, providing the required functions and correct payloads, while Response A uses the wrong realm for the token, omits VERIFY_EMAIL, and extracts the user ID incorrectly."
       }
     ]
   }

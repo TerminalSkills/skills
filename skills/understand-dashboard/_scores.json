@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:12081f92d82d6b6704f892314f86084ee8e2c7199b2df66aaab0c9fdea2ef490",
-  "scoredAt": "2026-05-13T10:29:38.056Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:055bb4f94e947004c0a7d2bc5a504fec39d9d512248160140138444a6678afb3",
+  "scoredAt": "2026-10-01T21:06:55.082Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes Node.js, pnpm, and specific OS utilities, limiting cross-platform compatibility."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 18,
-    "treatmentAvg": 91,
-    "multiplier": 5.06,
+    "multiplier": 4.1,
+    "baselineAvg": 20,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "launch-dashboard-cwd",
-        "baseline": 18,
-        "treatment": 92,
-        "rationale": "Baseline cannot guess the packages/dashboard layout, the @understand-anything/core build step, or the GRAPH_DIR convention; treatment verifies the graph file, builds the core package, and starts Vite with GRAPH_DIR set to the project dir."
+        "name": "open-dashboard-current-repo",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B covers node count, URL, and kill command (though not exact) and is more complete than A, which provides none of the required details."
       },
       {
-        "name": "launch-dashboard-explicit-path",
-        "baseline": 18,
-        "treatment": 90,
-        "rationale": "Baseline has no way to know that the dashboard expects a GRAPH_DIR env var pointing at the project root; treatment checks ~/projects/my-api/.understand-anything/knowledge-graph.json and starts Vite with that GRAPH_DIR and reports the local URL."
+        "name": "remote-dashboard-port-forward",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits key details such as launching the viewer with a different port, confirming 127.0.0.1 binding, and providing the token URL."
+      },
+      {
+        "name": "stale-token-bookmark",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A covers the required grep extraction, stable token setting, and URL token inclusion, but omits the address‑bar removal detail; Response B is unrelated to the viewer log and token handling described in the rubric."
       }
     ]
   }

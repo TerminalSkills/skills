@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b5d24c78b48b4ac84600fba0fcbeef434a490ddd7f58b89a2f173ec1be539171",
-  "scoredAt": "2026-05-13T10:29:51.822Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:f6716a73510fa7cd47d89dd01a11440687d32b04dc51cbf0b8f0dc7c8617a2cf",
+  "scoredAt": "2026-10-01T21:08:58.112Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling for missing or ambiguous node matches beyond the initial graph existence check."
+        "category": "conciseness",
+        "detail": "The skill file contains verbose sections that may be considered padded explanations."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 88,
-    "multiplier": 2.51,
+    "multiplier": 6.3,
+    "baselineAvg": 10,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "explain-session-file",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline reads the source file directly but never consults .understand-anything/knowledge-graph.json, so it cannot identify the architectural layer or upstream callers; treatment follows the documented Grep-the-graph-then-read-source flow and produces all three rubric outcomes."
+        "name": "explain-bookslot-function",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A covers most required sections and code references but omits the mandatory graph line references; Response B does not provide any explanation."
       },
       {
-        "name": "explain-require-auth-function",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline gives a generic function summary with no layer or caller context; treatment locates the func: node id, walks 1-hop edges for callers and dependencies, and resolves the layer from layers[] before explaining."
+        "name": "explain-appointments-table",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Both responses miss the required graph context lines and commit hash details; A includes a hash and line range, making it slightly better."
+      },
+      {
+        "name": "explain-new-file",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A fails to meet any rubric criteria, while Response B covers most requirements but omits the required graph commit hash."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d79befdfc7cfd42291b9cd3e5e516b22a2cbb3742b2a0623c67caac53419ba85",
-  "scoredAt": "2026-05-13T10:26:40.817Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:52667323d04bd21a7d1d6a2e86dcbc39cc677a25962e8ab14f68694772039154",
+  "scoredAt": "2026-10-01T19:20:08.815Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions lack explicit error handling and edge case coverage."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 36,
-    "treatmentAvg": 87,
-    "multiplier": 2.42,
+    "multiplier": 4,
+    "baselineAvg": 20,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Add a custom task-card shape to a tldraw kanban board",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment extends BaseBoxShapeUtil with static type, getDefaultProps, an HTMLContainer-based component(), and an indicator() for zoomed-out rendering; baseline writes a generic React component and skips tldraw's shape utility contract."
+        "name": "embed-canvas-with-task-card-and-export",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
       },
       {
-        "name": "Persist canvas state to a backend with debounced auto-save",
-        "baseline": 38,
-        "treatment": 86,
-        "rationale": "Treatment uses editor.store.getSnapshot() and editor.store.loadSnapshot(), sets up editor.store.listen with debounce ~2s, and PUTs the snapshot to a documents endpoint; baseline relies on persistenceKey/localStorage and misses the snapshot APIs."
+        "name": "setup-realtime-collaboration-with-sync",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B meets most rubric items, while Response A misses key requirements such as using useSync, the correct upload endpoint, and rendering the Tldraw component in a fixed container."
+      },
+      {
+        "name": "auto-save-canvas-with-snapshots",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response A better meets rubric, providing correct listener and debounce, though missing loadFromServer; Response B lacks required functions and uses different API."
       }
     ]
   }

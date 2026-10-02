@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cb41e0b43807c4c59060d3b1529359b1adaf736fbe328c55d8bcc85daff62537",
-  "scoredAt": "2026-05-13T10:38:16.555Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:b6a550b3a5d259e870101af50f11db00d67d7731c300a4ee3ef2bc32d747b5b8",
+  "scoredAt": "2026-10-01T21:14:46.275Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in instructions."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 89,
-    "multiplier": 3.18,
+    "multiplier": 4.04,
+    "baselineAvg": 23,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Launch 3 parallel Claude agents with auto-setup",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline uses raw git worktree add + manual npm install per directory; treatment uses .worktrunk.toml on_create hook plus wt switch -c -x to create and launch the agent in one command, then wt list to monitor."
+        "name": "setup-central-worktrees-with-shell-integration",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits the required shell integration command and central worktree configuration."
       },
       {
-        "name": "Share node_modules across worktrees",
-        "baseline": 25,
-        "treatment": 88,
-        "rationale": "Baseline suggests symlinks or pnpm; treatment uses the documented [create] copy = [\"node_modules\", \".next\", \"dist\"] block in .worktrunk.toml plus [paths] template for predictable naming."
+        "name": "approve-and-trigger-pre-start-hook",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A provides no content."
+      },
+      {
+        "name": "merge-feature-branch-with-flags",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response B meets the core requirements (wt merge with flags, pre-merge hook, automatic worktree removal) but lacks a verification step, while Response A uses plain git merge, omits the required wt merge command, pre-merge hook mention, and automatic worktree cleanup."
       }
     ]
   }

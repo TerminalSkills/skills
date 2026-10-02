@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:39bd7f8f2a49f940f8b4a9c714bb7351addf5c0aa48358775ec80fbc07b05d79",
-  "scoredAt": "2026-05-13T08:48:08.931Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:604de0ad4e0483e1434d14138ebd47b97f67fbf5ff44b41c4a3290880c925e0f",
+  "scoredAt": "2026-10-01T19:50:47.325Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases for missing data or invalid inputs."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be trimmed for brevity."
+        "detail": "The skill file contains excessive verbosity that may hinder quick comprehension."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 87,
-    "multiplier": 1.67,
+    "multiplier": 1.56,
+    "baselineAvg": 32,
+    "treatmentAvg": 50,
     "scenarios": [
       {
-        "name": "SaaS welcome sequence with exit conditions and branching",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment followed the welcome-sequence blueprint (5-7 emails over 12-14 days), included exit conditions, branching for active vs inactive users at email 4-5, and per-email Subject/Preview/Body/CTA output format; baseline produced a generic schedule without exit conditions, branching, or the documented output structure."
+        "name": "trial-onboarding-sequence",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B covers most rubric items except the measurement plan, whereas Response A lacks the required specification block, sender‑readiness table, and measurement plan."
       },
       {
-        "name": "B2B lead nurture after whitepaper download",
+        "name": "win-back-sequence",
+        "baseline": 25,
+        "treatment": 20,
+        "rationale": "B has more email content details, A has a spec block but lacks email specifics."
+      },
+      {
+        "name": "spam-compliance-sequence",
         "baseline": 50,
-        "treatment": 86,
-        "rationale": "Treatment used the 6-8 email nurture blueprint with deliver/expand/problem/solution/case-study/differentiation/objection/offer arc, one CTA per email, and the documented Sequence Overview format; baseline gave a 3-email blast with multiple CTAs and no objection-handler or differentiation step."
+        "treatment": 60,
+        "rationale": "Response B includes the required sequence spec and fully drafted emails, while Response A lacks the detailed spec and email content; however, neither provides a complete sender‑readiness table or measurement plan, so B scores higher."
       }
     ]
   }

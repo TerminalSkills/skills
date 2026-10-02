@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ba60a68e52c2eb605535ce35e666dd4ebe76d8d1bab799e543f9cd0f66b366de",
-  "scoredAt": "2026-05-13T10:22:25.176Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f38185c4173621526e4913c8aee2ad3408a28df453001c5c6f86fc82b3f3f947",
+  "scoredAt": "2026-10-01T19:17:33.516Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover all possible error scenarios and edge cases for Symfony development."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 87,
-    "multiplier": 1.45,
+    "multiplier": 3.12,
+    "baselineAvg": 25,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "JSON User API with validation and serialization groups",
-        "baseline": 60,
-        "treatment": 88,
-        "rationale": "Treatment uses #[Route] attributes, constructor-injected UserRepository/EntityManagerInterface/ValidatorInterface, ValidatorInterface->validate before persist, and #[Groups('user:list'/'user:detail')] to control serialization — all per the skill; baseline returns a generic controller without groups or validator integration."
+        "name": "create-symfony-project-with-validation",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits messenger and mailer, while Response B lacks the required checkout-api command, MapRequestPayload usage, DTO, and messenger/mail packages."
       },
       {
-        "name": "Dispatch welcome email asynchronously after signup",
-        "baseline": 60,
-        "treatment": 86,
-        "rationale": "Treatment defines a Message class plus an #[AsMessageHandler] invokable handler and dispatches via $this->bus->dispatch(...) as specified in the skill; baseline reaches for raw queues or synchronous mailer without Messenger's pattern."
+        "name": "setup-messenger-welcome-email",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response A covers most rubric items but misses the composer require and exact worker command, while Response B lacks the required annotations, composer step, and worker command."
+      },
+      {
+        "name": "create-and-run-doctrine-migration",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not."
       }
     ]
   }

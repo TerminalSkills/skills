@@ -1,49 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c8bebd9ea1a7c0e944481beec5edc0389b8decc5adc018ff187a52779dddd5b7",
-  "scoredAt": "2026-05-13T10:23:46.385Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:1b0eab9c0f01ee7c35b4663e4575c77701ea208b70c8245d73edda62e2c3772f",
+  "scoredAt": "2026-10-01T21:00:58.017Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 50,
+    "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
       "conciseness": "WEAK",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not specific or unambiguous, lacking concrete steps for the agent."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases, focusing only on happy path."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "Content includes verbose explanations that could be trimmed."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "Skill lacks runnable code or concrete procedures for the agent to execute."
+        "detail": "The skill contains extensive explanatory text that may be considered padded, reducing conciseness."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill lists specific agents, implying minor platform assumptions."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "Skill provides no realistic demonstrations, only placeholders."
+        "detail": "The skill references specific AI agents, indicating minor platform assumptions."
       }
     ]
   },
@@ -52,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 34,
-    "treatmentAvg": 89,
-    "multiplier": 2.62,
+    "multiplier": 0.83,
+    "baselineAvg": 63,
+    "treatmentAvg": 52,
     "scenarios": [
       {
-        "name": "TDD a password-reset feature in Express",
-        "baseline": 32,
-        "treatment": 90,
-        "rationale": "Baseline drifted into a horizontal-slice approach (write many tests up-front, mock collaborators) while treatment used a tracer bullet plus vertical slices with tests against the public HTTP interface and one red-green cycle at a time."
+        "name": "split-bill-tdd",
+        "baseline": 50,
+        "treatment": 10,
+        "rationale": "Response A provides a test suite and runner command but lacks implementation and refactoring steps, while Response B merely asks for clarification."
       },
       {
-        "name": "Fix cart total bug with red-green-refactor",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline wrote unit tests against internal helpers and mixed refactor steps into the failing state, whereas treatment wrote a failing reproduction through the public cart interface, did minimal code to GREEN, then refactored, keeping tests refactor-survivable."
+        "name": "billing-date-bug-reproduction",
+        "baseline": 70,
+        "treatment": 50,
+        "rationale": "Response A provides a regression test, a buggy implementation, a fixed implementation, and an updated test, whereas Response B only gives a test and a fixed implementation without demonstrating the failure or running the full suite."
+      },
+      {
+        "name": "legacy-code-characterization",
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "Response A fully covers characterization, initial tests, new tests, minimal implementation, and refactoring, while Response B omits the characterization step and final test suite verification."
       }
     ]
   }

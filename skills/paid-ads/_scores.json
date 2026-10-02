@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7cdfd2af7d9340d0ee314acaf8be14340cdf8e47b70ca03933bc5efed2ac5e50",
-  "scoredAt": "2026-05-13T09:47:43.924Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:7695f7f385c1a5ab46acf3d6fcdf5f9e3469ff8b887842df2863062de838316a",
+  "scoredAt": "2026-10-01T20:26:19.828Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 95,
-    "multiplier": 2.21,
+    "multiplier": 1.07,
+    "baselineAvg": 30,
+    "treatmentAvg": 32,
     "scenarios": [
       {
-        "name": "B2B SaaS Google Ads launch at $5K/mo and $150 CPA",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline runs a single broad search campaign on Target CPA from day one; treatment splits Brand + High-Intent + Competitor Conquest with the documented naming convention and manual CPC starting bids that switch to Target CPA after the ~50-conversion threshold plus tracking verification."
+        "name": "create-paid-ads-plan",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "B includes several required sections and a cost calculation, whereas A lacks any of the rubric elements."
       },
       {
-        "name": "Meta launch for meal-planning app at $3K/mo",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline picks interests and makes generic ads with no lookalike LTV or scaling rules; treatment uses 1%-lookalike-on-premium + interest + broad, Hook-Problem-Solution-CTA video structure with captions, 2-week test then 20-30% scale every 3-5 days, plus install-no-subscribe retargeting and customer exclusions."
+        "name": "budget-viability-check",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to run ads_math.py and show its output, but Response A provides more context and detail, making it marginally better."
+      },
+      {
+        "name": "meta-ad-copy-length-check",
+        "baseline": 60,
+        "treatment": 40,
+        "rationale": "Response A correctly lists 4 headlines and 2 descriptions within limits but omits the required length‑check output, whereas Response B provides the length check but incorrectly supplies 4 descriptions instead of 2."
       }
     ]
   }

@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:776e379dc086c9290a2ad0dc317dbe1d67fc910d4caab1f8a6952e3f6ed7f2dc",
-  "scoredAt": "2026-05-13T09:57:33.574Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:1f7c2ac82f196e66ed4b2d3fa094aa51090aea09df2af3361026bdf8ccb4e2a5",
+  "scoredAt": "2026-10-01T20:37:10.386Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing data or low search volume scenarios."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a Claude-specific file path, limiting applicability to other AI platforms."
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that may be considered padded."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 94,
-    "multiplier": 2.47,
+    "multiplier": 2.28,
+    "baselineAvg": 32,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Plan 300+ integration pages for a Zapier competitor",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline covers URL structure and templates but skips the defensibility hierarchy, hub-and-spoke architecture, and phased rollout discipline; treatment applies subfolder URLs, proprietary product-derived data per page, hub-and-spoke linking, and starts with the top 50 integrations to validate ranking before scaling."
+        "name": "city-guide-pages",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A covers the go/no-go decision and YAML spec but lacks rollout schedule and API references, while Response B omits all required elements."
       },
       {
-        "name": "Build comparison pages without triggering thin-content penalties",
-        "baseline": 40,
-        "treatment": 93,
-        "rationale": "Baseline gives a generic feature-table approach; treatment names the Comparisons playbook explicitly, requires unique proprietary content per page, uses subfolders with hub-and-spoke linking at /vs/, and recommends launching a small validated batch before scaling."
+        "name": "audit-unindexed-pages",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers the policy audit, gate logic, and page fixes, while B lacks policy checks and gate results."
+      },
+      {
+        "name": "integration-pages",
+        "baseline": 35,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, while Response A is incomplete and lacks key details."
       }
     ]
   }

@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:83902341b47fdd5c1e6a71b9bdb97f5e2ccc3a0cec93d7ecf5c91ec89cf62e0d",
-  "scoredAt": "2026-05-13T10:33:11.600Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:496dcd66dd5068e301ea03d751f6dabe95dda1327ed526cf3f1d10bb51e7c970",
+  "scoredAt": "2026-10-01T21:13:32.641Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered padded."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 95,
-    "multiplier": 2.88,
+    "multiplier": 0.2,
+    "baselineAvg": 35,
+    "treatmentAvg": 7,
     "scenarios": [
       {
-        "name": "SaaS idea evaluation (LinkedIn outreach automation)",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline recommends building an MVP after light competitor research and a TAM analysis without demanding manual processizing or naming 10 specific people; treatment defines the precise ICP, demands current workaround and 10/3 conversation thresholds, applies processize-manually-first, calls out red flags, and ends with a Needs-more-validation verdict and manual-first next steps."
+        "name": "validate-freelancer-invoice-app",
+        "baseline": 35,
+        "treatment": 0,
+        "rationale": "Response B contains some elements but misses key tables, numbers, and experiment details required by the rubric, whereas Response A provides no brief at all."
       },
       {
-        "name": "Niche tool idea (team Pomodoro for remote workers)",
+        "name": "validate-eco-box-subscription",
         "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline suggests waitlists, surveys, and a 2-week MVP without rejecting friends-as-validation or pushing manual sales; treatment names red flags (friends-cool, not-in-community, no existing workarounds), demands 10 named people and 3 paid manual customers, and delivers a Pivot verdict with concrete manual-first steps."
+        "treatment": 5,
+        "rationale": "Response A provides more of the required brief structure, while Response B merely requests information and lacks any of the rubric elements."
+      },
+      {
+        "name": "validate-farm-to-restaurant-platform",
+        "baseline": 35,
+        "treatment": 15,
+        "rationale": "Response B contains more concrete content and experiment ideas, but both lack the required markdown headings, assumption/evidence tables, numbers, and verdict, so B scores higher."
       }
     ]
   }

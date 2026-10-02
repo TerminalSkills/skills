@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3889b412c4caeda78981ffd4e1532e819d484b95bea464680cab2e555a5cb80e",
-  "scoredAt": "2026-05-13T10:29:13.050Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:c1455690c1a43b7914ca3d6089381b8bd4795779006038cefb21392e55b8dc13",
+  "scoredAt": "2026-10-01T21:04:33.039Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not specify how to handle missing domain terms or ambiguous definitions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one example dialogue is provided, not the required two or more realistic demonstrations."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 91,
-    "multiplier": 3.96,
+    "multiplier": 0.35,
+    "baselineAvg": 20,
+    "treatmentAvg": 7,
     "scenarios": [
       {
-        "name": "Extract a DDD glossary from a domain conversation",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Treatment writes UBIQUITOUS_LANGUAGE.md with the prescribed Term/Definition/Aliases-to-avoid tables grouped by subdomain, Relationships, example dev/domain-expert dialogue, and Flagged ambiguities section with recommendations — baseline produces a flat unstructured list."
+        "name": "create-glossary-from-notes-and-code",
+        "baseline": 5,
+        "treatment": 10,
+        "rationale": "Both responses fail to produce the required glossary, but Response A offers more detailed guidance and structure, earning a slightly higher score."
       },
       {
-        "name": "Re-run ubiquitous language after new shipment terms emerge",
-        "baseline": 20,
-        "treatment": 90,
-        "rationale": "Treatment follows the re-running protocol — reads the existing file, marks new entries (new) and changed entries (updated), re-flags ambiguities, and rewrites the example dialogue — baseline simply appends terms without the protocol."
+        "name": "update-existing-glossary-with-new-context",
+        "baseline": 55,
+        "treatment": 10,
+        "rationale": "Response A provides a concrete inventory section with terms and preserves billing, but lacks file detection, in-place update, and mapping; Response B merely requests information and does not update the glossary."
+      },
+      {
+        "name": "detect-code-drift-from-glossary",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required drift table with at least five items and suggested rename actions."
       }
     ]
   }

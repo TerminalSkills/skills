@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c01ae423ead64872985ece706ad0e08cc6f2cb8b4c8557d3e3351bea4c25754c",
-  "scoredAt": "2026-05-13T09:35:52.779Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:83680a52d66df63675007e1140dd8c4b0e1500be3fbf3771ff5b8caa4d259026",
+  "scoredAt": "2026-10-01T18:56:32.855Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "The instructions do not cover all potential error scenarios and edge cases, such as handling missing dependencies or environment variable misconfigurations."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive background information and verbose explanations that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 89,
-    "multiplier": 1.62,
+    "multiplier": 2.93,
+    "baselineAvg": 28,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Configure Material theme with light/dark toggle and tabs",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment used theme.palette with default+slate schemes, brightness-7/4 toggle icons, and features like navigation.tabs/navigation.instant from the skill's mkdocs.yml; baseline gave a generic palette without the slate scheme toggle pattern."
+        "name": "setup-new-mkdocs-site-with-mkdocstrings",
+        "baseline": 20,
+        "treatment": 85,
+        "rationale": "Response A covers almost all rubric items but omits the mkdocs serve note; Response B lacks key configuration details."
       },
       {
-        "name": "Add multi-language code tabs and deploy to GitHub Pages",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment used === \"Python\" tab syntax with pymdownx.tabbed (alternate_style: true) and mkdocs gh-deploy as documented; baseline used generic code blocks and a manual gh-pages workflow."
+        "name": "add-versioning-with-mike",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required 'extra.version.provider' entry, lacks the 'mike set-default' command, and does not explicitly remove the old gh-deploy step."
+      },
+      {
+        "name": "migrate-to-zensical-and-update-ci",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A covers the required command sequence and CI workflow but lacks a plugin compatibility comparison; Response B fails to mention Zensical or the required build steps and omits the plugin comparison."
       }
     ]
   }

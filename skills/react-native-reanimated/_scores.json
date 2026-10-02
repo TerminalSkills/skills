@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8e6d7359764bce101e6e8c52676eee616b7bf5385d5aeb8915944658a37b527c",
-  "scoredAt": "2026-05-13T10:00:48.211Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6f25dd14d63aa8615357c83334d883ce4b0554bf7d770a2673d56d8f493b188e",
+  "scoredAt": "2026-10-01T19:03:06.917Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases for animation failures."
+        "detail": "The skill does not explicitly cover error handling or edge cases for installation failures or runtime errors."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to React Native/Expo and does not support other AI agent platforms."
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text and multiple code examples, leading to verbosity beyond what is strictly necessary."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 39,
-    "treatmentAvg": 88,
-    "multiplier": 2.26,
+    "multiplier": 10,
+    "baselineAvg": 2,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Tinder-style swipe card with snap-back and onDelete callback",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment uses the skill's documented Reanimated + Gesture Handler stack (`useSharedValue`, `Gesture.Pan()`/`GestureDetector`, `useAnimatedStyle`, `withSpring`, `runOnJS`) while baseline falls back to the legacy `Animated` API + `PanResponder` which fails the UI-thread check."
+        "name": "swipe-to-delete-list-item",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use the specified APIs or patterns."
       },
       {
-        "name": "Parallax header that shrinks and fades as the user scrolls a list",
-        "baseline": 38,
-        "treatment": 88,
-        "rationale": "Treatment applies `useAnimatedScrollHandler`, `useSharedValue`, `interpolate`, and `scrollEventThrottle={16}` per the skill, while baseline uses `Animated.event` with `useNativeDriver` and lacks the worklet/interpolate pattern the rubric rewards."
+        "name": "animated-list-with-layout-animations",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not use Animated.FlatList or the specified animation props."
+      },
+      {
+        "name": "parallax-header-on-scroll",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric requirements; Response B does not use Reanimated at all."
       }
     ]
   }

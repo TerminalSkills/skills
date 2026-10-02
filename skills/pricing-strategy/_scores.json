@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:af99e8d17e2cb3e19906227322fb8f553c66ccb20e958ab6f846d06596939e8d",
-  "scoredAt": "2026-05-13T09:56:55.929Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:c7a1c1e518cdb195d15614a8beafe228ec4482c6100796a3675f317b7421a6eb",
+  "scoredAt": "2026-10-01T20:34:50.345Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not specify fallback actions when user-provided context is incomplete or missing."
+        "detail": "The skill does not explicitly cover error handling or edge cases for data retrieval failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive narrative that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill references a .claude-specific file, limiting compatibility with non-Claude agents."
+        "detail": "The skill assumes Stripe API usage, limiting applicability to non-Stripe billing systems."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 87,
-    "multiplier": 1.74,
+    "multiplier": 1.4,
+    "baselineAvg": 45,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "Price increase for email marketing platform with strong unit economics",
-        "baseline": 52,
-        "treatment": 88,
-        "rationale": "Treatment read the signals (>40% conversion, <3% churn) as the documented signs to raise, justified the increase via added features, grandfathered existing customers with a partial-increase ramp, and introduced a lower tier to capture price-sensitive segment; baseline suggested a flat price increase with a 30-day notice and no segmentation."
+        "name": "first-price-setup",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Response B covers more rubric items (memo sections, migration placeholder, plan table) but still lacks the required notice period, proration_behavior curl, and catalog export reference; Response A is missing even more of these elements."
       },
       {
-        "name": "Design paid pricing for new project-management SaaS",
-        "baseline": 48,
-        "treatment": 86,
-        "rationale": "Treatment selected per-seat as the value metric using the scales-with-value test, built Good-Better-Best with a recommended middle anchor, planned a Van Westendorp study before locking price points, and added a 17-20% annual discount as a churn lever; baseline copied competitor prices into three tiers without value-metric justification or research plan."
+        "name": "diagnose-weak-lever",
+        "baseline": 65,
+        "treatment": 85,
+        "rationale": "Response A covers more rubric items, including a migration notice, Stripe curl with proration_behavior=none, and a plans table, while Response B lacks a clear migration plan and the required Stripe command."
+      },
+      {
+        "name": "price-increase-modeling",
+        "baseline": 20,
+        "treatment": 45,
+        "rationale": "Response B covers more rubric items (notice period, Stripe API, revenue model) than Response A, but both miss the Van Westendorp snippet, break‑even calculation, proration_behavior=none, and memo structure."
       }
     ]
   }

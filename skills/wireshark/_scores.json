@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0ffab6435715e22e0a91a645c0fc4fcf7ab0341f0805b7a584f7b6dab9a6262f",
-  "scoredAt": "2026-05-13T10:37:53.560Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a86a2559beb7ecd05cd696a7ece12903da4514bfb2098d9e5d7f1e42452c7dfc",
+  "scoredAt": "2026-10-01T19:27:16.563Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions lack handling for errors such as missing permissions, tool absence, or capture failures."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 39,
-    "treatmentAvg": 91,
-    "multiplier": 2.33,
+    "multiplier": 2.82,
+    "baselineAvg": 33,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Diagnose slow API via 60s capture + retransmission analysis",
-        "baseline": 38,
-        "treatment": 90,
-        "rationale": "Baseline uses tcpdump and eyeballs the GUI; treatment uses tshark -a duration:60 with BPF host+port filter, then -z io,stat retransmission stats, -Y tcp.analysis.retransmission field extraction, and -z conv,tcp to rank conversations."
+        "name": "capture-with-ring-buffer-and-retransmission-analysis",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but misstates the ring buffer size, while Response B provides no content."
       },
       {
-        "name": "Extract FTP-transferred file from CTF pcap",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Baseline opens GUI and clicks Export Objects; treatment triages with -z io,phs and -z conv,tcp, locates the transfer with -Y 'ftp.request.command == \"RETR\"' extracting ftp.request.arg, then --export-objects ftp-data and verifies with file."
+        "name": "extract-ftp-file-from-ctf-pcap",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric by using --export-objects ftp-data and confirming the ZIP file, while Response B omits the required option and thus fails the rubric."
+      },
+      {
+        "name": "decrypt-tls-with-keylog-and-list-http-requests",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, detailing SSLKEYLOGFILE setup, tshark decryption with -o tls.keylog_file, and http.request filtering with host and URI fields."
       }
     ]
   }

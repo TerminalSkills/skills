@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c3795bebe4c825cfbc10f0c6dd46995baf7867ffa9d092c4e422bae754cb9681",
-  "scoredAt": "2026-05-13T10:17:10.421Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:43a8daf4cbff31219774d468697ca626964a04dd138cb0b0e6deaa675aa7c6cd",
+  "scoredAt": "2026-10-01T20:57:13.191Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 83,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "The skill file lacks at least two realistic demonstrations of its usage."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 87,
-    "multiplier": 1.74,
+    "multiplier": 1.51,
+    "baselineAvg": 63,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Audit janky scrolling in a List backed by @Observable model",
-        "baseline": 52,
-        "treatment": 88,
-        "rationale": "Treatment categorizes the issue (invalidation storm / identity churn), narrows observation scope, stabilizes ForEach identity, and applies equatable() only when cheaper than recomputing; baseline mentions LazyVStack or .id but misses the documented invalidation fan-out and identity guidance."
+        "name": "audit-search-field-lag",
+        "baseline": 65,
+        "treatment": 95,
+        "rationale": "Response B covers all rubric items, including symptom identification, code-level causes, concrete fixes, stable identity, and instrument confirmation, while Response A omits the instrument confirmation step and is less comprehensive."
       },
       {
-        "name": "Diagnose CPU spike from heavy work in body",
-        "baseline": 48,
-        "treatment": 86,
-        "rationale": "Treatment moves heavy work out of body into derived/precomputed state, downsamples images, and follows the intake -> code-first review -> profile workflow with a structured report; baseline jumps to caching without the documented workflow or remediation hierarchy."
+        "name": "audit-photo-grid-stutter",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric points, while Response B omits key causes, thumbnail generation, and profiling details."
+      },
+      {
+        "name": "audit-screen-freeze",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Response B covers diagnosis, fix, and instrument confirmation more thoroughly, while Response A lacks the confirmation details."
       }
     ]
   }

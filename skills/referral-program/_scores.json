@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7ad25ed6d1681cbc91e564b1faab8a687eb563944fa152b5052799d7588dd650",
-  "scoredAt": "2026-05-13T10:01:47.435Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:3f3a9c2d4a8b956d986d8196bfa4466f6e649a98157fb7d668139dea94db4c05",
+  "scoredAt": "2026-10-01T20:39:45.514Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a vendor-specific file path (.claude/product-marketing-context.md), limiting compatibility with other AI agents."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 84,
-    "multiplier": 2.0,
+    "multiplier": 2.5,
+    "baselineAvg": 28,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "meditation-app-referral-program",
-        "baseline": 45,
-        "treatment": 86,
-        "rationale": "Treatment maps the referral loop (trigger → share → convert → reward) with specific aha/milestone trigger moments, picks a double-sided incentive sized against LTV/CAC, prescribes in-product one-click sharing, and adds fraud-prevention rules and a launch email sequence from day one; baseline proposes a generic 'give $10 to each side' program without trigger placement, fraud rules, or launch promotion."
+        "name": "design-referral-program",
+        "baseline": 25,
+        "treatment": 35,
+        "rationale": "Response A includes a referral_economics call (though with 0.5 instead of 0.6) and a function, whereas Response B lacks the required function entirely; neither provides the reward rule, SQL schema, or FTC compliance note."
       },
       {
-        "name": "youtube-affiliate-program",
-        "baseline": 40,
-        "treatment": 82,
-        "rationale": "Treatment recommends recurring commissions (justified by LTV) with a tiered structure, recruitment of mid-tier creators with exclusive offers, disclosure/anti-fraud rules, and tracking via affiliate tooling with last-click attribution; baseline suggests a flat one-time payout with no tiers, no anti-fraud controls, and no recruitment strategy."
+        "name": "diagnose-low-referral-usage",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric with SQL funnel metrics, analysis, and abuse control reference, while Response A lacks the required SQL and abuse control details."
+      },
+      {
+        "name": "implement-referral-webhooks",
+        "baseline": 30,
+        "treatment": 75,
+        "rationale": "Response A covers most rubric items, including the required events, status transitions, a negative balance transaction with idempotency, and idempotency mention, whereas Response B lacks the specified events, status flow, and negative balance example."
       }
     ]
   }

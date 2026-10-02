@@ -1,53 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b70b19fa5799e2847a6c1fdd30520dd0bf9d62ef31b355f95592ffe0541024e7",
-  "scoredAt": "2026-05-13T16:45:39.196Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:dd7f3379a29d8dbebe92fa36e0448ecd13f901add294126843ab78fda695dc88",
+  "scoredAt": "2026-10-01T18:32:54.025Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases, focusing only on happy path deployment."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "installationScript",
-        "detail": "Installation script is fetched via curl piped to sh without checksum verification, posing a potential risk."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 40,
-    "treatmentAvg": 100,
+    "multiplier": 6,
+    "baselineAvg": 13,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "create-dokploy-yml-for-flask-app",
-        "baseline": 50,
+        "name": "install-dokploy-with-sha-verification",
+        "baseline": 10,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key elements such as source type, healthCheck, and forceHttps."
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits key steps, uses disallowed piping, and fails to meet the specified criteria."
       },
       {
-        "name": "typescript-dokploy-api-deploy-script",
+        "name": "deploy-compose-with-env-and-domain",
         "baseline": 30,
+        "treatment": 35,
+        "rationale": "Both responses omit key rubric items, but B provides more detailed steps and covers additional deployment actions, earning a slightly higher score."
+      },
+      {
+        "name": "trigger-deploy-via-api-from-ci",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully meets the rubric, while Response A misses key requirements such as the dokployFetch helper, correct endpoints, and env string format."
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to meet the required API call format and headers."
       }
     ]
   }

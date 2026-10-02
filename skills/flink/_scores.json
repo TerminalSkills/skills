@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1023d1a999194e3a42aa7e4e05c08eaad963feb80e4c762e62d66491b57fa5ea",
-  "scoredAt": "2026-05-13T08:53:37.518Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7387ced0b0e59419c01d7c9d99b13ce849713ed3c9a0ebce5e1514060f38be8c",
+  "scoredAt": "2026-10-02T15:16:50.784Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing Kafka topics or connection failures."
+        "detail": "The skill does not explicitly cover error handling or edge cases."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment with PyFlink, limiting compatibility with agents that do not support Python or Flink."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 84,
-    "multiplier": 2.1,
+    "multiplier": 10,
+    "baselineAvg": 0,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "PyFlink Kafka clickstream aggregation with windows",
-        "baseline": 42,
-        "treatment": 85,
-        "rationale": "Treatment uses StreamExecutionEnvironment with FlinkKafkaConsumer/Producer, key_by, TumblingEventTimeWindows.of(Time.minutes(5)), and env.execute as documented; baseline often falls back to plain kafka-python consumers with manual aggregation, missing Flink's stateful windowing primitives."
+        "name": "pyflink-clickstream-windowed-count",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B does not meet the specified PyFlink API and configuration details."
       },
       {
-        "name": "Flink SQL real-time order aggregation with watermarks",
-        "baseline": 38,
-        "treatment": 83,
-        "rationale": "Treatment uses TableEnvironment in streaming mode with CREATE TABLE ... WITH ('connector'='kafka',...), WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND, and TUMBLE/TUMBLE_START windowing as the skill documents; baseline writes generic SQL or DataStream code without watermark/Flink SQL idioms."
+        "name": "flink-sql-order-revenue-aggregation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "The provided response includes all required elements and is fully runnable, while the other response is not available for evaluation."
+      },
+      {
+        "name": "flink-cluster-deploy-and-manage",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes every required step and command; Response B omits the config edits, specific job submission, and job ID cancellation, so it fails the rubric."
       }
     ]
   }

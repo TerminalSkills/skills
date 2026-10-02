@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:73a58260d1c3eb95e5e262458d2460a8a79d4e77eb2e48ca93ebaef158d58c50",
-  "scoredAt": "2026-05-13T10:16:59.678Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:33cd920ba2fa1e83115f2fab74595850a3d4f2c3c4f4a4d7ecb46988d661fd2c",
+  "scoredAt": "2026-10-01T20:54:57.461Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that exceed concise guidelines."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 88,
-    "multiplier": 1.96,
+    "multiplier": 1.33,
+    "baselineAvg": 43,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "Fix protocol conformance error on a @MainActor view model",
+        "name": "fix-global-mutable-state",
         "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment scopes the conformance with @MainActor extension Foo: SomeProtocol (the documented isolated-conformance fix); baseline adds nonisolated to methods or wraps with Task { @MainActor in } instead of isolating the conformance."
+        "treatment": 45,
+        "rationale": "Both responses cover concurrency patterns but omit required build settings, escape‑hatch discussion, and verification steps."
       },
       {
-        "name": "Move expensive computation off the main actor in Swift 6.2",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment uses @concurrent async function (Swift 6.2+) or nonisolated with Task.detached, preserves the caller's actor on return, and avoids @unchecked Sendable; baseline reaches for Task { ... } or DispatchQueue without addressing isolation/Sendable correctly."
+        "name": "wrap-callback-to-async",
+        "baseline": 85,
+        "treatment": 75,
+        "rationale": "Both responses correctly use withCheckedThrowingContinuation and resume the continuation exactly once, but neither explicitly states the safety guarantee or that no escape hatches are added; Response A is more complete overall with usage example, earning a higher score."
+      },
+      {
+        "name": "keep-nonisolated-on-caller-actor",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A covers the explanation but omits build settings, the @concurrent/nonisolated(nonsending) suggestion, and compile‑time safety; Response B is empty."
       }
     ]
   }

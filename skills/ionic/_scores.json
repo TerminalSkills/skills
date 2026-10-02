@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d01fd9f147b4783dcf314e444826c02bb0d5329a4cb1118628077ff0b9a2241e",
-  "scoredAt": "2026-05-13T09:17:07.825Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1729f30947d2a75fbd977cca49bb1ce2e5b1a6f01a2f679fbf6ec277b9a430c0",
+  "scoredAt": "2026-10-01T18:43:51.041Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill only covers happy path scenarios and lacks error handling or edge case guidance."
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on the happy path."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains redundant explanatory text, leading to unnecessary verbosity."
+        "detail": "The skill file contains verbose explanatory text that could be trimmed for brevity."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 70,
-    "treatmentAvg": 92,
-    "multiplier": 1.31,
+    "multiplier": 1.22,
+    "baselineAvg": 78,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Scaffold Ionic React tabs app with iOS and Android",
-        "baseline": 72,
-        "treatment": 94,
-        "rationale": "Treatment uses exact CLI sequence: ionic start ... tabs --type=react, ionic cap add ios/android, ionic cap sync, then ionic cap open; baseline tends to use npx @ionic/cli or skip cap sync."
+        "name": "create-react-tabs-app",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing the required commands and mentioning the tabs layout."
       },
       {
-        "name": "Capacitor Camera photo helper",
-        "baseline": 68,
-        "treatment": 90,
-        "rationale": "Treatment imports Camera/CameraResultType/CameraSource from @capacitor/camera, calls getPhoto with resultType Uri and source Prompt, returns image.webPath; baseline often uses CameraResultType.Base64 or omits the Prompt source."
+        "name": "add-camera-plugin",
+        "baseline": 55,
+        "treatment": 85,
+        "rationale": "Response A covers installation, sync, import, and rendering photo.webPath (though it uses IonButton instead of IonFabButton), while Response B fails to use photo.webPath and IonFabButton, making it less complete."
+      },
+      {
+        "name": "dark-theme-variables",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B exactly matches the required file name and variable overrides, while Response A uses a .scss file instead of .css, slightly missing the rubric requirement."
       }
     ]
   }

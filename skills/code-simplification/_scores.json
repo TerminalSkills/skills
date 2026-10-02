@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:195b68f55b68c17b70ef838fa267c6a907ade6230b45ce4edd38d76bbdc860bc",
-  "scoredAt": "2026-05-13T15:42:34.347Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:040dce26979104abc218b6437aff7df3c96f9d5646dcbab490791d55649d205b",
+  "scoredAt": "2026-10-01T19:37:51.959Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,21 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 0,
-    "treatmentAvg": 50,
+    "multiplier": 1,
+    "baselineAvg": 35,
+    "treatmentAvg": 35,
     "scenarios": [
       {
-        "name": "simplify-ternary-to-if",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric by providing a correct, simplified implementation, whereas Response A merely requests the original code and offers no solution."
+        "name": "simplify-shipping-logic",
+        "baseline": 30,
+        "treatment": 0,
+        "rationale": "B provides a refactored implementation, whereas A only asks for clarification."
       },
       {
-        "name": "refactor-python-nested-ifs",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to provide any refactoring and simply request the original code, so neither meets the rubric."
+        "name": "tidy-payment-module",
+        "baseline": 40,
+        "treatment": 70,
+        "rationale": "Response A correctly splits the function and removes dead code, while Response B does not perform the required refactoring and omits key steps."
       }
     ]
   }

@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8bd5223fae11c533601213b7333609a90e9d56b9f5582218a1f001897e93c19e",
-  "scoredAt": "2026-05-13T09:15:38.021Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:5f4e579a3ac55a4c20dba3a4a63423ea14ee739466d15a3be4486605bac55a02",
+  "scoredAt": "2026-10-01T20:02:42.362Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case scenarios for image processing and language support."
+        "detail": "The skill does not explicitly handle missing dependencies or network failures, leaving potential error scenarios unaddressed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanatory text that may distract from the core instructions, making it verbose."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 90,
-    "multiplier": 1.88,
+    "multiplier": 1,
+    "baselineAvg": 0,
+    "treatmentAvg": 10,
     "scenarios": [
       {
-        "name": "Extract UI labels from a mobile screenshot",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Baseline reaches for raw tesseract or pytesseract installs; treatment runs the skill's image-to-text.sh, consumes the JSON with text/confidence/lines, and presents output grouped by line as instructed."
+        "name": "ocr-clean-screenshot",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric requirements."
       },
       {
-        "name": "OCR a French scanned invoice",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Baseline shells out to `tesseract -l fra`; treatment passes `fra` as the documented second argument to image-to-text.sh and uses the structured JSON (words/bbox) to parse invoice line items."
+        "name": "receipt-structured-extraction",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet any rubric requirements."
+      },
+      {
+        "name": "table-to-csv",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response A provides a CSV but omits the required vision, OCR, and reconcile steps, whereas Response B offers no CSV at all."
       }
     ]
   }

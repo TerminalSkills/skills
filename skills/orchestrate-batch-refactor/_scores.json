@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:474be128d86106c9af3c41eebe9bfb85b2b69ed877e744cf9206f3c54b5c5e39",
-  "scoredAt": "2026-05-13T09:46:28.631Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:7ef4f96923f5902e3b9f85b8e3bb45bde0dc07b4736b9ee05d01fb57416e582d",
+  "scoredAt": "2026-10-01T20:23:02.648Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "crossPlatform": "FAIL",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as detailed failure handling for worker agents."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes specific agents (claude-code, openai-codex, gemini-cli, cursor), limiting cross-platform applicability."
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that may be considered padded."
       },
       {
         "severity": "HIGH",
-        "category": "examples",
-        "detail": "No realistic examples are provided to illustrate the workflow."
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to specific AI agents and does not work with any AI agent."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 84,
-    "multiplier": 2.62,
+    "multiplier": 3.67,
+    "baselineAvg": 15,
+    "treatmentAvg": 55,
     "scenarios": [
       {
-        "name": "Migrate 200 files from Moment.js to date-fns across a monorepo",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment runs the documented two-phase flow (parallel explorer analysis lanes, then dependency-aware plan, then worker packets with one-owner-per-file rule and packet-level validation gates); baseline jumps straight to codemods without the planning contract or ownership rules."
+        "name": "orchestrate-large-refactor",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B covers some aspects of the rubric but omits several required sections (DO NOT TOUCH, KEEP, GIT, RETURN, typecheck, diff stats, and explicit test count comparison), whereas Response A is empty."
       },
       {
-        "name": "Rename a public API across server, SDKs, and tests without breaking behavior",
-        "baseline": 30,
-        "treatment": 82,
-        "rationale": "Treatment respects the safety guardrails (no worker start before plan synthesis, no parallel edits on overlapping file sets, behavior-preserving by default) and sequences packets by dependency level with packet/integration/full-project check order; baseline parallelizes prematurely and skips the planning contract."
+        "name": "decide-orchestrate",
+        "baseline": 45,
+        "treatment": 55,
+        "rationale": "Response A covers the file count, threshold, and main session directive, but omits baseline checks and a plan; Response B is more detailed but fails to mention the count, threshold, main session, and baseline checks, making it less complete."
+      },
+      {
+        "name": "map-code-shared-files",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A provides a detailed plan and wave structure, but lacks the required explorer reports and verification commands; Response B is empty."
       }
     ]
   }

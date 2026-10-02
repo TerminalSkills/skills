@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5e3240daec692fd62e4aa5e661db9f4a96236c6d5a7525c306e5c3f3cecfb5c3",
-  "scoredAt": "2026-05-13T09:15:18.887Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:489c63d13c2476ea3d4f31c6ad44d0f8e98315d09464fcad2d21952ed473de05",
+  "scoredAt": "2026-10-01T19:59:11.933Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing user input."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains verbose guidelines and anti-patterns that add padding beyond core instructions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only a brief description of tone and anti-patterns is provided, lacking concrete example outputs."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 17,
-    "treatmentAvg": 91,
-    "multiplier": 5.35,
+    "multiplier": 0,
+    "baselineAvg": 3,
+    "treatmentAvg": 0,
     "scenarios": [
       {
-        "name": "Refine a vague Slack AI summarizer idea",
-        "baseline": 15,
-        "treatment": 92,
-        "rationale": "Baseline jumps straight to a tech stack with no sharpening questions or trade-offs; treatment runs the three-phase flow, asks who/success questions, uses named lenses, and produces a full one-pager including Not Doing and assumptions."
+        "name": "water-tracking-app-refine",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response contains the required job story, options table, or assumptions and tests table in markdown."
       },
       {
-        "name": "Stress-test a developer newsletter plan",
-        "baseline": 18,
-        "treatment": 90,
-        "rationale": "Baseline gives generic risks without structured evaluation; treatment clusters 3 directions, stress-tests on painkiller/feasibility/differentiation, surfaces hidden assumptions per direction, and emits the full markdown one-pager template."
+        "name": "auto-save-draft-feature-evaluation",
+        "baseline": 10,
+        "treatment": 0,
+        "rationale": "Response B contains some relevant content but still lacks the required sections; Response A provides no required sections."
+      },
+      {
+        "name": "recurring-meeting-scheduler-options",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide SCAMPER options, a scoring table, or a pre‑mortem analysis as required by the rubric."
       }
     ]
   }

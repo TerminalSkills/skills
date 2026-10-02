@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:43bafae13413b232a26c5b898c15108604adb0087778f2d69a0d33bbfe7450b1",
-  "scoredAt": "2026-05-13T09:20:28.051Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:29e5cd99038aef9e5b9c5eb3bc6d8153c2cb278ed156d69a35ebb05b5e77466f",
+  "scoredAt": "2026-10-01T18:49:09.261Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error scenarios and edge cases comprehensively."
+        "detail": "The skill does not cover all error scenarios and edge cases."
       }
     ]
   },

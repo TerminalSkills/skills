@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7e0792bffa6765acc4920a38df8120d54594e2f5d646b3fced7312c4443e2367",
-  "scoredAt": "2026-05-13T15:30:01.977Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:46c575443b8c3c6536188e4c51660585a081a27d21d34136a0b4d1204e6d21d2",
+  "scoredAt": "2026-10-01T18:28:52.530Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "FAIL",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "The skill file does not cover error handling or edge cases for installation or runtime failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The file contains extensive explanatory text beyond actionable steps, making it verbose."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to ClearML and does not support other AI agent platforms."
+        "detail": "The skill is vendor-locked to ClearML and does not support other AI platforms."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 6.33,
-    "baselineAvg": 15,
-    "treatmentAvg": 95,
+    "multiplier": 7.15,
+    "baselineAvg": 13,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "quick-experiment-tracking",
+        "name": "offline-experiment-import",
         "baseline": 30,
-        "treatment": 90,
-        "rationale": "Response B meets all rubric items, while Response A lacks the two‑line auto‑capture claim and omits custom metric logging."
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items (offline mode flag, import command, new task ID) but omits Task.set_offline; Response B lacks all required steps."
       },
       {
-        "name": "hyperparameter-optimization",
+        "name": "remote-gpu-training",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits key steps and details."
+      },
+      {
+        "name": "dataset-versioning-and-usage",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use HyperParameterOptimizer and omits required details."
+        "rationale": "Response A fully follows the ClearML dataset workflow, while Response B uses a different platform and omits all required ClearML steps."
       }
     ]
   }

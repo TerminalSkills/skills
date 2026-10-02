@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e67de0a38ca7095261e5a76d7ce7af1d5ee5d3be5805f2586706428c10c90c3f",
-  "scoredAt": "2026-05-13T10:17:15.417Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:6168b80f9e4c516d08cd3f4ed9579099acdc13bd90f2511bcba606163bb078dd",
+  "scoredAt": "2026-10-01T20:58:42.410Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 83,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No realistic examples provided in the skill file."
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanations that may be considered padded."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 86,
-    "multiplier": 1.72,
+    "multiplier": 1.17,
+    "baselineAvg": 23,
+    "treatmentAvg": 27,
     "scenarios": [
       {
-        "name": "Build a SwiftUI editor screen presenting an item via a sheet",
-        "baseline": 52,
-        "treatment": 86,
-        "rationale": "Treatment uses .sheet(item:) with the selected model, lets the sheet own dismiss() internally, avoids if let inside the sheet body, and uses @State with @Observable per the state-ownership table; baseline forwards onCancel/onConfirm closures and uses isPresented + if let."
+        "name": "searchable-list-with-loading-and-add-sheet",
+        "baseline": 20,
+        "treatment": 0,
+        "rationale": "Response B contains some SwiftUI structure but fails to meet key rubric items such as LoadPhase enum, .task loading, ContentUnavailableView, sheet(item:) with enum, and preview blocks, whereas Response A is empty and thus also fails."
       },
       {
-        "name": "Implement a search screen with cancellation and debouncing",
-        "baseline": 48,
-        "treatment": 86,
-        "rationale": "Treatment uses .task(id:) tied to the search input for restart/cancellation, models explicit loading/error states, and keeps the view small with explicit injection; baseline uses .onChange + manual Task management without .task(id:)."
+        "name": "tabbed-app-shell-with-deep-link",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A meets all rubric requirements except the preview, while Response B uses NavigationPath instead of an array of a route enum and lacks a preview."
+      },
+      {
+        "name": "form-sheet-with-validation-and-previews",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack content."
       }
     ]
   }

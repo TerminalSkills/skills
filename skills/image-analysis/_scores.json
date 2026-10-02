@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:391280e1919e74cf4b1e7d833e68ec374d40253a7171d474980ce93f18d4fcc6",
-  "scoredAt": "2026-05-13T09:15:25.917Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:5ec984b71bbfb2716f8354cfd2e724e4181f40789cb4b7c4275906d708bcd292",
+  "scoredAt": "2026-10-01T19:59:50.980Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly handle error scenarios such as missing files or unsupported formats."
+        "detail": "The skill does not cover error handling for missing files or out-of-bounds regions."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that could be trimmed."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Node.js 18+ and does not support other runtime environments."
+        "detail": "The skill is Python-specific and may not run on agents without Python support."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 89,
-    "multiplier": 1.78,
+    "multiplier": 0,
+    "baselineAvg": 0,
+    "treatmentAvg": 0,
     "scenarios": [
       {
-        "name": "Extract dominant palette from landing page screenshot",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Baseline scripts color-thief or k-means clustering; treatment runs extract-colors.sh, consumes the JSON array (hex/rgb/hsl/area) sorted by prominence, and assigns the top entries to primary/accent/background as the skill prescribes."
+        "name": "tailwind-theme-from-photo",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response uses the required @theme { … } syntax or --color-<role> variables, so both fail the rubric."
       },
       {
-        "name": "Map Figma export colors into Tailwind theme.extend.colors",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Baseline picks colors by eyedropping or color-thief; treatment runs extract-colors.sh on the Figma jpg and translates the highest-area hex values directly into a theme.extend.colors block as documented."
+        "name": "css-variables-from-ui",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required :root CSS block with variables and comment, so neither meets the rubric."
+      },
+      {
+        "name": "button-coordinates",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Response A provides more detail but still fails to meet the rubric, whereas Response B does not."
       }
     ]
   }

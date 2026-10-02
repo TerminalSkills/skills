@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e16cb9d191a19cb22a98f3da7fe5de2c63c8b68465813d4ec80f5fc44721acdd",
-  "scoredAt": "2026-05-13T09:53:13.278Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:222ea076309d5054e9c1854166613e1227d187d6afe2c7ed623b1b25ccbbfa1a",
+  "scoredAt": "2026-10-01T20:33:02.716Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing PRD or codebase."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "The skill lacks any realistic example demonstrations of the plan generation process."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 89,
-    "multiplier": 3.18,
+    "multiplier": 2,
+    "baselineAvg": 10,
+    "treatmentAvg": 20,
     "scenarios": [
       {
-        "name": "Plan a feature from PRD",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline produced horizontal layer-by-layer phases with no ./plans/ output, no architectural-decisions header, and no user quiz; treatment delivered tracer-bullet vertical slices in a saved Markdown plan with durable decisions and the granularity check."
+        "name": "make-plan-from-prd",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide any implementation plan, merely requesting the PRD text."
       },
       {
-        "name": "Slice granularity check",
+        "name": "plan-with-spike-phase",
         "baseline": 30,
-        "treatment": 88,
-        "rationale": "Baseline listed phases with file/function names and missed the template structure; treatment followed the plan template with per-phase user stories, end-to-end 'What to build' descriptions, and acceptance-criteria checkboxes."
+        "treatment": 10,
+        "rationale": "Response A gives a structured table and phases but lacks the required Phase 0 spike, covers/size/risk/check/verification details, whereas Response B only asks for more information and provides no plan."
+      },
+      {
+        "name": "update-plan-after-spike",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B contains most required sections but omits the Change log and Open questions, whereas Response A provides no relevant plan updates."
       }
     ]
   }

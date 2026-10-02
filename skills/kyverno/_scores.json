@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4f3822d5bf9ef538662a42268606b1ba8fb6661f4539e957f1423f194c67fc83",
-  "scoredAt": "2026-05-13T09:20:54.687Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:35581e5ff6b87a096e5a9a7abc6258a28f843c1b74329342769d312c26b14098",
+  "scoredAt": "2026-10-01T18:50:07.790Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not specific and lack step-by-step guidance."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error scenarios and edge cases are not covered in the instructions."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 91,
-    "multiplier": 2.76,
+    "multiplier": 6.7,
+    "baselineAvg": 8,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Block pods that are privileged, use :latest, or omit resource limits",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Baseline reached for OPA/Gatekeeper or PSA; treatment delivered a single ClusterPolicy with validationFailureAction: Enforce and validate.pattern entries using Kyverno's wildcard syntax (image: \"!*:latest\", privileged: \"!true\", limits.memory/cpu: \"?*\")."
+        "name": "audit-pod-limits",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric criteria; Response B fails to use a ValidatingPolicy and matchConstraints."
       },
       {
-        "name": "Auto-generate a default-deny NetworkPolicy for every new namespace",
-        "baseline": 30,
-        "treatment": 92,
-        "rationale": "Baseline proposed a custom controller or post-hoc kubectl apply; treatment used a Kyverno generate rule matching Namespace with synchronize: true and namespace templated from {{ request.object.metadata.name }} containing podSelector: {} and policyTypes: [Ingress]."
+        "name": "default-resource-requests",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is empty."
+      },
+      {
+        "name": "verify-signed-images",
+        "baseline": 25,
+        "treatment": 0,
+        "rationale": "Response A partially addresses pod matching and signature checking but lacks the required ImageValidatingPolicy structure, validationActions, matchImageReferences, attestor definition, and validation expression; Response B is absent."
       }
     ]
   }

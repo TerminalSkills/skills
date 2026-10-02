@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:408125f15e8b57fb1ca633005d78102e5b0978cd20870c9f23675a92a2f48a8b",
-  "scoredAt": "2026-05-13T12:18:35.971Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:b5e459b059737d5c89c6d013cffb28eef7b39fcb4fbe1899e538bb8090a7c680",
+  "scoredAt": "2026-10-01T18:23:02.488Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases, focusing mainly on happy path scenarios."
+        "detail": "The skill does not cover error handling or edge cases for missing files or invalid input."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions contain verbose explanatory comments that could be trimmed for brevity."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.4,
-    "baselineAvg": 62,
-    "treatmentAvg": 87,
+    "multiplier": 1.66,
+    "baselineAvg": 50,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "data-driven-template-automation",
-        "baseline": 75,
-        "treatment": 100,
-        "rationale": "Response A fully meets all rubric requirements, while Response B omits replaceSource and H.264 settings."
-      },
-      {
-        "name": "nightly-aerender-pipeline",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits exit‑code handling, uses an incorrect flag, and lacks a detailed Slack summary."
-      },
-      {
-        "name": "cep-panel-comp-list",
+        "name": "duplicate-template-and-queue",
         "baseline": 60,
-        "treatment": 60,
-        "rationale": "Both responses cover CSInterface, evalScript, JSON.stringify, and display the list, but neither uses a promise or async/await to retrieve the result, so they miss a key rubric requirement."
+        "treatment": 80,
+        "rationale": "Response B includes the required output module template and a file path, whereas Response A omits both the Lossless template and the specific output path, making B the stronger answer."
+      },
+      {
+        "name": "aerender-with-options",
+        "baseline": 10,
+        "treatment": 70,
+        "rationale": "Response B is closer to the rubric, correctly using aerender and most required flags, while Response A uses the wrong tool and many incorrect flags."
+      },
+      {
+        "name": "cep-panel-list-comps",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the explicit string split step, using JSON parsing instead."
       }
     ]
   }

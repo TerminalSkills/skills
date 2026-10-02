@@ -37,14 +37,15 @@ python3 -m venv .venv && source .venv/bin/activate  # Python 3.9–3.12
 python -m pip install apache-flink==2.2.1   # newest Flink the Kafka connector supports
 ```
 
-The pip package bundles a complete Flink distribution (CLI, cluster scripts, `conf/config.yaml`) but no connectors. Connectors are released separately; fetch the Kafka one from Maven Central and check it against the published checksum:
+The pip package bundles a complete Flink distribution (CLI, cluster scripts, `conf/config.yaml`) but no connectors. Connectors are released separately; fetch the Kafka one from Maven Central and check it against a pinned SHA-256 (a different connector version needs its own value):
 
 ```bash
 KAFKA_JAR=flink-sql-connector-kafka-5.0.0-2.2.jar
 MAVEN=https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/5.0.0-2.2
 mkdir -p lib
 curl -fsSL -o "lib/$KAFKA_JAR" "$MAVEN/$KAFKA_JAR"
-echo "$(curl -fsSL "$MAVEN/$KAFKA_JAR.sha1")  lib/$KAFKA_JAR" | sha1sum -c -
+# SHA-256 of the 5.0.0-2.2 release; the command stops here if the file differs
+echo "5605c691d11a501382c383fecba37a7a552467da5ab7ba904ef5d6f3d62c5616  lib/$KAFKA_JAR" | sha256sum -c -
 ```
 
 The version is the connector release followed by the Flink minor it was built for: `5.0.0-2.2` is connector 5.0.0 for Flink 2.2.
@@ -217,6 +218,6 @@ Save the Step 3 code as `sql_job.py` and run `python sql_job.py`. Each order is 
 - In SQL prefer the window functions `TUMBLE`, `HOP`, `SESSION` and `CUMULATE` in the `FROM` clause; the older `GROUP BY TUMBLE(...)` / `TUMBLE_START` form is deprecated.
 - The `json` format reads `TIMESTAMP` as `2026-10-01 10:03:30.000`. For `2026-10-01T10:03:30.000` add `'json.timestamp-format.standard' = 'ISO-8601'` to the table options.
 - Kafka sinks need checkpointing for `AT_LEAST_ONCE` and `EXACTLY_ONCE`; exactly-once also needs `set_transactional_id_prefix(...)` and consumers that read committed data only.
-- The web UI and REST API have no authentication and accept job submissions, which is code execution. With `rest.bind-address` left commented out, the cluster listens on all interfaces — bind it to `localhost` or keep it behind a private network.
+- Keep `rest.bind-address: localhost` as set in the cluster step: the web UI and REST API accept job submissions and have no login of their own, so reach a remote cluster through an SSH tunnel or a private network, never a public port.
 - Flink is a cluster to operate (JobManager, TaskManagers, checkpoint storage). For small volumes or one-off batch work, a plain Kafka consumer or a batch engine is simpler.
 - Managed Flink: Amazon Managed Service for Apache Flink (formerly Kinesis Data Analytics), Confluent Cloud, or Ververica Platform.

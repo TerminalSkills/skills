@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:68b47ec9029a71ce71a4e3145a9fbb60ce7359bf7005477c9bc8d57e07215a72",
-  "scoredAt": "2026-05-13T09:17:13.456Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:88eab8edeeaa9b8a1fdee04150c03615dcdae2026c5ae8c038e419913257aab7",
+  "scoredAt": "2026-10-01T20:06:34.364Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 60,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "FAIL"
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all potential error scenarios and edge cases, such as missing scheme or project path, leading to incomplete guidance."
-      },
-      {
-        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is limited to macOS with Xcode and XcodeBuildMCP, making it vendor-locked and not cross-platform."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No realistic examples are provided to illustrate usage, making it difficult to understand how to apply the skill."
+        "detail": "The skill is macOS-specific and relies on Xcode tools, limiting cross-platform applicability."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 90,
-    "multiplier": 2.81,
+    "multiplier": 2.33,
+    "baselineAvg": 33,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "Build, run and verify iOS app on booted simulator",
-        "baseline": 30,
-        "treatment": 92,
-        "rationale": "Treatment follows list_sims -> session-set-defaults -> build_run_sim -> describe_ui/screenshot verification using XcodeBuildMCP tools; baseline reaches for xcrun simctl and xcodebuild directly, bypassing the MCP toolchain the skill exists to leverage."
+        "name": "build-and-screenshot",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response B includes the required xcodebuild, install, launch, log stream, and screenshot commands (though the screenshot filename differs), whereas Response A lacks the build step and uses a different screenshot path."
       },
       {
-        "name": "Tap button and capture logs in simulator",
-        "baseline": 34,
-        "treatment": 88,
-        "rationale": "Treatment calls describe_ui, taps by id/label, and brackets with start_sim_log_cap/stop_sim_log_cap on the bundle id; baseline uses xcrun simctl io ... and log stream without the structured UI inspection step."
+        "name": "crash-report",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits the explicit --console-pty flag, while Response B lacks the required simctl launch and devicectl commands."
+      },
+      {
+        "name": "lldb-backtrace",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B meets the simctl launch requirement and outputs a backtrace, while Response A fails to use simctl and thus misses a key rubric element."
       }
     ]
   }

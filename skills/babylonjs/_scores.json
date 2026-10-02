@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:40791f8b1f50be0353813d6f0c710eed64ee8d53f73ed4a345182e6abbaf9e95",
-  "scoredAt": "2026-05-13T14:35:38.877Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6c62a0e76611eb08dc78fd0a1ceef909ce7f7d69f4c4f80b2e2f20a961965f9c",
+  "scoredAt": "2026-10-01T18:25:29.811Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for asset loading and physics setup."
+        "detail": "The skill does not address error handling or edge cases such as missing assets or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text and guidelines that increase verbosity beyond necessary."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 8,
-    "baselineAvg": 0,
-    "treatmentAvg": 80,
+    "multiplier": 2.33,
+    "baselineAvg": 40,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "pbr-material-gui-interaction",
-        "baseline": 0,
-        "treatment": 60,
-        "rationale": "Response B meets most Babylon.js requirements but uses StandardMaterial instead of PBRMaterial, whereas Response A uses the wrong library entirely."
+        "name": "pbr-glb-gui",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement with correct, runnable code, while Response B omits ImportMeshAsync, registerBuiltInLoaders, and AdvancedDynamicTexture, missing key elements."
       },
       {
-        "name": "load-model-physics-xr",
-        "baseline": 0,
+        "name": "havok-physics",
+        "baseline": 30,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not meet any of the required Babylon.js specifics."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to import HavokPhysics, uses PhysicsImpostor instead of PhysicsAggregate, and does not meet the specified API usage."
+      },
+      {
+        "name": "webxr-webgpu",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A correctly uses WebGPUEngine with a fallback, creates a scene, and calls createDefaultXRExperienceAsync with immersive‑AR and optionalFeatures true, but it omits setting xrCompatible: true; Response B fails to use WebGPUEngine, misconfigures optionalFeatures, and does not meet the rubric requirements."
       }
     ]
   }

@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8b0664f03c1cbe82dc08d9e44e63210146cc7d56aee1a2adc81ab8ed34a7bc3e",
-  "scoredAt": "2026-05-13T10:08:07.359Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:929e1051c8ed8d0ca5efcafb15a925de6fc520e7e97cd39b435547e4974bea65",
+  "scoredAt": "2026-10-01T20:50:36.908Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory sections that may distract from actionable steps."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 85,
-    "multiplier": 1.7,
+    "multiplier": 2.35,
+    "baselineAvg": 37,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Audit an 8-field B2B SaaS trial signup at 23% completion",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment cuts the form to email/password/full-name with company and role deferred to post-login onboarding, adds Google and Microsoft SSO prominently, and structures findings as Issue/Impact/Fix/Priority quick wins per the skill; baseline gives vague 'reduce fields and add SSO' advice without the deferral rationale, prioritization format, or field-level drop-off measurement."
+        "name": "audit-and-reduce-fields",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no substantive answer."
       },
       {
-        "name": "Design a pre-launch consumer-app waitlist signup",
-        "baseline": 45,
-        "treatment": 82,
-        "rationale": "Treatment specifies email-only single field, no password, position number + referral link post-submit, mobile keyboard type and autofill, plus skipping email verification at waitlist stage — all from the skill's example; baseline proposes a standard email+name form with verification and no referral loop."
+        "name": "add-google-signin",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers the GA4 instrumentation, method value, and redirect logic, while Response B lacks these key details."
+      },
+      {
+        "name": "instrument-signup-baseline",
+        "baseline": 60,
+        "treatment": 80,
+        "rationale": "Response A covers the required events, triggers, parameters, and rate calculations but omits the sample size calculation, while Response B lacks the verified rate, GA4 context, and sample size calculation."
       }
     ]
   }

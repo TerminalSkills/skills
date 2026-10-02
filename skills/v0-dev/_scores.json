@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8b3d3f1982f7fd29c1b6a9df15cef1fec113045cdb80aa25ac3fd3aaeb5e9df9",
-  "scoredAt": "2026-05-13T10:32:58.589Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1b2273cea41e9195ab6e55cbabdd8f1896134c52f988f4dbc7080665e9571d63",
+  "scoredAt": "2026-10-01T19:22:30.101Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not explicitly cover error handling or edge cases beyond general limitations."
+        "detail": "The skill does not cover error handling or edge cases such as API failures or missing credentials."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill file contains verbose sections that could be trimmed for brevity."
+        "detail": "The instruction set contains verbose explanations that could be trimmed for brevity."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is tailored to Vercel's v0 platform and may not function with other AI agents."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 95,
-    "multiplier": 1.79,
+    "multiplier": 3.85,
+    "baselineAvg": 13,
+    "treatmentAvg": 50,
     "scenarios": [
       {
-        "name": "Pricing page generation with v0.dev",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline gives a vague prompt without real prices and only loosely references shadcn; treatment uses a concrete shadcn-targeted prompt with real tier prices, the documented setup chain (npx create-next-app, npx shadcn@latest init, npx shadcn@latest add card button badge), and notes the no-vendor-lock-in property of v0 output."
+        "name": "pricing-page-github-sync",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response A includes the required v0.chats.create call, GitHub repo creation, and code push, but omits the v0.messages.send refinement and preview URL; Response B lacks any v0 API usage and therefore fails to meet the rubric."
       },
       {
-        "name": "Iterating on a v0 admin dashboard",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline mentions iterating in v0 chat but suggests jumping to manual edits and omits the use-client review and limitation list; treatment explicitly says iterate inside the same conversation, follows the documented 5-step iteration pattern, lists v0 strengths vs limitations, and covers use client placement and mock-to-real data replacement."
+        "name": "node-script-generate-table",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric; neither imports the v0 SDK nor uses the v0 API to generate and retrieve files."
+      },
+      {
+        "name": "integrate-checkout-form",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response B fully meets the rubric, while Response A lacks the required generation step, copy instructions, and shadcn/ui confirmation."
       }
     ]
   }

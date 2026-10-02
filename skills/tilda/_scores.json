@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6b5cea5ee1e568a7739eb53501f24073980cb2671e9f8d19ad59f992f62cdb17",
-  "scoredAt": "2026-05-13T10:26:05.381Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:767a0202e49ee07c00faceeef89728d5f606cbf9be6c26d24bc967f67ac762cf",
+  "scoredAt": "2026-10-01T19:18:58.296Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases for API failures or form submission errors."
+        "detail": "The skill does not fully cover error handling for API failures or missing credentials, leaving edge cases unaddressed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains extensive explanatory text that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "multiplier": 1.69,
+    "baselineAvg": 58,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Export Tilda page to self-hosted HTML",
-        "baseline": 30,
-        "treatment": 85,
-        "rationale": "Treatment uses the documented getpagefull endpoint and rebuilds an HTML wrapper from the returned html/css/js fields; baseline guesses at unrelated scraping or download tooling and misses Tilda's API entirely."
+        "name": "build-landing-page-with-custom-css",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not mention Tilda blocks, custom head CSS, a T123 block, or a webhook URL."
       },
       {
-        "name": "Forward Tilda form submissions to CRM and Telegram",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment configures the documented Tilda form webhook URL and parses formData fields with capitalized keys (Name/Email/Phone) per the SKILL.md example; baseline invents a non-existent push API."
+        "name": "add-pricing-calculator-using-zero-block",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric, providing Zero Block setup, prefixed CSS, dynamic JS, and page integration."
+      },
+      {
+        "name": "connect-tilda-forms-to-crm-telegram",
+        "baseline": 75,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits the required 'OK' response and 5‑second timing detail."
       }
     ]
   }

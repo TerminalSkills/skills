@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1876b749401624a287599740c5ac1ea1924c4497eb86912bdf0dcecb4f39f737",
-  "scoredAt": "2026-05-13T10:32:42.841Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:47bca13a7a3d618897c1a84dfcec7208bd50d160b5eb919ea6d89d90ad2a9b75",
+  "scoredAt": "2026-10-01T21:12:37.032Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill file lacks runnable code or concrete procedures, making it less actionable."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only a reference table is provided; no realistic code demonstrations are included."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 95,
-    "multiplier": 2.88,
+    "multiplier": 8.5,
+    "baselineAvg": 8,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Starting a new notifications feature",
+        "name": "install-release-notes-all-agents",
         "baseline": 25,
         "treatment": 95,
-        "rationale": "Baseline jumps straight to design and tech-stack choices without naming agent skills or surfacing assumptions; treatment applies the documented lifecycle (idea-refine, spec-driven-development, planning-and-task-breakdown, etc.) and uses the explicit Surface Assumptions, Manage Confusion, and Scope Discipline behaviors."
+        "rationale": "Response B fully covers all rubric items, while Response A only shows marketplace install commands and omits the required folder copy, symlink, validation, and listing steps."
       },
       {
-        "name": "Hot production bug fix workflow",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline gives a reasonable incident playbook but never references named skills or the not-every-task-needs-every-skill principle; treatment limits the chain to debugging-and-error-recovery, test-driven-development, and code-review-and-quality and applies verify-don't-assume and scope-discipline by name."
+        "name": "call-db-migration-codex",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A shows invocation and acknowledgement but omits the description phrase and listing; Response B lacks all required elements."
+      },
+      {
+        "name": "troubleshoot-release-notes-not-firing",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully addresses all rubric points, while Response B provides no content."
       }
     ]
   }

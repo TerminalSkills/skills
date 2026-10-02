@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b2a8e2301ec93da83a2f195c6ee14d4cc65265af656fd55f8885441f8d98b56f",
-  "scoredAt": "2026-05-13T09:48:44.046Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:1d69aec1eac7e2d23f2e98e2a4b112ef1c8ef98fba1fb6add0ce2a4322f11eb2",
+  "scoredAt": "2026-10-01T20:27:48.441Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios such as payment failures or network issues during upgrade."
+        "detail": "The skill does not cover error handling for API failures or missing data scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered padded and not concise."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 88,
-    "multiplier": 1.76,
+    "multiplier": 1.9,
+    "baselineAvg": 30,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "SVG export feature gate redesign",
-        "baseline": 52,
-        "treatment": 88,
-        "rationale": "Treatment applies value-first timing (after 3 designs), full paywall components (preview, social proof, annual-default pricing, escape hatch), and trigger A/B tests; baseline lists generic CRO tips without the value-first trigger rule or annual-default display."
+        "name": "audit-upgrade-moments-spec",
+        "baseline": 60,
+        "treatment": 85,
+        "rationale": "Response B fully addresses all rubric requirements, while Response A omits the required startedBy and default treatment details."
       },
       {
-        "name": "14-day CRM trial expiration flow",
-        "baseline": 48,
-        "treatment": 87,
-        "rationale": "Treatment proposes a multi-touch sequence (Day 7/11/13/14) with personalized usage summaries, read-only takeover, and activity-based extension/discount offers; baseline lists standard reminder emails without escape hatches or activity-tiered offers."
+        "name": "stripe-proration-checkout",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required curl commands and key explanatory details specified in the rubric."
+      },
+      {
+        "name": "paywall-measurement-guardrails",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A covers most rubric items, including events, funnel, guardrails, and an experiment, though it omits evaluation after first renewal; Response B misses key event names, guardrails, and the required experiment details."
       }
     ]
   }
