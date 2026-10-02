@@ -1,53 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fdba6005a91eaa8a30ec3528af0c118dec17237c357d2ec78ff436da6db3eb73",
-  "scoredAt": "2026-05-13T10:10:46.901Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b58da7765d5c4aabf24b09a91f067ef9ae23874ee3f866dd78364c3ff95c209e",
+  "scoredAt": "2026-10-01T19:09:24.019Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Does not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "credentials",
-        "detail": "Hardcoded database credentials in code."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 59,
-    "treatmentAvg": 94,
-    "multiplier": 1.59,
+    "multiplier": 0.97,
+    "baselineAvg": 38,
+    "treatmentAvg": 37,
     "scenarios": [
       {
-        "name": "Define async User/Project models and fetch projects without N+1",
+        "name": "async-setup-with-alembic",
         "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline drops back to legacy declarative_base/Column and lazy='joined' instead of SQLAlchemy 2.0 Mapped/mapped_column with selectinload and async_sessionmaker(expire_on_commit=False)."
+        "treatment": 10,
+        "rationale": "Both responses omit the required Alembic commands; A includes more project details, so it scores higher."
       },
       {
-        "name": "Generate and apply an Alembic migration for a new tasks table",
-        "baseline": 88,
-        "treatment": 93,
-        "rationale": "Both walk through init/autogenerate/upgrade/downgrade; treatment additionally surfaces the review-before-apply guideline and the env.py target_metadata wiring."
+        "name": "async-query-with-selectinload",
+        "baseline": 30,
+        "treatment": 20,
+        "rationale": "Response A implements the required aggregation query but omits session creation and Project eager loading, while Response B performs eager loading but counts in Python instead of using the specified aggregate query; thus A covers more rubric items."
+      },
+      {
+        "name": "fix-missinggreenlet",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "Response B covers more of the required patterns, missing only expire_on_commit, while Response A omits both lazy='raise' and awaitable_attrs."
       }
     ]
   }

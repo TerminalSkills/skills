@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e29fd23ddef136af0721e6cb7b51ce958272f5ac458094f92fcf3b15b1d8afd5",
-  "scoredAt": "2026-05-13T09:22:42.173Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8746d007bfa137e623a5db6e11ffd8e93503f6ba71ad4cb6c3a057f3ea4ac3f2",
+  "scoredAt": "2026-10-01T18:53:11.950Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 70,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases."
+        "detail": "The skill does not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed."
+      },
+      {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Rust and Leptos, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 90,
-    "multiplier": 1.70,
+    "multiplier": 3.63,
+    "baselineAvg": 27,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "reactive-counter-component",
-        "baseline": 60,
-        "treatment": 88,
-        "rationale": "Treatment uses #[component], create_signal, set_count.update with the view! macro per skill; baseline approximates a generic Rust component with wrong macro shape."
+        "name": "full-stack-books-page",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key elements such as the required server function names, route registration, UI components, and Cargo.toml dependencies."
       },
       {
-        "name": "server-function-data-fetch",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Treatment correctly applies #[server(GetPosts, \"/api\")], create_resource, and <Suspense fallback=...> per skill; baseline writes a hand-rolled fetch endpoint missing Leptos's isomorphic server-fn pattern."
+        "name": "counter-with-signals",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A uses incorrect APIs and omits required constructs."
+      },
+      {
+        "name": "enable-islands-deploy",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response A covers all rubric items with detailed, runnable steps, while Response B omits key requirements such as the hydrate_islands call, HydrationScripts tag, proper build command, and deployment instructions."
       }
     ]
   }

@@ -36,9 +36,15 @@
     {
       "name": "ab-test-setup",
       "slug": "ab-test-setup",
-      "description": "When the user wants to plan, design, or implement an A/B test or experiment. Also use when the user mentions \"A/B test,\" \"split test,\" \"experiment,\" \"test this change,\" \"variant copy,\" \"multivariate test,\" or \"hypothesis.\" For tracking implementation, see analytics-tracking.",
+      "description": "Plans a controlled experiment (A/B test) so its result can be trusted: writes the hypothesis, picks one primary metric and the guardrails, computes sample size and run time, specifies how visitors are assigned and when exposure is logged, and reads out the result with a confidence interval. Use when someone says \"set up an A/B test\", \"split test this page\", \"how many visitors do I need\", \"how long should the experiment run\", \"is this result significant\", \"can I stop the test early\", or wants to test a headline, price, layout or onboarding change against the current version.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "ab-testing",
+        "experimentation",
+        "statistics",
+        "conversion",
+        "sample-size"
+      ]
     },
     {
       "name": "ably",
@@ -104,7 +110,7 @@
     {
       "name": "adonisjs",
       "slug": "adonisjs",
-      "description": "Build full-stack web applications with AdonisJS — a batteries-included Node.js framework with ORM, auth, validation, and mailer built-in. Use when someone asks to \"build a web app with Node.js\", \"Laravel for Node.js\", \"full-stack Node framework\", \"AdonisJS\", \"batteries-included backend\", or \"Node.js with built-in ORM and auth\". Covers Lucid ORM, auth (sessions, tokens, social), VineJS validation, Edge templates, and deployment.",
+      "description": "Builds full-stack web applications with AdonisJS — a batteries-included Node.js framework with ORM, auth, validation, and mailer built-in. Use when someone asks to \"build a web app with Node.js\", \"Laravel for Node.js\", \"full-stack Node framework\", \"AdonisJS\", \"batteries-included backend\", or \"Node.js with built-in ORM and auth\". Covers Lucid ORM, auth (sessions, tokens, social), VineJS validation, Edge templates, and deployment.",
       "category": "development",
       "tags": [
         "nodejs",
@@ -380,9 +386,15 @@
     {
       "name": "analytics-tracking",
       "slug": "analytics-tracking",
-      "description": "When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions \"set up tracking,\" \"GA4,\" \"Google Analytics,\" \"conversion tracking,\" \"event tracking,\" \"UTM parameters,\" \"tag manager,\" \"GTM,\" \"analytics implementation,\" or \"tracking plan.\" For A/B test measurement, see ab-test-setup.",
+      "description": "Designs and implements website analytics tracking with Google Analytics 4 and Google Tag Manager: a written tracking plan, event and parameter names that pass GA4's rules, gtag.js or data-layer code, key events, consent mode, UTM conventions, and a verification pass. Use when someone says \"set up GA4\", \"add conversion tracking\", \"track this form or button\", \"write a tracking plan\", \"GTM data layer\", \"UTM parameters\", \"why are my events missing or counted twice\", or \"audit our analytics setup\".",
       "category": "business",
-      "tags": []
+      "tags": [
+        "google-analytics",
+        "ga4",
+        "google-tag-manager",
+        "event-tracking",
+        "utm"
+      ]
     },
     {
       "name": "angular",
@@ -475,14 +487,14 @@
     {
       "name": "app-store-changelog",
       "slug": "app-store-changelog",
-      "description": "Generate App Store release notes from git history. Use when: creating release changelogs, App Store 'What's New' text, or summarizing changes since last tag.",
+      "description": "Writes the App Store \"What's New in This Version\" text for an app update from the repository's commit history: finds the range since the last shipped version, separates changes users can notice from internal work, drafts plain-text notes within Apple's 4,000-character limit and review guidelines, and returns a trace from every sentence back to its commits. Use when someone asks to \"write release notes for the App Store\", \"generate What's New from git\", \"summarize changes since the last tag for the store listing\", or needs the same notes cut to Google Play's 500 characters.",
       "category": "development",
       "tags": [
         "app-store",
-        "changelog",
         "release-notes",
+        "changelog",
         "ios",
-        "android"
+        "git"
       ]
     },
     {
@@ -852,8 +864,8 @@
     {
       "name": "babylonjs",
       "slug": "babylonjs",
-      "description": "You are an expert in Babylon.js, the powerful open-source 3D engine for web browsers with WebGL and WebGPU support. You help developers build games, product configurators, architectural visualizations, VR/AR experiences, and interactive 3D applications — using Babylon's scene graph, PBR materials, Havok physics, particle systems, GUI, animation, and XR support for production-grade 3D on the web.",
-      "category": "3D & Creative",
+      "description": "Babylon.js is an open-source 3D engine for the browser that renders with WebGL or WebGPU and includes a scene graph, PBR materials, glTF loading, Havok physics, a GUI layer and WebXR. Use when a user asks to build a 3D scene, game, product configurator or VR/AR experience with Babylon.js, load a glTF/GLB model, add physics or in-scene UI, switch to WebGPU, or shrink a Babylon.js bundle.",
+      "category": "design",
       "tags": []
     },
     {
@@ -892,7 +904,7 @@
     {
       "name": "betterstack",
       "slug": "betterstack",
-      "description": "Expert guidance for Better Stack (formerly Better Uptime + Logtail), the observability platform combining uptime monitoring, log management, incident response, and status pages. Helps developers set up comprehensive monitoring with alerting, on-call schedules, and public status pages.",
+      "description": "Better Stack (formerly Better Uptime + Logtail) is an observability platform that combines uptime monitoring, log management, incident response with on-call escalation, and status pages. Use when a user asks to set up uptime monitors or heartbeat monitoring for cron jobs, create escalation policies, send logs with @logtail/node or the Pino transport, manage Better Stack through its API or Terraform provider, or publish status page updates.",
       "category": "devops",
       "tags": []
     },
@@ -1117,7 +1129,7 @@
     {
       "name": "bruno",
       "slug": "bruno",
-      "description": "Test and debug APIs with Bruno, the open-source API client. Use when a user asks to create API requests, organize collections, write test scripts, use environments and variables, or collaborate on API workflows stored in Git.",
+      "description": "Tests and debugs APIs with Bruno, the open-source API client that keeps collections as plain files in a Git repository. Use when a user asks to create API requests, organize collections, write test scripts, use environments and variables, run a collection from the terminal or CI with the bru CLI, or collaborate on API workflows stored in Git.",
       "category": "development",
       "tags": [
         "api-client",
@@ -1130,14 +1142,13 @@
     {
       "name": "bug-hunt-swarm",
       "slug": "bug-hunt-swarm",
-      "description": "Parallel read-only multi-agent root-cause investigation for bugs and regressions. Use when: investigating bugs, finding root causes, tracing regressions, or diagnosing failures with multi-agent swarm.",
+      "description": "Finds the cause of a hard bug by running several read-only subagents in parallel, each attacking it from a different angle (change history, code path, data and state, environment, reproduction), then checking their evidence, ranking the hypotheses and naming the one experiment that would confirm the leader. It diagnoses and does not fix. Use when someone says \"hunt this bug with multiple agents\", \"swarm on this regression\", \"investigate in parallel\", \"find the root cause\", or when a failure is intermittent, crosses components, or has resisted a first look.",
       "category": "development",
       "tags": [
         "debugging",
-        "swarm",
         "multi-agent",
-        "bugs",
-        "testing"
+        "subagents",
+        "root-cause-analysis"
       ]
     },
     {
@@ -1587,7 +1598,7 @@
     {
       "name": "clearml",
       "slug": "clearml",
-      "description": "Expert guidance for ClearML, the open-source MLOps platform for experiment tracking, pipeline orchestration, data management, and model deployment. Helps developers set up ML experiment tracking with minimal code, build reproducible pipelines, and manage the full ML lifecycle from training to serving.",
+      "description": "ClearML is an open-source MLOps platform that records machine-learning experiments, versions datasets, chains tasks into pipelines and runs them on remote machines through agents and queues. Use when a user asks to \"track experiments with ClearML\", \"log metrics, artifacts and models\", \"version a dataset\", \"run training on a remote GPU with clearml-agent\", \"build a ClearML pipeline\", \"run hyperparameter optimization\", or \"self-host ClearML Server\". Covers the clearml 2.x Python SDK, clearml-agent 3.x and ClearML Server 2.x.",
       "category": "data-ai",
       "tags": []
     },
@@ -1628,14 +1639,14 @@
     {
       "name": "clone-website",
       "slug": "clone-website",
-      "description": "Clone any website as a pixel-perfect Next.js app using AI agents — automated reconnaissance, design token extraction, component spec generation, parallel building, and visual QA. Use when: reverse-engineering a website design, rebuilding a site in modern tech stack, creating pixel-perfect clones for redesign projects.",
+      "description": "Rebuilds an existing website as a clean new codebase that looks and behaves like the original: captures pages, breakpoints, design tokens, assets and interaction states with a browser tool, plans the build, rebuilds section by section and proves each one against the capture with a pixel diff. Use when the user says \"clone this website\", \"rebuild my site in Next.js or Astro\", \"recreate this page pixel-perfect\", \"move my Webflow or WordPress site to code\" or \"copy this layout\". Full copies are only for sites the user owns or is authorized to copy; for anyone else's site it borrows the layout ideas and never the brand, content or sign-in pages.",
       "category": "design",
       "tags": [
         "website-cloning",
-        "design-to-code",
-        "reverse-engineering",
-        "pixel-perfect",
-        "next-js"
+        "frontend",
+        "visual-diff",
+        "design-tokens",
+        "playwright"
       ]
     },
     {
@@ -1764,12 +1775,14 @@
     {
       "name": "code-simplification",
       "slug": "code-simplification",
-      "description": "Simplifies code for clarity without changing behavior. Use when refactoring for readability, when code works but is harder to maintain than it should be, or when reviewing code that has accumulated unnecessary complexity. Covers the five principles, simplification process, and language-specific guidance.",
+      "description": "Makes working code easier to read and change without altering what it does, and proves the behaviour stayed the same. Use when someone says \"simplify this\", \"clean up this function\", \"this file is a mess\", \"reduce the complexity\", \"refactor for readability\", \"tidy my diff before the PR\", or when a linter reports high cyclomatic complexity or deep nesting. Covers pinning current behaviour with characterization tests, measuring complexity, choosing a named refactoring, applying it in small verified steps, and reporting suspected bugs found on the way instead of fixing them silently.",
       "category": "development",
       "tags": [
         "refactoring",
-        "simplification",
-        "code-quality"
+        "code-quality",
+        "complexity",
+        "readability",
+        "testing"
       ]
     },
     {
@@ -1848,22 +1861,27 @@
     {
       "name": "company-values",
       "slug": "company-values",
-      "description": "Define authentic company values that guide decisions and culture — not generic corporate platitudes but actionable principles. Use when: defining company culture, creating a values document, aligning a team around shared principles.",
+      "description": "Guides a founder from real decisions to a short set of written company values that people can act on: collects incidents, tests each candidate value, writes it as a trade-off with behaviors and a story, and wires it into hiring, feedback and promotion. Use when someone asks to \"define our company values\", \"write a values document\", \"our values are generic, fix them\", \"turn our values into interview questions\", \"what should our culture be before we hire\", or wants to check whether the team lives the values it has. Produces VALUES.md, an evidence log and an interview kit.",
       "category": "business",
       "tags": [
         "company-values",
         "culture",
-        "leadership",
-        "startup",
-        "team"
+        "founders",
+        "hiring",
+        "leadership"
       ]
     },
     {
       "name": "competitor-alternatives",
       "slug": "competitor-alternatives",
-      "description": "Plans and writes competitor comparison and alternative pages for SEO and sales enablement. Use when the user asks for an 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' or 'competitive landing pages.' Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. Emphasizes deep research, modular content architecture, and varied section types beyond feature tables.",
+      "description": "Plans, researches and writes comparison pages: \"[rival] alternatives\", \"[product] vs [rival]\", \"[rival A] vs [rival B]\" and switching guides. Builds each page from a ledger of sourced, dated facts and ends with an honest verdict on who should choose which product. Use when someone asks for an \"alternative page\", a \"vs page\", a \"competitor comparison\", \"comparison landing pages\", \"why us instead of them\", or wants existing comparison pages checked for outdated prices and claims that cannot be backed up.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "comparison-pages",
+        "competitors",
+        "seo",
+        "positioning"
+      ]
     },
     {
       "name": "composio",
@@ -1902,9 +1920,15 @@
     {
       "name": "content-strategy",
       "slug": "content-strategy",
-      "description": "When the user wants to plan a content strategy, decide what content to create, or figure out what topics to cover. Also use when the user mentions \"content strategy,\" \"what should I write about,\" \"content ideas,\" \"blog strategy,\" \"topic clusters,\" or \"content planning.\" For writing individual pieces, see copywriting. For SEO-specific audits, see seo-audit.",
+      "description": "Builds a content strategy a small team can execute: audience needs backed by counted evidence, an audit of what is already published, a topic map with one page per search intent, a scored backlog, a 90-day calendar sized to real capacity, and the numbers that will show whether it worked. Use when someone asks \"what should we write about\", \"plan our blog\", \"content strategy\", \"content plan for next quarter\", \"topic clusters\", \"content audit\", \"our blog traffic is falling\", or wants a pile of content ideas turned into a prioritised plan.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "content-strategy",
+        "editorial-calendar",
+        "content-audit",
+        "seo",
+        "topic-clusters"
+      ]
     },
     {
       "name": "content-writer",
@@ -1929,12 +1953,14 @@
     {
       "name": "context-engineering",
       "slug": "context-engineering",
-      "description": "Optimizes agent context setup for maximum output quality. Use when starting a new session, when agent output quality degrades, when switching between tasks, or when configuring rules files and context for AI-assisted development. Covers the context hierarchy, packing strategies, and confusion management.",
+      "description": "Audits and reorganises what an AI coding agent carries in its context window: instruction files, path-scoped rules, skills, subagents, hooks and the running conversation. Use when someone says \"the agent ignores our CLAUDE.md\", \"set this repo up for Claude Code / Codex / Cursor\", \"my AGENTS.md is too long\", \"quality drops in long sessions\", \"it keeps inventing APIs\", \"what should go in a skill versus the rules file\", or asks how to hand work to a subagent. Grounded in the documented loading behaviour of Claude Code, with the equivalents for Codex, Gemini CLI and Cursor.",
       "category": "development",
       "tags": [
-        "context",
-        "prompt-engineering",
-        "ai-workflow"
+        "context-engineering",
+        "claude-code",
+        "agents-md",
+        "ai-workflow",
+        "prompt-engineering"
       ]
     },
     {
@@ -1953,8 +1979,8 @@
     {
       "name": "continue-dev",
       "slug": "continue-dev",
-      "description": "You are an expert in Continue, the open-source AI code assistant for VS Code and JetBrains. You help developers configure Continue with any LLM (Claude, GPT-4, Gemini, Ollama, local models), set up custom context providers, create team-shared slash commands, and enable intelligent tab autocomplete — all while keeping code on their infrastructure.",
-      "category": "Developer Tools",
+      "description": "Continue is an open-source AI code assistant for VS Code, JetBrains and the terminal (the cn CLI) that works with any LLM: Claude, GPT, Gemini, Ollama and other local models. Use when a user asks to configure Continue with config.yaml, add chat or tab autocomplete models, write rules or custom prompts, connect MCP servers, run cn headless in scripts, or migrate from config.json. Continue was acquired by Cursor in June 2026: the release from that month is final and the Hub is offline, so the skill covers local, self-configured use.",
+      "category": "development",
       "tags": []
     },
     {
@@ -1973,14 +1999,14 @@
     {
       "name": "contrast-check",
       "slug": "contrast-check",
-      "description": "Check color contrast ratios for WCAG accessibility compliance. Use when: auditing UI components for accessibility, validating color schemes meet AA/AAA standards, fixing low-contrast text in designs.",
+      "description": "Calculates the WCAG 2.x contrast ratio between two colors, grades it against the AA and AAA thresholds for body text, large text and non-text UI parts, and finds the closest shade that passes. Use when someone asks to \"check the contrast\", \"is this text readable on this background\", \"does our palette meet WCAG AA\", \"fix the low-contrast text\", \"audit the design tokens for accessibility\", or brings a failed contrast finding from an audit. Handles hex and rgb() values, alpha, whole palettes, light and dark themes and a CI gate.",
       "category": "design",
       "tags": [
         "accessibility",
         "wcag",
-        "contrast",
-        "color",
-        "design"
+        "color-contrast",
+        "design-tokens",
+        "a11y"
       ]
     },
     {
@@ -2038,16 +2064,27 @@
     {
       "name": "copy-editing",
       "slug": "copy-editing",
-      "description": "When the user wants to edit, review, or improve existing marketing copy. Also use when the user mentions 'edit this copy,' 'review my copy,' 'copy feedback,' 'proofread,' 'polish this,' 'make this better,' or 'copy sweep.' This skill provides a systematic approach to editing marketing copy through multiple focused passes.",
+      "description": "Edits existing marketing copy in ordered passes (structure, claims, sentences, consistency, proof) and returns the edited text with a change log and a list of questions for the author. Flags claims that need evidence instead of inventing proof, and keeps the writer's voice. Use when someone says \"edit this copy\", \"proofread this page\", \"tighten this\", \"polish this email\", \"review my landing page copy\", \"make this clearer\", \"check this before we publish\", or asks for copy feedback on a page, ad, email or product description.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "copy-editing",
+        "proofreading",
+        "marketing-copy",
+        "plain-language"
+      ]
     },
     {
       "name": "copywriting",
       "slug": "copywriting",
-      "description": "When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user says \"write copy for,\" \"improve this copy,\" \"rewrite this page,\" \"marketing copy,\" \"headline help,\" or \"CTA copy.\" For email copy, see email-sequence. For popup copy, see popup-cro.",
+      "description": "Writes and rewrites the words on marketing pages: homepage, landing page, pricing, feature, product and about pages, including headlines, button text, section copy, title tag and meta description. Starts from the reader's own language and the proof the business can show, edits copy where it lives in the repository, and flags every claim that needs evidence. Use when someone says \"write copy for this page\", \"rewrite our homepage\", \"this page sounds generic\", \"headline ideas\", \"better CTA\", \"landing page copy for this ad\" or \"pricing page wording\". Email copy belongs to email-sequence, popups to popup-cro, and line-editing a finished draft to copy-editing.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "copywriting",
+        "landing-pages",
+        "messaging",
+        "conversion",
+        "headlines"
+      ]
     },
     {
       "name": "cors",
@@ -2435,14 +2472,14 @@
     {
       "name": "design-an-interface",
       "slug": "design-an-interface",
-      "description": "Generate multiple radically different interface designs for a module using parallel sub-agents. Use when: user wants to design an API, explore interface options, compare module shapes, or mentions \"design it twice\".",
+      "description": "Designs the public interface of a module before any implementation exists: writes the caller scenarios first, produces three candidates with genuinely different shapes, type-checks each one against the scenarios, scores them on measurable criteria and records the decision. Use when someone says \"design the API for this module\", \"what should this signature look like\", \"compare interface options\", \"this function is awkward to call\", \"show me alternatives before I build it\", or is about to add a module, library entry point, endpoint or command that other code will depend on.",
       "category": "development",
       "tags": [
-        "interface-design",
         "api-design",
-        "deep-modules",
-        "design-it-twice",
-        "parallel-agents"
+        "interface-design",
+        "module-design",
+        "software-architecture",
+        "type-checking"
       ]
     },
     {
@@ -2577,12 +2614,14 @@
     {
       "name": "documentation-and-adrs",
       "slug": "documentation-and-adrs",
-      "description": "Records architectural decisions and documentation. Use when making architectural decisions, changing public APIs, shipping features, or when you need to record context that future engineers and agents will need to understand the codebase. Covers ADRs, inline docs, API docs, READMEs, and changelogs.",
+      "description": "Writes architecture decision records (ADRs) and keeps the rest of a project's documentation true after a change: README, reference comments on public interfaces and the changelog. Use when a user says \"write an ADR\", \"record this decision\", \"document why we chose X\", \"set up a decision log\", \"supersede the old decision\", \"update the README\", \"add a changelog entry\" or \"document this API\". Produces records in the Nygard or MADR format, a Keep a Changelog entry, and a script that checks the log for gaps and broken supersession links.",
       "category": "development",
       "tags": [
-        "documentation",
         "adr",
-        "architecture"
+        "architecture-decisions",
+        "documentation",
+        "changelog",
+        "readme"
       ]
     },
     {
@@ -2621,7 +2660,7 @@
     {
       "name": "dokploy",
       "slug": "dokploy",
-      "description": "Expert guidance for Dokploy, the open-source, self-hosted Platform as a Service alternative to Vercel, Netlify, and Heroku. Helps developers deploy applications, databases, and services on their own VPS with automatic SSL, Docker-based isolation, and a web dashboard for management.",
+      "description": "Dokploy is an open-source, self-hosted platform (an alternative to Heroku, Vercel and Netlify) that deploys applications, Docker Compose stacks and databases on your own server with Docker Swarm and Traefik, a web dashboard, automatic Let's Encrypt certificates and an HTTP API. Use when a user asks to \"install Dokploy on a VPS\", \"deploy an app with Dokploy\", \"deploy a docker-compose project to Dokploy\", \"add a domain with HTTPS\", \"trigger a Dokploy deployment from CI\", \"create a Postgres database in Dokploy\" or \"set up zero-downtime deploys\".",
       "category": "devops",
       "tags": []
     },
@@ -2690,7 +2729,7 @@
     {
       "name": "echarts",
       "slug": "echarts",
-      "description": "Create interactive data visualizations with Apache ECharts. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications.",
+      "description": "Creates interactive data visualizations with Apache ECharts, the open-source JavaScript charting library. Use when a user asks to build charts, dashboards, or data-driven graphics using ECharts in React, Vue, or vanilla JavaScript applications, render a chart to SVG on the server, or upgrade from ECharts 5 to 6.",
       "category": "data-ai",
       "tags": [
         "charts",
@@ -2815,9 +2854,15 @@
     {
       "name": "email-sequence",
       "slug": "email-sequence",
-      "description": "When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions \"email sequence,\" \"drip campaign,\" \"nurture sequence,\" \"onboarding emails,\" \"welcome sequence,\" \"re-engagement emails,\" \"email automation,\" or \"lifecycle emails.\" For in-app onboarding, see onboarding-cro.",
+      "description": "Designs automated email sequences end to end: the trigger, branches and exit rules, the full copy of every message, and the sender setup that keeps them out of spam (SPF, DKIM, DMARC, one-click unsubscribe, consent). Covers onboarding and welcome series, lead nurture, abandoned cart, dunning, win-back and sunset flows. Use when someone asks for a \"drip campaign\", \"welcome sequence\", \"onboarding emails\", \"nurture sequence\", \"win-back emails\", \"lifecycle emails\", \"email automation\", or says \"our emails land in spam\" or \"nobody clicks our onboarding emails\". In-app onboarding belongs to onboarding-cro.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "email",
+        "lifecycle-marketing",
+        "deliverability",
+        "automation",
+        "onboarding"
+      ]
     },
     {
       "name": "ember",
@@ -3135,7 +3180,7 @@
     {
       "name": "fig",
       "slug": "fig",
-      "description": "Expert guidance for Amazon Q Developer (formerly Fig), the terminal tool that provides IDE-style autocomplete, AI chat, and CLI builder capabilities. Helps developers create custom completion specs, build CLI tools with autocomplete, and configure terminal productivity features.",
+      "description": "Fig was a macOS terminal app that showed IDE-style autocomplete for CLI commands. It shut down on 1 September 2024; its autocomplete moved into Amazon Q Developer CLI, which became the closed-source Kiro CLI in November 2025. The open completion-spec format (Fig.Spec, the withfig/autocomplete repository) still drives Kiro CLI, Microsoft inshellisense and VS Code's terminal suggestions. Use when a user asks \"what happened to Fig\", \"what replaces Fig autocomplete\", \"write a Fig completion spec for my CLI\", \"add terminal autocomplete for our internal tool\", or \"move from Amazon Q CLI to Kiro CLI\".",
       "category": "development",
       "tags": []
     },
@@ -3193,14 +3238,14 @@
     {
       "name": "find-community",
       "slug": "find-community",
-      "description": "Find and build a community around your product — identify where your users gather, engage authentically, and grow a loyal user base. Use when: building community-led growth, finding early adopters, creating a brand community.",
+      "description": "Finds the places where a defined group of customers already talks to each other, measures each place for activity, how often the target problem comes up, buying signals and posting rules, and returns a ranked community map with a 30-day participation plan. Use when someone asks \"where do my customers hang out\", \"which community should I build for\", \"find subreddits and forums for my product\", \"who should I serve\", \"how do I get involved without spamming\", or \"should I start my own community\". Covers founders choosing a group to serve, products with no audience yet, developer tools, local trades and B2B niches.",
       "category": "business",
       "tags": [
         "community",
-        "growth",
-        "engagement",
-        "users",
-        "startup"
+        "audience-research",
+        "customer-discovery",
+        "startup",
+        "go-to-market"
       ]
     },
     {
@@ -3233,14 +3278,14 @@
     {
       "name": "first-customers",
       "slug": "first-customers",
-      "description": "Find and convert your first 10-100 customers using founder-led sales, community engagement, and early adopter strategies. Use when: launching a new product, acquiring first users, building initial traction before scaling.",
+      "description": "Plans and tracks the direct, one-at-a-time selling that gets a new product or service its first 10 to 100 paying customers: sizes the outreach needed from stage conversion rates and the founder's hours, builds a prospect list ordered by warmth, shapes an early-customer offer and price, drafts outreach and call scripts, and reads the funnel each week. Use when someone asks \"how do I get my first customers\", \"nobody is buying, what do I do\", \"write a cold email for my product\", \"how many people do I need to contact\", \"should I charge early users\", or \"get me to 10 paying customers\". Covers SaaS, services, local trades and products that are not built yet.",
       "category": "business",
       "tags": [
-        "startup",
-        "customers",
         "sales",
-        "traction",
-        "founder-sales"
+        "customer-acquisition",
+        "outreach",
+        "startup",
+        "pricing"
       ]
     },
     {
@@ -3314,9 +3359,15 @@
     {
       "name": "form-cro",
       "slug": "form-cro",
-      "description": "When the user wants to optimize any form that is NOT signup/registration — including lead capture forms, contact forms, demo request forms, application forms, survey forms, or checkout forms. Also use when the user mentions \"form optimization,\" \"lead form conversions,\" \"form friction,\" \"form fields,\" \"form completion rate,\" or \"contact form.\" For signup/registration forms, see signup-flow-cro. For popups containing forms, see popup-cro.",
+      "description": "Audits and rebuilds web forms so that more people finish them: lead, contact, demo-request, quote, checkout and survey forms. Produces a field-by-field triage, standards-based markup (labels, autocomplete tokens, error handling per the HTML spec and WCAG 2.2), funnel tracking and a test plan. Use when someone says \"our form isn't converting\", \"too many form fields\", \"people abandon the contact form\", \"fix the demo request form\", \"form completion rate\", \"form validation errors\" or \"make this form accessible\". Account sign-up flows belong to signup-flow-cro and forms inside popups to popup-cro.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "forms",
+        "conversion",
+        "accessibility",
+        "lead-generation",
+        "wcag"
+      ]
     },
     {
       "name": "formbricks",
@@ -3354,9 +3405,15 @@
     {
       "name": "free-tool-strategy",
       "slug": "free-tool-strategy",
-      "description": "When the user wants to plan, evaluate, or build a free tool for marketing purposes — lead generation, SEO value, or brand awareness. Also use when the user mentions \"engineering as marketing,\" \"free tool,\" \"marketing tool,\" \"calculator,\" \"generator,\" \"interactive tool,\" \"lead gen tool,\" \"build a tool for leads,\" or \"free resource.\" This skill bridges engineering and marketing — useful for founders and technical marketers.",
+      "description": "Plans a free web tool built to bring in customers: picks the idea, checks it against the real buyer, estimates payback, decides where to ask for an email, scopes the first version and defines how to judge it. Covers calculators, checkers, generators, converters and lookups, including tools backed by a paid API. Use when someone says \"we want a free tool for leads\", \"should we build a calculator\", \"engineering as marketing\", \"lead-gen tool ideas\", \"gate the results or not\", or \"our free tool gets traffic but no signups\". Produces a decision memo and a one-page build spec, not the tool's code.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "free-tools",
+        "lead-generation",
+        "growth",
+        "seo",
+        "product-marketing"
+      ]
     },
     {
       "name": "frontend-design",
@@ -3564,13 +3621,13 @@
     {
       "name": "git-guardrails-claude-code",
       "slug": "git-guardrails-claude-code",
-      "description": "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when: user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.",
+      "description": "Installs a Claude Code PreToolUse hook that stops destructive git commands before the shell runs them: force pushes, pushes to protected branches, reset --hard, clean -f, checkouts and restores that discard edits, stash clear and history rewrites, while risky but legitimate commands become a confirmation prompt. Use when someone says \"stop Claude from pushing\", \"block git push --force\", \"protect main from Claude Code\", \"add git safety hooks\", \"Claude wiped my changes with reset --hard\", or wants guardrails before running Claude Code in auto mode or with permissions bypassed.",
       "category": "devops",
       "tags": [
-        "git",
-        "safety",
         "claude-code",
+        "git",
         "hooks",
+        "safety",
         "guardrails"
       ]
     },
@@ -3709,7 +3766,7 @@
     {
       "name": "gptzero",
       "slug": "gptzero",
-      "description": "Integrate GPTZero API for AI content detection — text scanning, file upload, batch processing, per-sentence probability scores. Use when: programmatic AI content scanning, academic integrity tools, content moderation pipelines.",
+      "description": "Integrates the GPTZero API for AI content detection: a hosted detector that classifies a text as human-written, AI-generated or mixed, with per-sentence probability scores — text scanning, file upload, batch processing. Use when: programmatic AI content scanning, academic integrity tools, content moderation pipelines.",
       "category": "data-ai",
       "tags": [
         "ai-detection",
@@ -3763,14 +3820,14 @@
     {
       "name": "grow-sustainably",
       "slug": "grow-sustainably",
-      "description": "Grow a business sustainably without burning out — focus on profitability, retention, and organic growth over vanity metrics. Use when: planning growth strategy, avoiding premature scaling, building a profitable business.",
+      "description": "Works out how fast a small business can grow on its own money and capacity, and whether a specific commitment (a hire, a lease, an ad budget, a large contract) is affordable. Computes contribution margin, break-even, cash buffer, acquisition payback, the customer ceiling set by churn, the growth rate working capital can fund, and a stress case, then writes guardrails with thresholds. Use when someone asks \"can we afford to hire\", \"should we spend more on ads\", \"how fast can we grow without raising money\", \"are we growing too fast\", \"why is cash tight when sales are up\", or \"how do I grow without burning out\". For businesses with revenue: SaaS, services, shops, wholesale.",
       "category": "business",
       "tags": [
-        "growth",
-        "profitability",
-        "retention",
+        "unit-economics",
+        "cash-flow",
         "bootstrapping",
-        "sustainability"
+        "retention",
+        "financial-planning"
       ]
     },
     {
@@ -3898,7 +3955,7 @@
     {
       "name": "hermes-agent",
       "slug": "hermes-agent",
-      "description": "Build self-improving AI agents using Hermes patterns — agents that learn from interactions, update their own instructions, and adapt their behavior over time. Use when: building agents that improve with usage, creating adaptive AI assistants, implementing agent self-reflection.",
+      "description": "Hermes Agent is Nous Research's open-source self-improving AI agent: a terminal and messaging-gateway agent that saves memories, writes and patches its own skills from experience, and searches its past sessions. Use when a user asks to install or configure Hermes Agent, pick its model provider, inspect or gate what it learns (memory, skills, background review, curator), embed it in Python, or build a self-improving AI agent or adaptive assistant that improves with usage.",
       "category": "data-ai",
       "tags": [
         "agents",
@@ -4012,8 +4069,8 @@
     {
       "name": "houdini",
       "slug": "houdini",
-      "description": "You are an expert in SideFX Houdini, the industry-standard procedural 3D software used for VFX, simulations, motion graphics, game asset creation, and procedural modeling. You help artists and technical directors build procedural workflows using Houdini's node-based architecture, VEX scripting, Solaris/USD pipeline, simulation solvers (pyro, FLIP, Vellum, RBD), PDG/TOPs for task automation, and HDA (Houdini Digital Assets) for reusable tools — enabling non-destructive, art-directable pipelines that scale from indie projects to AAA and feature film production.",
-      "category": "3D & VFX",
+      "description": "SideFX Houdini is a node-based 3D application for procedural modeling, simulation, visual effects and USD scene assembly, scripted with VEX and Python (the hou module). Use when a user asks to \"write a VEX wrangle\", \"script Houdini with Python\", \"run hython from the command line\", \"render a USD file with husk\", \"set up a pyro, FLIP, Vellum or RBD simulation\", \"batch-process assets with PDG\", or \"build a Houdini digital asset (HDA)\". Covers Houdini 22: network types, VEX snippets, hou scripting, the command-line tools, Solaris and Karma, PDG/TOPs, HDAs and licence editions.",
+      "category": "design",
       "tags": []
     },
     {
@@ -4146,51 +4203,53 @@
     {
       "name": "idea-refine",
       "slug": "idea-refine",
-      "description": "Refines raw ideas into sharp, actionable concepts through structured divergent and convergent thinking. Use when you have a vague idea that needs sharpening, want to stress-test a plan, or need to explore variations before committing to a direction. Produces a concrete markdown one-pager with problem statement, assumptions, MVP scope, and trade-offs.",
+      "description": "Turns a rough product or feature idea into a one-page concept brief: the problem stated as a job to be done, a handful of real alternatives, an evidence-weighted comparison, the riskiest assumptions with the cheapest test for each, and a first version small enough to build. Use when a user says \"help me refine this idea\", \"is this worth building\", \"stress-test my plan\", \"poke holes in this\", \"which of these directions should I pick\" or \"what is the smallest version of this\".",
       "category": "productivity",
       "tags": [
         "ideation",
-        "refinement",
-        "planning"
+        "product-discovery",
+        "assumption-testing",
+        "prioritization",
+        "mvp"
       ]
     },
     {
       "name": "image-analysis",
       "slug": "image-analysis",
-      "description": "Analyze images to extract colors, composition, mood, and visual elements using Vision AI. Use when: extracting color palettes from images, analyzing design screenshots, understanding visual style of reference images.",
+      "description": "Turns an image into facts an agent can build from: file properties, a color palette with the area each color covers, the colors and sizes of individual elements, and a structured description of layout and style. Use when someone asks to \"extract the colors from this screenshot\", \"get a palette from this photo\", \"match my CSS to this mockup\", \"what colors and sizes does this design use\", \"describe this reference image\", or \"why does this image look wrong\". Produces CSS variables, a Tailwind theme block or a written brief.",
       "category": "design",
       "tags": [
         "image-analysis",
         "color-palette",
-        "design",
-        "visual",
-        "claude"
+        "design-tokens",
+        "screenshots",
+        "pillow"
       ]
     },
     {
       "name": "image-compare",
       "slug": "image-compare",
-      "description": "Compare two images visually using Vision AI to identify differences, similarities, and changes. Use when: comparing design mockups vs implementation, visual regression testing, identifying what changed between two versions.",
+      "description": "Compares two images and reports whether, how much and where they differ: the count of changed pixels, an SSIM score, the bounding box of every changed region and a diff picture. Use when someone asks to \"compare these two screenshots\", \"what changed between before and after\", \"does the build match the design\", \"diff these images\", \"find the visual regression\", or wants a pass/fail image check in CI. Handles different sizes and scales, lossy formats, areas to ignore and rendering noise.",
       "category": "design",
       "tags": [
-        "image-compare",
+        "image-diff",
         "visual-regression",
-        "design",
-        "testing",
-        "diff"
+        "ssim",
+        "screenshots",
+        "testing"
       ]
     },
     {
       "name": "image-to-text",
       "slug": "image-to-text",
-      "description": "Extract text and structured data from images using Vision AI (OCR). Use when: reading text from screenshots, extracting data from scanned documents, converting images of tables/forms/charts to structured text.",
+      "description": "Extracts text and its structure from an image by the route that fits the picture: an OCR engine for clean printed text, the agent's own vision for photos, tables, forms and handwriting, or both, and then checks the result before handing it over. Use when someone asks to \"read the text in this screenshot\", \"transcribe this photo\", \"turn this table image into CSV\", \"pull the fields from this receipt\", \"what does this label say\", or needs amounts, dates and codes copied exactly. For engine options see the tesseract skill; for scanned PDFs see pdf-ocr.",
       "category": "data-ai",
       "tags": [
         "ocr",
-        "image-to-text",
-        "vision-ai",
         "text-extraction",
-        "document"
+        "vision-model",
+        "data-extraction",
+        "verification"
       ]
     },
     {
@@ -4242,24 +4301,26 @@
     {
       "name": "improve-codebase-architecture",
       "slug": "improve-codebase-architecture",
-      "description": "Explore a codebase to find opportunities for architectural improvement, focusing on making the codebase more testable by deepening shallow modules. Use when: user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more AI-navigable.",
+      "description": "Surveys a real repository for structural problems and turns the findings into a staged plan: measures churn, size, import cycles, coupling and co-change, finds shallow modules (wrappers that hide nothing) and tangled clusters, ranks a few candidates on evidence, designs the new boundary and proposes the change as small reversible steps guarded by a CI rule. Use when someone says \"improve the architecture\", \"where should we refactor\", \"this codebase is a mess\", \"find the worst modules\", \"untangle these dependencies\", \"too many tiny files\", \"make this easier to test\", or asks for a refactoring roadmap.",
       "category": "development",
       "tags": [
         "architecture",
         "refactoring",
-        "deep-modules",
-        "testability",
-        "codebase-health"
+        "dependency-analysis",
+        "technical-debt",
+        "modularity"
       ]
     },
     {
       "name": "incremental-implementation",
       "slug": "incremental-implementation",
-      "description": "Delivers changes incrementally in thin vertical slices. Use when implementing any feature or change that touches more than one file, when you're about to write a large amount of code at once, or when a task feels too big to land in one step. Each increment leaves the system in a working, testable state.",
+      "description": "Builds a change as a sequence of small steps, each of which leaves the project building, passing its checks and safe to merge or revert on its own. Use when a user asks to implement a feature that spans several files or layers, says \"do this step by step\", \"break this into small commits\", \"this is too big for one change\", \"migrate without downtime\", \"keep the build green\", or when a large change is about to be written in one pass. Produces a step plan with a check for every step and a short report after each one.",
       "category": "development",
       "tags": [
-        "incremental",
-        "implementation",
+        "incremental-delivery",
+        "vertical-slices",
+        "feature-flags",
+        "refactoring",
         "workflow"
       ]
     },
@@ -4333,21 +4394,21 @@
     {
       "name": "ionic",
       "slug": "ionic",
-      "description": "Expert guidance for Ionic, the open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Helps developers build apps with Ionic's UI components, integrate with native device APIs via Capacitor, and deploy to iOS, Android, and web from a single codebase.",
+      "description": "Ionic is an open-source framework for building cross-platform mobile, desktop, and progressive web apps using web technologies (HTML, CSS, JavaScript/TypeScript). Use when building apps with Ionic's UI components, integrating native device APIs via Capacitor, or deploying to iOS, Android, and web from a single codebase.",
       "category": "development",
       "tags": []
     },
     {
       "name": "ios-debugger-agent",
       "slug": "ios-debugger-agent",
-      "description": "AI agent for building, running, and debugging iOS apps on simulator via XcodeBuildMCP. Use when: running iOS apps, inspecting simulator UI, capturing logs, or diagnosing runtime behavior.",
+      "description": "Builds an iOS app, installs and launches it on a simulator, then collects evidence about a runtime problem: unified logs, console output, screenshots, the accessibility tree, crash reports and an LLDB session. Works with Apple's command-line tools (xcodebuild, simctl, devicectl, lldb) and with Xcode's own MCP server when it is connected. Use when the user says \"run the app on the simulator\", \"why does this screen stay blank\", \"it crashes on launch\", \"tap through the checkout flow and show me what happens\", \"capture the logs\", \"attach the debugger\" or \"take a screenshot of the simulator\".",
       "category": "development",
       "tags": [
         "ios",
+        "simulator",
         "debugging",
         "xcode",
-        "swift",
-        "agent"
+        "lldb"
       ]
     },
     {
@@ -4558,8 +4619,8 @@
     {
       "name": "keycloak",
       "slug": "keycloak",
-      "description": "You are an expert in Keycloak, the open-source identity and access management solution by Red Hat. You help teams implement single sign-on (SSO), OAuth 2.0, OpenID Connect, SAML 2.0, user federation (LDAP/Active Directory), social login, multi-factor authentication, and fine-grained authorization — providing enterprise-grade identity management that can be self-hosted and customized.",
-      "category": "Security & Auth",
+      "description": "Keycloak is an open-source identity and access management server that gives applications single sign-on with OAuth 2.0, OpenID Connect and SAML 2.0. Use when a user asks to set up or self-host Keycloak, add SSO or social login, create a realm or client, connect LDAP or Active Directory, require MFA, log in to a Next.js app with Keycloak, or manage users with kcadm or the Admin REST API.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -4626,7 +4687,7 @@
     {
       "name": "konva",
       "slug": "konva",
-      "description": "Build interactive 2D canvas applications with Konva. Use when a user asks to create drawing tools, image editors, interactive graphics, drag-and-drop interfaces, or canvas-based UIs using Konva or react-konva.",
+      "description": "Builds interactive 2D canvas applications with Konva, a JavaScript library that draws shapes, text and images on HTML5 Canvas with layers, events and drag-and-drop. Use when a user asks to create drawing tools, image editors, interactive graphics, drag-and-drop interfaces, or canvas-based UIs using Konva or react-konva.",
       "category": "data-ai",
       "tags": [
         "canvas",
@@ -4639,7 +4700,7 @@
     {
       "name": "kotlin-multiplatform",
       "slug": "kotlin-multiplatform",
-      "description": "Expert guidance for Kotlin Multiplatform (KMP), JetBrains' technology for sharing code between Android, iOS, web, and desktop applications. Helps developers build shared business logic, networking, and data layers in Kotlin while keeping UI native on each platform.",
+      "description": "Kotlin Multiplatform (KMP) is JetBrains' technology for sharing Kotlin code between Android, iOS, web, and desktop applications while keeping the UI native on each platform. Use when a user asks to set up a KMP shared module, share business logic, networking or a data layer between Android and iOS, write expect/actual declarations, use Ktor or SQLDelight in commonMain, write a shared ViewModel, test shared code, or migrate a KMP project to Android Gradle Plugin 9.",
       "category": "development",
       "tags": []
     },
@@ -4672,7 +4733,7 @@
     {
       "name": "kyverno",
       "slug": "kyverno",
-      "description": "Expert guidance for Kyverno, the Kubernetes-native policy engine that validates, mutates, and generates resources using YAML policies (no Rego required). Helps developers enforce security policies, automate resource defaults, and ensure compliance across Kubernetes clusters.",
+      "description": "Kyverno is a Kubernetes-native policy engine that validates, mutates, and generates resources and verifies image signatures using YAML policies (no Rego required). Use when a user asks to enforce Pod security or resource limits with admission policies, inject defaults, create per-namespace NetworkPolicies or quotas, verify cosign signatures, test policies with the kyverno CLI, or migrate ClusterPolicy to ValidatingPolicy before Kyverno 1.20.",
       "category": "devops",
       "tags": []
     },
@@ -4754,22 +4815,28 @@
     {
       "name": "last30days-skill",
       "slug": "last30days-skill",
-      "description": "Deep research engine covering the last 30 days across 10+ sources -- Reddit, X/Twitter, YouTube, TikTok, HackerNews, Polymarket, Bluesky, and the web. Synthesizes findings into grounded, cited reports. Use when: researching trending topics, competitive intelligence, understanding what people are saying about a subject right now.",
+      "description": "Installs, configures and runs last30days, an open-source research engine that searches Reddit, X, YouTube, Hacker News, Polymarket, GitHub and the web inside a recent time window and ranks what it finds by audience reaction. Use when someone asks \"what are people saying about X\", \"research the last 30 days\", \"what does the community think of A vs B\", \"what has this company been up to this month\", \"set up last30days\", or needs a cited brief on current opinion that training data cannot cover.",
       "category": "research",
       "tags": [
         "research",
-        "trends",
-        "deep-research",
-        "social-media",
+        "social-listening",
+        "trend-analysis",
+        "reddit",
         "competitive-intelligence"
       ]
     },
     {
       "name": "launch-strategy",
       "slug": "launch-strategy",
-      "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' or 'product update.' This skill covers phased launches, channel strategy, and ongoing launch momentum.",
+      "description": "Turns \"we ship on this date\" into a dated launch plan: how big the announcement should be, the rollout stages and their exit criteria, the message, channels ranked by the audience the team really has, an asset list with owners, a launch-day runbook with rollback triggers, and the numbers to review afterwards. Includes the published rules for Product Hunt and Show HN. Use when someone says \"plan our launch\", \"launch on Product Hunt\", \"Show HN\", \"announce this feature\", \"go-to-market plan\", \"beta launch\", \"waitlist\", \"early access rollout\" or \"how do we announce the new pricing\".",
       "category": "business",
-      "tags": []
+      "tags": [
+        "launch",
+        "go-to-market",
+        "product-hunt",
+        "release-planning",
+        "product-marketing"
+      ]
     },
     {
       "name": "launchdarkly",
@@ -4807,7 +4874,7 @@
     {
       "name": "leaflet",
       "slug": "leaflet",
-      "description": "Build interactive maps with Leaflet.js. Use when a user asks to create map-based applications, add markers and popups, draw shapes, handle geolocation, or integrate tile layers in web applications.",
+      "description": "Builds interactive maps with Leaflet.js, the open-source JavaScript library that shows tile maps with markers, popups and vector shapes. Use when a user asks to create map-based applications, add markers and popups, draw shapes, handle geolocation, or integrate tile layers in web applications.",
       "category": "data-ai",
       "tags": [
         "maps",
@@ -4841,8 +4908,8 @@
     {
       "name": "leptos",
       "slug": "leptos",
-      "description": "You are an expert in Leptos, the full-stack Rust web framework that combines server-side rendering with client-side interactivity via WebAssembly. You help developers build reactive web applications using Leptos's fine-grained signal system, server functions, islands architecture, and compile-time optimizations — getting React-like DX with Rust's performance and type safety.",
-      "category": "Web Frameworks",
+      "description": "Leptos is a Rust web framework that builds reactive user interfaces compiled to WebAssembly, either as a client-side app or as a full-stack app with server-side rendering, hydration and server functions on Axum or Actix. Use when a user asks to \"build a web app in Rust\", \"start a Leptos project\", \"add a server function\", \"use signals and resources in Leptos\", \"set up cargo-leptos\", \"fix Leptos code that no longer compiles after 0.7\", or \"deploy a Leptos SSR app\". Covers Leptos 0.8: signals, the view macro, resources and Suspense, server functions and actions, routing, islands, Trunk and cargo-leptos.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5115,27 +5182,27 @@
     {
       "name": "macos-menubar-tuist-app",
       "slug": "macos-menubar-tuist-app",
-      "description": "Builds macOS menubar apps with Tuist and SwiftUI. Use when: creating LSUIElement menubar utilities, defining Tuist manifests, or building menubar apps without Xcode-first workflows.",
+      "description": "Creates and maintains a macOS menu bar app whose Xcode project is generated by Tuist: a SwiftUI MenuBarExtra scene, no Dock icon, manifests in Swift, and a terminal loop that rebuilds and relaunches the app. Covers choosing between a menu and a panel, where fetching and state belong, Quit and Settings items, launch at login, dependencies and tests. Use when the user says \"make a menu bar app\", \"status bar utility for macOS\", \"set this up with Tuist\", \"hide the Dock icon\", \"LSUIElement\", \"MenuBarExtra\", \"rebuild and relaunch from the terminal\" or \"add launch at login\".",
       "category": "development",
       "tags": [
         "macos",
         "menubar",
         "tuist",
-        "swift",
-        "desktop-app"
+        "swiftui",
+        "menubarextra"
       ]
     },
     {
       "name": "macos-spm-app-packaging",
       "slug": "macos-spm-app-packaging",
-      "description": "Scaffold, build, and package SwiftPM-based macOS apps without Xcode project. Use when: creating macOS app bundles from SPM, signing, notarizing, or building appcasts.",
+      "description": "Turns a Swift Package Manager executable into a real macOS .app without an Xcode project: builds the binary, assembles the bundle and Info.plist, signs it, and for distribution notarizes, staples and wraps it in a zip or disk image. Covers universal binaries, resources and icons, hardened runtime entitlements, reading the notary log, and Sparkle update feeds. Use when the user says \"package my SwiftPM app\", \"make an .app from swift build\", \"no Xcode project\", \"sign and notarize\", \"Gatekeeper says the app is damaged\", \"notarization failed\", \"make a universal binary\" or \"ship a DMG\".",
       "category": "development",
       "tags": [
         "macos",
-        "spm",
-        "packaging",
-        "distribution",
-        "notarization"
+        "swiftpm",
+        "codesign",
+        "notarization",
+        "app-bundle"
       ]
     },
     {
@@ -5267,29 +5334,41 @@
     {
       "name": "marketing-ideas",
       "slug": "marketing-ideas",
-      "description": "When the user needs marketing ideas, inspiration, or strategies for their SaaS or software product. Also use when the user asks for 'marketing ideas,' 'growth ideas,' 'how to market,' 'marketing strategies,' 'marketing tactics,' 'ways to promote,' or 'ideas to grow.' This skill provides 139 proven marketing approaches organized by category.",
+      "description": "Picks the two or three marketing bets that fit a software product's stage, budget and team, and turns each into a sized test with a pass mark and a stop rule. Use when someone asks \"how do I market this\", \"give me marketing ideas\", \"growth ideas for my SaaS\", \"which channel should we try next\", \"what should marketing do this quarter\", or \"we have a small budget, where do we start\". Works from the product's own numbers: it backs the goal out into traffic and cost limits, screens channel families against what must be true for each, and writes the plan as a short document instead of a long list of tactics.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "marketing",
+        "growth",
+        "go-to-market",
+        "saas",
+        "planning"
+      ]
     },
     {
       "name": "marketing-plan",
       "slug": "marketing-plan",
-      "description": "Create a comprehensive marketing plan — channels, messaging, content strategy, and growth tactics. Use when: planning marketing for a product launch, creating a content calendar, designing a go-to-market strategy.",
+      "description": "Writes a marketing plan for a small business as a working document: where customers come from today, one target segment and message, a numeric goal turned into the leads it requires, a spending ceiling derived from what a customer is worth, channels chosen by score, a 13-week calendar and a weekly scorecard with stop rules. Use when someone asks \"write a marketing plan\", \"how should I market this\", \"which channels should I use\", \"how much should I spend on marketing\", \"plan the next quarter's marketing\", or \"make a 90-day go-to-market plan\". Suits local services, shops, B2B software and solo founders with a small budget.",
       "category": "business",
       "tags": [
         "marketing",
-        "strategy",
-        "content",
-        "growth",
-        "go-to-market"
+        "go-to-market",
+        "channel-strategy",
+        "budgeting",
+        "small-business"
       ]
     },
     {
       "name": "marketing-psychology",
       "slug": "marketing-psychology",
-      "description": "When the user wants to apply psychological principles, mental models, or behavioral science to marketing. Also use when the user mentions 'psychology,' 'mental models,' 'cognitive bias,' 'persuasion,' 'behavioral science,' 'why people buy,' 'decision-making,' or 'consumer behavior.' This skill provides 70+ mental models organized for marketing application.",
+      "description": "Applies behavioural science to marketing decisions using only effects with solid published evidence, named as the research literature names them, with their replication record. Use when someone asks about \"marketing psychology\", \"cognitive biases\", \"persuasion\", \"why people buy\", \"behavioural science\", \"nudges\", or wants to use anchoring, scarcity, social proof, defaults, loss aversion or a decoy on a pricing page, checkout, signup or upgrade prompt. Grades each effect, says where it failed to replicate, checks the idea against consumer-protection rules, and turns it into a sized experiment.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "behavioral-science",
+        "persuasion",
+        "pricing",
+        "experimentation",
+        "marketing"
+      ]
     },
     {
       "name": "markitdown",
@@ -5472,14 +5551,14 @@
     {
       "name": "minimalist-review",
       "slug": "minimalist-review",
-      "description": "Evaluate business decisions through the minimalist entrepreneur framework — community focus, simplicity, and profitability over growth theater. Use when: weighing a business decision, avoiding over-engineering a strategy, keeping a startup lean and intentional.",
+      "description": "Reviews a business or product plan against simplicity and profitability criteria and returns a written verdict: the plan restated in one sentence, an inventory of its parts tagged keep, replace, defer or drop, a ten-check scorecard, break-even, payback and worst-case figures, the smallest version worth trying, and the conditions for stopping. Use when someone asks \"review my business plan\", \"is this plan too complicated\", \"what can we cut from the roadmap\", \"should we build this or start smaller\", \"sanity-check this before I spend the money\", or \"give me a lean version of this plan\". Works on expansion plans, product roadmaps, hires, purchases and new lines of business.",
       "category": "business",
       "tags": [
-        "business-review",
-        "minimalism",
+        "plan-review",
+        "simplicity",
         "profitability",
-        "decision-making",
-        "entrepreneurship"
+        "scope",
+        "decision-making"
       ]
     },
     {
@@ -5546,7 +5625,7 @@
     {
       "name": "mkdocs",
       "slug": "mkdocs",
-      "description": "Build documentation sites with MkDocs and Material for MkDocs. Use when a user asks to create project documentation, configure MkDocs themes, add search and navigation, deploy docs to GitHub Pages, or customize Markdown extensions.",
+      "description": "MkDocs is a Python static site generator that builds a documentation site from Markdown files and one mkdocs.yml, most often with the Material for MkDocs theme. Use when a user asks to create project documentation, configure MkDocs themes, add search and navigation, customize Markdown extensions, deploy docs to GitHub Pages, version docs with mike, or decide between MkDocs 1.x, Material for MkDocs and its successor Zensical.",
       "category": "development",
       "tags": [
         "documentation",
@@ -5577,8 +5656,8 @@
     {
       "name": "mobx",
       "slug": "mobx",
-      "description": "You are an expert in MobX, the simple and scalable state management library based on transparent reactive programming. You help developers build React applications with observable state, automatic tracking of dependencies, computed values, actions for state mutations, and reactions for side effects — providing a natural, class-based or functional approach where the UI automatically updates when state changes without manual subscriptions.",
-      "category": "Frontend Development",
+      "description": "MobX is a state management library for JavaScript and React that makes state observable, so computed values and components update automatically when it changes. Use when a user asks to add MobX to a React app, create a store with makeAutoObservable, wrap components in observer, write computed values, actions, reactions or flow, fix a MobX component that does not re-render, or migrate from MobX 6 to MobX 7.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5698,14 +5777,14 @@
     {
       "name": "mvp",
       "slug": "mvp",
-      "description": "Build a Minimum Viable Product — scope ruthlessly, ship fast, learn from real users. Use when: planning what to build first, reducing scope to essentials, launching quickly to test assumptions.",
+      "description": "Plans a minimum viable product: states what the first release must teach, picks the cheapest form that can teach it (hand-delivered service, assembled tools or a single coded flow), budgets capacity in person-days, sorts scope by effort into must, should, could and not-this-time, and defines the metric and pass line that decide what happens after launch. Use when someone says \"what should go into v1\", \"help me scope my MVP\", \"cut this feature list\", \"we have two weeks to launch\", \"plan the first version\", or keeps adding features before a first release.",
       "category": "business",
       "tags": [
-        "startup",
         "mvp",
-        "product",
-        "launch",
-        "lean-startup"
+        "startup",
+        "product-scope",
+        "prioritization",
+        "launch"
       ]
     },
     {
@@ -6049,7 +6128,7 @@
     {
       "name": "nuclei-scanner",
       "slug": "nuclei-scanner",
-      "description": "Scan web applications and infrastructure for vulnerabilities with Nuclei — template-based security scanner. Use when someone asks to \"scan for vulnerabilities\", \"security scan my website\", \"Nuclei scanner\", \"find CVEs\", \"automated security testing\", \"vulnerability assessment\", or \"check for misconfigurations\". Covers template scanning, custom templates, CI integration, and severity-based reporting.",
+      "description": "Scans web applications and infrastructure for vulnerabilities with Nuclei, a template-based security scanner. Use when someone asks to \"scan for vulnerabilities\", \"security scan my website\", \"Nuclei scanner\", \"find CVEs\", \"automated security testing\", \"vulnerability assessment\", or \"check for misconfigurations\" on systems they own or are authorized to test. Covers template scanning, custom templates, CI integration, and severity-based reporting.",
       "category": "devops",
       "tags": [
         "security",
@@ -6156,9 +6235,15 @@
     {
       "name": "onboarding-cro",
       "slug": "onboarding-cro",
-      "description": "When the user wants to optimize post-signup onboarding, user activation, first-run experience, or time-to-value. Also use when the user mentions \"onboarding flow,\" \"activation rate,\" \"user activation,\" \"first-run experience,\" \"empty states,\" \"onboarding checklist,\" \"aha moment,\" or \"new user experience.\" For signup/registration optimization, see signup-flow-cro. For ongoing email sequences, see email-sequence.",
+      "description": "Audits and redesigns what happens between account creation and a new user's first real result, so that more signups activate and come back. Use when someone says \"activation rate is low\", \"users sign up and never return\", \"fix our onboarding flow\", \"first-run experience\", \"time to value\", \"empty states\", \"onboarding checklist\", \"aha moment\", or \"product tour\". Finds the activation event in the product's own data with SQL, measures where new users stop, decides step by step what to remove, default or defer, and specifies screens, permission prompts, lifecycle messages, tracking events and the experiment that proves the change.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "onboarding",
+        "activation",
+        "retention",
+        "product-analytics",
+        "ux"
+      ]
     },
     {
       "name": "onedrive",
@@ -6447,12 +6532,13 @@
     {
       "name": "orchestrate-batch-refactor",
       "slug": "orchestrate-batch-refactor",
-      "description": "Plan and execute large refactor efforts with parallel multi-agent analysis. Use when: refactoring many files, splitting workstreams, or coordinating sub-agents for batch code changes.",
+      "description": "Runs a large refactor or migration across many files by splitting it into units that cannot collide, mapping the code with read-only subagents, dispatching one worker per unit in dependency order, and verifying everything in the main session before reporting. Includes the decision of when not to parallelize, a plan format with file ownership, a worker brief, and how subagents and worktrees behave in Claude Code, Codex, Gemini CLI and Cursor. Use when the user says \"refactor this across the whole repo\", \"migrate all call sites\", \"split this up between subagents\", \"run the migration in parallel\", \"batch refactor\", or \"this change touches a hundred files\".",
       "category": "development",
       "tags": [
         "refactoring",
-        "multi-agent",
-        "batch",
+        "subagents",
+        "migration",
+        "parallel-agents",
         "code-quality"
       ]
     },
@@ -6540,9 +6626,15 @@
     {
       "name": "page-cro",
       "slug": "page-cro",
-      "description": "When the user wants to optimize, improve, or increase conversions on any marketing page — including homepage, landing pages, pricing pages, feature pages, or blog posts. Also use when the user says \"CRO,\" \"conversion rate optimization,\" \"this page isn't converting,\" \"improve conversions,\" or \"why isn't this page working.\" For signup/registration flows, see signup-flow-cro. For post-signup activation, see onboarding-cro. For forms outside of signup, see form-cro. For popups/modals, see popup-cro.",
+      "description": "Audits a marketing page (homepage, ad landing page, pricing, feature page or article) to find why visitors do not take the next step, and returns ranked fixes with evidence plus a test plan sized for the page's traffic. Use when someone says \"this page isn't converting\", \"audit my landing page\", \"improve conversions\", \"CRO\", \"conversion rate optimization\", \"why is my bounce rate high\", or \"what should we A/B test\". Measures by device and source first, captures what the visitor actually reads, checks speed and accessibility against published thresholds, separates defects from hypotheses, and says when traffic is too low to test at all.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "cro",
+        "conversion",
+        "landing-pages",
+        "ab-testing",
+        "web-performance"
+      ]
     },
     {
       "name": "pagerduty",
@@ -6560,9 +6652,15 @@
     {
       "name": "paid-ads",
       "slug": "paid-ads",
-      "description": "When the user wants help with paid advertising campaigns on Google Ads, Meta (Facebook/Instagram), LinkedIn, Twitter/X, or other ad platforms. Also use when the user mentions 'PPC,' 'paid media,' 'ad copy,' 'ad creative,' 'ROAS,' 'CPA,' 'ad campaign,' 'retargeting,' or 'audience targeting.' This skill covers campaign strategy, ad creation, audience targeting, and optimization.",
+      "description": "Plans, structures, launches and diagnoses paid campaigns on Google Ads, Meta (Facebook and Instagram) and LinkedIn against a cost-per-acquisition or return target derived from the business's own numbers. Use when someone asks to \"set up Google Ads\", \"run Meta ads\", \"write ad copy\", \"lower our CPA\", \"improve ROAS\", \"plan a PPC budget\", \"set up retargeting\", or \"why are my ads not converting\". Covers the budget check, conversion tracking, campaign structure, bidding, ad text within platform limits, policy restrictions, and a weekly review that separates measurement faults from real performance changes.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "ppc",
+        "google-ads",
+        "meta-ads",
+        "advertising",
+        "performance-marketing"
+      ]
     },
     {
       "name": "pandas",
@@ -6666,9 +6764,15 @@
     {
       "name": "paywall-upgrade-cro",
       "slug": "paywall-upgrade-cro",
-      "description": "When the user wants to create or optimize in-app paywalls, upgrade screens, upsell modals, or feature gates. Also use when the user mentions \"paywall,\" \"upgrade screen,\" \"upgrade modal,\" \"upsell,\" \"feature gate,\" \"convert free to paid,\" \"freemium conversion,\" \"trial expiration screen,\" \"limit reached screen,\" \"plan upgrade prompt,\" or \"in-app pricing.\" Distinct from public pricing pages (see page-cro) — this skill focuses on in-product upgrade moments where the user has already experienced value.",
+      "description": "Designs and audits the moments inside a product where an account is asked to pay or to move to a higher plan: feature gates, usage-limit screens, trial-ending and trial-expired states, seat and add-on upsells. Maps every upgrade moment, decides what blocks and what only warns, specifies each screen with the exact charge, wires checkout and entitlements, and sets the events and guardrails to judge it. Use when someone says \"paywall\", \"upgrade modal\", \"feature gate\", \"limit reached screen\", \"trial expiration\", \"free to paid conversion\", \"upsell prompt\", or \"users complain about upgrade nags\". Public pricing pages belong to page-cro; choosing plans and prices belongs to pricing-strategy.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "paywall",
+        "monetization",
+        "freemium",
+        "conversion",
+        "subscriptions"
+      ]
     },
     {
       "name": "pci-dss-compliance",
@@ -6974,9 +7078,15 @@
     {
       "name": "popup-cro",
       "slug": "popup-cro",
-      "description": "When the user wants to create or optimize popups, modals, overlays, slide-ins, or banners for conversion purposes. Also use when the user mentions \"exit intent,\" \"popup conversions,\" \"modal optimization,\" \"lead capture popup,\" \"email popup,\" \"announcement banner,\" or \"overlay.\" For forms outside of popups, see form-cro. For general page conversion optimization, see page-cro.",
+      "description": "Specifies, builds and audits website popups: modal dialogs, slide-ins, sticky bars and exit prompts that collect an email, show an offer or make an announcement. Picks the format and trigger, keeps the overlay inside Google's intrusive-interstitial guidance, makes the dialog accessible, caps how often it appears and defines how to measure its net effect. Use when someone asks to \"add an email popup\", \"design an exit-intent popup\", \"our popup converts badly\", \"is this popup hurting SEO\", \"make the modal accessible\", \"announcement bar\", or \"newsletter slide-in\". For a form that sits in the page use form-cro; for upgrade prompts inside a product use paywall-upgrade-cro.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "popups",
+        "conversion",
+        "lead-capture",
+        "accessibility",
+        "seo"
+      ]
     },
     {
       "name": "porter",
@@ -7049,27 +7159,27 @@
     {
       "name": "prd-to-issues",
       "slug": "prd-to-issues",
-      "description": "Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when: user wants to convert a PRD to issues, create implementation tickets, or break down a PRD into work items.",
+      "description": "Converts a product requirements document into a reviewed set of GitHub issues: end-to-end increments sized for one pull request, each with checkable acceptance criteria, traced back to the PRD's requirements and linked as sub-issues with blocked-by relationships. Use when the user says \"break this PRD into issues\", \"create tickets from the PRD\", \"turn the spec into a backlog\", \"split this feature into work items\", or asks which parts of a PRD can be built in parallel.",
       "category": "development",
       "tags": [
         "prd",
         "github-issues",
-        "project-management",
-        "vertical-slices",
-        "tracer-bullets"
+        "backlog",
+        "work-breakdown",
+        "gh-cli"
       ]
     },
     {
       "name": "prd-to-plan",
       "slug": "prd-to-plan",
-      "description": "Turn a PRD into a multi-phase implementation plan using tracer-bullet vertical slices, saved as a local Markdown file in ./plans/. Use when: user wants to break down a PRD, create an implementation plan, plan phases from a PRD, or mentions \"tracer bullets\".",
+      "description": "Turns a product requirements document into a phased implementation plan saved as a Markdown file in the repository: a requirement ledger, the decisions every phase depends on, and an ordered list of phases that each end in something demonstrable, with checks and verification commands. Use when the user says \"make an implementation plan from this PRD\", \"plan the phases for this feature\", \"how should we build this spec\", \"write a plan file before we start coding\", or wants a roadmap an agent can execute phase by phase.",
       "category": "development",
       "tags": [
         "prd",
+        "implementation-plan",
         "planning",
-        "vertical-slices",
-        "tracer-bullets",
-        "implementation-plan"
+        "phased-delivery",
+        "requirements"
       ]
     },
     {
@@ -7110,9 +7220,15 @@
     {
       "name": "pricing-strategy",
       "slug": "pricing-strategy",
-      "description": "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' or 'monetization.' This skill covers pricing research, tier structure, and packaging strategy.",
+      "description": "Sets and reworks software pricing: which unit to charge for, how to split features and limits into plans, where to set each price, and how to move new and existing customers to it. Covers a first price for a product with no customers yet, diagnosis of the weak lever from billing and usage data, willingness-to-pay research, revenue modelling, and the migration and notice plan. Use when someone says \"how much should I charge\", \"pricing tiers\", \"packaging\", \"value metric\", \"per seat or usage-based\", \"should we raise prices\", \"grandfather existing customers\", \"Van Westendorp\", \"willingness to pay\", \"free plan or trial\", or \"annual discount\".",
       "category": "business",
-      "tags": []
+      "tags": [
+        "pricing",
+        "packaging",
+        "monetization",
+        "saas",
+        "willingness-to-pay"
+      ]
     },
     {
       "name": "prisma",
@@ -7138,9 +7254,15 @@
     {
       "name": "product-marketing-context",
       "slug": "product-marketing-context",
-      "description": "When the user wants to create or update their product marketing context document. Also use when the user mentions 'product context,' 'marketing context,' 'set up context,' 'positioning,' or wants to avoid repeating foundational information across marketing tasks. Creates `.claude/product-marketing-context.md` that other marketing skills reference.",
+      "description": "Creates and maintains `.claude/product-marketing-context.md`, one sourced file that records what the product is, who buys it, what they use instead, the proof behind each claim, customer wording, pricing and goals, so later marketing tasks read facts instead of asking again or guessing. Drafts it from the repository and site, interviews the user for the gaps, tags every statement with its source, and checks the file with a script. Use when someone says \"set up marketing context\", \"product context\", \"positioning document\", \"write down our messaging\", \"we repositioned, update the context\", or before the first copywriting, CRO, SEO or email task in a project.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "positioning",
+        "messaging",
+        "product-marketing",
+        "context",
+        "documentation"
+      ]
     },
     {
       "name": "product-strategy",
@@ -7165,20 +7287,27 @@
     {
       "name": "programmatic-seo",
       "slug": "programmatic-seo",
-      "description": "When the user wants to create SEO-driven pages at scale using templates and data. Also use when the user mentions \"programmatic SEO,\" \"template pages,\" \"pages at scale,\" \"directory pages,\" \"location pages,\" \"[keyword] + [city] pages,\" \"comparison pages,\" \"integration pages,\" or \"building many pages for SEO.\" For auditing existing SEO issues, see seo-audit.",
+      "description": "Plans, builds and vets sets of search landing pages generated from a dataset and a template: integration, location, directory and glossary pages. Decides whether a page set deserves to exist, sets the data each page must carry, checks it against Google's spam policies on scaled content, doorway pages and site reputation, gates thin pages before publishing, rolls out in batches and reads Search Console to see what was indexed or dropped. Use when someone says \"programmatic SEO\", \"generate pages at scale\", \"a page for every city\", \"integration pages\", \"template pages\", or \"our generated pages are not indexed\". For auditing an existing site use seo-audit; for markup use schema-markup.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "seo",
+        "programmatic-seo",
+        "search-console",
+        "content-strategy",
+        "indexing"
+      ]
     },
     {
       "name": "project-skill-audit",
       "slug": "project-skill-audit",
-      "description": "Analyze a project and recommend highest-value skills to create or update. Use when: auditing project skills, getting skill recommendations, or reviewing existing skill coverage.",
+      "description": "Audits a repository to decide which agent skills it should have: inventories the skills and instruction files already present, mines session history, memory, scripts and commits for procedures that keep being repeated, and returns a ranked list of skills to create, update, merge or retire, each backed by evidence. Also says what should be an instruction-file rule, a hook or a script instead of a skill. Use when the user asks \"what skills should this project have\", \"audit our skills\", \"are our skills out of date\", \"which workflows should we turn into skills\", \"review skill coverage\" or \"why does the agent keep redoing this by hand\".",
       "category": "development",
       "tags": [
+        "agent-skills",
         "audit",
-        "skills",
-        "project-analysis",
-        "recommendations"
+        "workflow-analysis",
+        "claude-code",
+        "developer-experience"
       ]
     },
     {
@@ -7486,7 +7615,7 @@
     {
       "name": "react-native-reanimated",
       "slug": "react-native-reanimated",
-      "description": "Build smooth 60fps animations in React Native with Reanimated — run animations on the UI thread without JS bridge delays. Use when someone asks to \"animate in React Native\", \"Reanimated\", \"smooth mobile animations\", \"gesture animations\", \"shared element transitions\", or \"60fps React Native animations\". Covers worklets, shared values, layout animations, gestures, and scroll-driven animations.",
+      "description": "React Native Reanimated is an animation library for React Native that runs animations on the UI thread through worklets and shared values, so they stay smooth while the JavaScript thread is busy. Use when someone asks to \"animate in React Native\", \"Reanimated\", \"smooth mobile animations\", \"gesture animations\", \"shared element transitions\", \"60fps React Native animations\", or to upgrade from Reanimated 3 to 4. Covers Reanimated 4: worklets, shared values, layout animations, CSS transitions, gestures, and scroll-driven animations.",
       "category": "development",
       "tags": [
         "react-native",
@@ -7583,9 +7712,15 @@
     {
       "name": "referral-program",
       "slug": "referral-program",
-      "description": "When the user wants to create, optimize, or analyze a referral program, affiliate program, or word-of-mouth strategy. Also use when the user mentions 'referral,' 'affiliate,' 'ambassador,' 'word of mouth,' 'viral loop,' 'refer a friend,' or 'partner program.' This skill covers program design, incentive structure, and growth optimization.",
+      "description": "Designs, specifies and diagnoses customer referral programs and affiliate programs for software and subscription businesses: whether to run one, how large the reward can be, how attribution and payout work in the database and billing system, how to stop abuse, and how to measure whether it pays. Use when a user asks to \"set up a referral program\", \"add refer-a-friend\", \"give credit for invites\", \"launch an affiliate program\", \"what commission should we pay\", \"why is nobody using our referral link\", or mentions word of mouth, invite codes, ambassadors or partner payouts.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "referral-program",
+        "affiliate-marketing",
+        "growth",
+        "customer-acquisition",
+        "unit-economics"
+      ]
     },
     {
       "name": "refine",
@@ -7648,7 +7783,7 @@
     {
       "name": "renovate",
       "slug": "renovate",
-      "description": "Assists with automating dependency updates across JavaScript, Python, Docker, Go, Rust, Terraform, and 50+ ecosystems using Renovate. Use when configuring update strategies, automerge policies, grouping rules, or scheduling to keep dependencies current. Trigger words: renovate, dependency updates, automerge, package rules, dependency management.",
+      "description": "Renovate is a bot that scans a repository for dependency files and opens pull requests that update them: npm, pip, Docker, Go, Cargo, Terraform, GitHub Actions and 100+ other package managers. Use when writing or fixing a renovate.json: config presets, package rules, schedules, automerge, grouping, minimum release age, vulnerability alerts, or when self-hosting Renovate and checking a config with renovate-config-validator. Trigger words: renovate, dependency updates, automerge, package rules, dependency management.",
       "category": "development",
       "tags": [
         "renovate",
@@ -7681,14 +7816,14 @@
     {
       "name": "request-refactor-plan",
       "slug": "request-refactor-plan",
-      "description": "Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when: user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps.",
+      "description": "Produces a refactor plan and files it as a GitHub issue for review: interviews the user about the pain and the constraints, checks every claim against the code, weighs alternatives, pins down behaviour that must not change, and lays the work out as a sequence of small commits that each keep the build and tests passing. Use when the user says \"plan this refactor\", \"write a refactoring RFC\", \"I want to restructure this module safely\", \"break this refactor into small steps\", or \"open an issue proposing a refactor\".",
       "category": "development",
       "tags": [
         "refactoring",
+        "technical-design",
         "github-issues",
-        "planning",
-        "incremental-commits",
-        "rfc"
+        "incremental-delivery",
+        "code-quality"
       ]
     },
     {
@@ -7754,13 +7889,14 @@
     {
       "name": "review-swarm",
       "slug": "review-swarm",
-      "description": "Parallel read-only multi-agent code review of git diffs. Use when: reviewing diffs for regressions, security risks, performance issues, or wanting a parallel review swarm.",
+      "description": "Reviews a diff with several independent read-only reviewer agents running at the same time, each looking through one lens (correctness, security, data, concurrency, compatibility, tests), then checks every claim against the code and merges the survivors into one prioritized report. Use when the user says \"review swarm\", \"review this branch with parallel agents\", \"multi-agent code review\", \"get several reviewers on my diff\", or wants a deeper pre-merge review than a single pass gives. It reports problems and does not change code.",
       "category": "development",
       "tags": [
         "code-review",
-        "swarm",
         "multi-agent",
-        "quality"
+        "subagents",
+        "git-diff",
+        "pre-merge"
       ]
     },
     {
@@ -7923,9 +8059,15 @@
     {
       "name": "schema-markup",
       "slug": "schema-markup",
-      "description": "When the user wants to add, fix, or optimize schema markup and structured data on their site. Also use when the user mentions \"schema markup,\" \"structured data,\" \"JSON-LD,\" \"rich snippets,\" \"schema.org,\" \"FAQ schema,\" \"product schema,\" \"review schema,\" or \"breadcrumb schema.\" For broader SEO issues, see seo-audit.",
-      "category": "business",
-      "tags": []
+      "description": "Adds, repairs and verifies schema.org structured data (JSON-LD) on a website, and says honestly which Google rich results the markup can still earn. Use when a user asks to \"add schema markup\", \"add structured data\", \"write JSON-LD for this page\", \"fix structured data errors in Search Console\", \"why are my star ratings / FAQ rich results gone\", or wants Product, Article, Organization, LocalBusiness, Breadcrumb, Event, Video or SoftwareApplication markup. Covers choosing types per page, required properties, wiring into Next.js, static sites and CMSs, and checking the result from the command line.",
+      "category": "development",
+      "tags": [
+        "structured-data",
+        "json-ld",
+        "schema-org",
+        "seo",
+        "rich-results"
+      ]
     },
     {
       "name": "schema-versioning",
@@ -7942,7 +8084,7 @@
     {
       "name": "schemathesis",
       "slug": "schemathesis",
-      "description": "Automatically test APIs by generating test cases from OpenAPI/GraphQL schemas. Use when tasks involve API fuzzing, finding edge cases in REST or GraphQL APIs, testing schema compliance, generating property-based tests from API specs, finding crashes and 500 errors, or validating API contracts. Schemathesis generates thousands of test cases from your schema and finds bugs that manual testing misses.",
+      "description": "Schemathesis automatically tests APIs by generating test cases from their OpenAPI or GraphQL schemas. Use when tasks involve API fuzzing, finding edge cases in REST or GraphQL APIs, testing schema compliance, generating property-based tests from API specs, finding crashes and 500 errors, or validating API contracts. Schemathesis generates thousands of test cases from the schema and finds bugs that manual testing misses.",
       "category": "development",
       "tags": []
     },
@@ -8067,9 +8209,15 @@
     {
       "name": "seo-audit",
       "slug": "seo-audit",
-      "description": "When the user wants to audit, review, or diagnose SEO issues on their site. Also use when the user mentions \"SEO audit,\" \"technical SEO,\" \"why am I not ranking,\" \"SEO issues,\" \"on-page SEO,\" \"meta tags review,\" or \"SEO health check.\" For building pages at scale to target keywords, see programmatic-seo. For adding structured data, see schema-markup.",
-      "category": "business",
-      "tags": []
+      "description": "Runs a technical SEO audit of a live website and its codebase from the terminal and reports findings with evidence, ranked by how much each one keeps pages out of search results. Use when a user asks for an \"SEO audit\", \"technical SEO check\", \"why did our traffic drop after the migration\", \"why isn't Google indexing these pages\", \"check robots.txt, sitemap and canonicals\", or \"check our Core Web Vitals\". Covers crawlability, indexing signals, canonical URLs, sitemaps, JavaScript rendering, structured data presence and Core Web Vitals, with the command for each check and how to read its result.",
+      "category": "development",
+      "tags": [
+        "seo",
+        "technical-seo",
+        "crawling",
+        "indexing",
+        "core-web-vitals"
+      ]
     },
     {
       "name": "seog",
@@ -8186,9 +8334,15 @@
     {
       "name": "signup-flow-cro",
       "slug": "signup-flow-cro",
-      "description": "When the user wants to optimize signup, registration, account creation, or trial activation flows. Also use when the user mentions \"signup conversions,\" \"registration friction,\" \"signup form optimization,\" \"free trial signup,\" \"reduce signup dropoff,\" or \"account creation flow.\" For post-signup onboarding, see onboarding-cro. For lead capture forms (not account creation), see form-cro.",
+      "description": "Audits and improves an account-creation flow so that more of the people who start signing up finish: the form fields, markup, sign-in methods, password rules, email verification, error handling, and the measurement that proves a change worked. Use when a user asks to \"improve signup conversion\", \"reduce registration drop-off\", \"review our sign-up form\", \"too many people abandon account creation\", \"should we add Google sign-in\", \"fix email verification drop-off\", or wants a signup funnel instrumented or A/B tested. Works from the code of the form and whatever funnel numbers exist.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "signup",
+        "conversion-optimization",
+        "forms",
+        "onboarding",
+        "authentication"
+      ]
     },
     {
       "name": "skipfish",
@@ -8246,9 +8400,15 @@
     {
       "name": "social-content",
       "slug": "social-content",
-      "description": "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' or 'viral content.' This skill covers content creation, repurposing, and platform-specific strategies.",
-      "category": "business",
-      "tags": []
+      "description": "Plans and writes social media posts for a person or a company and delivers them as a checked, dated file: posts adapted to each network's format and hard limits, with alt text, disclosure where required, tracked links and a posting calendar. Use when a user asks to \"write a LinkedIn post\", \"turn this blog post into a thread\", \"plan a month of social content\", \"build a content calendar\", \"repurpose this article for Instagram and TikTok\", \"announce our launch on X and Bluesky\", or wants help deciding what to post, where and how often.",
+      "category": "content",
+      "tags": [
+        "social-media",
+        "content-marketing",
+        "copywriting",
+        "content-calendar",
+        "linkedin"
+      ]
     },
     {
       "name": "social-engineer-toolkit",
@@ -8360,7 +8520,7 @@
     {
       "name": "spiderfoot",
       "slug": "spiderfoot",
-      "description": "SpiderFoot automated OSINT framework with 200+ modules for comprehensive target profiling. Use when: running automated OSINT investigations on a target, correlating data across dozens of sources, building threat intelligence profiles, or mapping connections between entities.",
+      "description": "SpiderFoot is an open-source OSINT automation tool whose 200+ modules profile a domain, IP address, e-mail address, username or name from public sources. Use when: running automated OSINT investigations on a target, correlating data across dozens of sources, building threat intelligence profiles, or mapping connections between entities.",
       "category": "research",
       "tags": [
         "spiderfoot",
@@ -8406,7 +8566,7 @@
     {
       "name": "sqlalchemy",
       "slug": "sqlalchemy",
-      "description": "Work with databases in Python using SQLAlchemy. Use when a user asks to set up a Python ORM, define database models, write async database queries, manage migrations with Alembic, or choose between SQLAlchemy and Django ORM.",
+      "description": "SQLAlchemy is the Python SQL toolkit and ORM: tables are declared as typed Python classes and queried with select() statements on sync or asyncio engines. Use when a user asks to set up a Python ORM, define database models, write async database queries, fix MissingGreenlet or N+1 problems, manage migrations with Alembic, upgrade to SQLAlchemy 2.1, or choose between SQLAlchemy and Django ORM.",
       "category": "data-ai",
       "tags": []
     },
@@ -8494,8 +8654,8 @@
     {
       "name": "starship",
       "slug": "starship",
-      "description": "You are an expert in Starship, the minimal, blazing-fast, cross-shell prompt written in Rust. You help developers customize their terminal prompt with git status, language versions, cloud context, battery level, time, and custom modules — working identically across Bash, Zsh, Fish, PowerShell, and any shell with a single TOML config file.",
-      "category": "Developer Tools",
+      "description": "Starship is a fast cross-shell prompt written in Rust that shows git status, language versions, cloud and Kubernetes context, command duration and custom modules from one TOML file, identically in Bash, Zsh, Fish, PowerShell and other shells. Use when a user asks to install Starship, customize or theme their terminal prompt, write or debug starship.toml, add a custom module, find out why the prompt is slow, or use Starship as the Claude Code status line.",
+      "category": "development",
       "tags": []
     },
     {
@@ -8541,13 +8701,13 @@
     {
       "name": "stitch-mcp",
       "slug": "stitch-mcp",
-      "description": "Import AI-generated UI designs from Google Stitch into your development workflow via MCP. Use when: converting Stitch designs to code, integrating AI design tools with coding agents, building UI from AI-generated prototypes.",
+      "description": "Connects a coding agent to Google Stitch through the stitch-mcp CLI and MCP proxy, so the agent can read a screen's HTML and screenshot and rebuild it in the project's own framework. Use when a user says \"implement this Stitch screen\", \"hook Stitch up to Claude Code / Cursor / Codex\", \"add the Stitch MCP server\", \"turn my Stitch project into a site\", \"preview my Stitch screens locally\", or when Stitch tools fail with authentication or permission errors. Covers choosing API key or OAuth, proxy or direct HTTP, per-client configuration, the non-interactive flags an agent can run, the tool inputs and outputs, and how to diagnose a broken setup.",
       "category": "design",
       "tags": [
         "stitch",
-        "google",
-        "design-to-code",
         "mcp",
+        "design-to-code",
+        "google",
         "ui"
       ]
     },
@@ -8734,65 +8894,66 @@
     {
       "name": "swift-concurrency-expert",
       "slug": "swift-concurrency-expert",
-      "description": "Swift Concurrency review and remediation for Swift 6.2+. Use when: reviewing async/await usage, fixing concurrency compiler errors, adding Sendable conformance, or migrating to structured concurrency.",
+      "description": "Diagnoses and fixes Swift concurrency problems: data-race-safety errors in the Swift 6 language mode, actor isolation, Sendable, moving work off the main actor, and wrapping callback APIs in async functions. Reads the target's build settings first, because default isolation and the Swift 6.2 \"approachable concurrency\" features change what the same source means. Use when the user says \"fix these Swift 6 concurrency errors\", \"sending risks causing data races\", \"not concurrency-safe\", \"migrate to Swift 6\", \"make this Sendable\", \"should this be an actor\", \"@MainActor everywhere\", or asks for a review of async/await code.",
       "category": "development",
       "tags": [
         "swift",
         "concurrency",
-        "async-await",
-        "ios",
-        "macos"
+        "swift6",
+        "actors",
+        "sendable"
       ]
     },
     {
       "name": "swiftui-liquid-glass",
       "slug": "swiftui-liquid-glass",
-      "description": "Implement iOS 26+ Liquid Glass design in SwiftUI. Use when: adopting Liquid Glass API, refactoring existing UI to Liquid Glass, or reviewing Liquid Glass usage.",
+      "description": "Applies and reviews Liquid Glass in SwiftUI apps: decides which views should get the material and which should not, uses glassEffect, GlassEffectContainer, glass button styles and morphing transitions correctly, cleans up bars and backgrounds that fight the system look, and adds fallbacks for OS versions before 26. Use when the user says \"adopt Liquid Glass\", \"update the app for iOS 26 design\", \"add a glass effect to this view\", \"make this button glass\", \"review my Liquid Glass usage\", \"glassEffect is not morphing\", or asks how to keep the app building for iOS 18 while using the new material.",
       "category": "development",
       "tags": [
         "swiftui",
         "liquid-glass",
-        "wwdc",
-        "design",
-        "ios"
+        "ios",
+        "design-system",
+        "glasseffect"
       ]
     },
     {
       "name": "swiftui-performance-audit",
       "slug": "swiftui-performance-audit",
-      "description": "Audit and optimize SwiftUI runtime performance. Use when: diagnosing slow rendering, janky scrolling, excessive view updates, or high CPU/memory usage in SwiftUI apps.",
+      "description": "Finds out why a SwiftUI screen is slow and what to change: classifies the symptom as a hang, a hitch or excessive updates, audits the code for the usual causes, reads Instruments evidence (the SwiftUI instrument, Time Profiler, Hangs, Hitches), proposes targeted fixes and checks them with a second measurement. Use when the user says \"my list scrolls badly\", \"typing lags in this view\", \"the app freezes when I open this screen\", \"why does this view re-render so often\", \"audit this SwiftUI code for performance\", or shares an Instruments trace or screenshots of one.",
       "category": "development",
       "tags": [
         "swiftui",
         "performance",
+        "instruments",
         "profiling",
-        "optimization",
         "ios"
       ]
     },
     {
       "name": "swiftui-ui-patterns",
       "slug": "swiftui-ui-patterns",
-      "description": "Comprehensive SwiftUI UI patterns with example-driven guidance. Use when: building SwiftUI views, designing navigation, creating custom modifiers, composing layouts, or needing component-specific patterns.",
+      "description": "Builds SwiftUI screens and app structure from a small set of proven patterns: who owns each piece of state, a tab-and-navigation-stack app shell, enum-driven routes and sheets, async loading with explicit phases, searchable lists, form sheets and previews for every state. States the minimum OS for each API and gives the fallback for older targets. Use when the user says \"build this screen in SwiftUI\", \"set up navigation for my app\", \"TabView with NavigationStack\", \"how should I pass this model down\", \"show a sheet from a list row\", \"handle loading and error states\", \"add deep links\", or starts a new SwiftUI app.",
       "category": "development",
       "tags": [
         "swiftui",
-        "ui-patterns",
         "ios",
-        "macos",
-        "components"
+        "navigation",
+        "state-management",
+        "ui-patterns"
       ]
     },
     {
       "name": "swiftui-view-refactor",
       "slug": "swiftui-view-refactor",
-      "description": "Refactor SwiftUI views for better architecture with MV patterns. Use when: cleaning up SwiftUI views, splitting long bodies, standardizing Observable usage, or removing inline side effects.",
+      "description": "Restructures an existing SwiftUI view without changing what the user sees: splits an oversized body into small view types with narrow inputs, moves actions and business logic out of the view, replaces type erasure and duplicated branches, fixes state ownership, and migrates ObservableObject models to the Observable macro. Works in small steps that each build, and reports what moved and what could behave differently. Use when the user says \"clean up this SwiftUI view\", \"this body is 300 lines\", \"split this view into subviews\", \"get the logic out of the view\", \"migrate to @Observable\", \"remove the AnyViews\", or asks for a refactor of a SwiftUI file with no feature change.",
       "category": "development",
       "tags": [
         "swiftui",
         "refactoring",
-        "architecture",
-        "ios"
+        "ios",
+        "observation",
+        "code-quality"
       ]
     },
     {
@@ -8811,8 +8972,8 @@
     {
       "name": "symfony",
       "slug": "symfony",
-      "description": "You are an expert in Symfony, the enterprise PHP framework for building web applications and APIs. You help developers build production systems with Symfony's component architecture, Doctrine ORM, dependency injection, event system, security component, API Platform for REST/GraphQL, and Messenger for async processing — the backbone of enterprise PHP used by companies processing billions of requests.",
-      "category": "Backend Development",
+      "description": "Symfony is a PHP framework for building web applications and APIs from reusable components: routing and controllers, dependency injection, Doctrine ORM, validation, security and the Messenger queue. Use when a user asks to create or upgrade a Symfony project, write controllers, entities or migrations, validate request payloads, run background jobs with Messenger, build a REST API with API Platform, or debug services and routes with bin/console.",
+      "category": "development",
       "tags": []
     },
     {
@@ -8931,14 +9092,14 @@
     {
       "name": "tdd",
       "slug": "tdd",
-      "description": "Test-driven development with red-green-refactor loop. Use when: user wants to build features or fix bugs using TDD, mentions \"red-green-refactor\", wants integration tests, or asks for test-first development.",
+      "description": "Guides building a feature or fixing a bug test-first with the red-green-refactor cycle: agree a list of behaviours, write one failing test, make it pass with the least code, tidy up while green, repeat. Covers reproducing bugs with a failing test, pinning down untested legacy code before changing it, and choosing what to replace with test doubles. Use when the user says \"use TDD\", \"write the test first\", \"red-green-refactor\", \"test-drive this function\", \"add a regression test before fixing\", or asks how to add tests while building.",
       "category": "development",
       "tags": [
         "tdd",
         "testing",
         "red-green-refactor",
-        "integration-tests",
-        "test-first"
+        "unit-tests",
+        "regression-tests"
       ]
     },
     {
@@ -9161,8 +9322,7 @@
         "website-builder",
         "no-code",
         "landing-page",
-        "ecommerce",
-        "cms"
+        "ecommerce"
       ]
     },
     {
@@ -9213,7 +9373,7 @@
     {
       "name": "tldraw",
       "slug": "tldraw",
-      "description": "Expert guidance for tldraw, the open-source library for creating infinite canvas experiences in React applications. Helps developers embed collaborative whiteboards, diagram editors, and visual tools with tldraw's shape system, camera controls, and multiplayer support.",
+      "description": "tldraw is a React SDK for building infinite-canvas apps — whiteboards, diagram editors, and visual tools — with a shape system, camera controls, snapshots, and real-time multiplayer. Use when embedding a collaborative canvas or whiteboard in a React app, defining custom shapes, driving the editor programmatically, exporting the canvas to an image, or adding multiplayer sync. Note: production use requires a tldraw license key.",
       "category": "development",
       "tags": []
     },
@@ -9287,14 +9447,14 @@
     {
       "name": "triage-issue",
       "slug": "triage-issue",
-      "description": "Triage a bug or issue by exploring the codebase to find root cause, then create a GitHub issue with a TDD-based fix plan. Use when: user reports a bug, wants to file an issue, mentions \"triage\", or wants to investigate and plan a fix for a problem.",
+      "description": "Investigates a reported bug and turns it into a tracker issue that someone else can pick up: checks for duplicates, reproduces the problem, traces it to its cause in the code, rates severity, and writes a test-first fix plan. Use when someone says \"triage this bug\", \"look into this error and file an issue\", \"why is this failing, write it up\", \"users report that...\", or pastes a stack trace or a failing CI job and wants an issue rather than an immediate fix. Files on GitHub with the gh CLI, or writes the issue body to a file for any other tracker.",
       "category": "development",
       "tags": [
-        "triage",
-        "bug",
+        "bug-triage",
         "github-issues",
-        "tdd",
-        "root-cause-analysis"
+        "root-cause-analysis",
+        "debugging",
+        "git-bisect"
       ]
     },
     {
@@ -9449,14 +9609,14 @@
     {
       "name": "ubiquitous-language",
       "slug": "ubiquitous-language",
-      "description": "Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when: user wants to define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions \"domain model\" or \"DDD\".",
+      "description": "Builds and maintains a ubiquitous language, the shared domain glossary from domain-driven design, out of what the team says and what the code names things. Use when someone says \"define our domain terms\", \"build a glossary\", \"we use three words for the same thing\", \"what do we actually mean by booking\", \"create a ubiquitous language\", or starts a DDD or domain-modelling effort. Harvests candidate terms from conversation, documents and code, resolves synonyms and overloaded words, writes short definitions with examples, tests them in spoken scenarios, and saves a glossary file with open questions and a code-rename list.",
       "category": "development",
       "tags": [
-        "ddd",
         "domain-driven-design",
-        "glossary",
         "ubiquitous-language",
-        "terminology"
+        "glossary",
+        "domain-modeling",
+        "naming"
       ]
     },
     {
@@ -9488,66 +9648,66 @@
     {
       "name": "understand-chat",
       "slug": "understand-chat",
-      "description": "Answer questions about any codebase using an AI-generated knowledge graph. Use when: asking architecture questions about a project, understanding how specific features work, exploring codebase relationships interactively.",
+      "description": "Answers questions about a codebase from the knowledge graph built by the open-source Understand-Anything plugin, and covers installing the plugin and producing that graph. Use when someone asks \"how does checkout work in this repo\", \"what calls this function\", \"where is rate limiting handled\", \"what depends on this module\", \"run /understand-chat\", \"set up Understand-Anything\", or wants an architecture question answered with file paths and line numbers instead of guesses.",
       "category": "development",
       "tags": [
-        "codebase",
         "knowledge-graph",
-        "ai",
+        "codebase-analysis",
+        "code-search",
         "architecture",
-        "documentation"
+        "understand-anything"
       ]
     },
     {
       "name": "understand-dashboard",
       "slug": "understand-dashboard",
-      "description": "Launch an interactive web dashboard to visualize a codebase as a knowledge graph. Use when: exploring project architecture visually, seeing file/function dependencies, understanding code structure at a glance.",
+      "description": "Opens the Understand-Anything dashboard for a project's knowledge graph and explains how to read it: layers, search, guided tour, path finder, diff overlay and exports. Use when someone says \"open the dashboard\", \"show me the architecture of this repo\", \"run /understand-dashboard\", \"visualize the knowledge graph\", \"view the graph without Claude Code\", \"the dashboard asks for an access token\", or needs the viewer on a remote machine or a busy port.",
       "category": "development",
       "tags": [
-        "codebase",
         "knowledge-graph",
         "visualization",
         "dashboard",
-        "architecture"
+        "architecture",
+        "understand-anything"
       ]
     },
     {
       "name": "understand-diff",
       "slug": "understand-diff",
-      "description": "Analyze git diffs and PRs using the codebase knowledge graph to understand impact and risk. Use when: reviewing pull requests, understanding what a diff actually changes, assessing risk of a code change.",
+      "description": "Works out what a branch, pull request or uncommitted change touches and who depends on it, using the knowledge graph built by the Understand-Anything plugin, then writes the overlay file its dashboard highlights. Use when someone says \"what does this diff affect\", \"review the impact of this PR\", \"what could this change break\", \"which tests should I run for this branch\", \"run /understand-diff\", \"show the blast radius\", or wants a risk note on a change before review or merge.",
       "category": "development",
       "tags": [
-        "git",
-        "diff",
         "code-review",
+        "impact-analysis",
+        "git-diff",
         "knowledge-graph",
-        "impact-analysis"
+        "understand-anything"
       ]
     },
     {
       "name": "understand-explain",
       "slug": "understand-explain",
-      "description": "Get a deep-dive explanation of any file, function, or module using the codebase knowledge graph. Use when: understanding unfamiliar code, explaining how a feature is implemented, learning a legacy codebase.",
+      "description": "Explains one file, function, class, table or folder of a codebase in depth, starting from the knowledge graph built by the Understand-Anything plugin and confirming every statement in the source. Use when someone says \"explain this file\", \"how does this function work\", \"walk me through the scheduler module\", \"what is this class for and who uses it\", \"run /understand-explain src/services/scheduler.ts\", \"I inherited this code, what does it do\", or needs a written deep dive on a specific part of a project.",
       "category": "development",
       "tags": [
-        "codebase",
+        "code-explanation",
         "knowledge-graph",
-        "documentation",
-        "explanation",
-        "learning"
+        "codebase-analysis",
+        "legacy-code",
+        "understand-anything"
       ]
     },
     {
       "name": "understand-onboard",
       "slug": "understand-onboard",
-      "description": "Generate a comprehensive onboarding guide for new developers joining a project, based on the codebase knowledge graph. Use when: onboarding new team members, creating developer documentation, ramping up on a new project.",
+      "description": "Writes an onboarding guide for someone joining a codebase, built from the knowledge graph of the Understand-Anything plugin and checked against the repository: how to run the project, a map of its layers, a reading route, the files everything depends on and the risky ones. Use when someone says \"write an onboarding guide for this repo\", \"a new developer starts Monday\", \"run /understand-onboard\", \"help me get up to speed on this project\", \"document the architecture for new hires\", or wants docs/UA_ONBOARDING.md created or refreshed.",
       "category": "development",
       "tags": [
         "onboarding",
-        "documentation",
+        "developer-documentation",
         "knowledge-graph",
-        "developer-experience",
-        "team"
+        "architecture",
+        "understand-anything"
       ]
     },
     {
@@ -9642,12 +9802,14 @@
     {
       "name": "using-agent-skills",
       "slug": "using-agent-skills",
-      "description": "Meta-skill for discovering and invoking the right agent skill for any task. Use when starting a session, when unsure which skill applies, or when you need to understand the development lifecycle and how skills chain together. Covers skill discovery, core operating behaviors, and failure modes to avoid.",
+      "description": "Explains how to find, choose, install and invoke agent skills (SKILL.md folders that follow the Agent Skills specification) in Claude Code, Codex, Gemini CLI and Cursor, each by its own documented mechanism. Use when a user asks \"which skill should I use for this\", \"what skills do I have\", \"install this skill\", \"make one skill work in all my agents\", \"why isn't my skill triggering\", \"how do I run a skill by name\" or \"is this skill safe to install\".",
       "category": "productivity",
       "tags": [
         "agent-skills",
-        "meta",
-        "workflow"
+        "claude-code",
+        "codex",
+        "gemini-cli",
+        "cursor"
       ]
     },
     {
@@ -9673,7 +9835,7 @@
     {
       "name": "v0-dev",
       "slug": "v0-dev",
-      "description": "Generate UI components with v0.dev, the AI-powered UI generator by Vercel. Use when a user asks to prototype React components, generate shadcn/ui layouts, create landing pages, or scaffold UI from natural language prompts.",
+      "description": "Generates UI components and full web apps with v0 (v0.app, formerly v0.dev), the AI app builder by Vercel. Use when a user asks to prototype React components, generate shadcn/ui layouts, create landing pages, scaffold UI from natural language prompts, or drive v0 from code through the v0 API.",
       "category": "development",
       "tags": [
         "ai-ui",
@@ -9699,14 +9861,14 @@
     {
       "name": "validate-idea",
       "slug": "validate-idea",
-      "description": "Validate a business idea before building — market research, competitor analysis, customer interviews, and demand signals. Use when: evaluating a startup idea, deciding whether to build something, assessing market opportunity.",
+      "description": "Tests a business or product idea against evidence before anything is built: turns the idea into falsifiable assumptions, grades the evidence already collected, designs cheap experiments (interviews, smoke tests, pre-sales, hand-delivered pilots) with pass lines fixed in advance, and returns a verdict with the numbers behind it. Use when someone asks \"is this idea any good\", \"should I build this\", \"how do I validate my startup idea\", \"is there a market for this\", or wants interview questions, a landing-page test, or help reading early signup or pre-order results.",
       "category": "business",
       "tags": [
         "startup",
-        "validation",
+        "idea-validation",
+        "customer-interviews",
         "market-research",
-        "business-idea",
-        "entrepreneurship"
+        "experiments"
       ]
     },
     {
@@ -9864,7 +10026,7 @@
     {
       "name": "vitepress",
       "slug": "vitepress",
-      "description": "Build documentation sites with VitePress, the Vite-powered static site generator. Use when a user asks to create docs, configure VitePress themes, add custom pages, deploy to GitHub Pages, or extend with Vue components.",
+      "description": "Builds documentation sites with VitePress, the Vite-powered static site generator. Use when a user asks to create docs, configure VitePress themes, add custom pages, deploy to GitHub Pages, or extend with Vue components.",
       "category": "development",
       "tags": [
         "documentation",
@@ -9918,9 +10080,15 @@
     {
       "name": "wails",
       "slug": "wails",
-      "description": "Expert guidance for Wails, the Go framework for building desktop applications with web frontends. Helps developers build lightweight, fast desktop apps where the backend is Go and the frontend is any web framework (React, Vue, Svelte), communicating through auto-generated TypeScript bindings.",
+      "description": "Wails is a Go framework for building desktop applications with web frontends: the backend is Go, the UI is any web framework (React, Vue, Svelte) rendered in the operating system's webview, and Go methods are called from JavaScript through auto-generated TypeScript bindings. Use when a user asks to build a desktop app in Go, scaffold a Wails project, bind Go methods to the frontend, add native menus, dialogs or events, cross-compile for Windows, or choose between Wails v2 and the v3 beta. Covers Wails v2, the stable release.",
       "category": "development",
-      "tags": []
+      "tags": [
+        "desktop",
+        "go",
+        "golang",
+        "cross-platform",
+        "native"
+      ]
     },
     {
       "name": "wandb",
@@ -10120,7 +10288,7 @@
     {
       "name": "wireshark",
       "slug": "wireshark",
-      "description": "Capture and analyze network traffic with Wireshark and tshark. Use when a user asks to sniff packets, debug a protocol, extract files from PCAPs, inspect TLS handshakes, troubleshoot network latency, or triage a CTF PCAP challenge.",
+      "description": "Captures and analyzes network traffic with Wireshark and tshark. Use when a user asks to sniff packets, debug a protocol, extract files from PCAPs, inspect TLS handshakes, troubleshoot network latency, or triage a CTF PCAP challenge.",
       "category": "devops",
       "tags": []
     },
@@ -10154,14 +10322,14 @@
     {
       "name": "worktrunk",
       "slug": "worktrunk",
-      "description": "Manage Git worktrees for parallel AI agent workflows with Worktrunk CLI. Use when: running multiple AI coding agents simultaneously on different branches, parallelizing feature development with AI, managing concurrent git worktrees.",
+      "description": "Sets up and drives Worktrunk (the `wt` CLI) so several branches, each in its own git worktree, can be worked on at once by people or AI coding agents. Use when a user says \"run three agents in parallel on this repo\", \"give each task its own worktree\", \"set up worktrunk\", \"wt switch does not change directory\", \"add a hook that installs dependencies in new worktrees\", \"merge this worktree back and clean it up\", or asks why a hook wants approval. Covers installation, the switch / list / merge / remove loop, the two config files and their real keys, hooks and their approval step, launching agents with -x, JSON output for scripts, and safe cleanup.",
       "category": "development",
       "tags": [
         "git",
         "worktree",
-        "parallel",
-        "ai-agents",
-        "branching"
+        "parallel-agents",
+        "cli",
+        "workflow"
       ]
     },
     {
@@ -10254,7 +10422,7 @@
     {
       "name": "yjs",
       "slug": "yjs",
-      "description": "Expert guidance for Yjs, the high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications. Helps developers implement real-time document editing, offline-first sync, and peer-to-peer collaboration with automatic conflict resolution.",
+      "description": "Yjs is a high-performance CRDT (Conflict-free Replicated Data Type) framework for building collaborative applications: shared types whose concurrent edits merge automatically. Use when a user asks to add real-time collaborative editing, shared cursors and presence, offline-first sync, or peer-to-peer collaboration to an app, to run or secure a y-websocket server, to persist Yjs documents, or to make a Tiptap or ProseMirror editor collaborative.",
       "category": "development",
       "tags": []
     },
@@ -10376,7 +10544,6 @@
   ],
   "categories": [
     "3D & Creative",
-    "3D & VFX",
     "AI & Machine Learning",
     "Automation & Integration",
     "Backend Development",
@@ -10389,7 +10556,6 @@
     "Game Development",
     "Infrastructure & DevOps",
     "Marketing & Growth",
-    "Security & Auth",
     "Web Development",
     "Web Frameworks",
     "automation",
@@ -10406,5 +10572,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-01T13:01:37.923Z"
+  "updatedAt": "2026-10-02T15:16:57.173Z"
 }

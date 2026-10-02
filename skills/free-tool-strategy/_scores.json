@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:436bef1c4a0fbe4efe5e936e3925b585706d0fae2a77bc2b1d3523792458a1b1",
-  "scoredAt": "2026-05-13T09:04:51.979Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:9ca892a8dfe45a1be777a69d8d0461d42c535468b24931a9b3264853c37f0a5b",
+  "scoredAt": "2026-10-01T19:56:04.823Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error scenarios or edge cases for tool development."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a .claude-specific file path, indicating a minor platform assumption."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 86,
-    "multiplier": 2.05,
+    "multiplier": 3.5,
+    "baselineAvg": 20,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "B2B SaaS free tool ideation and validation",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment applied the 8-factor evaluation scorecard, the ideation pain-point framework, and explicit MVP scoping with build-vs-buy guidance; baseline proposed a generic calculator without scoring or gating analysis."
+        "name": "recommend-free-tool-for-saas",
+        "baseline": 20,
+        "treatment": 10,
+        "rationale": "Response B offers more concrete details and a build plan, but both lack the required gates table, payback analysis, recommendation, spec, GA4 events, and JSON snippet; B is marginally better."
       },
       {
-        "name": "Lead capture gating decision for an existing free tool",
-        "baseline": 39,
-        "treatment": 84,
-        "rationale": "Treatment used the four-option gating table (fully/partial/ungated+optional/ungated) with value-exchange copy guidance and tied lead capture to maintenance/feasibility tradeoffs; baseline gave generic 'add an email field' advice."
+        "name": "diagnose-traffic-no-signups",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with gate evaluation, email gating, recommendation, and cost ceiling; Response A lacks these key elements."
+      },
+      {
+        "name": "build-spec-budget-planner",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, while Response A lacks the required specifications."
       }
     ]
   }

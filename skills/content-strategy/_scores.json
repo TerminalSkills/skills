@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8e0d5380545f6a75f45f71b23d7e8c1308137c4b7b72542b0696e14ec62bfe97",
-  "scoredAt": "2026-05-13T15:54:11.510Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:2b66f5495e8299cbddbe1946ec4cc7435095589ee95eb39693c084ae2d0765cf",
+  "scoredAt": "2026-10-01T19:41:52.753Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not specify how to handle missing or incomplete user input, leaving error scenarios unaddressed."
+        "detail": "The instructions do not explicitly cover error handling or edge cases such as API failures or missing data."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive narrative and examples, leading to verbose sections that could be trimmed."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The reference to .claude/product-marketing-context.md assumes a Claude-specific environment, limiting cross-platform applicability."
+        "detail": "The skill relies on shell commands and Python, which may not be available in all AI agent environments."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.76,
-    "baselineAvg": 63,
-    "treatmentAvg": 48,
+    "multiplier": 1.63,
+    "baselineAvg": 35,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "launch-saas-content-strategy",
-        "baseline": 70,
-        "treatment": 90,
-        "rationale": "Response B fully meets all rubric requirements, while Response A lacks explicit buyer stages, keyword details, research backing, and a clear topic cluster map."
+        "name": "new-product-no-blog",
+        "baseline": 30,
+        "treatment": 65,
+        "rationale": "Response B includes the required needs list, backlog table, and evidence counts, whereas Response A lacks these core elements and the 90‑day calendar, measurement plan, and capacity calculations."
       },
       {
-        "name": "revamp-existing-blog-strategy",
+        "name": "traffic-drop-audit",
+        "baseline": 20,
+        "treatment": 65,
+        "rationale": "Response A covers the audit summary and recommendation plan but omits the 90‑day calendar and measurement plan, while Response B lacks the required audit details and actionable plan."
+      },
+      {
+        "name": "topic-cluster-no-search-console",
         "baseline": 55,
-        "treatment": 5,
-        "rationale": "Response A gives pillars and clusters but misses detailed topic prioritization, keyword, buyer stage, and a cluster map; Response B only requests more information and does not provide a strategy."
+        "treatment": 40,
+        "rationale": "Response A covers more rubric items, including measurement and content planning, whereas Response B focuses mainly on evidence gathering and a basic topic map but lacks backlog scoring, a 90‑day calendar, and a detailed measurement plan."
       }
     ]
   }

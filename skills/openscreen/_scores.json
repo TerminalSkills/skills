@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5e6697c17622b486eb18146c23122ff15e7e3727c7d268eeb30bed83c1140d53",
-  "scoredAt": "2026-05-13T09:45:43.178Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:414c0afb27dd5417b7f9ddef95c191dba05e1753f4eacbf10e514c2c14f11e74",
+  "scoredAt": "2026-10-01T21:16:02.974Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not cover all possible error scenarios and edge cases, such as checksum verification failures or missing permissions."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive narrative text that adds padding beyond the essential instructions."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 84,
-    "multiplier": 2.8,
+    "multiplier": 2.85,
+    "baselineAvg": 20,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "macOS Gatekeeper block on first launch",
-        "baseline": 25,
-        "treatment": 85,
-        "rationale": "Treatment uses the exact xattr quarantine-removal command and points to System Settings Privacy & Security for Screen Recording and Accessibility permissions as described in the skill; baseline gives generic 'right-click open' advice and misses the specific permission grants."
+        "name": "record-demo-with-auto-zoom",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with the required commands and JSON output, while Response B does not use the specified openscreen syntax or provide the required JSON."
       },
       {
-        "name": "Polished landing-page product demo recording",
-        "baseline": 35,
-        "treatment": 83,
-        "rationale": "Treatment recommends OpenScreen's documented automatic cursor-following zooms, motion blur, gradient backgrounds, and 16:9 1080p web export; baseline suggests external tools like OBS or ffmpeg edits and misses the post-processing zoom workflow."
+        "name": "generate-captions-and-export",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Neither response includes the required openscreen commands with the specified flags, JSON output checks, or correct output file naming."
+      },
+      {
+        "name": "export-demo-as-gif",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Response A better meets the rubric by correctly showing the required export command flags, whereas Response B uses different flags and lacks the required JSON output."
       }
     ]
   }

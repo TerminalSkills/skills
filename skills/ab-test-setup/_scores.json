@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a3ede63973cd0ddd7a1b812b1fe03d920316be8b1cfc81976789aa699321b642",
-  "scoredAt": "2026-05-13T12:12:35.296Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:30b02303f009d26fc7473d485c615724532386dfa6ccfcf57422c743cdcd5b05",
+  "scoredAt": "2026-10-01T19:29:33.905Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.6,
-    "baselineAvg": 53,
-    "treatmentAvg": 85,
+    "multiplier": 1.2,
+    "baselineAvg": 60,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "landing-page-cta-color-test",
-        "baseline": 45,
-        "treatment": 100,
-        "rationale": "Response A fully meets all rubric items, while Response B lacks hypothesis, sample size, metrics, and traffic split details."
+        "name": "compute-sample-size",
+        "baseline": 50,
+        "treatment": 60,
+        "rationale": "Both responses omit the required python command, but Response B provides a more precise sample size and clearer calculation details, earning it a slightly higher score."
       },
       {
-        "name": "product-page-mvt-headline-image",
-        "baseline": 35,
-        "treatment": 55,
-        "rationale": "Response B covers more rubric items (hypothesis, metrics, server‑side, checklist) but still misses MVT and the exact sample‑size calculation; Response A lacks hypothesis, metrics, and sample‑size, so it scores lower."
+        "name": "write-experiment-plan",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but lacks actual sample size calculation and concrete dates, while Response B omits key sections like guardrails, assignment snippet, and exposure event."
       },
       {
-        "name": "analyze-checkout-form-test",
+        "name": "readout-result",
         "baseline": 80,
-        "treatment": 100,
-        "rationale": "Response A fully covers all rubric items, including pre‑launch checklist references, while Response B omits explicit mention of the pre‑launch checklist and guardrail significance."
+        "treatment": 75,
+        "rationale": "Both responses provide the key metrics, but A includes more detailed calculations and a clearer recommendation, whereas B omits the SRM test and guardrail status."
       }
     ]
   }

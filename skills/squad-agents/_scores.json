@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:74b546e9907851c6f7586f3c864dbb36d4715e9fa9baaf1e21955d88fe319d4e",
-  "scoredAt": "2026-05-13T10:11:02.909Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d117fc545bbc33d1295cdbd1cda5db5f5402b522a7a6b7e212aacd48511b4655",
+  "scoredAt": "2026-10-02T15:14:09.417Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack explicit error handling for common failure scenarios such as network failures or missing dependencies."
+        "detail": "The skill does not explicitly cover error handling or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to GitHub Copilot and Node.js, limiting its applicability to other AI agents or environments."
+        "detail": "The skill assumes GitHub Copilot CLI or VS Code, limiting cross-platform compatibility."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 97,
-    "multiplier": 3.46,
+    "multiplier": 3.64,
+    "baselineAvg": 22,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Bootstrap Squad in a new repo",
-        "baseline": 25,
-        "treatment": 97,
-        "rationale": "Treatment uses the exact npm install -g @bradygaster/squad-cli, squad init, gh auth login, and copilot --agent squad --yolo sequence; baseline guesses the package name and commands and never invokes Copilot."
+        "name": "init-squad-with-default-preset-no-workflows",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A includes the required squad init command and Copilot launch, but omits confirming the .squad/ directory; Response B lacks the squad init command entirely."
       },
       {
-        "name": "Context hygiene + export to a teammate",
-        "baseline": 30,
-        "treatment": 96,
-        "rationale": "Treatment names squad nap (with --deep / --dry-run), squad doctor, and squad export/import — the three skill-specific commands; baseline gives generic agent-framework advice without these commands."
+        "name": "setup-issue-triage-with-execute-and-stop",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not include the required squad command or stop marker."
+      },
+      {
+        "name": "export-and-import-squad-snapshot-with-force",
+        "baseline": 45,
+        "treatment": 60,
+        "rationale": "Response A includes the export and import commands (though not the exact path) and implies overwrite, while Response B lacks the import step and the specific archive folder naming, making A more complete."
       }
     ]
   }

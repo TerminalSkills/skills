@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6b079c1ccbb2d0f65144c522c6511a61fd5d4e347af0f52b52eebee3df79a148",
-  "scoredAt": "2026-05-13T15:57:05.904Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6f16c87854c5c1449405d2e0eb39bf154871be63c7f56fa3217c1053694ace4b",
+  "scoredAt": "2026-10-01T18:30:49.598Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "WEAK"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases for configuration and usage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only a single usage example is provided, lacking multiple realistic demonstrations."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to Continue and does not work with any AI agent, making it vendor-locked."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 9.3,
-    "baselineAvg": 0,
-    "treatmentAvg": 93,
+    "multiplier": 5.12,
+    "baselineAvg": 17,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "add-claude-model",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A provides the required JSON snippet with correct fields and placeholder, while Response B uses YAML and incorrect field names, failing the rubric."
+        "name": "migrate-config-json-to-yaml",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A includes the required sections with most fields, missing only a rule description; Response B lacks a config.yaml snippet entirely."
       },
       {
-        "name": "add-prisma-migration-command",
+        "name": "add-autocomplete-model",
         "baseline": 0,
-        "treatment": 85,
-        "rationale": "Response B provides the required .continue/config.json snippet with correct fields and prompt, while Response A offers a script instead of the config entry."
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits required fields and uses an incorrect structure."
+      },
+      {
+        "name": "git-commit-message-alias",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A includes most required elements (diff, cn, -p, prompt, --exclude Bash) but omits --silent, while Response B lacks the required flags, prompt, and silent mode."
       }
     ]
   }

@@ -1,44 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d1805c894486662647e652303ae0e89109014af1cc343d31fbe5677239cc7054",
-  "scoredAt": "2026-05-13T15:56:32.723Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:a5aff6e22fb138adf93bd43f3c99b50804cb4622876eaa2db22c9e85adb77895",
+  "scoredAt": "2026-10-01T19:43:12.191Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 67,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
-      "actionability": "WEAK",
-      "crossPlatform": "WEAK",
-      "examples": "WEAK"
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill provides guidelines but lacks runnable code or concrete procedures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes specific file naming conventions that may not exist in all projects."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one realistic demonstration is provided, lacking multiple examples."
+        "detail": "The skill contains extensive explanatory text that may be considered padded, reducing overall conciseness."
       }
     ]
   },
@@ -47,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3,
-    "baselineAvg": 15,
-    "treatmentAvg": 45,
+    "multiplier": 4.77,
+    "baselineAvg": 13,
+    "treatmentAvg": 62,
     "scenarios": [
       {
-        "name": "add-email-validation",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Response A meets the rubric with a concise plan, references the required files (auth.routes.ts, validation.ts, auth.test.ts) and uses ValidationError, while Response B deviates by listing unrelated files and omitting the specified ones."
+        "name": "audit-context-files",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response B attempts to guide the user but fails to provide the required file list and details, whereas Response A simply refuses."
       },
       {
-        "name": "spec-graphql-conflict",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to surface the conflict, list options A, B, C, and ask the user which approach to take, so neither meets the rubric."
+        "name": "reorganise-money-rule",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response A fully meets the rubric by extracting the rule into .claude/rules/api.md with a paths section, removing it from CLAUDE.md, and noting the file is under 200 lines, whereas Response B places the rule in src/api/rules/money-rule.ts and does not satisfy the required file location or line count requirement."
+      },
+      {
+        "name": "create-log-reader-subagent",
+        "baseline": 10,
+        "treatment": 60,
+        "rationale": "Response B includes the required .claude/agents/log-reader.md structure but misses full delegation details; Response A lacks the file entirely."
       }
     ]
   }

@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:94183caae56269b6a8d36965dfff3f675f70cb4a5e5ac93f9c1c0bb1aec90bbc",
-  "scoredAt": "2026-05-13T09:53:06.118Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:d5eb49a98f98b63adec096394ff55763c1112fca1507db3e14bd53150238022f",
+  "scoredAt": "2026-10-01T20:31:33.606Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing PRD or failed GitHub API calls."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The instructions include verbose explanations that could be trimmed for brevity."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "The skill lacks any realistic example demonstrations of the process."
+        "category": "crossPlatform",
+        "detail": "The skill specifies support for only certain AI agents, limiting cross-platform applicability."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
+    "multiplier": 0.71,
     "baselineAvg": 28,
-    "treatmentAvg": 91,
-    "multiplier": 3.25,
+    "treatmentAvg": 20,
     "scenarios": [
       {
-        "name": "Convert PRD issue to tickets",
+        "name": "break-prd-into-issues",
         "baseline": 30,
-        "treatment": 92,
-        "rationale": "Baseline gave generic gh issue create advice without dependency ordering, HITL/AFK tagging, or a parent-issue rule; treatment fetched the PRD with gh issue view, tagged each slice HITL/AFK, and created issues in dependency order while leaving the parent untouched."
+        "treatment": 10,
+        "rationale": "Both responses miss the required table, gh issue create commands with --parent and --blocked‑by, label creation, and URLs, but Response B provides a runnable script and more detail, earning it a higher score."
       },
       {
-        "name": "Body template compliance",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline produced loosely structured issue bodies missing Parent PRD references and HITL/AFK tags; treatment followed the documented issue template with all five required sections and vertical end-to-end slices."
+        "name": "create-issues-from-file-old-gh",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Both responses miss the required gh api linking and URL reporting, but A outlines the needed steps while B provides a concrete script, making A slightly better."
+      },
+      {
+        "name": "extend-existing-prd-breakdown",
+        "baseline": 35,
+        "treatment": 20,
+        "rationale": "Response B offers concrete gh commands and a workflow, whereas Response A is only a high‑level outline and lacks any commands or parent linkage."
       }
     ]
   }

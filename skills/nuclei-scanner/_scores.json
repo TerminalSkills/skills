@@ -1,53 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b1da1ddfda4dececa1a1762d82bf27c6d67fbb7c6baac300d38f0ae663e4466c",
-  "scoredAt": "2026-05-13T09:42:20.783Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f526064c932ea17c43884789b2a2a63de34e2c8662a3809d37f6339aecffcb93",
+  "scoredAt": "2026-10-01T19:00:38.867Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Does not cover error handling or edge cases for scanning failures."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Downloaded binary lacks checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 91,
-    "multiplier": 2.12,
+    "multiplier": 4.85,
+    "baselineAvg": 13,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "Weekly Nuclei CI scan",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Baseline writes a generic GitHub Actions job that installs nuclei via go install and runs it with bare flags; treatment uses projectdiscovery/nuclei-action with -severity critical,high and -tags cve,misconfig and a step that fails on a non-empty report file."
+        "name": "quick-high-severity-rate-limited",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A includes most required nuclei flags but omits the 'high' severity, whereas Response B does not use nuclei at all."
       },
       {
-        "name": "Custom YAML template for exposed .env",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline suggests a curl-based check or a malformed template missing the matchers structure; treatment produces a valid Nuclei template with id, info.severity, http.path of {{BaseURL}}/.env, and matchers-condition:and combining a word matcher for DB_PASSWORD/API_KEY/SECRET with a status:200 matcher."
+        "name": "validate-and-run-custom-templates",
+        "baseline": 20,
+        "treatment": 40,
+        "rationale": "Response B is closer to the rubric, correctly showing the validate command and the scan command with only the required flags, whereas Response A misorders flags and includes many extraneous options."
+      },
+      {
+        "name": "ci-github-actions-fail-on-findings",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with correct args and failure logic, while Response A omits required args and uses a different output flag."
       }
     ]
   }

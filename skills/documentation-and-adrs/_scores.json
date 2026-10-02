@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1e3e88a8f29a77dda6f60d07e244ed850214fbe4dc5a7a0da1de2be5b5232a72",
-  "scoredAt": "2026-05-13T16:42:39.376Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:a74af8449067a68b67ac2374e946cd651f6c7705686e4d81caae850411ce6a99",
+  "scoredAt": "2026-10-01T19:49:01.425Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill requires Python 3.8+ and adr-tools, which may not be available on all platforms."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.05,
-    "baselineAvg": 95,
-    "treatmentAvg": 100,
+    "multiplier": 1.92,
+    "baselineAvg": 48,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "create-adr-postgresql",
-        "baseline": 90,
-        "treatment": 100,
-        "rationale": "Response B explicitly lists all required section headers (Status, Date, Context, Decision, Alternatives Considered, Consequences) as separate sections, while Response A embeds Status and Date in a table and lacks distinct section headers, slightly reducing its coverage."
+        "name": "write-madr-adr-and-update-docs",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response A covers most required sections and includes a changelog entry, but omits ADR reference in README and code; Response B lacks front matter, considered options, confirmation, and proper references, missing several key elements."
       },
       {
-        "name": "generate-readme",
-        "baseline": 100,
+        "name": "supersede-adr-and-update-status",
+        "baseline": 20,
         "treatment": 100,
-        "rationale": "Both responses include all required sections: a one‑paragraph description, quick start, commands table, architecture overview linking to ADR‑001, and contributing guidelines."
+        "rationale": "Response A fully meets the rubric with correctly formatted ADRs, supersession links, and status updates, while Response B lacks proper Nygard formatting, correct supersession links, and fails to preserve the original content."
+      },
+      {
+        "name": "generate-adr-log-check-script",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the required re import and adds unnecessary dependencies."
       }
     ]
   }

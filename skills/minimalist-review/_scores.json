@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:203901ba216964bae06174225f15a5c8dc309ba9dddd6951353cbe7bb3a53340",
-  "scoredAt": "2026-05-13T09:35:07.735Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:4dd80337c5a33d13e9e0dd1e0c7bc6a479d28b219a55f511bd6f36ca32b33d92",
+  "scoredAt": "2026-10-01T20:18:48.968Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error scenarios or edge cases for incomplete or ambiguous user input."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
+    "multiplier": 0.71,
+    "baselineAvg": 17,
+    "treatmentAvg": 12,
     "scenarios": [
       {
-        "name": "Review a $30K custom learning-platform build for a small course business",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment surfaces default-alive vs default-dead, the seven-question decision table, a minimalist swap (Teachable/Circle) and a one-week validation; baseline gives generic SaaS advice without the framework structure or output format."
+        "name": "review-product-roadmap",
+        "baseline": 5,
+        "treatment": 30,
+        "rationale": "Response A offers a structured framework and prompts for necessary data, whereas Response B merely requests the roadmap; neither provides the required restatement, cost breakdown, scorecard, or financial calculations."
       },
       {
-        "name": "Decide whether to make a $45K full-time support hire at $8K MRR",
-        "baseline": 40,
-        "treatment": 86,
-        "rationale": "Treatment runs the seven-question table, computes the 47%-of-revenue burn, recommends part-time contractor + help-center triage, and gives a this-week tagging experiment; baseline omits the default-dead math and the staged-hire minimalist version."
+        "name": "review-hiring-plan",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses merely request more information and do not provide the required analysis."
+      },
+      {
+        "name": "lean-new-business",
+        "baseline": 45,
+        "treatment": 5,
+        "rationale": "Response A fails to provide any plan details, while Response B offers a structured outline but lacks the required cost breakdown, scorecard, financial calculations, and verdict."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3d1e354aba6f7a8926a5adf3ad75b7d3f66a2e9681ccac71541b6dbb6e46a636",
-  "scoredAt": "2026-05-13T09:09:37.374Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:da0bb95ed789447174b5b08cb44f412f61b86ce4eb703766bd47877377224e68",
+  "scoredAt": "2026-10-01T18:38:29.753Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Requires Node.js 18+ with native fetch, limiting cross-platform compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 94,
-    "multiplier": 2.85,
+    "multiplier": 5.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "Extract flagged AI sentences from a student essay via GPTZero",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline guesses wrong host or Bearer auth and skips per-sentence shape; treatment uses the exact /v2/predict/text endpoint with x-api-key and filters highlight_sentence_for_ai."
+        "name": "single-text-analysis-flagged-sentences",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to implement the required API call, parsing, filtering, and output formatting specified in the rubric."
       },
       {
-        "name": "Classify a 400-word block using GPTZero's documented score thresholds",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline uses a binary > 0.5 cutoff on a guessed field; treatment reads completely_generated_prob and applies the documented three-tier thresholds for verdict labels."
+        "name": "batch-file-upload-essays",
+        "baseline": 0,
+        "treatment": 90,
+        "rationale": "Response B meets all technical requirements except the truncation note, while Response A fails entirely."
+      },
+      {
+        "name": "usage-stats-check",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response B better meets the rubric, though it still fails to warn when words_left is below 1000."
       }
     ]
   }

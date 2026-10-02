@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:920a595c58d1f6b5fe51f75564fe75e04a0aff728b7e5c4f52d489ddad11ce74",
-  "scoredAt": "2026-05-13T09:03:54.452Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:6596b9a022c8af600b966f4e049bb2e7e532cfb7acbc7546bd36737ce5b9ccfb",
+  "scoredAt": "2026-10-01T19:55:00.669Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a Claude-specific file path (.claude/product-marketing-context.md), limiting its applicability to Claude agents."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanations that may be considered verbose."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 47,
-    "treatmentAvg": 87,
-    "multiplier": 1.85,
+    "multiplier": 1.38,
+    "baselineAvg": 42,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "Audit a 12-field B2B demo request form with 4% completion",
-        "baseline": 50,
-        "treatment": 89,
-        "rationale": "Treatment applied the field-count cost rule (7+ fields = 25-50% drop), recommended cutting to 5 core fields with enrichment post-submit, 2-step progressive form, action+benefit CTA copy, and a prioritized Issue/Impact/Fix/Priority audit table per the SKILL output format; baseline gave generic 'reduce fields, add trust signals' advice without structure."
+        "name": "reduce-fields-and-improve-conversion",
+        "baseline": 55,
+        "treatment": 75,
+        "rationale": "Response B covers more rubric items, including autocomplete, aria attributes, and validation logic, while Response A lacks these details and a test plan."
       },
       {
-        "name": "Lead capture form for a gated DevOps report",
-        "baseline": 44,
-        "treatment": 85,
-        "rationale": "Treatment recommended minimum-viable single-email capture with post-download enrichment, action+benefit CTA, social proof near form, and 3-5x lift projection following the Lead Capture pattern in the SKILL; baseline kept 4 fields and added vague trust copy."
+        "name": "accessibility-audit-and-rewrite",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required audit table and replacement markup, though B is marginally more detailed."
+      },
+      {
+        "name": "ga4-funnel-tracking-and-ab-test",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the guardrail metric and detailed sample‑size formula."
       }
     ]
   }

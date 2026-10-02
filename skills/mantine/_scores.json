@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bbd1005a299f29722e95d7c84d18ad25c9184b16fd39520d364109e02f6d6fe6",
-  "scoredAt": "2026-05-13T09:27:37.634Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:738f4d7c94ece8467fd8eb24c724d8791c78d1b622e3d4ebc32ea4869a56bab1",
+  "scoredAt": "2026-10-01T18:54:59.246Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, limiting robustness."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 88,
-    "multiplier": 1.69,
+    "multiplier": 2.89,
+    "baselineAvg": 18,
+    "treatmentAvg": 52,
     "scenarios": [
       {
-        "name": "Mantine signup form with validated email, password, role",
-        "baseline": 55,
-        "treatment": 89,
-        "rationale": "Treatment uses useForm from @mantine/form with initialValues+validate functions and form.getInputProps wired into TextInput/PasswordInput/Select/Checkbox; baseline writes a hand-rolled useState form that bypasses @mantine/form entirely."
+        "name": "add-mantine-dark-mode-toggle",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits several key elements such as the full install list, PostCSS config, style imports, and the specified toggle implementation."
       },
       {
-        "name": "Responsive dashboard shell with collapsible navbar and user menu",
-        "baseline": 50,
-        "treatment": 87,
-        "rationale": "Treatment uses AppShell with navbar.breakpoint='sm' plus useDisclosure for collapse, MantineProvider with createTheme and defaultColorScheme='auto', and the Notifications component; baseline composes raw flexbox divs without AppShell or useDisclosure."
+        "name": "upgrade-mantine-7-to-9",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "No content provided to evaluate against the rubric."
+      },
+      {
+        "name": "responsive-dashboard-with-search",
+        "baseline": 35,
+        "treatment": 55,
+        "rationale": "Response B better covers the required layout and components, though its SearchBox is incomplete; Response A lacks key elements like Burger, ColorSchemeToggle, and required hooks."
       }
     ]
   }

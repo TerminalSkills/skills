@@ -1,14 +1,14 @@
 {
-  "version": "2.9.5",
-  "skillHash": "sha256:11565b69cb9a8344854baa0491c965b1c1034cccf5e8f0a7304336639848f702",
-  "scoredAt": "2026-05-13T09:21:51.826Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:0f967e56634cbd415b48e87ba9d1ba869062c225014838eccd9d6bd32fe39c1e",
+  "scoredAt": "2026-10-01T20:08:52.725Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,18 +17,13 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not explicitly handle error scenarios such as missing API keys or script failures."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The instructions contain verbose sections that could be trimmed for brevity."
+        "detail": "The skill file contains extensive narrative and filler text beyond necessary instructions, making it verbose."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes specific environment variables and paths tied to Claude, limiting cross-platform compatibility."
+        "detail": "The skill is designed for specific Agent Skills hosts and may not work with arbitrary AI agents."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 85,
-    "multiplier": 2.83,
+    "multiplier": 3,
+    "baselineAvg": 0,
+    "treatmentAvg": 30,
     "scenarios": [
       {
-        "name": "Research what developers are saying about Bun runtime right now",
-        "baseline": 32,
-        "treatment": 86,
-        "rationale": "Treatment invokes the last30days.py script with --emit=compact, parses intent into TOPIC/TARGET_TOOL/QUERY_TYPE, supplements with WebSearch and weights Reddit/X/YouTube engagement signals over web, while baseline only suggests manual searches without engagement weighting or the script."
+        "name": "kestrelbase-2-0-research",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A includes a table and evidence file path but lacks the required command line and URLs, while Response B provides no relevant content."
       },
       {
-        "name": "Compare Plaud vs Granola for AI meeting notes based on community sentiment",
-        "baseline": 28,
-        "treatment": 84,
-        "rationale": "Treatment identifies QUERY_TYPE=COMPARISON, runs three research passes (A alone, B alone, A vs B), cites with @handles and r/subreddits, and reports mention counts with sentiment; baseline gives a generic features comparison without engagement-weighted, citation-rich synthesis."
+        "name": "weekly-late-payments-digest",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response B contains a command but does not meet the exact rubric requirements, while Response A lacks any command."
+      },
+      {
+        "name": "tool-comparison-30days",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response B includes a plan with subqueries but lacks the required engine command; Response A has no relevant command."
       }
     ]
   }

@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d009d93b4619e360f83b4bbbd693f59f12a913e56105157606d854a0baf16716",
-  "scoredAt": "2026-05-13T10:28:40.848Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9325a697178719e05a9a364f47d3f8270859f5788a55f91eb80a3983d651551d",
+  "scoredAt": "2026-10-02T15:15:09.112Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error handling or edge cases for API calls or Docker setup."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Docker Compose and Node.js environment, limiting cross-platform applicability."
+        "detail": "The skill covers only the happy path and does not address error handling or edge cases."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Missing checksum verification for downloaded docker-compose.yml."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 16,
+    "multiplier": 9.5,
+    "baselineAvg": 3,
     "treatmentAvg": 95,
-    "multiplier": 5.94,
     "scenarios": [
       {
-        "name": "Self-host Twenty CRM and create a company plus contact via API",
-        "baseline": 22,
-        "treatment": 95,
-        "rationale": "Baseline invents REST endpoints, wrong auth header, and a flat name field; treatment pulls the documented twenty-docker compose file, calls /api/graphql with Bearer auth, and uses createCompany/createPerson with the nested name:{firstName,lastName} input shape."
+        "name": "setup-self-hosted-twenty-crm",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required curl commands, checksum verification, .env edits, and URL mention."
       },
       {
-        "name": "Add a custom Support Ticket object with a priority select field",
+        "name": "create-custom-support-ticket-object",
         "baseline": 10,
-        "treatment": 95,
-        "rationale": "Baseline mutates PostgreSQL directly or guesses at a REST shape; treatment uses createOneObject with nameSingular/namePlural/labelSingular/labelPlural and createOneField with type:SELECT and the documented options array."
+        "treatment": 85,
+        "rationale": "Response B fulfills all rubric criteria using the /metadata GraphQL endpoint and correct mutation, while Response A uses Salesforce Apex and XML, missing the required GraphQL steps."
+      },
+      {
+        "name": "query-deals-and-companies",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with a correct GraphQL query and REST request, while Response B provides SQL queries and does not meet the required format."
       }
     ]
   }

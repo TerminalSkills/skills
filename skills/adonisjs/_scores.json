@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d2486ef9900cfe20ae93e8383ae3c9876f6f82feabf8c7b49d31bd0f11b2e076",
-  "scoredAt": "2026-05-13T12:06:43.832Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:e8c402af5093ad16f80227b752a62cc6ba170ec1253674a0e0c3ec19cbd37bce",
+  "scoredAt": "2026-10-01T18:22:01.954Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not explicitly cover error handling or edge cases."
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that may be unnecessary for quick reference."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.73,
-    "baselineAvg": 48,
-    "treatmentAvg": 83,
+    "multiplier": 2.75,
+    "baselineAvg": 28,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "scaffold-web-app-with-user-model",
-        "baseline": 20,
-        "treatment": 90,
-        "rationale": "Response B meets all rubric requirements, while Response A misses the required init command, migration command, and uses a different validator."
-      },
-      {
-        "name": "add-session-authentication",
+        "name": "setup-hypermedia-blog",
         "baseline": 45,
-        "treatment": 95,
-        "rationale": "Response B fully satisfies the rubric with sessionGuard, sessionUserProvider, auth.use('web').login, and middleware usage, while Response A lacks the required sessionGuard/provider syntax and uses auth.attempt instead of auth.use('web').login."
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items but omits the exact migration and serve commands, while Response B lacks several required commands and details."
       },
       {
-        "name": "build-token-api-with-pagination",
-        "baseline": 80,
-        "treatment": 65,
-        "rationale": "Response A covers all rubric items except the /api prefix, while Response B is incomplete and also lacks the prefix."
+        "name": "api-token-auth-product-api",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A includes all required commands and guard statement, while Response B omits several key commands and guard usage."
+      },
+      {
+        "name": "social-oauth-github",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response B covers more rubric items, including the callback usage and the configure command, while Response A omits both required commands and uses a different method for retrieving the user."
       }
     ]
   }

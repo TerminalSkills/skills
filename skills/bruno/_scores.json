@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:74bf1e13909b0d2796bd09bd4b000cf868b1e60c9154471a3b1648253b4318f7",
-  "scoredAt": "2026-05-13T14:56:14.565Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:44781088d72b73696cef826b356e9132e4addc51f1bab5502e80b15288203849",
+  "scoredAt": "2026-10-01T18:27:41.617Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 4.35,
+    "baselineAvg": 20,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "create-user-request-with-script",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "A meets all rubric requirements; B does not provide a .bru file as required."
+        "name": "create-signed-request-and-run",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response A covers the YAML structure, CryptoJS script, environment variable usage, header injection, and CLI command, but omits the Safe Mode note; Response B uses Postman syntax and pm.* functions, missing all Bruno-specific requirements."
       },
       {
-        "name": "run-collection-ci-junit",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A exactly matches the required CLI command; Response B uses a different syntax and flags, missing the specified command."
+        "name": "github-actions-ci-run",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response A meets most rubric items but omits an explicit failure statement; Response B misses several key requirements."
+      },
+      {
+        "name": "run-smoke-tests-with-bail",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric, while Response A uses Newman instead of bru and omits key details."
       }
     ]
   }

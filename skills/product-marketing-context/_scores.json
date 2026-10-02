@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7d37943045cd27816039723612478b6aec757538d25997a90112f414514aa323",
-  "scoredAt": "2026-05-13T09:57:15.921Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:5193c8c37f7414816e85801b4484c7cef847b5ca2e8f713fde1c70d37ac5d2bb",
+  "scoredAt": "2026-10-01T20:35:42.784Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Does not explicitly handle file read errors or permission issues."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Uses a Claude-specific file path, limiting portability."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 96,
-    "multiplier": 4.17,
+    "multiplier": 2,
+    "baselineAvg": 7,
+    "treatmentAvg": 20,
     "scenarios": [
       {
-        "name": "Initial setup of product marketing context for a SaaS repo",
+        "name": "set-up-marketing-context",
         "baseline": 20,
-        "treatment": 96,
-        "rationale": "Baseline dumps a single block of questions and saves to an arbitrary file with no existence check or section structure; treatment first checks for the documented `.claude/product-marketing-context.md`, offers the auto-draft vs from-scratch options, drafts all 12 sections with [needs input] gap markers, and saves to the documented path."
+        "treatment": 60,
+        "rationale": "Response A is closer to the rubric, providing the required sections and source tags for most statements, whereas Response B lacks the required structure and source tags entirely."
       },
       {
-        "name": "Update existing context after repositioning from freelancers to agencies",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline rewrites the whole document without reading existing state; treatment reads `.claude/product-marketing-context.md` first, summarizes current state, walks through only the affected sections (Target Audience, Personas, Pain Points, Customer Language, Competitive Landscape) one at a time, and pushes for verbatim agency language."
+        "name": "update-marketing-context-pricing",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to modify the .claude/product-marketing-context.md file as required; A provides a JSON object, while B is empty."
+      },
+      {
+        "name": "verify-marketing-context-completeness",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required run‑time check and report of all conditions; B only offers instructions, not the actual verification."
       }
     ]
   }

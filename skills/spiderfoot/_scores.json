@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ebd503e5028b908654229b1f23ba541845747c791e88863f40c063d3c1bf8f6d",
-  "scoredAt": "2026-05-13T10:10:22.321Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c25e21ddf7af28d535972493f9190599f862624a4769d4fbc0ed0b09b634e062",
+  "scoredAt": "2026-10-01T19:07:51.460Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in the instructions."
+        "category": "crossPlatform",
+        "detail": "Instructions use Unix-specific activation command 'source .venv/bin/activate', which is not applicable on Windows, reducing cross-platform compatibility."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 95,
-    "multiplier": 4.75,
+    "multiplier": 8.08,
+    "baselineAvg": 12,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "Focused infrastructure CLI scan with JSON output",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline guesses generic --flag syntax and invented module names, while the treatment uses the documented `python3 sf.py -s <target> -t INTERNET_NAME -m sfp_dnsresolve,sfp_dnsdumpster,sfp_certspotter,sfp_shodan -o json -f` invocation."
+        "name": "passive-domain-scan-summary",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A follows the exact SpiderFoot command, parses JSON, counts IP and hostname types, while Response B uses a different tool and omits the required steps."
       },
       {
-        "name": "REST API automation: start scan, poll, fetch results",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline invents /api/scan endpoints, while the treatment uses the documented POST /startscan with scanname/scantarget/scantype=INTERNET_NAME/modulelist, polls /scanopts?id= for FINISHED/FAILED/ABORTED, and fetches /scaneventresults?id=...&eventType=ALL."
+        "name": "http-api-scan-and-count",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Response B fully follows the rubric steps, while Response A uses incorrect endpoints and does not count findings from /scanexportjsonmulti."
+      },
+      {
+        "name": "configure-keys-and-verify-modules",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required steps or module specifications."
       }
     ]
   }

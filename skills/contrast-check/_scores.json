@@ -1,26 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:998ec133c7308ce298b92fc8ff5104b0a749203739498e8e7c7a43a64b9ab928",
-  "scoredAt": "2026-05-13T15:58:23.320Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:7121ea2c25ac39b8ead14406c6b1c176ba942d109794260f82d95aca7d6e09d4",
+  "scoredAt": "2026-10-01T19:44:16.807Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling for invalid hex colors or insufficient arguments."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
@@ -32,10 +26,16 @@
     "treatmentAvg": 0,
     "scenarios": [
       {
-        "name": "check-two-colors",
+        "name": "check-pair-aa",
         "baseline": 0,
         "treatment": 0,
-        "rationale": "Both responses lack the required JSON structure."
+        "rationale": "Both responses lack the required contrast.py output, JSON object, and command, but A provides more detail."
+      },
+      {
+        "name": "suggest-fix-shade",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required contrast.py output and JSON structure."
       },
       {
         "name": "audit-palette",

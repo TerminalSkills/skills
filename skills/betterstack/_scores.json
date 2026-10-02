@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:36c668afdaa1f68694b2e8b6fb0d6fdde21a59e35a5bd8b0ae41278de5d3f4d9",
-  "scoredAt": "2026-05-13T14:38:43.686Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:a34aa9517420a6d72d18bc4a41c3d50f0b42926c5ed90bf1c45847aa796060a7",
+  "scoredAt": "2026-10-01T18:26:29.842Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "Guidelines section is verbose and could be more concise."
+        "detail": "The skill contains verbose sections that could be trimmed for brevity."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3,
-    "baselineAvg": 20,
-    "treatmentAvg": 60,
+    "multiplier": 5.53,
+    "baselineAvg": 15,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "terraform-multi-region-monitor",
+        "name": "terraform-http-and-tcp-monitor",
         "baseline": 0,
-        "treatment": 60,
-        "rationale": "Response B partially satisfies the rubric but omits actual escalation steps, whereas Response A is absent."
+        "treatment": 50,
+        "rationale": "Response A uses the wrong provider and resource names; Response B uses the correct provider and policy reference but fails to name the monitors exactly as required by the rubric."
       },
       {
-        "name": "nodejs-logtail-structured-logging",
-        "baseline": 40,
-        "treatment": 60,
-        "rationale": "Response A logs an error and includes structured fields, whereas Response B omits an error log; both miss importing and instantiating Logtail from @logtail/node, but A is closer to the rubric."
+        "name": "logtail-node-configuration",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A fails to use the required env variables, endpoint, and flush call."
+      },
+      {
+        "name": "terraform-escalation-policy",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet the required resource type or structure."
       }
     ]
   }

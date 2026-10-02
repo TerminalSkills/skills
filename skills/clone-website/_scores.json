@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9accda3610e4cca100330fbe2bb98ff50544ac8835a00fe6a948e99ac2e1340f",
-  "scoredAt": "2026-05-13T15:33:51.295Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:ede857ecd9d464adfff02df12bd31590a2487c51cb0c27b531c76b74b4bfe444",
+  "scoredAt": "2026-10-01T19:37:05.096Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling for Chrome MCP failures and build errors, focusing only on the happy path."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes Claude Code with Chrome MCP, limiting applicability to other AI agents."
+        "category": "conciseness",
+        "detail": "The skill file contains excessive verbosity that may hinder quick comprehension."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.3,
+    "multiplier": 0.8,
     "baselineAvg": 8,
-    "treatmentAvg": 43,
+    "treatmentAvg": 8,
     "scenarios": [
       {
-        "name": "clone-dashboard-page",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to meet the rubric."
+        "name": "faithful-rebuild-shop-site",
+        "baseline": 25,
+        "treatment": 5,
+        "rationale": "Response A contains more detailed steps and references, whereas Response B is incomplete and lacks any substantive content."
       },
       {
-        "name": "clone-landing-page",
-        "baseline": 15,
-        "treatment": 85,
-        "rationale": "Response A covers most rubric items with detailed steps, while Response B only downloads the page and misses all required tasks."
+        "name": "reference-build-competitor-page",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response A provides a partial plan and acknowledges brand asset use, but lacks the required capture/plan.md, pattern brief, and other rubric items, whereas Response B offers no relevant content."
+      },
+      {
+        "name": "decline-copy-login-page",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses are identical refusals and do not include any of the required elements from the rubric."
       }
     ]
   }

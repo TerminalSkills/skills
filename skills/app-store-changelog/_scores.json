@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b75034ed2472e1ac8972a13ef33460b2b52dae8537903e2e6e07f1bd52b81a47",
-  "scoredAt": "2026-05-13T14:04:36.578Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:4f88f4ed1fadc967a44755127e23d41304c59523b94cc6ceaeb56e9517a997e8",
+  "scoredAt": "2026-10-01T19:34:18.827Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as script failures or ambiguous commit messages."
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanatory text that may be considered padded."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.5,
-    "baselineAvg": 20,
-    "treatmentAvg": 30,
+    "multiplier": 0.77,
+    "baselineAvg": 30,
+    "treatmentAvg": 23,
     "scenarios": [
       {
-        "name": "generate-default-changelog",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Neither response includes the required command, title, or user‑facing bullet list as specified."
+        "name": "generate-app-store-notes-with-tags",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response B covers some rubric items (notes, character count, trace table) but misses locales and omitted changes; Response A lacks all required elements."
       },
       {
-        "name": "custom-bullet-count-changelog",
-        "baseline": 40,
-        "treatment": 60,
-        "rationale": "Response B better meets the rubric by providing a proper title with version and user‑facing bullets, whereas Response A lacks the required title format and command."
+        "name": "generate-google-play-notes-500-char",
+        "baseline": 50,
+        "treatment": 0,
+        "rationale": "Response B includes a concise note but lacks trace table and omitted changes list, whereas Response A fails to provide a note at all."
+      },
+      {
+        "name": "generate-notes-no-tags",
+        "baseline": 30,
+        "treatment": 20,
+        "rationale": "Both responses lack the required notes, character counts, trace table, and omitted changes; B provides a script that outputs a list of commits, so it covers slightly more of the rubric."
       }
     ]
   }

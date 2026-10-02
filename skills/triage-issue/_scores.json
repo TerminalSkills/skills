@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:49a26eef7a65e4acd93b4dcd0c9fd2b06ac5269cbbdc757013c7fdf283ce9b57",
-  "scoredAt": "2026-05-13T10:27:27.486Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:6a3d1c4472c0f7e4df67e7059e036ef3b4a57a9036ca0acc59c946c8b1c9b495",
+  "scoredAt": "2026-10-01T21:02:55.311Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling for failures during git log or gh issue create, leading to incomplete workflow."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Assumes availability of subagent_type=Explore and gh CLI, limiting compatibility across agents."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No example demonstrations provided, making it hard to understand expected usage."
+        "detail": "The skill relies on GitHub CLI, limiting it to GitHub repositories and not fully cross-platform."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 84,
-    "multiplier": 2.0,
+    "multiplier": 2.65,
+    "baselineAvg": 20,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "Triage a cart-total miscalculation bug and file a GitHub issue",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Treatment investigated root cause, drafted RED-GREEN TDD cycles describing behaviors (not file paths/line numbers), and ran gh issue create with the documented template; baseline produced a generic bug report without the durability rules or vertical-slice TDD plan."
+        "name": "regression-export-rows",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response B covers most rubric items, missing only the duplicate check, while Response A lacks several key sections such as cause confidence, severity, and fix plan."
       },
       {
-        "name": "Investigate a flaky test failure and open a GitHub issue with a fix plan",
-        "baseline": 40,
-        "treatment": 83,
-        "rationale": "Treatment followed the Problem / Root Cause / TDD Fix Plan / Acceptance Criteria template via gh issue create with one RED-GREEN cycle per behavior; baseline opened a description-only issue without the prescribed sections or vertical-slice ordering."
+        "name": "intermittent-logout",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but lacks duplicate check and gh issue commands, while Response B omits all required elements."
+      },
+      {
+        "name": "feature-request-archived-search",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses omit the required duplicate check, issue body, and gh issue create command; A is slightly more concise but still incomplete."
       }
     ]
   }

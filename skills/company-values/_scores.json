@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:716384073b54dd19cc0de9ff69d307a5771b4ef8621b697ff1a827f700065157",
-  "scoredAt": "2026-05-13T15:48:42.216Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:d93639b3dc62881acf5515f66f3eb04b037d8a938ecc5029948916be7bc035ec",
+  "scoredAt": "2026-10-01T19:39:01.307Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases for value generation."
+        "detail": "The instructions do not cover scenarios where no incidents are available, leaving the process incomplete."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive narrative and examples that add verbosity beyond necessary procedural guidance."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4,
-    "baselineAvg": 25,
-    "treatmentAvg": 100,
+    "multiplier": 6.2,
+    "baselineAvg": 7,
+    "treatmentAvg": 62,
     "scenarios": [
       {
-        "name": "remote-saas-values",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response B meets all rubric criteria, including example stories, hiring and daily guidance, anti-patterns, and a polarizing value; Response A lacks stories, anti-patterns, and a polarizing element."
+        "name": "define-values-from-scratch",
+        "baseline": 20,
+        "treatment": 55,
+        "rationale": "Response A includes the required file structures and placeholders for values, evidence, and interview questions, whereas Response B omits key elements such as trade‑off statements, observable behaviors, limits, stories, a markdown evidence log, and the 3‑level interview scale."
       },
       {
-        "name": "post-merger-values",
+        "name": "create-interview-kit-from-generic-values",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully meets the rubric while Response A is incomplete."
+        "rationale": "Response A fully satisfies the rubric with a clear markdown file, one core question per value, at least two probes, and a 3‑point scoring scale; Response B lacks probes, uses multiple questions per value, and provides a 1‑5 scale instead of the required 3‑point scale."
+      },
+      {
+        "name": "revise-values-after-six-months",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response B provides some updated content but fails to analyze the evidence log, identify a value with fewer than two incidents, and does not supply the required evidence and interview kit files, whereas Response A offers no revisions at all."
       }
     ]
   }

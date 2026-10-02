@@ -35,10 +35,14 @@ Twenty is an open-source CRM shaped by the community — a modern alternative to
 ### Setup (self-hosted, Docker Compose)
 
 ```bash
-# Download the compose file and the example env
-base=https://raw.githubusercontent.com/twentyhq/twenty/main/packages/twenty-docker
+# Download the compose file and the example env from a fixed release, then verify both
+base=https://raw.githubusercontent.com/twentyhq/twenty/twenty/v2.44.0/packages/twenty-docker
 curl -fsSL $base/docker-compose.yml -o docker-compose.yml
 curl -fsSL $base/.env.example -o .env
+sha256sum -c - <<'EOF'
+bacd817fcef85abbcb6a603a6c093375313460037fae67d73d45c16f6d85bc7d  docker-compose.yml
+dc5b4c779c5778a6bd40e39d338dae81815556094904b6dacc7d31b95e9d0865  .env
+EOF
 
 # Edit .env: uncomment and set these three
 #   ENCRYPTION_KEY         -> generate with: openssl rand -base64 32

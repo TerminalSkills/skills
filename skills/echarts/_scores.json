@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ec60e998cc038758d55a4b5571bfd857b436a3d38558cdaa00718b404802d228",
-  "scoredAt": "2026-05-13T08:47:03.897Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:596db01c3a58596cf9000b467c65cac29137fc672980bdb7107842e82c203f5f",
+  "scoredAt": "2026-10-01T18:34:01.577Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions lack explicit step-by-step guidance, making them somewhat ambiguous."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Error handling and edge cases are not addressed in the examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The file contains explanatory text that could be trimmed for brevity."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 89,
-    "multiplier": 1.85,
+    "multiplier": 5.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "React donut chart with rounded slices and percent tooltip",
+        "name": "react-stacked-bar-with-toolbox",
         "baseline": 50,
-        "treatment": 90,
-        "rationale": "Baseline produced a basic pie via raw echarts.init without the donut radius array, borderRadius, or {b}/{d}% formatter; treatment used ReactECharts with radius ['40%','70%'], itemStyle.borderRadius, and the documented tooltip formatter."
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric requirements, while Response B lacks a dataZoom slider and explicit responsive resizing."
       },
       {
-        "name": "Streaming line chart bounded to last 60 points",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Baseline rebuilt the component state and re-rendered each tick; treatment grabbed the imperative instance via getEchartsInstance() and called setOption with slice(-60), matching the skill's live-metrics recipe."
+        "name": "server-svg-rendering",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B fails to use the SVG renderer, ssr, and proper disposal."
+      },
+      {
+        "name": "upgrade-5-to-6-theme-switch",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not import or use the v5 theme and fails to call chart.setTheme as required."
       }
     ]
   }

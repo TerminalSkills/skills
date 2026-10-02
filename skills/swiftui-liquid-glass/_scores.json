@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:446c48e2b63031e7321f1084807a8c9ac903f579a85346ce43563e9f3405aec6",
-  "scoredAt": "2026-05-13T10:17:04.342Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:b6351ca6342acc7d07190d43f6ca9c7881251a0f326c3fba3825159ea3fb2fb0",
+  "scoredAt": "2026-10-01T20:55:59.864Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 90,
-    "multiplier": 3.6,
+    "multiplier": 8.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Add Liquid Glass treatment to a row of toolbar icons",
-        "baseline": 22,
-        "treatment": 90,
-        "rationale": "Treatment uses GlassEffectContainer to group multiple glass elements, applies .glassEffect after layout modifiers, gates with #available(iOS 26, *) and provides an ultraThinMaterial fallback; baseline reaches for custom blurs or applies glassEffect without grouping/availability."
+        "name": "floating-map-controls-with-glass",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits the GlassEffectContainer, glassEffectID, and iOS 26 availability logic."
       },
       {
-        "name": "Implement a prominent confirm button with glass styling",
-        "baseline": 28,
-        "treatment": 90,
-        "rationale": "Treatment uses .buttonStyle(.glassProminent) and reserves .interactive() for tappable surfaces, with #available gating; baseline invents custom button styles or uses .interactive() indiscriminately without availability checks."
+        "name": "review-and-fix-glass-usage-in-bar",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B is empty."
+      },
+      {
+        "name": "add-clear-glass-caption-over-video",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B is closer to the rubric, applying the glass effect and capsule background, but it fails to render the background first and lacks the iOS < 26 fallback, whereas Response A does not meet any of the SwiftUI requirements."
       }
     ]
   }

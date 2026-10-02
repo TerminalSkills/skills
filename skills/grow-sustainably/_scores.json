@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c8631e38652e0da9afea674c1f3ddbd735e950a3ad4f7bc4d799a9b5106382be",
-  "scoredAt": "2026-05-13T09:10:27.898Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:24a6a011a2cd1a68f355e537d8070e53d3015729d957464b97f06ab0ea0e9dcd",
+  "scoredAt": "2026-10-01T19:58:32.101Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The instructions do not explicitly handle missing or invalid input data scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered verbose."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 93,
-    "multiplier": 1.55,
+    "multiplier": 1.35,
+    "baselineAvg": 43,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "office-space-eval",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment applies the default alive/dead test, reversibility framing, and proposes the team-meetup alternative explicitly; baseline raises reasonable concerns but lacks the specific Lavingia-style framework and alternatives."
+        "name": "baseline-guardrails",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response B contains a partial baseline table but lacks the required verdict line and options table, while Response A is missing entirely."
       },
       {
-        "name": "junior-hire-eval",
-        "baseline": 65,
-        "treatment": 93,
-        "rationale": "Treatment quantifies the default dead margin, invokes 'people is the #1 fixed cost' and the outsource->freelancer->employee ladder, and probes customer-driven vs hypothetical needs; baseline gets the math but misses the specific framework."
+        "name": "commitment-affordability",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Response B includes a baseline table, commitment test with cost, break-even, profit, cash buffer, 20% drop, and verdict, while Response A lacks many required elements."
+      },
+      {
+        "name": "lever-prioritization",
+        "baseline": 85,
+        "treatment": 70,
+        "rationale": "Both responses lack a baseline table, but Response B provides a more detailed lever analysis with numeric targets and impact, earning it a higher score."
       }
     ]
   }

@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:685f671ca4e8fd29b6b6d70b1d5f2e59faab6ed020c63751a85ee7115b720732",
-  "scoredAt": "2026-05-13T10:04:00.729Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:3e9055a8789c202316fe7dcea277bc4af32fdd350c7329656cb57f565d34e38b",
+  "scoredAt": "2026-10-01T20:42:40.936Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not specify how to handle sub-agent failures or empty diffs, missing error handling."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill lists specific agent names, limiting compatibility to those agents."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No examples are provided to illustrate usage."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 88,
-    "multiplier": 2.1,
+    "multiplier": 2.8,
+    "baselineAvg": 7,
+    "treatmentAvg": 28,
     "scenarios": [
       {
-        "name": "Parallel review of a staged diff before merge",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment launches four read-only reviewers (intent/regression, security, performance/reliability, contracts/coverage) on the staged diff and aggregates filtered findings; baseline runs one generic review pass."
+        "name": "swarm-large-branch-review",
+        "baseline": 15,
+        "treatment": 75,
+        "rationale": "Response B covers most rubric items, including brief, scope, house rules, lens selection, concurrent subagents, and a grading scheme, while Response A lacks these details."
       },
       {
-        "name": "Synthesize findings with prioritized path forward",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment normalizes findings into file/line, category, severity, why, fix, confidence, and outputs fix now / fix soon / optional follow-up per the skill; baseline produces a flat list without dedup or severity ordering."
+        "name": "single-pass-uncommitted-review",
+        "baseline": 5,
+        "treatment": 10,
+        "rationale": "Both responses fail to meet the rubric; A is marginally better because it prompts for a diff summary, whereas B merely lists commands."
+      },
+      {
+        "name": "commit-review-with-inferred-intent",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses refuse to comply and miss all rubric requirements."
       }
     ]
   }

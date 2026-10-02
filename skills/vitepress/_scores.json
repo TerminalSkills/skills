@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e697b53a1547c1513037352da3841839c73343f30c31ed7c1a5064a6664775d8",
-  "scoredAt": "2026-05-13T10:34:33.998Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3899187222556a31697ebad0cf5b0ef96d4d525340a87614022c163df3bcd767",
+  "scoredAt": "2026-10-01T19:24:27.503Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing only on happy paths."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 92,
-    "multiplier": 1.84,
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Multi-language SDK example with code groups",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Treatment uses the `::: code-group` container with bracketed labels like ```ts [TypeScript]``` for three languages and closes with `:::`; baseline produces tabbed examples via custom components or plain fenced blocks, missing the vitepress-specific code-group syntax."
+        "name": "create-docs-with-sidebar-and-vue-component",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B meets every rubric requirement, while Response A lacks the theme/index.ts component registration."
       },
       {
-        "name": "Docs site scaffold with sidebar and local search",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment scaffolds with `npx vitepress init` and `npx vitepress dev docs`, places config at docs/.vitepress/config.ts using `defineConfig`, structures `themeConfig.sidebar` as path-keyed objects with nested `items`, and enables `search: { provider: \"local\" }`; baseline produces generic SSG config without these vitepress-specific shapes."
+        "name": "deploy-docs-to-github-pages",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is absent."
+      },
+      {
+        "name": "add-frontmatter-seo-and-home-layout",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits the required next.text and next.link fields."
       }
     ]
   }

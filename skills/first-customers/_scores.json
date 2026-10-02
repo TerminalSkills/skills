@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e7bc30389c37b7b973ac36ab40a7020fbb752597c4d504b1388bab8ac9925992",
-  "scoredAt": "2026-05-13T08:53:24.005Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:9815cf468896ad74a259c2afb42e23a38a2dc8ac25175d44b2b9ec6b22937845",
+  "scoredAt": "2026-10-01T19:53:35.414Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address scenarios where the user has no friends/family or community contacts, leaving gaps in guidance."
+        "detail": "The instructions do not explicitly cover all potential error scenarios or edge cases, such as handling missing data or unexpected user inputs."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The instructions contain verbose sections that could be streamlined for quicker reference."
+        "detail": "The skill contains extensive explanatory text and tables, leading to verbosity that may distract from core actionable steps."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 44,
-    "treatmentAvg": 85,
-    "multiplier": 1.93,
+    "multiplier": 1.83,
+    "baselineAvg": 12,
+    "treatmentAvg": 22,
     "scenarios": [
       {
-        "name": "Plan to land first 10 paying SaaS customers",
-        "baseline": 45,
-        "treatment": 86,
-        "rationale": "Treatment uses the three Concentric Circles structure (friends/family, community, cold outreach) with the required Output Format (10-person lists, personalized template, pricing, weekly goal) plus the 'don't launch before 100 customers' rule; baseline gives generic Product Hunt / paid ads advice that ignores founder-led manual sales sequencing."
+        "name": "plan-first-10-customers-saas",
+        "baseline": 35,
+        "treatment": 65,
+        "rationale": "Response B covers more rubric items, including target, offer, pipeline arithmetic, hours, rhythm, and outreach messages, while Response A lacks many required sections."
       },
       {
-        "name": "Pricing decision for a new product (free vs paid)",
-        "baseline": 42,
-        "treatment": 84,
-        "rationale": "Treatment invokes the zero-price-effect rule (never free, gap from $0 to $1 > $1 to $100), recommends starting low and raising over time, and distinguishes cost-based vs value-based pricing per the skill; baseline tends to recommend a free tier or freemium without the skill's specific framing."
+        "name": "write-cold-email-bicycle-service",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric requirements."
+      },
+      {
+        "name": "calculate-prospects-for-20-customers",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required pipeline table, file, target/deadline, rhythm, and change log."
       }
     ]
   }

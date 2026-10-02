@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:07838d12c91efbeb1120114267c12ff37d663fe9a7fb7f6dc241739b609c8aba",
-  "scoredAt": "2026-05-13T10:29:31.374Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:18f3cc9287ffb205811b4e3f73f9348cf83d9cfef703a33c20a2c55e4816c1c1",
+  "scoredAt": "2026-10-01T21:05:24.971Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly handle JSON parsing errors or missing fields in the knowledge graph, potentially leading to failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The instructions use placeholders like $ARGUMENTS and lack concrete command examples, making it harder to execute directly."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on Unix grep commands, which may not be available or behave differently on Windows environments."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose for a concise skill definition."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 41,
-    "treatmentAvg": 88,
-    "multiplier": 2.15,
+    "multiplier": 9.3,
+    "baselineAvg": 8,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "auth-flow-explanation",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Baseline greps raw source files and yields a generic flow without layer context or graph-grounded node ids; treatment searches the knowledge graph for name/summary/tags matches, walks 1-hop edges, and cites concrete file paths and layers."
+        "name": "explain-checkout-logic",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not."
       },
       {
-        "name": "payment-service-callers",
-        "baseline": 42,
-        "treatment": 88,
-        "rationale": "Baseline does a free-text repo search and may miss callers in jobs or webhooks; treatment finds payment node ids in the graph, queries edges where target matches, and enumerates upstream callers with file paths and layer info."
+        "name": "list-dependents-of-money-lib",
+        "baseline": 20,
+        "treatment": 80,
+        "rationale": "Response A uses the graph, lists dependencies with line numbers, and explains the query, but omits commit hash confirmation; Response B relies on grep, lacks graph usage, line numbers, and commit hash verification."
+      },
+      {
+        "name": "install-and-analyze-billing",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A omits all required steps and details."
       }
     ]
   }

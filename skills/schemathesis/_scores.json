@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a0c0a311f51303222d665676970bc9abf268b816fceb408f87dc71d7abe57fc0",
-  "scoredAt": "2026-05-13T10:05:46.675Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:441a00dc091584fef9af7976a4054f20bf44c4271deb869ece0fb3102de40d26",
+  "scoredAt": "2026-10-01T19:06:16.645Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 96,
-    "multiplier": 2.74,
+    "multiplier": 8,
+    "baselineAvg": 10,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Stateful REST API fuzzing with HTML report",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Treatment uses st run with --stateful=links, --checks all, --hypothesis-max-examples, --report and --cassette-path; baseline runs schemathesis with --checks all only and omits stateful chaining and HTML report flags."
+        "name": "fuzz-with-injection-dictionary",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with a proper schemathesis.toml and st run command, while Response A lacks the required configuration and command."
       },
       {
-        "name": "Schemathesis in GitHub Actions with JUnit upload",
-        "baseline": 30,
-        "treatment": 96,
-        "rationale": "Treatment uses the schemathesis/action@v1 action, passes --junit-xml=results.xml, and uploads results via actions/upload-artifact; baseline runs schemathesis directly with no JUnit output or artifact upload."
+        "name": "stateful-junit-report",
+        "baseline": 0,
+        "treatment": 40,
+        "rationale": "Response B includes the required st run command with flags but omits the report location and timestamp, while Response A does not provide the st run command at all."
+      },
+      {
+        "name": "docker-ci-baseline",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A misses key elements such as the correct wait time, baseline file, and volume mounting."
       }
     ]
   }

@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:361f52f70c5a41cffe179e04331c536e56cd86b4a59424d50bb2b94cd9df9915",
-  "scoredAt": "2026-05-13T09:28:26.141Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:d75585764c5a3afc053a37178fca12175d8fc848b817269e4ba885f36b01772d",
+  "scoredAt": "2026-10-01T20:16:25.459Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases, limiting robustness."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive narrative and examples, making it verbose beyond necessary instructions."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 93,
-    "multiplier": 2.91,
+    "multiplier": 1.87,
+    "baselineAvg": 23,
+    "treatmentAvg": 43,
     "scenarios": [
       {
-        "name": "B2B SaaS scaling from 80 paying users",
-        "baseline": 35,
-        "treatment": 93,
-        "rationale": "Treatment picks one primary platform, applies the three content levels (educate/inspire/entertain) with 5 ideas each, owned-email lead magnet, and defers paid ads until ~300+ users; baseline scatters paid and organic from day one without the framework."
+        "name": "90-day-plan-coffee-shop",
+        "baseline": 25,
+        "treatment": 35,
+        "rationale": "Response A contains a partial Goal & Arithmetic section and some planning detail, whereas Response B lacks the required sections and is less aligned with the rubric."
       },
       {
-        "name": "Local service business with no budget",
-        "baseline": 28,
-        "treatment": 92,
-        "rationale": "Treatment picks Instagram + Google Business Profile as a single channel, supplies content across all three levels, collects email at booking, and explicitly defers paid ads; baseline recommends paid first and multi-channel scatter, violating the spend-time-not-money principle."
+        "name": "b2b-saas-marketing-plan",
+        "baseline": 25,
+        "treatment": 35,
+        "rationale": "Response B includes a channel table and some calculations, whereas Response A lacks any channel table or JSON inputs, making B slightly more complete."
+      },
+      {
+        "name": "new-consulting-firm-plan",
+        "baseline": 20,
+        "treatment": 60,
+        "rationale": "Response A includes a Situation section, channel table, stop rule, and some assumptions, whereas Response B lacks most required elements."
       }
     ]
   }

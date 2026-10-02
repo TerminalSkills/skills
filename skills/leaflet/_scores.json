@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:19ddc024bacd99e653d47d64e070d1ef1c1ad7ec028a1b9d27d2dc68516e36c8",
-  "scoredAt": "2026-05-13T09:22:14.134Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:df6d7ec7f59904c1a60a5cb16c4ab0766ab2d76a6261fdfd25f615fc5294a5b8",
+  "scoredAt": "2026-10-01T18:51:53.734Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 96,
-    "multiplier": 3.43,
+    "multiplier": 10,
+    "baselineAvg": 5,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Build a React store locator with 200+ clustered markers",
+        "name": "clustered-custom-markers-with-click",
         "baseline": 15,
-        "treatment": 96,
-        "rationale": "Treatment uses MapContainer/TileLayer/Marker/Popup with OpenStreetMap tiles, react-leaflet-cluster, CSS import, and SSR guidance per the skill; baseline reaches for Google Maps which fails the Leaflet-specific rubric."
+        "treatment": 100,
+        "rationale": "Response B fully implements all rubric requirements, while Response A only lists dependencies and lacks any functional code."
       },
       {
-        "name": "Render GeoJSON delivery zones with styled polygons and popups",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Treatment uses the GeoJSON component with style callback driven by feature.properties and onEachFeature+bindPopup exactly as in the skill; baseline manually maps Polygons and misses the GeoJSON pattern."
+        "name": "geojson-delivery-zones-with-dynamic-styling",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies all rubric items, while Response A does not use a React Leaflet GeoJSON component or a key prop and thus fails the rubric."
+      },
+      {
+        "name": "nextjs-ssr-leaflet-with-locate-control",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required LocateControl, useMap, and error handling."
       }
     ]
   }

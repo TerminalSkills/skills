@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:47bb554199ff0a258c5a39b002706b06b342d82b368fb7ba1ce678fe58479c3c",
-  "scoredAt": "2026-05-13T09:28:32.437Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:adfc99945a8015d5d9affb593df87f6241e826aa878cc1d9fcadca75f54311c2",
+  "scoredAt": "2026-10-01T20:17:29.630Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases for applying psychological principles."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains extensive descriptive text that may overwhelm users, lacking concise guidance."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a Claude-specific file path, limiting compatibility with other AI platforms."
+        "detail": "The skill file contains extensive background and literature references that may be considered padded explanations beyond what is necessary for actionable guidance."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 93,
-    "multiplier": 1.75,
+    "multiplier": 7.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "SaaS pricing tier reduction",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline covers tier reduction and charm pricing but misses Decoy Effect ordering, Anchoring sequence, and Mental Accounting reframe that the treatment names explicitly."
+        "name": "increase-annual-subscriptions",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B lacks the required hypothesis card, citation, sample‑size calculation, and guardrails."
       },
       {
-        "name": "Freemium-to-paid conversion lift",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Treatment applies Endowment, IKEA, Zeigarnik, Loss Aversion, Goal-Gradient and BJ Fogg's motivation+ability+prompt triad with concrete trigger moments; baseline misses the user-created-asset framing and the three-factor behavior model."
+        "name": "honest-countdown",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response B addresses most rubric points but omits the required sample‑size calculation, whereas Response A fails to meet any of the rubric requirements."
+      },
+      {
+        "name": "attribute-framing-experiment",
+        "baseline": 20,
+        "treatment": 65,
+        "rationale": "Response A covers most rubric items but omits the hypothesis card, evidence_grade, and a 5% lift sample-size, while Response B lacks nearly all required elements."
       }
     ]
   }

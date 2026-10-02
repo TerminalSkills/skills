@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bdff660937d296260bbf943ea5e75e6bfa4eca1580886e86334f8c1313f83ec6",
-  "scoredAt": "2026-05-13T10:08:57.470Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:cfda77246ce85d7cc0fd2e22ac67564f537bda37cbb874f6e22b1236d11d8c02",
+  "scoredAt": "2026-10-01T20:52:06.475Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases for missing user input or unsupported platforms."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill references a Claude-specific file path, limiting compatibility with other AI agents."
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that may be considered padded."
       }
     ]
   },

@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9e14d6c14543a3c93019c87961b612c818f6d5b4ced0637b3d48374c67ffa86b",
-  "scoredAt": "2026-05-13T10:39:16.634Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:558c4b1531c42da437dc79006e07563ae70f6b1d2cb63bf24c0c86624ca65948",
+  "scoredAt": "2026-10-01T19:28:28.026Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios and edge cases comprehensively."
+        "detail": "The instructions lack explicit handling of error scenarios such as network failures or provider disconnects."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 95,
-    "multiplier": 1.90,
+    "multiplier": 2.16,
+    "baselineAvg": 37,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Wire up a Tiptap React editor with Yjs collaborative editing and shared cursors",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline installed Collaboration extension but missed StarterKit.configure({ history: false }) and CollaborationCursor user prop; treatment matched the skill's component verbatim including provider+doc cleanup in useEffect and WebsocketProvider construction in useMemo."
+        "name": "setup-tiptap-collaborative-editor",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "Response A covers all rubric items with correct extensions, awareness, and cleanup, while Response B uses the wrong cursor extension, omits awareness setup, and lacks provider.destroy."
       },
       {
-        "name": "Add offline-first persistence so edits survive disconnect and merge on reconnect",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline mentioned IndexedDB generally but did not know y-indexeddb's IndexeddbPersistence API or that both providers attach to the same Y.Doc; treatment used new IndexeddbPersistence(name, doc) plus WebsocketProvider on the same doc and the 'synced' event exactly as Step 'Offline Support and Sync' shows."
+        "name": "offline-persistence-with-indexeddb",
+        "baseline": 30,
+        "treatment": 60,
+        "rationale": "Response A meets the WebsocketProvider requirement and imports IndexeddbPersistence, whereas Response B uses WebrtcProvider and lacks the required update handler, making A the stronger answer."
+      },
+      {
+        "name": "secure-y-websocket-server",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B fully implements the required upgrade handler, token check, 4401 close code, and setupWSConnection, while Response A does not use y-websocket or the specified close code and is incomplete."
       }
     ]
   }

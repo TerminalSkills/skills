@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bd12dd9172bad15f59dfabd54b7cb83ce7eb4e0daeb853cd595c20f4438b0549",
-  "scoredAt": "2026-05-13T14:57:01.993Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:1bf6ec6c9bd5e8b420598b328ef5f1bbe6b8efdb8b9e17bbf8568ede8a534829",
+  "scoredAt": "2026-10-01T19:35:41.746Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 83,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "Missing realistic demonstrations of the skill in action."
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose, potentially exceeding concise guidelines."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to specific AI agents (Claude Code, Codex, Cursor, Gemini CLI) and does not support arbitrary agents, reducing cross-platform compatibility."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.83,
-    "baselineAvg": 30,
-    "treatmentAvg": 55,
+    "multiplier": 3.04,
+    "baselineAvg": 23,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "auth-test-regression-investigation",
-        "baseline": 30,
-        "treatment": 50,
-        "rationale": "Response A includes a bug packet, investigation brief, and swarm launch with agents, whereas Response B lacks these core components; thus A is more complete but still missing sub‑agent outputs and diagnosis synthesis."
+        "name": "regression-email-total",
+        "baseline": 45,
+        "treatment": 80,
+        "rationale": "Response A covers the required case file, angles, and investigator brief, but omits the final diagnosis report; Response B provides a fix but lacks the structured case file, angles, and investigator launch."
       },
       {
-        "name": "api-500-deployment-diagnosis",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response A provides a bug packet and investigation brief, whereas Response B only gives a generic workflow without the required packet, sub-agent hypotheses, or diagnosis path."
+        "name": "ci-parallel-test-failure",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with a detailed case file, angles, investigators, diagnosis, experiment, and fix, whereas Response A only provides a checklist and lacks the required structure."
+      },
+      {
+        "name": "single-stack-trace-investigation",
+        "baseline": 20,
+        "treatment": 35,
+        "rationale": "Response B is closer to the rubric by proposing a swarm and requesting details, whereas Response A merely offers debugging steps without any swarm decision or diagnosis report."
       }
     ]
   }

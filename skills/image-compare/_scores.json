@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:349244d02617ac3abce6448e645cf728738fa375eaf76de3761f40d7396e3ead",
-  "scoredAt": "2026-05-13T09:15:32.902Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:e7dd3d6c4c5a8c4162138375649e79d081960e131bcc0cad65202a514244c4a4",
+  "scoredAt": "2026-10-01T20:01:05.242Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not describe error handling or edge cases such as missing images or invalid thresholds."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill references an external script but does not provide its implementation, making it non-runnable without additional files."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on a bash script, limiting compatibility on non-Unix platforms like Windows without WSL."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 89,
-    "multiplier": 1.85,
+    "multiplier": 0,
+    "baselineAvg": 0,
+    "treatmentAvg": 0,
     "scenarios": [
       {
-        "name": "Compare Figma design to implementation screenshot",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Baseline writes a one-off pixelmatch Node script or shells out to `magick compare`; treatment runs image-compare.sh, reads mismatchPercentage from the JSON, and interprets it against the documented bands (<0.1% identical, 0.1-1% minor, etc.)."
+        "name": "exact-match-png",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required JSON object with the specified keys and values."
       },
       {
-        "name": "Strict visual regression diff with custom threshold",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Baseline reaches for Backstop/Percy or a hand-rolled diff; treatment uses the documented positional args (image1, image2, diff path, threshold 0.05) and surfaces the red-highlighted ./changes.png alongside mismatchPercentage for pass/fail."
+        "name": "jpeg-tolerance",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required invocation and JSON details."
+      },
+      {
+        "name": "resize-ignore",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Response A fails to meet the tolerance requirement, while Response B's compliance is unclear."
       }
     ]
   }

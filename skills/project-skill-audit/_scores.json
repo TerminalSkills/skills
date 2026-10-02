@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f33a59e4b76267ea7862e8d314eaa5952ca9e3744f16f806414aa8e96814ee90",
-  "scoredAt": "2026-05-13T09:57:40.569Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:1b411effbfb9786769709109bdffa237226384dca5a9d8045be4b95e7b328646",
+  "scoredAt": "2026-10-01T20:38:22.943Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on the $CODEX_HOME environment variable, which is specific to Codex, limiting cross-platform applicability."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "The skill file lacks any realistic example demonstrations of its usage."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 91,
-    "multiplier": 3.25,
+    "multiplier": 4.58,
+    "baselineAvg": 12,
+    "treatmentAvg": 55,
     "scenarios": [
       {
-        "name": "Audit project skill coverage from agent session history",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Baseline recommends skills from stack themes with no session evidence and skips the memory/rollout pipeline entirely; treatment follows the seven-step workflow, resolving CODEX_HOME, reading MEMORY.md, opening targeted rollout summaries, and scanning project-local skill directories before suggesting updates vs new skills with a priority order."
+        "name": "audit-claude-code",
+        "baseline": 15,
+        "treatment": 85,
+        "rationale": "Response B covers all rubric items except the git log evidence, while Response A misses the required questions, skill listing, evidence, and action ranking."
       },
       {
-        "name": "Decide whether to extend an existing skill or create a new one",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline gives surface-level update-vs-new heuristics with no procedure; treatment applies the skill's recommendation rules driven by recurrence evidence from rollout summaries and notes the SKILL.md / agents/openai.yaml drift check."
+        "name": "workflow-to-skill",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Response A includes a concrete script that uses git log and references workflow files, but it does not identify a specific workflow or provide commit counts or a ranked action list; Response B is even more generic and lacks any concrete evidence or commands."
+      },
+      {
+        "name": "manual-repetition-diagnosis",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B provides some reasoning but lacks the required jq/grep analysis and ranked action list, whereas Response A is entirely off-topic."
       }
     ]
   }

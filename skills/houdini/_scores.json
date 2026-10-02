@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2288b8cb00012ead3ead27756bf9f71d5f15e7bd160b596f18e266dbf2e417b1",
-  "scoredAt": "2026-05-13T09:13:25.610Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8bcb4524b98decc21fa9d7214af39078f84c1109a4a89ce756aad1fd2085127f",
+  "scoredAt": "2026-10-01T18:42:42.010Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file only covers happy path scenarios and does not address error handling or edge cases."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose."
       }
     ]
   },

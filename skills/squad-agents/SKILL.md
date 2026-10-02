@@ -59,10 +59,10 @@ Needed for issues, pull requests and the work monitor (Ralph).
 ### Launch with Copilot
 
 ```bash
-copilot --agent squad --yolo
+copilot --agent squad
 ```
 
-`--yolo` grants every tool, path and URL permission without prompting; leave it out to approve each call. In VS Code, open Copilot Chat and pick the **Squad** agent instead.
+Copilot asks before each tool call, file write and URL fetch. Adding `--yolo` grants all of them without prompting; keep it for throwaway repositories. In VS Code, open Copilot Chat and pick the **Squad** agent instead.
 
 Then describe your project to generate the team:
 
@@ -147,7 +147,7 @@ cd ~/projects/recipe-app
 npm init -y && git init
 npm install -g @bradygaster/squad-cli
 squad init
-copilot --agent squad --yolo
+copilot --agent squad
 ```
 
 `squad init` lists the files it created and then prints:
@@ -178,7 +178,7 @@ A team lead uses Squad for a technical research project:
 cd ~/projects/llm-benchmark-report
 git init && squad init
 squad roles --search writer
-copilot --agent squad --yolo
+copilot --agent squad
 ```
 
 `squad roles --search writer` prints the matching built-in role:
@@ -214,7 +214,7 @@ In another repository, `squad import snapshots/llm-report-team.json` restores it
 - Run `squad export` regularly to create snapshots for backup and sharing; review the file first, since it contains agent histories and decisions
 - Use `squad nap` periodically to keep context fresh and within limits; closing the session does not compact anything
 - Run `squad doctor` if GitHub integration or agent communication breaks
-- `--yolo` lets agents run any command and edit any file without asking. Use it in a repository under version control, review the diff before merging, and drop the flag for work you want to approve step by step
+- Leave `--yolo` off by default: with it agents run any command and edit any file without asking. If you do use it, work in a repository under version control and review the diff before merging
 - Squad runs on GitHub Copilot (CLI or VS Code) and needs Copilot access; for a single small change one plain Copilot session is faster than a team
 - After upgrading the CLI (`npm install -g @bradygaster/squad-cli@latest`), run `squad upgrade` in each project to refresh `squad.agent.md`, templates and workflows
 - See [GitHub Repository](https://github.com/bradygaster/squad) for full documentation

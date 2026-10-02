@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7e831bd60b4dd99bc8a4ff85c02746cdd78536036f68ffd5675e97cc4aa5e5cb",
-  "scoredAt": "2026-05-13T16:02:26.804Z",
+  "version": "2.0.0",
+  "skillHash": "sha256:8da7c6f9bba454597e1efa93f977b47fc47901bdc049ab19ff40b5fb49306684",
+  "scoredAt": "2026-10-01T19:46:04.583Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not explicitly handle all error scenarios or edge cases, such as contradictory user input."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill references vendor-specific file paths (.claude), limiting portability to other AI platforms."
+        "detail": "The skill assumes grep and awk are available, which may not be true on all platforms."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.92,
-    "baselineAvg": 25,
-    "treatmentAvg": 98,
+    "multiplier": 2.78,
+    "baselineAvg": 18,
+    "treatmentAvg": 50,
     "scenarios": [
       {
-        "name": "homepage-copywriting",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks headline, CTA formula, measurable benefits, alternative headlines, meta content, and annotations."
+        "name": "rewrite-homepage-hero",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required diff, new headline, subheadline, button text, note, and [CONFIRM] tags, so neither meets the rubric."
       },
       {
-        "name": "paid-traffic-landing-page-rewrite",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Response A meets all rubric requirements with detailed copy, measurable benefits, alternative headlines, meta tags, and annotations, while Response B lacks measurable benefits, alternative headlines, meta content, and annotations."
+        "name": "write-landing-page-copy",
+        "baseline": 55,
+        "treatment": 50,
+        "rationale": "Both responses lack the required brief, alternative headlines, button text, and claim confirmation list, but Response A provides more detailed proof and benefits, giving it a slightly higher score."
+      },
+      {
+        "name": "rewrite-pricing-page",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with updated copy, proof statements, confirmation flags, preserved structure, and a summary; Response B fails to provide any of those elements."
       }
     ]
   }

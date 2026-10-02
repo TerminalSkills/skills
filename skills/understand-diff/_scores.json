@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:12ce00bf7c643b6e6c3d039de871953dfc1b8651f5196aef7ab8f6d446bc044f",
-  "scoredAt": "2026-05-13T10:29:45.854Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:9275c52029fb38c0e1b01269dc1cf304352edac9736e454f24a91907a9d8394a",
+  "scoredAt": "2026-10-01T21:08:05.901Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -17,8 +17,13 @@
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered padded."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill relies on Unix-specific tools like grep, which may not be available on all platforms."
+        "detail": "The skill relies on specific tools (Node.js, jq, git) and the Understand-Anything plugin, limiting cross-platform applicability."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 39,
-    "treatmentAvg": 88,
-    "multiplier": 2.26,
+    "multiplier": 4,
+    "baselineAvg": 0,
+    "treatmentAvg": 40,
     "scenarios": [
       {
-        "name": "review-feature-branch-risk",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Baseline runs git diff and comments on the patch but never maps changes to graph nodes or writes diff-overlay.json; treatment gets changed files first, performs 1-hop edge traversal for blast radius, and emits the overlay file."
+        "name": "pr-impact-analysis",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to provide any of the required impact analysis details."
       },
       {
-        "name": "payment-file-impact",
-        "baseline": 38,
-        "treatment": 87,
-        "rationale": "Baseline notes the file is risky based on filename heuristics; treatment locates the file: node, lists concrete upstream callers via edges, scores risk using node complexity, and writes the diff-overlay JSON the skill mandates."
+        "name": "branch-blast-radius",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response B contains more detail but still misses all rubric requirements, whereas Response A is empty."
+      },
+      {
+        "name": "graph-too-old-warning",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully addresses all rubric points, while Response B fails to mention any of them."
       }
     ]
   }

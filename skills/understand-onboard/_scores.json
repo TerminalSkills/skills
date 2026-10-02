@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8f0fec50dc43d09b56ef291b140db47a5153cbad7615c155bc36fdf3cb374744",
-  "scoredAt": "2026-05-13T10:29:56.823Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:6cfd13abcb7472270467a6336bd34c17a8196e08883b5304a021dd3d9a60edaa",
+  "scoredAt": "2026-10-01T21:10:53.726Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not handle missing or malformed sections of the knowledge graph, such as absent layers or tour data."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The instructions lack concrete code snippets or command examples, making it harder for users to implement the steps directly."
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to the Understand-Anything plugin and assumes specific environment, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 13,
-    "treatmentAvg": 95,
-    "multiplier": 7.31,
+    "multiplier": 3.15,
+    "baselineAvg": 20,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "Generate onboarding guide from knowledge graph",
-        "baseline": 15,
+        "name": "backend-developer-onboarding",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Baseline writes a generic onboarding doc with no awareness of .understand-anything/knowledge-graph.json or the project/layers/tour/file-node extraction pattern; treatment grep-extracts each section and produces the six-section markdown the skill specifies."
+        "rationale": "Response A includes all required sections and details, while Response B lacks the mandated structure and content."
       },
       {
-        "name": "Identify complexity hotspots for new hires",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Baseline cannot know that complexity is encoded on file-level nodes in the knowledge graph or that >10 is the hotspot threshold; treatment filters type:'file' nodes and applies the documented complexity>10 rule."
+        "name": "monorepo-stale-graph-onboarding",
+        "baseline": 35,
+        "treatment": 65,
+        "rationale": "Response A includes most of the required sections (Reading route, Where execution starts, Files the rest leans on, Handle with care) though it is incomplete, whereas Response B lacks those sections entirely."
+      },
+      {
+        "name": "product-manager-architecture-overview",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Response A includes a provenance line but violates the no-code-reference and no-table rules, while Response B lacks provenance and the required dashboard link, making it slightly less compliant."
       }
     ]
   }

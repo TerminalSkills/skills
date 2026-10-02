@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:17d49f230024e98fb3e2704978569516cbb503f61b5ebe3d554ae73ed8995697",
-  "scoredAt": "2026-05-13T10:02:48.567Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:c904c696332256fc39a17d7b7059466ea2b5a64b070b71eacf10d7f0ada3e4fd",
+  "scoredAt": "2026-10-01T20:41:21.941Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases, limiting robustness."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "The skill lacks any realistic examples demonstrating its usage."
+        "category": "crossPlatform",
+        "detail": "The skill assumes GitHub CLI and specific AI agents, which limits cross-platform applicability."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 18,
-    "treatmentAvg": 95,
-    "multiplier": 5.28,
+    "multiplier": 0.57,
+    "baselineAvg": 40,
+    "treatmentAvg": 23,
     "scenarios": [
       {
-        "name": "Splitting a monolithic UserService refactor RFC",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline produced a five-step macro-plan with no interview, exploration, or structured template; treatment interviewed the user, scanned the repo, surfaced alternatives, listed tiny Fowler-style commits, and emitted a GitHub issue body with all six required sections."
+        "name": "extract-pricing-module",
+        "baseline": 35,
+        "treatment": 25,
+        "rationale": "Response B offers more concrete steps and documentation, but both lack the required interview, code‑check, commit plan, and GitHub issue command; B is marginally better."
       },
       {
-        "name": "Mongoose to Prisma migration RFC",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline gave a big-bang switch list with no coexistence plan or template; treatment interviewed, checked test coverage, presented coexistence alternatives, planned a per-model wrapper migration that stays green every commit, and wrote the full RFC issue body."
+        "name": "migrate-payment-amount-to-cents",
+        "baseline": 30,
+        "treatment": 10,
+        "rationale": "Response B includes more of the required content (issue template and gh command) but still lacks interview, code check, commit plan, and point of no return; Response A is even more incomplete."
+      },
+      {
+        "name": "replace-auth-module-strangler-fig",
+        "baseline": 55,
+        "treatment": 35,
+        "rationale": "Response A covers more rubric items (commit plan, issue draft) while Response B only provides an interview section."
       }
     ]
   }

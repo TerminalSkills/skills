@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0aa9dc880c2f086d81fb96bc7ef8512d0d8cec79ac3e6d766c9d5f7cef2c3c1f",
-  "scoredAt": "2026-05-13T10:17:19.570Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "2.0.0",
+  "skillHash": "sha256:d8a31958b8c64b198cc655a6e5c5db650621693aad015dc10d3fcfbef223eb16",
+  "scoredAt": "2026-10-01T20:59:48.659Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered padded, reducing conciseness."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 88,
-    "multiplier": 1.83,
+    "multiplier": 1.49,
+    "baselineAvg": 67,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Split a 400-line SwiftUI screen with inline actions",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment extracts dedicated View types (not computed some View helpers), moves business logic out of body into private methods/services, and follows the documented top-to-bottom ordering; baseline relies on computed view properties and inline closures."
+        "name": "refactor-large-checkout-view",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric: they extract multiple subviews, eliminate AnyView usage, move business logic to a separate type, and preserve preview states; Response A is marginally more detailed but both score 100."
       },
       {
-        "name": "Refactor optional MVVM view model to MV with Observable",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment makes the view model non-optional, uses @State with @Observable, initializes it in init from injected dependencies, and removes bootstrapIfNeeded; baseline keeps optional view model and lifecycle bootstrapping."
+        "name": "migrate-observable-to-observable-macro",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
+      },
+      {
+        "name": "extract-promo-code-field",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully implement a private‑style subview with a Binding<String> and apply closure, replace the inline promo field, and correctly pass the binding and closure from the parent; Response A is slightly more concise, but both meet all rubric requirements."
       }
     ]
   }

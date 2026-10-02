@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2053d90bba28ff900751e40fbac479cf9f5a0f715f7dd6c57bdb6769e35f52c7",
-  "scoredAt": "2026-05-13T09:36:10.839Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ae5c0c48599c48a1d2c5979e983137583d2034327b6a2868db18a0f8a2d63231",
+  "scoredAt": "2026-10-01T18:58:04.463Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios and edge cases beyond basic async error handling."
+        "detail": "The skill does not cover error handling or edge cases such as network failures or missing context providers."
       },
       {
         "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one code example is provided, falling short of the required two realistic demonstrations."
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory text that may be considered verbose for a concise skill file."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 93,
-    "multiplier": 2.82,
+    "multiplier": 1.22,
+    "baselineAvg": 82,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Async fetchTodos with loading state",
-        "baseline": 35,
-        "treatment": 93,
-        "rationale": "Baseline tends to use legacy @observable/@action decorators or skips runInAction after await; treatment uses makeAutoObservable, runInAction in both success and catch branches, and direct mutation as the skill prescribes."
+        "name": "todo-store-with-autoobservable",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric with correct implementation details."
       },
       {
-        "name": "Observer component with document.title side effect",
-        "baseline": 30,
-        "treatment": 92,
-        "rationale": "Baseline writes a plain React component with useEffect and often destructures observables outside observer, breaking tracking; treatment wraps the component in observer(), accesses store.stats.remaining directly, and uses reaction() for the title side effect."
+        "name": "upgrade-mobx6-to-7",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully replaces MobX 6 APIs with MobX 7 equivalents and updates React context usage, while Response A retains the old observable.ref and action.bound patterns and does not meet the rubric requirements."
+      },
+      {
+        "name": "fix-component-not-re-rendering",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully satisfy the rubric by making the store observable with makeAutoObservable, wrapping the TodoList component with observer, reading the observable property directly, and demonstrating that toggling a todo triggers a re‑render."
       }
     ]
   }
