@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0da72fe9b6587ba0d6ecdaac167de5da3c76e29e9205d11d01cacc7a17de1b9b",
-  "scoredAt": "2026-05-13T15:13:41.645Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:42c5eb40f1c53c29d8b839aa35727171d0eca5366e6ef299b310fe9a52ed06dc",
+  "scoredAt": "2026-10-03T12:58:44.936Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, limiting robustness."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of steps with no complete runnable code or concrete input/output transcripts, so they are less demonstrative than the code blocks elsewhere in the skill."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 2.15,
+    "baselineAvg": 41,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "stream-chat-first-token-latency",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not use cerebras.chat.completions.create or an onChunk callback and fails to meet the requirements."
+        "name": "fix-retired-model-404",
+        "baseline": 22,
+        "treatment": 96,
+        "rationale": "B identifies the retirement, switches to gpt-oss-120b, sets reasoning_effort=\"low\" and reasoning_format=\"hidden\"/\"parsed\", and recommends the deprecations page and client.models.list(). A misdiagnoses the problem as a hyphen typo, keeps the old model ID, mentions gpt-oss-120b and reasoning_effort only in passing, and never mentions reasoning_format."
       },
       {
-        "name": "json-structured-output",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully meets rubric, Response A does not."
+        "name": "strict-schema-ticket-triage",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "B meets every rubric item (strict json_schema with additionalProperties false, required fields and an enum, qwen-3.8-27b with reasoning_effort none, fixed system prompt first for caching, and an explicit rejection of json_object), while A has a correct schema but uses llama3.1-8b, has no reasoning-skip setting for the model it uses, and says nothing about prompt caching."
+      },
+      {
+        "name": "tool-calling-loop-openai-sdk",
+        "baseline": 66,
+        "treatment": 72,
+        "rationale": "Both configure the client correctly and stream with `for await` over `delta.content`, but A passes `reasoning_format` through `extra_body` as the rubric requires (while hedging that the Node SDK may not honor it) and notes that reasoning tokens count toward `max_completion_tokens`. B passes `reasoning_format` as a top-level field, which contradicts the rubric, and never mentions the token-budget point, though its streaming code is more complete and it flags that the model ID is unverified."
       }
     ]
   }

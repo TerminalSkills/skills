@@ -1,321 +1,299 @@
 ---
 name: clerk-auth
 description: >-
-  Add authentication to web apps with Clerk — social login, email/password,
-  magic links, organizations, RBAC, session management, webhooks, and
-  multi-framework support. Use when tasks involve user authentication, team/org
-  management, role-based access control, or integrating auth into Next.js,
-  React, Remix, or Express applications.
+  Clerk is a hosted authentication and user-management service with drop-in UI
+  components, social login, email/password, organizations, RBAC and webhooks.
+  Use when adding sign-in to Next.js, React, or Express apps, protecting routes
+  with clerkMiddleware, setting up multi-tenant organizations and roles, or
+  syncing Clerk users to your own database.
 license: Apache-2.0
-compatibility: "Requires Node.js 16+"
+compatibility: "Node.js 20.9+; @clerk/nextjs 7 (Core 3) needs Next.js 15.2.3+ (proxy.ts on Next.js 16, middleware.ts on 15); a Clerk account and application"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.2.0"
   category: development
   tags: ["clerk", "authentication", "nextjs", "react", "rbac"]
+  repository: https://github.com/clerk/javascript
 ---
 
 # Clerk Authentication
 
-Drop-in authentication for modern web apps. Handles login UI, social providers, session management, organizations, and RBAC.
+## Overview
 
-## Setup (Next.js)
+Clerk provides hosted sign-in and sign-up, session management, user profiles, organizations (multi-tenancy) and role-based access control. Your app wraps itself in a provider, adds a middleware that attaches the session, checks it next to the data, and reads the session through `auth()` on the server or hooks on the client. Keys come from the Clerk dashboard (Configure, API keys). Use the `pk_test_`/`sk_test_` keys for development and the `pk_live_`/`sk_live_` pair only in production. Checked against `@clerk/nextjs` 7.9 and `@clerk/express` 2.1 (Clerk Core 3). Core 3 replaced `<SignedIn>`, `<SignedOut>` and `<Protect>` with `<Show>`, requires `ClerkProvider` inside `<body>`, and dropped Next.js 13 and 14.
+
+## Instructions
+
+### 1. Install and configure (Next.js App Router)
+
+Clerk's own quickstart now starts from its CLI, which detects the framework, installs the SDK, writes dev keys to `.env.local` and creates the middleware file (no account needed to start; it provisions a claimable dev app): `npx -y clerk@latest init`, then `npx -y clerk@latest doctor` to check the setup. Manual setup:
 
 ```bash
 npm install @clerk/nextjs
 ```
 
 ```env
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
-CLERK_SECRET_KEY=sk_live_...
+# .env.local
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=   # publishable key from the Clerk dashboard (API keys)
+CLERK_SECRET_KEY=                    # secret key from the same page; never commit it
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 ```
 
-```typescript
-// app/layout.tsx — Wrap app in ClerkProvider
-import { ClerkProvider } from '@clerk/nextjs';
+```tsx
+// app/layout.tsx
+import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html><body>{children}</body></html>
-    </ClerkProvider>
+    <html lang="en">
+      <body>
+        <ClerkProvider afterSignOutUrl="/">
+          <header>
+            <Show when="signed-out"><SignInButton /><SignUpButton /></Show>
+            <Show when="signed-in"><UserButton /></Show>
+          </header>
+          {children}
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
 ```
 
-## Middleware (Route Protection)
+### 2. Add clerkMiddleware, then protect at the resource
+
+On Next.js 16 the file is `proxy.ts`; on Next.js 15 it is `middleware.ts`. The code is identical. `clerkMiddleware()` only attaches the session to the request and protects nothing by default.
 
 ```typescript
-// middleware.ts — Protect routes at the edge
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+// proxy.ts (middleware.ts on Next.js 15)
+import { clerkMiddleware } from '@clerk/nextjs/server';
 
-const isPublicRoute = createRouteMatcher([
-  '/',
-  '/pricing',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/api/webhooks(.*)',
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
-});
+export default clerkMiddleware();
 
 export const config = {
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+    '/__clerk/(.*)',
+  ],
 };
 ```
 
-## Server-Side Auth
+Clerk's docs now say middleware is not the best place to protect routes: put the check in the code that reads or changes the data (pages, layouts that prefetch data, route handlers, server actions). `createRouteMatcher()` with `auth.protect()` inside `clerkMiddleware` still works but is deprecated, so write new code with per-resource checks.
 
-### Server Components (App Router)
+```typescript
+// app/dashboard/page.tsx
+import { auth } from '@clerk/nextjs/server';
+
+export default async function Dashboard() {
+  await auth.protect(); // signed out: redirect to sign-in
+  return <h1>Dashboard</h1>;
+}
+```
+
+`auth.protect()` on a page redirects signed-out users to sign-in. In a route handler it returns 404 for an unauthenticated request (401 inside a server action), and a signed-in user lacking the required role or permission gets 404. If you want control over the response, call `auth()` and check `isAuthenticated` yourself (next step).
+
+### 3. Read the session on the server
 
 ```typescript
 import { auth, currentUser } from '@clerk/nextjs/server';
 
 export default async function Page() {
-  // Quick access to IDs and role
-  const { userId, orgId, orgRole } = await auth();
+  const { isAuthenticated, userId, orgId, orgRole, redirectToSignIn } = await auth();
+  if (!isAuthenticated) return redirectToSignIn();
 
-  // Full user object when needed
-  const user = await currentUser();
-
+  const user = await currentUser(); // full user object (counts as a Backend API request)
   return <p>Hello {user?.firstName}</p>;
 }
 ```
 
-### API Routes
+`auth()` is async in current versions: always `await` it. In a route handler return `NextResponse.json({ error: 'Unauthorized' }, { status: 401 })` when `userId` is null.
 
-```typescript
-import { auth } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+### 4. Client hooks and components
 
-export async function GET() {
-  const { userId, orgId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  // ... fetch data scoped to orgId
+```tsx
+'use client';
+import { useAuth, useUser, useOrganization } from '@clerk/nextjs';
+
+export function ProfileCard() {
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { organization, membership } = useOrganization();
+  if (!isSignedIn) return <p>Not signed in</p>;
+  return <p>{user?.fullName} / {organization?.name} / {membership?.role}</p>;
 }
 ```
 
-### Server Actions
+Pre-built components from `@clerk/nextjs`: `SignIn`, `SignUp`, `UserButton`, `UserProfile`, `OrganizationSwitcher`, `OrganizationList`, `OrganizationProfile`. Mount the sign-in page at a catch-all route:
+
+```tsx
+// app/sign-in/[[...sign-in]]/page.tsx
+import { SignIn } from '@clerk/nextjs';
+export default function SignInPage() { return <SignIn />; }
+```
+
+Show or hide UI with `<Show when="signed-in">`, `<Show when="signed-out">` or `<Show when={{ permission: 'org:invoices:create' }} fallback={...}>`; it replaces `SignedIn`, `SignedOut` and `Protect`. It only hides content visually, so never rely on it for security. The sign-out redirect is not a `UserButton` prop any more; pass `afterSignOutUrl="/"` to `<ClerkProvider>`. The old `afterSignInUrl`/`afterSignUpUrl` props became `fallbackRedirectUrl` and `signUpFallbackRedirectUrl`.
+
+### 5. Organizations and roles
+
+Enable Organizations in the dashboard first. The default roles are `org:admin` and `org:member`; extra roles and permissions (for example `org:projects:manage`) are defined under Organizations, Roles and permissions. There is no built-in `org:owner` role, so do not assume one exists.
+
+```typescript
+import { auth, clerkClient } from '@clerk/nextjs/server';
+
+export async function createOrg(name: string) {
+  const { userId } = await auth();
+  const client = await clerkClient(); // async in current versions
+  return client.organizations.createOrganization({ name, createdBy: userId! });
+}
+
+export async function inviteMember(organizationId: string, emailAddress: string) {
+  const { userId } = await auth();
+  const client = await clerkClient();
+  return client.organizations.createOrganizationInvitation({
+    organizationId,
+    emailAddress,
+    role: 'org:member',
+    inviterUserId: userId!,
+  });
+}
+```
+
+Authorization checks with `has()`:
+
+```typescript
+const { has } = await auth();
+if (!has({ role: 'org:admin' })) throw new Error('Forbidden');
+if (!has({ permission: 'org:projects:manage' })) throw new Error('Forbidden');
+```
+
+Prefer permission checks: they survive role renames. On the server `has({ permission })` only evaluates custom permissions you defined in the dashboard (check the role for system permissions), and role or permission checks need an active organization; without one they return false.
+
+### 6. Webhooks
+
+Create an endpoint in the dashboard (Configure, Webhooks), subscribe to events, and copy the signing secret into `CLERK_WEBHOOK_SIGNING_SECRET`. The route must be reachable without a session (do not call `auth.protect()` there). `verifyWebhook` (from `@clerk/nextjs/webhooks`) reads that variable and validates the signature, so you no longer need to wire up `svix` yourself.
+
+```typescript
+// app/api/webhooks/clerk/route.ts
+import { verifyWebhook } from '@clerk/nextjs/webhooks';
+import type { NextRequest } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  try {
+    const evt = await verifyWebhook(req);
+    switch (evt.type) {
+      case 'user.created':
+        await db.users.create({ data: {
+          clerkId: evt.data.id,
+          email: evt.data.email_addresses[0]?.email_address,
+          name: `${evt.data.first_name ?? ''} ${evt.data.last_name ?? ''}`.trim(),
+        }});
+        break;
+      case 'user.deleted':
+        await db.users.deleteMany({ where: { clerkId: evt.data.id } });
+        break;
+      case 'organization.created':
+        await db.orgs.create({ data: { clerkOrgId: evt.data.id, name: evt.data.name, slug: evt.data.slug } });
+        break;
+    }
+    return new Response('OK', { status: 200 });
+  } catch {
+    return new Response('Invalid webhook', { status: 400 });
+  }
+}
+```
+
+Common events: `user.created`, `user.updated`, `user.deleted`, `organization.created`, `organization.updated`, `organizationMembership.created`, `organizationMembership.deleted`. Any non-2xx response makes Clerk retry; locally, expose the route with a tunnel.
+
+### 7. JWT templates for external APIs
+
+Create a template in the dashboard (Configure, JWT templates), for example `api-token` with claims `{ "userId": "{{user.id}}", "orgId": "{{org.id}}", "role": "{{org.role}}" }`.
+
+```typescript
+// client
+const { getToken } = useAuth();
+const token = await getToken({ template: 'api-token' });
+
+// external service
+import { verifyToken } from '@clerk/backend';
+
+export async function verifyRequest(req: Request) {
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!token) throw new Error('Missing token');
+  return verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
+}
+```
+
+A JWT template token is not bound to a session (no `sid`). If you only need extra claims on the normal session token, use a customised session token instead.
+
+### 8. Express
+
+The old `@clerk/clerk-sdk-node` package has been superseded by `@clerk/express`, and `requireAuth()` is deprecated in favour of `clerkMiddleware()` plus `getAuth()`.
+
+```bash
+npm install @clerk/express
+```
+
+```typescript
+import express from 'express';
+import { clerkMiddleware, getAuth } from '@clerk/express';
+
+const app = express();
+app.use(clerkMiddleware());
+
+app.get('/api/me', (req, res) => {
+  const { isAuthenticated, userId, orgId } = getAuth(req);
+  if (!isAuthenticated) return res.status(401).json({ error: 'Unauthorized' });
+  res.json({ userId, orgId });
+});
+```
+
+`@clerk/express` reads `CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` from the environment (no `NEXT_PUBLIC_` prefix outside Next.js).
+
+## Examples
+
+### Example 1: "Make everything under /dashboard private in my Next.js 15 app"
+
+Run `npx -y clerk@latest init` (or add the two keys to `.env.local` and wrap `app/layout.tsx` in `<ClerkProvider>` inside `<body>`), keep the `proxy.ts`/`middleware.ts` from step 2, and protect the layout that fetches dashboard data:
+
+```typescript
+// app/dashboard/layout.tsx
+import { auth } from '@clerk/nextjs/server';
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  await auth.protect();
+  return <section>{children}</section>;
+}
+```
+
+Check again in each route handler and server action under `/dashboard`: a layout alone does not re-run on client-side navigation.
+
+Result: visiting `/dashboard` signed out redirects to `/sign-in`; after signing in the user lands back on `/dashboard`, and `await auth()` in the page returns their `userId`.
+
+### Example 2: "Only org admins can create projects, and mirror users into Postgres"
+
+Server action:
 
 ```typescript
 'use server';
 import { auth } from '@clerk/nextjs/server';
 
 export async function createProject(name: string) {
-  const { userId, orgId, orgRole } = await auth();
-  if (!orgId || (orgRole !== 'org:admin' && orgRole !== 'org:owner')) {
-    throw new Error('Forbidden');
-  }
+  const { userId, orgId, has } = await auth();
+  if (!orgId || !has({ role: 'org:admin' })) throw new Error('Forbidden');
   return db.projects.create({ data: { name, orgId, createdBy: userId } });
 }
 ```
 
-## Client-Side Auth
-
-```typescript
-'use client';
-import { useAuth, useUser, useOrganization } from '@clerk/nextjs';
-
-export function ProfileCard() {
-  const { isSignedIn, userId } = useAuth();
-  const { user } = useUser();
-  const { organization, membership } = useOrganization();
-
-  if (!isSignedIn) return <p>Not signed in</p>;
-
-  return (
-    <div>
-      <p>{user?.fullName}</p>
-      <p>Org: {organization?.name}</p>
-      <p>Role: {membership?.role}</p>
-    </div>
-  );
-}
-```
-
-## Pre-Built Components
-
-```typescript
-import {
-  SignIn,             // Full sign-in page
-  SignUp,             // Full sign-up page
-  UserButton,         // Avatar dropdown (profile, sign out)
-  UserProfile,        // Full profile management page
-  OrganizationSwitcher,  // Org dropdown + create org
-  OrganizationList,      // List orgs + join/create
-  OrganizationProfile,   // Org settings (members, roles)
-} from '@clerk/nextjs';
-
-// Sign-in page
-// app/sign-in/[[...sign-in]]/page.tsx
-export default function SignInPage() {
-  return <SignIn />;
-}
-
-// Header with org switcher and user menu
-export function Header() {
-  return (
-    <nav>
-      <OrganizationSwitcher hidePersonal={true} />
-      <UserButton afterSignOutUrl="/" />
-    </nav>
-  );
-}
-```
-
-## Organizations (Multi-Tenant)
-
-Enable at dashboard.clerk.com → Organizations.
-
-### Create Organization
-
-```typescript
-import { auth, clerkClient } from '@clerk/nextjs/server';
-
-async function createOrg(name: string) {
-  const { userId } = await auth();
-  const client = await clerkClient();
-  return client.organizations.createOrganization({
-    name,
-    createdBy: userId!,
-  });
-}
-```
-
-### Invite Members
-
-```typescript
-async function inviteMember(orgId: string, email: string, role: string) {
-  const client = await clerkClient();
-  return client.organizations.createOrganizationInvitation({
-    organizationId: orgId,
-    emailAddress: email,
-    role,  // 'org:admin', 'org:member', or custom roles
-    inviterUserId: (await auth()).userId!,
-  });
-}
-```
-
-### Custom Roles
-
-Define at dashboard.clerk.com → Organizations → Roles:
-
-```
-org:owner    — Full access, can delete org
-org:admin    — Manage members, settings
-org:member   — Standard access
-org:viewer   — Read-only (custom)
-org:billing  — Billing management only (custom)
-```
-
-Check roles in code:
-
-```typescript
-const { orgRole, has } = await auth();
-
-// Direct role check
-if (orgRole === 'org:admin') { ... }
-
-// Permission-based check (preferred — decouples code from role names)
-if (has({ permission: 'org:projects:manage' })) { ... }
-```
-
-## Webhooks
-
-Sync Clerk events to your database:
-
-```typescript
-// app/api/webhooks/clerk/route.ts
-import { Webhook } from 'svix';
-import { WebhookEvent } from '@clerk/nextjs/server';
-
-export async function POST(req: Request) {
-  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
-  const body = await req.text();
-  const svixHeaders = {
-    'svix-id': req.headers.get('svix-id')!,
-    'svix-timestamp': req.headers.get('svix-timestamp')!,
-    'svix-signature': req.headers.get('svix-signature')!,
-  };
-
-  const event = wh.verify(body, svixHeaders) as WebhookEvent;
-
-  switch (event.type) {
-    case 'user.created':
-      await db.users.create({ data: {
-        clerkId: event.data.id,
-        email: event.data.email_addresses[0]?.email_address,
-        name: `${event.data.first_name} ${event.data.last_name}`.trim(),
-      }});
-      break;
-    case 'user.deleted':
-      await db.users.delete({ where: { clerkId: event.data.id } });
-      break;
-    case 'organization.created':
-      await db.orgs.create({ data: {
-        clerkOrgId: event.data.id,
-        name: event.data.name,
-        slug: event.data.slug,
-      }});
-      break;
-  }
-
-  return new Response('OK');
-}
-```
-
-Key events: `user.created`, `user.updated`, `user.deleted`, `organization.created`, `organization.updated`, `organizationMembership.created`, `organizationMembership.deleted`.
-
-## JWT Templates (API Auth)
-
-For external APIs or microservices that need to verify Clerk tokens:
-
-```typescript
-// Configure at dashboard.clerk.com → JWT Templates
-// Template name: "api-token"
-// Claims: { "userId": "{{user.id}}", "orgId": "{{org.id}}", "role": "{{org.role}}" }
-
-// Client: get a custom JWT
-const { getToken } = useAuth();
-const token = await getToken({ template: 'api-token' });
-
-// External API: verify the JWT
-import { createClerkClient } from '@clerk/backend';
-const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
-
-async function verifyRequest(req: Request) {
-  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-  if (!token) throw new Error('No token');
-  return clerk.verifyToken(token);
-}
-```
-
-## Express.js
-
-```typescript
-import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
-
-// Protect routes
-app.use('/api', ClerkExpressRequireAuth());
-
-app.get('/api/me', (req, res) => {
-  res.json({ userId: req.auth.userId, orgId: req.auth.orgId });
-});
-```
+Add the `/api/webhooks/clerk` route from step 6, set `CLERK_WEBHOOK_SIGNING_SECRET=whsec_...`, and subscribe to `user.created` and `user.deleted`. Result: a member calling `createProject` gets "Forbidden", an admin gets the new row, and every sign-up appears in your `users` table within seconds.
 
 ## Guidelines
 
-- **Middleware is the primary protection layer** — don't rely on component-level checks alone. Middleware runs at the edge before any page code.
-- **Use `auth()` in server components, not `useAuth()`** — server-side checks can't be bypassed by the client
-- **Webhook signature verification is mandatory** — use `svix` library to verify every webhook payload
-- **Sync to your database via webhooks** — don't query Clerk's API for every database operation. Keep a local copy of users and orgs.
-- **Use organizations for B2B** — even if you think you only need simple auth now. Adding multi-tenancy later is much harder than starting with it.
-- **Permission-based checks over role checks** — `has({ permission: 'X' })` is more maintainable than `role === 'org:admin'`
-- **`hidePersonal={true}` for B2B apps** — personal workspaces confuse users in team-based products
-- **Configure sign-in/up URLs in env vars** — Clerk uses these for redirects after auth flows
+- Middleware is a convenience layer, not the only barrier: check `auth()` again in server components, route handlers and server actions.
+- Verify every webhook signature (`verifyWebhook`); an unverified endpoint lets anyone forge user events.
+- Webhooks are eventually consistent and can arrive out of order or twice: make handlers idempotent (upsert by `clerkId`). Keep a local copy of users and orgs rather than calling Clerk's Backend API on every request (rate limited).
+- Never commit `CLERK_SECRET_KEY` or the webhook signing secret; only the publishable key is public.
+- If your app uses Next.js 16, rename `middleware.ts` to `proxy.ts`; otherwise `clerkMiddleware` never runs and `auth()` fails to find it. Clerk Core 3 does not support Next.js 13 or 14.
+- `hidePersonal` on `<OrganizationSwitcher>` removes personal workspaces for team-only products.
+- Not a fit if you need a fully self-hosted identity provider; look at Keycloak or Auth.js instead.

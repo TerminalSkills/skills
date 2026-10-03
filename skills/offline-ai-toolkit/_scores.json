@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:42f7829990a17ab03581b609174aaaf84f39b2297ce15f18913b215646bb3118",
-  "scoredAt": "2026-05-13T09:43:12.083Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:73b358248ca91792cb3997d768e5925bc1d5f4cd60a223b0d87e4829fec6381a",
+  "scoredAt": "2026-10-03T12:03:32.009Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,38 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Assumes a Unix-like environment for curl and shell commands, limiting cross-platform compatibility."
+        "detail": "Install commands lean on macOS Homebrew and a Linux tarball without a full Windows path, and the setup assumes Ollama and Python rather than being agent-agnostic."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Uses curl to download and execute a script from an external source without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6",
+    "multiplier": 1.67,
+    "baselineAvg": 54,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Field research offline RAG",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment uses ollama with nomic-embed-text plus llama3.1:8b via the documented /api/embeddings and /api/generate endpoints, stores embeddings in SQLite with struct.pack BLOBs, and runs cosine_similarity search before answering with the strict 'use ONLY context' prompt; baseline reaches for FAISS or chromadb and OpenAI APIs, which do not match the skill's documented offline stack."
+        "name": "air-gapped-model-transfer",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "B follows the rubric's flow of pulling both models on a connected machine and copying ~/.ollama/models (and mentions the Docker volume), sets OLLAMA_HOST, verifies with ollama list, and calls for an offline test; A omits the Docker volume copy, uses a throwaway-server export approach that deviates from the plain pull-and-copy flow, and gives no explicit disconnected-network test beyond a smoke test, though it is otherwise thorough on firewalling and bind verification."
       },
       {
-        "name": "Air-gapped developer docs assistant",
-        "baseline": 35,
-        "treatment": 84,
-        "rationale": "Treatment ingests local doc trees with os.walk, populates the documents/embeddings/fts5 schema, calls embed_all_documents, and exposes ask_offline returning answer plus source chunks as documented; baseline outlines a generic langchain RAG that contradicts the offline-only constraint."
+        "name": "sqlite-kb-with-fts-and-embeddings",
+        "baseline": 60,
+        "treatment": 93,
+        "rationale": "B matches the rubric closely: it has a documents table, a chunks table with a BLOB embedding column, an FTS5 table with content=, an explicit FTS 'rebuild' after loading, /api/embed with nomic-embed-text, packed floats, cosine similarity, and an /api/generate RAG prompt that says to answer ONLY from the context. A has no documents table and no explicit 'rebuild' (it uses triggers), it normalizes vectors and uses a dot product instead of an explicit cosine function, and it uses /api/chat instead of /api/generate, though it does use /api/embed, packed floats, and an ONLY-from-excerpts system prompt."
+      },
+      {
+        "name": "scale-and-hardware-tuning",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "A hits every rubric point: phi3:mini, the 50k brute-force limit with sqlite-vec at 200k, an FTS5 MATCH fallback on fts_documents, and re-embedding if the model changes. B recommends other models, says brute force holds up at 200k, never mentions sqlite-vec, and uses its own FTS table, though it does cover model mismatch and BM25 fallback."
       }
     ]
   }

@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:61006a652562b8fe00250dab3022fb86e075347fda2e6ec1124ee186e789f240",
-  "scoredAt": "2026-05-13T10:31:52.755Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a816770d751ea0be39f155d86c14d9d03019c86ad6c8a807411f11f5f4c298d2",
+  "scoredAt": "2026-10-03T13:12:59.156Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,41 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error scenarios and edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "Lacks concrete procedures and runnable code."
+        "detail": "Error handling is thin: only one UBT compile error is covered, and it omits common failures such as missing Visual Studio or SDK components, a stale Live Coding build, failed cooks, and Linux-only commands with no Windows or macOS equivalents shown."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Missing checksum verification for source code download."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 95,
-    "multiplier": 1.58,
+    "multiplier": 1.13,
+    "baselineAvg": 72,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "C++ ACharacter with Blueprint-exposed health and overridable OnDeath",
+        "name": "blueprint-friendly-enhanced-input-character",
         "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline gets UCLASS/UPROPERTY right but tends to miss the BlueprintNativeEvent + _Implementation pattern for Blueprint-overridable C++ events; treatment uses the documented UFUNCTION(BlueprintNativeEvent) with OnDeath_Implementation."
+        "treatment": 92,
+        "rationale": "B satisfies every rubric item, with EditAnywhere MaxHealth, a BlueprintNativeEvent OnDeath with an _Implementation body, Enhanced Input BindAction with ETriggerEvent, the mapping context added through the subsystem, and a damage function named ApplyHit; A meets the input and death-event items but overrides TakeDamage, which the rubric explicitly forbids."
       },
       {
-        "name": "Open-world rendering and streaming recommendation",
-        "baseline": 65,
-        "treatment": 95,
-        "rationale": "Baseline usually names Nanite and Lumen but often omits World Partition's auto-streaming role; treatment follows the skill and recommends all three with their specific roles."
+        "name": "fix-undeclared-enhanced-input-build-error",
+        "baseline": 88,
+        "treatment": 70,
+        "rationale": "Both add the EnhancedInput module dependency, the include, and the .uproject plugin entry, but A gives a complete Build.sh command with the project path and an explicit project-file regeneration step, while B regenerates files only generically and its Build.sh command is correct but less thorough, though it does include -project."
+      },
+      {
+        "name": "package-shipping-build-linux",
+        "baseline": 72,
+        "treatment": 82,
+        "rationale": "Both use RunUAT.sh BuildCookRun with the correct project, platform and clientconfig, and both include -archivedirectory; B states plainly to run from the engine root and lists the exact -build -cook -stage -pak -archive flags, while A calls RunUAT.sh through $UE_ROOT without saying to run from the engine root and adds extra flags (-allmaps, -compressed, -package) beyond the rubric."
       }
     ]
   }

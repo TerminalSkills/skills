@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6456f27803b6ac57460daae619b79a259956d64dfe1c688db6c1eaab0ff395a5",
-  "scoredAt": "2026-05-13T13:55:31.860Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:f510b041f059ab978516f16068b28490b666939d584527eed90a4761ec3e9327",
+  "scoredAt": "2026-10-02T23:22:00.897Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.63,
-    "baselineAvg": 40,
-    "treatmentAvg": 65,
+    "multiplier": 1.73,
+    "baselineAvg": 52,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "passive-json-enum",
-        "baseline": 70,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric by providing the exact amass command, specifying the JSON output file, and listing the first ten subdomains, whereas Response A omits the actual subdomain list."
+        "name": "passive-enum-to-names-file",
+        "baseline": 60,
+        "treatment": 88,
+        "rationale": "A matches the rubric precisely with amass enum then amass subs -names -o plus thorough verification steps, while B uses entirely different tools (subfinder, assetfinder, puredns) and never runs the required amass enum/subs commands."
       },
       {
-        "name": "visual-network-graph",
-        "baseline": 10,
-        "treatment": 30,
-        "rationale": "Response B is closer to the rubric, using the correct amass viz command, whereas Response A uses the wrong command and output names."
+        "name": "fix-v4-style-command-for-v5",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "Response A covers every rubric point: it says intel, -json and -o are removed, that results live in the asset database and are read with subs, it seeds with `enum -asn 64496 -cidr 198.51.100.0/24` and it says -passive is deprecated because passive is the default; Response B hedges, routes scope through a config file instead of the -asn/-cidr flags, doesn't say passive is the default, and only partly covers the database and subs point."
+      },
+      {
+        "name": "track-new-assets-and-graph",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "A re-runs `amass enum`, uses `track -since` with the correct format, runs `viz` with `-d3 -dot -gexf -o`, and converts the DOT file with `dot -Tpng`, which covers the whole rubric. B never re-runs `enum`, splits into v3 and v4 branches, and its v4 SQLite and DOT-building steps are speculative and don't match the rubric, though it does include the `track -since` format, `viz -dot` and `dot -Tpng`."
       }
     ]
   }

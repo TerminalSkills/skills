@@ -10,36 +10,41 @@ license: Apache-2.0
 compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/prettier/prettier
   tags:
     - formatting
     - code-style
     - prettier
     - javascript
     - typescript
-    - css
-    - html
 ---
 
 # Prettier — Code Formatting
+
+## Overview
 
 Prettier takes your code and reprints it from scratch according to a fixed set of rules. It parses your source into an AST, discards all original formatting, and outputs a consistently styled version. The result is that every developer on the team produces identically formatted code regardless of their editor or personal preferences.
 
 This skill covers configuring Prettier, integrating it with ESLint, setting up editor support, and enforcing formatting in CI.
 
-## Installing and Configuring Prettier
+## Instructions
+
+### Installing and Configuring Prettier
 
 Prettier works with zero configuration, but most teams customize a few options to match their preferences.
 
 ```bash
-# Install Prettier as a dev dependency
-npm install --save-dev prettier
+# Install an exact version: even a patch release can change formatting slightly
+npm install --save-dev --save-exact prettier
 ```
 
-Create a configuration file at the project root. Prettier supports several formats — `.prettierrc.json` is the most common.
+The current Prettier release declares Node.js 14 or newer. Create an empty `.prettierrc` to signal to editors that the project uses Prettier, or fill in a config as below.
 
-```json
+Create a configuration file at the project root. Prettier supports a `"prettier"` key in `package.json`, `.prettierrc` (JSON or YAML), `.prettierrc.json/.yml/.yaml/.json5/.toml`, and JavaScript or TypeScript files (`prettier.config.js/.mjs/.cjs/.ts`, `.prettierrc.ts`). TypeScript config files need Node.js 22.6+ (before Node 24.3 run with `--experimental-strip-types`). Use `overrides` for per-file settings, and never put `parser` at the top level — only inside `overrides`, otherwise language detection by file extension is switched off.
+
+```jsonc
 // .prettierrc.json — Prettier configuration for a TypeScript project
 {
   "semi": true,
@@ -55,13 +60,13 @@ Create a configuration file at the project root. Prettier supports several forma
 }
 ```
 
-Each option controls a specific formatting decision. Prettier intentionally keeps the option count small — there are roughly 20 options total. This is by design. Fewer options means fewer debates.
+Each option controls a specific formatting decision. Prettier intentionally keeps the option count small. Defaults in Prettier 3: `printWidth` 80, `tabWidth` 2, `semi` true, `singleQuote` false, `trailingComma` `"all"` (it was `"es5"` before 3.0), `arrowParens` `"always"`, `endOfLine` `"lf"`. Newer options include `objectWrap` (`"preserve"` by default; `"collapse"` joins objects onto one line when they fit) and `experimentalOperatorPosition` (`"end"` by default, `"start"` puts binary operators at the start of the continuation line).
 
-The most impactful options are `printWidth` (line length before wrapping), `singleQuote` (quote style), and `trailingComma` (helps with cleaner git diffs when set to `"all"`).
+The most impactful options are `printWidth` (line length before wrapping) and `singleQuote` (quote style); most teams keep the other defaults.
 
-## Ignoring Files
+### Ignoring Files
 
-Not every file should be formatted. Build output, generated code, and certain configuration files often need to be excluded. Create a `.prettierignore` file using the same syntax as `.gitignore`.
+Not every file should be formatted. Prettier already skips `node_modules` and version-control folders, and it follows the `.gitignore` in the directory where you run it. Add a `.prettierignore` (same syntax as `.gitignore`) for anything else, such as generated code or lock files. Inside a file, a `// prettier-ignore` comment skips the next node.
 
 ```text
 # .prettierignore — Files and directories Prettier should skip
@@ -81,11 +86,11 @@ package-lock.json
 pnpm-lock.yaml
 ```
 
-## Editor Integration
+### Editor Integration
 
 Prettier's real power comes from running on every save. When you configure your editor to format on save, you never think about formatting again — you just write code and it snaps into shape.
 
-```json
+```jsonc
 // .vscode/settings.json — VS Code settings for Prettier format-on-save
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -113,7 +118,7 @@ Prettier's real power comes from running on every save. When you configure your 
 
 Include this in your project's `.vscode/settings.json` and commit it to the repository. This way every developer who opens the project in VS Code automatically gets format-on-save without manual setup.
 
-## Integrating Prettier with ESLint
+### Integrating Prettier with ESLint
 
 Prettier and ESLint overlap on formatting rules. Running both without coordination causes conflicts — ESLint might demand semicolons while Prettier removes them, creating an endless loop.
 
@@ -152,7 +157,7 @@ export default [
 
 The order matters. `prettierConfig` must come last in the array so it overrides any formatting rules set by earlier configs.
 
-## Running Prettier from the Command Line
+### Running Prettier from the Command Line
 
 Prettier provides commands for formatting files, checking if files are already formatted, and listing files that would change.
 
@@ -160,19 +165,22 @@ Prettier provides commands for formatting files, checking if files are already f
 # Format all supported files in the project
 npx prettier --write .
 
-# Check if files are formatted (exits with error code if not) — use this in CI
+# Check if files are formatted (exit code 1 if not, 2 on a Prettier error) — use this in CI
 npx prettier --check .
 
 # Format specific file types
 npx prettier --write "src/**/*.{ts,tsx,css,json}"
 
-# See what would change without writing files
+# List the files that would change, without writing
 npx prettier --list-different .
+
+# Speed up repeated runs (cache in node_modules/.cache/prettier) and skip unsupported file types
+npx prettier --write --cache --ignore-unknown .
 ```
 
 Add these as npm scripts for consistency across the team.
 
-```json
+```jsonc
 // package.json — Prettier scripts for team usage
 {
   "scripts": {
@@ -182,7 +190,7 @@ Add these as npm scripts for consistency across the team.
 }
 ```
 
-## CI Enforcement
+### CI Enforcement
 
 Formatting should be a required check in your CI pipeline. The `--check` flag verifies that all files are already formatted and exits with a non-zero code if any file needs changes. This catches PRs where the developer forgot to run Prettier.
 
@@ -198,7 +206,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
@@ -213,13 +221,42 @@ npm install --save-dev husky lint-staged
 npx husky init
 ```
 
-```json
+```jsonc
 // package.json — lint-staged configuration for pre-commit formatting
 {
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
+    "*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,css,md}": "prettier --write --ignore-unknown"
   }
 }
 ```
 
-This runs Prettier on every staged file before each commit, ensuring that formatting violations never reach the remote repository.
+This runs Prettier on every staged file before each commit, ensuring that formatting violations never reach the remote repository. If you also run ESLint, list it before Prettier, as above. Lefthook is a lighter alternative to husky plus lint-staged for hooks.
+
+## Examples
+
+### Example 1: Adopt Prettier in an existing repo
+**Request:** "Add Prettier to our TypeScript service and make CI fail on unformatted code."
+
+```bash
+npm install --save-dev --save-exact prettier
+echo '{ "singleQuote": true, "printWidth": 100 }' > .prettierrc.json
+printf 'dist/\ncoverage/\n' > .prettierignore
+npx prettier --write .
+npx prettier --check .
+```
+The `--write` run lists every file it rewrote with a duration (`src/index.ts 42ms`); the final `--check` prints `All matched files use Prettier code style!` and exits 0. Commit the reformatting as its own commit, then add the CI job above.
+
+### Example 2: Stop ESLint and Prettier from fighting
+**Request:** "ESLint keeps reporting quote and semicolon errors after Prettier formats the file."
+
+Install `eslint-config-prettier`, import it in `eslint.config.js`, and put it last in the exported array (as shown earlier). The stylistic ESLint rules that clash with Prettier are switched off, and `npx eslint .` reports only real code problems.
+
+## Guidelines
+
+- Pin Prettier to an exact version, and let the editor use the project's local copy so everyone formats identically.
+- After upgrading Prettier (or changing options), reformat in one dedicated commit and, if you use `git blame`, list it in `.git-blame-ignore-revs`.
+- Prettier formats code; it does not find bugs. Keep ESLint (or Biome) for quality rules and use `eslint-config-prettier`, not the old `eslint-plugin-prettier`, unless you specifically want Prettier differences reported as lint errors.
+- Do not put `parser` at the top level of the config; set it per file pattern in `overrides`.
+- `--write` rewrites files in place: run it on a clean working tree so the diff is only formatting.
+- Commit `.prettierrc*`, `.prettierignore` and the editor settings so the whole team shares them.

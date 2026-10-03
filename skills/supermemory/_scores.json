@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6a9b952d3b1d7cfdb36887810680101820fc2a6f3f8bfa04025ede2642a454fe",
-  "scoredAt": "2026-05-13T10:16:11.270Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:bba523fd6dac86f6e31eaaaa2aa9f8c63f4346202dd214634fa2cb2a40afee25",
+  "scoredAt": "2026-10-03T13:07:18.969Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "PASS"
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack explicit error handling and edge case coverage."
+        "detail": "Error handling is mostly absent beyond a 402 note and a 'failed' status mention, with no retry guidance, rate limit handling, or what to do when connector OAuth is not approved."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Setup instructions and the chat-loop example lean on Claude-specific pieces (Claude Code plugin, Claude Desktop, Anthropic SDK) with only a brief Cursor MCP config for other agents."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 1 is prose only with no runnable code beyond referencing the earlier function, and Example 2 is a single search call, so both are fairly simplistic."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 7.15,
+    "baselineAvg": 13,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Chatbot with userId-scoped memory retrieval and store",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline guesses method names (sm.query, sm.store) and is uncertain about scoping; treatment uses client.memories.search({query,userId,limit}), injects results into the system prompt, and calls client.memories.add({content,userId}) as documented."
+        "name": "support-bot-customer-memory",
+        "baseline": 4,
+        "treatment": 93,
+        "rationale": "B uses client.profile with containerTag and q, injects static/dynamic into the system prompt, saves with add using containerTag and a stable customId, and warns off the deprecated names, while A uses none of the Supermemory API and builds a file-based memory instead."
       },
       {
-        "name": "Cross-source search via Google Drive connector",
-        "baseline": 20,
+        "name": "notion-connector-hybrid-search",
+        "baseline": 22,
+        "treatment": 90,
+        "rationale": "A uses client.connections.create(\"notion\") with containerTag, says the authLink must be opened and approved before sync starts, searches with searchMode \"hybrid\" on the same tag, notes chunk vs memory fields, and says there is no includeConnectors flag; B uses containerTags arrays, client.search.documents, never mentions searchMode, doesn't explain the chunk/memory split, and doesn't state that approval gates sync."
+      },
+      {
+        "name": "ingest-docs-cheaply-and-cursor-mcp",
+        "baseline": 12,
         "treatment": 95,
-        "rationale": "Baseline invents unrelated connector APIs; treatment calls client.connectors.connect({type:'google_drive',userId,credentials:{access_token}}) and searches with includeConnectors:true exactly as the skill specifies."
+        "rationale": "Response A gives the superrag ingestion with containerTag and customId, the cost reasoning, the OAuth mcp.json config with the correct URL, and warns against the old npx setup, while Response B correctly configures Cursor but says it doesn't know the superrag flag, never mentions taskType or customId, and so misses the main ingestion requirement."
       }
     ]
   }

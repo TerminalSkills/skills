@@ -1,15 +1,17 @@
 ---
 name: alembic
 description: >-
-  Manage database migrations with Alembic. Use when a user asks to version
-  database schemas, create migration scripts, handle schema changes in
-  production, or manage SQLAlchemy model migrations.
+  Manage database migrations for SQLAlchemy with Alembic. Use when a user asks
+  to version database schemas, autogenerate migration scripts from models, run
+  or roll back migrations, set up async SQLAlchemy migrations, or handle schema
+  changes safely in production.
 license: Apache-2.0
-compatibility: 'Python 3.8+, PostgreSQL, MySQL, SQLite'
+compatibility: 'Python 3.10+ (Alembic 1.20), SQLAlchemy 2.x, PostgreSQL, MySQL, SQLite'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/sqlalchemy/alembic
   tags:
     - alembic
     - migrations
@@ -22,7 +24,7 @@ metadata:
 
 ## Overview
 
-Alembic is the migration tool for SQLAlchemy. It tracks database schema changes as versioned Python scripts — like Git for your database. Supports autogeneration from model changes, branching, and data migrations.
+Alembic is the migration tool for SQLAlchemy. It records schema changes as versioned Python scripts, each pointing at its parent revision, and stores the current revision in an `alembic_version` table. It can autogenerate scripts by comparing your models with the live database, run data migrations, handle branches, and emit plain SQL for review. Checked against Alembic 1.20 (September 2026), which requires Python 3.10+.
 
 ## Instructions
 
@@ -30,95 +32,103 @@ Alembic is the migration tool for SQLAlchemy. It tracks database schema changes 
 
 ```bash
 pip install alembic
-alembic init alembic
+alembic list_templates                 # generic, async, multidb, pyproject, pyproject_async
+alembic init migrations                # sync driver (psycopg, pymysql, sqlite)
+alembic init -t async migrations       # async driver (asyncpg, aiosqlite, aiomysql)
 ```
+
+Set the database URL in `alembic.ini` (`sqlalchemy.url`) or override it in `env.py` from an environment variable such as `DATABASE_URL`; do not commit passwords. Then point `env.py` at your models:
 
 ```python
-# alembic/env.py — Configure with async SQLAlchemy
-from alembic import context
-from sqlalchemy.ext.asyncio import create_async_engine
-from models import Base
-import asyncio
-
-config = context.config
+# migrations/env.py (edit the generated file, do not replace it)
+from app.models import Base          # your DeclarativeBase subclass
 target_metadata = Base.metadata
-
-def run_migrations_online():
-    connectable = create_async_engine(config.get_main_option("sqlalchemy.url"))
-
-    async def do_run():
-        async with connectable.connect() as connection:
-            await connection.run_sync(do_migrations)
-
-    def do_migrations(connection):
-        context.configure(connection=connection, target_metadata=target_metadata)
-        with context.begin_transaction():
-            context.run_migrations()
-
-    asyncio.run(do_run())
-
-run_migrations_online()
 ```
 
-### Step 2: Create Migrations
+The `async` template already contains the async engine wiring and the offline mode branch (needed for `--sql`). Async drivers need `pip install "sqlalchemy[asyncio]" asyncpg` (or `aiosqlite`); without greenlet, `env.py` fails with an ImportError. Hand-written `env.py` files that always call `run_migrations_online()` break `--sql`, so start from the template.
+
+### Step 2: Create migrations
 
 ```bash
-# Auto-generate from model changes
-alembic revision --autogenerate -m "add projects table"
-
-# Create empty migration (for data migrations)
-alembic revision -m "backfill user roles"
+alembic revision --autogenerate -m "add projects table"   # diff models vs database
+alembic revision -m "backfill user roles"                 # empty script for data work
+alembic check                                             # fails if models differ from the migrations
 ```
 
+Generated files are named `<hash>_<slug>.py` and look like this (autogenerate output, adjusted by hand):
+
 ```python
-# alembic/versions/001_add_projects.py — Generated migration
-def upgrade():
-    op.create_table('projects',
-        sa.Column('id', sa.String(36), primary_key=True),
-        sa.Column('name', sa.String(100), nullable=False),
-        sa.Column('owner_id', sa.String(36), sa.ForeignKey('users.id')),
-        sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+def upgrade() -> None:
+    op.create_table(
+        "projects",
+        sa.Column("id", sa.Integer(), primary_key=True),
+        sa.Column("name", sa.String(100), nullable=False),
+        sa.Column("owner_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
     )
-    op.create_index('ix_projects_owner_id', 'projects', ['owner_id'])
+    op.create_index(op.f("ix_projects_owner_id"), "projects", ["owner_id"])
 
-def downgrade():
-    op.drop_index('ix_projects_owner_id')
-    op.drop_table('projects')
+def downgrade() -> None:
+    op.drop_index(op.f("ix_projects_owner_id"), table_name="projects")
+    op.drop_table("projects")
 ```
 
-### Step 3: Data Migrations
+Pass `table_name` to `op.drop_index`; MySQL requires it.
+
+### Step 3: Data migrations
 
 ```python
-# alembic/versions/002_backfill_roles.py — Data migration
-from alembic import op
-import sqlalchemy as sa
+def upgrade() -> None:
+    op.add_column("users", sa.Column("role", sa.String(20), server_default="member", nullable=False))
+    op.execute(sa.text("UPDATE users SET role = 'admin' WHERE email LIKE '%@mycompany.com'"))
 
-def upgrade():
-    # Add column
-    op.add_column('users', sa.Column('role', sa.String(20), server_default='member'))
-
-    # Backfill existing rows
-    conn = op.get_bind()
-    conn.execute(sa.text("UPDATE users SET role = 'admin' WHERE email LIKE '%@mycompany.com'"))
-
-def downgrade():
-    op.drop_column('users', 'role')
+def downgrade() -> None:
+    op.drop_column("users", "role")
 ```
+
+`op.execute()` also works in `--sql` mode, while `op.get_bind()` results do not.
 
 ### Step 4: Commands
 
 ```bash
 alembic upgrade head          # apply all pending migrations
-alembic downgrade -1          # rollback one migration
-alembic history               # show migration history
-alembic current               # show current revision
-alembic upgrade +1            # apply next migration only
+alembic upgrade +1            # apply the next one only
+alembic downgrade -1          # roll back one
+alembic current               # revision the database is at
+alembic history --verbose     # full chain
+alembic heads                 # more than one head means branches to merge
+alembic merge -m "merge heads" a1b2c3d4e5f6 9f8e7d6c5b4a
+alembic stamp head            # mark the database as current without running anything
+alembic upgrade head --sql > upgrade.sql   # SQL for a DBA to review
 ```
+
+## Examples
+
+**Example 1: "Add a tasks table and ship it"**
+
+```bash
+alembic revision --autogenerate -m "add tasks table"
+# review migrations/versions/3f1c9a7b2d10_add_tasks_table.py
+alembic upgrade head
+alembic current
+```
+
+Result: the script creates `tasks`, `alembic current` prints `3f1c9a7b2d10 (head)`, and a later `alembic check` reports no new operations.
+
+**Example 2: "Preview the production SQL before deploying"**
+
+```bash
+export DATABASE_URL="postgresql+asyncpg://app:${DB_PASSWORD}@db.internal:5432/orders"
+alembic upgrade head --sql > release-42.sql
+```
+
+Result: `release-42.sql` holds the DDL for every pending revision, including the statements that update `alembic_version`; nothing touches the database.
 
 ## Guidelines
 
-- Always review autogenerated migrations — they may miss renames (detected as drop+create).
-- Run migrations in CI before deploying — catch schema issues early.
-- Data migrations should be idempotent — safe to run multiple times.
-- Use `op.batch_alter_table()` for SQLite (which doesn't support ALTER TABLE well).
-- Never edit applied migrations — create new ones instead.
+- Always read autogenerated scripts: renames show up as drop plus create (data loss), and server defaults, enum changes and some constraint changes can be missed.
+- Run `alembic upgrade head` against a scratch database in CI, and `alembic check` to catch models changed without a migration.
+- Make downgrades real or delete them deliberately; untested downgrades give false safety.
+- Use `op.batch_alter_table()` on SQLite, which cannot alter most constraints in place.
+- Never edit a migration that has been applied elsewhere; add a new one.
+- Two developers creating revisions in parallel produce two heads; resolve with `alembic merge`.
+- Large tables: avoid locking changes in one step (add the column nullable, backfill in batches, then add the constraint).

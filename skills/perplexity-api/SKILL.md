@@ -1,15 +1,15 @@
 ---
 name: perplexity-api
 description: >-
-  Perplexity API for real-time web-search-augmented LLM responses. Use when you
+  Perplexity API gives LLM answers grounded in live web search, with cited sources. Use when you
   need up-to-date information in AI responses, research assistants, fact-checking,
   current events coverage, or any task requiring knowledge beyond an LLM's training cutoff.
   Returns cited sources alongside answers.
 license: Apache-2.0
-compatibility: "Python 3.9+ with openai SDK (OpenAI-compatible API)"
+compatibility: "Python 3.9+ with the perplexityai SDK, or Node.js with @perplexity-ai/perplexity_ai"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.2.0"
   category: data-ai
   tags: ["perplexity", "web-search", "llm", "real-time", "citations"]
   use-cases:
@@ -23,251 +23,146 @@ metadata:
 
 ## Overview
 
-Perplexity AI provides LLM inference augmented with real-time web search. Unlike standard LLMs limited to training data, Perplexity's online models fetch and synthesize current web information on every query. Responses include citations to source URLs. The API is fully OpenAI-compatible — use the `openai` SDK with a custom `base_url`.
+Perplexity's API returns LLM answers grounded in live web search, with citations. Sonar Chat Completions (`/chat/completions`, models `sonar`, `sonar-pro`, `sonar-reasoning-pro`) reached end of support on 27 September 2026: sync and streaming calls are still being served by reformulating them as Agent API requests, but async requests no longer work. New code should use the **Agent API** (`client.responses.create`). `sonar-reasoning` and `r1-1776` are deprecated.
 
 ## Setup
 
 ```bash
-pip install openai  # Perplexity uses OpenAI-compatible API
+pip install perplexityai          # Python
+npm install @perplexity-ai/perplexity_ai   # TypeScript
+export PERPLEXITY_API_KEY="pplx-..."       # read automatically by the SDK
 ```
-
-```bash
-export PERPLEXITY_API_KEY=pplx-...
-```
-
-## Available Models
-
-| Model | Type | Best For |
-|---|---|---|
-| `sonar` | Online | Fast web-augmented answers |
-| `sonar-pro` | Online | Deep research, complex queries |
-| `sonar-reasoning` | Online | Step-by-step reasoning + search |
-| `sonar-reasoning-pro` | Online | Advanced reasoning + deep search |
-| `r1-1776` | Offline | No search, uncensored reasoning |
-
-**Online models** search the web on every request. **Offline models** use only training data.
 
 ## Instructions
 
-### Basic Query with Web Search
+### Basic query with web search
+
+Pick a `preset` (tuned model + search depth) or a specific `model`.
 
 ```python
-from openai import OpenAI
+from perplexity import Perplexity
 
-client = OpenAI(
-    api_key="pplx-...",  # or os.environ["PERPLEXITY_API_KEY"]
-    base_url="https://api.perplexity.ai",
+client = Perplexity()  # uses PERPLEXITY_API_KEY
+response = client.responses.create(
+    preset="fast",
+    input="What changed in the latest Python release?",
 )
-
-response = client.chat.completions.create(
-    model="sonar",
-    messages=[
-        {
-            "role": "system",
-            "content": "Be precise and concise. Always cite your sources.",
-        },
-        {
-            "role": "user",
-            "content": "What are the latest developments in quantum computing as of today?",
-        },
-    ],
-)
-
-print(response.choices[0].message.content)
+print(response.output_text)
 ```
 
-### Accessing Citations
+| Preset | Replaces | Tools | Use for |
+|---|---|---|---|
+| `fast` | `sonar`, `sonar-pro` | web_search | quick factual lookups, minimal latency |
+| `low` | `sonar-reasoning-pro` | web_search, fetch_url | everyday questions needing current info |
+| `medium` | (new) | web_search, fetch_url | multi-step research across many sources |
+| `high` | `sonar-deep-research` | web_search, fetch_url | exhaustive, institutional-grade research |
+| `xhigh` | (new) | web_search, finance_search, sandbox | open-ended agentic work with code execution |
+
+Presets are dynamic: Perplexity tunes the model behind each name over time. Copy a preset's values inline if you need frozen behavior, and override any single parameter (model, tools, `max_steps`) while keeping the rest.
+
+### Choose a model, enable web search, add instructions
 
 ```python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="pplx-...",
-    base_url="https://api.perplexity.ai",
+response = client.responses.create(
+    model="openai/gpt-5.6-sol",
+    input="Summarize this week's AI regulation news in the EU.",
+    tools=[{"type": "web_search"}],
+    instructions="Use web_search for current events. Keep queries brief. Cite sources.",
+    max_output_tokens=2048,
 )
-
-response = client.chat.completions.create(
-    model="sonar-pro",
-    messages=[{"role": "user", "content": "What is the current price of Bitcoin?"}],
-)
-
-# Main answer
-print(response.choices[0].message.content)
-
-# Citations are in the extra_fields / model_extra
-if hasattr(response, "citations"):
-    for i, citation in enumerate(response.citations, 1):
-        print(f"[{i}] {citation}")
-
-# Or access via model_extra
-citations = getattr(response, "citations", [])
-for url in citations:
-    print(f"Source: {url}")
+print(response.output_text)
 ```
 
-### Streaming with Citations
+The Agent API also exposes models from Anthropic, Google and xAI under `provider/model` ids; check the models page for the current list.
+
+### Citations and search results
 
 ```python
-from openai import OpenAI
+print(response.output_text)
 
-client = OpenAI(
-    api_key="pplx-...",
-    base_url="https://api.perplexity.ai",
-)
+for r in response.search_results:       # title, url, date, snippet
+    print(r.title, r.url)
 
-stream = client.chat.completions.create(
-    model="sonar",
-    messages=[{"role": "user", "content": "Summarize the top tech news today."}],
-    stream=True,
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
-print()
+# Inline citation annotations live on the message content
+for item in response.output:
+    if item.type == "message":
+        for part in item.content:
+            for note in getattr(part, "annotations", []) or []:
+                print(note)
 ```
 
-### Deep Research with sonar-pro
+### Streaming and background mode
 
 ```python
-from openai import OpenAI
+for event in client.responses.create(preset="fast", input="Top tech news today", stream=True):
+    if event.type == "response.output_text.delta":
+        print(event.delta, end="")
 
-client = OpenAI(
-    api_key="pplx-...",
-    base_url="https://api.perplexity.ai",
-)
-
-# sonar-pro performs more web searches for comprehensive answers
-response = client.chat.completions.create(
-    model="sonar-pro",
-    messages=[
-        {
-            "role": "system",
-            "content": "You are a research analyst. Provide detailed, well-sourced analysis.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Provide a comprehensive analysis of the current state of "
-                "AI regulation globally, including recent legislation and upcoming proposals."
-            ),
-        },
-    ],
-    max_tokens=2000,
-)
-
-print(response.choices[0].message.content)
+job = client.responses.create(preset="high", input="Full market analysis of EU battery makers", background=True)
 ```
 
-### Reasoning with sonar-reasoning
+Use `background=True` for long jobs and poll by response id; this replaces async Sonar requests.
+
+### Migrating old Sonar code
 
 ```python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="pplx-...",
-    base_url="https://api.perplexity.ai",
-)
-
-# sonar-reasoning shows chain-of-thought + searches web
-response = client.chat.completions.create(
-    model="sonar-reasoning",
-    messages=[
-        {
-            "role": "user",
-            "content": (
-                "Based on current market data, should I invest in NVIDIA or AMD stock? "
-                "Consider recent earnings and market trends."
-            ),
-        }
-    ],
-)
-
-print(response.choices[0].message.content)
-# Response includes <think> blocks with reasoning process
+# before
+client.chat.completions.create(model="sonar", messages=[{"role": "user", "content": q}])
+# after
+client.responses.create(preset="fast", input=q)
 ```
 
-### Multi-Turn Research Session
+`messages`/`choices` become `input`/`output`; `max_tokens` becomes `max_output_tokens`, `search_domain_filter` and `search_recency_filter` move into the `web_search` tool's `filters`, and `reasoning_effort` becomes `reasoning.effort`. `search_language_filter`, `stream_mode`, video results and regex `response_format` have no equivalent. Read text from `response.output_text` instead of `choices[0].message.content`. For multi-turn chats pass earlier turns in `input` as the docs describe for conversation context.
 
-```python
-from openai import OpenAI
+### TypeScript
 
-client = OpenAI(
-    api_key="pplx-...",
-    base_url="https://api.perplexity.ai",
-)
+```typescript
+import Perplexity from '@perplexity-ai/perplexity_ai';
 
-messages = [
-    {
-        "role": "system",
-        "content": "You are a research assistant with access to current web information. "
-                   "Always cite sources and indicate when information may be time-sensitive.",
-    }
-]
-
-def research_chat(user_message: str) -> str:
-    messages.append({"role": "user", "content": user_message})
-    
-    response = client.chat.completions.create(
-        model="sonar-pro",
-        messages=messages,
-    )
-    
-    answer = response.choices[0].message.content
-    messages.append({"role": "assistant", "content": answer})
-    return answer
-
-# Multi-turn research
-print(research_chat("What are the main AI labs releasing models in 2025?"))
-print(research_chat("Which of those models are available via API right now?"))
-print(research_chat("Compare their pricing per million tokens."))
+const client = new Perplexity();
+const response = await client.responses.create({ preset: 'low', input: 'Compare Postgres 17 and 18 release notes' });
+console.log(response.output_text);
 ```
 
-### Rate Limiting & Error Handling
+## Examples
+
+### Example 1: Research assistant with sources
+
+Request: "Answer 'which EU countries passed AI laws this year' and list the sources."
 
 ```python
-from openai import OpenAI, RateLimitError
+response = client.responses.create(preset="low", input="Which EU countries passed national AI laws this year?")
+print(response.output_text)
+for r in response.search_results:
+    print("-", r.title, r.url)
+```
+
+Result: a cited paragraph, then one line per source page.
+
+### Example 2: Retry on rate limits
+
+Request: "Make my lookup tolerant of 429s."
+
+```python
 import time
+import perplexity
 
-client = OpenAI(
-    api_key="pplx-...",
-    base_url="https://api.perplexity.ai",
-)
-
-def search_with_retry(query: str, retries: int = 3) -> str:
+def ask(q, retries=3):
     for attempt in range(retries):
         try:
-            response = client.chat.completions.create(
-                model="sonar",
-                messages=[{"role": "user", "content": query}],
-                timeout=30,
-            )
-            return response.choices[0].message.content
-        except RateLimitError:
-            wait = 2 ** attempt
-            print(f"Rate limited. Retrying in {wait}s...")
-            time.sleep(wait)
-    raise Exception("Max retries exceeded")
+            return client.responses.create(preset="fast", input=q).output_text
+        except perplexity.RateLimitError:
+            time.sleep(2 ** attempt)
+    raise RuntimeError("rate limit retries exhausted")
 ```
 
-## Online vs Offline Models
-
-| Feature | Online (sonar*) | Offline (r1-1776) |
-|---|---|---|
-| Web search | ✅ Real-time | ❌ Training data only |
-| Citations | ✅ URL sources | ❌ Not applicable |
-| Current events | ✅ Up to today | ❌ Training cutoff |
-| Latency | Higher (~2–5s) | Lower (~0.5s) |
-| Cost | Higher | Lower |
-
-Use **online models** when freshness matters. Use **offline models** for tasks that don't need current data (reasoning, creative writing, code).
+Result: the call backs off 1s, 2s, 4s before giving up.
 
 ## Guidelines
 
-- Online models search the web on every request — expect 2–5 second latency.
-- Citations appear in the `response.citations` list (URLs).
-- `sonar` is fastest for simple lookups; `sonar-pro` does multiple searches for complex topics.
-- Perplexity's search is English-centric but supports other languages.
-- For real-time price data or stock quotes, combine Perplexity with direct API calls for accuracy.
-- The system prompt cannot disable web search for online models — use offline models if you need pure LLM responses.
-- Token costs include search overhead — budget accordingly for high-volume use.
+- Do not start new projects on `/chat/completions` or the `openai` SDK with `base_url="https://api.perplexity.ai"`; it works only through a compatibility layer being phased out.
+- Search runs per request, so expect seconds of latency; `fast` is cheapest, `high`/`xhigh` cost far more.
+- Tool calls (web search, URL fetch) are billed per call on top of tokens; check `response.usage` for cost.
+- For exact prices or stock quotes, call a primary data API rather than trusting a summary.
+- Keep the API key in the environment, never in source.
+- Exact error class names are in the SDK reference; verify them there before relying on them. The REST endpoint is `POST https://api.perplexity.ai/v1/agent`.

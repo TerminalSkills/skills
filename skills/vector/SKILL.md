@@ -1,12 +1,19 @@
 ---
 name: vector
-description: Expert guidance for Vector, the high-performance observability data pipeline built in Rust by Datadog. Helps developers collect, transform, and route logs, metrics, and traces from any source to any destination with minimal resource usage. Vector replaces Logstash, Fluentd, and Filebeat with a single, faster tool.
+description: >-
+  Vector is a high-performance observability data pipeline written in Rust and
+  maintained by Datadog. It collects, transforms and routes logs, metrics and
+  traces from any source to any destination using TOML or YAML configs and the
+  VRL remap language. Use it to replace Logstash, Fluentd or Filebeat, filter
+  and sample noisy logs, archive to S3, or write and debug vector.toml, VRL and
+  `vector test` unit tests.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: Vector 0.58 or newer (config shown was validated with 0.58.0); Linux, macOS, Windows, Docker or Kubernetes
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/vectordotdev/vector
   tags:
   - log-pipeline
   - data-pipeline
@@ -17,245 +24,213 @@ metadata:
 
 # Vector — High-Performance Observability Data Pipeline
 
-
 ## Overview
 
+Vector reads data from **sources**, reshapes it with **transforms** and delivers it to **sinks**. Each component has a name and an `inputs` list that wires it to upstream components. It runs as an agent on every host (DaemonSet in Kubernetes) or as a central aggregator, and ships as a single static binary. Configuration can be TOML, YAML or JSON; this skill uses TOML.
 
-Vector, the high-performance observability data pipeline built in Rust by Datadog. Helps developers collect, transform, and route logs, metrics, and traces from any source to any destination with minimal resource usage. Vector replaces Logstash, Fluentd, and Filebeat with a single, faster tool.
+Changes in recent releases that older tutorials get wrong:
 
+- **0.57**: environment-variable interpolation (`${ES_PASSWORD}`) in config files is **off by default**. Re-enable it with `--dangerously-allow-env-var-interpolation` or `VECTOR_DANGEROUSLY_ALLOW_ENV_VAR_INTERPOLATION=true`, run the file through `envsubst` first, or use a secrets backend.
+- **0.57**: sinks that accept `{{ field }}` templates (S3, Elasticsearch, Kafka, HTTP, Loki, file and others) refuse templates with no literal prefix, such as `topic = "{{ x }}"`. Write `topic = "logs-{{ x }}"`, or set `dangerously_allow_unconfined_template_resolution = true` only if you accept the injection risk. `vector validate` reports these at startup.
+- Elasticsearch `auth` needs `auth.strategy = "basic"`; without it validation fails with "missing field `strategy`".
+- The `http` sink has no `condition` option; route errors to it through a `filter` transform, and keep errors out of sampling with `exclude` on `sample`.
+- Latest release when checked: 0.58.0 (26 August 2026).
 
 ## Instructions
+
+### Install
+
+Prefer a package manager or container image:
+
+```bash
+brew install vector                       # macOS
+helm repo add vector https://helm.vector.dev
+helm install vector vector/vector         # Kubernetes
+docker run --rm -v "$PWD/vector.toml:/etc/vector/vector.toml:ro" \
+  timberio/vector:0.58.0-alpine --config /etc/vector/vector.toml
+```
+
+For apt, yum and archive installs follow https://vector.dev/docs/setup/installation/. If you download an archive from packages.timber.io, verify its published checksum before unpacking, and avoid piping the install script into a shell.
 
 ### Configuration
 
 ```toml
-# vector.toml — Collect, transform, and route observability data
+# vector.toml — collect, filter, sample and route logs and metrics
+data_dir = "/var/lib/vector"
 
-# --- Sources: Where data comes from ---
-
-# Collect from files (like Filebeat)
+# --- Sources ---
 [sources.app_logs]
 type = "file"
 include = ["/var/log/app/*.log"]
-read_from = "beginning"
+read_from = "end"                     # "beginning" re-reads old files on first start
 
-# Receive via Syslog
-[sources.syslog]
-type = "syslog"
-address = "0.0.0.0:514"
-mode = "tcp"
-
-# Receive via HTTP (for apps that POST logs)
-[sources.http_logs]
+[sources.http_logs]                   # apps POST JSON here
 type = "http_server"
-address = "0.0.0.0:8686"
-encoding = "json"
+address = "127.0.0.1:8686"
+decoding.codec = "json"
 
-# Collect host metrics (CPU, memory, disk, network)
 [sources.host_metrics]
 type = "host_metrics"
 collectors = ["cpu", "memory", "disk", "network"]
 scrape_interval_secs = 15
 
-# Receive OpenTelemetry data
-[sources.otel]
+[sources.otel]                        # OpenTelemetry: outputs are otel.logs / otel.metrics / otel.traces
 type = "opentelemetry"
-grpc.address = "0.0.0.0:4317"
-http.address = "0.0.0.0:4318"
+grpc.address = "127.0.0.1:4317"
+http.address = "127.0.0.1:4318"
 
-# --- Transforms: Process and enrich data ---
-
-# Parse JSON logs
+# --- Transforms ---
 [transforms.parse_json]
 type = "remap"
 inputs = ["app_logs"]
 source = '''
-  # Parse JSON from log line
   . = parse_json!(.message)
-
-  # Add environment tag
   .environment = get_env_var("ENVIRONMENT") ?? "production"
-
-  # Redact sensitive fields
-  if exists(.email) {
-    .email = redact(.email, filters: ["pattern"], redactor: "full",
-      patterns: [r'\S+@\S+'])
-  }
-
-  # Parse timestamp
   .timestamp = parse_timestamp!(.timestamp, format: "%Y-%m-%dT%H:%M:%S%.fZ")
+  if exists(.email) {
+    .email = redact(string!(.email), filters: [r'\S+@\S+'])
+  }
 '''
 
-# Filter out health check noise
 [transforms.filter_noise]
 type = "filter"
 inputs = ["parse_json"]
 condition = '''
-  !includes(["GET /health", "GET /ready", "GET /metrics"], .message) &&
-  .level != "debug"
+  !includes(["GET /health", "GET /ready", "GET /metrics"], .request) && .level != "debug"
 '''
 
-# Sample high-volume logs (keep 10% of info logs, 100% of errors)
-[transforms.sample]
+[transforms.sample_info]              # keeps 1 in 10 events, never drops errors or warnings
 type = "sample"
 inputs = ["filter_noise"]
 rate = 10
-condition = '.level == "info"'
 exclude = '.level == "error" || .level == "warn"'
 
-# Add derived fields
-[transforms.enrich]
-type = "remap"
-inputs = ["sample"]
-source = '''
-  # Categorize by service from log path or field
-  .service = .service ?? "unknown"
+[transforms.errors_only]
+type = "filter"
+inputs = ["filter_noise"]
+condition = '.level == "error"'
 
-  # Calculate log size for billing tracking
-  .log_size_bytes = length(encode_json(.))
-
-  # Normalize severity levels
-  .severity = if .level == "fatal" || .level == "critical" { "error" }
-              else if .level == "warning" { "warn" }
-              else { .level }
-'''
-
-# Aggregate metrics (reduce cardinality)
 [transforms.aggregate_metrics]
 type = "aggregate"
 inputs = ["host_metrics"]
 interval_ms = 60000
 
-# --- Sinks: Where data goes ---
-
-# Send logs to Elasticsearch/OpenSearch
+# --- Sinks ---
 [sinks.elasticsearch]
 type = "elasticsearch"
-inputs = ["enrich"]
-endpoints = ["https://es.example.com:9200"]
+inputs = ["sample_info"]
+endpoints = ["https://es.internal.shopwave.io:9200"]
 bulk.index = "logs-%Y-%m-%d"
-auth.user = "${ES_USER}"
+auth.strategy = "basic"
+auth.user = "${ES_USER}"              # needs env-var interpolation enabled (see Overview)
 auth.password = "${ES_PASSWORD}"
 compression = "gzip"
 batch.max_bytes = 10485760
 batch.timeout_secs = 5
+buffer.type = "disk"                  # survives destination outages and restarts
+buffer.max_size = 1073741824
+buffer.when_full = "block"
 
-# Send to S3 for long-term archive (cheap storage)
 [sinks.s3_archive]
 type = "aws_s3"
-inputs = ["enrich"]
-bucket = "logs-archive"
-key_prefix = "logs/{{ service }}/year=%Y/month=%m/day=%d/"
+inputs = ["sample_info"]
+bucket = "shopwave-logs-archive"
+region = "us-east-1"
+key_prefix = "logs/{{ service }}/year=%Y/month=%m/day=%d/"   # literal prefix keeps 0.57+ confinement happy
 compression = "gzip"
 encoding.codec = "json"
-batch.max_bytes = 104857600        # 100MB files for efficient S3 storage
+batch.max_bytes = 104857600
 batch.timeout_secs = 300
 
-# Send metrics to Prometheus
 [sinks.prometheus]
 type = "prometheus_exporter"
 inputs = ["aggregate_metrics"]
 address = "0.0.0.0:9598"
 
-# Route errors to Slack for immediate visibility
 [sinks.slack_errors]
 type = "http"
-inputs = ["enrich"]
+inputs = ["errors_only"]
 uri = "${SLACK_WEBHOOK_URL}"
 method = "post"
 encoding.codec = "json"
-condition = '.level == "error" || .level == "fatal"'
 batch.max_events = 1
-request.rate_limit_num = 5         # Max 5 Slack messages per second
+request.rate_limit_duration_secs = 1
+request.rate_limit_num = 5
 ```
+
+Validate, then run:
+
+```bash
+vector validate --no-environment vector.toml      # add --dangerously-allow-env-var-interpolation if the file uses ${VAR}
+vector --config vector.toml
+```
+
+`--no-environment` skips network health checks, so it works offline; drop it in CI to also check that destinations are reachable. Unused sources only produce warnings.
 
 ### VRL (Vector Remap Language)
 
-```coffee
-# VRL is Vector's data transformation language — fast, safe, type-checked
+VRL is compiled and type-checked: fallible calls must be handled with `!` (abort the event on error) or `?? default`.
 
-# Parse and restructure a complex log line
+```coffee
 . = parse_json!(.message)
 
-# Geoip enrichment
-.geo = get_enrichment_table_record("geoip", {"ip": .client_ip}) ?? {}
-.country = .geo.country_code ?? "unknown"
-del(.geo)
-
-# Route based on content
-if starts_with(.message, "AUDIT:") {
-  .metadata.sink = "audit-logs"
-} else if .status_code >= 500 {
-  .metadata.sink = "error-logs"
+if starts_with(string!(.message), "AUDIT:") {
+  .route = "audit"
+} else if (to_int(.status_code) ?? 0) >= 500 {
+  .route = "error"
 } else {
-  .metadata.sink = "general-logs"
+  .route = "general"
 }
 
-# Coerce types
 .duration_ms = to_float(.duration_ms) ?? 0.0
-.status_code = to_int(.status_code) ?? 0
-
-# Flatten nested objects for better indexing
-.user_email = del(.user.email)
 .user_id = del(.user.id)
 del(.user)
 ```
 
-## Installation
+Try snippets interactively with `vector vrl`, or watch live events with `vector tap` and `vector top` against a running instance.
 
-```bash
-# macOS
-brew install vector
+### Unit tests
 
-# Linux (script)
-curl --proto '=https' --tlsv1.2 -sSfL https://sh.vector.dev | bash
-
-# Docker
-docker run -v $(pwd)/vector.toml:/etc/vector/vector.toml timberio/vector:latest-alpine
-
-# Helm (Kubernetes)
-helm repo add vector https://helm.vector.dev
-helm install vector vector/vector
-
-# Validate config
-vector validate vector.toml
-
-# Run
-vector --config vector.toml
+```toml
+[[tests]]
+name = "normalizes warning and redacts email"
+[[tests.inputs]]
+insert_at = "parse_json"
+type = "log"
+[tests.inputs.log_fields]
+message = '{"level":"warning","status_code":"503","email":"dana@shopwave.io"}'
+[[tests.outputs]]
+extract_from = "parse_json"
+[[tests.outputs.conditions]]
+type = "vrl"
+source = '''
+  assert_eq!(.severity, "warn")
+  assert!(!contains(string!(.email), "dana"))
+'''
 ```
 
+Put the `[[tests]]` next to the transforms they cover and run `vector test vector.toml`. Output: `test normalizes warning and redacts email ... passed`.
 
 ## Examples
 
+### Example 1: Cut Elasticsearch cost for a Node.js API
 
-### Example 1: Setting up Vector for a microservices project
+**User request:** "Our Node API logs JSON to /var/log/api/*.log and Elasticsearch costs too much. Drop health checks and debug, keep all errors, sample the rest."
 
-**User request:**
+Create `vector.toml` from the configuration above, with `include = ["/var/log/api/*.log"]`. Run `vector validate --no-environment vector.toml`; it prints `Validated` for transforms and sinks. Start with `vector --config vector.toml` and confirm with `vector top` that `filter_noise` receives more events than `sample_info` emits. Errors and warnings all reach Elasticsearch; about one in ten info events does.
 
-```
-I have a Node.js API and a React frontend running in Docker. Set up Vector for monitoring/deployment.
-```
+### Example 2: Fix a failing VRL remap
 
-The agent creates the necessary configuration files based on patterns like `# vector.toml — Collect, transform, and route observability `, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
+**User request:** "Vector says `unhandled fallible assignment` on `.timestamp = parse_timestamp(.ts, \"%+\")`."
 
-### Example 2: Troubleshooting vrl issues
-
-**User request:**
-
-```
-Vector is showing errors in our vrl. Here are the logs: [error output]
-```
-
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Vector issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
-
+`parse_timestamp` can fail, so VRL refuses to compile it. Change the line to `.timestamp = parse_timestamp!(.ts, format: "%+")` to drop events with a bad timestamp, or `parse_timestamp(.ts, format: "%+") ?? now()` to keep them. Add a `[[tests]]` case with a malformed `ts` and run `vector test vector.toml` to lock in the behaviour.
 
 ## Guidelines
 
-1. **Replace Logstash/Fluentd** — Vector uses 10x less memory than Logstash; deploy as a drop-in replacement
-2. **Filter before sending** — Remove debug logs, health checks, and noise in Vector; don't pay to store data you'll never query
-3. **Sample high-volume logs** — Keep 100% of errors, sample info logs at 10-20%; reduce storage costs without losing signal
-4. **S3 for archives** — Route all logs to S3 (compressed) for cheap long-term storage; route only recent/important logs to Elasticsearch
-5. **VRL over regex** — VRL is compiled and type-checked; it's 5-10x faster than Logstash's Ruby filters
-6. **One Vector per host** — Run Vector as an agent on each host (DaemonSet in K8s); it handles collection, transformation, and shipping
-7. **Disk buffers for reliability** — Enable disk-based buffers to prevent data loss during destination outages
-8. **Test transforms** — Use `vector vrl` REPL and `vector test` to validate transforms before deploying
+- Pin the image or package version; upgrade one minor at a time and read the upgrade guide, since 0.57 changed env-var and template handling.
+- Never put secrets in the config file. Use a secrets backend, or env vars with interpolation explicitly enabled, and keep the file out of Git.
+- Filter noise and sample high-volume info logs before sinks; keep 100% of errors and warnings.
+- Archive everything cheaply to S3 and send only recent or important data to Elasticsearch.
+- Enable disk buffers on sinks that must not lose data during outages; the default buffer is in memory.
+- Bind source addresses to `127.0.0.1` unless remote hosts must reach them; `0.0.0.0` on syslog or HTTP exposes the port.
+- Prefer VRL over regex-heavy chains and test every remap with `vector test` before deploying.

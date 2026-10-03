@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2c93a39f3ebdc558934d8a39b57260a7a81e2d92b3df011848e430d42af90daa",
-  "scoredAt": "2026-05-13T08:47:25.000Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d223bb4d1dd8e5f5cfbb0a7a13c2d65cf614c0f68d30b8f65db0158f841ecd76",
+  "scoredAt": "2026-10-02T23:23:34.228Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only the happy path."
+        "detail": "Covers mostly the happy path: no handling for sync errors, shape stream failures or backoff, auth/proxying of the shape endpoint, and the offline write queue is in-memory only, so it is lost on reload and has no retry or conflict handling despite the description promising conflict resolution."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Code is partly incomplete or inaccurate: the setup docker command omits required config such as a Postgres wal_level=logical prerequisite, toggleTodo is referenced but defined after use with no backend implementation, and the React example uses a useShape hook shape that may not match the real @electric-sql/react API (the package also requires @electric-sql/client)."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two Examples are only one-line prompts with a prose description of what the agent will do, with no concrete input/output or realistic data, so they are simplistic."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 1.35,
+    "baselineAvg": 54,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Per-user real-time todo list",
-        "baseline": 25,
+        "name": "parameterized-shape-where-clause",
+        "baseline": 55,
         "treatment": 95,
-        "rationale": "Baseline reaches for fetch + SSE and never uses Electric; treatment uses useShape with the documented params (table, where, columns) and routes writes through a normal API."
+        "rationale": "B passes the rubric: it sets url to a /v1/shape endpoint, table to notes, `where: 'user_id = $1'`, and `params: [currentUserId]`, with a warning against interpolation. A also uses `$1` and no interpolation, but passes params as an object `{ '1': currentUserId }` instead of an array, so it misses the rubric's explicit requirement, though its proxy and authorization advice is useful."
       },
       {
-        "name": "Offline writes with replay",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline offers a generic Background Sync recipe; treatment explains Electric's local read semantics and uses the documented online/offline queue pattern."
+        "name": "react-synced-list-with-api-writes",
+        "baseline": 40,
+        "treatment": 55,
+        "rationale": "A matches the rubric's core pattern: useShape with where `$1` plus params, a columns array, a fetch write with no manual refetch, and an isLoading state. However, A places `table`, `where`, `params` and `columns` inside a nested `params` object, which is a plausible but unverified Electric API shape, and it gets no credit for hedging. B puts the shape definition in a server-side proxy instead of the useShape call, so the component has no parameterized where or columns array as the rubric requires. B also adds optimistic local state, which the rubric says to avoid, but it does handle isLoading and sends the archive via fetch."
+      },
+      {
+        "name": "offline-write-queue-replay",
+        "baseline": 68,
+        "treatment": 70,
+        "rationale": "Both persist a queue, replay it in order on the window 'online' event, send writes to the app's API and keep Postgres as the source of truth; A states outright that Electric resumes reads on its own and so is stronger on the offline-reads point, but it never checks navigator.onLine, while B also never checks navigator.onLine but retries with backoff and says reads stay local and Electric streams the confirmed row back. B edges ahead on completeness of the flaky-connection write path and its explanation of how replay works, though it is thinner on how Electric resumes after reconnect."
       }
     ]
   }

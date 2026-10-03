@@ -1,33 +1,46 @@
 ---
 name: browserbase
 description: >-
-  You are an expert in BrowserBase, the cloud platform for running headless
-  browsers at scale. You help developers deploy browser-based automations, AI
-  agents, and web scraping pipelines using managed Chromium instances with
-  residential proxies, session recording, stealth mode, and parallel execution
-  — without managing browser infrastructure.
+  Browserbase runs managed headless Chromium sessions in the cloud, so browser
+  automation, AI agents and scraping jobs need no browser infrastructure of
+  their own. Use when someone asks to "run Playwright in the cloud", "Browserbase
+  session", "headless browsers at scale", "scrape with proxies and CAPTCHA
+  solving", "persist a login across browser sessions", or "use Stagehand with
+  Browserbase". Covers sessions, proxies, contexts, parallel runs and replays.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Node.js 18+ with @browserbasehq/sdk and playwright-core; needs a Browserbase account (BROWSERBASE_API_KEY). Some options require a paid plan."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Developer Tools
+  version: "1.1.0"
+  category: devops
   tags:
     - browser-automation
     - cloud-browser
     - headless
     - scraping
-    - testing
     - infrastructure
+  repository: https://github.com/browserbase/sdk-node
 ---
 
 # BrowserBase — Cloud Browser Infrastructure for AI Agents
 
-You are an expert in BrowserBase, the cloud platform for running headless browsers at scale. You help developers deploy browser-based automations, AI agents, and web scraping pipelines using managed Chromium instances with residential proxies, session recording, stealth mode, and parallel execution — without managing browser infrastructure.
+## Overview
 
-## Core Capabilities
+Browserbase is a hosted service that starts isolated Chromium sessions on demand. You create a session through the REST API or the Node SDK (`@browserbasehq/sdk`), receive a WebSocket `connectUrl`, and drive the browser with Playwright, Puppeteer or Selenium over CDP. The service adds proxies, CAPTCHA solving, session recording and logs, live view, and persistent contexts. Stagehand, Browserbase's open-source SDK with `act`, `extract` and `observe` primitives, uses it as its cloud browser. It is a paid, account-based service; this skill was checked against the public documentation only, not against a live account.
 
-### Session Management
+## Instructions
+
+### Install and authenticate
+
+```bash
+npm install @browserbasehq/sdk playwright-core
+export BROWSERBASE_API_KEY=...        # from the Browserbase dashboard, never hard-code
+export BROWSERBASE_PROJECT_ID=...     # Settings page; optional, the API key can infer it
+```
+
+The REST API authenticates with the `X-BB-API-Key` header; the SDK sets it from `apiKey`.
+
+### Create a session and connect
 
 ```typescript
 import Browserbase from "@browserbasehq/sdk";
@@ -35,112 +48,98 @@ import { chromium } from "playwright-core";
 
 const bb = new Browserbase({ apiKey: process.env.BROWSERBASE_API_KEY! });
 
-// Create a browser session
 const session = await bb.sessions.create({
   projectId: process.env.BROWSERBASE_PROJECT_ID!,
   browserSettings: {
-    fingerprint: {
-      locales: ["en-US"],
-      screen: { maxWidth: 1920, maxHeight: 1080 },
-    },
     viewport: { width: 1280, height: 720 },
+    blockAds: true,            // default false
+    solveCaptchas: true,       // default true
+    recordSession: true,       // default true
   },
-  proxies: true,                        // Residential proxy (avoid blocks)
-  keepAlive: true,                      // Keep session alive between connections
-  timeout: 300,                         // Max session duration (seconds)
+  proxies: true,               // Browserbase-managed proxies
+  region: "us-east-1",         // us-west-2 | us-east-1 | eu-central-1 | ap-southeast-1
+  timeout: 300,                // seconds, allowed range 60-21600
+  keepAlive: false,            // true needs the Hobby plan or above
 });
 
-// Connect with Playwright
 const browser = await chromium.connectOverCDP(session.connectUrl);
-const context = browser.contexts()[0];
-const page = context.pages()[0];
+const page = browser.contexts()[0].pages()[0];
+await page.goto("https://news.ycombinator.com");
+console.log(await page.title());
+await browser.close();
 
-await page.goto("https://example.com");
-// ... automation logic ...
-
-// Session recording available at:
-console.log(`Recording: https://browserbase.com/sessions/${session.id}`);
+console.log(`Replay: https://browserbase.com/sessions/${session.id}`);
 ```
 
-### Parallel Execution
+Other useful `browserSettings`: `os`, `allowedDomains`, `verified` (Verified Browser mode, plan dependent), `ignoreCertificateErrors`. Use `userMetadata` on the session to tag runs for later filtering.
+
+### Persistent contexts (keep logins)
 
 ```typescript
-// Process 50 URLs concurrently with cloud browsers
-async function scrapeInParallel(urls: string[], concurrency = 10) {
-  const results: any[] = [];
+const ctx = await bb.contexts.create({ name: "shop-admin" });
 
-  // Process in batches
+// First run: log in, then close the session so the state is saved
+const first = await bb.sessions.create({
+  browserSettings: { context: { id: ctx.id, persist: true } },
+});
+
+// Later run: already authenticated; persist: false = read the state, do not change it
+const later = await bb.sessions.create({
+  browserSettings: { context: { id: ctx.id, persist: false } },
+});
+```
+
+Wait a few seconds after closing a `persist: true` session before reusing the context, and do not run two sessions on one context at once, or the site may log you out.
+
+### Parallel runs
+
+```typescript
+async function titles(urls: string[], concurrency = 5) {
+  const out: { url: string; title?: string; error?: string }[] = [];
   for (let i = 0; i < urls.length; i += concurrency) {
     const batch = urls.slice(i, i + concurrency);
-
-    const batchResults = await Promise.allSettled(
-      batch.map(async (url) => {
-        const session = await bb.sessions.create({
-          projectId: process.env.BROWSERBASE_PROJECT_ID!,
-          proxies: true,
-          keepAlive: false,              // Auto-cleanup
-        });
-
-        const browser = await chromium.connectOverCDP(session.connectUrl);
-        const page = browser.contexts()[0].pages()[0];
-
-        try {
-          await page.goto(url, { waitUntil: "networkidle" });
-          const data = await page.evaluate(() => {
-            // Extract data from page
-            return { title: document.title, text: document.body.innerText.substring(0, 5000) };
-          });
-          return { url, ...data };
-        } finally {
-          await browser.close();
-        }
-      })
-    );
-
-    results.push(...batchResults);
+    const settled = await Promise.allSettled(batch.map(async (url) => {
+      const s = await bb.sessions.create({ projectId: process.env.BROWSERBASE_PROJECT_ID! });
+      const b = await chromium.connectOverCDP(s.connectUrl);
+      try {
+        const p = b.contexts()[0].pages()[0];
+        await p.goto(url, { waitUntil: "domcontentloaded" });
+        return { url, title: await p.title() };
+      } finally {
+        await b.close();
+      }
+    }));
+    settled.forEach((r, j) =>
+      out.push(r.status === "fulfilled" ? r.value : { url: batch[j], error: String(r.reason) }));
   }
-
-  return results;
+  return out;
 }
 ```
 
-### Persistent Context (Login Sessions)
+### Stagehand
 
-```typescript
-// Create a context that persists cookies/auth across sessions
-const context = await bb.contexts.create({
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-});
+Stagehand is installed separately (`@browserbasehq/stagehand`, which also needs zod). Its constructor changed between major versions, so follow the README of the version you install rather than copying older snippets; the primitives (`act`, `extract`, `observe`) stay the same.
 
-// First session: log in and save context
-const loginSession = await bb.sessions.create({
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  browserSettings: { context: { id: context.id, persist: true } },
-});
-// ... log in via Playwright ...
+## Examples
 
-// Later sessions reuse the authenticated context
-const workSession = await bb.sessions.create({
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  browserSettings: { context: { id: context.id, persist: true } },
-});
-// Already logged in — cookies persisted
-```
+### Example 1: Scrape a page that blocks datacenter IPs
 
-## Installation
+**User prompt:** "Grab the product titles from this retailer, it blocks my server's IP."
 
-```bash
-npm install @browserbasehq/sdk playwright-core
-# Get API key: https://browserbase.com
-```
+The agent creates a session with `proxies: true` and a nearby `region`, connects with `chromium.connectOverCDP`, extracts titles with `page.$$eval`, closes the browser, and prints the replay URL. Result: a JSON list of titles; if the run is blocked, the replay shows where.
 
-## Best Practices
+### Example 2: Reuse a logged-in session
 
-1. **Proxies for scraping** — Enable `proxies: true` for sites that block datacenter IPs; BrowserBase provides residential proxies
-2. **Session recordings** — Every session is recorded; use recordings to debug failed automations without re-running
-3. **Persistent contexts** — Use contexts to share login state across sessions; avoid re-authenticating every time
-4. **keepAlive for multi-step** — Set `keepAlive: true` for long workflows; `false` for one-shot scraping
-5. **Stealth by default** — BrowserBase configures fingerprints and headers to look like a real browser; no extra stealth plugins needed
-6. **Concurrency limits** — Respect your plan's concurrent session limit; use batching with `Promise.allSettled` for parallel work
-7. **Combine with Stagehand** — Use BrowserBase as the browser backend for Stagehand AI automation; set `env: "BROWSERBASE"`
-8. **Timeouts** — Set session `timeout` to prevent zombie sessions; sessions auto-terminate when the timeout expires
+**User prompt:** "Log into our supplier portal once and let nightly jobs reuse it."
+
+The agent creates a context named `supplier-portal`, runs one interactive login with `persist: true`, stores the context id in `SUPPLIER_CONTEXT_ID`, and has nightly jobs create sessions with that context. When the portal expires the cookie, the job reports "login required" instead of retrying blindly.
+
+## Guidelines
+
+- Credentials come from environment variables; never commit API keys or put them in page scripts.
+- Always close the browser in `finally`; sessions otherwise run until `timeout` and count against your concurrency limit.
+- Stay within your plan's concurrent-session limit; batch with `Promise.allSettled`.
+- Proxies, CAPTCHA solving and recordings do not make scraping permitted: respect the target's terms and robots rules.
+- A recorded session can contain typed passwords or personal data; set `recordSession: false` for sensitive logins.
+- `keepAlive`, regions and some stealth options depend on the plan; check the dashboard if the API rejects a field.
+- For a local one-off script, plain Playwright is simpler and free; use Browserbase when you need scale, proxies or observability.

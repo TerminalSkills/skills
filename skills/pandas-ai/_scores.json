@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fcb975d317b603e108d65aa08eefac4b67f86d9d6e0afa611f74a2a8ce39b479",
-  "scoredAt": "2026-05-13T09:47:55.110Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:adaf5013c7363d262a06e6ed98932d840fc94c30eadd67caf62ac44c8df69641",
+  "scoredAt": "2026-10-03T13:06:06.579Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for typical usage scenarios."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 15,
-    "treatmentAvg": 95,
-    "multiplier": 6.33,
+    "multiplier": 1.78,
+    "baselineAvg": 50,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Natural-language queries across employees and departments",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline hand-codes a merge + groupby and never invokes PandasAI; treatment uses SmartDatalake with a list of DataFrames, OpenAI llm config, and .chat() to answer both questions."
+        "name": "pandasai3-openai-setup-python312",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Response A states the 3.0.0 python<3.12 limit and gives a 3.11 venv, installs both packages, uses LiteLLM via pai.config.set with pai.read_csv(...).chat(...), and warns against SmartDataframe, pandasai.llm.OpenAI and the pandasai[openai] extra, while Response B blames the 2.x line, offers a speculative 3.12 pre-release path, and hedges on the API, so it falls short of the rubric's clear 3.0.0 explanation."
       },
       {
-        "name": "Natural-language cleaning plus chart save",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline falls back to pandas + matplotlib with no PandasAI surface; treatment wires SmartDataframe with save_charts/save_charts_path and chains .chat() calls for cleaning and chart generation."
+        "name": "join-two-csvs-and-chart",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "B loads both CSVs with pai.read_csv, calls pai.chat with both frames, saves the chart via chart.save('exports/...png'), and tells the user to check last_code_executed to verify the join. A covers the first two items but relies on save_charts_path and an LLM-written save instead of the response's .save(), and never mentions last_code_executed."
+      },
+      {
+        "name": "private-data-local-ollama-safety",
+        "baseline": 40,
+        "treatment": 85,
+        "rationale": "B gives the exact LiteLLM config with pai.config.set, says the LLM sees column names and sample rows, warns that code runs in-process and recommends sandbox=, and covers last_code_executed and multi-table failures; A hedges across v2 and v3, never mentions sandbox= or last_code_executed, and says nothing about multi-table questions."
       }
     ]
   }

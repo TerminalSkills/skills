@@ -1,143 +1,104 @@
 ---
 name: lovable
 description: >-
-  You are an expert in Lovable (formerly GPT Engineer), the AI app builder
-  that generates production-ready full-stack applications from natural
-  language descriptions. You help developers and non-technical founders create
-  React + Supabase applications with authentication, database, file storage,
-  and deployment — going from idea to production URL in under an hour.
+  Lovable (formerly GPT Engineer) is a browser-based AI app builder that turns a natural-language description into a working full-stack web app with a built-in backend, authentication, database and one-click publishing. Use when the user wants to prototype or ship a web app with Lovable, write effective Lovable prompts, connect Supabase or GitHub, review generated security rules, or move a Lovable project into their own editor.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Browser-based at lovable.dev; no local install. Optional GitHub account for code sync."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Developer Tools
+  version: "1.1.0"
+  category: development
   tags:
     - ai-coding
     - full-stack
     - prototyping
-    - supabase
     - vibe-coding
     - no-code
 ---
 
-# Lovable — AI Full-Stack App Generator with Supabase Backend
+# Lovable — AI Full-Stack App Generator
 
-You are an expert in Lovable (formerly GPT Engineer), the AI app builder that generates production-ready full-stack applications from natural language descriptions. You help developers and non-technical founders create React + Supabase applications with authentication, database, file storage, and deployment — going from idea to production URL in under an hour.
+## Overview
 
-## Core Capabilities
+Lovable (lovable.dev) generates and edits web apps from chat prompts in the browser. Projects use Tailwind CSS and shadcn/ui; apps created since May 2026 use TanStack Start (server-rendered), older ones are React + Vite. For the backend you choose either Lovable Cloud (built-in database, auth, storage, realtime and functions, built on Supabase's open-source stack) or your own Supabase project. Code can be synced two ways with GitHub, and apps are published to a lovable URL or a custom domain. There is nothing to install and no CLI; an agent helps by writing good prompts, reviewing the output and working on the synced repository.
 
-### App Generation
+## Instructions
 
-```markdown
-## Prompt → Full App
+### 1. Plan before the first prompt
 
-Lovable generates:
-- React frontend with Tailwind CSS and shadcn/ui
-- Supabase backend (PostgreSQL, Auth, Storage, Realtime)
-- Database schema with Row Level Security policies
-- Authentication flows (email, Google, GitHub)
-- Full CRUD operations
-- Responsive design
-- Deployment to Lovable hosting or Netlify
+Answer four questions: what is it, who uses it, why, and what is the key action. Describe the app section by section with real copy, not placeholders. Lovable's guidance: a full-page prompt gives noise, a section-based prompt gives signal. Name a design direction ("minimal", "premium", "playful") to steer typography and spacing.
 
-## Example: SaaS Waitlist + Dashboard
+### 2. Choose the backend
 
-Prompt:
-"Build a SaaS waitlist app where:
-- Landing page with email signup form and social proof counter
-- Admin dashboard to view signups, export CSV, and send invite emails
-- Supabase auth for admin login
-- Track referrals: each signup gets a unique referral link
-- Leaderboard showing top referrers
-- Dark mode support"
+- New projects: Lovable Cloud (default) or Supabase, chosen when the backend is first enabled.
+- Existing Supabase-connected projects keep working. There is no migration from Supabase to Cloud, and no one-click move from Cloud to your own Supabase project, so decide early.
 
-Lovable generates:
-├── src/
-│   ├── pages/Landing.tsx          # Waitlist signup with counter
-│   ├── pages/Dashboard.tsx        # Admin view of signups
-│   ├── pages/Leaderboard.tsx      # Referral leaderboard
-│   ├── components/SignupForm.tsx   # Email + referral tracking
-│   ├── components/DataTable.tsx    # Sortable signups table
-│   ├── lib/supabase.ts           # Supabase client config
-│   └── hooks/useSignups.ts       # Data fetching hooks
-├── supabase/
-│   └── migrations/
-│       └── 001_create_signups.sql # Schema + RLS policies
+### 3. Work in modes
+
+Lovable has an Agent mode (builds and changes things) and a Chat mode (discuss, plan, no edits). Plan Mode costs 1 credit per message; normal edits cost roughly 0.5-1.7 credits depending on complexity. Add "Ask me any questions you need before building" to get clarifying questions. Put durable rules (stack, naming, tone) in project or workspace knowledge so they persist between chats.
+
+### 4. Review security
+
+Generated tables should have Row Level Security. Read each policy, run the built-in security scan, and test with two different users before publishing.
+
+### 5. Sync and own the code
+
+Connect GitHub from project settings. Sync is two-way for one branch at a time (the default branch unless switched); new branches start from the active one. You can only export Lovable projects to GitHub, not import an existing repo, and files over 10 MB cannot be edited by Lovable. Disconnecting keeps both copies, but reconnecting creates a new repository.
+
+### 6. Plans
+
+Free, Pro, Business and Enterprise; pricing is by credits, not seats. Free includes 5 daily build credits (up to 30 a month) plus small Cloud credits. Check lovable.dev/pricing for current prices.
+
+## Examples
+
+### Example 1: Waitlist app with referrals
+
+**Request:** "Use Lovable to build a SaaS waitlist: signup form with a counter, referral links, a leaderboard, and an admin page."
+
+Prompt to paste:
+
+```
+Build a waitlist site for "Parcelly", a shipping-label tool for Etsy sellers.
+Sections: hero ("Print labels in 10 seconds") with an email form and a live
+signup counter; a leaderboard of the top 10 referrers; /admin page behind
+email login that lists signups and exports CSV.
+Every signup gets a unique referral link (?ref=code) that credits the referrer.
+Style: minimal, dark mode. Use Lovable Cloud for data and auth.
+Ask me any questions you need before building.
 ```
 
-### Supabase Integration
+Result: Lovable asks about invite emails, then creates pages, a `signups` table and policies, and a preview URL. A reasonable table and policy set to check against the generated one:
 
-```markdown
-## Auto-Generated Database
-
-Lovable creates Supabase resources automatically:
-- Tables with proper column types and constraints
-- Row Level Security policies (users can only access their own data)
-- Foreign key relationships
-- Indexes on commonly queried columns
-- Realtime subscriptions for live updates
-- Storage buckets for file uploads
-- Edge functions for server-side logic
-
-## Database Schema Example (auto-generated)
-
-CREATE TABLE signups (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  email TEXT NOT NULL UNIQUE,
-  referral_code TEXT NOT NULL UNIQUE DEFAULT nanoid(),
-  referred_by UUID REFERENCES signups(id),
-  referral_count INTEGER DEFAULT 0,
-  invited BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now()
+```sql
+create table public.signups (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  referral_code text not null unique default encode(gen_random_bytes(6), 'hex'),
+  referred_by uuid references public.signups(id),
+  created_at timestamptz not null default now()
 );
-
-ALTER TABLE signups ENABLE ROW LEVEL SECURITY;
-
--- Admin can see all signups
-CREATE POLICY "Admin full access" ON signups
-  FOR ALL TO authenticated
-  USING (auth.jwt() ->> 'role' = 'admin');
-
--- Public can insert (signup)
-CREATE POLICY "Public signup" ON signups
-  FOR INSERT TO anon
-  WITH CHECK (true);
+alter table public.signups enable row level security;
+create policy "anyone can join" on public.signups for insert to anon with check (true);
+-- reading all rows must be limited to admins, e.g. via a user_roles table
 ```
 
-### Iterative Editing
+### Example 2: Iterating and syncing to GitHub
 
-```markdown
-## Edit via Chat
+**Request:** "Add a signups-over-time chart, then get the code into my repo so I can keep working in Cursor."
 
-After generation, edit with natural language:
-- "Add a chart showing signups over time"
-- "Make the landing page hero section bigger with an animated gradient"
-- "Add email validation and show error messages"
-- "Connect Resend for sending invite emails"
-- "Add a /api/webhook endpoint for Stripe events"
+Chat prompt: "Add a line chart of signups per day to /admin using the existing data; show an empty state when there are no signups." Then: Project settings, GitHub, Connect, pick the account and create the repository. Afterwards:
 
-Lovable modifies the existing codebase, preserving your customizations.
+```bash
+git clone git@github.com:parcelly-dev/parcelly-waitlist.git
+cd parcelly-waitlist && npm install && npm run dev
 ```
 
-## Installation
+Pushes to the synced branch appear in Lovable; keep local edits on that branch (or switch the branch in project settings).
 
-```markdown
-# No installation — browser-based
-# https://lovable.dev
+## Guidelines
 
-# Free: 5 generations/day
-# Pro: $20/month (unlimited)
-# Teams: $25/user/month
-```
-
-## Best Practices
-
-1. **Detailed first prompt** — Include all core features in the initial prompt; Lovable builds a cohesive architecture from the start
-2. **Supabase for backend** — Lovable is optimized for Supabase; leverages Auth, Database, Storage, and Realtime out of the box
-3. **shadcn/ui components** — Lovable uses shadcn/ui; request specific components by name ("use a DataTable with sorting and filtering")
-4. **RLS from day one** — Lovable generates Row Level Security policies; review them before going to production
-5. **Export and own** — Export to GitHub at any time; the generated code is standard React + Supabase, no vendor lock-in
-6. **Iterate in chat** — Use follow-up prompts to refine; "make the hero section more engaging" or "add error states to all forms"
-7. **Connect to your Supabase** — Link your own Supabase project for production; Lovable's built-in instance is for prototyping
-8. **Combine with Cursor** — Generate the scaffold with Lovable, export, then refine business logic with Cursor or Continue
+- Put every core feature in the first prompt, then change one thing per follow-up so version history stays useful; bookmark working versions.
+- Do not paste API keys into chat; use the secrets/integration dialogs. Server-side keys belong in backend functions, never in client code.
+- Never trust generated RLS blindly: an `insert ... with check (true)` policy is fine for a public form, a `select` one is not.
+- Credits are consumed by building, hosting and AI features, and are not refundable; prefer Chat/Plan mode for questions.
+- Not a good fit for native mobile apps, heavy custom backends or complex existing monorepos: use a coding agent in the repository instead.

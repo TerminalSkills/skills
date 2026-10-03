@@ -12,8 +12,9 @@ license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.10+. Docker required for container-based sandbox."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
+  repository: https://github.com/anthropics/sandbox-runtime
   tags: ["sandbox", "security", "guardrails", "agent-safety", "isolation"]
 ---
 
@@ -33,277 +34,187 @@ AI agents execute code, modify files, and run shell commands. Without guardrails
 
 ## Instructions
 
-### Strategy 1: Filesystem + Process Sandbox (Zero Dependencies)
+Three layers, from cheapest to strongest. Pick by threat: a clumsy agent needs layer 1; hostile or untrusted code needs layer 2 or 3.
 
-The simplest safety layer — restrict which paths the agent can read/write and which commands it can execute. No Docker required.
+### Layer 0: Use the sandbox your agent already ships
+
+Claude Code has an OS-enforced Bash sandbox (Seatbelt on macOS, bubblewrap + socat on Linux/WSL2). It is off by default: run `/sandbox` in a session or set `sandbox.enabled` to `true` in `~/.claude/settings.json`. Commands may write only to the working directory and temp, the network goes through a proxy that allows only `sandbox.network.allowedDomains`, and `sandbox.filesystem.denyRead` / `allowWrite` tune the rest. It covers shell commands only; file tools, MCP servers and hooks run outside it. Set `allowUnsandboxedCommands: false` to stop the retry-outside-sandbox escape. The engine is the open-source `@anthropic-ai/sandbox-runtime`, usable to wrap your own agent process. Check what other agent CLIs offer before writing your own wrapper.
+
+### Layer 1: Filesystem + Command Guard (no Docker)
+
+A policy layer for agents whose tools you control (your own agent loop). It stops mistakes, not attackers: a string blocklist is easy to bypass (`r""m`, base64, scripts written then executed), so route `exec` into Layer 2 for anything untrusted.
 
 ```typescript
-// sandbox.ts — Filesystem and process sandbox for AI agents
-/**
- * Wraps agent operations with safety checks:
- * - Allowlist/denylist for file paths
- * - Command blocklist (rm -rf, DROP TABLE, etc.)
- * - Audit log of every action
- * - Kill switch to halt agent immediately
- */
-import { execSync } from "child_process";
-import { readFileSync, writeFileSync, existsSync, appendFileSync } from "fs";
-import { resolve, relative } from "path";
+// sandbox.ts
+import { execSync } from "node:child_process";
+import { appendFileSync, existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { dirname, relative, resolve } from "node:path";
 
 interface SandboxConfig {
-  workDir: string;                    // Root directory agent can access
-  allowedPaths: string[];             // Glob patterns of allowed paths
-  deniedPaths: string[];              // Glob patterns of denied paths
-  blockedCommands: string[];          // Commands that are never allowed
-  maxFileSize: number;                // Max bytes per file write
-  auditLog: string;                   // Path to audit log file
-  readOnly: boolean;                  // If true, block all writes
+  workDir: string;
+  allowedPaths: string[];     // globs relative to workDir; a path must match one to be touched
+  deniedPaths: string[];      // globs that always win
+  blockedCommands: RegExp[];
+  maxFileSize: number;        // bytes per write
+  auditLog: string;           // keep OUTSIDE workDir
+  readOnly: boolean;
 }
 
 const DEFAULT_BLOCKED = [
-  "rm -rf /", "rm -rf ~", "rm -rf .",
-  "mkfs", "dd if=", "> /dev/sd",
-  "DROP DATABASE", "DROP TABLE", "TRUNCATE",
-  "curl.*|.*sh", "wget.*|.*bash",           // Pipe to shell
-  "chmod 777", "chmod -R 777",
-  "env | curl", "printenv | curl",           // Secret exfiltration
-  "ssh-keygen", "ssh-copy-id",
+  /\brm\s+-[a-z]*r[a-z]*f?\s+(\/|~|\.)(\s|$)/i,
+  /\b(mkfs|dd\s+if=)/i,
+  /\b(drop|truncate)\s+(database|table)\b/i,
+  /(curl|wget)[^|]*\|\s*(sudo\s+)?(ba|z)?sh\b/i,
+  /\bchmod\s+(-R\s+)?777\b/,
+  /(env|printenv)\s*\|\s*(curl|nc)/i,
 ];
 
+export class SandboxError extends Error {}
+
+function globToRegExp(glob: string): RegExp {
+  const re = glob
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*\*\//g, "\u0000")
+    .replace(/\*\*/g, "\u0001")
+    .replace(/\*/g, "[^/]*")
+    .replace(/\u0000/g, "(?:.*/)?")
+    .replace(/\u0001/g, ".*");
+  return new RegExp(`^${re}$`);
+}
+
 export class AgentSandbox {
-  private config: SandboxConfig;
+  private cfg: SandboxConfig;
   private killed = false;
 
-  constructor(config: Partial<SandboxConfig> & { workDir: string }) {
-    this.config = {
+  constructor(cfg: Partial<SandboxConfig> & { workDir: string }) {
+    this.cfg = {
       allowedPaths: ["**"],
-      deniedPaths: ["**/.env", "**/.ssh/**", "**/node_modules/**"],
+      deniedPaths: ["**/.env*", "**/.ssh/**", "**/*.pem", ".git/config"],
       blockedCommands: DEFAULT_BLOCKED,
-      maxFileSize: 1024 * 1024,  // 1MB default
-      auditLog: "./agent-audit.jsonl",
+      maxFileSize: 1024 * 1024,
+      auditLog: "/var/log/agent-audit.jsonl",
       readOnly: false,
-      ...config,
+      ...cfg,
     };
+    this.cfg.workDir = realpathSync(this.cfg.workDir);
   }
 
-  /**
-   * Read a file through the sandbox — checks path is allowed.
-   */
-  readFile(filePath: string): string {
-    this.checkKilled();
-    const absPath = resolve(this.config.workDir, filePath);
-    this.checkPathAllowed(absPath, "read");
-    this.audit("read", filePath);
-    return readFileSync(absPath, "utf-8");
+  readFile(path: string): string {
+    const abs = this.guard(path, "read");
+    this.audit("read", path);
+    return readFileSync(abs, "utf-8");
   }
 
-  /**
-   * Write a file through the sandbox — checks path, size, and read-only mode.
-   */
-  writeFile(filePath: string, content: string): void {
-    this.checkKilled();
-    if (this.config.readOnly) {
-      throw new SandboxError("Write blocked: sandbox is read-only");
+  writeFile(path: string, content: string): void {
+    if (this.cfg.readOnly) throw new SandboxError("write blocked: sandbox is read-only");
+    const abs = this.guard(path, "write");
+    if (Buffer.byteLength(content) > this.cfg.maxFileSize) throw new SandboxError("write blocked: file too large");
+    this.audit("write", path, { bytes: Buffer.byteLength(content) });
+    writeFileSync(abs, content);
+  }
+
+  exec(command: string, timeoutMs = 30_000): string {
+    this.alive();
+    if (this.cfg.blockedCommands.some((re) => re.test(command))) {
+      this.audit("exec_blocked", command);
+      throw new SandboxError("command blocked by policy");
     }
-
-    const absPath = resolve(this.config.workDir, filePath);
-    this.checkPathAllowed(absPath, "write");
-
-    if (Buffer.byteLength(content) > this.config.maxFileSize) {
-      throw new SandboxError(
-        `Write blocked: file exceeds max size (${this.config.maxFileSize} bytes)`
-      );
-    }
-
-    this.audit("write", filePath, { size: Buffer.byteLength(content) });
-    writeFileSync(absPath, content);
-  }
-
-  /**
-   * Execute a command through the sandbox — checks against blocklist.
-   */
-  exec(command: string, timeoutMs: number = 30000): string {
-    this.checkKilled();
-    this.checkCommandAllowed(command);
     this.audit("exec", command);
-
-    try {
-      return execSync(command, {
-        cwd: this.config.workDir,
-        encoding: "utf-8",
-        timeout: timeoutMs,
-        maxBuffer: 10 * 1024 * 1024,  // 10MB output limit
-      });
-    } catch (error: any) {
-      this.audit("exec_error", command, { error: error.message });
-      throw error;
-    }
+    return execSync(command, { cwd: this.cfg.workDir, encoding: "utf-8", timeout: timeoutMs, maxBuffer: 10 * 1024 * 1024 });
   }
 
-  /**
-   * Kill switch — immediately halt all agent operations.
-   */
   kill(reason: string): void {
     this.killed = true;
     this.audit("killed", reason);
-    console.error(`🛑 Agent sandbox killed: ${reason}`);
   }
 
-  private checkKilled(): void {
-    if (this.killed) throw new SandboxError("Agent has been killed");
+  private alive() {
+    if (this.killed) throw new SandboxError("agent has been killed");
   }
 
-  private checkPathAllowed(absPath: string, operation: string): void {
-    const relPath = relative(this.config.workDir, absPath);
-
-    // Must be within workDir (no ../ escapes)
-    if (relPath.startsWith("..")) {
-      throw new SandboxError(`${operation} blocked: path escapes sandbox (${relPath})`);
-    }
-
-    // Check denylist
-    for (const pattern of this.config.deniedPaths) {
-      if (matchGlob(relPath, pattern)) {
-        throw new SandboxError(`${operation} blocked: path matches denylist (${pattern})`);
-      }
-    }
+  // Resolve symlinks first so a link inside workDir cannot point outside it.
+  private guard(path: string, op: string): string {
+    this.alive();
+    const abs = resolve(this.cfg.workDir, path);
+    const real = existsSync(abs) ? realpathSync(abs) : resolve(realpathSync(dirname(abs)), abs.split("/").pop()!);
+    const rel = relative(this.cfg.workDir, real);
+    if (rel.startsWith("..") || resolve(rel) === rel) throw new SandboxError(`${op} blocked: path escapes workDir`);
+    if (this.cfg.deniedPaths.some((g) => globToRegExp(g).test(rel))) throw new SandboxError(`${op} blocked: denied path ${rel}`);
+    if (!this.cfg.allowedPaths.some((g) => globToRegExp(g).test(rel))) throw new SandboxError(`${op} blocked: ${rel} is not allowlisted`);
+    return real;
   }
 
-  private checkCommandAllowed(command: string): void {
-    const lower = command.toLowerCase();
-    for (const blocked of this.config.blockedCommands) {
-      if (lower.includes(blocked.toLowerCase())) {
-        throw new SandboxError(`Command blocked: matches "${blocked}"`);
-      }
-    }
+  private audit(action: string, target: string, extra: Record<string, unknown> = {}) {
+    appendFileSync(this.cfg.auditLog, JSON.stringify({ ts: new Date().toISOString(), action, target, ...extra }) + "\n");
   }
-
-  private audit(action: string, target: string, extra?: Record<string, unknown>): void {
-    const entry = {
-      timestamp: new Date().toISOString(),
-      action,
-      target,
-      ...extra,
-    };
-    appendFileSync(this.config.auditLog, JSON.stringify(entry) + "\n");
-  }
-}
-
-class SandboxError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SandboxError";
-  }
-}
-
-function matchGlob(path: string, pattern: string): boolean {
-  const regex = pattern
-    .replace(/\*\*/g, ".*")
-    .replace(/\*/g, "[^/]*")
-    .replace(/\?/g, ".");
-  return new RegExp(`^${regex}$`).test(path);
 }
 ```
 
-### Strategy 2: Docker Container Sandbox
+### Layer 2: Docker container sandbox
 
-For full isolation — the agent runs inside a container with limited CPU, memory, network, and filesystem access.
+Arguments go to `docker` as an array (no shell string), so agent-supplied text cannot inject host commands.
 
 ```typescript
-// docker-sandbox.ts — Run agent code in isolated Docker containers
-/**
- * Spawns a Docker container for each agent session.
- * Mounts only the allowed workspace directory (read-only optional).
- * Enforces CPU, memory, and network limits.
- * Auto-kills containers that exceed time limits.
- */
-import { execSync, spawn } from "child_process";
+// docker-sandbox.ts
+import { execFileSync } from "node:child_process";
 
 interface DockerSandboxConfig {
-  image: string;                 // Base image (e.g., "node:20-slim")
-  workDir: string;               // Host directory to mount
-  readOnly: boolean;             // Mount workspace as read-only
-  cpuLimit: string;              // CPU limit (e.g., "1.0" = 1 core)
-  memoryLimit: string;           // Memory limit (e.g., "512m")
-  networkMode: string;           // "none" for no network, "bridge" for limited
-  timeoutSeconds: number;        // Kill container after this many seconds
-  allowedEnvVars: string[];      // Env vars to pass through
+  image: string;
+  workDir: string;            // absolute host path mounted at /workspace
+  readOnly: boolean;
+  cpus: string;
+  memory: string;
+  network: "none" | "bridge";
+  timeoutSeconds: number;
+  allowedEnvVars: string[];   // names only; values come from the host environment
 }
 
 export class DockerSandbox {
-  private config: DockerSandboxConfig;
-  private containerId: string | null = null;
+  private cfg: DockerSandboxConfig;
+  private id: string | null = null;
+  private timer?: NodeJS.Timeout;
 
-  constructor(config: Partial<DockerSandboxConfig> & { workDir: string }) {
-    this.config = {
-      image: "node:20-slim",
-      readOnly: false,
-      cpuLimit: "1.0",
-      memoryLimit: "512m",
-      networkMode: "none",        // No network by default
-      timeoutSeconds: 300,        // 5 minutes max
-      allowedEnvVars: [],
-      ...config,
-    };
+  constructor(cfg: Partial<DockerSandboxConfig> & { workDir: string }) {
+    this.cfg = { image: "node:24-slim", readOnly: false, cpus: "1.0", memory: "512m", network: "none", timeoutSeconds: 300, allowedEnvVars: [], ...cfg };
   }
 
-  /**
-   * Start the sandbox container.
-   */
-  async start(): Promise<string> {
-    const mountFlag = this.config.readOnly ? "ro" : "rw";
-    const envFlags = this.config.allowedEnvVars
-      .map((v) => `-e ${v}`)
-      .join(" ");
-
-    const cmd = [
-      "docker run -d",
-      `--cpus=${this.config.cpuLimit}`,
-      `--memory=${this.config.memoryLimit}`,
-      `--network=${this.config.networkMode}`,
-      "--security-opt=no-new-privileges",    // No privilege escalation
-      "--read-only",                          // Root FS read-only
-      "--tmpfs /tmp:size=100m",              // Writable tmp with size limit
-      `-v ${this.config.workDir}:/workspace:${mountFlag}`,
-      `-w /workspace`,
-      envFlags,
-      this.config.image,
-      "tail -f /dev/null",                   // Keep container alive
-    ].join(" ");
-
-    this.containerId = execSync(cmd, { encoding: "utf-8" }).trim();
-
-    // Auto-kill timer
-    setTimeout(() => this.kill("timeout"), this.config.timeoutSeconds * 1000);
-
-    return this.containerId;
+  start(): string {
+    const args = [
+      "run", "-d", "--rm",
+      `--cpus=${this.cfg.cpus}`, `--memory=${this.cfg.memory}`, "--pids-limit=256",
+      `--network=${this.cfg.network}`,
+      "--cap-drop=ALL", "--security-opt=no-new-privileges",
+      "--read-only", "--tmpfs", "/tmp:size=100m",
+      "--user", "1000:1000",
+      "-v", `${this.cfg.workDir}:/workspace:${this.cfg.readOnly ? "ro" : "rw"}`,
+      "-w", "/workspace",
+      ...this.cfg.allowedEnvVars.flatMap((v) => ["-e", v]),
+      this.cfg.image, "sleep", "infinity",
+    ];
+    this.id = execFileSync("docker", args, { encoding: "utf-8" }).trim();
+    this.timer = setTimeout(() => this.kill("timeout"), this.cfg.timeoutSeconds * 1000);
+    this.timer.unref();
+    return this.id;
   }
 
-  /**
-   * Execute a command inside the sandbox container.
-   */
-  exec(command: string): string {
-    if (!this.containerId) throw new Error("Sandbox not started");
-    return execSync(
-      `docker exec ${this.containerId} sh -c '${command.replace(/'/g, "'\\''")}'`,
-      { encoding: "utf-8", timeout: 60000 }
-    );
+  exec(command: string, timeoutMs = 60_000): string {
+    if (!this.id) throw new Error("sandbox not started");
+    return execFileSync("docker", ["exec", this.id, "sh", "-c", command], { encoding: "utf-8", timeout: timeoutMs });
   }
 
-  /**
-   * Kill the sandbox container and remove it.
-   */
-  kill(reason: string = "manual"): void {
-    if (this.containerId) {
-      console.log(`🛑 Killing sandbox: ${reason}`);
-      execSync(`docker kill ${this.containerId} && docker rm ${this.containerId}`, {
-        encoding: "utf-8",
-      });
-      this.containerId = null;
-    }
+  kill(reason = "manual"): void {
+    if (!this.id) return;
+    clearTimeout(this.timer);
+    try { execFileSync("docker", ["kill", this.id]); } catch { /* already gone; --rm cleans up */ }
+    console.error(`sandbox ${this.id.slice(0, 12)} killed: ${reason}`);
+    this.id = null;
   }
 }
 ```
+
+### Layer 3: Stronger isolation
+
+When the code is genuinely hostile or multi-tenant, containers share the host kernel. Add a user-space kernel (`docker run --runtime=runsc` with gVisor installed) or use microVMs (Firecracker, Kata Containers), and keep egress allowlisted at the network level rather than relying on `bridge`.
 
 ## Examples
 
@@ -311,33 +222,38 @@ export class DockerSandbox {
 
 **User prompt:** "I want my AI coding agent to only modify files in the src/ directory and never touch .env files or run destructive commands."
 
-The agent will:
-- Create an AgentSandbox with workDir pointing to the project root
-- Set allowedPaths to `["src/**", "tests/**"]`
-- Set deniedPaths to `["**/.env*", "**/.ssh/**", "**/secrets/**"]`
-- Enable audit logging to track every agent action
-- Wrap all file operations and command executions through the sandbox
+```typescript
+const box = new AgentSandbox({
+  workDir: "/srv/projects/billing-api",
+  allowedPaths: ["src/**", "tests/**", "package.json"],
+  auditLog: "/var/log/agent/billing-api.jsonl",
+});
+box.writeFile("src/invoice.ts", updatedSource);   // ok
+box.writeFile(".env", "X=1");                      // SandboxError: denied path .env
+box.exec("rm -rf .");                              // SandboxError: command blocked by policy
+```
+
+Every call, allowed or blocked, appends one JSON line to the audit log.
 
 ### Example 2: Run untrusted code in Docker isolation
 
 **User prompt:** "We're building a code execution platform. User-submitted code needs to run in isolation with no network access, 512MB memory, and a 30-second timeout."
 
-The agent will:
-- Set up DockerSandbox with networkMode "none", memory 512m, timeout 30s
-- Mount user code directory as read-only
-- Enable writable /tmp with 100MB limit for temporary files
-- Add security-opt no-new-privileges to prevent escalation
-- Implement cleanup on timeout or completion
+```typescript
+const box = new DockerSandbox({ workDir: "/srv/submissions/4471", readOnly: true, timeoutSeconds: 30 });
+box.start();
+try { console.log(box.exec("node main.js")); } finally { box.kill("done"); }
+```
+
+The container has no network, 512MB RAM, no capabilities, a read-only root and workspace, and 100MB of `/tmp`. It is killed after 30 seconds even if `exec` hangs, and `--rm` removes it.
 
 ## Guidelines
 
-- **Default to deny** — block everything, then allowlist what the agent needs
-- **No Docker socket access** — mounting docker.sock gives root on the host
-- **Audit everything** — log every file read, write, and command for forensics
-- **Time limits prevent infinite loops** — always set exec timeouts
-- **Network "none" by default** — agents shouldn't make outbound calls unless explicitly needed
-- **Read-only mounts when possible** — agents that only analyze code don't need write access
-- **Separate audit logs from agent workspace** — the agent shouldn't be able to modify its own audit trail
-- **Test the sandbox itself** — try to escape it before trusting it with real data
-- **Kill switches save you** — always have a way to halt the agent immediately
-- **Container cleanup** — always `docker rm` after container stops to avoid disk waste
+- **Default to deny**: allowlist the paths and hosts the agent needs, nothing else.
+- **A blocklist is not a boundary**: treat Layer 1 as a guard rail and put real isolation underneath.
+- **Never mount `/var/run/docker.sock`**: it is root on the host.
+- **Network `none` by default**; if the agent needs a package registry or API, allow specific hosts via a proxy.
+- **Pass secrets by name, scoped and short-lived**; never mount the home directory or `~/.ssh`, `~/.aws`.
+- **Keep audit logs outside the agent's workspace** so it cannot rewrite its own trail.
+- **Always set timeouts and a kill switch**, and test the sandbox by trying to escape it before trusting it.
+- **Containers share the host kernel**; use gVisor or a microVM for hostile code.

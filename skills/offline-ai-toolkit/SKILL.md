@@ -9,7 +9,8 @@ license: MIT
 compatibility: "Node.js 18+ or Python 3.10+, Ollama"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/ollama/ollama
   category: development
   tags: [offline, local-ai, ollama, knowledge-base, edge-ai]
   use-cases:
@@ -30,22 +31,32 @@ Build AI systems that work completely offline — local LLMs via Ollama, embedde
 ### Step 1: Install Ollama for Local LLMs
 
 ```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-ollama pull llama3.1:8b       # General purpose (4.7GB)
-ollama pull nomic-embed-text   # Embeddings (274MB)
+brew install ollama            # macOS (Linux: tarball below; Windows: winget install Ollama.Ollama)
+ollama serve &                 # skip if the desktop app or systemd service already runs it
+ollama pull llama3.1:8b        # General purpose (about 5GB)
+ollama pull nomic-embed-text   # Embeddings (274MB, 2K context)
+ollama list                    # confirm both are on disk
 ```
+
+On Linux, download `ollama-linux-amd64.tar.zst` (or the arm64 build) from the Ollama GitHub releases page, check it against the `sha256sum.txt` published there, then extract it under `/usr`. For an air-gapped target, do the downloads and `ollama pull` on a connected machine and copy the `~/.ollama/models` directory (or the whole Docker volume of the `ollama/ollama` image) to the offline machine. Set `OLLAMA_HOST=127.0.0.1:11434` so the API is not exposed on the network.
 
 | Use Case | Model | RAM Needed |
 |----------|-------|------------|
 | General Q&A | llama3.1:8b | 8GB |
 | Quick answers | phi3:mini | 4GB |
-| Code help | codellama:7b | 8GB |
+| Code help | qwen2.5-coder:7b | 8GB |
 | Embeddings | nomic-embed-text | 2GB |
 
 ### Step 2: Build the Offline Knowledge Base
 
 ```python
-import requests, sqlite3, os
+import os
+import sqlite3
+from urllib.parse import quote
+
+import requests
+
+HEADERS = {'User-Agent': 'offline-kb-builder (https://terminalskills.io)'}  # Wikipedia requires one
 
 def init_knowledge_db(db_path='knowledge.db'):
     """Initialize SQLite database for knowledge storage."""
@@ -59,16 +70,18 @@ def init_knowledge_db(db_path='knowledge.db'):
         id INTEGER PRIMARY KEY, doc_id INTEGER REFERENCES documents(id),
         chunk_text TEXT, embedding BLOB, chunk_index INTEGER
     )''')
+    # External-content FTS index; run the 'rebuild' command after loading documents
     conn.execute('''CREATE VIRTUAL TABLE IF NOT EXISTS fts_documents
-        USING fts5(title, content, category)''')
+        USING fts5(title, content, category, content='documents', content_rowid='id')''')
     return conn
 
 def download_wikipedia_articles(topics, conn):
     """Download Wikipedia articles for offline knowledge."""
     for topic in topics:
-        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{topic}"
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{quote(topic)}"
         try:
-            r = requests.get(url, timeout=10)
+            r = requests.get(url, headers=HEADERS, timeout=10)
+            r.raise_for_status()
             data = r.json()
             content = data.get('extract', '')
             if content:
@@ -78,7 +91,11 @@ def download_wikipedia_articles(topics, conn):
         except Exception as e:
             print(f"Failed to download {topic}: {e}")
     conn.commit()
+    conn.execute("INSERT INTO fts_documents(fts_documents) VALUES ('rebuild')")
+    conn.commit()
 ```
+
+Wikipedia summaries are only a paragraph each. For full articles bundle a Kiwix ZIM file and serve it with `kiwix-serve`, or ingest your own Markdown/PDF text.
 
 ### Step 3: Generate Embeddings with Ollama
 
@@ -86,10 +103,11 @@ def download_wikipedia_articles(topics, conn):
 import struct
 
 def get_embedding(text, model='nomic-embed-text'):
-    """Get embedding vector from Ollama."""
-    response = requests.post('http://localhost:11434/api/embeddings',
-                             json={'model': model, 'prompt': text})
-    return response.json()['embedding']
+    """Get embedding vector from Ollama (/api/embed; /api/embeddings is the legacy endpoint)."""
+    response = requests.post('http://localhost:11434/api/embed',
+                             json={'model': model, 'input': text}, timeout=60)
+    response.raise_for_status()
+    return response.json()['embeddings'][0]
 
 def embedding_to_blob(embedding):
     return struct.pack(f'{len(embedding)}f', *embedding)
@@ -155,7 +173,7 @@ Context:
 Question: {question}
 Answer:""",
         'stream': False
-    })
+    }, timeout=300)
     return {
         'answer': response.json()['response'],
         'sources': [r['chunk_text'][:100] for r in results],
@@ -228,13 +246,16 @@ print(result['sources'])  # Shows which doc chunks were used as context
 
 - **Download everything while online** — models, knowledge content, and embeddings must be prepared beforehand
 - **Test offline before deploying** — disconnect WiFi and verify the full pipeline works end-to-end
-- **Choose models by hardware** — phi3:mini for 4GB RAM devices, llama3.1:8b for 8GB+, llama3.1:70b for workstations
-- **Use FTS as fallback** — SQLite full-text search works when embeddings are unavailable or for exact matches
+- **Choose models by hardware** — phi3:mini for 4GB RAM devices, llama3.1:8b for 8GB+, a 70B model only on workstations with 48GB+ memory
+- **Use FTS as fallback** — `SELECT title FROM fts_documents WHERE fts_documents MATCH 'grizzly den' ORDER BY rank LIMIT 5` works when embeddings are unavailable or for exact matches; rebuild the index after inserting documents
+- **Scale** — the brute-force cosine loop is fine up to roughly 50k chunks; beyond that use the sqlite-vec extension
+- **Keep the same embedding model** — changing models means re-embedding everything
+- **Keep Ollama local** — never expose port 11434 beyond localhost
 - **Package for portability** — bundle everything on a USB drive or Docker image for easy deployment
 - **Keep knowledge fresh** — sync new content and re-embed when connectivity returns
 
 ## References
 
-- [Ollama](https://ollama.ai/) — local LLM runtime
+- [Ollama](https://ollama.com/) — local LLM runtime
 - [SQLite FTS5](https://www.sqlite.org/fts5.html) — full-text search
 - [PWA docs](https://web.dev/progressive-web-apps/) — offline-first web apps

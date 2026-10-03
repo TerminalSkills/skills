@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:283b8e0d7a37d73bcee510138e4302ac430b0b07442d594e6b77e7ea08bb198b",
-  "scoredAt": "2026-05-13T09:26:31.120Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:116b6e05792c0eff406460cf97801f2a94fe198c7a2aedbdbac5f05efd3c0539",
+  "scoredAt": "2026-10-03T12:00:07.488Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases in its instructions."
+        "detail": "Covers mostly the happy path and gives little guidance on failure scenarios such as failed builds, broken generations, credit exhaustion mid-task, or rolling back bad edits beyond a brief mention of version history."
       },
       {
         "severity": "MEDIUM",
         "category": "actionability",
-        "detail": "The skill file lacks concrete runnable code or procedures for the agent to execute."
+        "detail": "Most steps are UI-click descriptions or policy advice rather than runnable procedures, and the security review step lacks concrete commands or checks for the two-user RLS test and the built-in scan."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 80,
-    "multiplier": 1.9,
+    "multiplier": 1.58,
+    "baselineAvg": 55,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Draft a first Lovable prompt for a SaaS waitlist with referral leaderboard",
-        "baseline": 44,
+        "name": "waitlist-prompt-with-rls-review",
+        "baseline": 74,
         "treatment": 82,
-        "rationale": "Treatment follows the skill's detailed-first-prompt guidance, requests shadcn/ui DataTable explicitly, asks for Supabase Auth + RLS policies and a referral_code/referred_by schema; baseline writes a vague feature list without leveraging Lovable's Supabase+shadcn defaults."
+        "rationale": "A hits every rubric item compactly: section-based prompt with concrete hero copy, an admin page behind login, Lovable Cloud, a design direction, the exact 'Ask me any questions you need before building' line, the insert-with-check(true) vs select-exposes-all-rows distinction, the built-in security scan, and a three-role test. B is more thorough on security but omits the 'Ask me any questions' line, gives a vague 'Lovable Cloud / Supabase' backend choice, and has little concrete copy or explicit design direction. It also never states that check(true) is fine for insert, and it does not frame the testing as the two-user test the rubric asks for."
       },
       {
-        "name": "Plan production handoff for a Lovable-generated app",
-        "baseline": 40,
-        "treatment": 78,
-        "rationale": "Treatment exports to GitHub, links the user's own Supabase project for production, reviews RLS policies before launch, and pairs with Cursor for business logic — all from the skill's Best Practices; baseline suggests generic deploy steps without Lovable-specific export/RLS review."
+        "name": "github-sync-and-cursor-workflow",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": ""
+      },
+      {
+        "name": "choose-backend-and-manage-credits",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "A covers nearly every rubric point (no-migration lock-in, Supabase first, Chat mode, Plan Mode at 1 credit vs 0.5–1.7 for edits, all core features in the first prompt, one change per follow-up, 5 daily/30 monthly credits), while B recommends Supabase but misstates the migration facts, hedges from memory, says to batch changes (the opposite of one change per follow-up), and omits the credit numbers and Plan Mode cost."
       }
     ]
   }

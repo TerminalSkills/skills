@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:303a1d9f1a039e3baa480077ad9c1ca527de34f3225199870fe695270e8a4131",
-  "scoredAt": "2026-05-13T09:21:06.521Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1dac0ecc0c7c47f57b228a142c0413cb973c1e854ce8d306eb1ffab4f5f289b5",
+  "scoredAt": "2026-10-03T11:59:14.167Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill is limited to Node.js/Python, not fully cross-platform for all AI agents."
+        "category": "examples",
+        "detail": "Example 1 is a prose description with no runnable code, and Example 2 is a short snippet that assumes an existing 'notes' table, so neither shows a full end-to-end workflow."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 89,
-    "multiplier": 2.70,
+    "multiplier": 1.92,
+    "baselineAvg": 48,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Embedded vector DB with automatic embeddings for a Node CLI",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline used a generic external vector store with manual OpenAI embedding calls; treatment used lancedb.connect() with the embedding registry's sourceField()/vectorField() so .search(text) auto-embeds."
+        "name": "hybrid-search-fts-index",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both responses create the FTS index with lancedb.Index.fts(), run table.query().fullTextSearch('kubernetes').nearestTo(vec).limit(5).toArray(), and avoid the invalid search(..., {queryType: 'hybrid'}) form; A explicitly warns against that form, while B adds replace:true and extra notes (with a hedged reranker note), so they are about equal on the rubric."
       },
       {
-        "name": "Hybrid keyword + vector search with metadata filter",
+        "name": "auto-embed-local-privacy",
         "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline merged separate keyword and vector queries manually; treatment used table.createIndex(\"text\", { config: lancedb.Index.fts() }) and .search(query, { queryType: \"hybrid\" }).where(...) per the SKILL.md."
+        "treatment": 92,
+        "rationale": "B follows the rubric: it uses lancedb.embedding getRegistry() and LanceSchema with sourceField/vectorField on a local huggingface embedder, and it queries with table.search(text).limit(n) with no API key. A uses a local transformers model but embeds manually and searches with a vector, skipping the registry, schema and automatic text embedding."
+      },
+      {
+        "name": "ann-index-and-s3-storage",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "Response B matches the rubric: it uses the TypeScript createIndex with Index.ivfPq cosine, connects with an s3:// URI using AWS environment credentials, and says exact scans are fine only up to about 100K rows and that PQ training needs at least 256 rows. Response A uses the Python API with different calls, never gives the createIndex/ivfPq form, and omits the 100K-row and 256-row points."
       }
     ]
   }

@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f7da51645ee117006a6178aebab415f613c5c6e7a5fe7d07755cf742bd84a872",
-  "scoredAt": "2026-05-13T10:36:09.074Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a02f45a5aacfb34f1450b0371f47b15003178f97c503238426f2d9aa3513ca6b",
+  "scoredAt": "2026-10-03T12:11:03.912Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "PASS"
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Runnable code is almost entirely Node/Express with SimpleWebAuthn; Python and Java get only a brief non-runnable sketch (Python registration only, Java a single dependency line)."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two Examples are short prose scenarios without concrete runnable inputs and outputs, so they are simplistic compared with the code in the Instructions."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 90,
-    "multiplier": 1.8,
+    "multiplier": 1.13,
+    "baselineAvg": 75,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Passkey registration endpoint in Express",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment uses generateRegistrationOptions/verifyRegistrationResponse from @simplewebauthn/server with excludeCredentials and challenge storage; baseline cobbles together raw WebAuthn API without library-specific patterns."
+        "name": "passkey-registration-endpoints",
+        "baseline": 72,
+        "treatment": 88,
+        "rationale": "B stores the challenge server-side with a 300-second TTL and an atomic read-and-delete, and it meets the rest of the rubric. A keeps the challenge in the session with no explicit TTL, which is weaker on the TTL requirement, and it passes `req.body.response.transports` instead of the verified `credential.transports`."
       },
       {
-        "name": "Verifying passkey login with replay protection",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment passes credential.publicKey and counter into verifyAuthenticationResponse and updates counter from authenticationInfo.newCounter as the SKILL.md prescribes; baseline mentions counter conceptually but lacks the simplewebauthn call shape."
+        "name": "login-verification-counter-and-session",
+        "baseline": 62,
+        "treatment": 80,
+        "rationale": "A matches the rubric closely — allowCredentials as { id, transports }, a challenge bound to the session, a credential object, newCounter stored, an HttpOnly/Secure/SameSite cookie and startAuthentication({ optionsJSON }) — while B leaves out allowCredentials (usernameless flow), so it misses that rubric item despite otherwise strong coverage."
+      },
+      {
+        "name": "fix-user-verification-error",
+        "baseline": 90,
+        "treatment": 86,
+        "rationale": "Both explain the default requireUserVerification: true versus 'preferred' mismatch and offer both fixes with consistency advice, but B more clearly states that verify doesn't read the options value and adds useful notes on authentication and storing userVerified, while A's UV-in-both-places framing is slightly less precise."
       }
     ]
   }

@@ -1,161 +1,154 @@
 ---
 name: ag2
 description: >-
-  You are an expert in AG2 (formerly AutoGen), the open-source multi-agent
-  conversation framework. You help developers build systems where multiple AI
-  agents collaborate through structured conversations — with tool use,
-  human-in-the-loop, code execution, group chat orchestration, and nested
-  conversations — for complex tasks like software development, research, and
-  data analysis.
+  AG2 (formerly AutoGen) is an open-source Python framework for building AI
+  agents and multi-agent systems that use tools, human approval and structured
+  conversations. Use it when you need agents that call functions, collaborate
+  in a group chat, execute code, or when you are migrating AutoGen or
+  pyautogen code to AG2 v1 or ag2-classic.
 license: Apache-2.0
-compatibility: ''
+compatibility: Python 3.10+, an API key for the chosen model provider
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: 1.1.0
+  category: data-ai
+  repository: https://github.com/ag2ai/ag2
   tags:
     - multi-agent
-    - conversation
     - autogen
-    - microsoft
     - orchestration
     - python
+    - agents
 ---
 
 # AG2 (AutoGen) — Multi-Agent Conversation Framework
 
-You are an expert in AG2 (formerly AutoGen), the open-source multi-agent conversation framework. You help developers build systems where multiple AI agents collaborate through structured conversations — with tool use, human-in-the-loop, code execution, group chat orchestration, and nested conversations — for complex tasks like software development, research, and data analysis.
+## Overview
 
-## Core Capabilities
+AG2 is the community continuation of Microsoft's AutoGen. Since **v1.0** (current: 1.1.1, September 2026) it is a new, async-first framework and is **not backward compatible** with classic AutoGen:
 
-### Two-Agent Conversation
+| You see in code | You have | Install |
+|---|---|---|
+| `from ag2 import Agent`, `from ag2.config import OpenAIConfig` | AG2 v1 | `pip install "ag2[openai]"` |
+| `from autogen import ConversableAgent, GroupChat, UserProxyAgent` | classic AutoGen / AG2 0.x | `pip install ag2-classic` (its README also shows `autogen[openai]`) |
+
+Classic is in maintenance mode (security fixes only). Do not mix the two APIs in one file. Provider extras for v1: `ag2[openai]`, `ag2[anthropic]`, `ag2[gemini]`, `ag2[ollama]` and others. Docs: https://docs.ag2.ai (v1) and https://classic.docs.ag2.ai (classic).
+
+## Instructions
+
+### AG2 v1: an agent with a tool
 
 ```python
-from autogen import ConversableAgent, UserProxyAgent
+import asyncio
+from ag2 import Agent, tool
+from ag2.config import OpenAIConfig      # also AnthropicConfig, GeminiConfig, OllamaConfig, ...
 
-# AI assistant agent
-assistant = ConversableAgent(
-    name="Engineer",
-    system_message="""You are a senior software engineer.
-    Write clean, tested Python code. Explain your design decisions.""",
-    llm_config={"model": "gpt-4o", "temperature": 0.2},
+
+@tool
+async def count_lines(path: str) -> str:
+    """Count the lines in a source file inside the current project."""
+    with open(path, encoding="utf-8") as f:
+        return f"{path}: {sum(1 for _ in f)} lines"
+
+
+reviewer = Agent(
+    "reviewer",
+    prompt="You review Python code. Use tools to inspect files before judging them.",
+    config=OpenAIConfig("gpt-4o-mini"),   # key is read from OPENAI_API_KEY
+    tools=[count_lines],
 )
 
-# Human proxy (can auto-approve or require human input)
-user_proxy = UserProxyAgent(
-    name="User",
-    human_input_mode="NEVER",             # NEVER / ALWAYS / TERMINATE
+
+async def main() -> None:
+    reply = await reviewer.ask("How big is app/main.py?")
+    print(reply.body)
+    follow_up = await reply.ask("Is that too large for one module?")  # keeps the history
+    print(follow_up.body)
+
+
+asyncio.run(main())
+```
+
+- `agent.ask(...)` returns a reply; `reply.body` is the text and `reply.ask(...)` continues the same conversation.
+- A tool is a typed function with a docstring decorated with `@tool`; the signature and docstring become the schema the model sees.
+- Stream or observe a turn with `async with agent.run("...") as run: run.start(); async for event in run.stream...` and `await run.result()`.
+- Human approval: pass `hitl_hook=` to `Agent`; it receives a `HumanInputRequest` (from `ag2.events`) and returns a `HumanMessage(content=...)`.
+- Test without an LLM: `from ag2.testing import TestConfig` and pass `TestConfig("scripted reply")` (or `ToolCallEvent`s) as `config`.
+
+### AG2 v1: several agents
+
+v1 replaces `GroupChat`, swarm and nested chats with a **Network**: a `Hub` registers agents, and they talk over typed channels (`conversation` for free two-party chat, `consulting` for one question and one answer, `discussion` for round-robin among N agents, `workflow` for a `TransitionGraph` of conditional handoffs, the closest analogue to GroupChat). Read the group-chat migration guide on docs.ag2.ai before writing this part; the classes live in `ag2.network` (`Hub`, `Channel`, `TransitionGraph`, `Handoff`).
+
+### Classic AutoGen (`ag2-classic`): two agents and group chat
+
+Only for existing code that imports `autogen`.
+
+```python
+from autogen import ConversableAgent, LLMConfig, UserProxyAgent, register_function
+from autogen.agentchat import run_group_chat
+from autogen.agentchat.group.patterns import AutoPattern
+
+llm_config = LLMConfig(api_type="openai", model="gpt-4o-mini")   # key from OPENAI_API_KEY
+
+engineer = ConversableAgent(
+    name="engineer",
+    system_message="You write clean, tested Python. Explain design decisions briefly.",
+    llm_config=llm_config,
+)
+runner = UserProxyAgent(
+    name="runner",
+    human_input_mode="NEVER",              # NEVER / ALWAYS / TERMINATE
     max_consecutive_auto_reply=10,
-    is_termination_msg=lambda msg: "TERMINATE" in msg.get("content", ""),
-    code_execution_config={
-        "work_dir": "workspace",
-        "use_docker": True,               # Safe code execution in Docker
-    },
+    is_termination_msg=lambda m: "TERMINATE" in (m.get("content") or ""),
+    code_execution_config={"work_dir": "workspace", "use_docker": True},
 )
+result = runner.initiate_chat(engineer, message="Write a FastAPI /health endpoint with a pytest test.", max_turns=6)
 
-# Start conversation — agents talk until task is complete
-result = user_proxy.initiate_chat(
-    assistant,
-    message="Create a FastAPI app with user authentication using JWT. Include tests.",
+reviewer = ConversableAgent(name="reviewer", system_message="You review code for bugs and security issues.", llm_config=llm_config)
+pattern = AutoPattern(
+    agents=[engineer, reviewer],
+    initial_agent=engineer,
+    group_manager_args={"name": "manager", "llm_config": llm_config},
 )
-# Engineer writes code → User proxy executes → Engineer reviews output → iterates
+response = run_group_chat(pattern=pattern, messages="Build a rate limiter for our API.", max_rounds=12)
 ```
 
-### Group Chat (Multiple Agents)
+Tools in classic: `register_function(fn, caller=engineer, executor=runner, description="...")`. The caller proposes the call, the executor runs it. Classic also has `LLMConfig.from_json(path="OAI_CONFIG_LIST")` for a config file. Only the register and `run_group_chat` calls above were checked against the classic README; check other classic details at classic.docs.ag2.ai.
+
+## Examples
+
+### Example 1: Single agent that inspects a repository
+
+**User request:** "Make me an AG2 agent that can count lines in files and answer questions about them."
+
+Install with `python -m venv .venv && .venv/bin/pip install "ag2[openai]"`, save the v1 code above as `reviewer.py`, set `OPENAI_API_KEY` in the environment and run `.venv/bin/python reviewer.py`. The agent calls `count_lines` for `app/main.py`, then prints a sentence such as "app/main.py has 212 lines". The follow-up question reuses the same history.
+
+### Example 2: Unit-test an agent without calling an LLM
+
+**User request:** "I want to test my AG2 tool wiring in CI without an API key."
 
 ```python
-from autogen import GroupChat, GroupChatManager
+from ag2 import Agent
+from ag2.events import ToolCallEvent
+from ag2.testing import TestConfig
 
-# Specialist agents
-architect = ConversableAgent(
-    name="Architect",
-    system_message="You design system architecture. Focus on scalability, reliability, and clean interfaces.",
-    llm_config={"model": "gpt-4o"},
+config = TestConfig(
+    ToolCallEvent(name="count_lines", arguments='{"path": "app/main.py"}'),
+    "app/main.py has 212 lines",
 )
-
-developer = ConversableAgent(
-    name="Developer",
-    system_message="You implement features based on the architect's design. Write production-quality code.",
-    llm_config={"model": "gpt-4o"},
-)
-
-reviewer = ConversableAgent(
-    name="Reviewer",
-    system_message="You review code for bugs, security issues, and best practices. Be thorough but constructive.",
-    llm_config={"model": "gpt-4o"},
-)
-
-tester = ConversableAgent(
-    name="Tester",
-    system_message="You write comprehensive tests. Cover edge cases and integration scenarios.",
-    llm_config={"model": "gpt-4o"},
-)
-
-# Group chat with round-robin or AI-selected speaker
-group_chat = GroupChat(
-    agents=[user_proxy, architect, developer, reviewer, tester],
-    messages=[],
-    max_round=20,
-    speaker_selection_method="auto",      # LLM picks next speaker based on context
-)
-
-manager = GroupChatManager(groupchat=group_chat, llm_config={"model": "gpt-4o"})
-
-user_proxy.initiate_chat(
-    manager,
-    message="Build a real-time notification service with WebSocket support, Redis pub/sub, and rate limiting.",
-)
-# Architect designs → Developer implements → Reviewer catches issues → Developer fixes → Tester adds tests
+agent = Agent("reviewer", prompt="Use tools.", config=config, tools=[count_lines])
+reply = await agent.ask("How big is app/main.py?")
+assert "212" in reply.body
 ```
 
-### Tool Use
+The scripted model requests the tool, AG2 runs the real `count_lines`, and the scripted second turn is the answer. Each `ask` consumes scripted turns, so supply enough for follow-ups.
 
-```python
-from autogen import register_function
+## Guidelines
 
-def search_codebase(query: str, file_pattern: str = "*.py") -> str:
-    """Search the codebase for specific patterns.
-
-    Args:
-        query: Search query (regex supported)
-        file_pattern: File glob pattern to search in
-    """
-    import subprocess
-    result = subprocess.run(["grep", "-rn", query, "--include", file_pattern, "."],
-                           capture_output=True, text=True)
-    return result.stdout[:2000]
-
-def run_tests(test_path: str = "tests/") -> str:
-    """Run pytest on the specified test directory.
-
-    Args:
-        test_path: Path to test files or directory
-    """
-    import subprocess
-    result = subprocess.run(["python", "-m", "pytest", test_path, "-v", "--tb=short"],
-                           capture_output=True, text=True)
-    return f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-
-# Register tools for specific agents
-register_function(search_codebase, caller=developer, executor=user_proxy,
-    description="Search the codebase for code patterns")
-register_function(run_tests, caller=tester, executor=user_proxy,
-    description="Run tests to verify code correctness")
-```
-
-## Installation
-
-```bash
-pip install ag2                           # Or: pip install pyautogen
-```
-
-## Best Practices
-
-1. **Clear system messages** — Define each agent's role precisely; vague instructions lead to unfocused conversations
-2. **Speaker selection** — Use `auto` for LLM-selected speakers in group chat; `round_robin` for predictable flow
-3. **Termination conditions** — Set `is_termination_msg` and `max_consecutive_auto_reply`; prevent infinite loops
-4. **Docker for code execution** — Enable `use_docker: True` for safe code execution; agents can run untrusted code
-5. **Human-in-the-loop** — Use `TERMINATE` mode for approval on critical actions; `NEVER` for fully autonomous
-6. **Tool registration** — Register tools with specific caller/executor pairs; not every agent needs every tool
-7. **Nested chats** — Use nested conversations for sub-tasks; agent can spawn a side conversation and return results
-8. **Cost control** — Set `max_round` and `max_consecutive_auto_reply`; monitor token usage in group chats
+- Check which API a file uses (`ag2` vs `autogen` imports) before editing; v1 and classic are different libraries.
+- Keep keys in environment variables, never in code or a committed `OAI_CONFIG_LIST`.
+- Give each agent a narrow prompt and only the tools it needs; vague prompts produce unfocused loops.
+- Always bound loops: `max_turns` / `max_rounds` and `max_consecutive_auto_reply` in classic, and watch token usage in group chats.
+- Classic code execution runs model-written code: keep `use_docker: True`, and never point `work_dir` at a real project.
+- Require human approval (`hitl_hook` in v1, `human_input_mode="ALWAYS"` or `"TERMINATE"` in classic) before irreversible actions.
+- Do not migrate a working classic system to v1 unprompted; v1 is a rewrite of orchestration, not a version bump.

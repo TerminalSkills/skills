@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1bf4d12b770f973699a433c5aed8d792c78ca422a9c3cb63ba120950e5244ffa",
-  "scoredAt": "2026-05-13T09:45:14.840Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:94ddb260942e74852ca20dbc98fd11355e42fde0559eb928854e675eee06f9cb",
+  "scoredAt": "2026-10-03T12:07:27.144Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
+        "category": "examples",
+        "detail": "Example 2 has no runnable code (only prose describing calls to obb.economy.cpi and interest_rates, joining and plotting), so only one of the two examples is a complete demonstration."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 95,
-    "multiplier": 4.13,
+    "multiplier": 2.42,
+    "baselineAvg": 36,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "AAPL price + SMA(20) + RSI(14) DataFrame pipeline",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline reaches for yfinance and reimplements indicators manually, missing the obb.technical.sma/rsi helpers entirely, while treatment uses the documented obb.equity.price.historical + obb.technical.sma/rsi chain."
+        "name": "agent-safe-stock-snapshot",
+        "baseline": 5,
+        "treatment": 88,
+        "rationale": "A meets the rubric by importing `obb`, setting explicit free providers (cboe, sec, nasdaq), using `.to_dataframe()`, and commenting on the sec versus nasdaq revenue column names and `.columns`. B relies on yfinance, which the rubric bans, and uses `.to_df()`, so it fails the core constraints."
       },
       {
-        "name": "Expose OpenBB to non-Python agent via HTTP",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline hand-rolls a FastAPI wrapper around yfinance, whereas treatment uses the built-in openbb-api server on port 6900 and the documented /api/v1/equity/price/historical endpoint plus MCP."
+        "name": "inflation-vs-rates-free-data",
+        "baseline": 62,
+        "treatment": 85,
+        "rationale": "Both use OECD for cpi and interest_rates and mention switching to provider=\"fred\" with a free key, but B joins the two DataFrames and plots them, and recommends the FRED_API_KEY environment variable rather than hard-coding. A plots the series without an explicit join, and its FRED credential example hard-codes the key, which the rubric advises against, even though it mentions persisting it in the settings file."
+      },
+      {
+        "name": "install-and-expose-mcp-for-agent",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "A matches the rubric closely: it gives `openbb[routers]` or individual packages, discovery with `dir(obb)` and the `provider` annotation, `openbb-mcp --transport stdio` with `--allowed-categories`, and loopback binding. B recommends `openbb[all]` and `openbb.build()` instead of `[routers]`, and it uses `help()` for discovery rather than the signature or annotation. B also guesses at flag names such as `--default-categories` and never names `--allowed-categories`, though it does state the 127.0.0.1 binding."
       }
     ]
   }

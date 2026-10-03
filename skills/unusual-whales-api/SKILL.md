@@ -8,9 +8,10 @@ description: >
   "congressional trading", "insider trading", or needs real-time and historical
   market data for trading analysis and AI agent integration.
 license: Apache-2.0
+compatibility: "Python 3.9+ with httpx, or any HTTP client; requires an Unusual Whales API token"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags:
     - finance
@@ -21,6 +22,8 @@ metadata:
 ---
 
 # Unusual Whales API
+
+## Overview
 
 Query the Unusual Whales API for institutional-grade market data — unusual options flow, dark pool prints, market tide sentiment, gamma exposure, congressional trading, and stock greeks.
 
@@ -39,7 +42,8 @@ Use this skill when the user asks for financial data related to:
 
 - Unusual Whales API key (get one at https://unusualwhales.com/api_lander)
 - Set `UNUSUAL_WHALES_API_TOKEN` in your environment
-- Pricing starts at $50/week or $150/month
+- Plans and prices change; check https://unusualwhales.com/public-api before quoting a price
+- Official agent rules the vendor publishes: https://unusualwhales.com/skill.md (re-read it when an endpoint fails)
 
 ## Instructions
 
@@ -47,9 +51,10 @@ Use this skill when the user asks for financial data related to:
 
 **Base URL:** Always use `https://api.unusualwhales.com`
 
-**Authentication:** All requests MUST include the header:
+**Authentication:** All requests MUST include both headers:
 ```
-Authorization: Bearer <API_TOKEN>
+Authorization: Bearer $UNUSUAL_WHALES_API_TOKEN
+UW-CLIENT-API-ID: 100001
 ```
 
 **Method:** All endpoints are GET requests. Never use POST, PUT, or DELETE.
@@ -83,6 +88,8 @@ Translate user intent to the correct endpoint:
 
 ### Core Data & Flow
 
+- **Option Trades (tape prints, latest trading day):** `/api/option-trades`
+  - Params: `limit`, `ticker_symbol`, `min_premium`, `max_premium`, `min_dte`, `max_dte`, `is_otm`, `opening`, `size_greater_oi`, `volume_greater_oi`, `newer_than`/`older_than` (Unix seconds or ms), list params as `tags[]=ask_side`
 - **Flow Alerts (Unusual Activity):** `/api/option-trades/flow-alerts`
   - Params: `limit`, `is_call`, `is_put`, `is_otm`, `min_premium`, `ticker_symbol`, `size_greater_oi`
 - **Options Screener (Hottest Chains):** `/api/screener/option-contracts`
@@ -102,6 +109,11 @@ Translate user intent to the correct endpoint:
 - **Interpolated IV and Percentiles:** `/api/stock/{ticker}/interpolated-iv`
 - **Options Volume/PC Ratio:** `/api/stock/{ticker}/options-volume`
 
+### Fundamentals & Technicals
+
+- **Financials:** `/api/stock/{ticker}/financials` (also `/income-statements`, `/balance-sheets`, `/cash-flows`, `/earnings` with `report_type`)
+- **Technical indicator:** `/api/stock/{ticker}/technical-indicator/{function}` (params `interval`, `time_period`, `series_type`)
+
 ### Other Data
 
 - **Insider Trading:** `/api/insider/transactions`
@@ -116,10 +128,14 @@ Translate user intent to the correct endpoint:
 
 ```python
 # unusual_whales_flow.py — Fetch unusual options flow alerts for a ticker
+import os
 import httpx
 
 url = "https://api.unusualwhales.com/api/option-trades/flow-alerts"
-headers = {"Authorization": "Bearer YOUR_TOKEN"}
+headers = {
+    "Authorization": f"Bearer {os.environ['UNUSUAL_WHALES_API_TOKEN']}",
+    "UW-CLIENT-API-ID": "100001",
+}
 params = {
     "ticker_symbol": "TSLA",
     "min_premium": 50_000,       # Minimum $50K premium
@@ -140,10 +156,14 @@ for trade in trades:
 
 ```python
 # unusual_whales_screener.py — Screen for bullish options activity
+import os
 import httpx
 
 url = "https://api.unusualwhales.com/api/screener/option-contracts"
-headers = {"Authorization": "Bearer YOUR_TOKEN"}
+headers = {
+    "Authorization": f"Bearer {os.environ['UNUSUAL_WHALES_API_TOKEN']}",
+    "UW-CLIENT-API-ID": "100001",
+}
 params = {
     "limit": 150,
     "is_otm": True,
@@ -154,7 +174,7 @@ params = {
     "min_volume": 500,
     "min_premium": 250_000,            # $250K+ premium
     "type": "Calls",                   # Bullish = calls
-    "vol_greater_oi": True,            # Volume exceeds open interest
+    "volume_greater_oi": True,         # Volume exceeds open interest
 }
 response = httpx.get(url, headers=headers, params=params)
 data = response.json().get("data", [])
@@ -169,10 +189,14 @@ for contract in data:
 
 ```python
 # unusual_whales_darkpool.py — Fetch dark pool trades for a ticker
+import os
 import httpx
 
 url = "https://api.unusualwhales.com/api/darkpool/NVDA"
-headers = {"Authorization": "Bearer YOUR_TOKEN"}
+headers = {
+    "Authorization": f"Bearer {os.environ['UNUSUAL_WHALES_API_TOKEN']}",
+    "UW-CLIENT-API-ID": "100001",
+}
 response = httpx.get(url, headers=headers)
 prints = response.json().get("data", [])
 
@@ -187,10 +211,14 @@ for p in prints:
 
 ```python
 # unusual_whales_tide.py — Fetch market tide sentiment data
+import os
 import httpx
 
 url = "https://api.unusualwhales.com/api/market/market-tide"
-headers = {"Authorization": "Bearer YOUR_TOKEN"}
+headers = {
+    "Authorization": f"Bearer {os.environ['UNUSUAL_WHALES_API_TOKEN']}",
+    "UW-CLIENT-API-ID": "100001",
+}
 params = {"interval_5m": False}  # Full day view
 response = httpx.get(url, headers=headers, params=params)
 data = response.json().get("data", [])
@@ -208,10 +236,14 @@ print(f"Market Tide: {sentiment} | Calls: ${net_call:,.0f} | Puts: ${net_put:,.0
 
 ```python
 # unusual_whales_gex.py — Fetch spot gamma exposure by strike
+import os
 import httpx
 
 url = "https://api.unusualwhales.com/api/stock/RIVN/spot-exposures/strike"
-headers = {"Authorization": "Bearer YOUR_TOKEN"}
+headers = {
+    "Authorization": f"Bearer {os.environ['UNUSUAL_WHALES_API_TOKEN']}",
+    "UW-CLIENT-API-ID": "100001",
+}
 response = httpx.get(url, headers=headers)
 data = response.json().get("data", [])
 
@@ -225,10 +257,14 @@ for level in sorted(data, key=lambda x: abs(float(x.get('call_gamma_oi', 0))), r
 
 ```python
 # unusual_whales_congress.py — Fetch politician trading disclosures
+import os
 import httpx
 
 url = "https://api.unusualwhales.com/api/congress/recent-trades"
-headers = {"Authorization": "Bearer YOUR_TOKEN"}
+headers = {
+    "Authorization": f"Bearer {os.environ['UNUSUAL_WHALES_API_TOKEN']}",
+    "UW-CLIENT-API-ID": "100001",
+}
 response = httpx.get(url, headers=headers)
 trades = response.json().get("data", [])
 
@@ -243,8 +279,10 @@ for trade in trades[:20]:
 - Use `size_greater_oi=True` to filter for opening positions (new money entering)
 - Use `is_otm=True` to filter for out-of-the-money options (higher leverage bets)
 - `min_premium` is in dollars — use 50000 for $50K, 500000 for $500K
-- Dark pool data is delayed ~15 minutes from execution
 - Market Tide with `interval_5m=False` gives full-day aggregated view
 - Congressional trading data reflects filed disclosures, not real-time trades
-- For WebSocket streaming (live feeds), an Advanced tier subscription is required
-- Rate limits apply — check response headers for `X-RateLimit-Remaining`
+- WebSocket streaming is a separate feature that depends on your plan; the vendor documents it at https://unusualwhales.com/skills/websocket.md
+- Rate limits apply per plan; on HTTP 429 back off and retry, and read the vendor's usage-monitor skill (linked from skill.md) to inspect current usage
+- Send both headers on every call; a missing `UW-CLIENT-API-ID` is a common cause of rejected requests
+- Never paste the token into code or commits; keep it in `UNUSUAL_WHALES_API_TOKEN`
+- Not investment advice: flow and disclosures describe what happened, not what will happen

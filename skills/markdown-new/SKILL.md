@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: automation
   tags: ["markdown", "web-scraping", "content-extraction", "url-to-markdown", "rag"]
 ---
@@ -17,7 +17,9 @@ metadata:
 
 Convert public web pages into clean Markdown via [markdown.new](https://markdown.new) — a free hosted service that strips navigation, ads, and boilerplate, returning only the readable content.
 
-## When to Use
+## Overview
+
+Use it when you need:
 
 - Extracting article text for summarization or analysis
 - Building RAG pipelines that ingest web content
@@ -25,7 +27,7 @@ Convert public web pages into clean Markdown via [markdown.new](https://markdown
 - Reducing token usage compared to raw HTML or full browser snapshots
 - Research workflows where you need clean text from multiple URLs
 
-## API
+## Instructions
 
 ### Prefix Mode (simplest)
 
@@ -33,10 +35,10 @@ Prepend `https://markdown.new/` to any URL:
 
 ```bash
 # Basic conversion
-curl -s 'https://markdown.new/https://example.com/article'
+curl -s 'https://markdown.new/https://www.bbc.com/news/technology'
 
 # With options
-curl -s 'https://markdown.new/https://example.com?method=browser&retain_images=true'
+curl -s 'https://markdown.new/https://react.dev/learn?method=browser&retain_images=true'
 ```
 
 ### POST Mode (recommended for automation)
@@ -45,7 +47,7 @@ curl -s 'https://markdown.new/https://example.com?method=browser&retain_images=t
 curl -s -X POST https://markdown.new/ \
   -H 'Content-Type: application/json' \
   -d '{
-    "url": "https://example.com/article",
+    "url": "https://www.bbc.com/news/technology",
     "method": "auto",
     "retain_images": false
   }'
@@ -66,6 +68,14 @@ curl -s -X POST https://markdown.new/ \
 
 **Strategy:** Always try `auto` first. Fall back to `browser` only when output is incomplete or empty.
 
+### What comes back
+
+The response is `text/markdown` with YAML frontmatter (title and page metadata) followed by the converted content. Internally the service tries three tiers in order: a direct `Accept: text/markdown` request to the site, Workers AI HTML-to-Markdown conversion, then headless-browser rendering.
+
+### Crawl endpoint
+
+`https://markdown.new/crawl` runs an asynchronous crawl job over a whole site (up to 500 pages per job, depth up to 10, optional JavaScript rendering) and lets you download the result as a single `.md` file. Use it instead of looping over single-page requests; see the site for the current job request format, which is not covered here.
+
 ### Response Headers
 
 The service returns useful metadata in response headers:
@@ -73,9 +83,9 @@ The service returns useful metadata in response headers:
 - `x-markdown-tokens` — estimated token count of the output
 - `x-rate-limit-remaining` — requests remaining in current window
 
-## Usage Patterns
+### Usage Patterns
 
-### Single Page Extraction
+#### Single Page Extraction
 
 ```python
 """fetch_article.py — Extract a single article as Markdown."""
@@ -100,11 +110,11 @@ def fetch_markdown(url: str, method: str = "auto") -> str:
     return resp.text
 
 # Extract an article
-content = fetch_markdown("https://example.com/blog/post-title")
+content = fetch_markdown("https://blog.cloudflare.com/markdown-for-agents/")
 print(f"Extracted {len(content)} chars")
 ```
 
-### Batch Extraction with Rate Limiting
+#### Batch Extraction with Rate Limiting
 
 ```python
 """batch_extract.py — Extract multiple URLs with rate limiting."""
@@ -146,17 +156,17 @@ def batch_extract(urls: list[str], delay: float = 0.5) -> dict[str, str]:
     return results
 ```
 
-### Shell One-Liner
+#### Shell One-Liner
 
 ```bash
 # Quick article extraction — pipe to file or another tool
-curl -s 'https://markdown.new/https://example.com/article' > article.md
+curl -s 'https://markdown.new/https://www.bbc.com/news/technology' > article.md
 
 # Extract and count tokens (rough estimate: words / 0.75)
-curl -s 'https://markdown.new/https://example.com/article' | wc -w
+curl -s 'https://markdown.new/https://www.bbc.com/news/technology' | wc -w
 ```
 
-### Node.js
+#### Node.js
 
 ```javascript
 // fetch-markdown.js — URL to Markdown in Node.js
@@ -179,11 +189,36 @@ async function fetchMarkdown(url, method = 'auto') {
 }
 ```
 
-## Limits and Best Practices
+## Examples
+
+### Example 1: Summarize an article
+
+**User request:** "Read https://react.dev/learn and give me the key points."
+
+```bash
+curl -s -D headers.txt 'https://markdown.new/https://react.dev/learn' > learn.md
+grep -i x-markdown-tokens headers.txt
+```
+
+The file `learn.md` holds the page as Markdown with frontmatter, and the header shows an estimated token count (for example `x-markdown-tokens: 4210`) so you know it fits the context before reading it.
+
+### Example 2: Retry a JavaScript-heavy page
+
+**User request:** "The dashboard page came back empty."
+
+```bash
+curl -s -X POST https://markdown.new/ -H 'Content-Type: application/json' \
+  -d '{"url": "https://status.github.com", "method": "browser"}' > status.md
+```
+
+The headless-browser method renders the page first, so content built by JavaScript appears in `status.md`.
+
+## Guidelines
 
 - **Rate limit:** ~500 requests/day per IP. Monitor `x-rate-limit-remaining` header.
 - **429 responses** mean you've hit the limit — back off and retry after a delay.
 - **Public URLs only** — the service cannot access authenticated or private pages.
+- **Public URLs only; no signup or API key is required.** Do not send private URLs, tokens or internal addresses: the URL is sent to a third-party service.
 - **Respect robots.txt** and copyright when extracting content.
 - **Verify critical extractions** — output is not guaranteed complete for every page.
 - **Use `auto` first**, fall back to `browser` for JS-heavy pages.
@@ -194,4 +229,4 @@ async function fetchMarkdown(url, method = 'auto') {
 - Pair with **whisper** for multimedia research (audio transcription + article extraction)
 - Feed output into **langchain** or **langgraph** for RAG pipelines
 - Use with **elasticsearch** to build a searchable content index
-- Combine with **sox** / **yt-dlp** for multi-format content ingestion
+- Combine with **yt-dlp** for multi-format content ingestion

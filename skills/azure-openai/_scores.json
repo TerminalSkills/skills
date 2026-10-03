@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:04ef4e540cb788cc8711444183a3faa34297a05bbd61f96408718e2dbfe6e2f9",
-  "scoredAt": "2026-05-13T14:34:55.840Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:e548d48bcf9193796321f16c94a7325c663ebc48a4f90dcef99b8112b0b22294",
+  "scoredAt": "2026-10-03T12:56:49.051Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill only handles content filtering errors and does not cover other error scenarios such as authentication failures or quota limits."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Examples are limited to Python and Node.js, implying minor platform assumptions."
+        "category": "examples",
+        "detail": "The two worked examples are prose-only migration and keyless-access descriptions with no concrete input or output data, though the code snippets elsewhere are realistic."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 40,
-    "treatmentAvg": 100,
+    "multiplier": 1.16,
+    "baselineAvg": 74,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "managed-identity-auth",
-        "baseline": 40,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric items, while Response B omits the required AzureOpenAI client, token provider, and api_version usage."
+        "name": "migrate-azureopenai-to-v1-keyless",
+        "baseline": 62,
+        "treatment": 95,
+        "rationale": "B matches all rubric items (OpenAI client with /openai/v1/ base_url, the ai.azure.com/.default scope, model as deployment name, Cognitive Services OpenAI User role), while A uses the wrong token scope (cognitiveservices.azure.com) though it otherwise covers the rest."
       },
       {
-        "name": "function-calling-example",
-        "baseline": 40,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B omits the required tools array, tool_choice handling, and conversation updates."
+        "name": "streaming-with-content-filter-handling",
+        "baseline": 88,
+        "treatment": 72,
+        "rationale": "Both guard empty choices, catch BadRequestError with e.code == \"content_filter\", and note finish_reason == \"content_filter\", but B explains the empty-first-chunk reason more fully (IndexError on choices[0]) and handles prompt and completion filter results more thoroughly, while A's comment on empty chunks is brief and A uses a less standard Azure client setup."
+      },
+      {
+        "name": "gpt-image-generation-and-retirement",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it states DALL-E 3 retired 2026-03-04, says gpt-image models always return base64, and uses images.generate with size 1536x1024, quality high, and b64_json decoding. A has the same code and the base64 point but says it doesn't know the retirement date, and it adds some unverified specifics."
       }
     ]
   }

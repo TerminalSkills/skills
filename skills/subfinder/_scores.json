@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fc926a551a7e5233a6898c7c6400a6ab47abaa322f431a8e5c5f00382e703c0e",
-  "scoredAt": "2026-05-13T10:15:59.659Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d178f2c5b3cce555dd98db27a681329a08625ce3ee6a483ef7f5f8bab58500ad",
+  "scoredAt": "2026-10-03T13:06:21.753Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not explicitly cover error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains verbose explanatory sections that could be trimmed for conciseness."
+        "detail": "The skill covers mostly the happy path and gives no guidance on error scenarios or edge cases such as invalid or missing API keys, source rate-limit or timeout failures, wildcard DNS, empty results, or deduplicating results across multiple domains."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 95,
-    "multiplier": 2.21,
+    "multiplier": 0.76,
+    "baselineAvg": 76,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "subfinder to httpx to nuclei recon pipeline",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline gets the rough shape but uses -l flags instead of stdin piping and omits the cves/ template path; treatment uses the documented cat subs.txt | httpx -silent and nuclei -t cves/ -severity critical,high chain."
+        "name": "source-attribution-and-key-config",
+        "baseline": 80,
+        "treatment": 80,
+        "rationale": "Both show -cs and -oJ and put shodan and virustotal as YAML lists in ~/.config/subfinder/provider-config.yaml, but neither says subfinder works without keys and returns more with them as plainly as the rubric asks; A does say keys give 'significantly more results' and lists the free sources, while B gives a more thorough per-source counting workflow and handles both the sources and source JSON fields."
       },
       {
-        "name": "Source-attributed enumeration with rate limiting and API key config",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline invents --sources and --rate flags and is vague about the config path; treatment uses -cs and -rate-limit and points to ~/.config/subfinder/provider-config.yaml with the correct censys api-id:api-secret format."
+        "name": "live-check-pipeline-with-rate-limit",
+        "baseline": 92,
+        "treatment": 5,
+        "rationale": "B provides the correct subfinder-to-httpx pipeline with -silent, -status-code, -title, and rate-limit throttling plus scope caveats, fully satisfying the rubric, while A refuses entirely and gives no technical content."
+      },
+      {
+        "name": "recursive-flag-and-active-gaps",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "B correctly explains that -recursive only restricts to recursive-capable sources with no depth-limiting flag (plus a workaround for depth filtering) and clearly flags active techniques (puredns/shuffledns, zone transfer) as requiring authorization, matching the rubric closely, while A never mentions -recursive or its actual semantics and never explicitly states there's no depth limit, though it does cover active techniques and authorization reminders."
       }
     ]
   }

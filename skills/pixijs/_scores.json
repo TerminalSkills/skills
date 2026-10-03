@@ -1,39 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:66c509f10c4cf4215b3eb8d0d8c0d964eb401d66e68ad36ecefc579a2931cf11",
-  "scoredAt": "2026-05-13T09:50:54.953Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:71a5f6ef3be9b20cee4c6415f066ad276e2068c499d1bdf6c3cc14c57aae4bdc",
+  "scoredAt": "2026-10-03T13:06:58.476Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 63,
+    "score": 87,
     "dimensions": {
-      "clarity": "FAIL",
+      "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
-        "severity": "HIGH",
-        "category": "clarity",
-        "detail": "The skill file lacks specific instructions, making it vague."
-      },
-      {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Only happy path examples are provided, missing error handling and edge cases."
+        "detail": "Covers mostly happy paths and gotchas but gives no handling for init failure when WebGL/WebGPU is unavailable, asset load errors, context loss, or window resize and cleanup beyond brief notes."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "Excessive explanatory text leads to verbosity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks step-by-step actionable instructions for the agent."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of an approach with no runnable code, and the 100,000-particle performance claim is asserted without any measurement or code to support it."
       }
     ]
   },
@@ -42,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 94,
-    "multiplier": 3.36,
+    "multiplier": 1.14,
+    "baselineAvg": 71,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "High-count particle system at 60fps",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline gives generic atlas/pooling advice and misses ParticleContainer; treatment uses ParticleContainer, pre-allocated pooling, and shared atlas batching exactly as the skill prescribes."
+        "name": "spritesheet-walk-attack-switch",
+        "baseline": 80,
+        "treatment": 88,
+        "rationale": "Both load the sheet with Assets.load, build the AnimatedSprite from the walk animation, set animationSpeed, add it to app.stage and set loop=false for the attack, but A matches the rubric's flow more closely: it sets textures to the attack animation on Space, plays it, and restores the walk textures in onComplete. B also swaps textures and restores walk in onComplete, but it routes everything through a helper and only calls play() through gotoAndPlay(0), so it follows the rubric slightly less literally. B adds a useful JSON-format note, but A's explanations are also accurate."
       },
       {
-        "name": "Animated water displacement filter",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline drifts to custom shaders; treatment wires DisplacementFilter with addressMode='repeat' and ticker-driven sprite motion per the skill."
+        "name": "speed-up-20k-sprite-snow",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both use Particle with addParticle in one ParticleContainer and position-only dynamicProperties, with no addChild on particles. A updates y with ticker.deltaTime as the rubric asks and wraps at the bottom. B uses ticker.deltaMS/1000 instead, and also updates x every frame with sine sway, so it departs from the rubric's y-only update and deltaTime. B's extra detail (boundsArea, gotchas) is useful but doesn't make up for that."
+      },
+      {
+        "name": "v8-init-and-styled-score-hud",
+        "baseline": 52,
+        "treatment": 66,
+        "rationale": "A matches more of the rubric: it uses new Application() then await app.init() before app.canvas, loads the font via Assets.load with data: { family }, uses a FillGradient object, draws the bar with rect().fill(), and recommends BitmapText. B recommends BitmapText and uses FillGradient and rect().fill(), but it loads the font with document.fonts.load instead of Assets.load, leaves a junk placeholder block in the code, and scales the bar instead of redrawing it."
       }
     ]
   }

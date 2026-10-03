@@ -1,58 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3a448c07434a03c7acd2797d029106a12e9ce9c026068b60c67b9b9b67813850",
-  "scoredAt": "2026-05-13T10:40:06.609Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:440367e68a1a32f09e0e5d837b9d8287f145aaff63b19876dcc5912898434580",
+  "scoredAt": "2026-10-03T22:19:22.717Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases such as missing ffmpeg or authentication."
+        "category": "clarity",
+        "detail": "Placeholders are used inconsistently: Step 4 sets PLAYLIST_URL=\"$1\" and then quotes the literal string \"PLAYLIST_URL\" in later commands, and \"URL\" and \"CHANNEL_URL\" are never defined, so it is unclear what the reader should substitute."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions assume Linux/macOS and omit Windows support."
+        "category": "completeness",
+        "detail": "Error handling is thin: there is no guidance on geo-blocked, private or age-restricted videos, on HTTP 403/429 failures, or on resuming interrupted downloads. Cookie use is mentioned only briefly, and the Step 11 config sets --write-auto-subs and --convert-subs globally without explaining the side effects."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Binary downloaded via curl without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 95,
-    "multiplier": 1.64,
+    "multiplier": 1.07,
+    "baselineAvg": 86,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Archive a YouTube playlist as MP3 with album art, resumable across runs",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline used -x --audio-format mp3 and -o template but omitted --download-archive for resumability and --embed-metadata; treatment combined --embed-thumbnail, --embed-metadata, --download-archive archive.txt, and -o '%(playlist_index)03d - %(title)s.%(ext)s' exactly per the skill."
+        "name": "playlist-mp3-archive-organized",
+        "baseline": 80,
+        "treatment": 96,
+        "rationale": "Both include every required flag and mention ffmpeg, but B gives the exact minimal command the rubric describes, while A adds extra options and tag overrides (parse-metadata, thumbnail crop) that go beyond the request and bury the core command in a script."
       },
       {
-        "name": "Download a conference talk as 720p MP4 with embedded English subtitles",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline knew -f 'bestvideo[height<=720]+bestaudio' and --embed-subs but missed --merge-output-format mp4 and --write-auto-sub fallback; treatment used the exact composite selector with --merge-output-format mp4, --embed-subs --sub-lang en, and --write-auto-sub from Step 5."
+        "name": "capped-quality-video-with-subs",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both list formats with -F, use a height-capped selector with fallback, --merge-output-format mp4, --embed-subs with --sub-langs en and --write-auto-subs, mention --list-subs and ffmpeg; A adds -S ext preference and a manual-ID option (but uses broader 'en.*,en' langs), B adds a JS runtime note and sticks closer to the rubric's exact selector and '--sub-langs en'."
+      },
+      {
+        "name": "polite-batch-channel-download",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both use -a, -x --audio-format mp3, --download-archive, --limit-rate, --sleep-interval with --max-sleep-interval, and correctly explain -N is concurrent fragments of a single video; A is more concise and states clearly that sequential is right, while B adds extras (retries, parallel split suggestion) that are useful but slightly contradict its own advice, and both meet all rubric items."
       }
     ]
   }

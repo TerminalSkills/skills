@@ -6,12 +6,12 @@ description: >-
   log processing pipelines, write Grok patterns, parse unstructured logs,
   enrich events, or set up multi-pipeline Logstash deployments.
 license: Apache-2.0
-compatibility: "Logstash 8.10+, Elasticsearch 8+"
+compatibility: "Logstash 8.10+ (examples pinned to 9.5.4), Elasticsearch 8+"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
-  tags: ["logstash", "logging", "grok", "elk", "log-processing", "pipelines"]
+  tags: ["logstash", "logging", "grok", "elk", "log-processing"]
 ---
 
 # Logstash
@@ -192,7 +192,7 @@ output {
 # docker-compose.yml — Logstash with custom config and patterns
 services:
   logstash:
-    image: docker.elastic.co/logstash/logstash:8.12.0
+    image: docker.elastic.co/logstash/logstash:9.5.4
     environment:
       - LS_JAVA_OPTS=-Xms1g -Xmx1g
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
@@ -225,11 +225,37 @@ curl -s "http://localhost:9600/_node/stats/pipelines" | \
 curl -s "http://localhost:9600/_node/hot_threads?human=true"
 ```
 
-## Best Practices
+## Examples
+
+### Example 1: Parse nginx access logs and ship them to Elasticsearch
+
+**User request:** "We have nginx access logs coming in through Filebeat — parse the fields and get them into Elasticsearch."
+
+**Agent workflow:**
+1. Write a `beats` input on port 5044 (Task A above), with `ssl_enabled => true` plus `ssl_certificate`/`ssl_key` if Filebeat connects over TLS — `ssl` and `ssl_verify_mode` were removed in the beats input and fail startup if present; use `ssl_enabled` and `ssl_client_authentication` instead.
+2. Add a `grok` filter matching the combined log format, a `date` filter to set `@timestamp` from the parsed `timestamp` field, and `geoip`/`useragent` to enrich `client_ip` and `user_agent`.
+3. Output to `elasticsearch` with a dated index pattern (`logs-nginx-%{+YYYY.MM.dd}`).
+4. Validate with the Grok Debugger (now part of Kibana's Dev Tools, not a standalone plugin) before deploying.
+
+**Output:** A running pipeline that turns raw nginx lines into structured, geo-enriched documents in Elasticsearch.
+
+### Example 2: Split traffic into independent pipelines by source
+
+**User request:** "nginx logs and our audit events are both going through one pipeline and a bad audit record is blocking nginx ingestion — separate them."
+
+**Agent workflow:**
+1. Create `pipelines.yml` with one entry per source (Task C above), each pointing at its own `.conf` file and its own `pipeline.workers`/`pipeline.batch.size`.
+2. Give the audit pipeline `queue.type: persisted` with a `queue.max_bytes` cap so a stuck event can't grow the queue unbounded and lose data on restart.
+3. Restart Logstash; confirm via `GET http://localhost:9600/_node/stats/pipelines` that each pipeline reports its own `events.in`/`events.out` counters independently.
+
+**Output:** Two isolated pipelines — a bad event in one no longer stalls the other.
+
+## Guidelines
 
 - Use persisted queues (`queue.type: persisted`) for pipelines processing critical data
-- Test Grok patterns with `grokdebugger` in Kibana before deploying
+- Test Grok patterns with the Grok Debugger in Kibana's Dev Tools before deploying
 - Use `tag_on_failure => []` for optional Grok matches to avoid `_grokparsefailure` tags
 - Separate pipelines by data source to isolate failures and tune workers independently
 - Set `pipeline.batch.size` higher (500-1000) for throughput, lower (125) for latency
 - Use `[@metadata]` fields for routing logic — they are not sent to outputs
+- In the `beats` input, use `ssl_enabled`/`ssl_client_authentication`; the older `ssl`/`ssl_verify_mode`/`cipher_suites` settings were removed and Logstash refuses to start if they're present

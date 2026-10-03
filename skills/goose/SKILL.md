@@ -1,243 +1,185 @@
 ---
 name: goose
 description: >-
-  Use Block's Goose — an open-source, extensible AI agent that goes beyond code
-  suggestions to install software, execute commands, edit files, run tests, and
-  manage infrastructure. Use when: setting up Goose, building custom extensions,
-  adding MCP tool support, configuring multi-LLM backends, creating task-specific
-  agents (DevOps, data pipelines, incident response), or comparing Goose to other
-  AI coding agents.
+  Goose is an open-source AI agent (desktop app, CLI and API, written in Rust)
+  that runs on your machine, edits files, runs shell commands and connects to
+  tools through MCP extensions. Use when the user asks to set up goose, run it
+  headless in scripts or CI, write a goose recipe, add an MCP extension, switch
+  LLM providers, or compare goose with other coding agents.
 license: Apache-2.0
-compatibility: "macOS, Linux, Python 3.10+"
+compatibility: "macOS, Linux and Windows; a single native binary (no Python needed); an API key for an LLM provider or a local Ollama model"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
-  tags: ["ai-agent", "extensible", "coding-agent"]
+  tags: ["ai-agent", "extensible", "coding-agent", "mcp"]
+  repository: https://github.com/aaif-goose/goose
 ---
 
-# Goose — Extensible AI Agent by Block
+# Goose — Extensible AI Agent
 
 ## Overview
 
-Goose is an open-source AI agent from Block (formerly Square) that operates as a full system agent — not just a code assistant. It can install packages, execute shell commands, edit files, run tests, browse the web, and interact with external services through extensions.
+Goose is a general-purpose AI agent that runs locally. It has a desktop app, a CLI and an API, and works with 15+ LLM providers (Anthropic, OpenAI, Google, Ollama, OpenRouter, Azure, Bedrock and more). Capabilities come from extensions: built-in ones (Developer for shell and file editing, Computer Controller, Memory) plus any MCP server. The project began at Block and now lives at `aaif-goose/goose` under the Linux Foundation's Agentic AI Foundation; the old `block/goose` links redirect there. This skill was checked against v1.53.0 (2 October 2026).
 
-**Repo:** `block/goose`  
-**Key differentiator:** Extension system + MCP tool support = unlimited capabilities
+It is a Rust binary: the old `pipx install goose-ai` Python package and its Python extension API are not how goose works today.
 
-## Installation
+## Instructions
 
-```bash
-# macOS (Homebrew)
-brew install block/tap/goose
-
-# Cross-platform (pipx)
-pipx install goose-ai
-
-# From source
-git clone https://github.com/block/goose.git
-cd goose && cargo build --release
-```
-
-Verify installation:
-```bash
-goose --version
-```
-
-## Core Concepts
-
-### What Makes Goose Different
-
-Unlike code-only AI tools, Goose has full system agency:
-
-| Capability | Code Assistants | Goose |
-|-----------|----------------|-------|
-| Code suggestions | ✅ | ✅ |
-| File editing | Limited | ✅ Full filesystem |
-| Command execution | ❌ | ✅ Shell access |
-| Package installation | ❌ | ✅ |
-| Web browsing | ❌ | ✅ Via extensions |
-| External APIs | ❌ | ✅ MCP tools |
-| Custom workflows | ❌ | ✅ Extensions |
-
-### Sessions
-
-Goose maintains session context across interactions:
-```bash
-# Start new session
-goose session
-
-# Resume last session
-goose session --resume
-
-# Named session
-goose session --name "deploy-v2"
-```
-
-## CLI Usage
+### Install
 
 ```bash
-# Interactive session
-goose session
+# macOS and Linux (Homebrew formula in homebrew-core)
+brew install block-goose-cli
 
-# One-shot task
-goose run "Write unit tests for src/auth.py and run them"
-
-# With specific profile
-goose session --profile devops
-
-# Pipe input
-echo "Explain this error log" | goose run --stdin
+goose --version      # 1.53.0 at the time of writing
+goose configure      # pick a provider, paste its API key, choose extensions
+goose doctor         # checks that the setup works
+goose update         # later: update the CLI in place
 ```
 
-### Profiles
+The project also publishes an install script, `download_cli.sh`, on its GitHub releases page. Releases carry no checksum file, so do not pipe it into a shell; use Homebrew, or download the script and read it before running. Desktop builds (macOS, Windows, `.deb`/`.rpm` for Linux) are on the same releases page; on macOS `brew install --cask block-goose` installs the app.
 
-Create `~/.config/goose/profiles.yaml`:
-```yaml
-devops:
-  provider: anthropic
-  model: claude-sonnet-4-20250514
-  extensions:
-    - name: ssh-tools
-    - name: developer
-    - name: jira-mcp
-
-coding:
-  provider: openai
-  model: gpt-4o
-  extensions:
-    - name: developer
-```
-
-## Multi-LLM Support
-
-Goose supports multiple LLM providers:
+### Interactive sessions
 
 ```bash
-# Configure provider
-goose configure
-
-# Supported providers
-# - Anthropic (Claude)
-# - OpenAI (GPT-4o, o1)
-# - Google (Gemini)
-# - Ollama (local models)
-# - Azure OpenAI
-# - AWS Bedrock
+goose session -n billing-refactor          # start a named session
+goose session --resume -n billing-refactor # continue it
+goose session --resume --fork --name billing-refactor   # copy it into a new session
+goose session list --limit 10
+goose session --with-builtin developer --max-turns 25
 ```
 
-Set via environment:
+Sessions are stored in a SQLite database (`sessions.db`) since v1.10. Run `goose info` to see the config, session and log paths.
+
+### Headless runs for scripts and CI
+
+```bash
+goose run -t "Write unit tests for src/auth.py and run them" --no-session
+goose run -i plan.md                  # instructions from a file
+echo "Explain this stack trace" | goose run -i -   # stdin
+goose run --provider anthropic --model claude-sonnet-4-5 -t "Summarise the last 5 commits" -q
+goose run --recipe nginx-triage.yaml --params log_file=/var/log/nginx/access.log --output-format json
+```
+
+`-q` prints only the model's answer; `--output-format json` or `stream-json` gives machine-readable output. There is no `--stdin` flag and no `--profile` flag.
+
+### Providers and configuration
+
+Settings live in `~/.config/goose/config.yaml` (Windows: `%APPDATA%\Block\goose\config\config.yaml`). Environment variables win over the file:
+
 ```bash
 export GOOSE_PROVIDER=anthropic
-export ANTHROPIC_API_KEY=sk-...
+export GOOSE_MODEL=claude-sonnet-4-5-20250929
+export ANTHROPIC_API_KEY="$(cat ~/.secrets/anthropic)"   # keys belong in env or the keyring
+export GOOSE_MODE=smart_approve        # auto (default) | approve | smart_approve | chat
 ```
 
-## Extension System
+```yaml
+# ~/.config/goose/config.yaml
+active_provider: anthropic
+providers:
+  anthropic:
+    enabled: true
+    model: claude-sonnet-4-5-20250929
+    configured: true
+GOOSE_MODE: smart_approve
+GOOSE_MAX_TURNS: 50
+```
 
-Extensions give Goose new capabilities. They run as separate processes communicating via the Model Context Protocol (MCP).
+Provider API keys placed in `config.yaml` are ignored; goose reads them from the environment, the system keyring, or `secrets.yaml` when no keyring exists (set `GOOSE_DISABLE_KEYRING=1` to force the file).
 
-### Built-in Extensions
+### Extensions (MCP)
 
-| Extension | Capabilities |
-|-----------|-------------|
-| `developer` | Shell, file editing, code analysis |
-| `web` | Browse pages, extract content |
-| `computeruse` | GUI interaction, screenshots |
-| `memory` | Persistent memory across sessions |
+Built-in: `developer` (on by default), `computercontroller`, `memory`, `tutorial`, `autovisualiser`, plus platform extensions such as `analyze`, `todo`, `skills`, `summon` and `extension manager`. Add an MCP server from the CLI or the config:
 
-Enable extensions:
 ```bash
-goose configure extensions
-# Interactive selection of extensions
+goose session --with-extension "memory:npx -y @modelcontextprotocol/server-memory"
+goose session --with-streamable-http-extension "http://localhost:8080/mcp"
 ```
-
-### MCP Tool Integration
-
-Goose natively supports MCP (Model Context Protocol) servers as extensions, connecting it to databases, APIs, and services:
 
 ```yaml
-# ~/.config/goose/profiles.yaml
-default:
-  provider: anthropic
-  model: claude-sonnet-4-20250514
-  extensions:
-    - name: developer
-    - name: jira-mcp
-      type: mcp
-      command: npx
-      args: ["-y", "@modelcontextprotocol/server-jira"]
-      env:
-        JIRA_URL: "https://myteam.atlassian.net"
-        JIRA_TOKEN: "${JIRA_TOKEN}"
-    - name: postgres-mcp
-      type: mcp
-      command: npx
-      args: ["-y", "@modelcontextprotocol/server-postgres"]
-      env:
-        DATABASE_URL: "${DATABASE_URL}"
+# config.yaml, extensions section
+extensions:
+  filesystem:
+    type: stdio
+    name: filesystem
+    enabled: true
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/srv/projects"]
+    timeout: 300
+  internal-tools:
+    type: streamable_http
+    name: internal-tools
+    enabled: true
+    uri: "https://mcp.tools.myteam.dev/mcp"
+    timeout: 300
 ```
 
-### Building Custom Extensions
+Supported types are `builtin`, `platform`, `stdio` and `streamable_http`; SSE is gone, so migrate old SSE entries to `streamable_http`. Use `available_tools: [...]` to expose only some of a server's tools. To build your own extension, write any MCP server (Python, TypeScript, Rust SDKs) and register it as `stdio`.
 
-Create an extension in Python:
+### Recipes
 
-```python
-# my_extension.py
-from goose.extension import Extension, tool
+A recipe is a shareable YAML file with a title, prompt, parameters and extensions. Validate and render it before running:
 
-class HealthChecker(Extension):
-    """Check service health endpoints."""
-
-    @tool
-    def check_health(self, url: str) -> str:
-        """Check if a service is healthy by hitting its /health endpoint."""
-        import requests
-        try:
-            r = requests.get(f"{url}/health", timeout=5)
-            return f"Status: {r.status_code}, Response: {r.json()}"
-        except Exception as e:
-            return f"Health check failed: {e}"
-
-    @tool
-    def check_multiple(self, urls: list[str]) -> str:
-        """Check health of multiple services."""
-        results = []
-        for url in urls:
-            status = self.check_health(url)
-            results.append(f"{url}: {status}")
-        return "\n".join(results)
-```
-
-Register in profile:
 ```yaml
-default:
-  extensions:
-    - name: health-checker
-      type: mcp
-      command: python
-      args: ["my_extension.py"]
+# nginx-triage.yaml
+version: "1.0.0"
+title: "Nginx 5xx triage"
+description: "Count 5xx responses in an nginx access log and summarise the worst URLs"
+parameters:
+  - key: log_file
+    input_type: string
+    requirement: required
+    description: "Path to the nginx access log"
+  - key: threshold
+    input_type: number
+    requirement: optional
+    default: 10
+    description: "Report only if more than this many 5xx responses"
+instructions: "You triage web server errors. Read-only: never modify the log."
+prompt: "Count 5xx responses in {{ log_file }}. If there are more than {{ threshold }}, list the five URLs with the most errors."
+extensions:
+  - type: builtin
+    name: developer
 ```
 
-## Common Workflows
-
-### DevOps Incident Response
-```
-> goose session --profile devops
-
-You: SSH into prod-web-01, check the nginx logs for 5xx errors
-     in the last hour, and create a Jira ticket if there are more than 10
-
-Goose: [uses ssh-tools to connect]
-       [runs: grep "HTTP/1.1\" 5" /var/log/nginx/access.log | tail -60]
-       [finds 47 5xx errors]
-       [creates JIRA ticket OPS-1234 with error summary]
-       Found 47 5xx errors in the last hour. Created OPS-1234.
+```bash
+goose recipe validate nginx-triage.yaml     # prints: recipe file is valid
+goose run --recipe nginx-triage.yaml --params log_file=/var/log/nginx/access.log --render-recipe
 ```
 
-## Tips
+## Examples
 
-- Use `--verbose` flag to see what tools Goose is calling
-- Set `GOOSE_LOG=debug` for detailed extension communication logs
-- Extensions run in sandboxed processes — a crash won't kill Goose
-- Use profiles to switch between provider/extension combos quickly
-- Goose respects `.gooseignore` files (like `.gitignore`) to exclude files from context
+### Example 1: Nightly test run in CI
+
+Request: "Run goose in GitHub Actions to fix failing tests and print only the result."
+
+```bash
+export GOOSE_PROVIDER=anthropic GOOSE_MODEL=claude-sonnet-4-5-20250929 GOOSE_MODE=auto
+goose run --no-session -q --max-turns 30 \
+  -t "Run npm test. If tests fail, fix the code (not the tests) and rerun until green. Report what you changed."
+```
+
+`ANTHROPIC_API_KEY` comes from the workflow's secrets. The run exits after the final answer and prints only the model's response, so the job log stays readable.
+
+### Example 2: Incident helper with a recipe
+
+Request: "Give the on-call team a one-command nginx triage."
+
+```bash
+goose recipe validate nginx-triage.yaml
+goose run --recipe nginx-triage.yaml --params log_file=/var/log/nginx/access.log --params threshold=20
+```
+
+Goose reads the log with the Developer extension and answers with, for example, "47 5xx responses in the log; top URLs: /api/checkout (22), /api/search (11) ...". Share the YAML in the repo so everyone runs the same triage.
+
+## Guidelines
+
+- The default mode is fully autonomous: with the Developer extension goose can run commands and edit files without asking. Use `GOOSE_MODE=smart_approve` or `approve` on machines that matter, and run unattended jobs in a container or throwaway VM.
+- Cap runaway loops with `--max-turns` and `--max-tool-repetitions`; add `--debug` (or `GOOSE_DEBUG=1`) to see full tool parameters.
+- Extensions run as separate processes; goose scans external extension packages for known malware before starting them. Only add MCP servers you trust and give each only the env vars it needs.
+- Never put API keys in `config.yaml`, recipes or the repo.
+- Recipes must be `.yaml` or `.json`; `.yml` is not supported by the CLI.
+- Local models (Ollama, LM Studio) work, but weaker models call tools unreliably; try `GOOSE_TOOLSHIM=true` with `GOOSE_TOOLSHIM_OLLAMA_MODEL` if tool calls fail.
+- Prefer a simpler tool when you only need chat-style code completion; goose shines for multi-step, tool-using tasks.

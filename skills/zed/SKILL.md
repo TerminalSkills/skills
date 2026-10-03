@@ -1,12 +1,19 @@
 ---
 name: zed
-description: Expert guidance for Zed, the high-performance code editor built in Rust with native collaboration, AI integration, and GPU-accelerated rendering. Helps developers configure Zed, create custom extensions, set up collaborative editing sessions, and integrate AI assistants for productive coding.
+description: >-
+  Zed is a fast, GPU-accelerated code editor written in Rust, with built-in
+  AI agent and edit predictions, real-time collaboration, Vim mode and
+  WebAssembly extensions. Use when the user wants to install or configure Zed,
+  edit settings.json or keymap.json, set formatters per language, connect an
+  AI provider such as Anthropic or Ollama, share a project with teammates, or
+  write a Zed extension.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "macOS, Linux (Vulkan-capable GPU recommended) or Windows; extension development needs Rust via rustup"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
+  repository: https://github.com/zed-industries/zed
   tags:
   - editor
   - ide
@@ -17,295 +24,187 @@ metadata:
 
 # Zed — High-Performance Code Editor
 
-
 ## Overview
 
+Zed is an open-source editor built in Rust. Everything is configured with two JSON files that accept comments: `settings.json` and `keymap.json` (open them with the `zed: open settings file` and `zed: open keymap` commands; they live in `~/.config/zed/`). Per-project overrides go in `.zed/settings.json`.
 
-Zed, the high-performance code editor built in Rust with native collaboration, AI integration, and GPU-accelerated rendering. Helps developers configure Zed, create custom extensions, set up collaborative editing sessions, and integrate AI assistants for productive coding.
+Names changed over the last year, so older blog posts and models get these wrong:
 
+- the AI chat panel is the **Agent Panel** and its settings key is `agent` (not `assistant`); `/file`-style slash commands are replaced by `@`-mentions of files, symbols, threads and images;
+- AI code completions are **Edit Prediction**, configured under `edit_predictions` (not `inline_completions`), toggled with `editor::ToggleEditPrediction`;
+- `theme` accepts a name or `{ "mode": "system", "light": ..., "dark": ... }`;
+- `format_on_save` is `"on"`, `"off"`, `"modifications"` or `"modifications_if_available"`, and the default is `"off"`;
+- `"disable_ai": true` switches every AI feature off.
+
+Check any key against the default settings file (`zed: open default settings`) before using it.
 
 ## Instructions
 
-### Configuration
+### Install
 
-Customize Zed through its JSON settings:
+```bash
+brew install --cask zed                  # macOS (zed@preview for the preview channel)
+winget install -e --id ZedIndustries.Zed # Windows
+sudo pacman -S zed                       # Arch / Manjaro
+sudo dnf install zed                     # Fedora
+nix-shell -p zed-editor                  # Nix
+```
+
+Other distributions (Solus, Parabola, Flathub, conda-forge and more) package Zed too. Release tarballs on GitHub (`zed-linux-x86_64.tar.gz`, `zed-linux-aarch64.tar.gz`) ship without a checksum file, so prefer a package; the vendor's install script exists but is a download-and-run step you cannot verify. Linux needs glibc 2.31+ (x86_64) or 2.35+ (ARM) and works best with a Vulkan GPU. Open a project from a shell with `zed .`.
+
+### Settings
 
 ```jsonc
-// ~/.config/zed/settings.json — Main configuration file
+// ~/.config/zed/settings.json
 {
-  // Editor appearance and behavior
-  "theme": "One Dark",
-  "ui_font_size": 14,
+  "theme": { "mode": "system", "light": "One Light", "dark": "One Dark" },
+  "ui_font_size": 16,
   "buffer_font_size": 14,
   "buffer_font_family": "JetBrains Mono",
   "buffer_line_height": { "custom": 1.6 },
-
-  // Vim mode (built-in, no extension needed)
   "vim_mode": true,
-  "vim": {
-    "use_system_clipboard": "always",
-    "use_smartcase_find": true
-  },
-
-  // Tab and indentation
+  "vim": { "use_system_clipboard": "always", "use_smartcase_find": true },
   "tab_size": 2,
-  "hard_tabs": false,
   "format_on_save": "on",
-  "formatter": "language_server",
-
-  // Git integration
-  "git": {
-    "inline_blame": { "enabled": true, "delay_ms": 500 },
-    "git_gutter": "tracked_files"
-  },
-
-  // AI Assistant configuration
-  "assistant": {
-    "enabled": true,
-    "default_model": {
-      "provider": "anthropic",
-      "model": "claude-sonnet-4-20250514"
-    },
-    "version": "2"     // Use Assistant v2 panel
-  },
-
-  // Inline completions (code suggestions)
-  "inline_completions": {
-    "disabled_globs": [".env", "*.pem", "*.key"]
-  },
-
-  // Language-specific settings
+  "autosave": { "after_delay": { "milliseconds": 1000 } },
+  "soft_wrap": "editor_width",
+  "git": { "inline_blame": { "enabled": true, "delay_ms": 500 }, "git_gutter": "tracked_files" },
+  "terminal": { "shell": { "program": "zsh" }, "font_size": 13, "copy_on_select": true },
+  "edit_predictions": { "disabled_globs": ["**/.env*", "**/*.pem", "**/*.key"] },
   "languages": {
     "TypeScript": {
-      "tab_size": 2,
       "formatter": { "external": { "command": "prettier", "arguments": ["--stdin-filepath", "{buffer_path}"] } }
     },
     "Python": {
       "tab_size": 4,
-      "formatter": { "external": { "command": "ruff", "arguments": ["format", "--stdin-filename", "{buffer_path}"] } }
+      "formatter": { "language_server": { "name": "ruff" } }
     },
-    "Rust": {
-      "tab_size": 4,
-      "formatter": "language_server"
-    }
-  },
-
-  // Terminal
-  "terminal": {
-    "shell": { "program": "zsh" },
-    "font_size": 13,
-    "line_height": { "custom": 1.4 },
-    "copy_on_select": true
-  },
-
-  // File tree
-  "project_panel": {
-    "auto_reveal_entries": true,
-    "auto_fold_dirs": true,
-    "file_icons": true
-  },
-
-  // Performance
-  "autosave": { "after_delay": { "milliseconds": 1000 } },
-  "soft_wrap": "editor_width"
+    "Rust": { "tab_size": 4, "formatter": "language_server" }
+  }
 }
 ```
 
-### Key Bindings
+Notes: `formatter` also takes `"auto"` (default: Prettier integration, else language server), `"prettier"`, `{ "code_action": "source.fixAll.eslint" }` or an array of steps. When `autosave` is set to a delay, `format_on_save` is ignored. `edit_predictions.disabled_globs` already excludes `.env`, keys and certificates by default; writing `"..."` as an entry keeps the defaults and adds yours.
 
-Configure custom keyboard shortcuts:
+### Key bindings
+
+`keymap.json` is an array of context blocks. Use `cmd-` on macOS and `ctrl-` on Linux and Windows.
 
 ```jsonc
-// ~/.config/zed/keymap.json — Custom keybindings
 [
-  // Quick file switching (like VS Code Cmd+P)
   {
     "context": "Workspace",
     "bindings": {
-      "cmd-p": "file_finder::Toggle",
-      "cmd-shift-p": "command_palette::Toggle",
-      "cmd-shift-f": "project_search::ToggleFocus",
-      "cmd-b": "workspace::ToggleLeftDock",
-      "cmd-j": "terminal_panel::ToggleFocus",
-      // Custom: open AI assistant panel
-      "cmd-shift-a": "assistant::ToggleFocus",
-      // Custom: toggle inline AI completions
-      "cmd-shift-i": "editor::ToggleInlineCompletions"
+      "ctrl-shift-a": "agent::ToggleFocus",
+      "ctrl-alt-e": "editor::ToggleEditPrediction"
     }
   },
-  // Editor-specific bindings
   {
     "context": "Editor",
     "bindings": {
-      "cmd-d": "editor::SelectNext",                    // Multi-cursor select next match
-      "cmd-shift-l": "editor::SelectAllMatches",        // Select all occurrences
-      "alt-up": "editor::MoveLineUp",
-      "alt-down": "editor::MoveLineDown",
-      "cmd-shift-k": "editor::DeleteLine",
-      "cmd-/": "editor::ToggleComments",
-      // Quick AI actions
-      "ctrl-l": "assistant::InlineAssist"               // Inline AI edit at cursor
+      "ctrl-l": "assistant::InlineAssist"
     }
   },
-  // Vim-specific overrides
   {
-    "context": "VimControl",
+    "context": "VimControl && !menu",
     "bindings": {
       "space f": "file_finder::Toggle",
-      "space g": "project_search::ToggleFocus",
-      "space e": "project_panel::ToggleFocus",
-      "space a": "assistant::ToggleFocus",
-      "space t": "terminal_panel::ToggleFocus"
+      "space g": "pane::DeploySearch",
+      "space e": "project_panel::ToggleFocus"
     }
   }
 ]
 ```
 
-### Collaborative Editing
+Defaults worth knowing (Linux; macOS uses cmd): `ctrl-p` file finder, `ctrl-shift-p` command palette, `ctrl-t` project symbols, `ctrl-b` toggle left dock, `ctrl-enter` inline assist, `ctrl-shift-l` select all matches. Open the keymap editor with the `zed: open keymap` command to see the live list and conflicts before overriding.
 
-Set up real-time pair programming sessions:
+### AI
 
-```markdown
-## How Collaboration Works in Zed
+- Sign in to Zed, or add your own provider in Agent Settings (`agent: open settings`). Zed also reads `ANTHROPIC_API_KEY` and the other provider variables from its process environment; keep keys out of `settings.json`.
+- Pick the default model and tune it:
 
-1. **Start a session**: Click "Share" in the title bar or run `collaboration::ShareProject`
-2. **Share the link**: Copy the invite link and send to teammates
-3. **Real-time editing**: All participants see each other's cursors and edits instantly
-4. **Follow mode**: Click a collaborator's avatar to follow their cursor (see what they see)
-5. **Voice chat**: Built-in voice channels — no need for a separate call
-
-### Collaboration Features
-- **Shared terminal**: Collaborators can see your terminal output
-- **Shared diagnostics**: LSP errors and warnings are visible to all participants
-- **Conflict-free**: Uses CRDT (similar to Yjs) for concurrent edit resolution
-- **Low latency**: Edits propagate in <50ms on good connections
+```jsonc
+{
+  "agent": {
+    "default_model": { "provider": "anthropic", "model": "claude-sonnet-4-5", "enable_thinking": false },
+    "model_parameters": [{ "provider": "anthropic", "model": "claude-sonnet-4-5", "temperature": 0.2 }],
+    "commit_message_instructions": "Use Conventional Commits: <type>(<scope>): <description>."
+  },
+  "language_models": {
+    "anthropic": { "available_models": [{ "name": "claude-sonnet-4-latest", "display_name": "Sonnet 4 thinking", "max_tokens": 200000, "mode": { "type": "thinking", "budget_tokens": 4096 } }] }
+  }
+}
 ```
 
-### AI Assistant Usage
+- Select code and press the inline-assist binding to rewrite it in place; type `@` in the Agent Panel to attach files, symbols, images or earlier threads. Review the agent's edits with `agent::Keep` / `agent::Reject`.
+- Tool use, MCP servers and external agents are configured in the same panel; local models work through the Ollama or OpenAI-compatible providers.
 
-Leverage Zed's integrated AI for coding tasks:
+### Collaboration
 
-```markdown
-## AI Workflows in Zed
+Open the Collaboration Panel (`collab_panel::ToggleFocus`, signing in required). Join or create a **channel**, open a project, and press **Share** in the title bar; collaborators appear with cursors and can follow each other by clicking an avatar. Sharing exposes the project's files to those people, so only invite people you trust.
 
-### Inline Assist (Ctrl+L)
-Select code → Ctrl+L → type instruction:
-- "Add error handling to this function"
-- "Refactor to use async/await"
-- "Add TypeScript types"
-- "Write a unit test for this"
+### Extensions
 
-### Assistant Panel (Cmd+Shift+A)
-Full conversation with AI, with context from your codebase:
-- Drag files into the panel to add them as context
-- Use `/file` to reference specific files
-- Use `/tab` to include all open tabs as context
-- Ask architectural questions about your codebase
+An extension is a Git repository with an `extension.toml` (top-level keys, no `[extension]` table). Rust code is only needed for language servers, MCP servers and debuggers; it compiles to WebAssembly (`wasm32-wasip2`).
 
-### Slash Commands in Assistant
-- `/file path/to/file.ts` — Include file content as context
-- `/tab` — Include all open editor tabs
-- `/diagnostics` — Include current LSP errors/warnings
-- `/selection` — Include currently selected code
-- `/terminal` — Include recent terminal output
+```toml
+# extension.toml
+id = "gleam-lsp"
+name = "Gleam LSP"
+version = "0.1.0"
+schema_version = 1
+authors = ["Dana Whitfield"]
+description = "Gleam language server"
+repository = "https://github.com/northwind-traders/zed-gleam-lsp"
+
+[language_servers.gleam]
+name = "Gleam LSP"
+languages = ["Gleam"]
 ```
-
-### Extension Development
-
-Build custom extensions for Zed:
 
 ```rust
-// extensions/my-extension/src/lib.rs — Zed extension in Rust (WASM)
+// src/lib.rs, with crate-type = ["cdylib"] and zed_extension_api in Cargo.toml
 use zed_extension_api::{self as zed, Result};
 
-struct MyExtension;
+struct GleamExtension;
 
-impl zed::Extension for MyExtension {
-    fn new() -> Self { MyExtension }
+impl zed::Extension for GleamExtension {
+    fn new() -> Self { GleamExtension }
 
     fn language_server_command(
         &mut self,
-        _language_server_id: &zed::LanguageServerId,
+        _id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
-        // Configure a custom language server
-        Ok(zed::Command {
-            command: "my-lsp-binary".to_string(),
-            args: vec!["--stdio".to_string()],
-            env: Default::default(),
-        })
+        let path = worktree.which("gleam").ok_or("gleam is not on PATH")?;
+        Ok(zed::Command { command: path, args: vec!["lsp".into()], env: Default::default() })
     }
 }
 
-zed::register_extension!(MyExtension);
+zed::register_extension!(GleamExtension);
 ```
 
-```toml
-# extensions/my-extension/extension.toml — Extension manifest
-[extension]
-id = "my-extension"
-name = "My Extension"
-version = "0.1.0"
-schema_version = 1
-authors = ["Your Name"]
-description = "Custom language support for Zed"
-repository = "https://github.com/you/zed-my-extension"
-
-[grammars.my-language]
-repository = "https://github.com/tree-sitter/tree-sitter-my-language"
-commit = "abc123"
-
-[language_servers.my-lsp]
-language = "MyLanguage"
-```
-
-## Installation
-
-```bash
-# macOS (official)
-brew install --cask zed
-
-# Linux
-curl -f https://zed.dev/install.sh | sh
-
-# Build from source
-git clone https://github.com/zed-industries/zed.git
-cd zed
-cargo build --release
-```
-
+Test with **Install Dev Extension** (`zed: install dev extension`) and read the log with `zed: open log`; `zed --foreground` shows extension stdout. Grammars are declared as `[grammars.<name>]` with `repository` and `rev` (a commit SHA).
 
 ## Examples
 
+### "Set Zed up for TypeScript and React with Vim keys and Prettier"
 
-### Example 1: Setting up Zed with a custom configuration
+Add to `settings.json`: `"vim_mode": true`, `"format_on_save": "on"`, and under `languages` the `TypeScript` and `TSX` entries with the Prettier `external` formatter shown above. Result: saving a `.tsx` file runs Prettier through stdin; `zed: open log` shows any formatter error.
 
-**User request:**
+### "Use my local Ollama model for the agent and turn off completions for secrets"
 
-```
-I just installed Zed. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
+Run `ollama pull qwen2.5-coder` and `ollama serve`; Zed discovers pulled models on its own, so pick the model in the agent's model dropdown. Zed asks Ollama for a 4096-token context by default, so raise it:
 
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Zed with custom functionality
-
-**User request:**
-
-```
-I want to add a custom key bindings to Zed. How do I build one?
+```jsonc
+{ "language_models": { "ollama": { "api_url": "http://localhost:11434", "context_window": 16384 } } }
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Zed's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
-
+Keep `edit_predictions.disabled_globs` as in the sample. Result: agent threads run against the local server and `.env` or `.pem` files never get predictions.
 
 ## Guidelines
 
-1. **Use Vim mode** — Zed's Vim emulation is excellent and first-class; combine with Zed-specific keybindings for best productivity
-2. **Configure per-language formatting** — Set formatters per language (Prettier for JS, Ruff for Python, rustfmt for Rust)
-3. **AI context matters** — Drag relevant files into the assistant panel; more context = better AI responses
-4. **Inline assist for quick edits** — Select code + Ctrl+L is faster than copy-pasting into a chat
-5. **Use follow mode in pairing** — Click a collaborator's avatar to see exactly what they see; great for code reviews
-6. **Autosave with delay** — 1000ms delay avoids constant disk writes while keeping files saved
-7. **Extensions are WASM** — Write extensions in Rust compiled to WebAssembly; they run in a sandbox for security
-8. **Keyboard-first design** — Learn `Cmd+P` (files), `Cmd+Shift+P` (commands), `Cmd+T` (symbols) for fast navigation
+- Validate keys against `zed: open default settings`; the default file is the source of truth for names and values.
+- Keep API keys in the environment or Zed's credential store, never in a settings file that is committed.
+- Extension APIs are versioned: use the current `zed_extension_api` from crates.io and check its compatible Zed versions.
+- Shared projects give collaborators file access; unshare when the session ends.

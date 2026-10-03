@@ -6,10 +6,10 @@ description: >-
   onboarding sellers/providers to accept payments, handling platform fees and
   payouts, or managing connected accounts for a platform.
 license: Apache-2.0
-compatibility: "Requires Node.js 18+, Stripe account with Connect enabled"
+compatibility: "Requires Node.js 20+ (stripe-node 23 dropped Node 18), Stripe account with Connect enabled"
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
   category: business
   tags: ["stripe", "stripe-connect", "marketplace", "payments", "platform"]
   use-cases:
@@ -43,7 +43,7 @@ Dashboard access is a separate `dashboard` field that replaces the old standard/
 | `"full"` | Standard | Stripe-hosted / OAuth | Sellers wanting a full Stripe dashboard |
 | `"none"` | Custom | Embedded / your UI | Platforms needing full control |
 
-> **Accounts v2 requires opt-in registration** in the Dashboard (Connect settings). Accounts v1 (`stripe.accounts.create({ type: "express" })`) is still fully GA — see the legacy note in step 1 if you haven't registered.
+> **Stay on Accounts v1 when you need** OAuth for Standard accounts, the recipient service agreement (cross-border), or Treasury / Issuing capabilities. Accounts v1 (`stripe.accounts.create({ type: "express" })`) remains supported, and v1 and v2 endpoints work on the same account (a new v1 account can take up to 10 minutes before v2 endpoints accept it). See the legacy note in step 1.
 
 **Charge types** (the payment APIs are v1 and reference the connected account by id):
 | Type | Who pays Stripe fees | Seller config needed | Use when |
@@ -52,7 +52,9 @@ Dashboard access is a separate `dashboard` field that replaces the old standard/
 | Destination | Platform | `recipient` | Platform manages UX |
 | Separate charges + transfers | Platform | `recipient` | Complex routing |
 
-## Setup
+## Instructions
+
+### Setup
 
 ```bash
 npm install stripe
@@ -62,20 +64,18 @@ npm install stripe
 // lib/stripe.ts
 import Stripe from "stripe";
 
-// Accounts v2 needs the Stripe Node SDK >= 20.2.0 and a recent API version.
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-05-27.dahlia",
-});
+// stripe-node 23.x pins API version 2026-09-30.endive; omit apiVersion to use the pinned one.
+// Pass apiVersion only when you must stay on an older version.
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // Platform account key (your Stripe account).
 // Connected accounts are identified by their account ID (acct_...).
 ```
 
----
 
-## Onboard Sellers (Accounts v2)
+### Onboard Sellers (Accounts v2)
 
-### 1. Create a connected account
+#### 1. Create a connected account
 
 Assign `merchant` (accept payments) and `recipient` (receive payouts/transfers). `dashboard: "express"` gives sellers Stripe's hosted Express dashboard.
 
@@ -114,14 +114,14 @@ export async function createSellerAccount(email: string) {
   return account.id; // acct_... — store as seller.stripeAccountId
 }
 
-// Legacy (Accounts v1, still GA — use if not registered for Accounts v2):
+// Legacy (Accounts v1, still GA — use for the v1-only cases above):
 //   const account = await stripe.accounts.create({
 //     type: "express", email,
 //     capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
 //   });
 ```
 
-### 2. Generate onboarding link (Account Links v2)
+#### 2. Generate onboarding link (Account Links v2)
 
 ```ts
 export async function createOnboardingLink(accountId: string, userId: string) {
@@ -139,125 +139,72 @@ export async function createOnboardingLink(accountId: string, userId: string) {
 
   return accountLink.url; // Redirect seller here (link expires in ~10 min)
 }
-
-// Full flow:
-app.post("/api/sellers/onboard", async (req, res) => {
-  const { email, userId } = req.body;
-  const accountId = await createSellerAccount(email);
-
-  // Save accountId to your DB
-  await db.sellers.update(userId, { stripeAccountId: accountId });
-
-  const url = await createOnboardingLink(accountId, userId);
-  res.json({ url });
-});
 ```
 
-### 3. Check onboarding status
+#### 3. Check onboarding status
 
 ```ts
 export async function isSellerOnboarded(accountId: string): Promise<boolean> {
   const account = await stripe.v2.core.accounts.retrieve(accountId, {
-    include: ["requirements"],
+    include: ["requirements", "configuration.merchant", "configuration.recipient"],
   });
-  // No outstanding requirements => onboarding complete
-  return (account.requirements?.currently_due?.length ?? 0) === 0;
+  // v2 has no currently_due list: requirements.entries holds each open item with a
+  // minimum_deadline.status of currently_due | eventually_due | past_due.
+  const blocking = (account.requirements?.entries ?? []).filter(
+    (e) => e.awaiting_action_from === "user" && e.minimum_deadline.status !== "eventually_due"
+  );
+  const cardActive =
+    account.configuration?.merchant?.capabilities?.card_payments?.status === "active";
+  return blocking.length === 0 && cardActive;
 }
-
-app.get("/sellers/onboard/complete", async (req, res) => {
-  const { userId } = req.query;
-  const seller = await db.sellers.findById(userId);
-  const onboarded = await isSellerOnboarded(seller.stripeAccountId);
-
-  if (onboarded) {
-    await db.sellers.update(userId, { status: "active" });
-    res.redirect("/dashboard?onboarded=true");
-  } else {
-    // Seller didn't finish — show completion prompt
-    res.redirect("/sellers/onboard/pending");
-  }
-});
 ```
 
----
-
-## Charging Buyers
+### Charging Buyers
 
 > Destination charges and transfers require the seller's `recipient` configuration; direct charges require `merchant`. The PaymentIntents / Transfers APIs themselves are unchanged.
 
-### Destination Charges (Platform collects, sends to seller)
+#### Destination Charges (Platform collects, sends to seller)
 
 ```ts
-// POST /api/payments/charge
-export async function chargeWithDestination({
-  amount,          // in cents
-  currency = "usd",
-  paymentMethodId,
-  customerId,
-  sellerAccountId,
-  platformFeePercent = 15,
-}: {
-  amount: number;
-  currency?: string;
-  paymentMethodId: string;
-  customerId: string;
-  sellerAccountId: string;
-  platformFeePercent?: number;
-}) {
-  const platformFee = Math.round(amount * (platformFeePercent / 100));
-
-  const paymentIntent = await stripe.paymentIntents.create({
+// POST /api/payments/charge — amount in cents
+export async function chargeWithDestination(
+  amount: number, paymentMethodId: string, customerId: string,
+  sellerAccountId: string, platformFeePercent = 15,
+) {
+  return stripe.paymentIntents.create({
     amount,
-    currency,
+    currency: "usd",
     customer: customerId,
     payment_method: paymentMethodId,
     confirm: true,
-    transfer_data: {
-      destination: sellerAccountId, // Route net to seller
-    },
-    application_fee_amount: platformFee, // Platform keeps this
+    transfer_data: { destination: sellerAccountId }, // net goes to the seller
+    application_fee_amount: Math.round(amount * (platformFeePercent / 100)), // platform keeps this
     automatic_payment_methods: { enabled: true, allow_redirects: "never" },
   });
-
-  return paymentIntent;
 }
 ```
 
-### Direct Charges (Seller's Stripe account)
+#### Direct Charges (Seller's Stripe account)
 
 ```ts
-// Charge appears on seller's Stripe dashboard; platform gets fee
-export async function directCharge({
-  amount,
-  paymentMethodId,
-  sellerAccountId,
-  platformFeePercent = 10,
-}: {
-  amount: number;
-  paymentMethodId: string;
-  sellerAccountId: string;
-  platformFeePercent?: number;
-}) {
-  const platformFee = Math.round(amount * (platformFeePercent / 100));
-
-  const paymentIntent = await stripe.paymentIntents.create(
+// The charge appears on the seller's account; the platform gets the fee
+export async function directCharge(
+  amount: number, paymentMethodId: string, sellerAccountId: string, platformFeePercent = 10,
+) {
+  return stripe.paymentIntents.create(
     {
       amount,
       currency: "usd",
       payment_method: paymentMethodId,
       confirm: true,
-      application_fee_amount: platformFee,
+      application_fee_amount: Math.round(amount * (platformFeePercent / 100)),
     },
-    {
-      stripeAccount: sellerAccountId, // Create on behalf of seller
-    }
+    { stripeAccount: sellerAccountId }, // create on behalf of the seller
   );
-
-  return paymentIntent;
 }
 ```
 
-### Separate Charges + Transfers (most flexible)
+#### Separate Charges + Transfers (most flexible)
 
 ```ts
 // 1. Charge buyer on platform account
@@ -270,7 +217,7 @@ const paymentIntent = await stripe.paymentIntents.create({
 
 // 2. Later: transfer to seller (e.g., after service delivered)
 export async function payoutToSeller(
-  paymentIntentId: string,
+  chargeId: string, // pi.latest_charge (a ch_... id, not the pi_ id)
   sellerAccountId: string,
   amount: number // amount to send seller (after platform fee)
 ) {
@@ -278,24 +225,22 @@ export async function payoutToSeller(
     amount,
     currency: "usd",
     destination: sellerAccountId,
-    source_transaction: paymentIntentId, // Links transfer to original charge
+    source_transaction: chargeId, // links the transfer to the original charge
   });
   return transfer;
 }
 ```
 
----
 
-## Webhooks, Payouts, Refunds & OAuth
+### Webhooks, Payouts, Refunds & OAuth
 
 Detailed code lives in `references/` to keep this file short:
 
 - **`references/webhooks.md`** — v1 Connect webhook handler (`account.updated`, `payment_intent.*`, `transfer.created`, `payout.paid`, `charge.dispute.created`), registering a `connect: true` endpoint, and Accounts v2 thin events (`v2.core.account[requirements].updated`).
 - **`references/payouts-refunds-oauth.md`** — automatic vs instant payouts, seller balance, refunds with `refund_application_fee` + `reverse_transfer`, and the OAuth flow for Standard accounts (v1 only).
 
----
 
-## Testing
+### Testing
 
 ```bash
 # Use test mode keys (sk_test_...)
@@ -309,13 +254,22 @@ stripe listen --forward-to localhost:3000/webhooks/stripe
 stripe trigger payment_intent.succeeded
 ```
 
-## Environment Variables
+## Examples
 
-```env
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...           # v1 webhook endpoint
-STRIPE_V2_WEBHOOK_SECRET=whsec_...         # v2 event destination (Accounts v2)
-STRIPE_CLIENT_ID=ca_...  # Only for Standard OAuth
-BASE_URL=http://localhost:3000
-```
+### Example 1: Onboard a freelancer and take a 15% fee
+Request: "Freelancers on our marketplace should get paid, we keep 15%."
+1. `createSellerAccount("dana.ortiz@studio-ortiz.dev")` returns `acct_...`; store it on the seller row.
+2. `createOnboardingLink(accountId, userId)` returns a Stripe-hosted URL; redirect the seller there.
+3. After the return URL (and an `v2.core.account[requirements].updated` event), `isSellerOnboarded` becomes true; then `chargeWithDestination(12000, pmId, custId, accountId, 15)` charges $120.00 and creates a $18.00 application fee, with $102.00 (before Stripe fees) transferred to the seller.
+
+### Example 2: Hold funds until the job is done
+Request: "Charge the buyer now, pay the seller only after delivery."
+Create the PaymentIntent on the platform with no `transfer_data`, keep `pi.latest_charge`, and after delivery call `payoutToSeller(chargeId, accountId, 8500)`. The transfer is tied to the charge via `source_transaction`, so it is paid out when the funds are available.
+
+## Guidelines
+- Use test-mode keys while developing (`sk_test_...`); never commit keys; load them from `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_V2_WEBHOOK_SECRET` (and `STRIPE_CLIENT_ID` for Standard OAuth).
+- Verify webhook signatures on the raw body; use separate endpoints for v1 Connect events and v2 thin events.
+- Amounts are integers in the smallest currency unit; compute the fee with `Math.round`.
+- Never store card data; accept payment methods created with Stripe.js or Elements.
+- Test cards: `4242 4242 4242 4242` succeeds, `4000 0025 6000 0001` asks for 3D Secure; trigger events locally with `stripe listen --forward-to localhost:3000/webhooks/stripe` and `stripe trigger payment_intent.succeeded`.
+- Connect KYC rules differ by country; sellers may be restricted until requirements are met, so check capability status before charging.

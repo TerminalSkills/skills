@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:33d50e842286f78bbdbdf7242b71876746ea1765705e98ff6409cf075efb91eb",
-  "scoredAt": "2026-05-13T09:27:59.368Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:d4a0c4423161a5a4bd16f9ec6c8c421edc577016fbc4b281be2b84fd0f88ed29",
+  "scoredAt": "2026-10-03T13:02:51.793Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing comprehensive error handling and edge case coverage in the provided code snippets."
+        "detail": "Error handling is thin: osrmRoute, nominatimGeocode, distanceMatrix and optimizeRoute never check res.ok or handle empty results, there is no retry or quota handling, and the geofence code ignores edge cases such as antimeridian crossing, GPS jitter and polygon winding."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "Excessive explanatory text and guidelines increase file length without adding actionable value."
+        "detail": "Step 1 and the Geocoding v4 paragraph carry long pricing, policy and version-status prose that is dense and likely to go stale, and some of it repeats the Guidelines."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are prose descriptions of what the agent will do, with no runnable end-to-end code or sample inputs and outputs, and they do not cover heatmaps, autocomplete or delivery tracking from the description."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 1.16,
+    "baselineAvg": 77,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Coffee shop locator with PostGIS nearest-5 search on Leaflet",
-        "baseline": 55,
+        "name": "routes-api-optimized-delivery-order",
+        "baseline": 90,
         "treatment": 88,
-        "rationale": "Treatment uses ST_DWithin/ST_DistanceSphere with ST_MakePoint(lng,lat) and a Leaflet map with the OpenStreetMap tile layer and attribution; baseline uses a generic Haversine SQL filter without PostGIS spatial indexes and forgets OSM attribution."
+        "rationale": "Both hit the Routes API computeRoutes endpoint with optimizeWaypointOrder, intermediates, the field mask including routes.optimizedIntermediateWaypointIndex, and parse the duration string with parseInt, and neither uses legacy APIs; B adds typed response, input validation, trailing-unit conversions, and caveats about TRAFFIC_AWARE and goal blending, while A is slightly more minimal but still correct."
       },
       {
-        "name": "Berlin delivery route optimization with 200m geofence",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment calls Google Directions with waypoints=optimize:true, reads waypoint_order, and applies the documented haversine function with R=6371000 for the 200m radius check; baseline submits waypoints unoptimized and approximates distance with naive Pythagorean math."
+        "name": "nominatim-store-locator-compliant",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both say autocomplete is disallowed, recommend submit-based search, and provide throttling, caching and OSM attribution; B also mentions bulk geocoding, commercial geocoders and an explicit User-Agent/Referer explanation, and uses persistent localStorage caching, whereas A omits bulk geocoding, uses only an in-memory cache and leaves the email/contact identifier commented out, though it does cover self-hosting and Photon."
+      },
+      {
+        "name": "geofence-and-geojson-coordinate-order",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "B covers all three rubric items (the lng/lat vs lat/lng explanation, ray casting plus a haversine check with R=6371000 against 200 m, and the closed-ring requirement), while A omits the closed-ring requirement, saying ring closure doesn't matter, and uses a different Earth radius (6371008.8) than the rubric's 6371000."
       }
     ]
   }

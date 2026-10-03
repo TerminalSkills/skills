@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5544e8c47c32bb643b469d3fe604155283971050cc623e4fd056793cda0beb33",
-  "scoredAt": "2026-05-13T15:19:11.276Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:29beef8bc8f80492e249552a0de689aea26cfc2d19b90b3c2ed006d0ab17f51c",
+  "scoredAt": "2026-10-03T12:13:54.945Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.88,
-    "baselineAvg": 40,
-    "treatmentAvg": 75,
+    "multiplier": 2.47,
+    "baselineAvg": 36,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "setup-microservices-monitoring",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Response A covers all rubric items while Response B omits the deploy, test, and preview steps and uses a different config format."
+        "name": "api-check-slack-email-alerts",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "Response A meets every rubric item: ApiCheck at EVERY_1M, the statusCode and jsonBody assertions, EmailAlertChannel plus SlackAppAlertChannel (it explicitly avoids the deprecated webhook channel), and the {{ORDERS_API_TOKEN}} placeholder. Response B gets the check and token placeholder right but uses the deprecated webhook SlackAlertChannel, which the rubric specifically rules out."
       },
       {
-        "name": "api-checks-troubleshoot",
-        "baseline": 50,
-        "treatment": 60,
-        "rationale": "Response A better covers running Checkly tests and deployment steps, while both miss editing config, re-testing, preview deploy, and test record references."
+        "name": "playwright-tests-as-monitors-safe",
+        "baseline": 12,
+        "treatment": 92,
+        "rationale": "Response A uses a PlaywrightCheck with playwrightConfigPath, pwTags [\"@critical\"] and Frequency.EVERY_15M, warns about the repeated real orders and recommends a test account, dryRun-style flags, cleanup and no real cards, and runs `checkly test --record` before deploy, while Response B builds a GitHub Actions scheduler instead of Checkly and only mentions Checkly in passing, so it misses the first and third rubric items and covers only the risk warning."
+      },
+      {
+        "name": "ci-test-then-deploy-workflow",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "A uses checkly/checkly-action@v1 with command: test and the API key, account ID and environment URL in env, and gives deploy --force, deploy --preview and the --preserve-resources note, so it covers nearly all of the rubric; B uses a raw npx checkly test run step instead of the required action, though its deploy --force and deploy --preview commands are correct."
       }
     ]
   }

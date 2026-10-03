@@ -1,11 +1,11 @@
 ---
 name: checkly
-description: Expert guidance for Checkly, the synthetic monitoring platform that runs Playwright-based browser checks and API checks from locations worldwide. Helps developers implement monitoring-as-code (MaC) with the Checkly CLI, set up API and browser checks, configure alerting, and integrate monitoring into CI/CD pipelines.
+description: Checkly is a synthetic monitoring platform that runs API checks and Playwright browser checks from locations worldwide and lets you define them as code with the Checkly CLI. Use when a developer asks to set up monitoring as code, write API or browser checks, configure Slack or email alerts, run checks in CI after a deploy, or turn Playwright tests into production monitors.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Node.js 22+ (see the engines field of the checkly package), a Checkly account and API key"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: devops
   tags:
   - synthetic-monitoring
@@ -13,257 +13,201 @@ metadata:
   - api-monitoring
   - playwright
   - monitoring-as-code
+  repository: https://github.com/checkly/checkly-cli
 ---
 
 # Checkly — Synthetic Monitoring and Testing
 
-
 ## Overview
 
-
-Checkly, the synthetic monitoring platform that runs Playwright-based browser checks and API checks from locations worldwide. Helps developers implement monitoring-as-code (MaC) with the Checkly CLI, set up API and browser checks, configure alerting, and integrate monitoring into CI/CD pipelines.
-
+Checkly runs scheduled checks against your production system from public (or private) locations and alerts you when they fail or degrade. With monitoring as code you describe checks in TypeScript constructs next to your application, run them with `npx checkly test`, and publish them with `npx checkly deploy`. Check types include API checks, browser checks (a single Playwright spec), Playwright Check Suites (your whole existing Playwright project run as a monitor, the current recommendation for new E2E monitoring), multistep checks, URL, TCP, DNS, ICMP, SSL, gRPC and heartbeat monitors. The CLI package `checkly` is at v9 (v8 added built-in TypeScript and recording test runs by default).
 
 ## Instructions
 
-### Monitoring as Code
+### 1. Project setup
 
 ```bash
-# Install Checkly CLI
-npm install -g checkly
-
-# Initialize in your project
-checkly init
-
-# Project structure
-# checkly.config.ts — Global configuration
-# __checks__/
-#   api/
-#     health.check.ts
-#     orders-api.check.ts
-#   browser/
-#     login-flow.check.ts
-#     checkout.check.ts
+npm i --save-dev checkly
+npx checkly login            # or set CHECKLY_API_KEY and CHECKLY_ACCOUNT_ID for CI
+npx checkly init             # scaffolds a project (and installs Checkly skills for agents)
 ```
 
+Install it per project rather than globally so CI uses the same version. `checkly.config.ts`:
+
 ```typescript
-// checkly.config.ts — Global configuration
 import { defineConfig } from "checkly";
-import { EmailAlertChannel, SlackAlertChannel } from "checkly/constructs";
-
-const slackAlert = new SlackAlertChannel("slack-alerts", {
-  webhookUrl: process.env.SLACK_WEBHOOK_URL!,
-  channel: "#alerts",
-  sendFailure: true,
-  sendRecovery: true,
-  sendDegraded: true,
-});
-
-const emailAlert = new EmailAlertChannel("email-ops", {
-  address: "ops@example.com",
-  sendFailure: true,
-  sendRecovery: true,
-});
+import { Frequency } from "checkly/constructs";
 
 export default defineConfig({
-  projectName: "My SaaS",
-  logicalId: "my-saas-monitoring",
-  repoUrl: "https://github.com/myorg/my-saas",
+  projectName: "Acme Storefront",
+  logicalId: "lumenshop-storefront-monitoring",
+  repoUrl: "https://github.com/lumenshop/storefront",
   checks: {
-    locations: ["us-east-1", "eu-west-1", "ap-southeast-1"],
-    frequency: 5,                        // Check every 5 minutes
+    runtimeId: "2026.04",                       // see `npx checkly runtimes`
+    frequency: Frequency.EVERY_5M,
+    locations: ["us-east-1", "eu-west-1"],
     tags: ["production"],
-    runtimeId: "2024.02",
-    alertChannels: [slackAlert, emailAlert],
+    checkMatch: "**/__checks__/**/*.check.ts",
     browserChecks: {
-      frequency: 10,                     // Browser checks every 10 min
-      testMatch: "**/__checks__/browser/**/*.check.ts",
-    },
-    apiChecks: {
-      frequency: 1,                      // API checks every 1 min
-      testMatch: "**/__checks__/api/**/*.check.ts",
+      frequency: Frequency.EVERY_10M,
+      testMatch: "**/__checks__/**/*.spec.ts",  // Playwright specs become browser checks
     },
   },
+  cli: { runLocation: "eu-west-1" },
 });
 ```
 
-### API Checks
+`logicalId` identifies the project: changing it creates a new project instead of updating the old one. Alert channels are constructs; attach them to checks (or a check group) with `alertChannels`.
 
 ```typescript
-// __checks__/api/orders-api.check.ts — API endpoint monitoring
-import { ApiCheck, AssertionBuilder } from "checkly/constructs";
+// __checks__/alert-channels.ts
+import { EmailAlertChannel, SlackAppAlertChannel } from "checkly/constructs";
+
+export const emailOps = new EmailAlertChannel("email-ops", {
+  address: "ops@lumenshop.io",
+  sendFailure: true, sendRecovery: true, sendDegraded: true,
+});
+// Needs the Checkly Slack app installed in your workspace. The webhook-based
+// SlackAlertChannel (url + channel) is deprecated.
+export const slackOps = new SlackAppAlertChannel("slack-ops", { slackChannels: ["#ops"] });
+```
+
+### 2. API checks
+
+```typescript
+// __checks__/orders-api.check.ts
+import * as path from "path";
+import { ApiCheck, AssertionBuilder, Frequency } from "checkly/constructs";
+import { emailOps, slackOps } from "./alert-channels";
 
 new ApiCheck("orders-api-health", {
-  name: "Orders API — Health Check",
+  name: "Orders API health",
+  frequency: Frequency.EVERY_1M,
+  alertChannels: [slackOps, emailOps],
+  degradedResponseTime: 1000,          // ms, defaults to 10000
+  maxResponseTime: 3000,               // ms, defaults to 20000
   request: {
     method: "GET",
-    url: "https://api.example.com/v1/health",
-    headers: [{ key: "Authorization", value: `Bearer {{MONITORING_API_KEY}}` }],
+    url: "https://api.lumenshop.io/v1/health",
+    headers: [{ key: "Authorization", value: "Bearer {{ORDERS_API_TOKEN}}" }],
     assertions: [
       AssertionBuilder.statusCode().equals(200),
       AssertionBuilder.jsonBody("$.status").equals("healthy"),
-      AssertionBuilder.responseTime().lessThan(2000),   // Under 2 seconds
+      AssertionBuilder.jsonBody("$.version").notEmpty(),
     ],
-  },
-  degradedResponseTime: 1000,          // Mark as degraded if > 1s
-  maxResponseTime: 3000,               // Mark as failed if > 3s
-});
-
-new ApiCheck("orders-create", {
-  name: "Orders API — Create Order Flow",
-  request: {
-    method: "POST",
-    url: "https://api.example.com/v1/orders",
-    headers: [
-      { key: "Authorization", value: "Bearer {{MONITORING_API_KEY}}" },
-      { key: "Content-Type", value: "application/json" },
-    ],
-    body: JSON.stringify({
-      items: [{ productId: "test-product", quantity: 1 }],
-      test: true,                       // Flag so backend doesn't charge
-    }),
-    assertions: [
-      AssertionBuilder.statusCode().equals(201),
-      AssertionBuilder.jsonBody("$.id").isNotEmpty(),
-      AssertionBuilder.jsonBody("$.status").equals("pending"),
-    ],
-  },
-  setupScript: {
-    // Run before the request — generate dynamic data
-    content: `
-      const crypto = require('crypto');
-      request.headers['X-Idempotency-Key'] = crypto.randomUUID();
-    `,
-  },
-  teardownScript: {
-    // Run after the request — clean up test data
-    content: `
-      if (response.statusCode === 201) {
-        const orderId = JSON.parse(response.body).id;
-        // Delete the test order
-        await fetch(\`https://api.example.com/v1/orders/\${orderId}\`, {
-          method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + process.env.MONITORING_API_KEY },
-        });
-      }
-    `,
   },
 });
 ```
 
-### Browser Checks (Playwright)
+`{{NAME}}` placeholders are filled from Checkly environment variables, so keep secrets there (or use the `secret()` helper from `checkly/util` for values that must be masked), not in the repo. Setup and teardown scripts take either `entrypoint` (a `.ts`/`.js` file) or inline `content`, never both; the teardown property is spelled `tearDownScript`:
 
 ```typescript
-// __checks__/browser/checkout-flow.check.ts — E2E user flow monitoring
-// Runs a real Playwright browser in Checkly's cloud every 10 minutes.
+new ApiCheck("orders-create", {
+  name: "Orders API create and clean up",
+  request: {
+    method: "POST",
+    url: "https://api.lumenshop.io/v1/orders",
+    headers: [{ key: "Content-Type", value: "application/json" }],
+    body: JSON.stringify({ items: [{ sku: "SKU-1042", quantity: 1 }], dryRun: true }),
+    assertions: [AssertionBuilder.statusCode().equals(201)],
+  },
+  setupScript: { entrypoint: path.join(__dirname, "scripts/orders-setup.ts") },
+  tearDownScript: { entrypoint: path.join(__dirname, "scripts/orders-teardown.ts") },
+});
+```
+
+### 3. Browser checks and Playwright Check Suites
+
+A browser check wraps one Playwright spec; a Playwright Check Suite runs your whole Playwright project with its own `playwright.config.ts`.
+
+```typescript
+import { BrowserCheck, PlaywrightCheck, Frequency } from "checkly/constructs";
+import * as path from "path";
+
+new BrowserCheck("login-flow", {
+  name: "Login flow",
+  frequency: Frequency.EVERY_10M,
+  code: { entrypoint: path.join(__dirname, "login.spec.ts") },
+});
+
+new PlaywrightCheck("critical-e2e", {
+  name: "Critical E2E suite",
+  playwrightConfigPath: path.join(__dirname, "../playwright.config.ts"),
+  pwProjects: ["chromium"],
+  pwTags: ["@critical"],
+  installCommand: "npm ci",
+  frequency: Frequency.EVERY_15M,
+});
+```
+
+```typescript
+// __checks__/login.spec.ts
 import { test, expect } from "@playwright/test";
 
-test("Complete checkout flow", async ({ page }) => {
-  // Step 1: Navigate to product page
-  await page.goto("https://example.com/products/starter-plan");
-  await expect(page.getByRole("heading", { name: "Starter Plan" })).toBeVisible();
-
-  // Step 2: Add to cart
-  await page.getByRole("button", { name: "Start Free Trial" }).click();
-  await expect(page.getByText("Added to cart")).toBeVisible();
-
-  // Step 3: Go to checkout
-  await page.getByRole("link", { name: "Checkout" }).click();
-  await expect(page).toHaveURL(/.*checkout/);
-
-  // Step 4: Fill payment form (test card)
-  await page.getByLabel("Email").fill("monitoring@example.com");
-  await page.getByLabel("Card number").fill("4242424242424242");
-  await page.getByLabel("Expiry").fill("12/28");
-  await page.getByLabel("CVC").fill("123");
-
-  // Step 5: Submit
-  await page.getByRole("button", { name: "Subscribe" }).click();
-
-  // Step 6: Verify success
-  await expect(page.getByText("Welcome to Starter Plan")).toBeVisible({ timeout: 10000 });
-});
-
-test("Login flow works", async ({ page }) => {
-  await page.goto("https://example.com/login");
-
-  await page.getByLabel("Email").fill(process.env.TEST_USER_EMAIL!);
-  await page.getByLabel("Password").fill(process.env.TEST_USER_PASSWORD!);
+test("user can sign in", async ({ page }) => {
+  await page.goto("https://app.lumenshop.io/login");
+  await page.getByLabel("Email").fill(process.env.MONITOR_USER_EMAIL!);
+  await page.getByLabel("Password").fill(process.env.MONITOR_USER_PASSWORD!);
   await page.getByRole("button", { name: "Sign in" }).click();
-
-  // Verify dashboard loads
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expect(page.getByText("Welcome back")).toBeVisible();
 });
 ```
 
-### CI/CD Integration
+Browser checks have a 2.7 GiB memory limit; Playwright Check Suites get more. Runners use UTC.
+
+### 4. Test, deploy, CI
+
+```bash
+npx checkly test                          # run all checks in the cloud, nothing is saved as a monitor
+npx checkly test --grep="orders" --tags=production --env-file=.env
+npx checkly test --record                 # keep logs, traces and videos (default since v8)
+npx checkly deploy --preview              # show the diff
+npx checkly deploy --force                # non-interactive deploy for CI
+```
+
+By default `deploy` deletes resources that were removed from code; `--preserve-resources` detaches them and keeps history. GitHub Actions, using the maintained action (the old `checkly/checkly-github-action` v1 repository no longer resolves):
 
 ```yaml
-# .github/workflows/deploy.yml — Run checks after deployment
-- name: Deploy to production
-  run: npm run deploy
-
-- name: Run Checkly checks
-  uses: checkly/checkly-github-action@v1
+- uses: checkly/checkly-action@v1
   with:
-    apiKey: ${{ secrets.CHECKLY_API_KEY }}
-    accountId: ${{ secrets.CHECKLY_ACCOUNT_ID }}
-    # Run all checks and fail the pipeline if any fail
-    command: "checkly test --record"
+    command: test
+    install-command: npm ci
+    reporting: auto
+  env:
+    CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+    CHECKLY_ACCOUNT_ID: ${{ vars.CHECKLY_ACCOUNT_ID }}
+    ENVIRONMENT_URL: ${{ needs.deploy.outputs.url }}
 ```
 
-```bash
-# Deploy checks to Checkly (like deploying infrastructure)
-checkly deploy
-
-# Test locally before deploying
-checkly test
-
-# Dry run — show what would change
-checkly deploy --preview
-```
-
-## Installation
-
-```bash
-npm install -g checkly
-checkly login
-checkly init
-```
-
+Deploy from `main` with `npx checkly deploy --force`. The docs guide "Run checks on every deploy" shows testing a preview URL on pull requests and a `trigger` run after each production deployment.
 
 ## Examples
 
+### Example 1: "Monitor our public API every minute and ping Slack"
 
-### Example 1: Setting up Checkly for a microservices project
+Add `alert-channels.ts` and `orders-api.check.ts` as above, then run:
 
-**User request:**
-
-```
-I have a Node.js API and a React frontend running in Docker. Set up Checkly for monitoring/deployment.
-```
-
-The agent creates the necessary configuration files based on patterns like `# Install Checkly CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
-
-### Example 2: Troubleshooting api checks issues
-
-**User request:**
-
-```
-Checkly is showing errors in our api checks. Here are the logs: [error output]
+```bash
+npx checkly test --grep="orders-api"
+npx checkly deploy --force
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Checkly issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+Result: the test run prints a pass/fail per location with response times; after deploy the check appears in the Checkly dashboard and posts to `#ops` on failure, degradation and recovery.
 
+### Example 2: "Reuse our Playwright tests as production monitors"
+
+```bash
+npx checkly test --tags=critical --record
+```
+
+With the `PlaywrightCheck` above, the tagged tests run in Checkly's cloud with traces; after `npx checkly deploy --force` they run every 15 minutes. Result: a failed run links to the trace and video, and the alert goes to the channels on the check.
 
 ## Guidelines
 
-1. **Monitoring as code** — Define checks in your repo alongside application code; version, review, and deploy together
-2. **API + browser checks** — API checks catch backend issues fast (every 1 min); browser checks validate user flows (every 10 min)
-3. **Multi-region** — Run checks from 3+ regions; catch regional outages and CDN issues
-4. **Playwright for browser** — Checkly uses Playwright natively; reuse your E2E tests as production monitors
-5. **Degraded vs failed** — Set degraded thresholds (e.g., > 1s) separate from failure (> 3s); catch slowdowns before they become outages
-6. **Clean up test data** — Use teardown scripts to delete test orders/users created by monitoring checks
-7. **CI/CD integration** — Run checks after every deployment; automatically catch regressions before users do
-8. **Environment variables** — Store API keys and test credentials as Checkly environment variables, not in code
+- Pin `runtimeId` and check `npx checkly runtimes`; a check can only import npm packages the runtime provides (`--verify-runtime-dependencies` reports misses).
+- Keep `logicalId` values stable; they are what ties code to deployed resources.
+- Monitors must be safe to run forever: use dedicated test accounts, `dryRun`-style flags and teardown scripts, and never real card numbers. Do not run a real purchase every ten minutes.
+- Use retry strategies (`RetryStrategyBuilder`) before alerting on a single blip, and multiple locations to separate regional problems.
+- Store API tokens and passwords as Checkly environment variables or secrets; never in checks committed to git.
+- Run frequency and location counts affect cost; start at five to ten minutes.
+- Not a load-testing tool or a log or APM platform.

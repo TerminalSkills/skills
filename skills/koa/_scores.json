@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4e2fa0ebd1a74c73505187860de78ee2228607eef3be6746ed9c05e470eac7e2",
-  "scoredAt": "2026-05-13T09:20:11.379Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8aa13bfab59595b374cfa0c95bc3f395d94b8f5d592666a955e4b6ea0b3a16ce",
+  "scoredAt": "2026-10-03T13:05:12.342Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Covers the main error-handling path but omits edge cases such as graceful shutdown, malformed JSON body errors (bodyParser 400/413 handling), and CORS origin configuration for production."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 90,
-    "multiplier": 1.64,
+    "multiplier": 2.04,
+    "baselineAvg": 45,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Centralized error handling and response-time metric for a Koa API",
-        "baseline": 55,
+        "name": "koa-orders-api-with-error-handling",
+        "baseline": 22,
         "treatment": 90,
-        "rationale": "Treatment placed try/catch upstream so ctx.app.emit('error') fires for all downstream handlers, used ctx.throw, and implemented the onion-model response-time middleware around await next(); baseline added try/catch per route and computed timing only on the way down."
+        "rationale": "A meets almost every rubric point: error middleware registered first using try/await next()/catch with err.expose, the named import from @koa/bodyparser, ctx.throw(400) validation, and routes() plus allowedMethods(). B misses most of them. It uses the default import from koa-bodyparser instead of the named export from @koa/bodyparser. It never uses err.expose or ctx.throw/ctx.assert, because it validates with zod and sets the status by hand. Its error handler is first and it mounts routes() with allowedMethods(), but that covers only a small part of the rubric."
       },
       {
-        "name": "Composing auth + role + audit middleware for an admin DELETE route",
-        "baseline": 60,
+        "name": "express-login-route-migration",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "B uses ctx.throw(401, ...), explains that rejected promises propagate to error middleware instead of next(err), and names @koa/bodyparser, while A only uses the ctx.status/ctx.body alternative, names koa-bodyparser rather than @koa/bodyparser, and gives a weaker explanation of error propagation."
+      },
+      {
+        "name": "upgrade-koa2-router-to-koa3",
+        "baseline": 58,
         "treatment": 90,
-        "rationale": "Treatment used koa-compose to bundle the three middleware into a single reusable stack stored in ctx.state and threw via ctx.throw(401); baseline chained the middlewares inline as separate router arguments without compose and stored user on ctx directly."
+        "rationale": "B covers every rubric item (async rewrite and koa-convert removal, regex param replaced by validation or router.param(), named wildcard, ctx.back(), Node 18+ and 20+), while A leaves out ctx.back(), suggests a manual referrer redirect, and omits the @koa/router 15 Node 20+ requirement."
       }
     ]
   }

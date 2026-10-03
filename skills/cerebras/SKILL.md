@@ -1,11 +1,15 @@
 ---
 name: cerebras
-description: Expert guidance for Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). Helps developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.
+description: >-
+  Cerebras Inference is a hosted LLM API that runs open models on Cerebras wafer-scale chips at thousands of tokens per
+  second, through an OpenAI-compatible endpoint. Use when a user wants the lowest-latency chat, code completion or agent
+  loop, asks how to call the Cerebras API or SDK, needs streaming, tool calling, strict JSON schema output or reasoning
+  control, or hits a "model not found" error from a retired Cerebras model ID.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Cerebras API key (CEREBRAS_API_KEY); Python 3.9+ or Node.js 18+; any OpenAI-compatible SDK works"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
   tags:
   - llm
@@ -13,23 +17,69 @@ metadata:
   - api
   - fast-inference
   - wafer-scale
+  repository: https://github.com/Cerebras/cerebras-cloud-sdk-python
 ---
 
 # Cerebras — Wafer-Scale LLM Inference
 
-
 ## Overview
 
+Cerebras Inference serves open-weight models from its own hardware and exposes them at `https://api.cerebras.ai/v1`, compatible with the OpenAI chat-completions API. It is chosen for speed: time to first token and output rate are far above typical GPU hosting, which matters for interactive chat, autocomplete and multi-step agents.
 
-Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). Helps developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.
+The model catalog changes quickly and old IDs are removed. At the time of checking (October 2026) the Shared Inference models were:
 
+| Model ID | Notes |
+|----------|-------|
+| `gpt-oss-120b` | about 3,000 tokens/s; context 65k on the free tier, 131k paid; reasoning efforts low/medium/high (default medium) |
+| `qwen-3.8-27b` | about 1,850 tokens/s; context 64k free, 128k paid; reasoning effort none/low/medium/high (default high) |
+
+Other models (for example `gemma-4-31b`) are Dedicated Inference only. Retired IDs include `llama3.1-8b`, `llama-3.3-70b` (the old skill text used `llama3.3-70b`), `qwen-3-32b`, `qwen-3-235b-a22b-instruct-2507`, `zai-glm-4.7` and the Llama 4 models; the docs recommend `gpt-oss-120b` as the replacement for most of them. Always check https://inference-docs.cerebras.ai/models/overview and the deprecations page before hard-coding an ID, or list models at runtime with `client.models.list()`.
 
 ## Instructions
 
-### Chat Completions
+### Install and authenticate
+
+```bash
+pip install --upgrade cerebras_cloud_sdk      # Python
+npm install @cerebras/cerebras_cloud_sdk      # Node.js
+export CEREBRAS_API_KEY="csk-..."             # key from cloud.cerebras.ai; keep it out of source control
+```
+
+The official SDKs read `CEREBRAS_API_KEY` automatically. Any OpenAI SDK also works by setting `base_url="https://api.cerebras.ai/v1"`.
+
+### Chat and streaming (Python SDK)
+
+```python
+from cerebras.cloud.sdk import Cerebras
+
+client = Cerebras()  # uses CEREBRAS_API_KEY
+
+response = client.chat.completions.create(
+    model="gpt-oss-120b",
+    messages=[
+        {"role": "system", "content": "You are a concise coding assistant."},
+        {"role": "user", "content": "Write a Python function that merges overlapping intervals."},
+    ],
+    max_completion_tokens=800,
+    temperature=0.3,
+)
+print(response.choices[0].message.content)
+print(response.time_info.completion_time, response.usage.completion_tokens)  # seconds, tokens
+
+stream = client.chat.completions.create(
+    model="gpt-oss-120b",
+    messages=[{"role": "user", "content": "Explain B-trees in five sentences."}],
+    stream=True,
+)
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="", flush=True)
+```
+
+Usage and `time_info` (`queue_time`, `prompt_time`, `completion_time`, `total_time`) arrive in the final streamed chunk. Output speed is `completion_tokens / completion_time`. `AsyncCerebras` is the async client; the SDK retries connection errors, timeouts and 429s twice by default (`max_retries` changes it).
+
+### Chat with the OpenAI SDK (TypeScript)
 
 ```typescript
-// src/llm/cerebras.ts — Cerebras API (OpenAI-compatible)
 import OpenAI from "openai";
 
 const cerebras = new OpenAI({
@@ -37,198 +87,96 @@ const cerebras = new OpenAI({
   baseURL: "https://api.cerebras.ai/v1",
 });
 
-// Basic completion — up to 2000+ tokens/second
-async function chat(prompt: string) {
-  const response = await cerebras.chat.completions.create({
-    model: "llama3.3-70b",                // Llama 3.3 70B on Cerebras hardware
-    messages: [
-      { role: "system", content: "You are a helpful coding assistant." },
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 1024,
-    top_p: 1,
-  });
-
-  // Response includes usage with Cerebras-specific speed metrics
-  console.log(`Tokens/sec: ${response.usage?.completion_tokens! / (response.usage as any).completion_time}`);
-
-  return response.choices[0].message.content;
-}
-
-// Streaming — first token in <200ms
-async function streamChat(prompt: string, onChunk: (text: string) => void) {
-  const stream = await cerebras.chat.completions.create({
-    model: "llama3.3-70b",
-    messages: [{ role: "user", content: prompt }],
-    stream: true,
-  });
-
-  let full = "";
-  for await (const chunk of stream) {
-    const text = chunk.choices[0]?.delta?.content ?? "";
-    full += text;
-    onChunk(text);
-  }
-  return full;
-}
-
-// JSON mode
-async function structuredOutput(prompt: string) {
-  const response = await cerebras.chat.completions.create({
-    model: "llama3.3-70b",
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
-    temperature: 0,
-  });
-  return JSON.parse(response.choices[0].message.content!);
-}
+const stream = await cerebras.chat.completions.create({
+  model: "qwen-3.8-27b",
+  messages: [{ role: "user", content: "Suggest three names for a log-search CLI." }],
+  stream: true,
+});
+for await (const chunk of stream) process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
 ```
 
-### Tool Use / Function Calling
+### Structured output
 
-```typescript
-async function chatWithTools(prompt: string) {
-  const response = await cerebras.chat.completions.create({
-    model: "llama3.3-70b",
-    messages: [{ role: "user", content: prompt }],
-    tools: [
-      {
-        type: "function",
-        function: {
-          name: "get_stock_price",
-          description: "Get the current stock price for a ticker symbol",
-          parameters: {
-            type: "object",
-            properties: {
-              ticker: { type: "string", description: "Stock ticker (e.g., AAPL)" },
-            },
-            required: ["ticker"],
-          },
-        },
-      },
-    ],
-    tool_choice: "auto",
-  });
-
-  const msg = response.choices[0].message;
-  if (msg.tool_calls) {
-    // Execute the tool and send results back
-    const toolResults = await Promise.all(
-      msg.tool_calls.map(async (call) => {
-        const args = JSON.parse(call.function.arguments);
-        const result = await executeFunction(call.function.name, args);
-        return {
-          role: "tool" as const,
-          tool_call_id: call.id,
-          content: JSON.stringify(result),
-        };
-      })
-    );
-
-    // Get final response with tool results
-    const final = await cerebras.chat.completions.create({
-      model: "llama3.3-70b",
-      messages: [
-        { role: "user", content: prompt },
-        msg,
-        ...toolResults,
-      ],
-    });
-    return final.choices[0].message.content;
-  }
-
-  return msg.content;
-}
-```
-
-### Python Integration
+Prefer strict JSON schema (constrained decoding) over plain JSON mode:
 
 ```python
-# src/cerebras_client.py — Cerebras with Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ["CEREBRAS_API_KEY"],
-    base_url="https://api.cerebras.ai/v1",
-)
-
-# Chat completion
+ticket_schema = {
+    "type": "object",
+    "properties": {
+        "category": {"type": "string", "enum": ["billing", "bug", "feature"]},
+        "urgency": {"type": "integer"},
+    },
+    "required": ["category", "urgency"],
+    "additionalProperties": False,
+}
 response = client.chat.completions.create(
-    model="llama3.3-70b",
-    messages=[{"role": "user", "content": "Write a Python quicksort implementation"}],
-    temperature=0.3,
-    max_tokens=500,
+    model="gpt-oss-120b",
+    messages=[{"role": "user", "content": "Customer was charged twice for the March invoice, please fix today."}],
+    response_format={"type": "json_schema", "json_schema": {"name": "ticket", "strict": True, "schema": ticket_schema}},
 )
-print(response.choices[0].message.content)
-
-# Streaming
-stream = client.chat.completions.create(
-    model="llama3.3-70b",
-    messages=[{"role": "user", "content": "Explain transformers in 5 sentences"}],
-    stream=True,
-)
-for chunk in stream:
-    print(chunk.choices[0].delta.content or "", end="", flush=True)
 ```
 
-### Available Models
+Schema limits: root must be an object, `additionalProperties: false` on every object, at most 5,000 characters and 10 nesting levels, arrays need `items`. `{"type": "json_object"}` only guarantees valid JSON and cannot be combined with streaming.
 
-```markdown
-## Cerebras Models
-- **llama3.3-70b** — Llama 3.3 70B, best quality, ~2000 tok/s output
-- **llama3.1-8b** — Llama 3.1 8B, fastest option, ~2500+ tok/s output
-- **llama3.1-70b** — Llama 3.1 70B, large context (128K tokens)
+### Tool calling
 
-## Speed Comparison (approximate)
-- Cerebras: 2000+ tok/s (70B model)
-- Groq: 300-400 tok/s (70B model)
-- Cloud GPU (A100): 50-80 tok/s (70B model)
-- Local (M3 Max): 20-40 tok/s (70B quantized)
+Supported by both shared models, with `tool_choice` of `none`, `auto`, `required` or a named function, optional `"strict": true` on a function, and `parallel_tool_calls=True`.
+
+```python
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_order_status",
+        "description": "Look up the shipping status of an order",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {"order_id": {"type": "string"}},
+            "required": ["order_id"],
+            "additionalProperties": False,
+        },
+    },
+}]
+messages = [{"role": "user", "content": "Where is order ORD-48213?"}]
+msg = client.chat.completions.create(model="gpt-oss-120b", messages=messages, tools=tools).choices[0].message
+while msg.tool_calls:
+    messages.append(msg)
+    for call in msg.tool_calls:
+        result = lookup_order(**json.loads(call.function.arguments))  # your function
+        messages.append({"role": "tool", "tool_call_id": call.id, "content": json.dumps(result)})
+    msg = client.chat.completions.create(model="gpt-oss-120b", messages=messages, tools=tools).choices[0].message
+print(msg.content)
 ```
 
-## Installation
+Loop until a response has no `tool_calls`. Do not combine `tools` with `response_format` unless the docs say it works for your model.
 
-```bash
-# Use any OpenAI-compatible SDK
-npm install openai
-pip install openai
+### Reasoning control
 
-# Set base_url to https://api.cerebras.ai/v1
-```
+Pass `reasoning_effort` (`"low"`, `"medium"`, `"high"`; Qwen also `"none"` to skip thinking for simple requests). `reasoning_format` can be `parsed` (reasoning in `choices[0].message.reasoning`), `raw`, `hidden` or `none`. Via the OpenAI SDK, put Cerebras-only fields such as `reasoning_format` and `clear_thinking` in `extra_body`. Reasoning tokens count toward `max_completion_tokens`, so raise the limit for hard problems.
 
+### Prompt caching
+
+Automatic, no flags: prefixes are cached in 128-token blocks (guaranteed 5 minutes, sometimes up to an hour). Put system prompts, tool definitions and documents first and the user's turn last, and read `usage.prompt_tokens_details.cached_tokens`. Cached tokens do not count against the uncached TPM limit.
 
 ## Examples
 
+### Example 1: Replace a retired model ID
 
-### Example 1: Setting up an evaluation pipeline for a RAG application
+**User request:** "Our service started returning 404 model_not_found from Cerebras with `llama3.3-70b`."
 
-**User request:**
+Check https://inference-docs.cerebras.ai/support/deprecation, then switch the model string to `gpt-oss-120b`, set `reasoning_effort="low"` where the old model was used for quick answers, and run one request to compare latency. Result: calls succeed again; replies may include reasoning, so use `reasoning_format="hidden"` or `"parsed"` if the old output shape must be preserved.
 
-```
-I have a RAG chatbot that answers questions from our docs. Set up Cerebras to evaluate answer quality.
-```
+### Example 2: Fast ticket triage endpoint
 
-The agent creates an evaluation suite with appropriate metrics (faithfulness, relevance, answer correctness), configures test datasets from real user questions, runs baseline evaluations, and sets up CI integration so evaluations run on every prompt or retrieval change.
+**User request:** "Classify incoming support emails into billing, bug or feature and return JSON in under a second."
 
-### Example 2: Comparing model performance across prompts
-
-**User request:**
-
-```
-We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Cerebras.
-```
-
-The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
-
+Use the strict `json_schema` call above with `qwen-3.8-27b`, `reasoning_effort="none"`, `temperature=0` and a fixed system prompt first so the prefix is cached. Result: a schema-valid object such as `{"category": "billing", "urgency": 2}` on every call, with typical latency dominated by network time.
 
 ## Guidelines
 
-1. **Use for latency-critical applications** — Cerebras is the fastest inference available; ideal for real-time chat and autocomplete
-2. **OpenAI SDK drop-in** — Change base URL from OpenAI to Cerebras; your code works unchanged
-3. **8B for simple tasks** — Use llama3.1-8b for classification, extraction, and simple Q&A; save 70B for complex reasoning
-4. **Stream everything** — First-token latency is <200ms; streaming gives users instant feedback
-5. **JSON mode for structured output** — Use `response_format: { type: "json_object" }` for reliable parsing
-6. **Batch simple requests** — For bulk processing, send multiple independent prompts in parallel
-7. **Monitor rate limits** — Free tier has request limits; check headers for remaining quota
-8. **Fallback strategy** — Have a fallback to Groq or OpenAI; Cerebras can have capacity constraints during high demand
+- Rate limits: the free trial allows 5 requests/minute, 30K uncached and 90K total tokens/minute and $5 of credit expiring after 30 days; pay-as-you-go raises this (for example 1,000 RPM and 1M uncached TPM on `gpt-oss-120b`, 300 RPM and 150K on `qwen-3.8-27b`). A 429 says which bucket was exceeded; back off and retry, or raise cache hit rates.
+- Differences from OpenAI: `n` must be 1; images must be base64 data URIs, not external URLs; use `stream: true` rather than `tool_stream`.
+- `max_tokens` is an alias of `max_completion_tokens`; send only one.
+- Do not hard-code speed claims or model lists; both change. Measure `time_info` on your own prompts.
+- Use it when latency or tokens per second dominate. For proprietary frontier models, very long context beyond the listed limits, or image generation, use another provider.
+- Keep a fallback provider for outages and rate-limit bursts, and never log the API key.

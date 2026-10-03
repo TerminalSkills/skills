@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9d8bf1dd894f26a0d68d89ae842947e9ff03bf3f1ebb649839c864d35ab13997",
-  "scoredAt": "2026-05-13T09:51:57.233Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:eeaf37ab7c7dfa8c4e05ac6659c211e54b156d146e6a67a23a6bb8dfe557b9f9",
+  "scoredAt": "2026-10-03T12:06:50.577Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in examples."
+        "category": "actionability",
+        "detail": "Product creation, usage-based billing (events, meters), and the Next.js webhook handler are described in prose without runnable code, and the webhook handler uses an undefined `db` object."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Node.js environment, not platform-agnostic for all AI agents."
+        "category": "examples",
+        "detail": "Example 2 (CLI license gating) has no runnable code, and Example 1 only covers the checkout route and omits the webhook handler for the subscription flow."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 95,
-    "multiplier": 4.75,
+    "multiplier": 1.28,
+    "baselineAvg": 68,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Subscription with license key for desktop app",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline reached for Stripe and a hand-rolled license table; treatment used polar.products.create with a license_keys benefit, polar.checkouts.create, and polar.licenseKeys.validate/activate as documented."
+        "name": "nextjs-pro-subscription-checkout",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it uses `environment: \"sandbox\"`, `external_customer_id`, `products`, the `subscription.active` webhook, the success-redirect warning and card 4242. A uses `server: \"sandbox\"` instead of `environment`, and it builds the link with `customerExternalId`, a parameter it admits it is unsure of, so the checkout-route requirements are only partly met even though its webhook and test-card guidance is good."
       },
       {
-        "name": "Securely handle subscription.canceled webhook",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline used manual HMAC and an invented event name; treatment used validateEvent from @polar-sh/sdk/webhooks with the documented subscription.canceled type and customer.metadata.userId."
+        "name": "express-webhook-raw-body-handler",
+        "baseline": 78,
+        "treatment": 80,
+        "rationale": "Both use validateEvent, WebhookVerificationError, express.raw, handle subscription.active and subscription.revoked via customer.externalId, and return 403 on verification failure; A explicitly notes idempotency in its notes and shows the optional-canceled option, while B only mentions idempotency in a code comment, maps products to plans (extra) and returns 400 for non-verification errors, and adds an unverified caveat."
+      },
+      {
+        "name": "cli-license-key-activation-flow",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "B hits every rubric point (benefit with limit 3, activate with key/organization_id/label, validate with activation_id, no token needed, granted=200, 404=revoked/expired/mismatch) while A omits the explicit 404 semantics, treats failures generically, and adds extra unverified fields like conditions/fingerprint."
       }
     ]
   }

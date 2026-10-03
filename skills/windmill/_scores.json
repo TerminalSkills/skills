@@ -1,53 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a505fe786d6dfe6e5d966e797958556f0c20c7c2e1013c02cf070a84a8e51a77",
-  "scoredAt": "2026-05-13T10:37:22.280Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:177bc6469b38bbd1f4abd33f4639327eda04f1e54068d8ad8198ab8cec52c8bb",
+  "scoredAt": "2026-10-03T22:18:44.320Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
+        "category": "examples",
+        "detail": "The two examples are short prose descriptions with a single command each and no full code or output, so they are less demonstrative than the inline code blocks elsewhere in the skill."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "curl used to download docker-compose.yml without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 84,
-    "multiplier": 2.21,
+    "multiplier": 1.34,
+    "baselineAvg": 62,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Self-host Windmill and write an auto-UI script",
-        "baseline": 40,
-        "treatment": 86,
-        "rationale": "Treatment used the documented docker compose flow from the windmill-labs repo and wrote a typed TypeScript main() that auto-generates a UI from function parameters; baseline built a custom Express app instead of leveraging Windmill's auto-UI."
+        "name": "refund-tool-local-dev-loop",
+        "baseline": 74,
+        "treatment": 80,
+        "rationale": "Both define a typed `main` with a postgresql resource arg, use `script preview -d`, and `sync push --dry-run`; A correctly uses `wmill generate-metadata` and explicitly says to rerun it after signature or import changes, which the rubric requires, while B uses `wmill script generate-metadata` and never says to rerun it, though B adds `wmill dev` and a richer script."
       },
       {
-        "name": "Internal admin tool with workflow + UI",
-        "baseline": 35,
+        "name": "nightly-failed-orders-flow-schedule",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "A covers every rubric element: step ids, a branchone with a `results.fetch_orders.failed > 2` expr, `flow_input.day` in input_transforms, a six-field cron, `wmill lint`, and `wmill flow preview`. B has the branchone, the `results.a.count` expr, the cron and the schedule file, but it never uses `flow_input.*` and has no `wmill lint` or `flow preview` step (it uses `flow run` instead)."
+      },
+      {
+        "name": "production-docker-selfhost-hardening",
+        "baseline": 50,
         "treatment": 82,
-        "rationale": "Treatment chained typed Python/TypeScript scripts with branching as documented and pointed to Windmill's drag-and-drop app builder backed by scripts; baseline proposed Retool or a hand-rolled React dashboard that misses Windmill's code-first model."
+        "rationale": "B covers nearly every rubric item (no plain docker run because Postgres is required, files pinned to a release tag and reviewed before up, default login, Postgres password, HTTPS via BASE_URL, WM_IMAGE pinned, Postgres backup holding code, state and secrets) but gives little detail. A is more detailed but fetches the files from main, which the rubric says not to do, and it never says docker run won't work or that the files should be reviewed before starting."
       }
     ]
   }

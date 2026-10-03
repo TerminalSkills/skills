@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d6af64cea8cef59fc5637c7885b34249b88365cc030cc0a3b0fda84ae2d04da4",
-  "scoredAt": "2026-05-13T10:34:04.595Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d9417314221749228521ac80c4aa94c9a7b66775a4ce0b74f299e2b0faa1f76a",
+  "scoredAt": "2026-10-03T13:13:41.391Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "category": "examples",
+        "detail": "Both examples are brief prose descriptions that point back to earlier snippets or demo scripts rather than showing complete runnable inputs and outputs, and the sample output line is only illustrative."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 95,
-    "multiplier": 4.13,
+    "multiplier": 9.3,
+    "baselineAvg": 6,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Multi-speaker podcast generation with VibeVoiceTTS",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline reaches for gTTS/Bark/ElevenLabs and concatenates per-speaker clips; treatment uses VibeVoiceTTS.from_pretrained with synthesize_conversation on a speaker/text list, matching the documented API."
+        "name": "diarized-transcript-with-hotwords",
+        "baseline": 2,
+        "treatment": 93,
+        "rationale": "Response A follows the rubric: it uses Transformers>=5.3 with VibeVoice-ASR-HF, AutoProcessor and VibeVoiceAsrForConditionalGeneration, passes the terms through `prompt`, decodes with return_format=\"parsed\" and prints Start/End/Speaker/Content, and says the numeric speaker ids must be mapped to names. Response B uses faster-whisper and pyannote, so it misses every rubric item."
       },
       {
-        "name": "Medical transcription with diarization and hotwords",
-        "baseline": 20,
+        "name": "live-captions-streaming-asr",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Baseline falls back to Whisper + pyannote and approximates hotwords via initial_prompt; treatment calls VibeVoiceASR.transcribe with diarize=True, timestamps=True and hotwords kwarg, iterating result.segments as documented."
+        "rationale": "B recommends the streaming checkpoint, launches the FastAPI demo at localhost:7870, runs the file inference script with --audio_files and --context_info, and says text arrives per chunk with the size read from preprocessor_config.json, so it covers the whole rubric. A says VibeVoice can't do live captions and sends the user to other engines, which contradicts the rubric."
+      },
+      {
+        "name": "multi-speaker-tts-limitations",
+        "baseline": 12,
+        "treatment": 90,
+        "rationale": "B correctly states VibeVoiceTTS.from_pretrained doesn't exist, that TTS-1.5B inference code was removed in September 2025, and gives the Realtime-0.5B demos with `pip install -e .[streamingtts]`, though it never says outright that the Realtime model is English-focused. A only hedges on the class name, then writes runnable-looking podcast code for the removed 1.5B inference path, so it misses the key point."
       }
     ]
   }

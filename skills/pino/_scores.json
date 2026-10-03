@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:25323fd9ce3181776aa9d0d29830b71fb146b69b83c9607038a5cd1a9e031ecd",
-  "scoredAt": "2026-05-13T09:50:44.725Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4a53c4c6231e187a96f752feedf89893ae1eb703fbca2f9dd979fce3ce0be3e2",
+  "scoredAt": "2026-10-03T13:00:42.623Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling for missing environment variables or dependencies."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 95,
-    "multiplier": 2.21,
+    "multiplier": 1.29,
+    "baselineAvg": 70,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Dev pretty-print vs prod JSON with base context",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline knows pino-pretty but misses formatters.level and conditional transport; treatment configures transport, base, and formatters.level exactly as the skill prescribes."
+        "name": "express-logger-with-redaction-and-quiet-tests",
+        "baseline": 72,
+        "treatment": 92,
+        "rationale": "A meets every rubric item: a shared logger with LOG_LEVEL defaulting to info, redact paths for authorization and cookie, pino-http mounted with that logger, data-first console.log replacements, and an explicit LOG_LEVEL=silent npm test. B has the logger, redaction, pino-http and data-first form, but its default level isn't info and it silences tests through NODE_ENV=test instead of LOG_LEVEL=silent, which the rubric requires."
       },
       {
-        "name": "Express request logging with status-based levels",
-        "baseline": 35,
-        "treatment": 94,
-        "rationale": "Baseline reaches for morgan or hand-rolled middleware; treatment uses pino-http with customLogLevel, serializers, and child loggers for requestId propagation per the skill."
+        "name": "error-logging-and-job-child-logger",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "Both explain that pino only serializes Errors under `err`, use `logger.child({ jobId, queue })`, and put the data object before the message, but A is more focused and presents the `err` rename as the main fix. B leads with the `error` serializer as the lowest-effort fix, adds unrequested AsyncLocalStorage and winston material, and its `{ err: error }` rename is correct but understated."
+      },
+      {
+        "name": "multi-target-transport-with-text-levels",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B gives the required pino.transport targets config (pino/file at level error with mkdir, plus pino-pretty) and warns up front that formatters.level cannot be combined with targets, with a workaround; A skips the targets config as its main answer, though it does mention the restriction and the alternative briefly."
       }
     ]
   }

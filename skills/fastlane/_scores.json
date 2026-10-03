@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:916bb1bc58c73482846f9f0cacee348e708611ea18b031c81d96dc101dde697b",
-  "scoredAt": "2026-05-13T08:51:36.661Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0781be53d46dadffb346c6d9e6aa030a25bce7eeca1fa5fa9f1092a52bb9f5e6",
+  "scoredAt": "2026-10-03T13:00:40.625Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
+        "detail": "Covers the happy path with only brief notes on CI behavior and read-only match, and gives no troubleshooting for common failures such as expired certificates, 2FA or session errors, failed uploads, rejected builds, or missing env vars."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes macOS for iOS builds, limiting cross-platform applicability."
+        "detail": "The skill is tied to the Fastlane/Ruby toolchain with iOS builds requiring macOS and Xcode, and its CI example covers only GitHub Actions, so it assumes a specific environment, though this is inherent to the tool."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of a prompt and the expected result with no concrete commands, input or output data, and the Snapshot example has no Snapfile or UI-test code."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 79,
-    "treatmentAvg": 98,
-    "multiplier": 1.24,
+    "multiplier": 0.95,
+    "baselineAvg": 88,
+    "treatmentAvg": 84,
     "scenarios": [
       {
-        "name": "iOS TestFlight beta lane with auto build number and Slack notification",
-        "baseline": 65,
-        "treatment": 100,
-        "rationale": "Treatment used the documented build_app, upload_to_testflight with skip_waiting_for_build_processing, and the slack action with slack_url: ENV[\"SLACK_WEBHOOK\"]; baseline used legacy gym/pilot aliases and a raw curl call instead of the slack action."
+        "name": "ios-beta-lane-ci-safe",
+        "baseline": 93,
+        "treatment": 80,
+        "rationale": "Both cover the API key from env vars, setup_ci, readonly match with type appstore, build_app with export_method, upload_to_testflight, and increment_build_number from latest_testflight_build_number. A is more complete and robust: it passes the api_key object explicitly to match, latest_testflight_build_number and upload_to_testflight, and it adds a Matchfile and detailed secrets guidance. B relies on implicit API key context and never passes app_identifier to latest_testflight_build_number, so it is less explicit and more likely to break."
       },
       {
-        "name": "Android staged rollout promoting internal to production at 10%",
-        "baseline": 92,
-        "treatment": 96,
-        "rationale": "Both used upload_to_play_store with track, track_promote_to, and rollout: \"0.1\" correctly; treatment added context that no aab is needed since this is a promotion, giving it a slight edge."
+        "name": "android-internal-and-staged-release",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both lanes meet the rubric. B puts json_key directly in upload_to_play_store as the rubric asks, and it is simpler and reads from env vars. A sets the json key in the Appfile instead, and adds version-code logic and extra flags that go beyond the rubric. A's version-code handling and notes are useful, but they stray from the rubric's explicit json_key placement."
+      },
+      {
+        "name": "github-actions-tag-release-with-match",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both meet the rubric (v* tag trigger, macOS runner, setup-ruby with bundler-cache, `bundle exec fastlane ios beta`, MATCH_PASSWORD, MATCH_GIT_URL and the ASC_* secrets), but A is more complete and runnable: it includes the Fastfile lane with `readonly: true`, `setup_ci` and the API key, uses `MATCH_GIT_URL` as the secret name, and adds `MATCH_GIT_BASIC_AUTHORIZATION`, while B maps `MATCH_REPO` to `MATCH_GIT_URL`, adds an unneeded `pod install` step and a Slack secret, and only hedges on repo access."
       }
     ]
   }

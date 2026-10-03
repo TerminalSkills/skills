@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fee2bbfe46aa127b1689c58400a4c43dadca9851d3400523212d6e31a59e0de3",
-  "scoredAt": "2026-05-13T08:49:15.030Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6151081a91b1ab78b4a1bc3b6e06dcf2aefeae248cf4a604a82be60d9822b338",
+  "scoredAt": "2026-10-03T11:57:47.680Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as invalid configuration or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one YAML configuration example is provided; additional realistic demonstrations are missing."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 89,
-    "multiplier": 1.62,
+    "multiplier": 1.43,
+    "baselineAvg": 63,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Configure Envoy as API gateway with prefix routing, retries, and circuit breakers",
+        "name": "gateway-with-ratelimit-and-retries",
         "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline produces a valid listener+routes shell but commonly misses the exact retry_policy retry_on string and per-cluster circuit_breakers.thresholds fields the rubric specifies."
+        "treatment": 90,
+        "rationale": "B puts a top-level local_ratelimit filter in http_filters with token_bucket, filter_enabled and filter_enforced, then router last with typed_config, a 5xx retry policy with 3 retries, a users cluster at users-svc:3000, and a docker --mode validate command. A uses the filter with only a stat_prefix and puts the token_bucket inside per-route descriptors, so the global filter has no token bucket. A's cluster is named users_svc rather than users_service. Its descriptor setup is also uncertain, and A says so itself in its caveats."
       },
       {
-        "name": "Add active health checks and zone-aware load balancing to a cluster",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Baseline adds generic http_health_check fields but often misses the specific threshold fields and the zone-aware routing/outlier detection patterns called out in the skill."
+        "name": "canary-split-ten-percent",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": "B covers nearly every rubric item (weighted_clusters 90/10, a users_service_canary cluster pointing at users-svc-v2, the admin /clusters rq_total check, --mode validate, and raising the weight in steps while watching 5xx), while A uses the /stats endpoint instead of /clusters, never runs validate, only mentions 5xx comparison without a stepwise ramp-up, and names the cluster users_service_v2, which the rubric allows as an 'e.g.'"
+      },
+      {
+        "name": "secure-admin-and-resilience-review",
+        "baseline": 93,
+        "treatment": 91,
+        "rationale": "Both meet every rubric point: loopback-only publishing with the in-container listener staying on 0.0.0.0, a warning never to expose it publicly, circuit_breakers, http_health_check with a path, outlier_detection, /stats/prometheus, and /clusters; A adds more PromQL, an alert example and a firewall/iptables caveat, while B adds config validation and the Prometheus-in-container networking note."
       }
     ]
   }

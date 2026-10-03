@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1c024f44116e44f1af33924d79b424e970ec108f3b570d056e51bd0e415f0801",
-  "scoredAt": "2026-05-13T10:22:30.141Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ddc8b4a0ddc27f7c8915681582a8bfe3b8c262e6897debf626cc290cbd3dbe5c",
+  "scoredAt": "2026-10-03T13:08:01.103Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is limited to Linux systemd environments, not cross-platform."
+        "detail": "Covers the happy path plus a few notes on restart limits and journal persistence, but gives no troubleshooting steps for a service that fails to start (e.g. reading `journalctl -xe`, exit-code and permission errors, SELinux denials), and it omits user units, socket activation and `systemctl edit` drop-in syntax."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 90,
-    "multiplier": 1.5,
+    "multiplier": 0.98,
+    "baselineAvg": 90,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Node.js service with auto-restart and resource limits",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment writes a unit file with Restart=always, RestartSec, MemoryMax/CPUQuota, NoNewPrivileges/ProtectSystem hardening, and runs daemon-reload before enable — all from the skill; baseline omits hardening and resource limits."
+        "name": "node-service-on-boot-with-restart",
+        "baseline": 96,
+        "treatment": 95,
+        "rationale": "Both responses satisfy every rubric element: Restart=on-failure with RestartSec, an absolute ExecStart, User=deploy, After/Requires on postgresql.service, WantedBy=multi-user.target, and daemon-reload followed by enable --now. B edges ahead with extra practical notes on the start-limit behaviour and Postgres readiness, while A adds a verify step and a crash test."
       },
       {
-        "name": "Replace nightly cron job with a systemd timer",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment uses paired .timer + .service with OnCalendar, Persistent=true, Type=oneshot, and enables with systemctl enable --now backup.timer plus list-timers verification per the skill; baseline keeps cron or invents flags not documented."
+        "name": "replace-cron-backup-with-timer",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both responses supply the full rubric set: a timer with OnCalendar 03:00, Persistent=true and RandomizedDelaySec, a oneshot service, enabling the timer, and verification with list-timers and systemd-analyze calendar. B edges ahead because it adds FixedRandomDelay, notes on failure alerts, and a reminder to check /etc/cron.d. A invents a `User=deploy` taken from a 'reference example' that doesn't appear anywhere in the task, which is a minor flaw, though it does include a useful `systemd-analyze verify` step."
+      },
+      {
+        "name": "harden-and-debug-failing-service",
+        "baseline": 85,
+        "treatment": 82,
+        "rationale": "Both cover journalctl -p err, reset-failed, the start-limit cause, a systemctl edit drop-in, hardening options and systemd-analyze security, but B adds more detail: it explains the start-limit-hit result, provides a fuller hardening set, and covers troubleshooting and revert. A has a slight lead on its note about running systemd-analyze security after the fix, but B includes this as well."
       }
     ]
   }

@@ -5,15 +5,16 @@ description: >-
   AI chains, build RAG pipelines, implement agents with tools, set up document
   loaders, create vector stores, build conversational AI, implement prompt
   templates, chain LLM calls, add memory to chatbots, or orchestrate language
-  model workflows. Covers LangChain v0.3+ with LCEL (LangChain Expression
-  Language), structured output, tool calling, retrieval, and production
-  deployment patterns.
+  model workflows. Covers LangChain 1.x (Python and
+  TypeScript) with LCEL, create_agent, structured output, tool calling,
+  retrieval, and production patterns.
 license: Apache-2.0
-compatibility: 'Python 3.9+ or Node.js 18+ (langchain, langchain-core, langchain-community)'
+compatibility: 'Python 3.10+ or Node.js 20+ (langchain 1.x, langchain-core, provider packages)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/langchain-ai/langchain
   tags:
     - langchain
     - llm
@@ -26,7 +27,7 @@ metadata:
 
 ## Overview
 
-Build production-grade LLM applications using LangChain's composable framework. This skill covers chains, agents, retrieval-augmented generation (RAG), tool integration, memory, and deployment — using modern LCEL patterns (not legacy `LLMChain`).
+Build production-grade LLM applications using LangChain's composable framework. This skill covers chains, agents, retrieval-augmented generation (RAG), tool integration, memory, and deployment — using the LangChain 1.x API: LCEL for chains and `create_agent` for agents. The old `LLMChain`, `AgentExecutor` and `ConversationBufferMemory` live in the separate `langchain-classic` package; do not use them in new code.
 
 ## Instructions
 
@@ -36,18 +37,20 @@ Determine the user's runtime (Python or TypeScript) and initialize the project:
 
 **Python:**
 ```bash
-pip install langchain langchain-core langchain-openai langchain-community
+pip install langchain langchain-openai          # langchain-core comes with it
 # For RAG:
-pip install langchain-chroma sentence-transformers
-# For document loading:
-pip install unstructured pypdf docx2txt
+pip install langchain-chroma langchain-text-splitters
+# For document loading (loaders live in langchain-community, which is being sunset;
+# prefer a standalone integration package when one exists for your source):
+pip install langchain-community pypdf
 ```
 
 **TypeScript:**
 ```bash
-npm install langchain @langchain/core @langchain/openai @langchain/community
+npm install langchain @langchain/core @langchain/openai zod
 # For RAG:
-npm install @langchain/chroma
+npm install @langchain/community @langchain/textsplitters
+# Agents in JS: import { createAgent, tool } from "langchain"
 ```
 
 Verify the LLM provider API key is set:
@@ -69,7 +72,7 @@ prompt = ChatPromptTemplate.from_messages([
     ("human", "{question}")
 ])
 
-chain = prompt | ChatOpenAI(model="gpt-4o") | StrOutputParser()
+chain = prompt | ChatOpenAI(model="gpt-5.5") | StrOutputParser()
 
 result = chain.invoke({"domain": "Python", "question": "Explain decorators"})
 ```
@@ -89,7 +92,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 prompt = ChatPromptTemplate.from_template("Summarize this text in {language}: {text}")
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+llm = ChatOpenAI(model="gpt-5.5")  # or init_chat_model("anthropic:claude-sonnet-5-5")
 chain = prompt | llm
 
 result = chain.invoke({"language": "Spanish", "text": "..."})
@@ -147,14 +150,12 @@ answer = rag_chain.invoke("What is the return policy?")
 
 #### Tool-Calling Agent
 ```python
-from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
+from langchain.tools import tool
 
 @tool
 def search_database(query: str) -> str:
     """Search the product database for matching items."""
-    # Implementation here
     return f"Found 3 results for '{query}'"
 
 @tool
@@ -162,53 +163,36 @@ def calculate_discount(price: float, percent: float) -> float:
     """Calculate discounted price."""
     return price * (1 - percent / 100)
 
-tools = [search_database, calculate_discount]
-llm = ChatOpenAI(model="gpt-4o")
-
-# Modern approach uses LangGraph for agents
-agent = create_react_agent(llm, tools)
-result = agent.invoke({"messages": [("human", "Find laptops under $1000 and apply 15% discount")]})
+# create_agent (LangChain 1.x) replaces AgentExecutor and langgraph.prebuilt.create_react_agent.
+# The model is a "provider:model" string or a chat model instance.
+agent = create_agent(
+    model="openai:gpt-5.5",
+    tools=[search_database, calculate_discount],
+    system_prompt="You are a shopping assistant. Use the tools for prices.",
+)
+result = agent.invoke({"messages": [{"role": "user", "content": "Find laptops under $1000 and apply 15% discount"}]})
+print(result["messages"][-1].content)
 ```
 
 #### Conversational Memory
+Short-term memory is a checkpointer on the agent, keyed by `thread_id`. `RunnableWithMessageHistory` and `InMemoryChatMessageHistory` still run but are deprecated.
 ```python
-from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain.agents import create_agent
+from langgraph.checkpoint.memory import InMemorySaver  # use a Postgres/SQLite saver in production
 
-store = {}
+agent = create_agent(model="openai:gpt-5.5", tools=[], checkpointer=InMemorySaver())
+config = {"configurable": {"thread_id": "user-123"}}
 
-def get_session_history(session_id: str):
-    if session_id not in store:
-        store[session_id] = InMemoryChatMessageHistory()
-    return store[session_id]
-
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant."),
-    ("placeholder", "{history}"),
-    ("human", "{input}")
-])
-
-chain = prompt | llm | StrOutputParser()
-
-chain_with_history = RunnableWithMessageHistory(
-    chain,
-    get_session_history,
-    input_messages_key="input",
-    history_messages_key="history",
-)
-
-# Each call remembers previous messages
-response = chain_with_history.invoke(
-    {"input": "My name is Alice"},
-    config={"configurable": {"session_id": "user-123"}}
-)
+agent.invoke({"messages": [{"role": "user", "content": "My name is Alice"}]}, config)
+reply = agent.invoke({"messages": [{"role": "user", "content": "What is my name?"}]}, config)
+print(reply["messages"][-1].content)  # remembers Alice because the thread_id is the same
 ```
 
 ### Step 4: Document Loaders and Text Splitters
 
 Common loaders:
 ```python
-from langchain_community.document_loaders import (
+from langchain_community.document_loaders import (  # pip install langchain-community
     PyPDFLoader,           # PDF files
     TextLoader,            # Plain text
     CSVLoader,             # CSV files
@@ -262,13 +246,13 @@ results = chain.batch([
 ], config={"max_concurrency": 3})
 
 # Fallbacks: use a different provider if primary fails
-from langchain_anthropic import ChatAnthropic
-llm_with_fallback = ChatOpenAI(model="gpt-4o").with_fallback([ChatAnthropic(model="claude-sonnet-4-20250514")])
+from langchain_anthropic import ChatAnthropic   # pip install langchain-anthropic
+llm_with_fallback = ChatOpenAI(model="gpt-5.5").with_fallbacks([ChatAnthropic(model="claude-sonnet-5-5")])
 
 # Caching: avoid duplicate LLM calls
 from langchain_core.globals import set_llm_cache
-from langchain_community.cache import SQLiteCache
-set_llm_cache(SQLiteCache(database_path=".langchain_cache.db"))
+from langchain_core.caches import InMemoryCache   # per-process; for persistence use a cache integration package
+set_llm_cache(InMemoryCache())
 ```
 
 ## Examples
@@ -281,18 +265,19 @@ The agent will create a Python script that loads all PDFs from `./docs/` using `
 ### Example 2: Create a tool-calling agent that queries a database and sends Slack messages
 **User prompt:** "Build a LangChain agent that can query our PostgreSQL analytics database and post summaries to Slack channel #weekly-metrics."
 
-The agent will create a Python script using LangGraph's `create_react_agent` with two custom tools. The `query_analytics_db` tool accepts a SQL query string, connects to PostgreSQL using `psycopg2` with connection parameters from `DATABASE_URL`, executes read-only queries (with a 10-second timeout), and returns formatted results. The `send_slack_message` tool takes a channel name and message body, posts via the Slack Web API using `SLACK_BOT_TOKEN`. The agent uses `ChatOpenAI(model="gpt-4o")` and is invoked with prompts like "What was our total revenue last week? Post the summary to #weekly-metrics." The agent first calls `query_analytics_db` with `SELECT SUM(amount) FROM transactions WHERE created_at >= '2026-02-10'`, formats the result as a readable summary, then calls `send_slack_message` to post it. Error handling wraps both tools with try/except to return informative error messages instead of crashing.
+The agent will create a Python script using LangChain's `create_agent` with two custom tools. The `query_analytics_db` tool accepts a SQL query string, connects to PostgreSQL using `psycopg2` with connection parameters from `DATABASE_URL`, executes read-only queries (with a 10-second timeout), and returns formatted results. The `send_slack_message` tool takes a channel name and message body, posts via the Slack Web API using `SLACK_BOT_TOKEN`. The agent is built with `create_agent(model="openai:gpt-5.5", ...)` and is invoked with prompts like "What was our total revenue last week? Post the summary to #weekly-metrics." The agent first calls `query_analytics_db` with `SELECT SUM(amount) FROM transactions WHERE created_at >= '2026-02-10'`, formats the result as a readable summary, then calls `send_slack_message` to post it. Error handling wraps both tools with try/except to return informative error messages instead of crashing.
 
 ## Guidelines
 
-1. **Use LCEL, not legacy chains** — `LLMChain`, `SequentialChain` are deprecated
+1. **Use LCEL, not legacy chains** — `LLMChain`, `SequentialChain` moved to `langchain-classic` in 1.0
 2. **Use `langchain-{provider}` packages** — not monolithic `langchain` imports
 3. **Structured output over output parsers** — `.with_structured_output()` is more reliable
-4. **LangGraph for agents** — `AgentExecutor` is legacy; use `create_react_agent` from langgraph
+4. **`create_agent` for agents** — `AgentExecutor` is legacy and `langgraph.prebuilt.create_react_agent` is superseded; add a checkpointer for memory, middleware for guardrails
 5. **Chunk size matters** — too small loses context, too large dilutes relevance; test with 500-1500
 6. **Always add overlap** — 10-20% overlap prevents splitting mid-sentence
 7. **Use MMR retrieval** — better diversity than pure similarity search
 8. **Stream in production** — reduces perceived latency significantly
 9. **Cache LLM calls** — identical prompts hit cache instead of API
 10. **Test chains with `.invoke()` first** — before adding streaming or async
+11. **Pin versions and read deprecation warnings** — the 1.x line removed many 0.x imports; `langchain-community` is no longer actively maintained
 

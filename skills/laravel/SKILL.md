@@ -1,143 +1,137 @@
 ---
 name: laravel
 description: >-
-  You are an expert in Laravel, the most popular PHP framework for building
-  web applications and APIs. You help developers build production systems with
-  Eloquent ORM, Blade templating, Artisan CLI, queues, events, middleware,
-  authentication (Sanctum/Breeze), Livewire for reactive UI, and a rich
-  ecosystem of first-party packages — enabling rapid development without
-  sacrificing code quality.
+  Laravel is a PHP web framework for building full-stack applications and JSON
+  APIs with Eloquent ORM, Blade views, the Artisan CLI, queues, events and
+  Sanctum authentication. Use when a user asks to create a Laravel app, add
+  models, migrations, controllers, form requests, API routes, queued jobs or
+  token auth, run Artisan commands, or upgrade from Laravel 12 to 13.
 license: Apache-2.0
-compatibility: ''
+compatibility: "PHP 8.3+ and Composer; Node.js for the Vite frontend build (Laravel 13)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Backend Development
-  tags:
-    - php
-    - framework
-    - eloquent
-    - blade
-    - artisan
-    - api
-    - fullstack
+  version: "1.1.0"
+  repository: https://github.com/laravel/framework
+  category: development
+  tags: ["php", "laravel", "eloquent", "artisan", "api"]
 ---
 
 # Laravel — The PHP Framework for Web Artisans
 
-You are an expert in Laravel, the most popular PHP framework for building web applications and APIs. You help developers build production systems with Eloquent ORM, Blade templating, Artisan CLI, queues, events, middleware, authentication (Sanctum/Breeze), Livewire for reactive UI, and a rich ecosystem of first-party packages — enabling rapid development without sacrificing code quality.
+## Overview
 
-## Core Capabilities
+Laravel is a full-stack PHP framework. Laravel 13 (released March 2026, current line 13.x) requires PHP 8.3 or newer. It ships Eloquent (ORM), Blade (templates), Artisan (CLI), a queue system, events, scheduling and first-party packages such as Sanctum (API tokens and SPA cookies), Fortify (headless auth), Livewire, Horizon and Pint. New apps use SQLite by default, so `laravel new` works with no database server.
 
-### Eloquent Models
+## Instructions
+
+### Create and run an app
+
+```bash
+composer global require laravel/installer     # needs PHP 8.3+ and Composer
+laravel new orders-api                         # prompts for a starter kit, tests, database
+cd orders-api
+npm install && npm run build
+composer run dev                               # serves :8000, queue worker and Vite together
+```
+
+- Starter kits are React, Svelte, Vue (Inertia) and Livewire; all use Fortify for login, registration, 2FA and email verification. Breeze and Jetstream are not offered for new apps. Choose "none" for a plain API or Blade app.
+- To use MySQL or PostgreSQL edit the `DB_*` values in `.env`, create the database, then run `php artisan migrate`.
+- Create files with generators: `php artisan make:model Order -mfcr` (model, migration, factory, resource controller), `make:request`, `make:job`, `make:resource`, `make:policy`. `php artisan route:list` shows every route.
+
+### Eloquent models
+
+`$fillable`, `$hidden` and `casts()` on the model work in every version; Laravel 13 also accepts PHP attributes such as `#[Fillable([...])]` and `#[Table('...')]`. Define casts in a `casts()` method. Mark local scopes with `#[Scope]`.
 
 ```php
 <?php
-// app/Models/User.php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class User extends Model
+class Order extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'email', 'password'];
-    protected $hidden = ['password'];
-    protected $casts = ['email_verified_at' => 'datetime', 'profile' => 'array'];
+    protected $fillable = ['user_id', 'reference', 'status', 'total_cents'];
 
-    public function posts(): HasMany
+    protected function casts(): array
     {
-        return $this->hasMany(Post::class);
+        return ['shipped_at' => 'datetime', 'meta' => 'array'];
     }
 
-    // Accessor
-    protected function name(): Attribute
+    public function items(): HasMany
     {
-        return Attribute::make(
-            get: fn (string $value) => ucfirst($value),
-            set: fn (string $value) => strtolower($value),
-        );
+        return $this->hasMany(OrderItem::class);
     }
 
-    // Scope
-    public function scopeActive($query) { return $query->whereNull('deleted_at'); }
+    #[Scope]
+    protected function pending(Builder $query): void
+    {
+        $query->where('status', 'pending');
+    }
+}
+// Order::pending()->with('items')->latest()->paginate(20);
+```
+
+### Validation and controllers
+
+Put validation in a FormRequest (`php artisan make:request StoreOrderRequest`) and keep controllers thin. Hash passwords with the `hashed` cast on the User model (the default skeleton has it) or `Hash::make`.
+
+```php
+// app/Http/Controllers/OrderController.php
+public function store(StoreOrderRequest $request)
+{
+    $order = $request->user()->orders()->create($request->validated());
+    ProcessOrder::dispatch($order)->onQueue('orders');
+
+    return new OrderResource($order);   // 201 for a newly created model
 }
 ```
 
-### Controllers and Routes
+### API routes and Sanctum
 
-```php
-<?php
-// app/Http/Controllers/UserController.php
-namespace App\Http\Controllers;
+`routes/api.php` does not exist in a fresh app. Run `php artisan install:api` to publish it, install Sanctum and add the migration, then migrate.
 
-use App\Models\User;
-use Illuminate\Http\Request;
-
-class UserController extends Controller
-{
-    public function index(Request $request)
-    {
-        return User::query()
-            ->when($request->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
-            ->with('posts')
-            ->paginate(20);
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
-        ]);
-
-        $user = User::create([
-            ...$validated,
-            'password' => bcrypt($validated['password']),
-        ]);
-
-        // Dispatch event
-        event(new UserRegistered($user));
-
-        return response()->json($user, 201);
-    }
-
-    public function show(User $user)
-    {
-        return $user->load(['posts' => fn ($q) => $q->published()->latest()->limit(5)]);
-    }
-}
+```bash
+php artisan install:api
+php artisan migrate
 ```
 
 ```php
 // routes/api.php
-Route::apiResource('users', UserController::class);
+Route::post('/sanctum/token', function (Request $request) {
+    $request->validate(['email' => 'required|email', 'password' => 'required', 'device_name' => 'required']);
+    $user = User::where('email', $request->email)->first();
+    if (! $user || ! Hash::check($request->password, $user->password)) {
+        throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
+    }
+    return $user->createToken($request->device_name, ['orders:read'])->plainTextToken;
+});
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::apiResource('orders', OrderController::class);
 });
 ```
+
+The `User` model needs the `Laravel\Sanctum\HasApiTokens` trait. Clients send `Authorization: Bearer <token>`. Tokens are hashed in the database, so show `plainTextToken` once. For a first-party SPA do not use tokens: call `$middleware->statefulApi()` in `bootstrap/app.php`, set `SANCTUM_STATEFUL_DOMAINS`, fetch `/sanctum/csrf-cookie`, then POST `/login`.
 
 ### Queues
 
 ```php
 <?php
-// app/Jobs/ProcessOrder.php
 namespace App\Jobs;
 
-use Illuminate\Bus\Queueable;
+use App\Models\Order;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Queue\Queueable;
 
 class ProcessOrder implements ShouldQueue
 {
-    use InteractsWithQueue, Queueable, SerializesModels;
+    use Queueable;
 
     public int $tries = 3;
     public int $backoff = 60;
@@ -147,29 +141,52 @@ class ProcessOrder implements ShouldQueue
     public function handle(): void
     {
         $this->order->process();
-        Mail::to($this->order->user)->send(new OrderConfirmation($this->order));
     }
 }
-
-// Dispatch: ProcessOrder::dispatch($order)->onQueue('orders');
 ```
 
-## Installation
+Run `php artisan queue:work` (or let `composer run dev` do it). The default queue driver is `database`; use Redis plus Horizon for volume. Restart workers after a deploy with `php artisan queue:restart`.
+
+### Laravel 13 notes (upgrading from 12)
+
+- Update `laravel/framework` to `^13.0`, `laravel/tinker` to `^3.0`, `phpunit/phpunit` to `^12.0`, `pestphp/pest` to `^4.0`, then `composer global update laravel/installer`.
+- The CSRF middleware is now `PreventRequestForgery` (it also checks `Sec-Fetch-Site`); `VerifyCsrfToken` remains as a deprecated alias.
+- Cache has a `serializable_classes` option, `false` by default: list any PHP classes you store in cache.
+- The skeleton sets session `serialization` to `json`; switching an existing app from `php` logs every user out.
+- Default cache and session-cookie prefixes now use hyphens; set `CACHE_PREFIX` and `SESSION_COOKIE` to keep old names.
+- Laravel Boost (`composer require laravel/boost --dev`, `php artisan boost:install`) gives agents project-aware tools and docs search.
+
+## Examples
+
+### Example 1: Token-protected orders API
+
+**User request:** "Add an orders API to my Laravel app with login tokens, nothing for the browser."
 
 ```bash
-composer create-project laravel/laravel my-app
-cd my-app
-php artisan serve                          # Dev server on :8000
-php artisan make:model User -mfcr         # Model + migration + factory + controller + resource
+php artisan install:api && php artisan make:model Order -mfcr --api
+# edit the migration: user_id, reference, status, total_cents
+php artisan migrate
+php artisan test --compact
 ```
 
-## Best Practices
+Add `HasApiTokens` to `User`, paste the token route and the `auth:sanctum` group from above into `routes/api.php`. Then `curl -H "Authorization: Bearer 1|k9Xa..." -H "Accept: application/json" http://localhost:8000/api/orders` returns a paginated JSON object; without the token it returns 401 `{"message":"Unauthenticated."}`.
 
-1. **Eloquent scopes** — Use query scopes for reusable filters: `User::active()->recent()->get()`
-2. **Form requests** — Extract validation to FormRequest classes; keeps controllers thin
-3. **Eager loading** — Always use `with()` for relations; prevents N+1 queries
-4. **Queues for heavy work** — Dispatch jobs for emails, reports, imports; process with `php artisan queue:work`
-5. **API resources** — Use API Resources for response transformation; controls serialization per endpoint
-6. **Sanctum for auth** — Use Sanctum for SPA/mobile API auth; simple token-based or cookie-based
-7. **Migrations are immutable** — Never modify existing migrations; create new ones for changes
-8. **Artisan commands** — Create custom commands for maintenance tasks; run via scheduler for cron jobs
+### Example 2: Move PDF invoice generation off the request
+
+**User request:** "Generating the invoice PDF takes 6 seconds. Make the order endpoint return immediately."
+
+```bash
+php artisan make:job GenerateInvoicePdf
+```
+
+Implement `ShouldQueue` with `$tries = 3`, call `GenerateInvoicePdf::dispatch($order)->onQueue('invoices');` in the controller and run `php artisan queue:work --queue=invoices,default`. The endpoint now answers in milliseconds, and failures are retried and listed by `php artisan queue:failed`.
+
+## Guidelines
+
+- Always `with()` relations you will loop over; call `Model::preventLazyLoading(! app()->isProduction())` in `AppServiceProvider::boot` to catch N+1 queries in development.
+- Never edit a migration that has run in production; add a new one. Use `php artisan migrate --force` only in deploy scripts.
+- Never set `$guarded = []` on models that take request input; validate and use `$request->validated()`.
+- Keep `APP_DEBUG=false` and a real `APP_KEY` in production; run `php artisan config:cache route:cache view:cache` (or `php artisan optimize`) on deploy. After caching config, `env()` works only inside config files.
+- Serve the `public/` directory as the web root, never the project root.
+- Do not use Sanctum tokens for your own browser SPA; use its cookie mode. Reach for Passport only when you need a full OAuth2 server.
+- Format with Pint (`vendor/bin/pint`) and test with Pest or PHPUnit (`php artisan test`).

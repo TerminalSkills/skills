@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8cca05a0438dd456915ebe70b25e875b689b543ca9aafaf5542604ead7645ec0",
-  "scoredAt": "2026-05-13T10:25:49.811Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:14f137a02e9582b961281e424ef820138b88913d25371d388a2b7e1fdc39b398",
+  "scoredAt": "2026-10-03T12:12:05.846Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing coverage of error handling and edge cases in the instructions."
+        "detail": "Covers little error handling: there are no GLTFLoader error callbacks, no WebGL context-loss or unsupported-browser fallback, and no Suspense/ErrorBoundary for failed model loads in R3F."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Example 2 (data globe) is only a numbered prose outline with no runnable code, and Example 1 mutates a shared material in render and uses `as any`."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 1.14,
+    "baselineAvg": 73,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Render 5,000 markers on a 3D globe efficiently",
-        "baseline": 50,
+        "name": "r3f-sneaker-configurator-self-hosted-draco",
+        "baseline": 80,
         "treatment": 90,
-        "rationale": "Treatment uses InstancedMesh for the thousands of point markers and TubeGeometry with animated dash offsets for arcs per the SKILL.md globe example; baseline naively spawns 5,000 separate Mesh objects which the skill warns against."
+        "rationale": "B follows the rubric most closely: it uses the `materials` object from useGLTF, calls setDecoderPath and preload, and says to run console.log(materials) to find the model-specific material name. A has the CDN and setDecoderPath parts and a more careful traverse-and-clone recolor, but it doesn't mention console.log(materials) and only suggests Blender or gltf.report to check names."
       },
       {
-        "name": "Product configurator with R3F and HDR lighting",
-        "baseline": 60,
-        "treatment": 85,
-        "rationale": "Treatment uses useGLTF() with Draco compression, MeshStandardMaterial color/roughness swap, OrbitControls, and an HDR environment map with contact shadows as the skill prescribes; baseline writes vanilla Three.js setup without R3F or drei helpers."
+        "name": "vanilla-three-modern-scene-no-legacy-apis",
+        "baseline": 85,
+        "treatment": 88,
+        "rationale": "Both use three/addons, DRACOLoader with setDecoderPath on GLTFLoader, THREE.Timer with update()/getDelta() in setAnimationLoop, ACESFilmic tone mapping and a Math.min(devicePixelRatio, 2) cap; B's plain timer.update() is simpler and matches the rubric, while A adds timer.connect and passes the timestamp to update(), which is fine but slightly beyond the rubric, and neither response is clearly stronger on the rubric items themselves."
+      },
+      {
+        "name": "instanced-globe-data-points",
+        "baseline": 55,
+        "treatment": 72,
+        "rationale": "A matches more of the rubric: it loads an earth texture and sets colorSpace to SRGBColorSpace, and it also uses a single InstancedMesh with setMatrixAt, instanceMatrix.needsUpdate and OrbitControls autoRotate. B covers the InstancedMesh and OrbitControls parts but leaves out the earth texture and sRGB colorSpace, using a plain-colored sphere instead."
       }
     ]
   }

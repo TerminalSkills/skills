@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:001fa11cd072c064cc066cfe4dfafb8d40f1dbb084acd30ac009498272d6a20c",
-  "scoredAt": "2026-05-13T09:05:43.790Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:42c9af6acae87cfd75a6d03519ea344a9e1b4592f7168ef72b34904763be66bc",
+  "scoredAt": "2026-10-03T13:01:17.311Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
+        "detail": "Covers the main setup paths but has almost no troubleshooting or error scenarios (e.g., permission denied, token creator propagation delay, ADC quota project errors, expired credentials) beyond a single note on OAuth access scopes."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two Examples are prose descriptions of scenarios with no concrete commands, inputs, or outputs, so they are less realistic demonstrations than the code blocks in Instructions."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 94,
-    "multiplier": 1.71,
+    "multiplier": 0.97,
+    "baselineAvg": 90,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Migrate GKE pod off mounted JSON key Secret",
-        "baseline": 55,
-        "treatment": 94,
-        "rationale": "Treatment enables workload-pool on the cluster, binds the KSA via roles/iam.workloadIdentityUser with principal serviceAccount:PROJECT.svc.id.goog[NS/KSA] and annotates the KSA with iam.gke.io/gcp-service-account; baseline often suggests downloading a new key or storing in Secret Manager rather than eliminating the key."
+        "name": "local-dev-bigquery-impersonation",
+        "baseline": 90,
+        "treatment": 92,
+        "rationale": "Both cover impersonation with Token Creator, ADC login with --impersonate-service-account, set-quota-project, and no keys; B also explicitly runs `gcloud config set project`, which the rubric names, while A sets the project only through an env var and the quota-project command, so B is slightly more complete."
       },
       {
-        "name": "Service A on Cloud Run calling private Service B",
-        "baseline": 55,
-        "treatment": 94,
-        "rationale": "Treatment uses google.oauth2.id_token.fetch_id_token with the service URL as audience plus gcloud run services add-iam-policy-binding role roles/run.invoker; baseline often uses access tokens or shared API keys instead of OIDC ID tokens."
+        "name": "gke-migrate-off-json-key-secret",
+        "baseline": 88,
+        "treatment": 80,
+        "rationale": "Both responses cover the rubric's core: workload-pool and GKE_METADATA, a direct principal:// grant, redeploying without the Secret mount, deleting the Secret and key, and the GSA fallback. B edges ahead because it checks the cluster's current state first, scopes the grant to the bucket, adds verification steps, and disables the key before deleting it; A grants at project level and does not verify the cluster state first."
+      },
+      {
+        "name": "private-cloud-run-service-to-service",
+        "baseline": 93,
+        "treatment": 90,
+        "rationale": "Both cover the run.invoker binding, fetch_id_token with the service URL as audience, and the Bearer header, and neither suggests keys or shared secrets; A adds ingress and AuthorizedSession detail, while B explicitly says no JSON key, API key or shared secret is needed but is a bit thinner."
       }
     ]
   }

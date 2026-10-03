@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f5f2d2c051478f987753f0f35a91d800c0ce285e1268eb7c0b7a5d4111582b55",
-  "scoredAt": "2026-05-13T09:50:07.938Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a87b5fb9f14ff51a9bfc753506d1f41de167f748690f174ca3111ac24433d17d",
+  "scoredAt": "2026-10-03T13:10:13.851Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing embeddings or dimension mismatches."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment and does not provide guidance for other languages or AI agents."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of steps rather than runnable demonstrations with concrete inputs and outputs, so they are less realistic than the code in the Instructions section."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 94,
-    "multiplier": 1.62,
+    "multiplier": 1.39,
+    "baselineAvg": 64,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Add vector column with HNSW index and cosine search",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline knows CREATE EXTENSION vector and vector(1536) but tends to be vague on HNSW parameters (m, ef_construction) and the <=> operator; treatment specifies all four rubric points verbatim from the skill."
+        "name": "filtered-search-fewer-rows-fix",
+        "baseline": 68,
+        "treatment": 90,
+        "rationale": "B hits every rubric element cleanly: post-filtering, `SET LOCAL hnsw.iterative_scan` inside a transaction, B-tree/partial/partition alternatives and `EXPLAIN (ANALYZE, BUFFERS)`. A covers the same ground but uses plain `SET` in its main example (only mentioning `SET LOCAL` afterward), gives shaky workarounds (`enable_indexscan`, a materialized CTE), and omits BUFFERS in its EXPLAIN suggestion."
       },
       {
-        "name": "RAG pipeline with text-embedding-3-small",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline reaches for an external vector DB or numpy and frequently omits the ::vector cast / JSON.stringify pattern; treatment uses the documented openai.embeddings.create + parameterized insert + cosine retrieval chain."
+        "name": "index-3072-dim-embeddings",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both state the 2,000-dimension limit and give the halfvec cast expression index with halfvec_cosine_ops, and both stress that queries must use the same cast with ORDER BY <=> and LIMIT; A adds extra options (dimension reduction, binary quantization) and a version note, while B has a slightly less explicit limit statement for the cast but includes practical notes like iterative scan and CONCURRENTLY, so the two are near equal with A slightly more complete."
+      },
+      {
+        "name": "node-semantic-search-with-pgvector-pg",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "A registers pgvector types, uses toSql with parameterized args, wraps SET LOCAL hnsw.iterative_scan in BEGIN/COMMIT, computes 1-distance, and leaves cutoff to app code; B skips pgvector registration and the transaction, only mentions SET as a note, and does not address app-side cutoff."
       }
     ]
   }

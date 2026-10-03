@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ea3ec2c4d200f6ebc833a6744f6acc1c5a962cb6f2c46660714cbb929443d914",
-  "scoredAt": "2026-05-13T10:00:05.598Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ebe083a8642a3455014e269aff7f4073a0cf5d938464324a348bcdf901896b36",
+  "scoredAt": "2026-10-03T12:08:43.097Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Not all error scenarios and edge cases are explicitly covered."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Minor platform assumptions such as shell environment variable syntax may not work on Windows."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 34,
-    "treatmentAvg": 94,
-    "multiplier": 2.76,
+    "multiplier": 1.54,
+    "baselineAvg": 57,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Add Postgres and run Prisma migrations",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Treatment chains railway status, railway add --database postgres, railway variable list to confirm DATABASE_URL, railway run npx prisma migrate deploy to apply migrations with injected env vars, and railway redeploy; baseline knows railway add and railway up but copies DATABASE_URL manually and skips the railway run env-injection step."
+        "name": "ci-deploy-with-project-token",
+        "baseline": 80,
+        "treatment": 88,
+        "rationale": "Both use a project token as RAILWAY_TOKEN, pass --service, avoid `railway deploy`, and don't need an interactive login; B uses `--ci` in the actual command, and also mentions `--detach`, while A uses `--detach` in the command and mentions `--ci` as an alternative, but A wrongly claims `--ci` streams until build completion in a way that is fine yet also A is a bit more verbose; B adds a reference to a nonexistent 'Task H' which is a minor flaw."
       },
       {
-        "name": "CI deploy with health check and rollback",
-        "baseline": 28,
-        "treatment": 93,
-        "rationale": "Treatment uses railway up --detach with RAILWAY_TOKEN, polls the health URL with curl until 200 or timeout, and calls railway rollback on failure; baseline writes a generic curl polling loop, runs railway up without --detach, and does not surface railway rollback as the recovery command."
+        "name": "postgres-add-and-migrate",
+        "baseline": 50,
+        "treatment": 88,
+        "rationale": "B matches the rubric closely: `railway add --database postgres`, `railway variable set ... --service`, `railway run --service orders-api -- npx prisma migrate deploy` with flags before `--`, and the note that `railway run` runs locally against a private `*.railway.internal` host with a pre-deploy command as the alternative; A uses `railway variables --set` and never runs the required migration command for orders-api, only running it via `--service Postgres` with the public URL or a pre-deploy command, though it does cover the local/internal-host caveat."
+      },
+      {
+        "name": "rollback-and-secret-safe-variable",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "A states there is no rollback command, rejects `railway down` and `railway redeploy`, gives the dashboard and `git checkout` plus `railway up` routes, and uses the exact `echo \"$STRIPE_SECRET\" | railway variable set STRIPE_SECRET_KEY --stdin --skip-deploys`; B hedges on the CLI having no rollback command, recommends a dashboard 'Rollback' button, and uses `--set` with the expanded value instead of the `--stdin` pipe."
       }
     ]
   }

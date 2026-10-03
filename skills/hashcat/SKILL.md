@@ -6,10 +6,10 @@ description: >-
   convert a PCAP to a crackable hash, or benchmark hash cracking throughput
   on their own hardware.
 license: Apache-2.0
-compatibility: 'hashcat 6.2+, NVIDIA/AMD GPU with OpenCL or CUDA'
+compatibility: 'hashcat 7.x (tested against 7.1.2), NVIDIA/AMD GPU with OpenCL or CUDA'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: devops
   tags:
     - hashcat
@@ -17,6 +17,7 @@ metadata:
     - gpu
     - ntlm
     - penetration-testing
+  repository: https://github.com/hashcat/hashcat
 ---
 
 # Hashcat

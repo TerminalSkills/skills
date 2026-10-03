@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:36cbf976b5ca429d1eac2f4078994a89f4f18f2f612ada63e5411c2fd5a250d5",
-  "scoredAt": "2026-05-13T09:21:13.172Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1eefaeed742271ab614ba8079ab40f3cdf28a9506d05eb19896d4fedaacf0995",
+  "scoredAt": "2026-10-03T13:05:58.535Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill focuses on happy path examples and lacks coverage of error handling and edge cases across all patterns."
+        "detail": "Coverage is mostly happy-path: there is no guidance on handling rate limits, API errors, empty retrieval results, or malformed structured output, and the fallbacks and cache snippets lack failure-mode discussion."
       },
       {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to LangChain and does not support other AI frameworks, making it vendor-locked."
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are prose descriptions of what the agent will build rather than concrete runnable input/output demonstrations, and the Example 2 SQL tool is described without any code or read-only enforcement beyond a mention."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 90,
-    "multiplier": 1.88,
+    "multiplier": 1.37,
+    "baselineAvg": 65,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Build a RAG chain over local PDFs with MMR retrieval",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Baseline produced raw OpenAI calls with manual chunking; treatment composed an LCEL chain with PyPDFLoader, RecursiveCharacterTextSplitter (chunk_size=1000, overlap=200), Chroma + OpenAIEmbeddings, and as_retriever(search_type=\"mmr\")."
+        "name": "rag-with-persisted-chroma-mmr",
+        "baseline": 15,
+        "treatment": 88,
+        "rationale": "Response A covers nearly every rubric item (DirectoryLoader+PyPDFLoader, RecursiveCharacterTextSplitter 1000/200, Chroma persist_directory, MMR retriever with k and fetch_k, a cite-sources prompt, a Sources list from metadata, and an LCEL-style chain), while Response B uses none of the LangChain components, has no MMR retriever and no LCEL chain, and only matches the rubric on persistence, cited prompts and a Sources list."
       },
       {
-        "name": "Build a tool-calling agent that queries DB and posts to Slack",
-        "baseline": 50,
+        "name": "agent-with-tools-and-thread-memory",
+        "baseline": 92,
         "treatment": 90,
-        "rationale": "Baseline relied on deprecated AgentExecutor patterns; treatment used @tool decorators and create_react_agent from langgraph.prebuilt with .invoke({\"messages\": [...]}) as required by the SKILL.md."
+        "rationale": "Both use create_agent, @tool functions with docstrings, a provider:model string, InMemorySaver, thread_id config, and a {\"messages\": [...]} input, so both cover the rubric; A adds per-user access control through runtime context and Decimal refund math, which gives it a slight edge on detail."
+      },
+      {
+        "name": "structured-extraction-with-fallback-and-batch",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both define a Pydantic model with Field descriptions, use with_structured_output with a prompt via pipe, add a ChatAnthropic fallback, and set max_concurrency=5; A uses the sync chain.batch the rubric names and B uses abatch (sync only in a note), and A's Field descriptions are slightly less complete since sentiment has none."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a4b8a1c069b2a12ab357c87fd29b41e20141fb2f1d3927bcddfcb164d19858bf",
-  "scoredAt": "2026-05-13T09:27:28.340Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6d44936750f63c7cf9f3e40bf8d9249d6a88958ba40ddf3d08596bae69b7f25b",
+  "scoredAt": "2026-10-03T12:04:35.948Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,36 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases for queries."
+        "detail": "The skill mostly covers the happy path and gives little guidance on common failures such as connection setup errors, missing primary keys, type mismatches, or what to do when the CLI or Node run fails beyond 'read the compiler error'."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for npm and pip installations."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 88,
-    "multiplier": 2.93,
+    "multiplier": 1.62,
+    "baselineAvg": 52,
+    "treatmentAvg": 84,
     "scenarios": [
       {
-        "name": "Ecommerce model with nested monthly and customer breakdowns",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Treatment defines a reusable source with dimensions/measures and uses nest to produce per-segment monthly trend and top-customer breakdowns in one query; baseline writes generic SQL with separate CTEs that lack Malloy's nested-result structure."
+        "name": "joined-source-with-measures-and-views",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "A matches the rubric closely: primary_key on customers, join_one with customer_id, pick/when/else, a count(customer_id)-style unique count, and a top_customers view grouped by customers.name with order_by desc and limit 20. B uses count(distinct customer_id) inside the measure, which the rubric specifically rules out, and it groups by customers.id as well as customers.name."
       },
       {
-        "name": "Pipeline filtering reusing a named view",
-        "baseline": 35,
+        "name": "nested-query-with-refinement-and-chart",
+        "baseline": 72,
         "treatment": 85,
-        "rationale": "Treatment chains transformations with -> and reuses a named view (revenue_by_month) plus a post-filter on aggregated results, matching the skill's pipeline pattern; baseline produces standalone SQL queries that don't compose."
+        "rationale": "B hits every rubric element (named monthly_trend and best_customers nests in a single run, desc order with limit 5, `view + { where: ... }`, and `# line_chart` on its own line above the run), while A's first query reuses the saved view instead of an explicit monthly_trend nest, and it puts the tag above a nest rather than a run/view, though the placement is still valid and its source-level view example is useful."
+      },
+      {
+        "name": "run-malloy-from-node-script",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "A matches the rubric nearly point for point: @malloydata/malloy-connections, MalloyConfig with includeDefaultConnections, runtime.loadQuery().run(), result.data.toObject(), runtime.shutdown(), `malloy-cli compile`, and a duckdb.table source with extend and a measure plus group_by/aggregate/limit 5. B uses a different API (SingleConnectionRuntime and DuckDBConnection), skips malloy-connections, MalloyConfig and runtime.shutdown(), has no extend/measure, and installs the CLI as @malloydata/malloy-cli rather than malloy-cli, though it does use `malloy-cli compile`."
       }
     ]
   }

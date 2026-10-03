@@ -9,10 +9,10 @@ description: >-
   notes workflows, or extend Obsidian with community plugins. Covers plugin
   development, vault architecture, automation, and publishing.
 license: Apache-2.0
-compatibility: 'Node.js 18+ (plugin dev), Obsidian 1.4+'
+compatibility: 'Obsidian desktop; Node.js 18+ for plugin development (Node 22+ for Quartz); Obsidian 1.12.7+ for the built-in CLI'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: productivity
   tags:
     - obsidian
@@ -20,6 +20,7 @@ metadata:
     - pkm
     - note-taking
     - plugins
+  repository: https://github.com/obsidianmd/obsidian-sample-plugin
 ---
 
 # Obsidian
@@ -49,7 +50,7 @@ vault/
 
 **PARA method:** `Projects/`, `Areas/`, `Resources/`, `Archive/`, `_templates/`.
 
-Configure `.obsidian/app.json`: set `newFileFolderPath` to inbox, `attachmentFolderPath` to attachments, enable `alwaysUpdateLinks`. Use descriptive titles for atomic notes, `YYYY-MM-DD` prefix for date-based notes.
+Configure it in Settings, Files and links: default location for new notes (`newFileLocation: "folder"`, `newFileFolderPath: "0-inbox"` in `.obsidian/app.json`), `attachmentFolderPath: "attachments"`, and automatically update internal links (`alwaysUpdateLinks`). Edit `app.json` only while Obsidian is closed, or it overwrites your change. Use descriptive titles for atomic notes, `YYYY-MM-DD` prefix for date-based notes.
 
 ### Step 2: Templates with Templater
 
@@ -90,21 +91,23 @@ Configure Templater: set template folder, enable trigger on new file creation, m
 
 Install the Dataview community plugin to query your vault like a database.
 
-```dataview
--- Open tasks across vault
-TASK WHERE !completed SORT file.mtime DESC LIMIT 50
+Each query goes in its own `dataview` code block (Dataview has no comment syntax, so do not put `--` lines inside):
 
--- Active projects dashboard
+```dataview
+TASK WHERE !completed SORT file.mtime DESC LIMIT 50
+```
+
+```dataview
 TABLE status, deadline, file.mtime AS "Last Modified"
 FROM #project WHERE status = "active" SORT deadline ASC
+```
 
--- Recently modified notes (last 7 days)
-TABLE file.mtime AS "Modified" WHERE file.mtime >= date(today) - dur(7 days) SORT file.mtime DESC LIMIT 20
-
--- Orphan notes (no incoming links)
+```dataview
 LIST WHERE length(file.inlinks) = 0
   AND !contains(file.path, "templates") AND !contains(file.path, "attachments")
 ```
+
+DataviewJS must be enabled in the plugin settings. Obsidian also ships **Bases** (core plugin, `.base` files) for table, list, cards and map views of notes filtered by properties; prefer Bases for simple views that need no plugin, and Dataview for queries and inline computation.
 
 **DataviewJS** for complex logic:
 ```dataviewjs
@@ -122,6 +125,8 @@ dv.table(["Project", "Deadline", "Days Overdue"],
 git clone https://github.com/obsidianmd/obsidian-sample-plugin my-plugin
 cd my-plugin && npm install
 ```
+
+The template needs Node.js 18 or newer and compiles `src/main.ts` to `main.js`. Keep a plugin's `id` in `manifest.json` identical to its folder name in `.obsidian/plugins/`.
 
 **Basic plugin** (`main.ts`):
 ```typescript
@@ -169,7 +174,7 @@ class MyPluginSettingTab extends PluginSettingTab {
 }
 ```
 
-Build: `npm run dev` — copy `main.js`, `manifest.json`, `styles.css` to `vault/.obsidian/plugins/my-plugin/`.
+Build: `npm run dev` (watch) or `npm run build`; clone the repo straight into `vault/.obsidian/plugins/my-plugin/` or copy `main.js`, `manifest.json`, `styles.css` there, then enable it under Community plugins. Release: bump `minAppVersion`, run `npm version patch`, attach those three files to a GitHub release (tag without `v`), and open a pull request to `obsidianmd/obsidian-releases` to list it.
 
 ### Step 5: CSS Snippets & Themes
 
@@ -186,8 +191,17 @@ Place in `vault/.obsidian/snippets/my-theme.css`, enable in Settings → Appeara
 
 **Obsidian URI scheme:**
 ```
-obsidian://open?vault=MyVault&file=path/to/note
-obsidian://new?vault=MyVault&file=inbox/New Note&content=Hello
+obsidian://open?vault=Research&file=projects/Q4%20roadmap
+obsidian://new?vault=Research&name=Meeting%20notes&content=Hello&silent
+obsidian://daily?vault=Research
+```
+Other actions: `unique`, `search`, `choose-vault`. Encode spaces as `%20`.
+
+**Obsidian CLI** (Obsidian 1.12.7+; enable under Settings, General, Command line interface; the app must be running):
+```bash
+obsidian vault=Research daily:append content="- [ ] Send invoice 114"
+obsidian vault=Research create name="Meeting notes" content="# Weekly sync"
+obsidian vault=Research search query="roadmap"
 ```
 
 **Git sync** (`.gitignore` for vault):
@@ -198,18 +212,21 @@ obsidian://new?vault=MyVault&file=inbox/New Note&content=Hello
 .trash/
 ```
 
-Auto-commit: `*/30 * * * * cd /path/to/vault && git add -A && git diff --cached --quiet || git commit -m "backup $(date +%Y-%m-%d_%H:%M)" && git push`
+Auto-commit: `*/30 * * * * cd /home/maria/notes/vault && git add -A && git diff --cached --quiet || git commit -m "backup $(date +%Y-%m-%d_%H:%M)" && git push`
 
-**Local REST API plugin** (programmatic access on port 27123):
+**Local REST API community plugin** (HTTPS on 127.0.0.1:27124 by default; plain HTTP on 27123 is an optional setting; API key from the plugin settings, kept in `OBSIDIAN_API_KEY`; the certificate is self-signed, so download the plugin's certificate or pass `-k` for local use):
 ```bash
-curl http://localhost:27123/vault/projects/my-project.md -H "Authorization: Bearer KEY"
-curl -X PUT http://localhost:27123/vault/inbox/new-note.md -H "Authorization: Bearer KEY" \
-  -H "Content-Type: text/markdown" -d "# New Note\n\nContent here"
+curl -k https://127.0.0.1:27124/vault/projects/q4-roadmap.md -H "Authorization: Bearer $OBSIDIAN_API_KEY"
+curl -k -X PUT https://127.0.0.1:27124/vault/inbox/new-note.md -H "Authorization: Bearer $OBSIDIAN_API_KEY" \
+  -H "Content-Type: text/markdown" --data-binary $'# New Note\n\nContent here'
 ```
 
-**Publishing with Quartz:**
+**Publishing with Quartz** (Node.js 22+; the official paid alternative is Obsidian Publish):
 ```bash
-npx quartz create && npx quartz build --serve && npx quartz sync
+git clone https://github.com/jackyzha0/quartz.git && cd quartz && npm i
+npx quartz create          # point it at your vault folder
+npx quartz build --serve   # preview on http://localhost:8080
+npx quartz sync            # push to your GitHub repo for deployment
 ```
 
 ## Examples

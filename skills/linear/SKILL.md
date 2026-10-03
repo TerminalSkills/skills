@@ -12,8 +12,9 @@ license: Apache-2.0
 compatibility: Node.js 18+ or any HTTP client (GraphQL API)
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: productivity
+  repository: https://github.com/linear/linear
   tags:
     - linear
     - project-management
@@ -57,7 +58,15 @@ curl -X POST https://api.linear.app/graphql \
   -d '{"query": "{ viewer { id name email } }"}'
 ```
 
-For OAuth2 apps (multi-user), register at linear.app/settings/api/applications and use Authorization Code flow with PKCE.
+Personal API keys go in the `Authorization` header as-is; OAuth access tokens use `Authorization: Bearer <token>` (with the SDK: `new LinearClient({ accessToken })`).
+
+For OAuth2 apps (multi-user), register at linear.app/settings/api/applications and use the Authorization Code flow (PKCE supported; token endpoint `https://api.linear.app/oauth/token`). Request the narrowest scopes (`read`, `write`, `issues:create`, `comments:create`; `admin` only when needed, e.g. to create webhooks). Pass `actor=app` to act as the app itself (agents, service accounts); refresh tokens are supported.
+
+**Hosted MCP server** — to let an agent use Linear without writing code:
+```bash
+claude mcp add --transport http linear-server https://mcp.linear.app/mcp
+```
+Then run `/mcp` in Claude Code to sign in. Use `https://mcp.linear.app/mcp/readonly` for read-only access.
 
 ### Step 2: Teams, Labels & Templates
 
@@ -121,13 +130,14 @@ await linear.issueRelationCreate({ issueId: "A", relatedIssueId: "B", type: "blo
 const project = await linear.projectCreate({
   teamIds: ["TEAM_ID"], name: "Q1 Auth Overhaul",
   description: "Replace legacy auth with OAuth2 + MFA",
-  targetDate: "2026-03-31", startDate: "2026-01-15", state: "started",
+  targetDate: "2026-03-31", startDate: "2026-01-15",
+  // statusId: "PROJECT_STATUS_ID",  // `state` is deprecated; use statusId
 });
 
 // Link issue to project and check progress
 await issue.update({ projectId: "PROJECT_ID" });
 const proj = await linear.project("PROJECT_ID");
-console.log(`Progress: ${proj.progress}% — ${proj.completedScopeCount}/${proj.scopeCount}`);
+console.log(`Scope done: ${proj.completedScopeCount}/${proj.scopeCount}`); // proj.progress is a 0-1 fraction
 
 // Create a cycle (sprint)
 await linear.cycleCreate({
@@ -153,23 +163,29 @@ for (const issue of unfinished.nodes) await issue.update({ cycleId: next.id });
 **Create a webhook** (Settings → API → Webhooks, or via GraphQL):
 ```graphql
 mutation { webhookCreate(input: {
-  url: "https://your-server.com/linear/webhook", teamId: "TEAM_ID",
+  url: "https://hooks.northwind.dev/linear/webhook", teamId: "TEAM_ID",  # or allPublicTeams: true
   resourceTypes: ["Issue", "Comment", "Project"], enabled: true
 }) { webhook { id } } }
 ```
 
-**Verify and handle webhooks:**
+Creating webhooks requires a workspace admin or an OAuth app with the `admin` scope. Resource types include Issue, Comment, IssueLabel, Project, Cycle, Reaction, Document, User and more.
+
+**Verify and handle webhooks.** The `Linear-Signature` header is a hex HMAC-SHA256 of the *raw* request body, keyed with the webhook's signing secret. Compare in constant time and reject payloads whose `webhookTimestamp` (ms) is more than a minute old:
 ```typescript
 import crypto from "crypto";
+import express from "express";
 
-function verifyLinearWebhook(body: string, signature: string, secret: string): boolean {
-  const hmac = crypto.createHmac("sha256", secret);
-  hmac.update(body);
-  return hmac.digest("hex") === signature;
+function verifyLinearWebhook(rawBody: Buffer, signature: string, secret: string): boolean {
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest();
+  const given = Buffer.from(signature, "hex");
+  return given.length === expected.length && crypto.timingSafeEqual(given, expected);
 }
 
-app.post("/linear/webhook", (req, res) => {
-  const { action, type, data, updatedFrom } = req.body;
+app.post("/linear/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  const ok = verifyLinearWebhook(req.body, req.header("linear-signature") ?? "", process.env.LINEAR_WEBHOOK_SECRET!);
+  const payload = JSON.parse(req.body.toString());
+  if (!ok || Math.abs(Date.now() - payload.webhookTimestamp) > 60_000) return res.sendStatus(401);
+  const { action, type, data, updatedFrom } = payload;
   if (type === "Issue" && action === "update" && updatedFrom?.stateId) {
     console.log(`${data.identifier} moved to ${data.state.name}`);
   }
@@ -242,7 +258,7 @@ The agent will create a Linear webhook subscribed to Issue resource types for th
 
 - **Use the SDK for type safety** — the `@linear/sdk` package provides typed methods and pagination helpers; prefer it over raw GraphQL for most operations.
 - **Paginate all list queries** — Linear caps results at 250 per page; always check `pageInfo.hasNextPage` and pass `after: endCursor` to avoid silently truncating results.
-- **Verify webhook signatures** — validate the `linear-signature` header with HMAC-SHA256 before processing any webhook payload to prevent forged events.
+- **Verify webhook signatures** — validate the `Linear-Signature` header (HMAC-SHA256 over the raw body) and the `webhookTimestamp` before processing any payload, to prevent forged or replayed events. Parsing the body before verifying breaks the signature.
 - **Scope webhooks to specific teams** — use the `teamId` parameter when creating webhooks to avoid receiving events from unrelated teams in large workspaces.
 - **Use branch naming conventions for GitHub sync** — format branches as `username/TEAM-123-description` so Linear auto-links PRs and moves issues on merge.
-- **Batch updates carefully** — Linear has rate limits (varies by plan); add small delays in loops that update many issues and handle 429 responses with exponential backoff.
+- **Batch updates carefully** — Linear has rate limits (varies by plan); add small delays in loops that update many issues and handle rate-limit errors with backoff. Limits: 2,500 requests/hour per user with a personal API key, 5,000 with OAuth, plus a complexity budget and a 10,000-point cap per query. Exceeding them returns HTTP 400 with a `RATELIMITED` error code (not 429); watch the `X-RateLimit-Requests-Remaining` header.

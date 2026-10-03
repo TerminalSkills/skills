@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d6b7ec9b15b12bc4544710a6fa1c03872f53e4e3a695b8bdeab9fb33b146dc0a",
-  "scoredAt": "2026-05-13T16:20:02.446Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:b8ef56a4e9b6a3e387d2ed70dafa531a7e330e54fc18a03e3d8a1254d13bc774",
+  "scoredAt": "2026-10-02T23:23:45.130Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases in the provided examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes specific runtime environments (Python 3.9+, Node.js 18+) and libraries, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1,
-    "baselineAvg": 98,
-    "treatmentAvg": 98,
+    "multiplier": 1.18,
+    "baselineAvg": 68,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "mask-emails-in-csv-with-faker",
-        "baseline": 100,
-        "treatment": 100,
-        "rationale": "Both responses fully satisfy the rubric, correctly importing csv and faker, reading the CSV, replacing the email column with faker.email(), preserving other columns, and writing to a new CSV."
+        "name": "staging-refresh-masked-pipeline",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it dumps the schema from prod and applies it to dev, copies through a masked \\COPY, reads env vars, and its verify script counts unmasked emails and tells the user to discard the refresh on any failure. A reads env vars and masks in the SELECT, but it never dumps and applies the schema (it assumes staging already has the table), and its verification only exits with an error without stating that the refresh must be discarded."
       },
       {
-        "name": "presidio-auto-mask-pii",
-        "baseline": 95,
-        "treatment": 95,
-        "rationale": "Both responses fully implement the required Presidio pipeline, import the correct engines, analyze and anonymize with replace operators, and return the masked text; they differ only in style and placeholder choices."
+        "name": "winston-log-pii-scrubber",
+        "baseline": 60,
+        "treatment": 78,
+        "rationale": "B covers all rubric elements: typed placeholders including [PHONE], separate JSON-field redaction, a logger-level format, and a unit test asserting nothing leaks. A has no phone pattern, uses the [CARD] placeholder, and only offers a manual console.log check rather than a real test that asserts no PII survives; neither runs the test through the logger itself."
+      },
+      {
+        "name": "gdpr-anonymized-analytics-export",
+        "baseline": 82,
+        "treatment": 72,
+        "rationale": "Both cover pseudonymization vs anonymization, k-anonymity with generalization and suppression, and l-diversity for diagnosis, but B adds a fuller legal framework (WP29 tests, recital 26, DPIA), a ZIP/age/diagnosis generalization strategy, and a safer handling fallback. A has a cleaner structure and names diffprivlib with epsilon, which B omits (B mentions only differential privacy noise). A also gives a script and a clearer step on direct identifiers. B is stronger overall but misses the explicit diffprivlib/epsilon the rubric names."
       }
     ]
   }

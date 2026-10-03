@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a53e68408ca33879bbc14161d050ada36a46107cf214c97897f66cf376c28843",
-  "scoredAt": "2026-05-13T12:04:26.854Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:503be944e6f4deadbf8d4c5194ef61afb507fb122068b9ae1c36564665971032",
+  "scoredAt": "2026-10-02T23:20:50.283Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
+        "category": "actionability",
+        "detail": "The Node.js section only lists SDK exports and tells the reader to adapt sample files from the a2a-js repo, with no runnable code, unlike the full Python server and client."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains verbose explanatory sections that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The instructions are specific to Python and Node.js SDKs, lacking guidance for other platforms."
+        "category": "examples",
+        "detail": "Both examples describe the implementation in prose without runnable code, and Example 1 relies on an unspecified classifier and an undefined `router.py`."
       }
     ]
   },
@@ -37,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 2.22,
+    "baselineAvg": 41,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "build-a2a-server-with-streaming-and-cancellation",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required AgentCard, A2AStarletteApplication, and executor implementation."
+        "name": "streaming-task-server-with-cancel",
+        "baseline": 22,
+        "treatment": 93,
+        "rationale": "B matches the rubric: it enqueues the Task first, then WORKING, an artifact update and COMPLETED with no bare Message, and its cancel emits TASK_STATE_CANCELED. It also uses supported_interfaces with an AgentInterface (JSONRPC), sets streaming=True and passes agent_card to the handler. A uses the old 0.3.x API with a `url` field and no supported_interfaces, and passes no agent_card to the handler. It also sends the working and canceled states through TaskUpdater with messages, and its cancel does not use TASK_STATE_CANCELED."
       },
       {
-        "name": "a2a-client-streaming-response",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully meets the rubric, while Response B does not use the required A2AClient API."
+        "name": "migrate-legacy-a2a-client",
+        "baseline": 40,
+        "treatment": 90,
+        "rationale": ""
       },
       {
-        "name": "multi-agent-code-pipeline-orchestrator",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A is empty."
+        "name": "parallel-orchestrator-with-security",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": ""
       }
     ]
   }

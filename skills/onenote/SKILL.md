@@ -9,9 +9,10 @@ license: Apache-2.0
 compatibility: "Microsoft Graph API v1.0. Requires Microsoft 365 account with OneNote."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["onenote", "microsoft-365", "notes", "graph-api", "api"]
+  repository: https://github.com/microsoftgraph/microsoft-graph-docs-contrib
 ---
 
 # OneNote
@@ -25,15 +26,17 @@ This skill helps AI agents integrate with Microsoft OneNote via the Graph API. I
 ### Authentication
 
 ```typescript
-// Same Azure AD app as other Microsoft 365 services
-// Permissions needed:
-//   Notes.ReadWrite — read/write user's notebooks
-//   Notes.ReadWrite.All — access all notebooks (admin)
-//   Notes.Create — create only
+// Same Azure AD app registration as other Microsoft 365 Graph skills.
+// Permissions needed (delegated, signed-in user context):
+//   Notes.Create — create notebooks, sections, and pages only
+//   Notes.ReadWrite — read/write the signed-in user's own notebooks
+//   Notes.ReadWrite.All — read/write any notebook the user can access (requires admin consent)
 
 import { Client } from '@microsoft/microsoft-graph-client';
 // ... same auth setup as other Graph API skills
 ```
+
+> Microsoft retired app-only (client-credentials) authentication for the OneNote API on March 31, 2025. These scopes must be requested as **delegated** permissions with a signed-in user; a daemon app using `Notes.ReadWrite.All` with no user context will be rejected.
 
 ### Notebooks & Sections
 
@@ -138,7 +141,7 @@ await graphClient.api(`/users/${userId}/onenote/sections/${sectionId}/pages`)
     <head><title>Architecture Diagram</title></head>
     <body>
       <h1>System Architecture — v2</h1>
-      <img src="https://example.com/architecture-diagram.png" alt="Architecture diagram" />
+      <img src="https://cdn.northstar-robotics.com/diagrams/architecture-v2.png" alt="Architecture diagram" />
       <p>Updated March 2026. Changes: added Redis cache layer, split API gateway.</p>
     </body>
     </html>
@@ -257,3 +260,4 @@ The agent will search for the page using `GET /onenote/pages?$filter=contains(ti
 - Search works on page titles via `$filter`; for full-text, use Microsoft Search API
 - Rate limits: same as other Graph API resources (10,000 per 10 min)
 - OneNote pages are stored in OneDrive — large notebooks count against storage quota
+- The OneNote API only accepts delegated permissions — app-only (client-credentials) auth was retired March 31, 2025, so a background service with no signed-in user cannot call it

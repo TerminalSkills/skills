@@ -7,10 +7,10 @@ description: >-
   sanctioned exercise, or test an organization's human-layer defenses
   under a signed engagement.
 license: Apache-2.0
-compatibility: 'SET 8.x, Python 3.10+, Linux'
+compatibility: 'SET 8.1.3, Python 3.11-3.13, Linux (Kali/WSL)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - social-engineer-toolkit
@@ -42,10 +42,14 @@ No ROE → no SET. Stop here.
 ### Step 2: Install SET in an Isolated Environment
 
 ```bash
-# Preinstalled on Kali. Otherwise:
-git clone https://github.com/trustedsec/social-engineer-toolkit.git set
+# Recommended on Kali Linux or WSL:
+sudo apt update && sudo apt install set -y
+
+# Or from source (SET 8.1.3 targets Python 3.11-3.13):
+git clone --depth 1 --branch 8.1.3 https://github.com/trustedsec/social-engineer-toolkit.git set
 cd set
-sudo python3 setup.py install
+pip install -r requirements.txt
+sudo python3 setup.py install   # review setup.py before running it
 
 # Run SET in a dedicated VM — never on a shared host
 sudo setoolkit

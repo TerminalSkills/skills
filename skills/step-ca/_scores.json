@@ -1,44 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:033987e00a27483ed919c8b4124cba6f3c2382c96fe1ac4c87f7fbc12465cdbd",
-  "scoredAt": "2026-05-13T10:12:03.704Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:50a44c5b5272270eda0c4dc1d5e7b734627064474d46168cae73edfc2743299b",
+  "scoredAt": "2026-10-03T22:16:48.704Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 67,
+    "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "WEAK",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
       "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions reference platform-specific commands like 'brew' without clarifying cross-platform alternatives, leading to ambiguity."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill omits error handling and edge case scenarios, such as failed certificate issuance or renewal failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The provided commands lack context and prerequisites, making it difficult to execute them successfully."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on macOS-specific package manager 'brew' and assumes Node.js environment, limiting cross-platform applicability."
+        "detail": "Covers mostly the happy path; troubleshooting for failed renewals, expired certificates, CA downtime, or root rotation is only touched on briefly."
       },
       {
         "severity": "MEDIUM",
         "category": "examples",
-        "detail": "Only a single Node.js example is provided, lacking diverse realistic demonstrations for other environments."
+        "detail": "Examples are prose descriptions of commands rather than runnable end-to-end demonstrations with realistic output, and Example 2 largely points back to Step 5."
       }
     ]
   },
@@ -47,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 89,
-    "multiplier": 3.18,
+    "multiplier": 1.31,
+    "baselineAvg": 61,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Bootstrap internal CA and issue first service certificate with auto-renewal",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline reached for openssl self-signed workflow without step-ca's init/issue/renew commands or the --daemon auto-renewal pattern; treatment used step ca init with --name/--dns/--address/--provisioner, step ca certificate, and step ca renew --daemon exactly as documented."
+        "name": "private-ca-init-and-renewal",
+        "baseline": 80,
+        "treatment": 72,
+        "rationale": "Both cover the rubric's init, bootstrap with fingerprint, certificate and renew --daemon --exec commands, but A leaves the init password and step-ca start loosely specified, while B gives a complete, concrete flow with --password-file at init and run time, a systemd unit, and a verification step, though its extra provisioner/--not-after details add some risk."
       },
       {
-        "name": "Set up mTLS between two internal Node.js services",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Baseline manually generated client/server certs with openssl and showed only partial Node TLS config; treatment issued both certs via step ca certificate, configured https with requestCert/rejectUnauthorized and the ca bundle, and ran step ca renew --daemon for rotation."
+        "name": "mtls-orders-to-payments",
+        "baseline": 40,
+        "treatment": 82,
+        "rationale": "A uses `step ca certificate` for separate server and client certs, sets requestCert/rejectUnauthorized with the CA root as `ca`, uses curl --cacert/--cert/--key, and notes that a missing client cert fails the handshake (exit 56), which covers nearly the whole rubric. B gets the Node server, curl call and handshake-failure note right but issues the certificates with openssl instead of `step ca certificate`, which misses a key rubric item."
+      },
+      {
+        "name": "acme-clients-and-expired-cert-recovery",
+        "baseline": 62,
+        "treatment": 85,
+        "rationale": "B matches the rubric more closely: it uses the `https://ca.corp.internal/acme/acme/directory` URL, says renewal needs the current unexpired cert, tells you to reissue with `step ca certificate`, and suggests a daemon or systemd timer. A also covers most of this but uses a different host and port, and it suggests an `allowRenewalAfterExpiry` claim that it says to verify and that weakens security, which makes it less reliable."
       }
     ]
   }

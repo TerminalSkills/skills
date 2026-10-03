@@ -1,13 +1,14 @@
 ---
 name: commitlint
 description: >-
-  Enforce conventional commit messages with commitlint. Use when a user asks to standardize commit messages, enforce commit conventions, set up commit linting in CI, or generate changelogs from commits.
+  commitlint checks that Git commit messages follow the Conventional Commits format (type(scope): subject) and fails when they do not. Use when a user asks to standardize commit messages, enforce commit conventions with a husky commit-msg hook, lint commits or PR commits in CI, customize rules, or prepare commits for automated changelogs and semantic versioning.
 license: Apache-2.0
-compatibility: 'Any Git repository'
+compatibility: "Node.js 22.12 or newer, git 2.13.2 or newer, any Git repository"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: development
+  repository: https://github.com/conventional-changelog/commitlint
   tags:
     - commitlint
     - git
@@ -19,38 +20,89 @@ metadata:
 # commitlint
 
 ## Overview
-commitlint checks commit messages against conventional commit format (`type(scope): description`). Pairs with husky for Git hooks and standard-version/changesets for automated changelogs.
+
+commitlint (`@commitlint/cli`, v21 at the time of writing) lints a commit message against a rule set; the usual rule set is `@commitlint/config-conventional`, which enforces `type(scope?): subject`. It requires Node.js 22.12 or newer. It runs in a Git `commit-msg` hook (typically via husky) and in CI. Valid messages let tools such as semantic-release, release-please, changesets or conventional-changelog derive version bumps and changelogs.
 
 ## Instructions
 
-### Step 1: Setup
+### Step 1: Install and add the hook (husky v9)
+
 ```bash
 npm install -D @commitlint/cli @commitlint/config-conventional husky
 npx husky init
 echo 'npx --no -- commitlint --edit "$1"' > .husky/commit-msg
 ```
 
+`npx husky init` also creates `.husky/pre-commit` containing `npm test`, which makes every commit fail in a project without tests. Edit or empty that file if you do not want it.
+
 ### Step 2: Configure
+
+Create `commitlint.config.mjs` (or `commitlint.config.js` with `"type": "module"`, `.cjs`, `.ts`, `.commitlintrc.*`, or a `commitlint` key in `package.json`).
+
 ```javascript
-// commitlint.config.js — Commit message rules
+// commitlint.config.mjs
 export default {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore']],
+    // [severity, applicable, value]; severity 0 off, 1 warning, 2 error
+    'scope-enum': [2, 'always', ['auth', 'api', 'billing', 'ui', 'deps']],
     'scope-case': [2, 'always', 'kebab-case'],
-    'subject-max-length': [2, 'always', 72],
+    'header-max-length': [2, 'always', 72],
   },
 }
 ```
 
-### Step 3: Valid Commits
+The default `type-enum` is build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test. If you override `type-enum`, repeat the types you still want, including `revert`. Default config-conventional limits headers and body/footer lines to 100 characters and forbids sentence-case subjects and trailing periods.
+
+### Step 3: Try it
+
 ```bash
-git commit -m "feat(auth): add Google OAuth login"        # valid
-git commit -m "fix(api): handle null response from /users" # valid
-git commit -m "updated stuff"                              # rejected
+echo "updated stuff" | npx commitlint          # exit 1: subject and type may not be empty
+echo "feat(auth): add Google OAuth login" | npx commitlint   # exit 0
+git commit -m "fix(api): handle null response from /users"   # hook runs commitlint
 ```
 
+### Step 4: Lint in CI
+
+```yaml
+# .github/workflows/commitlint.yml
+name: commitlint
+on: [pull_request]
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+```
+
+Other useful forms: `npx commitlint --last` (latest commit), `--from origin/main` (everything since main), `--config path` for a non-default config. If you squash-merge, lint the PR title instead of the individual commits.
+
+## Examples
+
+### Example 1: Add commit linting to an existing repo
+
+**User request:** "Make everyone on the team use conventional commits."
+
+Run Step 1 and Step 2, empty `.husky/pre-commit` if the repo has no `npm test`, and commit `commitlint.config.mjs` and `.husky/`. Then `git commit -m "updated stuff"` is rejected with `type may not be empty [type-empty]`, and `git commit -m "feat(billing): add annual plan"` succeeds. Add a `prepare` script (`"prepare": "husky"`, which `husky init` sets) so teammates get hooks after `npm install`.
+
+### Example 2: Restrict scopes to the monorepo packages
+
+**User request:** "Only allow scopes that match our package names."
+
+Set `'scope-enum': [2, 'always', ['web', 'api', 'worker']]`. Then `echo "feat(mobile): add push" | npx commitlint` exits 1 with `scope must be one of [web, api, worker] [scope-enum]`, while `fix(api): retry on 503` passes.
+
 ## Guidelines
-- Conventional commits enable automated changelog generation and semantic versioning.
-- Use with husky to enforce at commit time, not just in CI.
-- Types: feat (minor bump), fix (patch bump), BREAKING CHANGE (major bump).
+
+- Hooks can be bypassed with `git commit --no-verify`; keep the CI check as the enforcement point.
+- Merge and revert commits generated by Git are ignored by default; do not disable that.
+- `subject-max-length` does not exist in config-conventional by default; the header limit is `header-max-length` (100).
+- Breaking changes use `feat!:` or a `BREAKING CHANGE:` footer and map to a major version; `feat` maps to minor, `fix` to patch.
+- commitlint only lints messages; it does not generate changelogs. Pair it with a release tool.
+- On older Node versions install an older commitlint major; v21 needs Node 22.12 or newer.

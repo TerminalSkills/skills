@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:42d7ad319b207d7787753339a07e391080144d674bcaeb25ce3695f5f4f354b8",
-  "scoredAt": "2026-05-13T10:34:27.242Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:59bef6ebd466a8ed74d75c3b7be2f3184de7728a995867467a462a3a8df73f21",
+  "scoredAt": "2026-10-03T13:10:48.696Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for Vite configuration."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The instructions lack concrete code snippets or command examples for implementation."
+        "detail": "Covers configuration and migration steps but gives little troubleshooting guidance for common failures such as failed dependency pre-bundling, proxy errors, or CommonJS interop breakage beyond one legacy flag."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 1.11,
+    "baselineAvg": 81,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Component library build config",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment configures `build.lib` with entry and formats (es, cjs, umd), externalizes peer dependencies, and adds vite-plugin-dts for TypeScript declarations; baseline often relies on rollup directly or omits dts generation."
+        "name": "cra-to-vite-migration",
+        "baseline": 80,
+        "treatment": 93,
+        "rationale": "Both cover installing Vite and the plugin, removing react-scripts, renaming env vars to VITE_* with import.meta.env, and moving index.html with a module script tag; B also supplies the requested vite.config.ts with the '@' alias, whereas A gives a vite.config.js with no alias, only mentioning resolve.alias in passing."
       },
       {
-        "name": "CRA to Vite migration",
-        "baseline": 55,
+        "name": "vendor-chunks-sourcemaps-vite8",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "A matches the rubric directly (sourcemap: true, rolldownOptions codeSplitting groups with /node_modules/ vendor, warning about not serving maps publicly if private), while B uses sourcemap: 'hidden' instead of true, hedges about codeSplitting vs advancedChunks, though it does cover not shipping maps and adds the Sentry plugin."
+      },
+      {
+        "name": "dev-proxy-and-typed-env",
+        "baseline": 90,
         "treatment": 88,
-        "rationale": "Treatment installs @vitejs/plugin-react, removes react-scripts, renames REACT_APP_* env vars to VITE_* (read via import.meta.env), and moves the entry module reference into index.html; baseline keeps process.env usage or skips the index.html change."
+        "rationale": "Both cover proxy, alias, ImportMetaEnv in vite-env.d.ts, import.meta.env usage, restart note and no-secrets warning; B adds changeOrigin, a __dirname fallback, separate dev and prod env files and a usage snippet, while A is more concise and uses the ESM-safe alias by default, so B is slightly more complete."
       }
     ]
   }

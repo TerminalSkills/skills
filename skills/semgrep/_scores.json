@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:656b8390a7823688eda7c6dcbc36d78d0999a51f31836c5bc4389affd3c8893a",
-  "scoredAt": "2026-05-13T10:06:36.788Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0849c469777a3f6eb28759eac2ce7d45e2a6b005f2ea9d04eaffff1039e5d222",
+  "scoredAt": "2026-10-03T12:08:28.780Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
+        "category": "examples",
+        "detail": "Example 2 describes the rule and workflow in prose without showing the actual rule file, command output, or resulting diff, and Example 1 only sketches the agent's response, so the examples are less concrete than the rest of the skill."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 96,
-    "multiplier": 1.81,
+    "multiplier": 1.01,
+    "baselineAvg": 72,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Custom rule for SQL injection in TypeScript",
-        "baseline": 55,
-        "treatment": 96,
-        "rationale": "Treatment matches the skill's rule structure with severity ERROR, multiple concat patterns, a fix template, and CWE-89/OWASP metadata; baseline produces a thin rule at WARNING with no fix or rich metadata."
+        "name": "ci-sarif-no-account",
+        "baseline": 62,
+        "treatment": 80,
+        "rationale": "A uses all the rubric's flags exactly (`--sarif --output=semgrep.sarif`, `--baseline-commit=origin/${{ github.base_ref }}`, `--error`, fetch-depth 0, no token). B has the same structure but uses `--sarif-output`, which isn't the rubric's `--output` form. B also computes a merge-base instead of `origin/${{ github.base_ref }}`, so it misses the specified baseline form. B adds extras that don't offset those misses."
       },
       {
-        "name": "GitHub Actions CI with SARIF and ERROR-only gating",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Treatment wires semgrep/semgrep-action@v1 with p/security-audit + p/owasp-top-ten, emits --sarif --output=semgrep.sarif, and gates failure with --severity=ERROR --error; baseline outputs JSON and skips the documented action and ERROR-only gate."
+        "name": "custom-rule-hardcoded-key-and-missing-auth",
+        "baseline": 80,
+        "treatment": 66,
+        "rationale": "Both use patterns with metavariable-regex for the Stripe rule and give the validate and test commands with ruleid/ok annotations. B's auth rule is more thorough, with pattern-not variants for authMiddleware, but it relies on `pattern: $ROUTER.$METHOD(\"$PATH\", ...)` plus regex filters. A's auth rule is closer to the rubric's literal shape (a pattern for the handler plus a pattern-not containing authMiddleware) but is narrow, matching only async arrow handlers on `router`. A also gets the Stripe rule's declaration forms less complete than B, which covers const, let, var and member assignment."
+      },
+      {
+        "name": "private-code-offline-scan-and-autofix",
+        "baseline": 74,
+        "treatment": 72,
+        "rationale": "Both use --config .semgrep/ --metrics=off, -a/--autofix, and tell the user to review the diff because the fix is a text substitution; A explicitly warns that --config auto sends the project URL to the Registry and enables metrics, as the rubric asks, while B only says auto/p/ configs fetch rules and never mentions the project URL, but B's dryrun preview, fix tests, and safety caveats are stronger."
       }
     ]
   }

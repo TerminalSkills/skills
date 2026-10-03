@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ea88b67595ed65694beab0a0e6c5e133040ab7edd5e8f973237e44cd6904bfbf",
-  "scoredAt": "2026-05-13T09:59:47.520Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:dca9449dcf840a5110e71583a6e207715fa3c37f89a84c9c4c3b296b07f082f8",
+  "scoredAt": "2026-10-03T13:03:38.710Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,19 +11,19 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "Covers only the happy path for four primitives and omits error and edge cases such as controlled open state, async confirm handlers, forceMount/animation exit handling, SSR hydration issues, and the Dialog/Dropdown focus-return interaction."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to React and does not support other frameworks or AI agents."
+        "category": "examples",
+        "detail": "The two examples only restate which Step component to reuse with a one-line expected result, and the Example 2 `onSelect` handler is not wired into the `UserMenu` code, so they are not full realistic demonstrations."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 92,
-    "multiplier": 1.59,
+    "multiplier": 1.09,
+    "baselineAvg": 81,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "radix-confirm-dialog",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment composes the full Dialog.Root/Portal/Overlay/Content tree with Title, Description, and Close asChild plus aria-label per the skill, while the baseline frequently omits Portal or wraps the icon button without Dialog.Close asChild."
+        "name": "delete-confirm-dialog-a11y",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "A matches the rubric directly: it uses Dialog.Root, Trigger, Portal, Overlay and Content, Dialog.Close asChild for Cancel, VisuallyHidden around Dialog.Title, and Dialog.Description with an aria-describedby={undefined} note. B uses AlertDialog (Cancel/Action) instead of Dialog and Dialog.Close, so it misses the specific components the rubric names, though its accessibility handling is sound."
       },
       {
-        "name": "radix-tabs-active-state",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Treatment styles the active tab using the documented data-[state=active] Tailwind variant on Tabs.Trigger, while the baseline tends to track active state manually with React state instead of using Radix's data attributes."
+        "name": "menu-keep-open-onselect",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both use onSelect with preventDefault on Copy link, leave Sign out without preventDefault, and note 'use client'; B adds a working copy handler and state and an extra Server Action tip, but A's explanation is also correct and complete, so B is only slightly ahead."
+      },
+      {
+        "name": "tabs-and-tooltips-toolbar",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both responses satisfy every rubric item (Tabs.Root with defaultValue, Tabs.List/Trigger/Content, data-[state=active] styling, Tooltip.Provider delayDuration={300}, Root/Trigger asChild/Portal/Content, and aria-label), but A uses a real Lucide icon with aria-hidden and the standard individual packages, whereas B uses an emoji as the icon and the unified radix-ui package, which is slightly less polished though valid."
       }
     ]
   }

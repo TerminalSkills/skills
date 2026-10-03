@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:11142ebde0989952caabbe04635cab0b5873d46445dc9afdf0362e8b66334b9f",
-  "scoredAt": "2026-05-13T10:37:31.553Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0c812847c3ec696f2310d53092cb58fabb2904706bddfb9855206656a5b37df8",
+  "scoredAt": "2026-10-03T13:14:05.119Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing files or merge conflicts."
+        "detail": "Covers setup and guidelines but gives no troubleshooting for rules that are ignored, not triggering, or exceeding character limits, and no verification step to confirm a rule was loaded."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Windsurf and does not support other AI agents."
+        "detail": "The skill is intentionally specific to Windsurf/Devin Desktop and Cascade, with only a brief note that AGENTS.md is shared with other agents."
       }
     ]
   },

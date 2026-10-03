@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f7525d40667c8e35ae25809bdfa50c8fe14163c36b0eaba6afddf27a8e15bb59",
-  "scoredAt": "2026-05-13T08:49:47.859Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:311be74784662e7433a2e78e497c3d328f95782b37227537d1360de6f62ce7fc",
+  "scoredAt": "2026-10-02T23:24:21.963Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases, focusing only on happy path examples."
+        "detail": "Error handling is thin: it only mentions empty spawn lookups and failed asset requests, and the sample code never guards against `spawn` being undefined, `Player.takeDamage` going to a missing 'game-over' scene, or loader failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 36,
-    "treatmentAvg": 87,
-    "multiplier": 2.42,
+    "multiplier": 1.06,
+    "baselineAvg": 66,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "Platformer player actor with sprite animations and jump",
-        "baseline": 38,
-        "treatment": 88,
-        "rationale": "Treatment uses Actor with CollisionType.Active, SpriteSheet.fromImageSource, Animation.fromSpriteSheet, onPreUpdate with engine.input.keyboard, and postcollision side detection; baseline uses generic loops without the documented lifecycle hooks or collision events."
+        "name": "scaffold-and-load-tiled-level",
+        "baseline": 62,
+        "treatment": 66,
+        "rationale": "Both register TiledResource in a Loader, call addToScene(this), and use getObjectsByName('PlayerSpawn')[0] with an empty-result guard. A explicitly says to keep both packages on the same minor (0.32, the ~0.32.0 peer range) and starts the engine with the loader before going to the scene. B states the minor-version coupling only generically, with no 0.32, and passes the loader through game.start('level1', { loader }), which loads the loader but is a less explicit load-then-go sequence than A's."
       },
       {
-        "name": "Loading a Tiled map with spawn points and coin objects",
-        "baseline": 35,
-        "treatment": 86,
-        "rationale": "Treatment uses TiledResource from @excaliburjs/plugin-tiled, addToScene, getObjectsByName/getObjectsByType, and camera.strategy.elasticToActor; baseline writes generic Tiled parsing without the plugin's documented methods."
+        "name": "animated-player-with-keyboard-and-jump",
+        "baseline": 80,
+        "treatment": 55,
+        "rationale": "Both use SpriteSheet.fromImageSource, Animation.fromSpriteSheet, graphics.add/use, isHeld/wasPressed in onPreUpdate, flipHorizontal, CollisionType.Active, a postcollision Side.Bottom check and onInitialize setup, but A's grounded flag is reset at the end of onPreUpdate, so it is false whenever the next frame's input is read and the jump can never fire, while B latches it in onPostUpdate and is functionally sound and more complete (with a main.ts and gravity setup)."
+      },
+      {
+        "name": "coin-pickup-collision-upgrade-bug",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B covers all four rubric points (the `.owner` fix, `delta` renamed to `elapsedMs`, Passive with `kill()` on `collisionstart`, and the pre-1.0 changelog advice), while A gets the `.owner` fix and Passive/`kill()` right but denies the `elapsedMs` change and gives no changelog advice."
       }
     ]
   }

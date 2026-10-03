@@ -1,138 +1,121 @@
 ---
 name: outlines
 description: >-
-  You are an expert in Outlines, the Python library for reliable structured
-  text generation with LLMs. You help developers generate guaranteed-valid
-  JSON, regex-matching text, and grammar-constrained output from open-source
-  models — using finite state machine guided generation that constrains the
-  token sampling process to produce only valid output on the first try.
+  Generates guaranteed-valid structured text from LLMs with Outlines, the Python library that constrains token sampling to a JSON schema, regex, choice list or grammar. Use when a user asks for reliable JSON from a local or hosted model, classification into fixed labels, regex-shaped output, grammar-constrained generation, or structured output with vLLM, Transformers, Ollama or OpenAI-compatible servers.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Python 3.10 to 3.13; install the extra for the backend you use (transformers, vllm, ollama, openai, llamacpp)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
-  tags:
-    - llm
-    - structured-generation
-    - json
-    - grammar
-    - regex
-    - constrained
+  version: "1.1.0"
+  category: data-ai
+  tags: ["llm", "structured-generation", "json", "grammar", "regex"]
+  repository: https://github.com/dottxt-ai/outlines
 ---
 
 # Outlines — Structured Text Generation
 
-You are an expert in Outlines, the Python library for reliable structured text generation with LLMs. You help developers generate guaranteed-valid JSON, regex-matching text, and grammar-constrained output from open-source models — using finite state machine guided generation that constrains the token sampling process to produce only valid output on the first try.
+## Overview
 
-## Core Capabilities
+Outlines forces a model's output to match a declared type. For local backends it compiles the type (Pydantic model, regex, choice list, context-free grammar) into a constraint on token sampling, so the first generation is already valid and no retry loop is needed. For hosted backends (OpenAI, Anthropic, Gemini, Ollama, vLLM server) it passes the type to the provider's own structured-output feature through one common interface.
 
-### Structured Generation
+Checked against Outlines 1.3 (October 2026). The 1.x API is `model(prompt, output_type)`. The 0.x calls (`outlines.generate.json(...)`, `outlines.models.transformers(...)`, `outlines.generate.regex(...)`) were removed; code using them fails on current versions.
+
+## Instructions
+
+### Installation and model loading
+
+```bash
+pip install "outlines[transformers]"     # local Hugging Face models (also pulls torch)
+pip install "outlines[ollama]"           # or: openai, anthropic, gemini, llamacpp, vllm, mlxlm
+```
 
 ```python
 import outlines
-from pydantic import BaseModel, Field
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+name = "microsoft/Phi-3-mini-4k-instruct"
+model = outlines.from_transformers(
+    AutoModelForCausalLM.from_pretrained(name),
+    AutoTokenizer.from_pretrained(name),
+)
+```
+
+Other loaders: `outlines.from_ollama(client, "llama3.2")`, `outlines.from_openai(client, model_name)`, `outlines.from_vllm(openai_client, model_name)` for a running vLLM server (OpenAI client pointed at `http://127.0.0.1:8000/v1`), `outlines.from_vllm_offline(llm)`, `outlines.from_llamacpp(llm)`, plus `from_anthropic`, `from_gemini`, `from_mistral`, `from_sglang`, `from_tgi`, `from_mlxlm`.
+
+### Output types
+
+The second argument of the call is the constraint. Always pass `max_new_tokens` on the Transformers backend: the default of 20 truncates JSON.
+
+```python
 from enum import Enum
-
-# Load model
-model = outlines.models.transformers("meta-llama/Llama-3.1-8B-Instruct")
-
-# JSON generation with Pydantic schema
-class Sentiment(str, Enum):
-    positive = "positive"
-    negative = "negative"
-    neutral = "neutral"
+from typing import Literal
+from pydantic import BaseModel, Field
+from outlines.types import Regex, Choice, CFG
 
 class ReviewAnalysis(BaseModel):
-    sentiment: Sentiment
+    sentiment: Literal["positive", "negative", "neutral"]
     score: float = Field(ge=0, le=1)
-    topics: list[str] = Field(min_length=1, max_length=5)
-    summary: str = Field(max_length=200)
+    topics: list[str]
 
-generator = outlines.generate.json(model, ReviewAnalysis)
+raw = model("Analyze: 'Great product, slow shipping'", ReviewAnalysis, max_new_tokens=200)
+review = ReviewAnalysis.model_validate_json(raw)     # the call returns a JSON string
 
-result = generator(
-    "Analyze this review: 'Great product, fast shipping, but packaging could be better'"
-)
-# result is a validated ReviewAnalysis instance — guaranteed to match schema
-print(result.sentiment)    # Sentiment.positive
-print(result.score)        # 0.85
-print(result.topics)       # ["product quality", "shipping", "packaging"]
-
-# Regex-constrained generation
-phone_gen = outlines.generate.regex(model, r"\(\d{3}\) \d{3}-\d{4}")
-phone = phone_gen("Generate a US phone number:")
-# phone = "(415) 555-0123" — always matches the regex
-
-# Choice (classification)
-classifier = outlines.generate.choice(model, ["spam", "ham", "uncertain"])
-result = classifier("Is this spam? 'You won $1000000!!!'")
-# result = "spam"
-
-# Format-constrained (date, number, etc.)
-date_gen = outlines.generate.format(model, datetime.date)
-date = date_gen("When was Python created?")
-# date = datetime.date(1991, 2, 20) — always a valid date object
+phone = model("Support phone number:", Regex(r"\(\d{3}\) \d{3}-\d{4}"), max_new_tokens=20)
+label = model("Is this spam? 'You won $1000000!!!'", Choice(["spam", "ham", "uncertain"]))
+count = model("How many minutes in an hour?", int, max_new_tokens=5)
 ```
 
-### Batch Processing
+Also accepted: `Literal[...]`, `Enum` classes, plain types (`int`, `float`, `bool`, `datetime.date`), `JsonSchema(schema_string)`, and `CFG(lark_grammar_string)` for a Lark grammar (not every backend supports CFG).
+
+### Batches and reuse
 
 ```python
-# Batch inference for throughput
-generator = outlines.generate.json(model, ReviewAnalysis)
+answers = model.batch(["Capital of Lithuania?", "Capital of Latvia?"], max_new_tokens=20)
 
-reviews = [
-    "Amazing quality, will buy again!",
-    "Terrible customer service, never ordering here.",
-    "It's okay, nothing special.",
-]
-
-prompts = [f"Analyze: '{r}'" for r in reviews]
-results = generator(prompts, max_tokens=200)
-# results is a list of ReviewAnalysis objects — all guaranteed valid
+generator = outlines.Generator(model, ReviewAnalysis)   # compile the constraint once
+raw = generator("Analyze: 'Arrived broken'", max_new_tokens=200)
 ```
 
-### Grammar-Constrained
+## Examples
+
+### Example 1: Classify support tickets into fixed labels
+
+Request: "Sort these tickets into billing, bug or feature, nothing else."
 
 ```python
-# Custom grammar (CFG)
-arithmetic_grammar = r"""
-    ?start: expression
-    ?expression: term (("+" | "-") term)*
-    ?term: factor (("*" | "/") factor)*
-    ?factor: NUMBER | "(" expression ")"
-    NUMBER: /[0-9]+(\.[0-9]+)?/
-"""
-
-calc_gen = outlines.generate.cfg(model, arithmetic_grammar)
-expr = calc_gen("Generate a math expression that equals 42:")
-# expr = "(6 * 7)" — always valid arithmetic
+tickets = ["I was charged twice in September", "Export button does nothing on Safari"]
+labels = Choice(["billing", "bug", "feature"])
+print(model.batch([f"Ticket: {t}\nCategory:" for t in tickets], labels, max_new_tokens=8))
 ```
 
-### With vLLM
+Result: `['billing', 'bug']`. The output can only be one of the three strings, so no post-processing is needed.
+
+### Example 2: Extract a typed record with a local server
+
+Request: "Get name, city and plan from this signup email using our vLLM server."
 
 ```python
-# Use with vLLM for production throughput
-model = outlines.models.vllm("meta-llama/Llama-3.1-8B-Instruct",
-    tensor_parallel_size=1, gpu_memory_utilization=0.9)
+import openai, outlines
+from pydantic import BaseModel
 
-generator = outlines.generate.json(model, ReviewAnalysis)
-# Combines Outlines' constrained generation with vLLM's batching + PagedAttention
+class Signup(BaseModel):
+    name: str
+    city: str
+    plan: str
+
+client = openai.OpenAI(base_url="http://127.0.0.1:8000/v1", api_key="local-vllm-key")
+model = outlines.from_vllm(client, "microsoft/Phi-3-mini-4k-instruct")
+raw = model("Priya Nair from Pune signed up for the Growth plan.", Signup)
+print(Signup.model_validate_json(raw))
 ```
 
-## Installation
+Result: `Signup(name='Priya Nair', city='Pune', plan='Growth')`, validated against the schema.
 
-```bash
-pip install outlines
-```
+## Guidelines
 
-## Best Practices
-
-1. **Pydantic schemas** — Define output with Pydantic models; Outlines compiles to FSM for guaranteed compliance
-2. **Regex for patterns** — Use `generate.regex()` for dates, emails, IDs; output always matches the pattern
-3. **Choice for classification** — Use `generate.choice()` instead of free text; constrained to exact options
-4. **vLLM for production** — Combine with vLLM backend for high-throughput constrained generation
-5. **Batch for efficiency** — Pass lists of prompts; Outlines batches efficiently with the model
-6. **Field constraints** — Use Pydantic's `ge`, `le`, `min_length`, `max_length`; further constrains output
-7. **Grammar for DSLs** — Use CFG grammars for domain-specific output (SQL, code, formulas)
-8. **First-try guarantee** — Unlike retry-based approaches, Outlines gets valid output on the first generation
+- Constrained output guarantees the shape, not the truth: a valid JSON object can still hold a wrong answer. Keep prompts specific and check values that matter.
+- Complex schemas and large grammars add compile time on the first call; reuse a `Generator` rather than recompiling.
+- Backend support differs (for example CFG and some regex features); the model documentation page for each backend lists what it accepts.
+- Python 3.14 is not supported yet by the current release.
+- If you already use PydanticAI or a provider's native structured outputs against a hosted model, you may not need Outlines; its strength is local and self-hosted models.
+- Never send private text to a hosted backend you have not approved; local backends keep data on the machine.

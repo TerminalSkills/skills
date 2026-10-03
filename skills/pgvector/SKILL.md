@@ -1,18 +1,14 @@
 ---
 name: pgvector
 description: >-
-  Store and search vector embeddings in PostgreSQL with pgvector — no separate
-  vector database needed. Use when someone asks to "vector search in Postgres",
-  "store embeddings", "pgvector", "similarity search", "RAG with Postgres",
-  "semantic search in existing database", or "add AI search to my app without
-  a separate vector DB". Covers vector columns, indexing (IVFFlat, HNSW),
-  similarity search, and integration with ORMs.
+  pgvector is a PostgreSQL extension that stores vector embeddings in ordinary tables and searches them by similarity, so no separate vector database is needed. Use when someone asks for "vector search in Postgres", "store embeddings", "pgvector", "similarity search", "RAG with Postgres", "semantic search in an existing database", or "HNSW vs IVFFlat". Covers vector columns, indexes, filtered search, and Node.js and Drizzle usage.
 license: Apache-2.0
-compatibility: "PostgreSQL 15+. Works with Supabase, Neon, RDS. Node.js/Python clients."
+compatibility: "PostgreSQL 13+ with pgvector 0.8.x (managed on Supabase, Neon, RDS, Cloud SQL and others, or self-installed). Clients for Node.js, Python and most languages."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/pgvector/pgvector
   tags: ["vector", "embeddings", "postgres", "pgvector", "rag"]
 ---
 
@@ -20,176 +16,141 @@ metadata:
 
 ## Overview
 
-pgvector adds vector similarity search to PostgreSQL. Store embeddings alongside your regular data — no separate vector database, no data sync, no new infrastructure. Use your existing Postgres for semantic search, RAG, recommendations, and deduplication. Supports exact and approximate nearest neighbor search with IVFFlat and HNSW indexes.
+pgvector adds vector types, distance operators and approximate indexes to PostgreSQL. Embeddings sit next to your relational data, so filters, joins, transactions and backups work as usual. Types: `vector` (up to 16,000 dimensions stored, 2,000 indexable), `halfvec` (half precision, 4,000 indexable), `bit` (binary) and `sparsevec`. Distance operators: `<->` L2, `<=>` cosine, `<#>` negative inner product, `<+>` L1, `<~>` Hamming, `<%>` Jaccard. Latest release at the time of writing: 0.8.7 (2026-10-01); 0.8.x fixed several HNSW and IVFFlat bugs, so use the newest patch your provider offers.
 
-## When to Use
-
-- Adding semantic/vector search to an existing Postgres-backed app
-- RAG (Retrieval-Augmented Generation) without running Pinecone/Qdrant/Weaviate
-- Storing embeddings alongside relational data (users, products, documents)
-- Recommendation systems based on content similarity
-- Don't want to manage a separate vector database
+Without an index, search is exact (perfect recall). With HNSW or IVFFlat it is approximate: results can differ from the exact answer.
 
 ## Instructions
 
-### Setup
+### Install and enable
+
+Hosted Postgres usually has it already; run `CREATE EXTENSION vector;` once per database. Self-hosted options: the `pgvector/pgvector` Docker image (for example `pgvector/pgvector:pg17`), `apt install postgresql-17-pgvector` from the PGDG repository, Homebrew, or building the tagged source (`git clone --branch v0.8.7 https://github.com/pgvector/pgvector.git && make && make install`). Check the version with `SELECT extversion FROM pg_extension WHERE extname = 'vector';`.
+
+### Schema and index
 
 ```sql
--- Enable the extension (available on Supabase, Neon, RDS, self-hosted)
-CREATE EXTENSION IF NOT EXISTS vector;
-```
-
-### Schema Design
-
-```sql
--- Store documents with embeddings alongside regular columns
 CREATE TABLE documents (
-  id BIGSERIAL PRIMARY KEY,
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  metadata JSONB DEFAULT '{}',
-  embedding vector(1536),          -- OpenAI ada-002 dimension
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  id         bigserial PRIMARY KEY,
+  tenant_id  int NOT NULL,
+  title      text NOT NULL,
+  content    text NOT NULL,
+  metadata   jsonb NOT NULL DEFAULT '{}',
+  embedding  vector(1536) NOT NULL,      -- must equal the embedding model's output size
+  created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- HNSW index for fast approximate search (recommended)
-CREATE INDEX ON documents
-  USING hnsw (embedding vector_cosine_ops)
-  WITH (m = 16, ef_construction = 64);
-
--- Or IVFFlat for lower memory usage
--- CREATE INDEX ON documents
---   USING ivfflat (embedding vector_cosine_ops)
---   WITH (lists = 100);
+CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64);
+CREATE INDEX ON documents (tenant_id);   -- supports exact filtered search
 ```
 
-### Store Embeddings
+Pick the operator class that matches the operator you query with: `vector_cosine_ops` for `<=>`, `vector_l2_ops` for `<->`, `vector_ip_ops` for `<#>`. Use `halfvec_cosine_ops` on `halfvec` columns. HNSW has better speed/recall than IVFFlat but builds slower and uses more memory; it needs no training data, so it can be created on an empty table. IVFFlat (`USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)`) must be built after the data is loaded, and its quality depends on that data. In production build with `CREATE INDEX CONCURRENTLY` and raise `maintenance_work_mem` so the HNSW graph fits in memory.
+
+For embeddings above 2,000 dimensions, store `halfvec` (index up to 4,000) or index a cast expression: `CREATE INDEX ON documents USING hnsw ((embedding::halfvec(3072)) halfvec_cosine_ops);` and query with the same cast.
+
+### Query
+
+```sql
+-- nearest 5 by cosine distance; similarity = 1 - distance
+SELECT id, title, 1 - (embedding <=> $1) AS similarity
+FROM documents
+WHERE tenant_id = $2
+ORDER BY embedding <=> $1
+LIMIT 5;
+```
+
+An index is used only for `ORDER BY embedding <=> $1 LIMIT n` (an ORDER BY on the distance operator). Tune recall per query inside a transaction: `SET LOCAL hnsw.ef_search = 100;` (default 40) or, for IVFFlat, `SET LOCAL ivfflat.probes = 10;` (default 1).
+
+Approximate indexes filter after the scan, so a selective `WHERE` can return fewer than `LIMIT` rows. Since 0.8.0, enable iterative scans: `SET LOCAL hnsw.iterative_scan = relaxed_order;` (or `strict_order`; `ivfflat.iterative_scan = relaxed_order`). Other options: a B-tree on the filter column, partial indexes for a few fixed values, or partitioning by tenant. Check with `EXPLAIN (ANALYZE, BUFFERS)`.
+
+### Node.js
 
 ```typescript
-// ingest.ts — Generate and store embeddings
-import { Pool } from "pg";
+// db.ts - node-postgres with pgvector-node (npm install pg pgvector openai)
+import pg from "pg";
+import pgvector from "pgvector/pg";
 import OpenAI from "openai";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const openai = new OpenAI();
-
-async function storeDocument(title: string, content: string, metadata: object = {}) {
-  // Generate embedding
-  const embeddingRes = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: content,
-  });
-  const embedding = embeddingRes.data[0].embedding;
-
-  // Store with embedding (pgvector accepts array format)
-  await pool.query(
-    `INSERT INTO documents (title, content, metadata, embedding)
-     VALUES ($1, $2, $3, $4)`,
-    [title, content, JSON.stringify(metadata), JSON.stringify(embedding)]
-  );
-}
-```
-
-### Similarity Search
-
-```typescript
-// search.ts — Find similar documents by vector distance
-async function semanticSearch(query: string, limit = 5, threshold = 0.7) {
-  // Embed the query
-  const embeddingRes = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: query,
-  });
-  const queryEmbedding = embeddingRes.data[0].embedding;
-
-  // Cosine similarity search
-  const result = await pool.query(
-    `SELECT id, title, content, metadata,
-            1 - (embedding <=> $1::vector) AS similarity
-     FROM documents
-     WHERE 1 - (embedding <=> $1::vector) > $2
-     ORDER BY embedding <=> $1::vector
-     LIMIT $3`,
-    [JSON.stringify(queryEmbedding), threshold, limit]
-  );
-
-  return result.rows;
-  // [{ id: 1, title: "...", content: "...", similarity: 0.89 }, ...]
-}
-```
-
-### RAG with pgvector
-
-```typescript
-// rag.ts — Retrieval-Augmented Generation using pgvector
-async function ragAnswer(question: string): Promise<string> {
-  // 1. Find relevant documents
-  const docs = await semanticSearch(question, 5);
-
-  // 2. Build context from retrieved documents
-  const context = docs.map((d) => `## ${d.title}\n${d.content}`).join("\n\n");
-
-  // 3. Generate answer with context
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system",
-        content: `Answer based on the following context. If the context doesn't contain the answer, say so.\n\n${context}`,
-      },
-      { role: "user", content: question },
-    ],
-  });
-
-  return completion.choices[0].message.content!;
-}
-```
-
-### With Drizzle ORM
-
-```typescript
-// schema.ts — pgvector with Drizzle ORM
-import { pgTable, text, serial, jsonb, index, timestamp } from "drizzle-orm/pg-core";
-import { customType } from "drizzle-orm/pg-core";
-
-// Custom vector type for Drizzle
-const vector = customType<{ data: number[]; driverData: string }>({
-  dataType: () => "vector(1536)",
-  toDriver: (value) => JSON.stringify(value),
+export const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
 });
+pool.on("connect", (client) => pgvector.registerTypes(client));
+const openai = new OpenAI(); // reads OPENAI_API_KEY
 
-export const documents = pgTable("documents", {
+export async function embed(text: string): Promise<number[]> {
+  const res = await openai.embeddings.create({ model: "text-embedding-3-small", input: text });
+  return res.data[0].embedding; // 1536 dimensions
+}
+
+export async function storeDocument(tenantId: number, title: string, content: string) {
+  await pool.query(
+    "INSERT INTO documents (tenant_id, title, content, embedding) VALUES ($1, $2, $3, $4)",
+    [tenantId, title, content, pgvector.toSql(await embed(content))],
+  );
+}
+
+export async function semanticSearch(tenantId: number, query: string, limit = 5) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SET LOCAL hnsw.iterative_scan = relaxed_order");
+    const { rows } = await client.query(
+      `SELECT id, title, content, 1 - (embedding <=> $1) AS similarity
+       FROM documents WHERE tenant_id = $2 ORDER BY embedding <=> $1 LIMIT $3`,
+      [pgvector.toSql(await embed(query)), tenantId, limit],
+    );
+    await client.query("COMMIT");
+    return rows;
+  } finally {
+    client.release();
+  }
+}
+```
+
+Apply a similarity cutoff in application code on the returned rows rather than in `WHERE`.
+
+### RAG
+
+Retrieve with `semanticSearch`, join the chunks into the prompt, and ask the chat model to answer only from them. Chunk documents to roughly 300-800 tokens with a little overlap before embedding, store the source URL in `metadata`, and return it so answers can cite it.
+
+### Drizzle ORM
+
+Drizzle has a native column type; the old hand-written `customType` is not needed. Create the extension in a custom migration (`npx drizzle-kit generate --custom`, then `CREATE EXTENSION vector;`).
+
+```typescript
+import { index, pgTable, serial, text, vector } from "drizzle-orm/pg-core";
+import { cosineDistance, desc, gt, sql } from "drizzle-orm";
+
+export const guides = pgTable("guides", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  content: text("content").notNull(),
-  embedding: vector("embedding"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+  embedding: vector("embedding", { dimensions: 1536 }),
+}, (t) => [index("guides_embedding_idx").using("hnsw", t.embedding.op("vector_cosine_ops"))]);
+
+const similarity = sql<number>`1 - (${cosineDistance(guides.embedding, queryEmbedding)})`;
+const rows = await db.select({ title: guides.title, similarity }).from(guides)
+  .where(gt(similarity, 0.5)).orderBy(desc(similarity)).limit(5);
 ```
 
 ## Examples
 
-### Example 1: Add semantic search to an existing app
+### Example 1: Semantic search over existing articles
 
-**User prompt:** "I have a Postgres database with articles. Add semantic search so users can search by meaning, not just keywords."
+Request: "I have a Postgres database with articles. Add search by meaning, not just keywords."
 
-The agent will add a vector column, generate embeddings for existing articles, create an HNSW index, and build a search endpoint that combines vector similarity with existing filters.
+Run `ALTER TABLE articles ADD COLUMN embedding vector(1536);`, backfill in batches of 100 rows by embedding `title || E'\n' || body` with `text-embedding-3-small`, then `CREATE INDEX CONCURRENTLY ON articles USING hnsw (embedding vector_cosine_ops);`. Expose `GET /search?q=` that embeds the query and runs the `ORDER BY embedding <=> $1 LIMIT 10` query, keeping existing filters such as `published = true` in the same statement. For keyword plus meaning, combine with Postgres full-text search and merge results with reciprocal rank fusion.
 
-### Example 2: Document Q&A with RAG
+### Example 2: Q&A over internal docs
 
-**User prompt:** "Build a Q&A system over our internal docs using our existing Postgres database."
+Request: "Build a Q&A bot over our handbook using the Postgres we already have."
 
-The agent will chunk documents, store embeddings in pgvector, and build a RAG pipeline that retrieves relevant chunks and generates answers.
+Split each handbook page into chunks, store them in `documents` with `tenant_id` and `metadata->>'url'`, fetch the top 5 with `semanticSearch`, and send them as context to the chat model with an instruction to say "not in the handbook" when the context lacks the answer. Result: answers with links to the source pages, and re-ingestion is an `UPDATE`.
 
 ## Guidelines
 
-- **HNSW index for most cases** — faster queries, slightly more memory than IVFFlat
-- **Cosine distance (`<=>`)** — best for normalized embeddings (OpenAI, Cohere)
-- **L2 distance (`<->`)** — for non-normalized embeddings
-- **Dimension must match model** — ada-002: 1536, text-embedding-3-small: 1536
-- **Index after bulk insert** — create index after loading data, not before
-- **Filter + vector search** — combine `WHERE` clauses with vector similarity
-- **No separate infrastructure** — one less service to manage, deploy, and pay for
-- **Supabase has it built-in** — `enable_extension('vector')` in dashboard
-- **Chunk long documents** — 500-1500 tokens per chunk for best retrieval
-- **Re-embed when you change models** — embeddings from different models aren't compatible
+- Dimensions must match the model: `text-embedding-3-small` returns 1536 by default, `text-embedding-3-large` 3072. Changing models means re-embedding everything; vectors from different models are not comparable.
+- OpenAI embeddings are normalized, so inner product (`<#>`, with the sign flipped) is slightly faster than cosine.
+- Never write `WHERE distance < x` and expect it to fix recall; filters run after an approximate scan. Use iterative scans, partial indexes or partitions.
+- Load bulk data with `COPY` and create IVFFlat indexes afterwards. HNSW vacuum is slow; `REINDEX INDEX CONCURRENTLY` before `VACUUM` helps.
+- Memory matters: an HNSW index that does not fit in RAM is slow. Use `halfvec` or binary quantization with re-ranking at large scale.
+- Do not pass user-supplied text into SQL strings; use parameters. Treat retrieved chunks as untrusted when building prompts.
+- At hundreds of millions of vectors, or when you need distributed ANN, a dedicated vector database may fit better.

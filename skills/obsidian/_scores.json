@@ -1,50 +1,70 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dfe85cef0673100134809be12443e92f603f9da60c3831c668cf06eef7da99c1",
-  "scoredAt": "2026-05-13T09:42:54.222Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:3fd3fe42b61bcfd45c241b7e2ca89cb85e54987afc8d06248aa75514298ac818",
+  "scoredAt": "2026-10-03T13:04:33.698Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
+        "detail": "Mostly happy-path coverage: there is no error handling in the plugin code (for example, vault.modify on a failed read), no troubleshooting for plugin load failures, REST API connection errors, or Quartz build problems, and no guidance on cron failures such as git push conflicts."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples give only a prompt and a prose description of what the agent will do, with no concrete input/output or code, and Example 2's related-notes plugin is described but never shown."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
-  },
-  "impact": {
-    "baselineAvg": 42,
-    "treatmentAvg": 87,
-    "multiplier": 2.07,
-    "scenarios": [
+    "issues": [
       {
-        "name": "Team Zettelkasten vault with daily notes and Git sync",
-        "baseline": 45,
-        "treatment": 89,
-        "rationale": "Treatment builds the 0-inbox through 7-archive folder layout, writes a Templater daily template using tp.date.now and a project template with status/deadline frontmatter, supplies Dataview TABLE/LIST queries for the active-projects dashboard and orphan note finder, ignores workspace.json plus plugins/*/data.json, and installs the documented `*/30 * * * *` cron auto-commit; baseline produces generic folders and an ad-hoc daily template with no Dataview queries or Templater syntax."
+        "severity": "INFO",
+        "category": "network",
+        "detail": "The REST API examples use curl -k to skip certificate verification, but only against the local 127.0.0.1 self-signed endpoint and with the API key read from an environment variable."
       },
       {
-        "name": "Plugin for related notes by shared tags",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment scaffolds from obsidian-sample-plugin, implements onload registering a command via addCommand, reads tags from metadataCache against the active file, scores all markdown files by overlapping tags, takes top 5, and surfaces them through a Notice — matching the API surface (Plugin, addCommand, metadataCache, Notice) documented; baseline writes plausible TypeScript but uses invented APIs and never references metadataCache or Notice."
+        "severity": "INFO",
+        "category": "persistence",
+        "detail": "A user-requested cron job auto-commits and pushes the vault to a git remote every 30 minutes, which is a normal backup workflow, though it could publish sensitive notes if the remote is public."
       }
-    ],
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6"
+    ]
+  },
+  "impact": {
+    "multiplier": 1.47,
+    "baselineAvg": 60,
+    "treatmentAvg": 88,
+    "scenarios": [
+      {
+        "name": "zettelkasten-vault-with-git-sync",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "B matches the rubric closely: numbered folders 0-inbox through 7-archive plus templates and attachments, a Templater daily template with a priorities checkbox section, a .gitignore with workspace.json, plugins/*/data.json and .trash/, and a */30 cron line with git add -A, the guarded git diff --cached --quiet || commit, and git push. A uses 00–05 folder numbering and has no 7-archive. Its .gitignore leaves out .obsidian/plugins/*/data.json, listing only data.json.bak instead. Its cron entry calls a script rather than being the one-line command the rubric describes, although the script contains the guarded commit."
+      },
+      {
+        "name": "related-notes-by-tags-plugin",
+        "baseline": 80,
+        "treatment": 86,
+        "rationale": "Both extend Plugin, register the command in onload, use getAllTags via metadataCache, score and sort the vault's markdown files, take the top 5, and show them in a Notice. B handles the no-active-file case with an explicit Notice and says the manifest id must match the folder name. A's checkCallback hides the command when no file is active, which handles that case implicitly. A's config files and clickable links add extra value, but its install instructions don't state the id/folder match. Neither mentions styles.css."
+      },
+      {
+        "name": "dataview-dashboard-and-quick-capture",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "A matches the rubric closely: separate dataview blocks, a #project active TABLE sorted by deadline, an orphan LIST that excludes templates and attachments, a dataviewjs overdue block, the DataviewJS-enabled note, and the `obsidian vault=... daily:append` CLI with its 1.12.7+, app-running and CLI-enabled requirements; B uses a folder instead of #project, omits the template/attachment exclusion, uses a CLI form without vault=, gives an uncertain version, and skips the running-app requirement."
+      }
+    ]
   }
 }

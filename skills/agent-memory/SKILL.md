@@ -9,467 +9,230 @@ description: >-
   vector databases (ChromaDB, Pinecone), semantic search, memory consolidation,
   and automatic context injection.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.10+. Optional: ChromaDB, Pinecone, OpenAI API for embeddings."
+compatibility: "Node.js 18+ or Python 3.10+. Optional: ChromaDB 1.x, better-sqlite3, OpenAI API key for embeddings."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
-  tags: ["memory", "persistence", "embeddings", "vector-search", "context", "rag"]
+  tags: ["memory", "embeddings", "vector-search", "context", "rag"]
 ---
 
 # Agent Memory
 
 ## Overview
 
-AI agents forget everything between sessions. This skill builds persistent memory systems — from simple file-based approaches to full vector-search architectures — so agents retain context, learn from past interactions, and make better decisions over time.
-
-## When to Use
-
-- User wants the agent to remember decisions, preferences, or project context
-- Building a coding assistant that needs to recall past conversations
-- Creating a knowledge base the agent can query semantically
-- Agent needs to learn from mistakes and not repeat them
-- Implementing memory consolidation (daily notes → long-term memory)
+Coding agents start every session with an empty context window. This skill gives them memory that survives: first the file-based memory the agents themselves read (CLAUDE.md, AGENTS.md, GEMINI.md), then a small memory module you own (markdown files, SQLite with embeddings, or ChromaDB) for what instruction files cannot hold, such as thousands of past tickets or conversations searched by meaning.
 
 ## Instructions
 
-### Strategy 1: File-Based Memory (Zero Dependencies)
+### Step 0: Use the memory your agent already has
 
-The simplest approach — write memories to structured markdown files. No database, no embeddings, no API keys. Works with any agent that can read/write files.
+Check this before building anything. Instruction files are loaded at the start of every session:
 
-#### Architecture
+| Agent | Persistent instructions | Notes |
+|-------|------------------------|-------|
+| Claude Code | `CLAUDE.md` (project, `~/.claude/CLAUDE.md`), `CLAUDE.local.md`, `.claude/rules/*.md` | Imports with `@docs/api.md`. Auto memory is on by default: Claude writes notes to `~/.claude/projects/<project>/memory/`, `MEMORY.md` is loaded at start (first 200 lines or 25KB). Browse or toggle with `/memory`; disable with `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`. |
+| OpenAI Codex | `AGENTS.md` (`~/.codex` and each directory from the repo root down), `AGENTS.override.md` | Combined size capped by `project_doc_max_bytes` (32 KiB). |
+| Gemini CLI | `GEMINI.md` (`~/.gemini/` and project directories) | `/memory show` and `/memory reload`; the file name can be changed with `context.fileName` (for example `AGENTS.md`). |
+
+If the request is "make the agent remember our conventions", write or extend those files and stop. Build the strategies below only for memory that is too large, too dynamic or must be searched semantically.
+
+### Strategy 1: File-based memory (no dependencies)
 
 ```
 memory/
-├── MEMORY.md              # Long-term curated knowledge
-├── 2026-02-24.md          # Daily session logs
-├── 2026-02-23.md
-├── entities/
-│   ├── projects.md        # Known projects and their state
-│   ├── people.md          # People, preferences, relationships
-│   └── decisions.md       # Key decisions and reasoning
-└── heartbeat-state.json   # Periodic check state
+  MEMORY.md          # curated long-term facts, kept short
+  2026-10-02.md      # daily session logs
+  decisions.md       # key decisions and the reasoning
 ```
-
-#### Memory File Format
 
 ```markdown
-# MEMORY.md — Long-Term Agent Memory
-
+# MEMORY.md
 ## Projects
-### Terminal Skills
-- Repo: https://github.com/TerminalSkills/skills
-- Stack: Next.js, TypeScript
-- Status: Active, 295 skills published
-- Key decision: Use-cases always come first, skills serve use-cases
-
+- Billing API: Node 22, Fastify, Postgres 16; deploys from the release branch
 ## Preferences
-- Language: TypeScript over JavaScript
-- Testing: Vitest over Jest
-- Deployment: Vercel for frontend, Railway for backend
-
-## Lessons Learned
-- Sub-agents limited to 5-6 tasks max (context window overflow at 10+)
-- Always check for duplicates before creating new content
-- Git branches from upstream/main, never local main
+- TypeScript strict mode; Vitest, not Jest; pnpm, not npm
+## Lessons
+- Integration tests need Redis on localhost:6379 (docker compose up redis)
 ```
-
-#### Implementation
 
 ```python
-# agent_memory.py — File-based agent memory with search
-"""
-File-based memory system for AI agents.
-Stores memories as structured markdown, supports fuzzy search
-across all memory files without any external dependencies.
-"""
-import os
-import re
+# agent_memory.py
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+
 
 class FileMemory:
-    """Persistent file-based memory for AI agents."""
-
     def __init__(self, memory_dir: str = "memory"):
-        self.memory_dir = Path(memory_dir)
-        self.memory_dir.mkdir(parents=True, exist_ok=True)
-        self.long_term_file = self.memory_dir / "MEMORY.md"
-        self.entities_dir = self.memory_dir / "entities"
-        self.entities_dir.mkdir(exist_ok=True)
+        self.dir = Path(memory_dir)
+        self.dir.mkdir(parents=True, exist_ok=True)
+        self.long_term = self.dir / "MEMORY.md"
 
-    def log_today(self, content: str, section: str = "Notes") -> str:
-        """Append to today's daily log file.
-
-        Args:
-            content: The memory content to log
-            section: Section header within the daily file
-
-        Returns:
-            Path to the updated file
-        """
-        today = datetime.now().strftime("%Y-%m-%d")
-        daily_file = self.memory_dir / f"{today}.md"
-
-        if not daily_file.exists():
-            daily_file.write_text(f"# {today}\n\n")
-
-        with open(daily_file, "a") as f:
+    def log_today(self, content: str, section: str = "Notes") -> Path:
+        daily = self.dir / f"{datetime.now():%Y-%m-%d}.md"
+        if not daily.exists():
+            daily.write_text(f"# {daily.stem}\n")
+        with daily.open("a") as f:
             f.write(f"\n## {section}\n{content}\n")
-
-        return str(daily_file)
+        return daily
 
     def remember(self, key: str, value: str, category: str = "General") -> None:
-        """Store a key-value memory in long-term storage.
+        text = self.long_term.read_text() if self.long_term.exists() else "# MEMORY.md\n"
+        header = f"## {category}"
+        if header not in text:
+            text += f"\n{header}\n"
+        pos = text.index(header) + len(header) + 1
+        self.long_term.write_text(text[:pos] + f"- **{key}**: {value}\n" + text[pos:])
 
-        Args:
-            key: Short identifier for the memory
-            value: The content to remember
-            category: Section to file it under (Projects, Preferences, etc.)
-        """
-        content = self.long_term_file.read_text() if self.long_term_file.exists() else "# Long-Term Memory\n"
-
-        # Find or create category section
-        section_header = f"## {category}"
-        if section_header not in content:
-            content += f"\n{section_header}\n"
-
-        # Append the memory entry
-        entry = f"- **{key}**: {value}\n"
-        insert_pos = content.index(section_header) + len(section_header) + 1
-        content = content[:insert_pos] + entry + content[insert_pos:]
-
-        self.long_term_file.write_text(content)
-
-    def search(self, query: str, max_results: int = 10) -> list[dict]:
-        """Search all memory files for relevant content.
-
-        Args:
-            query: Search terms (supports multiple words)
-            max_results: Maximum number of matching lines to return
-
-        Returns:
-            List of dicts with 'file', 'line_number', 'content', 'score'
-        """
+    def search(self, query: str, limit: int = 10) -> list[dict]:
         terms = query.lower().split()
-        results = []
+        hits = []
+        for path in self.dir.rglob("*.md"):
+            for n, line in enumerate(path.read_text().splitlines(), 1):
+                score = sum(t in line.lower() for t in terms) / len(terms)
+                if score:
+                    hits.append({"file": path.name, "line": n, "text": line.strip(), "score": score})
+        return sorted(hits, key=lambda h: h["score"], reverse=True)[:limit]
 
-        for md_file in self.memory_dir.rglob("*.md"):
-            lines = md_file.read_text().splitlines()
-            for i, line in enumerate(lines):
-                line_lower = line.lower()
-                score = sum(1 for term in terms if term in line_lower)
-                if score > 0:
-                    results.append({
-                        "file": str(md_file.relative_to(self.memory_dir)),
-                        "line_number": i + 1,
-                        "content": line.strip(),
-                        "score": score / len(terms),  # Normalize 0-1
-                    })
-
-        results.sort(key=lambda x: x["score"], reverse=True)
-        return results[:max_results]
-
-    def get_recent_context(self, days: int = 3) -> str:
-        """Load recent daily logs for context injection.
-
-        Args:
-            days: Number of recent days to include
-
-        Returns:
-            Combined content from recent daily files
-        """
-        context_parts = []
+    def recent_context(self, days: int = 3) -> str:
+        parts = []
         for i in range(days):
-            date = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
-            daily_file = self.memory_dir / f"{date}.md"
-            if daily_file.exists():
-                context_parts.append(daily_file.read_text())
-
-        return "\n---\n".join(context_parts)
-
-    def consolidate(self) -> str:
-        """Review recent daily logs and extract key learnings into long-term memory.
-
-        Returns:
-            Summary of what was consolidated
-        """
-        recent = self.get_recent_context(days=7)
-        # In practice, you'd send this to an LLM to extract key points
-        # Here we return the raw content for manual review
-        return f"Review these notes and update MEMORY.md:\n\n{recent}"
+            day = datetime.now() - timedelta(days=i)
+            f = self.dir / f"{day:%Y-%m-%d}.md"
+            if f.exists():
+                parts.append(f.read_text())
+        return "\n---\n".join(parts)
 ```
 
-### Strategy 2: SQLite + Embeddings (Local Vector Search)
+Consolidation: once a week, give `recent_context(days=7)` and the current `MEMORY.md` to the agent (or a local model) and ask it to merge durable facts, drop stale ones, and keep the file short enough to load fully each session.
 
-For agents that need semantic search — "find memories similar to X" rather than keyword matching. Uses SQLite for zero-infrastructure persistence and OpenAI embeddings for semantic similarity.
+### Strategy 2: SQLite plus embeddings (semantic search, one file)
+
+```bash
+npm install better-sqlite3 openai
+export OPENAI_API_KEY="sk-proj-..."   # from your secret manager, never committed
+```
 
 ```typescript
-// memory-store.ts — SQLite-backed semantic memory with vector search
-/**
- * Semantic memory store using SQLite + OpenAI embeddings.
- * Stores memories with vector embeddings for similarity search.
- * No external database required — everything in a single .db file.
- */
+// memory-store.ts
 import Database from "better-sqlite3";
 import OpenAI from "openai";
 
-interface Memory {
-  id: number;
-  content: string;
-  category: string;
-  embedding: number[];
-  created_at: string;
-  metadata: Record<string, unknown>;
-}
-
-interface SearchResult {
-  content: string;
-  category: string;
-  similarity: number;
-  created_at: string;
-}
-
 export class MemoryStore {
-  private db: Database.Database;
-  private openai: OpenAI;
-  private model = "text-embedding-3-small"; // $0.02/1M tokens
+  private db = new Database("agent-memory.db");
+  private openai = new OpenAI(); // reads OPENAI_API_KEY
+  private model = "text-embedding-3-small";
 
-  constructor(dbPath: string = "agent-memory.db") {
-    this.db = new Database(dbPath);
-    this.openai = new OpenAI();
-    this.initSchema();
+  constructor() {
+    this.db.exec(`CREATE TABLE IF NOT EXISTS memories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      content TEXT NOT NULL,
+      category TEXT DEFAULT 'general',
+      embedding BLOB NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
   }
 
-  private initSchema(): void {
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS memories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT NOT NULL,
-        category TEXT DEFAULT 'general',
-        embedding BLOB,                    -- Serialized float32 array
-        metadata TEXT DEFAULT '{}',        -- JSON metadata
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE INDEX IF NOT EXISTS idx_category ON memories(category);
-      CREATE INDEX IF NOT EXISTS idx_created ON memories(created_at);
-    `);
+  private async embed(text: string): Promise<Float32Array> {
+    const res = await this.openai.embeddings.create({ model: this.model, input: text });
+    return new Float32Array(res.data[0].embedding);
   }
 
-  /**
-   * Store a memory with its embedding vector.
-   */
-  async store(content: string, category: string = "general", metadata: Record<string, unknown> = {}): Promise<number> {
-    const embedding = await this.embed(content);
-    const embeddingBlob = Buffer.from(new Float32Array(embedding).buffer);
-
-    const result = this.db.prepare(`
-      INSERT INTO memories (content, category, embedding, metadata)
-      VALUES (?, ?, ?, ?)
-    `).run(content, category, embeddingBlob, JSON.stringify(metadata));
-
-    return result.lastInsertRowid as number;
+  async store(content: string, category = "general"): Promise<number> {
+    const v = await this.embed(content);
+    const blob = Buffer.from(v.buffer, v.byteOffset, v.byteLength);
+    return Number(this.db.prepare(
+      "INSERT INTO memories (content, category, embedding) VALUES (?, ?, ?)"
+    ).run(content, category, blob).lastInsertRowid);
   }
 
-  /**
-   * Semantic search — find memories most similar to the query.
-   * Uses cosine similarity between embedding vectors.
-   */
-  async search(query: string, limit: number = 5, category?: string): Promise<SearchResult[]> {
-    const queryEmbedding = await this.embed(query);
-
-    let rows = this.db.prepare(
-      category
-        ? `SELECT content, category, embedding, created_at FROM memories WHERE category = ? ORDER BY created_at DESC LIMIT 1000`
-        : `SELECT content, category, embedding, created_at FROM memories ORDER BY created_at DESC LIMIT 1000`
-    ).all(...(category ? [category] : [])) as Array<{
-      content: string; category: string; embedding: Buffer; created_at: string;
-    }>;
-
-    // Calculate cosine similarity for each memory
-    const scored = rows.map((row) => {
-      const memoryEmbedding = Array.from(new Float32Array(row.embedding.buffer));
-      const similarity = this.cosineSimilarity(queryEmbedding, memoryEmbedding);
-      return { content: row.content, category: row.category, similarity, created_at: row.created_at };
-    });
-
-    scored.sort((a, b) => b.similarity - a.similarity);
-    return scored.slice(0, limit);
+  async search(query: string, limit = 5, minScore = 0.3) {
+    const q = await this.embed(query);
+    const rows = this.db.prepare(
+      "SELECT content, category, embedding, created_at FROM memories ORDER BY id DESC LIMIT 5000"
+    ).all() as { content: string; category: string; embedding: Buffer; created_at: string }[];
+    return rows
+      .map((r) => {
+        // a Buffer from SQLite can sit at a non-aligned offset inside a shared pool: copy the exact bytes
+        const bytes = r.embedding.buffer.slice(r.embedding.byteOffset, r.embedding.byteOffset + r.embedding.byteLength);
+        return { content: r.content, category: r.category, created_at: r.created_at, score: cosine(q, new Float32Array(bytes)) };
+      })
+      .filter((r) => r.score >= minScore)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
   }
+}
 
-  private async embed(text: string): Promise<number[]> {
-    const response = await this.openai.embeddings.create({
-      model: this.model,
-      input: text,
-    });
-    return response.data[0].embedding;
-  }
-
-  private cosineSimilarity(a: number[], b: number[]): number {
-    let dot = 0, normA = 0, normB = 0;
-    for (let i = 0; i < a.length; i++) {
-      dot += a[i] * b[i];
-      normA += a[i] * a[i];
-      normB += b[i] * b[i];
-    }
-    return dot / (Math.sqrt(normA) * Math.sqrt(normB));
-  }
+function cosine(a: Float32Array, b: Float32Array): number {
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] ** 2; nb += b[i] ** 2; }
+  return dot / (Math.sqrt(na) * Math.sqrt(nb));
 }
 ```
 
-### Strategy 3: ChromaDB Vector Database (Production Scale)
+This scans rows in JavaScript, fine up to a few thousand memories. Beyond that, use an index (the `sqlite-vec` extension or Strategy 3). Store vectors from one model only; changing the embedding model means re-embedding everything.
 
-For agents handling thousands of memories or needing advanced filtering. ChromaDB runs locally or as a service, handles embedding and search automatically.
+### Strategy 3: ChromaDB (filtering and scale)
+
+```bash
+python3 -m pip install chromadb      # 1.x; the default embedder downloads a small ONNX model on first use
+```
 
 ```python
-# chroma_memory.py — Production agent memory with ChromaDB
-"""
-Vector-based agent memory using ChromaDB.
-Handles embedding generation, similarity search, and metadata filtering.
-Scales to millions of memories with persistent storage.
-"""
+# chroma_memory.py
+from datetime import datetime, timezone
 import chromadb
-from chromadb.config import Settings
-from datetime import datetime
-from typing import Optional
+
 
 class ChromaMemory:
-    """Production-grade agent memory backed by ChromaDB."""
-
-    def __init__(self, persist_dir: str = "./chroma_db", collection_name: str = "agent_memory"):
-        self.client = chromadb.PersistentClient(
-            path=persist_dir,
-            settings=Settings(anonymized_telemetry=False)
-        )
-        self.collection = self.client.get_or_create_collection(
-            name=collection_name,
-            metadata={"hnsw:space": "cosine"}  # Cosine similarity for search
+    def __init__(self, path: str = "./chroma_db", name: str = "agent_memory"):
+        self.client = chromadb.PersistentClient(path=path)
+        self.col = self.client.get_or_create_collection(
+            name, configuration={"hnsw": {"space": "cosine"}}  # older code used metadata={"hnsw:space": ...}
         )
 
-    def store(self, content: str, category: str = "general",
-              metadata: Optional[dict] = None) -> str:
-        """Store a memory with automatic embedding.
+    def store(self, memory_id: str, content: str, category: str = "general") -> None:
+        # upsert: the same id overwrites instead of duplicating
+        self.col.upsert(ids=[memory_id], documents=[content], metadatas=[
+            {"category": category, "created_at": datetime.now(timezone.utc).isoformat()}])
 
-        Args:
-            content: Text content to remember
-            category: Category for filtering (project, preference, lesson, etc.)
-            metadata: Additional metadata (source, confidence, etc.)
-
-        Returns:
-            Generated memory ID
-        """
-        memory_id = f"mem_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
-        meta = {
-            "category": category,
-            "created_at": datetime.now().isoformat(),
-            **(metadata or {})
-        }
-
-        self.collection.add(
-            documents=[content],
-            metadatas=[meta],
-            ids=[memory_id]
-        )
-        return memory_id
-
-    def recall(self, query: str, n_results: int = 5,
-               category: Optional[str] = None) -> list[dict]:
-        """Semantic search for relevant memories.
-
-        Args:
-            query: Natural language query
-            n_results: Number of results to return
-            category: Optional category filter
-
-        Returns:
-            List of matching memories with similarity scores
-        """
-        where_filter = {"category": category} if category else None
-
-        results = self.collection.query(
-            query_texts=[query],
-            n_results=n_results,
-            where=where_filter,
-            include=["documents", "metadatas", "distances"]
-        )
-
-        memories = []
-        for doc, meta, dist in zip(
-            results["documents"][0],
-            results["metadatas"][0],
-            results["distances"][0]
-        ):
-            memories.append({
-                "content": doc,
-                "category": meta.get("category"),
-                "similarity": 1 - dist,  # Convert distance to similarity
-                "created_at": meta.get("created_at"),
-            })
-
-        return memories
+    def recall(self, query: str, n: int = 5, category: str | None = None) -> list[dict]:
+        r = self.col.query(query_texts=[query], n_results=n,
+                           where={"category": category} if category else None,
+                           include=["documents", "metadatas", "distances"])
+        return [{"content": d, "category": m["category"], "similarity": 1 - dist}
+                for d, m, dist in zip(r["documents"][0], r["metadatas"][0], r["distances"][0])]
 
     def forget(self, memory_id: str) -> None:
-        """Delete a specific memory.
-
-        Args:
-            memory_id: ID of the memory to remove
-        """
-        self.collection.delete(ids=[memory_id])
-
-    def count(self) -> int:
-        """Return total number of stored memories."""
-        return self.collection.count()
+        self.col.delete(ids=[memory_id])
 ```
+
+With cosine space, `distance = 1 - similarity`. A managed vector service (Pinecone, Qdrant Cloud) is the alternative when several machines or services must share one memory; the shape of `store` and `recall` stays the same.
+
+### Injecting memory
+
+At session start, load `MEMORY.md` and `recent_context()`; before a task, run `recall(task_description)` and add the top three or four hits to the system prompt or the agent's instruction file, not to user messages. Show the source of each memory so the agent can judge how old it is.
 
 ## Examples
 
-### Example 1: Add persistent memory to a Claude Code agent
+### Example 1: Remember project decisions between sessions
 
-**User prompt:** "Set up a memory system for my coding agent so it remembers project decisions, coding preferences, and lessons learned between sessions."
+**User prompt:** "My Codex and Claude Code agents keep forgetting that we use pnpm and that integration tests need Redis. Make them remember."
 
-The agent will:
+The agent adds the two facts to `AGENTS.md` (read by Codex) and `CLAUDE.md` with `@AGENTS.md` imported, or runs `/memory` to confirm Claude's auto memory is on. It does not build a database. In a new session, asking "how do I run the tests?" answers with `pnpm test` and the Redis prerequisite without being told again.
 
-- Create a `memory/` directory structure with MEMORY.md, daily logs, and entity files
-- Implement the FileMemory class with search and consolidation
-- Add session start hook that loads recent context (last 3 days + long-term memory)
-- Add session end hook that saves key decisions and new information
-- Set up periodic consolidation from daily logs into long-term memory
+### Example 2: Search past support tickets by meaning
 
-### Example 2: Build semantic search over past conversations
+**User prompt:** "Our support bot has 40,000 resolved tickets. When a customer writes 'my invoice PDF is blank', it should find the earlier 'billing export renders empty' tickets."
 
-**User prompt:** "I want my agent to search past conversations by meaning, not just keywords. It should find relevant memories even if the exact words don't match."
-
-The agent will:
-
-- Set up SQLite database with embedding storage
-- Configure OpenAI text-embedding-3-small for low-cost vector generation
-- Build search function with cosine similarity ranking
-- Add automatic memory extraction from conversation turns
-- Implement relevance threshold to avoid surfacing weak matches
-
-### Example 3: Scale agent memory for a production chatbot
-
-**User prompt:** "Build a memory system that can handle 100K+ memories for our customer support bot. It needs to remember past tickets, solutions, and customer preferences."
-
-The agent will:
-
-- Deploy ChromaDB with persistent storage
-- Design memory schema: categories for tickets, solutions, customer prefs, product docs
-- Implement metadata filtering for fast category-scoped queries
-- Add memory deduplication to prevent storing near-identical entries
-- Build memory aging — reduce relevance weight for old memories
+The agent creates a ChromaDB collection, loads each ticket with `store(f"ticket-{id}", text, category="billing")`, and calls `recall("my invoice PDF is blank", n=5, category="billing")`. The top results are the three earlier blank-export tickets each with its similarity score and resolution text, which the bot cites in its reply.
 
 ## Guidelines
 
-- **Start with file-based memory** — it works everywhere, has zero dependencies, and is human-readable
-- **Use embeddings when keyword search fails** — "deployment issues" should find "CI/CD pipeline broken"
-- **Consolidate regularly** — daily logs accumulate noise; distill into long-term memory weekly
-- **Category separation matters** — searching "preferences" shouldn't return "bug reports"
-- **Set memory limits** — without pruning, memory grows until it overwhelms context windows
-- **Privacy by default** — never store API keys, passwords, or PII in memory files
-- **Test recall quality** — bad embeddings return irrelevant results; validate with real queries
-- **Embedding cost** — text-embedding-3-small is $0.02/1M tokens; budget ~1M tokens/month for active agents
-- **ChromaDB vs Pinecone** — use ChromaDB for local/self-hosted, Pinecone for managed cloud at scale
-- **Memory injection** — prepend relevant memories to agent system prompt, not user messages
+- Prefer the agent's own instruction files; they are loaded for free and humans review them in pull requests.
+- Keep always-loaded memory short (Claude Code loads about 200 lines of `MEMORY.md`, Codex 32 KiB of AGENTS.md); put detail in topic files and search it on demand.
+- Never store secrets, tokens or personal data in memory files or vector stores; memory is plain text and often committed or synced.
+- Memory goes stale: date entries, consolidate weekly, delete what is no longer true. A wrong memory is worse than none.
+- Test recall with real queries and set a minimum similarity so weak matches are not injected.
+- Embedding cost is small (text-embedding-3-small is priced per million tokens; check the current price) but every embedded memory is sent to the provider; use a local embedder for sensitive content.
+- Do not use vector search for fewer than a few hundred memories; grep over markdown is faster to debug.

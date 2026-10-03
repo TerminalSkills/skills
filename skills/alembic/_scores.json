@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:64614d6420d07e46357747ad7eefd430fbc131661bae1fbc3820e837f652f569",
-  "scoredAt": "2026-05-13T13:52:09.051Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:1c6aaf605956e8eb7b58cb34825e4457c3c30618e6fdfbc7d78a239c72389dfd",
+  "scoredAt": "2026-10-03T12:54:57.724Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as missing configuration or migration failures."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "No separate examples section with realistic demonstrations is provided."
+        "detail": "Covers few error scenarios such as failed or partially applied migrations, recovering from a bad alembic_version state, or handling a failed upgrade in production, and gives no guidance on running migrations safely in a multi-instance deploy."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.07,
-    "baselineAvg": 70,
-    "treatmentAvg": 75,
+    "multiplier": 1.12,
+    "baselineAvg": 77,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "create-table-migration",
-        "baseline": 70,
-        "treatment": 50,
-        "rationale": "Response A meets most rubric requirements except the missing command, while Response B also omits the command and uses incorrect column definitions."
+        "name": "preview-prod-sql-for-dba",
+        "baseline": 80,
+        "treatment": 82,
+        "rationale": "Both use `alembic upgrade head --sql` with redirect to a file, read the URL from DATABASE_URL (A in env.py, B via export), note that no connection is opened, and mention the `alembic_version` updates and the `get_bind()` limitation, but A omits the explicit `op.execute()` point while B includes it and the `get_bind()` caveat, though B hedges on the range syntax and A adds extra detail beyond what was asked."
       },
       {
-        "name": "ci-migration-commands",
-        "baseline": 70,
-        "treatment": 100,
-        "rationale": "Response A fully meets the rubric by listing the commands and noting they belong in CI, while Response B lists the commands but omits the CI context."
+        "name": "async-setup-and-first-autogenerate",
+        "baseline": 62,
+        "treatment": 85,
+        "rationale": "B installs the async dependencies (`sqlalchemy[asyncio]` and `asyncpg`), uses the async template, tells the user to edit `env.py` rather than replace it, and runs autogenerate, review, upgrade and `alembic current`. A covers the same workflow but never installs `asyncpg` or `sqlalchemy[asyncio]`, and it spends part of its answer saying the directory isn't a FastAPI project."
+      },
+      {
+        "name": "resolve-two-heads-after-parallel-work",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both diagnose with `alembic heads`, warn that autogenerate renames become drop plus add with data loss, and advise not editing an already-applied migration. B uses the rubric's exact merge form (`alembic merge -m` with both revision IDs), while A uses `merge heads`. B also warns that the merge file doesn't resolve conflicts between the two migrations and adds verification steps, but A's linearize option and CI check are useful extras that the rubric doesn't ask for."
       }
     ]
   }

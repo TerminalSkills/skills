@@ -1,29 +1,24 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:2a944c129418472c0a21adafb47ad1e1ed6e5884854a7345ea7f170dfdd124d6",
-  "scoredAt": "2026-05-13T14:48:54.676Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.2.0",
+  "skillHash": "sha256:23bd0a4560b92b0c0e2e2ce93e47879bdbc8e71262b6ad8b56b41c63450237f4",
+  "scoredAt": "2026-10-03T12:58:06.215Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases such as missing files or Blender not being installed."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes Linux or macOS installation methods and does not cover Windows or other platforms."
+        "detail": "Mostly happy-path code: no handling for missing import files, empty scenes, failed operators, or the context errors that bpy.ops commonly raises in background mode (e.g., deleting with no objects, modifier_apply without an active object)."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.85,
-    "baselineAvg": 68,
-    "treatmentAvg": 58,
+    "multiplier": 1.05,
+    "baselineAvg": 87,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "create-beveled-cylinder-and-export",
-        "baseline": 35,
-        "treatment": 45,
-        "rationale": "Response B applies the bevel modifier and uses a /tmp path, while Response A does not apply the modifier and uses a different export operator; B covers more rubric items."
+        "name": "ci-safe-headless-run-with-args",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both give the required command with --background, --factory-startup, --python-exit-code 1, the `--` separator, and the exact sys.argv slice, and both explain that Blender otherwise exits 0; A adds a full CI example and a try/except for robustness, while B covers every rubric item but admits it hasn't verified the SystemExit behavior and is less thorough on CI integration."
       },
       {
-        "name": "batch-process-blend-files-add-material",
-        "baseline": 100,
-        "treatment": 70,
-        "rationale": "Response B fully satisfies the rubric, while Response A uses a different material name and thus misses a key requirement."
+        "name": "multi-material-checker-cube",
+        "baseline": 80,
+        "treatment": 93,
+        "rationale": "Both find the Principled node by type, set Base Color and roughness, and append both materials before the alternating material_index loop. B follows the rubric's 'must not require use_nodes on 5.0+' more cleanly by never setting it, while A still calls use_nodes in a try block, which is deprecated on 5.0 and may warn."
+      },
+      {
+        "name": "batch-convert-blend-to-glb-obj",
+        "baseline": 90,
+        "treatment": 93,
+        "rationale": "Both meet every rubric item (glob over *.blend, open_mainfile, gltf with GLB, wm.obj_export, save_as_mainfile copy=True, blender --background --python); B uses the rubric's suggested _processed.blend naming and a simple direct layout, while A saves processed copies to build/processed/ under the same filename, which is slightly less aligned, though it adds extra safeguards (source-folder guard, CLI args, processing hook)."
       }
     ]
   }

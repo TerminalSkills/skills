@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a7a5b33be1aab93e204544ac55a8bbb9fef46c7e43a3970a1d8bc562b53d3814",
-  "scoredAt": "2026-05-13T09:36:05.987Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:eae6611487506d102e7c03f0847c100b155d23e0993dd830f30d10efd7b2f19e",
+  "scoredAt": "2026-10-03T12:00:51.674Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is limited to Apple Silicon Macs, not cross-platform."
+        "detail": "Covers mostly the happy path and gives no troubleshooting for common failures such as out-of-memory errors, a missing or renamed model repo, failed downloads, or unsupported image formats in the batch loop."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 18,
-    "treatmentAvg": 94,
-    "multiplier": 5.22,
+    "multiplier": 1.61,
+    "baselineAvg": 57,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Batch image captioning to CSV with Pixtral 4-bit",
-        "baseline": 20,
-        "treatment": 94,
-        "rationale": "Baseline reaches for transformers AutoModel or cloud GPT-4V and misses the mlx-vlm import surface; treatment uses load/generate, apply_chat_template with config=model.config, the mlx-community 4-bit model id, and csv.DictWriter as documented."
+        "name": "batch-describe-photos-to-csv",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "B calls generate() with the required `image=[...]` keyword and reads `.text` from the result; A passes the image list positionally and falls back to a str, so it misses the `image=` keyword requirement. Both load the model once and use load_config, apply_chat_template with num_images=1, and CSV output. B builds the prompt inside the loop, which is a minor inefficiency."
       },
       {
-        "name": "LoRA fine-tuning Pixtral then inferring with the adapter",
-        "baseline": 15,
-        "treatment": 93,
-        "rationale": "Baseline pivots to HuggingFace peft/Trainer with bitsandbytes which is not what mlx-vlm provides; treatment runs python -m mlx_vlm.lora with the documented flags and python -m mlx_vlm.generate --adapter-path for inference, using the JSONL image+conversations schema."
+        "name": "private-local-vision-server",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "B hits every rubric item: `--model`, `--host 127.0.0.1` and a port, the note that the default is 0.0.0.0, `--api-key` as an option, `/v1/chat/completions` with an `image_url` part plus a text part, and the OpenAI SDK `base_url`. A uses the correct `image_url` format and mentions the SDK, but it curls `/chat/completions` first and only suggests `/v1/` after a 404. It also says the server has no auth and never mentions `--api-key`."
+      },
+      {
+        "name": "lora-finetune-invoice-model",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "A matches the rubric closely: it installs `mlx-vlm[train]`, gives the full `mlx_vlm.lora` command with rank and alpha, states the `images`/`question`/`answer` columns, and shows inference through `--adapter-path` and `load(..., adapter_path=...)`. B installs plain `mlx-vlm` without the train extra, omits `--lora-alpha`, and says the dataset needs `images` and `messages` columns instead of the `question`/`answer` columns, though it does show the adapter inference paths and a data-prep script."
       }
     ]
   }

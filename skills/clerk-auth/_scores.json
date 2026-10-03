@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dd0370fadb1d90bd7e96c61d7d93e0413faa6a441c44d50f6b1f72b7ceedbafc",
-  "scoredAt": "2026-05-13T15:30:49.820Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.2.0",
+  "skillHash": "sha256:202ff8b5f7cbc581c8d03da890f789d2a2d23e25925a536737d6830f716939a4",
+  "scoredAt": "2026-10-03T12:58:09.179Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as missing environment variables or invalid Clerk tokens."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is tailored to Next.js and Express environments, limiting its applicability to other AI agent platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 7.5,
-    "baselineAvg": 5,
-    "treatmentAvg": 75,
+    "multiplier": 1.33,
+    "baselineAvg": 67,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "nextjs-protect-routes-with-middleware",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements; Response B is not provided for evaluation."
+        "name": "protect-dashboard-nextjs16-per-resource",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "A meets every rubric item: proxy.ts, ClerkProvider inside body, auth.protect() in the dashboard layout and page, a 401 re-check in the route handler, and awaited auth(). B uses proxy.ts and returns a 401 in the route handler, but it puts ClerkProvider outside <html>/<body>, protects the dashboard page only through middleware with no auth.protect() in the layout or page, and relies on createRouteMatcher."
       },
       {
-        "name": "nextjs-clerk-webhook-sync-user",
-        "baseline": 10,
-        "treatment": 50,
-        "rationale": "A covers most rubric items while B is incomplete."
+        "name": "org-admin-server-action-and-ui-gating",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B uses <Show> with a permission and fallback, notes that Show is cosmetic, and awaits auth() with an orgId check and has({role:'org:admin'}), while A leans on the deprecated <Protect> as an alternative and omits <Show> entirely (though A's server action and notes are otherwise solid)."
+      },
+      {
+        "name": "sync-clerk-users-webhook-postgres",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both use verifyWebhook, return 400 on verification failure and 2xx on success, handle both events with evt.data.id as clerkId, and cover idempotent upsert by clerkId. A gives a full middleware example that keeps the route public, a unique-index note, and more thorough security guidance, including out-of-order handling. B is more concise and correctly says not to call auth.protect() and to add the route to public routes, but its coverage is thinner. B also contains a stray reference to a 'reference' answer that the user never saw, and its user.created upsert is slightly better than A's (update: {}) at overwriting stale data."
       }
     ]
   }

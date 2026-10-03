@@ -1,144 +1,164 @@
 ---
 name: knex
 description: >-
-  You are an expert in Knex.js, the flexible SQL query builder for Node.js
-  that supports PostgreSQL, MySQL, SQLite, and MSSQL. You help developers
-  write type-safe queries with a chainable API, manage database migrations and
-  seeds, build complex joins and subqueries, and use transactions — providing
-  direct SQL control without the overhead of a full ORM.
+  Knex.js is a SQL query builder for Node.js with a chainable API, schema migrations, seeds and transactions for PostgreSQL, MySQL, MariaDB, SQLite and MSSQL. Use when writing queries without a full ORM, setting up knexfile.js and migrations, running knex migrate:latest, building joins, subqueries and transactions, or typing results with TypeScript.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Node.js 16+, knex 3.x plus one database driver (pg, mysql2, better-sqlite3, sqlite3, tedious)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Backend Development
+  version: 1.1.0
+  category: development
+  repository: https://github.com/knex/knex
   tags:
     - query-builder
     - sql
     - database
     - migrations
-    - postgres
-    - mysql
     - node
 ---
 
 # Knex.js — SQL Query Builder for Node.js
 
-You are an expert in Knex.js, the flexible SQL query builder for Node.js that supports PostgreSQL, MySQL, SQLite, and MSSQL. You help developers write type-safe queries with a chainable API, manage database migrations and seeds, build complex joins and subqueries, and use transactions — providing direct SQL control without the overhead of a full ORM.
+## Overview
 
-## Core Capabilities
+Knex ([knexjs.org](https://knexjs.org), `knex/knex`) builds parameterized SQL through a chainable API and ships a migration and seed CLI. It is the layer under Objection.js and Bookshelf. Checked against knex 3.3.0 (26 June 2026; 3.0 dropped Node < 16, 3.2 added migration lifecycle hooks, 3.3 added MariaDB driver support). Queries below were run against SQLite with the same builder calls.
 
-### Query Building
+## Instructions
+
+### Install and connect
+
+```bash
+npm install knex pg            # PostgreSQL; other drivers: mysql2, better-sqlite3, sqlite3, tedious (MSSQL)
+npx knex init -x ts            # creates knexfile.ts (use `npx knex init` for knexfile.js)
+```
 
 ```typescript
 import knex from "knex";
 
-const db = knex({
+export const db = knex({
   client: "pg",
   connection: process.env.DATABASE_URL,
   pool: { min: 2, max: 20 },
 });
+```
 
-// Select with joins
+Use `client: "better-sqlite3"` with `useNullAsDefault: true` for SQLite. Call `await db.destroy()` when a script finishes, or the process hangs on the open pool.
+
+### Queries
+
+```typescript
+interface User { id: number; name: string; email: string; role: string }
+
 const posts = await db("posts")
   .join("users", "posts.author_id", "users.id")
   .select("posts.*", "users.name as author_name")
   .where("posts.published", true)
   .orderBy("posts.created_at", "desc")
-  .limit(10)
-  .offset(20);
+  .limit(10).offset(20);
 
-// Insert
-const [user] = await db("users")
-  .insert({ name: "Alice", email: "alice@example.com", role: "user" })
-  .returning("*");
+const [user] = await db<User>("users")
+  .insert({ name: "Alice Morgan", email: "alice.morgan@northwind.io" })
+  .returning("*");                              // PostgreSQL, SQLite 3.35+, MSSQL; not MySQL
 
-// Update
-await db("users").where({ id: 42 }).update({ name: "Alice Updated" });
+await db("users").where({ id: user.id }).update({ name: "Alice M." });
+await db("users").where({ id: user.id }).del();
 
-// Delete
-await db("users").where({ id: 42 }).del();
+const recent = await db("users")
+  .whereIn("id", db("posts").select("author_id").where("created_at", ">", thirtyDaysAgo));
 
-// Aggregation
-const stats = await db("orders")
-  .select(db.raw("DATE_TRUNC('month', created_at) as month"))
-  .sum("amount as total")
-  .count("* as count")
+const monthly = await db("orders")
+  .select(db.raw("DATE_TRUNC('month', created_at) as month"))   // PostgreSQL function
+  .sum("amount as total").count("* as orders")
   .groupByRaw("DATE_TRUNC('month', created_at)")
   .orderBy("month", "desc");
-
-// Subquery
-const activeUsers = await db("users")
-  .whereIn("id", db("posts").select("author_id").where("created_at", ">", thirtyDaysAgo))
-  .select("*");
-
-// Transaction
-await db.transaction(async (trx) => {
-  const [order] = await trx("orders").insert({ user_id: 1, total: 99.99 }).returning("*");
-  await trx("order_items").insert(items.map(i => ({ ...i, order_id: order.id })));
-  await trx("users").where({ id: 1 }).decrement("balance", 99.99);
-});
-
-// Raw SQL when needed
-const result = await db.raw(`
-  SELECT u.*, COUNT(p.id) as post_count
-  FROM users u LEFT JOIN posts p ON u.id = p.author_id
-  WHERE u.created_at > ?
-  GROUP BY u.id
-  HAVING COUNT(p.id) > ?
-`, [startDate, minPosts]);
 ```
 
-### Migrations
+`db<User>("users")` types the result rows. On PostgreSQL `count` and `sum` come back as strings (bigint/numeric); cast in the query or in code. `db.raw(sql, [values])` returns the driver's native result (for `pg`, read `result.rows`). Inspect SQL with `.toQuery()` or `.toSQL()`.
+
+### Transactions
+
+```typescript
+await db.transaction(async (trx) => {
+  const [order] = await trx("orders").insert({ user_id: 1, total: 99.99 }).returning("*");
+  await trx("order_items").insert(items.map((i) => ({ ...i, order_id: order.id })));
+  await trx("users").where({ id: 1 }).decrement("balance", 99.99);
+});   // commits when the callback resolves, rolls back when it throws
+```
+
+Every statement inside must use `trx`, not `db`, or it runs outside the transaction.
+
+### Migrations and seeds
 
 ```bash
-npx knex migrate:make create_users_table
-npx knex migrate:latest
-npx knex migrate:rollback
-npx knex seed:make seed_users
-npx knex seed:run
+npx knex migrate:make create_users_table -x ts   # timestamped file in ./migrations
+npx knex migrate:latest                          # run all pending
+npx knex migrate:status                          # list applied / pending
+npx knex migrate:rollback                        # undo the last batch
+npx knex seed:make seed_users && npx knex seed:run
+npx knex migrate:latest --env production         # pick a knexfile environment
 ```
 
 ```typescript
-// migrations/20260101_create_users.ts
-export async function up(knex) {
+// migrations/20261002120000_create_users_table.ts
+import type { Knex } from "knex";
+
+export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("users", (t) => {
-    t.increments("id").primary();
+    t.increments("id");
     t.string("name", 100).notNullable();
     t.string("email").notNullable().unique();
-    t.enum("role", ["user", "admin"]).defaultTo("user");
-    t.jsonb("profile").defaultTo("{}");
-    t.timestamps(true, true);
+    t.enu("role", ["user", "admin"]).defaultTo("user");
+    t.timestamps(true, true);                    // created_at / updated_at defaulting to now
   });
   await knex.schema.createTable("posts", (t) => {
-    t.increments("id").primary();
+    t.increments("id");
     t.string("title").notNullable();
-    t.text("body").notNullable();
     t.boolean("published").defaultTo(false);
     t.integer("author_id").unsigned().references("id").inTable("users").onDelete("CASCADE");
-    t.timestamps(true, true);
     t.index(["author_id", "published"]);
   });
 }
-export async function down(knex) {
+
+export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTable("posts");
   await knex.schema.dropTable("users");
 }
 ```
 
-## Installation
+TypeScript migrations need a loader the CLI can find: install `tsx` and run `NODE_OPTIONS="--import tsx" npx knex migrate:latest` (ts-node also works), and set `migrations: { extension: "ts" }` in the knexfile. Confirmed with tsx on Node 24.
+
+## Examples
+
+### Example 1: "Add a users table and apply it"
 
 ```bash
-npm install knex pg                       # PostgreSQL
+npm install knex pg
+npx knex init -x ts
+npx knex migrate:make create_users_table -x ts
+# paste the up/down functions above, then
+NODE_OPTIONS="--import tsx" npx knex migrate:latest
 ```
 
-## Best Practices
+Output: `Batch 1 run: 1 migrations`. `migrate:status` then lists `20261002120000_create_users_table.ts` as completed.
 
-1. **Knex over raw SQL** — Use the query builder for parameterized queries (prevents SQL injection); fall back to `knex.raw()` for complex cases
-2. **Migrations for schema** — Never modify schema manually; use migrations for reproducible, version-controlled changes
-3. **Transactions for consistency** — Wrap multi-table operations in `db.transaction()`; auto-rollback on error
-4. **Connection pooling** — Set pool `min/max` based on expected concurrency and database connection limits
-5. **Seeds for test data** — Create seed files for development/testing; separate from migrations
-6. **Returning for inserts** — Use `.returning("*")` on PostgreSQL to get inserted rows without a second query
-7. **Knex + TypeScript** — Use generic types: `db<User>("users")` for type-safe select results
-8. **Knex as foundation** — Knex powers Objection.js and Bookshelf; learn Knex first, add ORM features as needed
+### Example 2: "Move money between two accounts atomically"
+
+```typescript
+await db.transaction(async (trx) => {
+  const { balance } = await trx("accounts").where({ id: 7 }).forUpdate().first();
+  if (balance < 250) throw new Error("insufficient funds");   // triggers rollback
+  await trx("accounts").where({ id: 7 }).decrement("balance", 250);
+  await trx("accounts").where({ id: 12 }).increment("balance", 250);
+});
+```
+
+Either both updates persist or neither does. `forUpdate()` locks the row on PostgreSQL and MySQL.
+
+## Guidelines
+
+- Pass user input as bindings (`where({ email })`, `raw("... ?", [value])`), never by string concatenation. Identifiers in `raw` need `??`.
+- Change schema only through migrations; never edit a migration that has already run in shared environments, add a new one.
+- Keep one `knex` instance per process; a new pool per request exhausts connections.
+- Match `pool.max` to the database's connection limit divided by app instances.
+- Knex does not map rows to classes or manage relations; use Objection.js or an ORM if you need that.
+- MySQL has no `returning`; read `insertId` from the result instead.

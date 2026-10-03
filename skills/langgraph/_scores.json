@@ -1,63 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4b3978327912fc2f98cdbd4ac5c80d5c61417f9c53a9866b5a91b36ed16d7a63",
-  "scoredAt": "2026-05-13T09:21:28.338Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e64d2a2928a07e4fd69db0ae6f9b68ba5ff79c640c94a48cf8486d56acae486a",
+  "scoredAt": "2026-10-03T13:06:42.924Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 70,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling for tool failures or network errors."
+        "detail": "Error handling is thin: there are no guidance for tool failures, LLM errors, retries, or the recursion limit, and the supervisor's routing relies on fragile substring matching of LLM output."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains extensive explanatory text that may be considered verbose for a concise skill file."
+        "category": "actionability",
+        "detail": "Several snippets are not runnable as written: the Step 5 workflow references undefined nodes (research, write_draft, review, should_revise), search_web is a stub, and send_email and ParentState are undefined."
       },
       {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to LangGraph and does not support other AI agent frameworks."
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are prose descriptions of what the agent would build rather than concrete code, inputs and outputs, so they do not show realistic demonstrations."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "evalUsage",
-        "detail": "The calculate tool uses eval, which can execute arbitrary code."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 87,
-    "multiplier": 2.9,
+    "multiplier": 1.28,
+    "baselineAvg": 64,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Build a customer-support ReAct agent with tools and persistent multi-turn memory",
-        "baseline": 32,
-        "treatment": 88,
-        "rationale": "Treatment defines a State TypedDict with Annotated[list, add_messages], wires a conditional edge from agent to ToolNode and back, compiles with MemorySaver and invokes with configurable.thread_id for per-user memory; baseline writes a generic while-loop agent without StateGraph, ToolNode, or thread_id checkpointing."
+        "name": "approval-gated-email-agent",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both use interrupt(), Command(resume), a checkpointer and thread_id, but A puts the send directly after interrupt() in the same node as the rubric asks. B moves the send into a separate node after approval, which is a valid placement but a looser match for 'after the interrupt() call', and it omits an explicit langgraph.types import for Command(resume) in a separate section (though it does import it at the top)."
       },
       {
-        "name": "Multi-agent research-write-review pipeline with cycle limited to 3 revisions",
-        "baseline": 28,
-        "treatment": 86,
-        "rationale": "Treatment defines ResearchState TypedDict with sources Annotated[list, add], adds nodes research/write/review/revise/publish, uses add_conditional_edges('review', should_revise, ...) with revision_count<3 guard cycling back to revise; baseline produces a linear pipeline without StateGraph cycles or add-reducer accumulation."
+        "name": "research-write-review-loop-with-cap",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "B hits nearly every rubric item: sources as Annotated[list[str], add], a revision_count field, conditional edges from review to revise or publish, a revise→review cycle, publish→END, and compile(). A lacks the Annotated reducer, names the counter `revisions`, and routes the revise step back to writer rather than review, so it misses most of the specific structure."
+      },
+      {
+        "name": "supervisor-with-persistent-memory",
+        "baseline": 70,
+        "treatment": 62,
+        "rationale": "B has structured routing, an explicit END mapping in add_conditional_edges, fixed worker edges and a per-user thread_id, but it builds SqliteSaver(conn) directly instead of the required from_conn_string context manager. A uses from_conn_string as a context manager and has fixed edges and a per-user thread_id, but its conditional edges have no explicit END mapping and its substring routing is brittle, so A falls short on routing."
       }
     ]
   }

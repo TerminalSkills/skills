@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d5afe03c7af324b7d37d19715e765995b4fa30534bcddf03a779dff8a1589f4a",
-  "scoredAt": "2026-05-13T08:51:56.730Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:89a40c60203a3c511066acc5a20936476ee1f2b37472a833a3be40ab015ab6fc",
+  "scoredAt": "2026-10-02T23:26:03.479Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions lack error handling and edge case coverage."
+        "category": "crossPlatform",
+        "detail": "Setup leans on Homebrew, `$(brew --prefix)` paths and Claude Code/Codex-specific `mcp add` commands, with no install or registration steps for Windows or for Cursor, Cline and OpenCode, even though the skill lists them as supported."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 85,
-    "multiplier": 3.4,
+    "multiplier": 5.75,
+    "baselineAvg": 16,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Wire fff as a file-search tool for an AI agent with filename and content modes",
-        "baseline": 25,
-        "treatment": 88,
-        "rationale": "Treatment imports FffSearch from fff-search, instantiates with rootDir and respectGitignore, and routes to searcher.find vs searcher.grep with extensions/maxResults as documented; baseline reaches for fd/ripgrep or generic glob, missing the fff-search API entirely."
+        "name": "claude-code-mcp-setup-home-dir",
+        "baseline": 5,
+        "treatment": 92,
+        "rationale": "B gives the brew install, a `claude mcp add` command with `--no-update-check`, the explicit ~/work/monorepo path, a CLAUDE.md line and a healthcheck, which covers the whole rubric; A gives no working setup and only a plan with unverified guesses."
       },
       {
-        "name": "Add fff.nvim with lazy.nvim, gitignore-aware config, and Telescope-style keymaps",
-        "baseline": 25,
-        "treatment": 82,
-        "rationale": "Treatment uses the documented lazy.nvim spec for fff-nvim/fff.nvim with build = \"cargo build --release\", require(\"fff\").setup with respect_gitignore/fuzzy_threshold, and the FffFind/FffGrep/FffRecent keymaps; baseline configures Telescope or a fictional plugin."
+        "name": "typescript-agent-search-tool",
+        "baseline": 3,
+        "treatment": 92,
+        "rationale": "Response A installs @ff-labs/fff-node, creates a single reused finder through FileFinder.create and checks the ok flag, calls waitForScan, fileSearch and grep with beforeContext and afterContext set to 1, reads relativePath, lineNumber and lineContent from value.items, and calls destroy(), whereas Response B never uses fff and substitutes an rg-based implementation that meets almost none of the rubric."
+      },
+      {
+        "name": "neovim-telescope-replacement-lazy",
+        "baseline": 40,
+        "treatment": 92,
+        "rationale": "B matches the rubric: the correct `dmtrKovalenko/fff` repo, the `download_or_build_binary` build, `lazy = false`, `live_grep_under_cursor` with `mode = {\"n\",\"x\"}`, the `git:modified src/**/*.rs !src/**/mod.rs` token, and `:Lazy clean`. A uses the wrong repo name `fff.nvim`, writes a custom word/selection helper in place of `live_grep_under_cursor()`, gives a prefix-less `*.rs` query and hedges throughout."
       }
     ]
   }

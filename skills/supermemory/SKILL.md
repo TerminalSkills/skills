@@ -1,178 +1,164 @@
 ---
 name: supermemory
 description: >-
-  Add persistent memory to AI agents using Supermemory API -- the #1 ranked AI memory engine.
-  Use when: building AI assistants that remember users, adding long-term memory to chatbots,
-  creating personalized AI products, storing conversation context across sessions.
+  Supermemory is a hosted memory and context API for AI agents: it extracts
+  facts from conversations and documents, keeps a per-user profile, and
+  returns the right context through search. Use when building assistants that
+  remember users across sessions, adding long-term memory to a chatbot, wiring
+  Supermemory into Claude Code or another MCP client, or syncing Notion,
+  Google Drive or GitHub into a searchable knowledge base.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.9+"
+compatibility: "Node.js 18+ or Python 3.9+; a Supermemory API key from console.supermemory.ai"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
-  tags: [memory, ai-agents, rag, personalization, supermemory]
+  tags: ["memory", "ai-agents", "rag", "personalization", "supermemory"]
+  repository: https://github.com/supermemoryai/supermemory
 ---
 
 # Supermemory
 
 ## Overview
 
-Supermemory is the memory and context layer for AI -- ranked #1 on LongMemEval, LoCoMo, and ConvoMem benchmarks. It automatically extracts facts from conversations, maintains user profiles with ~50ms retrieval, handles temporal changes and contradictions, and delivers the right context at the right time. Supports hybrid search (RAG + memory), connectors (Google Drive, Gmail, Notion, GitHub), and multi-modal input (PDFs, images, videos, code).
+Supermemory is a memory and context layer for AI agents. You send it conversations, documents, files or URLs; it extracts facts into a per-container memory graph, maintains a profile (static facts and recent context), and answers searches over both memories and document chunks. Everything is scoped by a `containerTag` (a user, project or tenant id), which is the isolation boundary.
+
+The API changed since early SDK examples. Old snippets use `client.memories.add`, `client.users.getProfile`, `userId` and `includeConnectors`; none of these exist in the current SDKs (`supermemory` 4.x on npm, 3.x on PyPI). Current calls are top-level `client.add`, `client.search`, `client.profile`, with `containerTag` / `container_tag`. Checked against the TypeScript SDK 4.25.4 and the Python SDK 3.62.0.
 
 ## Instructions
 
-### Installation
+### Install and authenticate
 
 ```bash
-npm install supermemory
-# or
-pip install supermemory
+npm install supermemory      # or: pip install supermemory
+export SUPERMEMORY_API_KEY="sm_..."   # create in console.supermemory.ai, API Keys
 ```
 
-Get an API key at https://console.supermemory.ai
+The client reads `SUPERMEMORY_API_KEY` from the environment, so `new Supermemory()` is enough. For a browser or per-tenant client, mint a scoped key restricted to one `containerTag` (`POST /v3/auth/scoped-key`, `expiresInDays` 1 to 365) instead of shipping the org key.
 
-### Core Memory Operations
+### Ingest: conversations and documents
+
+`add` returns at once with `status: "queued"`; processing is asynchronous. Send a whole session under a stable `customId` rather than one-line "memories"; re-sending with the same `customId` processes only the new part.
 
 ```typescript
 import Supermemory from "supermemory";
+const client = new Supermemory();
 
-const client = new Supermemory({ apiKey: process.env.SUPERMEMORY_API_KEY });
-
-// Add a memory
-const memory = await client.memories.add({
-  content: "User prefers dark mode and uses TypeScript exclusively",
-  userId: "user_123",
-  metadata: { source: "conversation", timestamp: new Date().toISOString() },
+const conv = await client.add({
+  content: "user: I moved our API from Express to Fastify last week.\nassistant: Nice, how did the migration go?",
+  containerTag: "user_4f8a",
+  customId: "chat_2026-10-02_a91",
+  metadata: { type: "conversation" },
+  dreaming: "instant", // optional: extract memories now (costs one extra operation)
 });
 
-// Search memories
-const results = await client.memories.search({
-  query: "user preferences",
-  userId: "user_123",
+// knowledge you only want searchable, not remembered (about 5x cheaper per token)
+await client.add({
+  content: "# Runbook\nRestart the worker with `systemctl restart ingest-worker`.",
+  containerTag: "user_4f8a",
+  customId: "doc_runbook",
+  taskType: "superrag",
+});
+```
+
+Files: `client.documents.uploadFile({ file: fs.createReadStream("handbook.pdf"), containerTag: "user_4f8a" })`. Python uses `container_tag`, `custom_id`, `task_type`.
+
+Wait for `client.documents.get(id).status` to reach `done` (or `failed`) before searching. By default (`dreaming: "dynamic"`) memories may form later than `done`, because related documents are batched.
+
+### Search and profile
+
+```typescript
+const results = await client.search({
+  q: "which web framework does the user run",
+  containerTag: "user_4f8a",
+  searchMode: "hybrid", // "memories" (default) | "documents" | "hybrid"
   limit: 5,
 });
+for (const r of results.results) console.log(r.memory ?? r.chunk, r.similarity);
 
-// Delete a memory
-await client.memories.delete(memory.id);
+const { profile } = await client.profile({ containerTag: "user_4f8a", q: "deployment" });
+console.log(profile.static, profile.dynamic); // long-term facts, recent context
 ```
 
-### User Profiles (Auto-maintained)
+Other search options: `threshold` (0 to 1, default 0.5), `rerank`, `rewriteQuery`, metadata `filters` (`{ AND: [{ key: "type", value: "meeting" }] }`). In Python the search call is `client.search.memories(q=..., container_tag=..., search_mode="hybrid")` and the profile call is `client.profile(container_tag=...)`, with `result.profile.static`.
+
+### Use it in a chat loop
 
 ```typescript
-const profile = await client.users.getProfile("user_123");
-// Returns: { stable_facts, recent_activity, preferences }
-```
+import Anthropic from "@anthropic-ai/sdk";
+const claude = new Anthropic();
 
-### Adding Memory to AI Conversations
-
-1. Retrieve relevant memories before each response
-2. Include memory context in the system prompt
-3. Store new information from each conversation turn
-
-```typescript
-async function chatWithMemory(userId: string, userMessage: string) {
-  const memories = await client.memories.search({
-    query: userMessage, userId, limit: 5,
-  });
-
-  const memoryContext = memories.results.map(m => `- ${m.content}`).join("\n");
-
-  const response = await claude.messages.create({
-    model: "claude-opus-4-5",
+async function reply(userId: string, sessionId: string, message: string) {
+  const { profile, searchResults } = await client.profile({ containerTag: userId, q: message });
+  const context = [...profile.static, ...profile.dynamic, ...(searchResults?.results ?? []).map(r => r.memory ?? r.chunk)];
+  const res = await claude.messages.create({
+    model: "claude-sonnet-5-5",
     max_tokens: 1024,
-    system: `You know this about the user:\n${memoryContext}`,
-    messages: [{ role: "user", content: userMessage }],
+    system: `Known about this user:\n${context.map(c => `- ${c}`).join("\n")}`,
+    messages: [{ role: "user", content: message }],
   });
-
-  await client.memories.add({
-    content: `User said: "${userMessage}"`,
-    userId,
+  const answer = res.content[0].type === "text" ? res.content[0].text : "";
+  await client.add({
+    content: `user: ${message}\nassistant: ${answer}`,
+    containerTag: userId,
+    customId: `chat_${sessionId}`,
   });
-
-  return response.content[0].text;
+  return answer;
 }
 ```
 
-### Python Usage
+### Correct or remove a memory
 
-```python
-from supermemory import Supermemory
+`client.memories.updateMemory({ containerTag, newContent })` writes a new version and keeps the old one with `isLatest=false`; `client.memories.forget({ containerTag, ... })` soft-deletes. `client.documents.delete(id)` removes a document.
 
-client = Supermemory(api_key="your_api_key")
+### Connectors
 
-client.memories.add(
-    content="User is building a B2B SaaS targeting HR teams",
-    user_id="user_123",
-)
-
-results = client.memories.search(query="what is the user building", user_id="user_123", limit=3)
-for r in results.results:
-    print(f"[{r.score:.2f}] {r.content}")
-```
-
-### Connectors (Auto-sync External Sources)
+Supported providers: `notion`, `google-drive`, `gmail`, `onedrive`, `github`, `web-crawler`, `s3`. Creating a connection returns an OAuth link the user must open.
 
 ```typescript
-await client.connectors.connect({
-  type: "google_drive",
-  userId: "user_123",
-  credentials: { access_token: googleAccessToken },
+const conn = await client.connections.create("notion", {
+  redirectUrl: "https://app.brewline.dev/settings/connected",
+  containerTag: "team_support",
+  documentLimit: 5000,
 });
-
-// Search across Drive docs + memories together
-const results = await client.memories.search({
-  query: "project requirements",
-  userId: "user_123",
-  includeConnectors: true,
-});
+console.log(conn.authLink); // redirect the user here; sync starts after approval
 ```
 
-### MCP Integration (Claude Desktop)
+Connected documents are returned by normal `search` with `searchMode: "hybrid"` or `"documents"`; there is no `includeConnectors` flag. Some connectors are plan-gated (Gmail from Max, S3 and web crawler from Scale).
 
-Add to `claude_desktop_config.json`:
+### MCP and coding agents
+
+The hosted MCP server is `https://mcp.supermemory.ai/mcp` and uses OAuth, so no API key goes in the config. Claude Desktop: Settings, Connectors, add a custom connector with that URL. Cursor (`~/.cursor/mcp.json`):
 
 ```json
-{
-  "mcpServers": {
-    "supermemory": {
-      "command": "npx",
-      "args": ["-y", "supermemory-mcp"],
-      "env": { "SUPERMEMORY_API_KEY": "your_api_key" }
-    }
-  }
-}
+{ "mcpServers": { "supermemory": { "url": "https://mcp.supermemory.ai/mcp" } } }
 ```
+
+Tools exposed include `search_memory`, `get_profile`, `add_memory` (`action` of `save` or `forget`), `list_documents`, `list_memories` and `list_spaces`. The old `npx supermemory-mcp` stdio setup is no longer the documented route. For Claude Code there is a plugin: `/plugin marketplace add supermemoryai/claude-supermemory`, then `/plugin install supermemory`, with `SUPERMEMORY_CC_API_KEY` set in the shell.
 
 ## Examples
 
-### Example 1: Personal AI Assistant with Memory
+### Example 1: "Make my support bot remember each customer between chats"
 
-Build a chatbot that remembers user preferences across sessions:
+Install `supermemory`, set `SUPERMEMORY_API_KEY`, and call the `reply` function above with the customer id as `containerTag` and the chat id as `customId`. Day one the customer says they run Fastify on Hetzner; two weeks later they ask "why is my deploy slow?". `client.profile` returns `static: ["Runs a Fastify API on Hetzner"]`, the system prompt carries it, and the answer skips the "what is your stack?" questions.
 
-1. On first conversation: user mentions they work in fintech, prefer Python, and are building a payment API
-2. `client.memories.add({ content: "Works in fintech, prefers Python, building payment API", userId })` stores this
-3. Next session, user asks "help me with error handling" -- search returns their context
-4. System prompt includes: "User works in fintech, prefers Python, is building a payment API"
-5. Response is tailored: Python error handling examples specific to payment processing, not generic code
-6. Profile auto-updates: `{ stable_facts: ["Works in fintech", "Prefers Python"], recent_activity: ["Building payment API"] }`
+### Example 2: "Let the team search Notion together with past chats"
 
-### Example 2: Knowledge Base with Connector Sync
+Create a `notion` connection with `containerTag: "team_support"`, open `conn.authLink`, approve, then ask:
 
-Sync a team's Google Drive and let anyone search across all documents plus conversation history:
+```typescript
+const r = await client.search({ q: "refund policy for annual plans", containerTag: "team_support", searchMode: "hybrid" });
+```
 
-1. Connect Google Drive: `client.connectors.connect({ type: "google_drive", userId: "team_shared" })`
-2. Supermemory indexes all Drive documents automatically
-3. Team member asks: "What did we decide about the pricing model?"
-4. Search with `includeConnectors: true` returns both the pricing doc from Drive and a memory from a previous conversation where the CEO said "let us go with usage-based"
-5. Response synthesizes both sources: "The pricing doc outlines three tiers, and in your last discussion the team decided on usage-based pricing"
+Result: Notion page chunks appear with a `chunk` field and extracted facts from earlier conversations with a `memory` field, each with a `similarity` score.
 
 ## Guidelines
 
-- Always scope memories to a `userId` for multi-user applications
-- Use `metadata` to tag memories with source and timestamp for traceability
-- Search before adding to avoid duplicate memories -- Supermemory handles contradictions but duplicates waste quota
-- Retrieve 3-5 memories per query for optimal context without noise
-- User profiles are auto-maintained -- no need to manually build them
-- Free tier: 1,000 memories, 100 searches/day. Pro: $20/month for 100k memories, unlimited search
-- Keep API keys in environment variables, never hardcode them
-- Connectors sync automatically after initial setup -- no polling required
+- Always set `containerTag` per user or tenant; omitting it mixes data across users.
+- Use a stable `customId` per conversation or document. Same-`customId` updates bill only new tokens; a new id is billed in full.
+- Prefer `dreaming: "dynamic"` in production; `"instant"` costs an extra operation per document and suits tests and setup.
+- Use `taskType: "superrag"` for reference documents you do not need turned into memories.
+- Billing is usage-based USD credits, not the old memory counts: Free includes $5 a month, Pro $19 (with $20 included), Max $100, Scale $399. Verify on supermemory.ai/pricing; search and profile calls are metered per query and return 402 when the balance is empty.
+- Content sent to Supermemory is stored on a third-party service. For sensitive data check the security page, or run self-hosted Supermemory (`npx supermemory local`).
+- Keep the API key in an environment variable; use scoped keys for anything client-side.
+- Not needed if all you want is a local note file or a plain vector store you already run.

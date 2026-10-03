@@ -1,185 +1,155 @@
 ---
 name: railway-deploy
 description: >-
-  Manage Railway deployments using the CLI. Use when a user asks to deploy to
-  Railway, check deployment status, manage Railway services, set environment
-  variables on Railway, view Railway logs, link a Railway project, add a
-  database on Railway, scale Railway services, manage Railway environments,
-  rollback a Railway deployment, or run commands with Railway env vars.
-  Covers the full deploy lifecycle from project setup to production monitoring.
+  Deploys and manages apps on Railway with the Railway CLI: project setup,
+  deploys, services, databases, environment variables, logs and scaling. Use
+  when a user asks to deploy to Railway, check deployment status, set
+  environment variables on Railway, view Railway logs, link a Railway project,
+  add a database on Railway, scale a Railway service, manage Railway
+  environments, redeploy, or run commands with Railway env vars.
 license: Apache-2.0
-compatibility: "Requires Railway CLI installed (npm i -g @railway/cli or brew install railway)"
+compatibility: "Railway CLI 5.x (npm i -g @railway/cli, brew install railway or scoop install railway); Node.js 16+ only for the npm install"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["railway", "deploy", "cloud", "hosting", "paas"]
+  repository: https://github.com/railwayapp/cli
 ---
 
 # Railway Deploy
 
 ## Overview
 
-Deploy, manage, and monitor applications on Railway using the CLI. Covers the full lifecycle: project setup, service configuration, environment variables, deployments, scaling, logs, and debugging.
+Deploy, manage, and monitor applications on Railway from the terminal. This skill covers the CLI lifecycle: project setup, service configuration, environment variables, deployments, scaling, logs and debugging. It was checked against Railway CLI 5.63.1 and docs.railway.com (October 2026).
+
+The CLI has no `rollback` command. Rolling back means redeploying an earlier deployment from the dashboard, or redeploying a known-good commit (see Task H).
 
 ## Instructions
 
 ### Task A: Project Setup & Linking
 
-First verify the CLI is installed. If `railway` is not found, install it:
+Install the CLI with a package manager if `railway` is missing:
 
 ```bash
-npm i -g @railway/cli   # or: brew install railway
+npm i -g @railway/cli   # or: brew install railway / scoop install railway
 ```
 
-Check if already linked to a project:
+Check whether the directory is already linked:
 
 ```bash
 railway status
 ```
 
-If not linked, either create a new project or link to an existing one:
+Otherwise create or link a project:
 
 ```bash
-railway init    # Create a new project
-railway link    # Link to an existing project
+railway init --name orders-api   # create a project and link this directory
+railway link                     # or link an existing project
+railway login --browserless      # device-code sign-in on SSH or headless machines
 ```
 
-After linking, confirm with `railway status` to verify project, service, and environment context.
-
-For CI/CD or headless environments, use token auth:
+Confirm project, service and environment with `railway status`. For CI, skip login and export a token (create it in the dashboard, store it as a CI secret):
 
 ```bash
-RAILWAY_TOKEN=xxx railway up       # Project-scoped token
-RAILWAY_API_TOKEN=xxx railway up   # Account-scoped token
+RAILWAY_TOKEN="$RAILWAY_TOKEN" railway up --ci --service orders-api   # project token: deploys
+RAILWAY_API_TOKEN="$RAILWAY_API_TOKEN" railway whoami                 # account token: account-level actions
 ```
 
 ### Task B: Deploy
 
 ```bash
-# Deploy current directory and stream logs
-railway up
-
-# Deploy without waiting for logs
-railway up --detach
-
-# Target a specific service
-railway up -s my-service
-
-# Deploy to a specific environment
-railway up -e staging
+railway up                         # upload the directory and stream logs
+railway up --detach                # start the deploy and return immediately
+railway up --ci                    # stream build logs only, then exit
+railway up -s orders-api -e staging
+railway redeploy                   # redeploy the latest deployment (same build inputs)
+railway redeploy --from-source     # pull the newest commit or image from the configured source
+railway restart                    # restart without rebuilding
+railway down                       # remove the most recent deployment (asks to confirm; -y skips)
+railway deployment list --limit 5  # IDs and statuses of recent deployments
 ```
 
-To remove the latest deployment:
+`railway deploy` is not the code-deploy command: it provisions a template (`railway deploy --template postgres`).
+
+### Task C: Services & Resources
 
 ```bash
-railway down
-```
-
-To redeploy the latest deployment (same code, fresh build):
-
-```bash
-railway redeploy
-```
-
-To restart a service without rebuilding:
-
-```bash
-railway restart
-```
-
-### Task C: Manage Services & Resources
-
-```bash
-# Add a service interactively
-railway add
-
-# Add a database
-railway add --database postgres   # also: mysql, redis, mongo
-
-# Add a service from a GitHub repo
-railway add --repo user/repo
-
-# Switch linked service context
-railway service
-
-# Scale a service
-railway scale
-
-# Generate a Railway subdomain or add a custom domain
-railway domain
-railway domain example.com
-
-# Manage persistent volumes
+railway add --database postgres          # also: mysql, redis, mongo
+railway add --service worker --repo orders-team/orders-worker
+railway add --service cache --image redis:7
+railway service list                     # services in this environment
+railway service status                   # deployment status per service
+railway scale eu-west=2 us-east=1        # replicas per region (max 50 total)
+railway domain                           # generate a *.up.railway.app domain
+railway domain shop.northwind-orders.com       # custom domain; prints the DNS records to add
+railway volume add --service orders-api --mount-path /data
 railway volume list
-railway volume add
-railway volume delete
-
-# Delete the entire project
-railway delete
 ```
+
+`railway delete` removes a whole project, so never run it without the user's explicit confirmation.
 
 ### Task D: Environment Variables
 
 ```bash
-# List all variables for current service/environment
-railway variable list
-
-# Set a variable
-railway variable set DATABASE_URL=postgres://user:pass@host:5432/db
-
-# Set multiple variables
-railway variable set KEY1=value1 KEY2=value2
-
-# Delete a variable
-railway variable delete SECRET_KEY
+railway variable list --service orders-api
+railway variable set LOG_LEVEL=info PORT=8080
+echo "$STRIPE_SECRET" | railway variable set STRIPE_SECRET_KEY --stdin   # keeps the value out of shell history
+railway variable set FEATURE_FLAGS=beta --skip-deploys                   # change without triggering a deploy
+railway variable delete OLD_API_KEY
 ```
+
+By default setting a variable triggers a new deploy. `variable list --json` and `--kv` print raw secret values, so do not paste their output into chats or tickets. Services in the same project can reference each other's values with `${{Postgres.DATABASE_URL}}` syntax in the dashboard instead of copying them.
 
 ### Task E: Environments
 
 ```bash
-# Switch environment interactively
-railway environment
-
-# Create a new environment
+railway environment list
 railway environment new staging
-
-# Delete an environment
-railway environment delete dev
-
-# Deploy to a specific environment
-railway up -e production
+railway environment create staging --duplicate production   # copy production's config
+railway environment staging                                   # switch the linked environment
+railway environment delete staging --yes
 ```
 
 ### Task F: Logs & Debugging
 
 ```bash
-# Stream live logs
-railway logs
-
-# View build logs
-railway logs --build
-
-# View last N lines
-railway logs -n 100
-
-# SSH into the running container
-railway ssh
-
-# Connect to a database shell (e.g., psql, mysql, redis-cli)
-railway connect
+railway logs                       # stream the latest deployment's logs
+railway logs --build               # build logs
+railway logs -n 100                # last 100 lines (disables streaming)
+railway logs --http                # HTTP request logs; also --network and --dns
+railway logs -s orders-api -e production --json
+railway ssh                        # shell in the running container
+railway connect postgres           # database shell (needs psql, mongosh, etc. installed locally)
+railway connect postgres --tunnel-only   # tunnel for TablePlus, DBeaver, pgAdmin
 ```
 
 ### Task G: Local Development
 
 ```bash
-# Run a command with Railway environment variables injected
-railway run npm start
-railway run python manage.py migrate
-
-# Open an interactive shell with Railway env vars
-railway shell
+railway run --service orders-api -- npm run migrate   # Railway flags go before the command
+railway shell                                          # subshell with Railway variables
 ```
+
+`railway run` injects variables from the linked environment. Run against production only when the user asked for it.
+
+### Task H: Health Checks and Rollback
+
+Railway checks a new deployment before switching traffic. Set a health endpoint in the service settings (or `healthcheckPath` in `railway.json`); Railway polls it, with the `PORT` variable and the host `healthcheck.railway.app`, until it returns 2xx. If it does not within the timeout (default 300 s, adjustable with `RAILWAY_HEALTHCHECK_TIMEOUT_SEC`), the deployment fails and the previous one stays live. Checks run only at startup, and a service with an attached volume still has brief downtime during deploys.
+
+To verify from a script after `railway up --detach`:
+
+```bash
+railway up --detach
+for i in $(seq 1 20); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" https://orders-api-production.up.railway.app/health)
+  [ "$code" = "200" ] && { echo healthy; exit 0; }
+  sleep 5
+done
+echo "unhealthy: check railway logs --build and railway logs"; exit 1
+```
+
+To roll back, open the service's Deployments tab in the dashboard and redeploy an earlier successful deployment, or check out the last good commit and run `railway up` again.
 
 ## Examples
 
@@ -187,167 +157,51 @@ railway shell
 
 **User request:** "Deploy my Node.js app to Railway"
 
-**Actions taken:**
-
 ```bash
 $ railway login
-> Opening browser for authentication...
-> Logged in as andrey@example.com
-
-$ railway init
-> Created project "my-node-app" in workspace "Personal"
-
+$ railway init --name orders-api
 $ railway up
-> Uploading 2.3 MB...
-> Build started
-> Installing dependencies...
-> Build completed in 34s
-> Deployment live at my-node-app.up.railway.app
-
 $ railway domain
-> Service domain: my-node-app.up.railway.app
 ```
 
-### Example 2: Add a Postgres database and wire it up
+The CLI uploads the directory, builds it, and prints a deployment URL. `railway domain` returns a generated `orders-api-production.up.railway.app` address, and `railway status` shows project `orders-api`, environment `production`.
 
-**User request:** "Add a database to my Railway project and set it up"
+### Example 2: Add Postgres and run migrations
 
-**Actions taken:**
+**User request:** "Add a database to my Railway project and run the Prisma migrations"
 
 ```bash
-$ railway status
-> Project: my-node-app
-> Service: web
-> Environment: production
-
 $ railway add --database postgres
-> Added PostgreSQL service to project
-
-# The DATABASE_URL is automatically injected. Verify:
-$ railway variable list
-> DATABASE_URL=postgres://railway:abc123@host:5432/railway
-> PGHOST=host
-> PGPORT=5432
-> ...
-
-# Run migrations using Railway env vars
-$ railway run npx prisma migrate deploy
-> Applying migrations...
-> 3 migrations applied successfully
-
-$ railway redeploy
-> Redeploying web service...
-> Deployment live
+$ railway variable list --service orders-api   # Postgres variables appear on the new service, not automatically on yours
+$ railway variable set DATABASE_URL='${{Postgres.DATABASE_URL}}' --service orders-api
+$ railway run --service orders-api -- npx prisma migrate deploy
+$ railway redeploy --service orders-api --yes
 ```
 
-### Example 3: Debug a failing deployment
+`${{Postgres.DATABASE_URL}}` is a reference variable: Railway resolves it at runtime. Note that `railway run` executes locally, so it needs the database's public (TCP proxy) URL to be reachable from your machine; the private `*.railway.internal` host only resolves inside Railway. For a private database run the migration as a pre-deploy command in the service settings instead.
 
-**User request:** "My Railway deployment is crashing, help me debug it"
+### Example 3: Debug a crashing deployment
 
-**Actions taken:**
+**User request:** "My Railway deployment keeps crashing"
 
 ```bash
-$ railway status
-> Project: my-api
-> Service: web
-> Environment: production
-
-# Check build logs first
-$ railway logs --build
-> Step 4/8: RUN npm ci
-> npm ERR! Could not resolve dependency: peer express@"^4.0.0"
-
-# If build passes but runtime fails, check runtime logs
-$ railway logs -n 50
-> Error: connect ECONNREFUSED 127.0.0.1:5432
-
-# Verify variables are set
-$ railway variable list
-> DATABASE_URL=postgres://...@localhost:5432/mydb  # BUG: using localhost
-
-# Fix: point to the Railway-provided database host
-$ railway variable set DATABASE_URL=postgres://user:pass@railway-db-host:5432/mydb
-
-$ railway redeploy
-> Redeploying...
-> Deployment live
+$ railway deployment list --limit 3 --service orders-api
+$ railway logs --build --service orders-api     # did the build fail?
+$ railway logs -n 50 --service orders-api       # runtime errors
+$ railway variable list --service orders-api    # is DATABASE_URL pointing at localhost?
+$ railway variable set DATABASE_URL='${{Postgres.DATABASE_URL}}' --service orders-api
 ```
 
-### Task H: Health Checks and Auto-Rollback
-
-After deploying, verify the service is healthy before considering the deploy complete. If unhealthy, roll back to the previous deployment.
-
-```bash
-# Deploy and wait for completion
-$ railway up --detach
-
-# Health check loop — verify the service responds
-HEALTH_URL="https://your-app.railway.app/api/health"
-TIMEOUT=60
-DEADLINE=$((SECONDS + TIMEOUT))
-HEALTHY=false
-
-while [ $SECONDS -lt $DEADLINE ]; do
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
-  if [ "$STATUS" = "200" ]; then
-    HEALTHY=true
-    break
-  fi
-  echo "Waiting for healthy response... (status: $STATUS)"
-  sleep 3
-done
-
-if [ "$HEALTHY" = true ]; then
-  echo "✅ Deployment healthy!"
-else
-  echo "❌ Health check failed! Rolling back..."
-  railway rollback
-  echo "⏪ Rolled back to previous deployment"
-fi
-```
-
-**Automated deploy script with health verification:**
-
-```python
-# deploy_railway.py — Deploy with health check and auto-rollback
-import subprocess
-import time
-import httpx
-
-def deploy_with_health_check(health_url, timeout=60):
-    """Deploy to Railway, verify health, rollback on failure."""
-    print("🚀 Deploying to Railway...")
-    subprocess.run(["railway", "up", "--detach"], check=True)
-
-    print(f"🏥 Health checking {health_url}...")
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        try:
-            r = httpx.get(health_url, timeout=5)
-            if r.status_code == 200:
-                print("✅ Healthy!")
-                return True
-        except httpx.RequestError:
-            pass
-        time.sleep(3)
-
-    print("❌ Unhealthy! Rolling back...")
-    subprocess.run(["railway", "rollback"], check=True)
-    print("⏪ Rolled back")
-    return False
-```
+Typical findings: `ECONNREFUSED 127.0.0.1:5432` means the database URL is wrong; a healthcheck timeout means the app does not listen on `$PORT` or on `0.0.0.0`.
 
 ## Guidelines
 
-- Always run `railway status` first to confirm project, service, and environment context before making changes.
-- Use `railway up --detach` in CI/CD pipelines to avoid blocking on log output.
-- Use `RAILWAY_TOKEN` for project-scoped CI/CD auth and `RAILWAY_API_TOKEN` for account-level operations.
-- Use `-s service-name` and `-e environment-name` flags when managing multi-service projects to avoid acting on the wrong target.
-- Use `railway run` to execute one-off commands (migrations, seeds) with production env vars without deploying.
-- If a deployment fails, check build logs (`railway logs --build`) first, then runtime logs (`railway logs`).
-- Use `railway connect` to get a database shell directly without needing connection strings locally.
-- Add `--json` to any command for machine-readable output in scripts.
-- Use `railway variable set` to update env vars, then `railway redeploy` to pick up the changes.
-- Use `railway environment new` to create staging/preview environments that mirror production config.
-- If `railway` command is not found, install via `npm i -g @railway/cli` or `brew install railway`.
-- If `railway login` fails or times out, use `railway login --browserless` for headless/SSH environments.
+- Run `railway status` before changes to confirm project, service and environment.
+- Pass `-s` and `-e` explicitly in multi-service projects so you do not act on the wrong target.
+- Use `--detach` or `--ci` in pipelines so the job does not hang on a log stream; `RAILWAY_TOKEN` is project-scoped, `RAILWAY_API_TOKEN` account-scoped.
+- Most commands accept `--json` for scripts and `--yes` to skip confirmation; destructive commands (`down`, `delete`, `environment delete`) need exact selectors and the user's consent.
+- Setting variables redeploys; use `--skip-deploys` when batching changes.
+- Never print or share `railway variable list`, `railway run printenv` or `--json` output: it contains secrets.
+- Bind the app to `0.0.0.0` and the `PORT` variable, or healthchecks and public domains fail.
+- A deploy is not a rollback: `railway down` removes the latest deployment, and `railway redeploy` rebuilds the current one.
+- Use Railway's `railway.json` or `railway.toml` for build, start and healthcheck settings you want in version control.

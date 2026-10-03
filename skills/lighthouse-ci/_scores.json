@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:025d46b3a243bae2090edd8f3a8d040d5e814c9c1188f38367cbdeb985c048c4",
-  "scoredAt": "2026-05-13T09:24:05.808Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:de1094aa0b8011e68800b7fac4f190f1aa93499426be2bed2a8e731614a93620",
+  "scoredAt": "2026-10-03T13:01:48.863Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases for Lighthouse CI failures."
+        "detail": "Covers mostly the happy path; troubleshooting is thin, with no guidance on Chrome launch failures in CI (e.g. --no-sandbox in containers), server-start timeouts, flaky results, or how to diagnose failing assertions."
       },
       {
         "severity": "MEDIUM",
         "category": "examples",
-        "detail": "Only one code block example is provided, lacking the required 2+ realistic demonstrations."
+        "detail": "The two examples are prose descriptions of requests and outcomes with no runnable commands or real output, and they mostly refer back to the config above instead of showing a complete scenario."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 88,
-    "multiplier": 1.69,
+    "multiplier": 1.27,
+    "baselineAvg": 63,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Add Lighthouse CI to GitHub Actions blocking PRs on Core Web Vitals regressions",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment ships lighthouserc.js with numberOfRuns 3, assert.assertions for largest-contentful-paint/cumulative-layout-shift/total-blocking-time as error with maxNumericValue thresholds, and a GitHub Actions workflow using treosh/lighthouse-ci-action@v11 with configPath; baseline produces a script-based run that does not set numeric budgets per metric."
+        "name": "pr-gate-pricing-lcp-a11y",
+        "baseline": 80,
+        "treatment": 88,
+        "rationale": "Both configs meet the rubric (error-level LCP 2500 and accessibility 0.95, /pricing URL, startServerCommand, numberOfRuns 3), but B's workflow uses treosh/lighthouse-ci-action with configPath, as the rubric names, while A's `npx lhci autorun` also passes but its config has a more fragile ready pattern and no build-and-serve nuance beyond that, and B's temporary-public-storage upload leaks reports, a minor flaw."
       },
       {
-        "name": "Set resource budgets to block bundle growth and third-party script creep",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment writes a budget.json with path /*, resourceSizes for script and total, and resourceCounts third-party 5, then wires it into the lighthouserc.js assertions; baseline mentions budgets generically without the resourceCounts/resourceSizes shape."
+        "name": "script-budget-unit-conflict",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both explain that budgetsFile can't be combined with other assert options and give the resource-summary assertions with LCP, but B uses 300000 bytes and explicitly contrasts it with budget.json's KB (and also offers a two-step alternative), while A uses 307200 and explains the byte unit without clearly stating that budget.json sizes are in KB (it only implies it by saying 'how budget.json counts KB')."
+      },
+      {
+        "name": "static-spa-authenticated-inp",
+        "baseline": 30,
+        "treatment": 62,
+        "rationale": "A uses staticDistDir with isSinglePageApplication, recommends puppeteerScript for login, and says INP isn't measurable in CI with TBT as the stand-in and CrUX for field data, although it has a duplicated settings key and hedges; B rejects staticDistDir in favor of vite preview, which contradicts the rubric, and while it covers puppeteerScript, TBT and field data, it adds a timespan-flow INP script that contradicts 'cannot be measured in CI'."
       }
     ]
   }

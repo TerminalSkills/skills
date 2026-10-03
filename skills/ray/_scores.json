@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b1200b69a55dd7053bc69d0861c0934216d2929cd7af7d442fc82c02c50017c8",
-  "scoredAt": "2026-05-13T10:00:14.443Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fe89ef4edfdbeac9e840cab216f835b7e76ce2670574e2a1bb2dcc9ea6f10c7c",
+  "scoredAt": "2026-10-03T22:14:02.186Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file lacks error handling and edge case coverage, focusing only on happy paths."
+        "detail": "Pitfalls cover a few cases, but the code samples have no error handling for task failures, actor crashes, retries, or Serve deployment errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two Examples entries are prose descriptions that point back to earlier snippets rather than self-contained realistic demonstrations with input and output."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 24,
-    "treatmentAvg": 94,
-    "multiplier": 3.92,
+    "multiplier": 1.25,
+    "baselineAvg": 73,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Parallelize CPU-bound items",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Treatment uses ray.init plus @ray.remote, builds a list of .remote(i) futures, and collects them with ray.get exactly as the skill prescribes; baseline reaches for multiprocessing.Pool or ProcessPoolExecutor, which solves the problem but misses every Ray API the rubric requires."
+        "name": "parallelize-slow-calls-with-ray-core",
+        "baseline": 88,
+        "treatment": 92,
+        "rationale": "Both decorate with @ray.remote, call ray.init(), put the table once with ray.put and pass the ref, and submit all tasks before a single ray.get; B is slightly cleaner and more precise (it states the top-level ObjectRef resolution caveat and shows a complete script with the 500 IDs), while A adds extra variants (actor pool, ray.wait loop) that go beyond the rubric but don't add rubric coverage."
       },
       {
-        "name": "Serve HuggingFace sentiment model",
-        "baseline": 22,
+        "name": "serve-sentiment-model-with-composition",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "A matches the rubric on all three points: separate deployments composed with .bind(), awaited handle.method.remote calls, host and port set through serve.start(http_options) bound to 127.0.0.1, and no num_gpus. B composes the deployments correctly and has no GPU option, but it sets host and port with the `serve run` CLI flags instead of serve.start(http_options=...), and it calls handles without a method name. B also adds an unneeded num_cpus actor option."
+      },
+      {
+        "name": "tune-learning-rate-with-asha",
+        "baseline": 90,
         "treatment": 93,
-        "rationale": "Treatment declares @serve.deployment(num_replicas=2) with an async __call__(request) that reads JSON, then binds and calls serve.run(app, host, port); baseline builds a FastAPI/Flask service with gunicorn workers and does not exercise Ray Serve's deployment/bind/run pattern."
+        "rationale": "Both responses meet every rubric item: tune.Tuner, loguniform and choice in param_space, ASHAScheduler, TuneConfig with metric, mode and num_samples=20, tune.report, tuner.fit(), and get_best_result with the config and loss printed. B is slightly cleaner, with a self-contained trainable and a note that tune.run is deprecated. A adds useful notes on minimum loss and tune.with_parameters, but its get_best_result call repeats the metric and mode already set in TuneConfig."
       }
     ]
   }

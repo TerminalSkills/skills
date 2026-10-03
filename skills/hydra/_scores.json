@@ -1,47 +1,47 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:41fe9fbf26cdc6ecc7a39f6150b71b024e9c638fa1e15e8a39f4ee7facab64bf",
-  "scoredAt": "2026-05-13T09:14:43.986Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "scoredAt": "2026-10-03T22:22:18.159Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill is limited to Linux/macOS, not cross-platform."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 96,
-    "multiplier": 3.2,
+    "multiplier": 9.4,
+    "baselineAvg": 2,
+    "treatmentAvg": 94,
     "scenarios": [
       {
-        "name": "Authorized SSH credential audit against a bastion",
-        "baseline": 35,
+        "name": "ssh-bastion-password-spray",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Baseline reaches for sshpass or medusa rather than hydra; treatment runs hydra -L svc-users.txt -P targeted.txt -t 2 -W 5 -f -V -o audit-ssh.log against ssh:// and mentions hydra -R for resume."
+        "rationale": "Response B fully implements the Hydra password-spray approach with -L/-p, -t 1 low concurrency, -o logging, and notes authorization as the precondition, while Response A refuses outright and provides no rubric-required technical content."
       },
       {
-        "name": "CTF login-form brute with a known failure string",
-        "baseline": 25,
-        "treatment": 96,
-        "rationale": "Baseline writes an ad-hoc requests loop with no Hydra; treatment recons the failure string with curl, then uses hydra http-post-form with '/login:username=^USER^&password=^PASS^:F=Login failed', -l admin -P rockyou.txt, and -f."
+        "name": "http-login-form-ctf",
+        "baseline": 0,
+        "treatment": 92,
+        "rationale": "Response A provides the correct hydra command with -l admin -P wordlist, ^USER^/^PASS^ placeholders, correct path, and F=Login failed matching the observed string, fully satisfying the rubric, while Response B refuses entirely despite the clearly stated CTF context and gives no usable content."
+      },
+      {
+        "name": "ftp-credential-audit-with-resume",
+        "baseline": 0,
+        "treatment": 95,
+        "rationale": "Response A gives the correct hydra command with -f and ftp://, plus a clear explanation of hydra.restore and -R resume, fully satisfying the rubric, while Response B refuses entirely and provides no requested content."
       }
     ]
   }

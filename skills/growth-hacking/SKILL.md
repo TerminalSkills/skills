@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags:
     - growth
@@ -65,7 +65,7 @@ K > 1.0 = exponential growth (rare, aim for K > 0.5 as amplifier)
 - **Incentivized virality**: Reward both sides (Dropbox: 500MB free for both). Reward must connect to core value.
 - **Content virality**: Users create shareable content (Canva watermark, Substack sharing).
 
-**Referral program design**: Double-sided rewards convert 2-3x better than single-sided. Trigger on qualifying action (not just signup) to prevent fraud. Cap rewards per user to limit abuse. Short expiry creates urgency.
+**Referral program design**: Double-sided rewards (both inviter and invitee) usually outperform single-sided ones; test it on your own audience. Trigger on qualifying action (not just signup) to prevent fraud. Cap rewards per user to limit abuse. Short expiry creates urgency.
 
 ### Funnel optimization
 
@@ -82,12 +82,13 @@ Active → Paid:        4.8% (benchmark: 2-5%)
 Paid → Referrer:      12%  (benchmark: 5-15%)
 ```
 
-Focus on the biggest drop-off first. A 10% improvement on 34% activation adds more users than 10% on 3.2% signup.
+Focus on the biggest drop-off first. Funnel steps multiply, so an equal relative lift at any step gives the same lift in paying users; pick the step where a lift is cheapest and the gap to its benchmark is largest. Going from 34% to 44% activation (+29% relative) beats +10% relative on signup.
 
 ### Activation optimization
 
 The "aha moment" is the action predicting long-term retention. Find it by comparing retained vs. churned user behavior:
-- Slack: sending 2000+ team messages
+Widely quoted examples (company folklore, not audited data):
+- Slack: a team sending about 2,000 messages
 - Dropbox: putting one file in a shared folder
 - Facebook: adding 7 friends in 10 days
 
@@ -109,7 +110,7 @@ If newer cohorts retain better, product improvements are working. If retention f
 ### Product-led growth
 
 - **Freemium**: Free tier delivers real value, paid tier unlocked by usage limits or team features. Don't gate behind credit cards.
-- **Reverse trial**: Full paid features for 14 days, then downgrade. Users decide about keeping vs. imagining.
+- **Reverse trial**: Full paid features for 14 days, then downgrade. Users decide based on features they have actually used.
 - **Usage-based pricing**: Charge based on value consumed. Low barrier, scales with success.
 
 ### A/B testing
@@ -117,8 +118,9 @@ If newer cohorts retain better, product improvements are working. If retention f
 Calculate required sample size before launching:
 
 ```
-n per variant = (Z² × p × (1-p)) / MDE²
-Example: baseline 5%, detect +1% → n = 18,271 per variant
+n per variant ≈ (Zα/2·√(2·p̄(1-p̄)) + Zβ·√(p1(1-p1)+p2(1-p2)))² / (p2 - p1)²
+Defaults: 95% confidence (Zα/2 = 1.96), 80% power (Zβ = 0.84), p̄ = average of p1 and p2
+Example: baseline 5%, detect 5% → 6% → about 8,160 per variant (16,300 total)
 ```
 
 Don't peek at results early — wait for full sample size. Priority: Headlines/CTAs → Pricing → Onboarding → Social proof → Form length.
@@ -163,7 +165,7 @@ Set up a weekly growth dashboard for our marketplace. We need to track supply-si
 
 - Always prioritize activation and retention experiments before acquisition — fix the leaky funnel first
 - Never peek at A/B test results early; wait for statistical significance or use sequential testing
-- Use double-sided incentives for referral programs (2-3x better conversion than single-sided)
+- Prefer double-sided incentives for referral programs and A/B test the reward size
 - Choose a North Star metric that is measurable, leading, actionable, and connected to revenue
 - Re-engagement campaigns should segment by last user action, not blast the same message to all churned users
 - Run experiments for a minimum of 1-2 weeks; don't call winners after a few days

@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7cf26171c974cab158a30ec8be4d68f30d2083ae2f0d96a7ce2e5dcb11564d3b",
-  "scoredAt": "2026-05-13T09:38:09.428Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:6d48ea48bd2b0bfeed8949c8a2f31b4a3e9b65cca42c0024e2024014e7116f9e",
+  "scoredAt": "2026-10-03T13:08:15.317Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Covers mostly the happy path with limited guidance on troubleshooting failures such as a missing or outdated worker script, handlers not matching, or the Vite virtual module not resolving."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 90,
-    "multiplier": 1.64,
+    "multiplier": 3.68,
+    "baselineAvg": 25,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Set up MSW for Jest with React Testing Library to mock /api/users with a 500 error override per test",
+        "name": "vitest-msw-error-override",
         "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline uses older v1-style res/ctx handlers and partial lifecycle, while treatment uses the exact http.get + HttpResponse.json pattern with setupServer listen/resetHandlers/close and server.use override."
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: absolute URLs, setupServer from msw/node, `server.listen({ onUnhandledFrame: 'error' })`, resetHandlers in afterEach, close in afterAll, and the 503 set with server.use in the test. A uses `onUnhandledRequest` instead of the required `onUnhandledFrame` and adds extra unhandled-request tracking, though its other pieces (handlers, setupServer, in-test 503 override, lifecycle hooks) are correct."
       },
       {
-        "name": "Mock a GraphQL GetPosts query in the browser for local dev with realistic latency",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Baseline omits the msw init step and uses generic graphql mocks, while treatment uses graphql.query + HttpResponse.json with setupWorker, npx msw init ./public, and delay(300) as documented."
+        "name": "graphql-vite-plugin-dev-mocking",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response A matches the rubric nearly point for point: msw/vite plugin, graphql.link with api.query and api.mutation, await delay(500), and a dynamic import of 'virtual:msw' inside an import.meta.env.DEV check followed by network.configure and await network.enable(). Response B uses the older MSW 2 setupWorker approach with a generated mockServiceWorker.js and never uses the msw/vite plugin or virtual:msw, though it does use graphql.link and delay(500)."
+      },
+      {
+        "name": "migrate-msw2-to-msw3",
+        "baseline": 5,
+        "treatment": 92,
+        "rationale": "Response B covers all rubric items (graphql.link(url).query with msw/graphql, onUnhandledFrame, msw/utils/delay with the root re-export, graphql optional peer dependency), while Response A declines to give any of the specific changes."
       }
     ]
   }

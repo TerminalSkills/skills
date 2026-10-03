@@ -1,11 +1,16 @@
 ---
 name: northflank
-description: Expert guidance for Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. Helps developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.
+description: >-
+  Northflank is a cloud platform that deploys containers from Git or a registry
+  with managed databases, cron jobs and preview environments, on its own
+  Kubernetes-based infrastructure or in your own cloud account. Use when the
+  user wants to deploy a service, add a Postgres or Redis addon, schedule a
+  job, manage secrets, or script Northflank with the CLI, API or JSON templates.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Node.js 18+ for the CLI (@northflank/cli); a Northflank account and API token"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: devops
   tags:
   - paas
@@ -17,215 +22,126 @@ metadata:
 
 # Northflank — Full-Stack Cloud Platform
 
-
 ## Overview
 
+Northflank organises everything inside a **project**: **services** (build, deployment or combined = build + deploy from Git), **addons** (managed PostgreSQL, MySQL, MongoDB, Redis and others), **jobs** (manual or cron), **secret groups**, and optional **pipelines** with preview environments.
 
-Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. Helps developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.
+Three ways to drive it, all using the same request bodies as the REST API:
 
+- the **CLI** (`@northflank/cli`, 0.13.x), where `create`, `get`, `list`, `scale`, `run`, `start` take `--file`/`--input` JSON;
+- the **JS client** (`@northflank/js-client`) for scripts;
+- **templates**: JSON infrastructure-as-code, run from the dashboard, the API/CLI, or automatically from a `northflank.json` in Git.
+
+Builds use either a **Dockerfile** (`buildSettings.dockerfile`) or a **buildpack** (`buildSettings.buildpack.builder`: `HEROKU_24` is the default; others include `HEROKU_22`, `GOOGLE_22`, `PAKETO_BASE`). Nixpacks is not an option.
 
 ## Instructions
 
-### Project Configuration
-
-```json
-// northflank.json — Infrastructure as Code
-{
-  "apiVersion": "v1",
-  "spec": {
-    "kind": "Workflow",
-    "spec": {
-      "type": "sequential",
-      "steps": [
-        {
-          "kind": "BuildService",
-          "spec": {
-            "name": "api-build",
-            "billing": { "deploymentPlan": "nf-compute-20" },
-            "vcsData": {
-              "projectUrl": "https://github.com/myorg/my-api",
-              "projectType": "github",
-              "projectBranch": "main"
-            },
-            "buildConfiguration": {
-              "pathIgnoreRules": ["node_modules", ".git", "*.md"],
-              "isAllowList": false
-            },
-            "buildpack": {
-              "builder": "NIXPACKS"
-            }
-          }
-        },
-        {
-          "kind": "DeploymentService",
-          "spec": {
-            "name": "api",
-            "billing": { "deploymentPlan": "nf-compute-20" },
-            "deployment": {
-              "instances": 2,
-              "docker": {
-                "configType": "default"
-              },
-              "internal": {
-                "id": "api-build",
-                "branch": "main",
-                "buildSHA": "latest"
-              }
-            },
-            "ports": [
-              {
-                "name": "http",
-                "internalPort": 3000,
-                "public": true,
-                "protocol": "HTTP",
-                "domains": ["api.myapp.com"]
-              }
-            ],
-            "healthChecks": [
-              {
-                "protocol": "HTTP",
-                "path": "/health",
-                "port": 3000,
-                "initialDelaySeconds": 10,
-                "periodSeconds": 30
-              }
-            ],
-            "runtimeEnvironment": {
-              "NODE_ENV": "production",
-              "DATABASE_URL": "${database.main-db.HOST}"
-            }
-          }
-        },
-        {
-          "kind": "Addon",
-          "spec": {
-            "name": "main-db",
-            "type": "postgresql",
-            "version": "16",
-            "billing": { "deploymentPlan": "nf-compute-20", "storageClass": "ssd", "storage": 10240 },
-            "typeSpecificFields": {
-              "postgresDatabase": "myapp"
-            },
-            "backups": {
-              "enabled": true,
-              "schedule": "0 3 * * *"
-            }
-          }
-        }
-      ]
-    }
-  }
-}
-```
-
-### CLI Operations
+1. **Install and sign in.** `northflank login` opens the browser; in CI use an API token from the environment: `northflank login -t "$NORTHFLANK_API_TOKEN" -n ci`. Give the token only the permissions it needs (each command's `--help` ends with the permission it requires).
 
 ```bash
-# Install Northflank CLI
 npm install -g @northflank/cli
-
-# Login
 northflank login
-
-# Create a project
-northflank create project my-app --region europe-west
-
-# Deploy from Git
-northflank create service my-app/api \
-  --git-url https://github.com/myorg/my-api \
-  --branch main \
-  --port 3000 \
-  --instances 2 \
-  --plan nf-compute-20
-
-# Add a database
-northflank create addon my-app/main-db \
-  --type postgresql \
-  --version 16 \
-  --plan nf-compute-20 \
-  --storage 10240
-
-# Manage secrets
-northflank create secret my-app/api-secrets \
-  --data '{"API_KEY": "sk-xxx", "JWT_SECRET": "xxx"}'
-
-# Link secret group to a service
-northflank link secret my-app/api --secret-group api-secrets
-
-# View logs
-northflank logs my-app/api --follow
-
-# Scale service
-northflank scale my-app/api --instances 5
+northflank context use project      # pick a default project so --project can be left out
+northflank command-overview         # every command as a tree
 ```
 
-### Build Pipelines
+2. **Create resources from JSON.** Write the body as in the API docs, then `northflank create <kind> --file body.json --project northwind-prod`. Kinds: `project`, `service combined|build|deployment`, `addon`, `secret` (this is a secret group), `job` (cron when `schedule` is set), `template`. Add `-o json` for machine-readable output.
 
-```yaml
-# Northflank supports multiple build strategies:
-# 1. Nixpacks (auto-detect, default)
-# 2. Dockerfile
-# 3. Buildpacks (Heroku/Cloud Native)
-# 4. Pre-built Docker images
+3. **Operate.** `get service --service orders-api`, `get service logs --service orders-api --tail`, `scale service --service orders-api --input '{"instances":3}'`, `start job run --job daily-report`, `get job runs`, `restart service`, `pause service`, `forward service` (port-forward to a private service or addon).
 
-# Pipeline: Build → Test → Deploy
-# Configure in dashboard or via API:
-# 1. Source: GitHub/GitLab/Bitbucket webhook
-# 2. Build: Nixpacks or Dockerfile
-# 3. Preview: Auto-deploy PR branches
-# 4. Production: Deploy on merge to main
-```
+4. **Reuse configuration with templates.** A template is `{ "apiVersion": "v1.2", "name": ..., "spec": { "kind": "Workflow", "spec": { "type": "sequential", "steps": [...] } } }`. Steps are nodes (`Project`, `Addon`, `CombinedService`, `SecretGroup`, `Job`, ...) with a `ref`; later nodes refer to earlier ones as `${refs.<ref>.<property>}`, template arguments as `${args.<name>}`, and `${fn.randomSecret(256)}` generates a secret. Commit it as `northflank.json` to sync from Git (`options.autorun: true` runs it on each change), or run it with `northflank run template --template orders-stack`.
 
-### Jobs and Cron
-
-```bash
-# Create a cron job
-northflank create job my-app/daily-report \
-  --type cron \
-  --schedule "0 8 * * *" \
-  --git-url https://github.com/myorg/my-api \
-  --branch main \
-  --run-command "node scripts/daily-report.js" \
-  --plan nf-compute-10
-
-# Create a manual job (triggered via API or dashboard)
-northflank create job my-app/db-migrate \
-  --type manual \
-  --run-command "npx prisma migrate deploy"
-```
-
+5. **Secrets and addon credentials.** A secret group holds `secrets.variables` and is injected into services in the project (limit it with `restrictions`). `addonDependencies` pulls connection values (for example `POSTGRES_URI`) from an addon into the group, so no one copies a password by hand.
 
 ## Examples
 
+### "Deploy my orders-api from GitHub as a service with two replicas and a health check"
 
-### Example 1: Setting up Northflank for a microservices project
-
-**User request:**
-
+```json
+{
+  "name": "orders-api",
+  "billing": { "deploymentPlan": "nf-compute-20" },
+  "vcsData": {
+    "projectUrl": "https://github.com/northwind-traders/orders-api",
+    "projectType": "github",
+    "projectBranch": "main"
+  },
+  "buildSettings": {
+    "dockerfile": { "buildEngine": "buildkit", "dockerFilePath": "/Dockerfile", "dockerWorkDir": "/" }
+  },
+  "deployment": { "instances": 2 },
+  "ports": [{ "name": "http", "internalPort": 3000, "protocol": "HTTP", "public": true }],
+  "healthChecks": [{
+    "protocol": "HTTP", "type": "livenessProbe", "path": "/health", "port": 3000,
+    "initialDelaySeconds": 10, "periodSeconds": 30, "timeoutSeconds": 5, "failureThreshold": 3
+  }],
+  "runtimeEnvironment": { "NODE_ENV": "production" }
+}
 ```
-I have a Node.js API and a React frontend running in Docker. Set up Northflank for monitoring/deployment.
+
+```bash
+northflank create service combined --file orders-api.json --project northwind-prod
+northflank get service logs --project northwind-prod --service orders-api --tail
 ```
 
-The agent creates the necessary configuration files based on patterns like `# Install Northflank CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
+Result: the CLI prints the new service; Northflank builds the Dockerfile, starts two instances and exposes a public `*.code.run` URL. The Git repository must be linked to your Northflank account first (`northflank link` or the dashboard).
 
-### Example 2: Troubleshooting cli operations issues
+### "Add a Postgres database and give the API its connection string"
 
-**User request:**
-
+```json
+{
+  "name": "orders-db",
+  "type": "postgresql",
+  "version": "16",
+  "billing": { "deploymentPlan": "nf-compute-20", "storage": 10240, "replicas": 1 },
+  "customCredentials": { "dbName": "orders" },
+  "backupSchedules": [{
+    "scheduling": { "interval": "daily", "minute": [0], "hour": [3] },
+    "backupType": "dump", "retentionTime": 7
+  }]
+}
 ```
-Northflank is showing errors in our cli operations. Here are the logs: [error output]
+
+```bash
+northflank create addon --file orders-db.json --project northwind-prod
+northflank create secret --project northwind-prod --input '{
+  "name": "orders-api-env", "secretType": "environment", "priority": 10,
+  "addonDependencies": [{ "addonId": "orders-db", "keys": [{ "keyName": "POSTGRES_URI", "aliases": ["DATABASE_URL"] }] }]
+}'
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Northflank issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+Result: a managed Postgres 16 with nightly dumps kept 7 days (`storage` is in MB), and `DATABASE_URL` appears in the API's environment after its next deploy.
 
+### "Run a report every morning and a migration on demand"
+
+```json
+{
+  "name": "daily-report",
+  "billing": { "deploymentPlan": "nf-compute-10" },
+  "deployment": {
+    "vcs": { "projectUrl": "https://github.com/northwind-traders/orders-api", "projectType": "github", "projectBranch": "main" },
+    "docker": { "configType": "customCommand", "customCommand": "node scripts/daily-report.js" }
+  },
+  "buildSettings": { "dockerfile": { "buildEngine": "buildkit", "dockerFilePath": "/Dockerfile", "dockerWorkDir": "/" } },
+  "schedule": "0 8 * * *",
+  "concurrencyPolicy": "forbid",
+  "backoffLimit": 0
+}
+```
+
+```bash
+northflank create job cron --file daily-report.json --project northwind-prod
+northflank start job run --project northwind-prod --job daily-report
+```
+
+Result: the job runs at 08:00 and can be triggered by hand; `northflank get job runs --job daily-report` lists the history. For a migration use `create job manual` (same body without `schedule`).
 
 ## Guidelines
 
-1. **Use Infrastructure as Code** — Define services in `northflank.json`; version with your repo for reproducible environments
-2. **Managed addons for databases** — Don't self-manage Postgres/Redis/MongoDB; use Northflank addons with automatic backups
-3. **Secret groups for credentials** — Group secrets by service; link them to deployments without hardcoding values
-4. **Preview environments for PRs** — Enable branch-based previews; each PR gets its own URL and database
-5. **Health checks on every service** — Required for zero-downtime deployments and automatic restart on failure
-6. **Use build caching** — Northflank caches Docker layers and dependencies; structure your Dockerfile for optimal caching
-7. **Jobs for migrations** — Run database migrations as manual jobs, not in the application startup sequence
-8. **Monitor build logs** — Check build logs when deployments fail; most issues are dependency installation or build command errors
+- Validate payloads with `--help` and the API reference rather than memory: the CLI checks fields client side unless `--skipValidation` is set.
+- Keep tokens and secret values in environment variables or the secret group; never commit them in `northflank.json` or pass them on a shared shell history.
+- Plan names such as `nf-compute-10`, `nf-compute-20`, `nf-compute-50` set CPU and memory (and price): check the pricing page before scaling up.
+- Add liveness and readiness health checks to every service so rollouts wait for healthy instances.
+- Run migrations as manual jobs, not at application start with several replicas.
+- Don't self-manage databases on a plain service when an addon covers it; addons give backups, TLS and replicas.
+- Use another tool when you need a persistent VM, or a platform with no container build step.

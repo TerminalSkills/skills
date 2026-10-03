@@ -11,6 +11,7 @@ metadata:
   author: terminal-skills
   version: 1.0.0
   category: devops
+  repository: https://github.com/openwall/john
   tags:
     - john-the-ripper
     - password-cracking

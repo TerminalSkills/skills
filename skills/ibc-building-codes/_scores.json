@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bdda845e2c9b587f43f5b5c34997cdc820a3608db399f4d054d4a3d1dea4282c",
-  "scoredAt": "2026-05-13T09:14:56.136Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ca397986d8e481375c5c0ce16556d7d7c86acccba172c3d5ad96ce753a5652a5",
+  "scoredAt": "2026-10-03T12:00:28.240Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "FAIL",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "HIGH",
-        "category": "actionability",
-        "detail": "Skill lacks runnable code or concrete procedures, making it non-actionable."
-      },
-      {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases, limiting its completeness."
+        "category": "actionability",
+        "detail": "The skill is a lookup reference with only a tiny ceil() formula and worked checks, so it offers no runnable code or step-by-step procedure for generating or validating a building model against the tables."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 94,
-    "multiplier": 3.36,
+    "multiplier": 1.14,
+    "baselineAvg": 76,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Confirm whether 4-story V-B R-2 apartments with NFPA 13 is permitted",
-        "baseline": 30,
-        "treatment": 94,
-        "rationale": "Baseline gives vague guidance with no story/height numbers; treatment states R-2 + V-B, the 3/40 without and 4/60 with NFPA 13 limits, the +1 story / +20 ft rule, and the single-increase caveat."
+        "name": "mixed-use-restaurant-over-apartments-height-check",
+        "baseline": 62,
+        "treatment": 72,
+        "rationale": "Both classify R-2/A-2, use the S column at 5 stories/75 ft without a bonus, and flag Table 506.2; B stays close to the rubric and avoids stating unverified numbers, while A gives more detail but claims A-2 III-B S is 3 stories with 75 ft and asserts a 1-hr separation. It also conflicts with the rubric's 'each use meets its own limits' by treating the A-2 and R-2 limits as separate and wrongly picks separated use outright, but A's A-2 story limit of 3 may be inaccurate (A-2 III-B S is 3 stories is plausible) so the penalty is moderate."
       },
       {
-        "name": "Egress validation for an A-2 + R-2 mixed-use building",
-        "baseline": 25,
+        "name": "r2-egress-and-stair-width-check",
+        "baseline": 70,
         "treatment": 93,
-        "rationale": "Baseline lists generic egress concerns without occupancy codes; treatment classifies A-2 and R-2, references Table 508.4 separation, applies the 200 SF/7 SF occupant-load factors, and cites the 125 ft R-2 travel distance and 2-doorway rule for units > 500 SF."
+        "rationale": "B hits all three rubric items cleanly (travel passes at 250 ft, stair width fails at 44 in, single exit fails with the 4-unit/3-story cap, and the unit doorway passes at ≤20 occupants and ≤125 ft common path), while A gets the main verdicts right but cites the wrong table for the single-exit exception (1006.3.4(2) instead of (1006.3.4(1))), hedges the common-path limit as 'at least 75 ft, I recall 125', and adds speculative extras."
+      },
+      {
+        "name": "occupant-load-calculation-mixed-floors",
+        "baseline": 97,
+        "treatment": 97,
+        "rationale": "Both responses apply ceil(area/factor) with the correct Table 1004.5 factors and give 6, 21 and 84, and both say to round up; A adds a formula block and edition notes, while B adds a worked ceil() code block, so they are about equal on the rubric."
       }
     ]
   }

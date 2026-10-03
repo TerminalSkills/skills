@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:350908cda7bff082ab267527a75a9249eb77d0740e9da00b5b8afa8bb6c88da2",
-  "scoredAt": "2026-05-13T09:38:06.064Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a84623036d5f4ff8100cf4389e4c0c97ca5ceb284aec56ef2526e062fdd930a8",
+  "scoredAt": "2026-10-03T13:06:08.061Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "category": "actionability",
+        "detail": "The Go section has no runnable code or concrete options, and defers to external documentation for details such as sorted map keys."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 90,
-    "multiplier": 1.88,
+    "multiplier": 0.96,
+    "baselineAvg": 89,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Encode/decode a JS object containing Date fields losslessly over a WebSocket using @msgpack/msgpack",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Baseline calls encode/decode but loses Date type or converts to ISO strings, while treatment registers an ExtensionCodec with a Date encode/decode pair and sets ws.binaryType = 'arraybuffer' as documented."
+        "name": "websocket-binary-frames-with-dates",
+        "baseline": 88,
+        "treatment": 80,
+        "rationale": "Both set binaryType to arraybuffer, wrap data in new Uint8Array before decode, pass a Date directly, and say the server must send binary frames; B follows the rubric more closely by using the `encode`/`decode` functions, says plainly that the server must send and accept MessagePack, and includes a server-side example, while A uses Encoder/Decoder class instances instead of the plain functions and adds decoder size limits the task didn't ask for."
       },
       {
-        "name": "Stream-decode a large MessagePack payload from a Node.js Readable stream",
-        "baseline": 45,
+        "name": "set-extension-codec-ts",
+        "baseline": 90,
         "treatment": 88,
-        "rationale": "Baseline buffers the whole stream and calls decode once, while treatment uses decodeMultiStream(readableStream) inside a for-await loop to process items incrementally as documented."
+        "rationale": "Both create an ExtensionCodec, register type 0 (within the 0-127 range), and pass { extensionCodec } to the top-level and nested encode/decode calls; A explicitly says to document the type ID because other-language services will see it as an ExtType, while B only says both ends must use the same SET_EXT_TYPE (and only in the Socket.IO note), so A covers the cross-language contract point slightly better, but B's wrapper helpers and more thorough notes make its overall answer a bit stronger."
+      },
+      {
+        "name": "python-redis-cache-and-stream",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both use datetime=True, timestamp=3, and Unpacker.feed() with iteration, but A adds a chunked-read example with max_buffer_size and notes that it must exceed the largest record, while B mentions the 100 MiB default max_buffer_size for untrusted data and covers the Unpacker pitfalls with a shorter, less thorough stream example."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a06391e9b4c14c506a29ce5cd68ae0c184766186f02871e3f3d53f29755ad9e2",
-  "scoredAt": "2026-05-13T16:35:23.374Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:7e96c3f128c93c7fc3e5f31428fd4fea90e7e9b5c1cb0f9ace86fd2b2016dbbf",
+  "scoredAt": "2026-10-03T22:12:18.653Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,35 +18,52 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases for devcontainer setup."
+        "detail": "Covers mostly the happy path; no troubleshooting for build failures, port conflicts, Docker not running, or rebuilding the container, and Example 2 describes the devcontainer.json for the compose setup in prose rather than showing it."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes VS Code or GitHub Codespaces, limiting cross-platform applicability."
+        "detail": "Heavily oriented to VS Code and GitHub Codespaces with VS Code-specific customizations, though the standalone CLI and JetBrains support are briefly mentioned."
+      },
+      {
+        "severity": "INFO",
+        "category": "security",
+        "detail": "Sample compose file uses a hardcoded weak Postgres password ('postgres'), acceptable for local dev only; the global npm install of @devcontainers/cli is from an official source."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "credentials",
+        "detail": "Hardcoded POSTGRES_PASSWORD 'postgres' in the example compose file is a local-dev placeholder, not a real credential."
+      }
+    ]
   },
   "impact": {
-    "multiplier": 1.71,
-    "baselineAvg": 38,
-    "treatmentAvg": 65,
+    "multiplier": 1.01,
+    "baselineAvg": 87,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "basic-typescript-node-config",
-        "baseline": 45,
-        "treatment": 70,
-        "rationale": "Response B covers most rubric items (image, ports, postCreateCommand, extensions, settings) but misses the required features block, while Response A fails to meet several key requirements such as using the specified image, including features, and correctly nesting extensions and settings."
+        "name": "onboarding-devcontainer-node-cli",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "Both supply a devcontainer.json with a typescript-node image, forwardPorts 3000, postCreateCommand npm install, ESLint and Prettier extensions, and the clone, open in VS Code, Reopen in Container flow; A also includes a feature pinned to :1 with an explicit note on pinning, which the rubric calls for, while B has no features and so nothing to pin, and B opens by saying it wrote nothing and adds extra ESLint/Prettier setup that wasn't asked for, which dilutes the answer even though the 0.0.0.0 binding tip is useful."
       },
       {
-        "name": "add-postgres-database",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response B better meets the rubric, correctly defining the db service and devcontainer.json features, while Response A fails to match required service name, environment variables, and image specification."
+        "name": "devcontainer-with-postgres-compose",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both responses supply the compose file with `sleep infinity` and a postgres:16 db service with POSTGRES_PASSWORD and POSTGRES_DB, a devcontainer.json with dockerComposeFile, service and workspaceFolder, and the host `db` on port 5432; A adds a healthcheck, env vars and fuller notes, while B is more minimal, includes some unrelated Node/ESLint settings, and states the host and port explicitly in its explanation."
+      },
+      {
+        "name": "devcontainer-cli-ci-and-lifecycle",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both give the CLI install, `devcontainer up`, `devcontainer exec ... npm test`, and the postCreateCommand versus postStartCommand explanation; A adds more detail (build, CI YAML, caveats) and states things confidently, while B is concise but hedges that it is unsure whether postStartCommand runs on `up`."
       }
     ]
   }

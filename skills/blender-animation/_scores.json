@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:88dec7d14a8ce0d1858f128d1edd406093560a56e82af1b5a3e9c4f728d7bbaa",
-  "scoredAt": "2026-05-13T14:44:04.711Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:6c7ad13a014c1d38b43d398e5e19509b3b9bfef899b91fdc80291f8d77aee850",
+  "scoredAt": "2026-10-02T23:23:30.488Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains verbose explanatory text beyond necessary instructions."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Blender and cannot run on other AI agents."
+        "detail": "Mostly happy-path code with little error handling, such as missing objects or a missing action, an empty channelbag, or find() returning None outside one case. The Guidelines and a few inline notes cover only some pitfalls."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.81,
-    "baselineAvg": 43,
-    "treatmentAvg": 78,
+    "multiplier": 1.16,
+    "baselineAvg": 75,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "armature-ik-reach",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A meets all rubric requirements, while Response B uses a cube instead of an Empty target and omits the frame 50 keyframe."
+        "name": "walk-cycle-nla-wave-layer",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both layer a COMBINE wave strip starting at frame 25 on a second NLA track, set rotation_mode to XYZ, clear animation_data.action, name the actions, and run with blender --background --python; A also switches to Pose mode before keying, as the rubric asks, while B keys in Object mode."
       },
       {
-        "name": "facial-expression-driver",
-        "baseline": 35,
-        "treatment": 55,
-        "rationale": "Response B creates the mesh and shape keys (though misnamed) and adds a driver, whereas Response A fails to create a mesh and also misnames the shape key and omits keyframing."
+        "name": "fix-fcurves-attribute-error-loop-noise",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": "B matches the rubric closely: it uses the channelbag helper, iterates channelbag.fcurves, adds the Cycles modifier, and finds the Z curve with fcurves.find(\"location\", index=2) before adding Noise with strength and scale. A gets the channelbag helper and the modifiers right but finds the Z curve by looping over data_path and array_index instead of fcurves.find. A also claims 4.4+ keeps a legacy action.fcurves shim, which is questionable, and its explanation of slots and channelbags is thinner than B's."
+      },
+      {
+        "name": "smile-shape-key-and-driver",
+        "baseline": 82,
+        "treatment": 80,
+        "rationale": "Both create Basis with from_mix=False, keyframe Smile at 0/1/0 using keyframe_insert, and set up a SCRIPTED driver with a LOC_X transform variable on the empty and an expression using the variable name; B is slightly cleaner (explicit animation clearing, fuller driver explanation), while A adds a vertex deformation but its keyframes-vs-driver conflict handling is only a note."
       }
     ]
   }

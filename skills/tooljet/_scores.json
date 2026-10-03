@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c71d8d5b127670af4d6e49e0f8cf49aa162151e5ab3d14e6aabb5f048df3aa1e",
-  "scoredAt": "2026-05-13T10:27:01.655Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9d9e2943752494425a0b7e1817b2ccfc88684199cd2ec3dcb38c13f671963cd3",
+  "scoredAt": "2026-10-03T12:20:07.617Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
+        "category": "examples",
+        "detail": "Both examples are prose descriptions of steps rather than runnable, end-to-end demonstrations; Example 1 has no concrete commands or .env snippet, and Example 2 relies on the processRefund query without showing its code."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 84,
-    "multiplier": 2.63,
+    "multiplier": 1.75,
+    "baselineAvg": 51,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Build an orders refund admin tool with chained button actions",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment shows a PostgreSQL query using {{components.statusFilter.value}} bindings, a JavaScript transformation, and a chained onClick that runs queries.processRefund.run(), shows an alert via actions.showAlert, and refreshes data; baseline gives generic CRUD app advice without ToolJet-specific bindings."
+        "name": "selfhost-production-pinned-compose",
+        "baseline": 45,
+        "treatment": 88,
+        "rationale": "A matches the rubric closely: it uses ee-lts-latest with the official compose file and .env template, sets TOOLJET_HOST with https://, generates both keys with openssl rand -hex 32, pins by digest with docker inspect RepoDigests plus sed, backs up .env and explains the LOCKBOX_MASTER_KEY risk, and adds a TLS reverse proxy. B hand-writes its own compose file instead of using the official one and pins a version tag, never using ee-lts-latest. It generates SECRET_KEY_BASE with `openssl rand -hex 64`, and the digest pin is optional and has no sed step. It does cover the https host, the backup warning and Caddy TLS well."
       },
       {
-        "name": "Self-host ToolJet with environments and app version control",
-        "baseline": 30,
-        "treatment": 82,
-        "rationale": "Treatment uses the documented docker compose up -d (or the helm chart from tooljet/helm-charts), mentions ToolJet environments for dev/staging/prod, and recommends exporting apps as JSON for Git versioning; baseline gives generic Docker self-host steps without environments or JSON export."
+        "name": "orders-dashboard-refund-flow",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: a getOrders query using a components expression, the Table bound to queries.getOrders.data (via an intermediate query), and a RunJS that reads selectedRow, runs processRefund, shows an alert and reruns getOrders, all attached to the button's On click. A uses event handlers on the query instead and only offers the RunJS flow as an optional extra. It also names its UPDATE query refundOrder, and its getOrders has no components expression."
+      },
+      {
+        "name": "safe-sql-and-js-transform",
+        "baseline": 52,
+        "treatment": 88,
+        "rationale": "B matches the rubric closely: a Run JavaScript query over queries.getOrders.data, the toFixed(2) and moment fromNow formatting, binding the table to queries.<name>.data, an injection warning, parameterized mode and a read-only user. A uses a transformation rather than a separate JS query, never binds the table to a query's data, and does cover injection, prepared statements and a read-only user well."
       }
     ]
   }

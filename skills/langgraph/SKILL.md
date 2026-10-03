@@ -8,11 +8,12 @@ description: >-
   planning agents, build supervisor/worker patterns, or orchestrate multi-step
   AI pipelines with cycles, persistence, and streaming.
 license: Apache-2.0
-compatibility: 'Python 3.9+ or Node.js 18+ (langgraph, langgraph-checkpoint)'
+compatibility: 'Python 3.10+ (langgraph 1.x) or Node.js 18+ (@langchain/langgraph)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/langchain-ai/langgraph
   tags:
     - langgraph
     - agents
@@ -32,9 +33,10 @@ LangGraph is a framework for building stateful, multi-actor AI applications as g
 ### Step 1: Installation
 
 ```bash
-pip install langgraph langgraph-checkpoint langchain-openai
-# For persistence:
+pip install -U langgraph langchain langchain-openai
+# For persistence across restarts:
 pip install langgraph-checkpoint-sqlite  # or langgraph-checkpoint-postgres
+export OPENAI_API_KEY="..." OPENAI_MODEL="..."   # key and a model id from your provider; code below reads OPENAI_MODEL
 ```
 
 ### Step 2: Core Concepts
@@ -60,6 +62,7 @@ class State(TypedDict):
 The simplest useful agent — calls tools in a loop until done:
 
 ```python
+import os
 from typing import Annotated, TypedDict
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
@@ -78,10 +81,16 @@ def search_web(query: str) -> str:
 @tool
 def calculate(expression: str) -> str:
     """Evaluate a math expression."""
-    return str(eval(expression))
+    import ast, operator as op
+    ops = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv}
+    def ev(n):
+        if isinstance(n, ast.Constant): return n.value
+        if isinstance(n, ast.BinOp) and type(n.op) in ops: return ops[type(n.op)](ev(n.left), ev(n.right))
+        raise ValueError("unsupported expression")
+    return str(ev(ast.parse(expression, mode="eval").body))  # never eval() model output
 
 tools = [search_web, calculate]
-llm = ChatOpenAI(model="gpt-4o").bind_tools(tools)
+llm = ChatOpenAI(model=os.environ["OPENAI_MODEL"]).bind_tools(tools)
 
 def agent(state: State) -> dict:
     response = llm.invoke(state["messages"])
@@ -108,18 +117,19 @@ result = app.invoke({"messages": [("human", "What's 42 * 17 and who invented cal
 
 ### Step 4: Prebuilt Agents
 
-For common patterns, use prebuilt helpers:
+For the common tool-calling loop, LangChain 1.x provides `create_agent`, built on LangGraph (it replaces `langgraph.prebuilt.create_react_agent`, deprecated since 1.0; that function's prompt argument is `prompt`, not `state_modifier`):
 
 ```python
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-agent = create_react_agent(
-    ChatOpenAI(model="gpt-4o"),
+agent = create_agent(
+    model="openai:" + os.environ["OPENAI_MODEL"],
     tools=[search_web, calculate],
-    state_modifier="You are a research assistant. Always cite sources.",
+    system_prompt="You are a research assistant. Always cite sources.",
 )
 
-result = agent.invoke({"messages": [("human", "Compare GDP of France and Germany")]})
+result = agent.invoke({"messages": [{"role": "user", "content": "Compare GDP of France and Germany"}]})
+print(result["messages"][-1].content)
 ```
 
 ### Step 5: Custom State and Complex Workflows
@@ -127,6 +137,8 @@ result = agent.invoke({"messages": [("human", "Compare GDP of France and Germany
 Use custom `TypedDict` state with `Annotated[list, add]` reducers to accumulate data across nodes. Build workflows with cycles using conditional edges — for example, a research-write-review loop where `should_revise` routes back to revision until quality passes or max iterations are reached:
 
 ```python
+from operator import add
+
 class ResearchState(TypedDict):
     topic: str
     sources: Annotated[list[str], add]  # Accumulates across nodes
@@ -140,7 +152,6 @@ graph.add_node("write", write_draft)
 graph.add_node("review", review)
 graph.add_node("revise", revise)
 graph.add_node("publish", publish)
-
 graph.add_edge(START, "research")
 graph.add_edge("research", "write")
 graph.add_edge("write", "review")
@@ -156,40 +167,42 @@ app = graph.compile()
 Checkpointing lets agents resume from where they left off:
 
 ```python
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import InMemorySaver      # dev only, lost on restart
+from langgraph.checkpoint.sqlite import SqliteSaver        # file-based
 
-# In-memory for dev:
-from langgraph.checkpoint.memory import MemorySaver
-memory = MemorySaver()
+# SqliteSaver.from_conn_string is a context manager
+with SqliteSaver.from_conn_string("checkpoints.db") as memory:
+    app = graph.compile(checkpointer=memory)
 
-# SQLite for persistence:
-memory = SqliteSaver.from_conn_string("checkpoints.db")
-
-app = graph.compile(checkpointer=memory)
-
-# Each thread_id maintains separate conversation state
-config = {"configurable": {"thread_id": "user-123"}}
-result = app.invoke({"messages": [("human", "Hi, I'm Alice")]}, config)
-# Later...
-result = app.invoke({"messages": [("human", "What's my name?")]}, config)
-# Agent remembers: "Your name is Alice"
+    # Each thread_id maintains separate conversation state
+    config = {"configurable": {"thread_id": "user-123"}}
+    app.invoke({"messages": [("human", "Hi, I'm Alice")]}, config)
+    result = app.invoke({"messages": [("human", "What's my name?")]}, config)  # remembers Alice
 ```
+
+Use `PostgresSaver` (call `.setup()` once) in production.
 
 ### Step 7: Human-in-the-Loop
 
-Interrupt execution for human approval using `interrupt_before`:
+Pause inside a node with `interrupt()` and continue with `Command(resume=...)`. A checkpointer and a `thread_id` are required, and the node restarts from its beginning on resume, so keep side effects after the interrupt:
 
 ```python
-# interrupt_before pauses execution before the specified node
-app = graph.compile(checkpointer=MemorySaver(), interrupt_before=["send"])
+from langgraph.types import interrupt, Command
 
+def send(state: State) -> dict:
+    approved = interrupt({"question": "Send this email?", "draft": state["messages"][-1].content})
+    if approved:
+        send_email(state["messages"][-1].content)
+    return {"messages": [("ai", "sent" if approved else "cancelled")]}
+
+app = graph.compile(checkpointer=InMemorySaver())
 config = {"configurable": {"thread_id": "email-1"}}
 result = app.invoke({"messages": [("human", "Send apology email")]}, config)
-# Execution pauses before "send" — human reviews draft
-
-# Resume after approval:
-result = app.invoke(None, config)  # Continue from checkpoint
+print(result["__interrupt__"])                      # the payload for the reviewer
+result = app.invoke(Command(resume=True), config)   # approval continues the run
 ```
+
+`interrupt_before` / `interrupt_after` still exist but the docs recommend them for debugging only.
 
 ### Step 8: Multi-Agent Patterns
 
@@ -197,11 +210,12 @@ result = app.invoke(None, config)  # Continue from checkpoint
 One agent delegates to specialist workers:
 
 ```python
+import os
 from typing import Literal
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, START, END, MessagesState
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model=os.environ["OPENAI_MODEL"])
 
 def supervisor(state: MessagesState) -> dict:
     response = llm.invoke([
@@ -214,29 +228,20 @@ def route(state: MessagesState) -> Literal["researcher", "writer", END]:
     last = state["messages"][-1].content.lower()
     if "researcher" in last:
         return "researcher"
-    elif "writer" in last:
-        return "writer"
-    return END
+    return "writer" if "writer" in last else END
 
-def researcher(state: MessagesState) -> dict:
-    result = llm.invoke([
-        ("system", "You are a research specialist. Find facts and data."),
-        *state["messages"]
-    ])
-    return {"messages": [result]}
+def make_worker(role: str):
+    def worker(state: MessagesState) -> dict:
+        return {"messages": [llm.invoke([("system", role), *state["messages"]])]}
+    return worker
 
-def writer(state: MessagesState) -> dict:
-    result = llm.invoke([
-        ("system", "You are a writing specialist. Create polished content."),
-        *state["messages"]
-    ])
-    return {"messages": [result]}
+researcher = make_worker("You are a research specialist. Find facts and data.")
+writer = make_worker("You are a writing specialist. Create polished content.")
 
 graph = StateGraph(MessagesState)
 graph.add_node("supervisor", supervisor)
 graph.add_node("researcher", researcher)
 graph.add_node("writer", writer)
-
 graph.add_edge(START, "supervisor")
 graph.add_conditional_edges("supervisor", route)
 graph.add_edge("researcher", "supervisor")
@@ -260,41 +265,35 @@ for chunk in app.stream({"messages": [("human", "Research AI trends")]}, stream_
 # Use compiled subgraph as a node
 parent = StateGraph(ParentState)
 parent.add_node("research", research_compiled)  # compiled subgraph
-parent.add_node("publish", publish_node)
 parent.add_edge(START, "research")
-parent.add_edge("research", "publish")
 ```
 
 ## Examples
 
-### Example 1: Build a customer support agent with tool use
-**User prompt:** "Create a LangGraph agent that handles customer support. It should be able to look up order status, check return eligibility, and escalate to a human when it can't resolve the issue."
+### Example 1: Customer support agent with tools
+**User prompt:** "Create a LangGraph agent that handles customer support: look up order status, check return eligibility, and escalate to a human when it can't resolve the issue."
 
-The agent will define three tools — `lookup_order` (takes an order ID and returns status/tracking), `check_return_eligibility` (takes order ID and returns whether it qualifies), and `escalate_to_human` (flags the conversation for human review). It will create a `State` TypedDict with an `add_messages` reducer, wire up a ReAct-pattern graph with an LLM node that calls tools in a loop, add a conditional edge that routes to `END` when no tool calls remain or routes to a `ToolNode`, and compile the graph with `MemorySaver` for conversation persistence across multiple turns using `thread_id`.
+The agent defines `lookup_order`, `check_return_eligibility` and `escalate_to_human` as `@tool` functions, builds the ReAct graph from Step 3 (LLM node, `ToolNode`, conditional edge to `END` when no tool calls remain) and compiles it with a checkpointer so each `thread_id` keeps its own conversation. Result: a multi-turn agent whose answers cite tool output.
 
-### Example 2: Create a multi-agent research and writing pipeline
-**User prompt:** "Build a LangGraph workflow where a researcher agent gathers information about a topic, a writer agent drafts an article, and a reviewer agent provides feedback. The writer should revise up to 3 times based on feedback before publishing."
+### Example 2: Researcher, writer and reviewer pipeline
+**User prompt:** "Build a workflow where a researcher gathers information, a writer drafts an article, and a reviewer gives feedback. Revise up to 3 times before publishing."
 
-The agent will define a `ResearchState` with fields for topic, sources, draft, review notes, and revision count using `Annotated[list, add]` for sources. It will create four nodes — `research` (gathers sources via web search tool), `write` (drafts article from sources), `review` (evaluates draft quality), and `publish` (outputs final article). A `should_revise` conditional edge will route back to `write` if the reviewer requests changes and `revision_count < 3`, otherwise route to `publish`. The graph compiles with checkpointing so the user can inspect intermediate states.
+The agent defines `ResearchState` (topic, sources with an `add` reducer, draft, review notes, `revision_count`) and nodes `research`, `write`, `review`, `publish`. A `should_revise` conditional edge routes back to `write` while the reviewer objects and `revision_count < 3`, otherwise to `publish`. Checkpointing lets you inspect each step with `app.get_state(config)`.
 
 ## Guidelines
 
-1. **Start with prebuilt agents** — `create_react_agent` covers 80% of use cases
-2. **Use TypedDict state** — clear types prevent runtime bugs
-3. **Keep nodes focused** — each node does one thing well
+1. **Start with `create_agent`** — covers the plain tool-calling loop; drop to `StateGraph` when you need custom control flow
 4. **Add persistence early** — checkpointing enables recovery, debugging, and human-in-the-loop
-5. **Limit cycles** — always have a max iteration count to prevent infinite loops
 6. **Use conditional edges** — they make control flow explicit and debuggable
 7. **Stream in production** — users need feedback during multi-step agent runs
-8. **Test with deterministic inputs** — mock tool outputs for reliable tests
-9. **Visualize your graph** — `app.get_graph().draw_mermaid_png()` helps debug topology
+9. **Visualize your graph** — `app.get_graph().draw_mermaid()` helps debug topology
 10. **Use LangSmith tracing** — essential for debugging multi-node agent runs
 
 ## Common Pitfalls
 
-- **Forgetting reducers**: Without `Annotated[list, add]`, lists get overwritten instead of appended
-- **Infinite loops**: Always add a max-iteration check in conditional edges
-- **State key mismatches**: Node return keys must match State fields exactly
+- **Forgetting reducers**: without `Annotated[list, add]`, lists are overwritten instead of appended
+- **Infinite loops**: cap iterations in conditional edges
+- **State key mismatches**: node return keys must match State fields
 - **Not compiling**: `graph.compile()` is required before `.invoke()`
-- **Mixing up `START`/`END`**: Import from `langgraph.graph`, not strings
-- **Checkpoint without thread_id**: Always pass `configurable.thread_id` when using persistence
+- **Checkpoint without thread_id**: always pass `configurable.thread_id` when using persistence
+- **Old APIs**: `create_react_agent(state_modifier=...)` and `MemorySaver`-only tutorials predate 1.0; use `create_agent` and `InMemorySaver`

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:aed93c6960b8e9bf4dedc0e5601419c2fd683100b5ad3b5f99c7bb47927517d4",
-  "scoredAt": "2026-05-13T14:30:55.493Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:462948a7beb57e75cb81b3402a26722197ff41d49c2d9e72625dcbc7b98cd739",
+  "scoredAt": "2026-10-02T23:22:37.562Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.43,
-    "baselineAvg": 70,
-    "treatmentAvg": 100,
+    "multiplier": 1,
+    "baselineAvg": 92,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "product-crud-with-state-error-handling",
-        "baseline": 80,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required State<AppState> extractor."
+        "name": "migrate-axum-07-to-08",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both rewrite the routes to `/orders/{id}` and `/assets/{*rest}` and remove `#[async_trait]` in favour of a plain `async fn` in the `FromRequestParts` impl; A also notes that `axum::Server` is gone and that `axum::serve(listener, app)` replaces it, which the rubric allows as optional, while B only says `axum::serve` is unchanged and gives a more complete extractor example."
       },
       {
-        "name": "auth-middleware-with-user-extension",
-        "baseline": 60,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric by using middleware::from_fn_with_state, extracting the Bearer token, validating it, injecting the user ID, and applying it to a protected route, whereas Response B uses from_fn instead of from_fn_with_state, missing that key requirement."
+        "name": "bearer-auth-route-layer",
+        "baseline": 95,
+        "treatment": 93,
+        "rationale": "Both use an async fn with Request and Next, attach it with route_layer on a protected sub-router merged into the main router, keep /health outside it, and return 401 for bad tokens, so both meet the rubric. B is a complete runnable program using from_fn_with_state and explains why .layer would break 404s. A uses from_fn without state and mentions from_fn_with_state only as an aside, and its token check reads an env var on every request."
+      },
+      {
+        "name": "axum-handler-tests-without-db",
+        "baseline": 92,
+        "treatment": 93,
+        "rationale": "Both responses satisfy every rubric item: oneshot with Request::builder().uri().body(Body::empty()), a lazy pool, BodyExt collect().await.unwrap().to_bytes(), and asserts of status 200 and body OK. B calls PgPool::connect_lazy directly as the rubric names it and is more concise. A uses PgPoolOptions::new().connect_lazy, which is equivalent, and adds extra notes."
       }
     ]
   }

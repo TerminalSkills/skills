@@ -9,10 +9,11 @@ description: >-
   ingestion pipelines. Covers format selection, audio extraction, playlists,
   subtitles, metadata, and automation.
 license: Apache-2.0
-compatibility: 'Python 3.8+ or standalone binary (Linux, macOS, Windows)'
+compatibility: 'Python 3.10+ or standalone binary (Linux, macOS, Windows); ffmpeg for merging and conversion; a JavaScript runtime (deno recommended) for YouTube'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/yt-dlp/yt-dlp
   category: content
   tags:
     - yt-dlp
@@ -33,19 +34,24 @@ Download and extract media from YouTube and 1000+ other sites using yt-dlp — t
 ### Step 1: Installation
 
 ```bash
-# pip (recommended)
-pip install yt-dlp
+# pip (needs Python 3.10+); the [default] extra adds the YouTube JS helper, curl-cffi and other optional parts
+pip install -U "yt-dlp[default]"
 
-# Standalone binary
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-chmod +x /usr/local/bin/yt-dlp
+# or pipx / Homebrew
+pipx install "yt-dlp[default]"
+brew install yt-dlp
 
-# Update
-yt-dlp -U
+# Update: pip/pipx/brew installs update through their package manager
+pip install -U "yt-dlp[default]"
+yt-dlp -U            # only for the standalone binary from GitHub releases
 
-# Verify
+# Verify (versions are dates, e.g. 2026.08.19)
 yt-dlp --version
 ```
+
+A standalone binary is on the GitHub releases page; download `SHA2-256SUMS` from the same release and check it with `sha256sum -c --ignore-missing SHA2-256SUMS` before making the file executable.
+
+**YouTube needs a JavaScript runtime.** Recent yt-dlp runs YouTube's player code with an external runtime; without one it warns "No supported JavaScript runtime could be found" and some formats go missing. Install deno (enabled by default), or enable another with `--js-runtimes node` (supported: deno, node, quickjs, bun). The official executables and `yt-dlp[default]` bundle the helper scripts; see the project's EJS wiki page.
 
 **ffmpeg is required** for merging formats and audio conversion:
 ```bash
@@ -115,13 +121,14 @@ yt-dlp --merge-output-format mp4 "URL"
 
 ```bash
 # Download entire playlist
-yt-dlp "https://youtube.com/playlist?list=PLAYLIST_ID"
+PLAYLIST_URL="$1"   # the playlist address copied from the browser
+yt-dlp "$PLAYLIST_URL"
 
 # Playlist: audio only
 yt-dlp -x --audio-format mp3 "PLAYLIST_URL"
 
 # Download specific items from playlist
-yt-dlp --playlist-start 5 --playlist-end 10 "PLAYLIST_URL"    # Items 5-10
+yt-dlp --playlist-items 5:10 "PLAYLIST_URL"                   # Items 5-10
 yt-dlp --playlist-items 1,3,5,7-10 "PLAYLIST_URL"             # Specific items
 
 # Download entire channel
@@ -142,22 +149,22 @@ yt-dlp --download-archive archive.txt "PLAYLIST_URL"
 
 ```bash
 # Download video + subtitles
-yt-dlp --write-sub --sub-lang en "URL"
+yt-dlp --write-subs --sub-langs en "URL"
 
 # Download auto-generated subtitles
-yt-dlp --write-auto-sub --sub-lang en "URL"
+yt-dlp --write-auto-subs --sub-langs en "URL"
 
 # All available subtitles
-yt-dlp --write-sub --all-subs "URL"
+yt-dlp --write-subs --sub-langs all "URL"
 
 # Subtitles only (no video)
-yt-dlp --skip-download --write-sub --sub-lang en "URL"
+yt-dlp --skip-download --write-subs --sub-langs en "URL"
 
 # Convert subtitles to SRT
-yt-dlp --write-sub --sub-lang en --convert-subs srt "URL"
+yt-dlp --write-subs --sub-langs en --convert-subs srt "URL"
 
 # Embed subtitles into video file
-yt-dlp --embed-subs --sub-lang en "URL"
+yt-dlp --embed-subs --sub-langs en "URL"
 
 # List available subtitle languages
 yt-dlp --list-subs "URL"
@@ -173,7 +180,7 @@ yt-dlp --dump-json "URL" | python3 -m json.tool
 yt-dlp --print "%(title)s | %(duration)s | %(view_count)s" "URL"
 
 # Get thumbnail URL
-yt-dlp --get-thumbnail "URL"
+yt-dlp --print thumbnail "URL"
 
 # Download thumbnail only
 yt-dlp --skip-download --write-thumbnail "URL"
@@ -203,8 +210,8 @@ yt-dlp -o "%(title).100B.%(ext)s" "URL"    # Limit title to 100 bytes
 # Download from URL list, with archive tracking and rate limiting
 yt-dlp -a urls.txt -x --audio-format mp3
 yt-dlp -a urls.txt --download-archive done.txt -x --audio-format mp3
-yt-dlp --rate-limit 5M --sleep-interval 5 -a urls.txt
-yt-dlp -N 4 "PLAYLIST_URL"    # 4 concurrent downloads
+yt-dlp --limit-rate 5M --sleep-interval 5 --max-sleep-interval 15 -a urls.txt
+yt-dlp -N 4 "PLAYLIST_URL"    # 4 concurrent FRAGMENTS of one video (DASH/HLS); videos still download one by one
 ```
 
 ### Step 9: Other Platforms
@@ -212,13 +219,14 @@ yt-dlp -N 4 "PLAYLIST_URL"    # 4 concurrent downloads
 yt-dlp supports 1000+ sites beyond YouTube. Use `yt-dlp --list-extractors` to see all:
 
 ```bash
-yt-dlp "https://twitter.com/user/status/123456789"           # Twitter/X
-yt-dlp "https://www.instagram.com/p/POST_ID/"                # Instagram
-yt-dlp "https://www.tiktok.com/@user/video/123456789"        # TikTok
-yt-dlp "https://www.twitch.tv/videos/123456789"              # Twitch VODs
-yt-dlp "https://soundcloud.com/artist/track-name"            # SoundCloud
-yt-dlp "https://vimeo.com/123456789"                         # Vimeo
+yt-dlp "$X_POST_URL"                                       # X (Twitter); many posts need --cookies-from-browser
+yt-dlp "https://www.tiktok.com/@nasa/video/7234567890123456789"  # TikTok
+yt-dlp "https://www.twitch.tv/videos/2012345678"            # Twitch VODs
+yt-dlp "https://soundcloud.com/odesza/line-of-sight"         # SoundCloud
+yt-dlp "https://vimeo.com/76979871"                          # Vimeo
 ```
+
+Sites that require a login (Instagram, age-gated or members-only videos) work only with your own session: `--cookies-from-browser firefox`. Support for individual sites breaks often; check `yt-dlp --list-extractors` and the project's supported-sites list, and update first when a site fails. Download only content you have the right to save.
 
 ### Step 10: Pipeline Integration
 
@@ -243,10 +251,10 @@ Save defaults in `~/.config/yt-dlp/config`:
 --embed-metadata
 --embed-thumbnail
 --download-archive ~/.local/share/yt-dlp/archive.txt
---rate-limit 10M
+--limit-rate 10M
 --sleep-interval 3
---write-auto-sub
---sub-lang en
+--write-auto-subs
+--sub-langs en
 --convert-subs srt
 ```
 
@@ -265,7 +273,7 @@ The agent will:
 **User prompt:** "Download this conference talk as 720p MP4 with English subtitles embedded, then also extract just the audio as WAV for transcription: https://youtube.com/watch?v=dQw4w9WgXcQ"
 
 The agent will:
-1. Download the video with embedded subtitles: `yt-dlp -f "bestvideo[height<=720]+bestaudio" --merge-output-format mp4 --embed-subs --sub-lang en --write-auto-sub "URL"`.
+1. Download the video with embedded subtitles: `yt-dlp -f "bestvideo[height<=720]+bestaudio" --merge-output-format mp4 --embed-subs --sub-langs en --write-auto-subs "URL"`.
 2. Extract audio separately: `yt-dlp -x --audio-format wav -o "talk-audio.%(ext)s" "URL"`.
 3. Confirm both files exist and report their sizes and durations.
 
@@ -273,6 +281,9 @@ The agent will:
 
 - Always install ffmpeg alongside yt-dlp; it is required for merging separate video and audio streams and for audio format conversion.
 - Use `--download-archive archive.txt` when downloading playlists or channels to avoid re-downloading videos on subsequent runs.
-- Apply rate limiting with `--rate-limit 5M --sleep-interval 5` when batch downloading to avoid being throttled or blocked by the source platform.
+- Apply rate limiting with `--limit-rate 5M --sleep-interval 5` when batch downloading to avoid being throttled or blocked by the source platform.
 - Use `-f "bestvideo[height<=1080]+bestaudio/best[height<=1080]"` as a default format selector to get good quality without unnecessarily large 4K files.
-- Keep yt-dlp updated regularly with `yt-dlp -U`; extractors break frequently as platforms change their APIs and page structures.
+- Keep yt-dlp updated (`yt-dlp -U` for the binary, your package manager otherwise); extractors break frequently as platforms change their APIs and page structures.
+- Install a JavaScript runtime (deno) for YouTube; without it formats go missing and downloads may fail.
+- `-N` speeds up one download by fetching fragments in parallel; it does not download several videos at once.
+- Configuration lives in `~/.config/yt-dlp/config` (Linux/macOS); use `--ignore-config` to test a command without it.

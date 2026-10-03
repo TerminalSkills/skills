@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5d7e5f6a52e528f05d03e4472d3566f0ef70ed9375aeea4eca59f0be799d8da8",
-  "scoredAt": "2026-05-13T09:38:49.668Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:22cd8e4bcadcce9a6888e92115bc6dae55d581bb38e4d1d98b342043e2578c91",
+  "scoredAt": "2026-10-03T12:02:25.315Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to n8n and does not work with other AI agents."
+        "category": "examples",
+        "detail": "The two examples mostly point back to earlier code blocks and show a single run command each, so they are thin demonstrations: the AI agent example is never run, and the batch loop example uses undeclared variables (nightly, getPending, finish, enrichContact, saveContact)."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 22,
-    "treatmentAvg": 84,
-    "multiplier": 3.82,
+    "multiplier": 3.37,
+    "baselineAvg": 27,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Build AI support agent workflow in code",
-        "baseline": 20,
-        "treatment": 82,
-        "rationale": "Treatment uses WorkflowBuilder with node('n8n-nodes-langchain.agent', ...), .withSub(languageModel(...)), .withSub(memory(...)), and .withSub(tool(...)) per the SDK; baseline writes generic JSON or LangChain code without referencing the SDK's sub-node attachment pattern."
+        "name": "branching-lead-router-with-validation",
+        "baseline": 4,
+        "treatment": 88,
+        "rationale": "Response A uses the SDK's generic trigger/node/ifElse factories, wires the branches with .onTrue/.onFalse under workflow().add().to(), builds the conditions object with options, conditions and combinator, uses expr() for the left value, and calls .validate() and .toJSON(). Response B hand-writes raw n8n JSON with no SDK factories, no .onTrue/.onFalse and no .validate(), and its own validation is a custom script."
       },
       {
-        "name": "Convert existing n8n JSON workflow to TypeScript and deploy via API",
-        "baseline": 25,
-        "treatment": 86,
-        "rationale": "Treatment uses generateWorkflowCode(), validateWorkflow(), and POSTs to /api/v1/workflows with X-N8N-API-KEY then PATCHes /activate as in the skill; baseline reverse-engineers JSON manually with no validation step or correct activation endpoint."
+        "name": "ai-agent-memory-session-key",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "A matches every rubric point, including nodeJson(support, 'body.userId') for the memory session key; B uses expr('{{ $json.body.userId }}') for the session key, which the rubric specifically rules out, though B does get the other items right, such as the $fromAI query parameter, the system message, and newCredential."
+      },
+      {
+        "name": "json-to-code-and-deploy",
+        "baseline": 22,
+        "treatment": 90,
+        "rationale": "Response A uses generateWorkflowCode, parseWorkflowCode and validateWorkflow with a result.valid check that prints errors and exits 1. It also POSTs only name, nodes, connections and settings with the X-N8N-API-KEY header and publishes via /publish. It pins the version with --save-exact and reads the key from an env var. Response B uses the deprecated /activate endpoint, has no --save-exact pin, and hedges on the SDK function names, though it does read the key from an env var and the other scripts are mostly sound."
       }
     ]
   }

@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:26f9e7270d9f4a4ce43c775ce9bbba5dcd8221dea5617107e085b5a165b4d1c5",
-  "scoredAt": "2026-05-13T09:24:13.454Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f05925e047abdf2ad7d4afc7d8bd14e0f5899c28453f590e35eca92fcf09db52",
+  "scoredAt": "2026-10-03T12:02:10.973Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in instructions and examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions only cover Linux and macOS, lacking Windows support."
+        "detail": "Error handling is thin: there are no steps for a failed checksum, a server that fails to start or a port already in use, or a failed fetch, and Example 2 backgrounds the server with '&' but only says to stop it by PID without showing how."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Binary download via curl without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 22,
-    "treatmentAvg": 90,
-    "multiplier": 4.09,
+    "multiplier": 2.02,
+    "baselineAvg": 46,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Build a memory-efficient concurrent web scraper for 500+ pages on a small VM",
+        "name": "markdown-dump-for-llm-prompt",
         "baseline": 25,
-        "treatment": 92,
-        "rationale": "Treatment starts lightpanda on host 127.0.0.1 port 9222, connects Puppeteer via browserWSEndpoint ws://127.0.0.1:9222, reuses one browser connection across pages, waits on domcontentloaded only, and bounds concurrency; baseline launches Puppeteer with full Chromium, which contradicts the resource-constrained goal."
+        "treatment": 97,
+        "rationale": "B gives the exact `lightpanda fetch` command with `--dump markdown`, `--dump-selector \"main\"`, `--strip-mode clutter`, `--dump-max-bytes 40000` and redirects to a file, while A uses `fetch --dump markdown` and a file redirect but wrongly claims there is no size flag, uses awk truncation, uses underscore flag names, and says main-content narrowing is not possible."
       },
       {
-        "name": "Headless browsing backend for an LLM scraping pipeline that needs minimal CPU",
-        "baseline": 20,
+        "name": "puppeteer-link-scraper-over-cdp",
+        "baseline": 90,
         "treatment": 88,
-        "rationale": "Treatment uses Playwright's connect_over_cdp to http://127.0.0.1:9222, navigates with wait_until=domcontentloaded, strips script/style/nav before extracting innerText, and acknowledges no-screenshot/CSS limits; baseline reaches for Playwright with bundled Chromium and misses the CDP-attach pattern entirely."
+        "rationale": "Both meet the rubric (loopback bind on 9222, no-auth note, puppeteer-core, connect with browserWSEndpoint, context, page.evaluate over anchors, close page/context/disconnect); A sits slightly higher because it explicitly says the endpoint has no authentication and gives richer link output, while B also covers PID handling and stopping the server but only collects raw hrefs and uses a `--obey-robots` flag spelling that may be wrong."
+      },
+      {
+        "name": "mcp-server-for-agent-with-http-option",
+        "baseline": 22,
+        "treatment": 93,
+        "rationale": ""
       }
     ]
   }

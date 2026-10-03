@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cee28aad0e501a23f5ee96ce7a74f92f7ec7bf19adc1a740dd1df2b8b6b13299",
-  "scoredAt": "2026-05-13T14:13:02.452Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:1fb1b6f77c583aa9e6dfad08199ca9aafa2f4ee7f6089bbfe2df1d990d3a2be5",
+  "scoredAt": "2026-10-03T12:57:25.249Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Covers the happy path and a few pitfalls (cyclic types, string.numeric not converting) but gives no guidance on unions of object types, handling of unknown or extra keys, async validation, or errors thrown by morphs."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of what the agent does, with no runnable code or full input/output, so they are less realistic than the code blocks in the Instructions."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 10,
-    "treatmentAvg": 100,
+    "multiplier": 1.09,
+    "baselineAvg": 77,
+    "treatmentAvg": 84,
     "scenarios": [
       {
-        "name": "blog-post-schema-with-morphs",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response A fully meets all rubric requirements, while Response B lacks .pipe usage, .infer, and error handling, covering only a few points."
+        "name": "express-body-validation-middleware",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both responses define the schema with `type({...})`, `string.email`, `number.integer >= 13`, `bio?`, an `instanceof type.errors` check, a 400 response with `.summary`, and `typeof X.infer`. B adds structured details and an exported type, and it flags that it is untested. A adds a reusable factory and more usage notes, but its sample error text is presented as real output without being verified."
       },
       {
-        "name": "migrate-zod-to-arktype",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not provide any conversion."
+        "name": "zod-to-arktype-migration-with-coercion",
+        "baseline": 80,
+        "treatment": 72,
+        "rationale": "Both use string.email, the instanceof type.errors check, and type(\"string\").pipe for tags; B uses string.integer.parse, which is not the rubric's string.numeric.parse but does parse the string to a number, and its answer is clean. A names string.numeric.parse as the rubric requires, but it leaves a stray duplicate type alias and a confusing note, and it admits it hasn't tested the pipe chaining."
+      },
+      {
+        "name": "cyclic-user-post-scope",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": "A uses scope({...}).export() with optional back-references (posts?, author?) and checks instanceof type.errors, matching the rubric closely; B uses type.module instead of scope, makes the cyclic references required so it has to work around that with a hand-built finite nesting, though it does check instanceof type.errors."
       }
     ]
   }

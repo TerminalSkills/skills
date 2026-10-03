@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:517f3f63f4d55ace9f51e20e02bae10386a9fef60d558ed6af4f6420d6f99ba3",
-  "scoredAt": "2026-05-13T12:20:59.343Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:651ce81784576a2df48dd89015d5bd3e072e246c708fad564c7a84f2818fc4ea",
+  "scoredAt": "2026-10-03T12:56:07.311Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, focusing only on happy paths."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to the AgentScope framework, limiting its applicability to other AI agent frameworks."
+        "category": "examples",
+        "detail": "Both examples are prose walkthroughs that point back to earlier snippets with elided pieces (e.g. `Agent(..., toolkit=Toolkit())`), rather than complete runnable demonstrations, and Example 2 shows no actual code for the researcher, writer or leader agents."
       }
     ]
   },
@@ -32,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 8.45,
+    "baselineAvg": 11,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "multi-agent-dashboard",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not implement any of the required components."
+        "name": "trace-agent-to-local-jaeger",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Response A uses the 2.x API (TracingMiddleware in middlewares=[...], a TracerProvider with BatchSpanProcessor and OTLPSpanExporter at the :4318 endpoint, trace.set_tracer_provider) and gives a docker command exposing 16686 and 4318 with the UI at localhost:16686, while Response B relies on the 1.x agentscope.init and setup_tracing calls the rubric forbids and omits TracingMiddleware, with only a hedged fallback that sets up the provider."
       },
       {
-        "name": "audit-trail-claim-processing",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not implement an AuditTrail or export the audit to a PDF as specified."
+        "name": "cap-token-spend-per-reply",
+        "baseline": 12,
+        "treatment": 90,
+        "rationale": "B uses ReplyBudgetControlMiddleware(token_budget=20000, output_token_weight=3.0) with TracingMiddleware, checks reply.finished_reason including exceed_max_iters and error (noting they still return a Msg), and uses await agent.reply in asyncio.run; A invents a custom model proxy, never uses the middleware, and has no finished_reason handling."
       },
       {
-        "name": "decision-logging-debug",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not use the required DecisionLogger or iterate over its decisions."
+        "name": "leader-researcher-writer-team",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "B matches the rubric almost point for point: Agent instances with ReplyBudgetControlMiddleware(token_budget=20000), a leader with Toolkit(), TeamPipeline with TeamMember descriptions, unique names, launch_console(pipe), and a note to pin the version because TeamPipeline is experimental. A uses the 1.x ReActAgent API with hand-written delegation tools and max_tokens, and omits TeamPipeline, the middleware, launch_console and the pinning note."
       }
     ]
   }

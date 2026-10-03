@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:49cc77d40f095f1dd3072fc65d16c4ce1ac4d84f7283668b6bb5cc380c82049c",
-  "scoredAt": "2026-05-13T09:59:19.835Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:e0bf5d5cf5e6e19ea1f89e135834c312de5897f36ce3b98f6405c9118bc8044e",
+  "scoredAt": "2026-10-03T13:02:57.734Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing coverage of error scenarios and edge cases in the instructions."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to PyTorch and requires CUDA GPU, limiting cross-platform compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 87,
-    "multiplier": 1.81,
+    "multiplier": 1.96,
+    "baselineAvg": 45,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "ResNet50 fine-tune with mixed precision and pin_memory",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Baseline reaches for ResNet50 fine-tuning and AdamW but tends to use the older torch.cuda.amp API and forgets pin_memory plus CosineAnnealingLR; treatment combines weights=ResNet50_Weights.DEFAULT, nn.Linear(2048, num_classes), DataLoader with num_workers=4 and pin_memory=True, torch.amp.autocast, AdamW and CosineAnnealingLR as documented."
+        "name": "resnet-transfer-learning-modern-api",
+        "baseline": 40,
+        "treatment": 95,
+        "rationale": "B hits nearly every rubric item (ResNet50_Weights.DEFAULT, frozen backbone with new 12-way Linear fc, zero_grad/backward/step, bfloat16 autocast, single cuda.is_available() device check), whereas A uses IMAGENET1K_V2 rather than DEFAULT, wraps fc in Sequential with Dropout, unfreezes the backbone after 3 epochs, uses float16 autocast with GradScaler instead of bfloat16, and enables AMP only on CUDA with a multi-way device check."
       },
       {
-        "name": "BERT sentiment classifier with torch.export",
-        "baseline": 45,
-        "treatment": 85,
-        "rationale": "Baseline typically saves via state_dict or HF save_pretrained and skips gradient clipping; treatment uses AutoModel/AutoTokenizer with linear warmup, clip_grad_norm_, and torch.export() for production export per the documented production path."
+        "name": "bert-sentiment-onnx-export",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "A matches the rubric closely: eval(), torch.onnx.export with dynamo=True, input_ids and attention_mask with input_names, torch.export.export first, dynamic_shapes, and a warning against torch.jit. B uses the legacy exporter with dynamic_axes as its main path, only mentions dynamo as a late fallback, doesn't say to run torch.export.export first, and recommends torch.jit.script as a fallback, which contradicts the rubric."
+      },
+      {
+        "name": "safe-checkpoint-save-load-and-quantize",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "B hits every rubric point (state_dict, weights_only=True with map_location, warning against weights_only=False, torchao quantize_, torch.ao being phased out) but gives no concrete INT8 config, while A recommends safetensors and demos torch.ao.quantize_dynamic as option 1, never states the weights_only=False risk, and only hedges on the torch.ao deprecation, though it does show torchao quantize_ with INT8 configs."
       }
     ]
   }

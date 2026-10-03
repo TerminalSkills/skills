@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d720e72ce392043b8e206d1a046d44cd2eabacc699bc6fb00243e4eff1d4ec39",
-  "scoredAt": "2026-05-13T15:23:28.510Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.2.0",
+  "skillHash": "sha256:1240465932b4c667607005cc3d208fb0215bee2358e6452708987a378ad463fc",
+  "scoredAt": "2026-10-03T12:57:19.430Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,30 +18,47 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, such as missing project tokens or CI failures."
+        "detail": "Covers setup, TurboSnap and CI configuration well but gives little guidance on error scenarios such as build failures, missing or invalid tokens, flaky snapshots beyond determinism tips, or handling baseline conflicts across branches."
+      },
+      {
+        "severity": "INFO",
+        "category": "security",
+        "detail": "The workflow pins chromaui/action to @latest rather than a version tag or commit SHA, which is a minor supply-chain hygiene concern."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "supply-chain",
+        "detail": "The CI example uses chromaui/action@latest, an unpinned third-party action, though it comes from the official vendor."
+      }
+    ]
   },
   "impact": {
-    "multiplier": 2.25,
-    "baselineAvg": 40,
-    "treatmentAvg": 90,
+    "multiplier": 1.34,
+    "baselineAvg": 68,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "setup-chromatic-initial-build",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response B fully meets the rubric, while Response A omits the required npx command and token reference."
+        "name": "multi-mode-button-snapshots",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both define a shared modes file and apply it through parameters.chromatic.modes, and both note the theme global and snapshot cost. B states the rubric's theme-key caveat more precisely (it only has an effect if the preview defines a matching global, and light and dark render identically without it) and adds the stacking caveat. A is more thorough on setup but sets a default chromatic mode in preview.ts, and that default would stack with the component-level modes it later applies, which it never mentions."
       },
       {
-        "name": "configure-chromatic-ci-github-actions",
-        "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but omits exitOnceUploaded; Response B fails to provide the required config file and uses the wrong action."
+        "name": "github-actions-chromatic-turbosnap",
+        "baseline": 90,
+        "treatment": 93,
+        "rationale": "Both include every rubric item (push trigger, fetch-depth 0, chromaui/action with the secret, onlyChanged, autoAcceptChanges: main, skip dependabot/**); B is a cleaner direct answer, while A adds a branches-ignore filter and a long preamble about not having written anything."
+      },
+      {
+        "name": "stabilize-flaky-snapshots",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "B directly uses parameters.chromatic ignoreSelectors and data-chromatic=\"ignore\" for the price, disableSnapshot for the animated story, recommends deterministic data, and notes that a size change of an ignored element is still flagged. It also correctly says delay won't help with a looping animation, while A relies mostly on custom CSS and diffThreshold, never mentions disableSnapshot or ignoreSelectors, and never notes that a size change in an ignored element is still caught."
       }
     ]
   }

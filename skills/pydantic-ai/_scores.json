@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ea5b855701de0825cb2f6f23b8c3b5f6bb82e8c3eab4f13ca141b69b1126e27e",
-  "scoredAt": "2026-05-13T09:59:06.735Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:48ed8c5923e6ef53c88305a943aa80625e77f8114d20257d00243722159f411c",
+  "scoredAt": "2026-10-03T13:02:08.897Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, only happy path examples."
+        "detail": "Error handling is mostly limited to a note on validation retries and a usage-limit tip; it does not cover provider errors, rate limits, timeouts, or what to do when retries are exhausted (UnexpectedModelBehavior)."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 89,
-    "multiplier": 2.70,
+    "multiplier": 1.2,
+    "baselineAvg": 76,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Customer support agent with deps_type and tools",
-        "baseline": 30,
-        "treatment": 90,
-        "rationale": "Baseline tends to default to LangChain or hand-rolled OpenAI function-calling patterns and misses PydanticAI's deps_type + @agent.tool + ctx.deps injection; treatment uses Agent('openai:gpt-4o', deps_type=Deps), @dataclass Deps, async @support_agent.tool with ctx.deps.db, and agent.run(..., deps=Deps(...)) precisely as documented."
+        "name": "typed-extraction-with-current-names",
+        "baseline": 92,
+        "treatment": 93,
+        "rationale": "Both meet every rubric point: BaseModel with typed fields, `output_type=`, `result.output`, `run_sync` and a `provider:model-id` string. A uses `openai:gpt-5`, the rubric's own example. B uses `anthropic:claude-sonnet-5-5`, which is also a valid format, and it adds currency, Decimal and retries. A matches the rubric example more closely, so it scores slightly higher."
       },
       {
-        "name": "Structured CityInfo output with streaming",
-        "baseline": 35,
+        "name": "tool-with-deps-and-usage-limit",
+        "baseline": 90,
         "treatment": 88,
-        "rationale": "Baseline reaches for OpenAI native structured outputs and a regular streaming loop, missing the PydanticAI result_type + run_stream pattern; treatment uses Agent(result_type=CityInfo) with run_sync returning result.data and async with agent.run_stream(...) as stream: + async for chunk in stream.stream() as in the skill."
+        "rationale": "Both meet every rubric item (deps dataclass, `deps_type=`, `@agent.tool` with `ctx: RunContext`, docstring, `deps=` and `usage_limits=UsageLimits(request_limit=...)` in the run call, narrow argument types), but B adds `tool_calls_limit` and `total_tokens_limit`, typed `int` ids, retry handling, and a `UsageLimitExceeded` fallback in code, while A only mentions catching the exception and uses a loosely typed `dict` return with a string-quoted `Database` type."
+      },
+      {
+        "name": "offline-test-and-streaming",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Response A follows the rubric: it streams with run_stream and stream_text(delta=True), prints each chunk, and tests with agent.override(model=TestModel()) imported from pydantic_ai.models.test. Response B streams correctly but tests with FunctionModel, and mentions TestModel only as an aside, so it misses the rubric's required test approach."
       }
     ]
   }

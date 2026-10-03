@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5ac322057500aa1e2276b4b977db80a5234645644d647d36eb1910c6301d72e6",
-  "scoredAt": "2026-05-13T09:59:12.234Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:633f58a0a23ae86a77f2dc31959b64c1c0fd30bc4e8ad2e5bc65e3a8a53763e0",
+  "scoredAt": "2026-10-03T13:08:06.799Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
+    "multiplier": 1.39,
+    "baselineAvg": 64,
     "treatmentAvg": 89,
-    "multiplier": 1.53,
     "scenarios": [
       {
-        "name": "FastAPI async SQLite test fixtures in conftest.py",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Baseline reaches for TestClient and dependency override but typically uses sync SQLite and misses the async_sessionmaker yield-and-teardown pattern; treatment places fixtures in conftest.py using create_async_engine('sqlite+aiosqlite:///:memory:'), async_sessionmaker, app.dependency_overrides[get_db] with cleanup, exactly as documented."
+        "name": "fix-async-fixture-strict-mode",
+        "baseline": 88,
+        "treatment": 88,
+        "rationale": "Both name the strict-mode cause, show `@pytest_asyncio.fixture` with `import pytest_asyncio`, and mention `asyncio_mode = auto` as an alternative without telling the user to rewrite the fixture synchronously; A is more focused, while B adds extra loop_scope and version advice that goes beyond the question."
       },
       {
-        "name": "Parametrized pricing tests plus async-mocked webhook",
-        "baseline": 60,
+        "name": "configure-pytest-toml-with-markers",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both fix imports with pythonpath, set asyncio_mode auto, register the slow marker, show strict marker enforcement, and run `pytest -m \"not slow\"`; A uses `strict = true` (matches the rubric exactly, though it needs pytest 9 and `pytest.toml`), while B uses `--strict-markers` via addopts (an accepted equivalent) and adds useful extras like the ini variant and a default-skip option."
+      },
+      {
+        "name": "mock-email-patch-lookup-location",
+        "baseline": 15,
         "treatment": 88,
-        "rationale": "Parametrize and mocking are well-known so baseline scores reasonably, but it often uses MagicMock for async functions and misses assert_called_once_with; treatment uses @pytest.mark.parametrize multi-tuple list, @pytest.mark.asyncio with patch(..., new_callable=AsyncMock), and assert_called_once_with as in the skill."
+        "rationale": "Response A matches the rubric: it uses the pytest-mock `mocker` fixture, patches `app.services.notifications.send_email` with `new_callable=AsyncMock` and a `return_value`, asserts with `assert_awaited_once_with`, and checks the returned id. Response B patches the definition site `app.services.email.send_email`, uses `unittest.mock.patch` instead of `mocker`, and claims the notifications path would raise `AttributeError`, so it contradicts the rubric on the central requirement."
       }
     ]
   }

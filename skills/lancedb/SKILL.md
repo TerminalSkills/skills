@@ -1,18 +1,14 @@
 ---
 name: lancedb
 description: >-
-  Embedded vector database with LanceDB — serverless, zero-config vector search
-  for AI applications. Use when someone asks to "vector search without a server",
-  "embedded vector database", "LanceDB", "local vector search", "serverless
-  vector DB", "vector search in a file", or "lightweight RAG storage". Covers
-  table creation, vector search, full-text search, hybrid search, and multimodal
-  embeddings.
+  LanceDB is an embedded, serverless vector database that stores data in the Lance columnar format on local disk or object storage, with Node.js, Python and Rust clients. Use when someone asks for "vector search without a server", "embedded vector database", "LanceDB", "local vector search", "vector search in a file", or "lightweight RAG storage". Covers tables, vector search, filters, full-text search, hybrid search, indexes and embedding functions.
 license: Apache-2.0
-compatibility: "Node.js/Python. Runs locally (embedded) or serverless cloud."
+compatibility: "Node.js 22+ (@lancedb/lancedb) or Python 3.9+ (lancedb). Runs embedded on disk or on S3-compatible storage; LanceDB Cloud is optional."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/lancedb/lancedb
   tags: ["vector", "embedded-db", "lancedb", "rag", "search"]
 ---
 
@@ -20,137 +16,157 @@ metadata:
 
 ## Overview
 
-LanceDB is an embedded vector database — it runs inside your application process with zero external dependencies. No Docker containers, no servers, no connection strings. Data is stored in Lance format (columnar, optimized for ML) on local disk or object storage (S3). Perfect for prototyping, edge deployments, and applications where running a separate vector database is overkill.
+LanceDB is an embedded vector database: it runs inside your process with no server, container or connection string. Tables live in the Lance format (columnar, versioned, built for ML data) in a local directory or on object storage such as S3. It supports vector search, SQL-like filters, full-text search (BM25), hybrid search with reranking, and multimodal data. This skill was checked against `@lancedb/lancedb` 0.39.0 (Node) and `lancedb` 0.39.0 (Python).
 
 ## When to Use
 
-- RAG prototypes and local development (no infrastructure to set up)
-- Edge/embedded applications that need vector search
-- Desktop apps and CLI tools with AI features
-- Projects too small for Pinecone/Qdrant but need more than arrays
-- Multimodal search (text + images in same index)
+- RAG prototypes and local development with no infrastructure
+- Desktop apps, CLIs and edge devices that need semantic search
+- Projects too small for a hosted vector database but past "an array in memory"
+- Multimodal search (text and images in one table)
 
 ## Instructions
 
-### Setup
+### Step 1: Install
 
 ```bash
-npm install @lancedb/lancedb
-# Optional: for automatic embedding generation
-npm install @lancedb/lancedb openai
+npm install @lancedb/lancedb apache-arrow     # apache-arrow is a peer dependency (>=15, <=18.1)
+# Python
+python3 -m venv .venv && source .venv/bin/activate
+pip install lancedb
 ```
 
-### Basic Usage
+The Node client needs Node.js 22 or newer and ships a native binary.
+
+### Step 2: Create a table and run a vector search
 
 ```typescript
-// db.ts — Create a LanceDB table and search
+// search.ts
 import * as lancedb from "@lancedb/lancedb";
 
-// Connect to local database (creates directory if needed)
-const db = await lancedb.connect("./my-vector-db");
+const db = await lancedb.connect("./notes-db");        // creates the directory if needed
 
-// Create a table with data
-const data = [
-  { id: 1, text: "The cat sat on the mat", vector: [0.1, 0.2, 0.3, ...] },
-  { id: 2, text: "Dogs are loyal companions", vector: [0.4, 0.5, 0.6, ...] },
-  { id: 3, text: "Fish swim in the ocean", vector: [0.7, 0.8, 0.9, ...] },
-];
+// Vectors must all have the same length (here 4; real embeddings are 384-3072)
+const table = await db.createTable("documents", [
+  { id: 1, text: "The cat sat on the mat",     category: "docs", vector: [0.1, 0.2, 0.3, 0.4] },
+  { id: 2, text: "Dogs are loyal companions",  category: "docs", vector: [0.4, 0.5, 0.6, 0.7] },
+  { id: 3, text: "Fish swim in the ocean",     category: "blog", vector: [0.7, 0.8, 0.9, 1.0] },
+], { mode: "overwrite" });                              // "overwrite" replaces an existing table
 
-const table = await db.createTable("documents", data);
-
-// Vector search — find similar items
 const results = await table
-  .vectorSearch([0.1, 0.2, 0.3, ...])  // Query vector
-  .limit(5)
+  .vectorSearch([0.1, 0.2, 0.3, 0.4])
+  .limit(2)
   .toArray();
-
-// results: [{ id: 1, text: "The cat sat on the mat", _distance: 0.001 }, ...]
+// [{ id: 1, text: "The cat sat on the mat", ..., _distance: 0 }, { id: 2, ..., _distance: 0.36 }]
 ```
 
-### With Automatic Embeddings
+Results carry `_distance` (lower is closer; the default metric is L2, set another with `.distanceType("cosine")` on the query). `db.openTable("documents")` reopens a table, `db.tableNames()` lists them, `table.countRows()` counts.
+
+Python equivalent:
+
+```python
+import lancedb
+db = lancedb.connect("./notes-db")
+table = db.create_table("documents", data=[
+    {"id": 1, "text": "The cat sat on the mat", "category": "docs", "vector": [0.1, 0.2, 0.3, 0.4]},
+    {"id": 2, "text": "Dogs are loyal companions", "category": "blog", "vector": [0.4, 0.5, 0.6, 0.7]},
+], mode="overwrite")
+hits = table.search([0.1, 0.2, 0.3, 0.4]).where("category = 'docs'").limit(5).to_list()
+```
+
+### Step 3: Filters
 
 ```typescript
-// auto-embed.ts — LanceDB generates embeddings automatically
-import * as lancedb from "@lancedb/lancedb";
-import { getRegistry } from "@lancedb/lancedb/embeddings";
+const hits = await table
+  .vectorSearch([0.1, 0.2, 0.3, 0.4])
+  .where("category = 'docs' AND id > 1")      // SQL-like expression
+  .select(["id", "text"])                     // columns to return (_distance is still included)
+  .limit(10)
+  .toArray();
+```
 
-const openai = getRegistry().get("openai")!.create({
-  model: "text-embedding-3-small",
+### Step 4: Full-text search and hybrid search
+
+```typescript
+await table.createIndex("text", { config: lancedb.Index.fts() });   // BM25 index on a string column
+
+// Keyword search
+const keyword = await table.search("loyal", "fts").limit(5).toArray();
+
+// Hybrid: run both queries and fuse the rankings (reciprocal rank fusion by default)
+const hybrid = await table
+  .query()
+  .fullTextSearch("loyal")
+  .nearestTo([0.4, 0.5, 0.6, 0.7])
+  .limit(5)
+  .toArray();                                  // rows include _relevance_score
+```
+
+`table.search("text", { queryType: "hybrid" })` is not valid: the query type is the second positional argument (`"fts"`, `"vector"`, `"hybrid"`, `"auto"`), and a plain text query for vector or hybrid mode only works when the table has an embedding function registered. Python: `table.create_index("text", config=FTS())` (the older `create_fts_index` is deprecated) and `table.search("loyal", query_type="fts")`.
+
+### Step 5: Automatic embeddings
+
+Register an embedding function and describe it in the table schema, so inserts and text queries are embedded for you:
+
+```typescript
+// auto-embed.ts  (needs OPENAI_API_KEY in the environment; keep it out of the code)
+import * as lancedb from "@lancedb/lancedb";
+import { Int32, Utf8 } from "apache-arrow";
+
+const { getRegistry, LanceSchema } = lancedb.embedding;
+const openai = getRegistry().get("openai")!.create({ model: "text-embedding-3-small" });
+
+const schema = LanceSchema({
+  id: new Int32(),
+  text: openai.sourceField(new Utf8()),      // embedded on insert
+  vector: openai.vectorField(),              // 1536 dimensions, filled automatically
 });
 
-const db = await lancedb.connect("./my-db");
-
-// Define schema with embedding function
-const schema = lancedb
-  .schema([
-    lancedb.field("id", new lancedb.Int32()),
-    lancedb.field("text", new lancedb.Utf8(), openai.sourceField()),
-    lancedb.field("vector", openai.vectorField()),  // Auto-generated
-  ]);
-
+const db = await lancedb.connect("./docs-db");
 const table = await db.createTable("docs", [
   { id: 1, text: "How to set up authentication" },
   { id: 2, text: "Database migration guide" },
   { id: 3, text: "Deploying to production" },
 ], { schema });
 
-// Search with text — embedding generated automatically
-const results = await table
-  .search("how do I deploy my app?")
-  .limit(3)
-  .toArray();
+const answer = await table.search("how do I deploy my app?").limit(3).toArray();
 ```
 
-### Full-Text + Vector Hybrid Search
+The registry reads `OPENAI_API_KEY` itself; passing `apiKey` directly in the options is rejected, use `getRegistry().setVar("openai_key", process.env.OPENAI_API_KEY!)` and `apiKey: "$var:openai_key"` if you must. Other registered providers include a local `huggingface`/transformers function; use one when data must not leave the machine.
+
+### Step 6: Indexes, storage and versions
 
 ```typescript
-// hybrid.ts — Combine keyword and semantic search
-const table = await db.openTable("documents");
+// ANN index: only worthwhile (and only trainable) with enough rows; PQ training needs at least 256
+await table.createIndex("vector", { config: lancedb.Index.ivfPq({ distanceType: "cosine" }) });
 
-// Create full-text search index
-await table.createIndex("text", { config: lancedb.Index.fts() });
-
-// Hybrid search: combines vector similarity + keyword matching
-const results = await table
-  .search("deploy production", { queryType: "hybrid" })
-  .limit(10)
-  .toArray();
+const s3db = await lancedb.connect("s3://acme-search-prod/lancedb");   // credentials from the AWS environment
+console.log(await table.version());       // every write creates a new version
 ```
 
-### Filtering
-
-```typescript
-// filter.ts — Vector search with metadata filters
-const results = await table
-  .vectorSearch(queryVector)
-  .where("category = 'docs' AND created_at > '2026-01-01'")
-  .limit(10)
-  .toArray();
-```
+Without an ANN index LanceDB scans all vectors (exact search), which is fine up to roughly 100K rows. Lance data is versioned, so older versions can be checked out for time travel.
 
 ## Examples
 
-### Example 1: Build a local RAG chatbot
+### Example 1: "Build a chatbot that answers questions about my local documents, no external services"
 
-**User prompt:** "Build a chatbot that answers questions about local documents without any external services."
+Create the table with a local embedding function (a transformers/Hugging Face function from the registry), embed document chunks of 300-500 tokens on insert, retrieve with `table.search(question).limit(4)`, then pass the chunk texts to a local model such as Ollama as context. Result: `./docs-db/` holds the index and the chatbot answers from retrieved chunks; delete the directory to reset.
 
-The agent will use LanceDB embedded to store document embeddings locally, build a search function, and connect to a local LLM (Ollama) for generation.
+### Example 2: "Add semantic search to my note-taking CLI"
 
-### Example 2: Semantic search for a CLI tool
+```typescript
+const db = await lancedb.connect(`${process.env.HOME}/.local/share/notes-cli/db`);
+const table = await db.openTable("notes");
+const hits = await table.search("ideas about pricing").limit(5).select(["id", "title"]).toArray();
+```
 
-**User prompt:** "Add semantic search to my note-taking CLI so I can find notes by meaning."
-
-The agent will create a LanceDB database in the app's data directory, embed notes on save, and add a search command that finds semantically similar notes.
+Result: the five closest notes by meaning, each with `id`, `title` and `_distance`; add each new note with `table.add([{ ... }])` so it is embedded on save.
 
 ## Guidelines
 
-- **Embedded = no server** — runs in your process, data in a directory
-- **Lance format** — columnar, compressed, fast for ML workloads
-- **S3-compatible storage** — `lancedb.connect("s3://bucket/path")` for cloud
-- **Auto-embeddings** — register an embedding function, never manually embed again
-- **Hybrid search** — combine vector + full-text for best results
-- **Filtering with SQL-like syntax** — `where("category = 'docs'")`
-- **IVF-PQ index for scale** — create index when table exceeds 100K rows
-- **Data versioning built-in** — Lance format supports time travel
-- **No connection pooling** — it's embedded, just open and use
-- **Great for prototyping** — start with LanceDB, migrate to hosted if needed
+- Every vector in a column must have the same dimension, and the query vector must match it; mixing embedding models in one table breaks search.
+- `createTable` fails if the table exists unless you pass `mode: "overwrite"`; use `table.add(rows)` to append and `table.delete("id = 3")` to remove.
+- Prefer one process writing at a time on local disk; for many writers or services use object storage with LanceDB Cloud or Enterprise.
+- Do not copy older examples: `lancedb.schema(...)`, `lancedb.field(...)` and `import ... from "@lancedb/lancedb/embeddings"` no longer exist; use `lancedb.embedding`.
+- Warnings about `_distance` auto-projection when using `.select()` are harmless today; include `"_distance"` in `select` to be explicit.
+- Not a good fit for multi-tenant, high-write, always-on network services where a server database such as Qdrant or pgvector is simpler to operate.

@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:124d55a92e9dc647e0054c0596ca2cee2204368d1509624b1a6ed53acd400eb8",
-  "scoredAt": "2026-05-13T15:47:21.589Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:32cc94929c892e7f60cd7cd40555a61d8fc343925f1483566987a337c2cb1a84",
+  "scoredAt": "2026-10-02T23:22:37.689Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment, limiting cross-platform applicability."
+        "detail": "Covers mostly the happy path with only brief notes on errors (exitOverride, invalid choices) and omits handling of unknown commands/options, async action rejections beyond parseAsync, and a missing-argument error example."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.27,
-    "baselineAvg": 30,
-    "treatmentAvg": 98,
+    "multiplier": 0.95,
+    "baselineAvg": 93,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "init-with-dry-run",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A uses a different framework and misses the required Commander implementation."
+        "name": "mandatory-choice-option",
+        "baseline": 92,
+        "treatment": 82,
+        "rationale": "Both use new Option with .choices, .makeOptionMandatory, .addOption and state the error lists allowed choices and exits with code 1, but B has a more realistic setup (a deploy subcommand, program.parse()) and adds correct, useful extra cases such as the missing-option error, exitOverride and the Commander version requirement."
       },
       {
-        "name": "build-with-no-minify",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Response A meets all rubric requirements, while Response B fails to use the required program name and log format."
+        "name": "variadic-lint-with-parser",
+        "baseline": 93,
+        "treatment": 92,
+        "rationale": "Both declare `<folders...>` and `--max-warnings <count>` with a parser and default 0, and show the action getting `folders` as an array and `opts.maxWarnings` in camelCase; B adds a validating parser and more edge-case detail, while A's plain parseInt matches the rubric's example more directly."
+      },
+      {
+        "name": "async-cli-packaging",
+        "baseline": 93,
+        "treatment": 90,
+        "rationale": "Both cover parseAsync, the bin mapping to dist/cli.js, type module and the shebang; A is more thorough with a full tsconfig and extra notes, while B is concise and covers the same rubric items, but its inclusion of top-level await and a vague commander version note adds nothing the rubric needs."
       }
     ]
   }

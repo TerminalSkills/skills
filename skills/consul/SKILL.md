@@ -9,8 +9,9 @@ license: Apache-2.0
 compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/hashicorp/consul
   tags:
     - consul
     - service-discovery
@@ -21,15 +22,21 @@ metadata:
 
 # Consul
 
-Consul provides service discovery, health checking, KV storage, and service mesh capabilities.
+## Overview
 
-## Installation
+Consul provides service discovery, health checking, KV storage, and service mesh capabilities. The current release line is 2.x (2.0.4 as of September 2026); the commands below work the same on 1.x. Since 2023 Consul is under the Business Source License, not an open-source one: check the terms before offering it as a hosted product. Never run a production agent with `-dev`, which keeps everything in memory with no ACLs or TLS.
+
+## Instructions
+
+### Installation
 
 ```bash
 # Install Consul
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update && sudo apt install consul
+
+# macOS alternative: brew tap hashicorp/tap && brew install hashicorp/tap/consul
 
 # Start dev agent
 consul agent -dev
@@ -38,7 +45,7 @@ consul agent -dev
 consul members
 ```
 
-## Server Configuration
+### Server Configuration
 
 ```hcl
 # consul-server.hcl — Production Consul server config
@@ -56,21 +63,24 @@ ui_config { enabled = true }
 
 connect { enabled = true }
 
-addresses {
-  http  = "0.0.0.0"
-  grpc  = "0.0.0.0"
-}
-
 ports {
-  grpc = 8502
+  grpc     = 8502   # plaintext xDS for Envoy on the same host; disabled (-1) by default
+  grpc_tls = 8503   # TLS xDS for proxies on other hosts
 }
 
-encrypt = "your-gossip-encryption-key"
+# generate with: consul keygen
+encrypt = "pUqJrVyVRj5jsiYEkM/tFQYfWyJIv4s3XkvDwy7Cu5s="
 
 acl {
   enabled                  = true
   default_policy           = "deny"
   enable_token_persistence = true
+  tokens {
+    # agent token: needs node "<name>" write + service_prefix "" read
+    agent   = "0b4f3c1e-7a52-4d0e-9c1b-5d2f8e6a1b34"
+    # default token for DNS and unauthenticated requests: read-only
+    default = "6e1d9a20-3c4b-4f77-8a0e-2b9c7d51f0aa"
+  }
 }
 
 tls {
@@ -81,6 +91,9 @@ tls {
     verify_incoming = true
     verify_outgoing = true
   }
+  internal_rpc {
+    verify_server_hostname = true
+  }
 }
 
 autopilot {
@@ -90,9 +103,9 @@ autopilot {
 }
 ```
 
-## Service Registration
+### Service Registration
 
-```json
+```jsonc
 // services/web.json — Register web service with health check
 {
   "service": {
@@ -113,44 +126,37 @@ autopilot {
 ```
 
 ```bash
-# Register and query services via CLI
 consul services register services/web.json
 consul services deregister -id=web
 
-# DNS-based service discovery
 dig @127.0.0.1 -p 8600 web.service.consul SRV
 
-# HTTP API service discovery
 curl http://localhost:8500/v1/health/service/web?passing=true
 
-# Catalog queries
 consul catalog services
 consul catalog nodes
 ```
 
-## KV Store
+### KV Store
 
 ```bash
 # Key-value operations
-consul kv put config/app/db_host "db.example.com"
+consul kv put config/app/db_host "orders-db.internal.shopfront.io"
 consul kv put config/app/db_port "5432"
 
 consul kv get config/app/db_host
 consul kv get -recurse config/app/
 
-# Import/export
 consul kv export config/ > backup.json
 consul kv import @backup.json
 
-# Delete keys
 consul kv delete config/app/db_host
 consul kv delete -recurse config/app/
 
-# Watch for changes
 consul watch -type=key -key=config/app/db_host /scripts/reload.sh
 ```
 
-## Service Mesh (Connect)
+### Service Mesh (Connect)
 
 ```hcl
 # connect-proxy.hcl — Service with sidecar proxy
@@ -175,6 +181,13 @@ service {
 }
 ```
 
+Register the sidecar, then start Envoy next to the service (Envoy must be installed; the agent needs the gRPC port from the config above):
+
+```bash
+consul services register connect-proxy.hcl
+consul connect envoy -sidecar-for web -token-file=/etc/consul.d/web.token
+```
+
 ```hcl
 # intentions.hcl — Service intentions for access control
 Kind = "service-intentions"
@@ -194,15 +207,18 @@ Sources = [
 ```bash
 # Manage intentions
 consul config write intentions.hcl
-consul intention list
+consul config read -kind service-intentions -name api
 consul intention check web api
 ```
 
-## Prepared Queries
+The `consul intention` subcommands (`create`, `list`, ...) are deprecated since 1.9 in favour of the `service-intentions` config entry shown above; `intention check` is still the quick way to test a pair.
+
+### Prepared Queries
 
 ```bash
 # Create prepared query for failover across datacenters
-curl -X POST http://localhost:8500/v1/query -d '{
+curl -X POST http://localhost:8500/v1/query \
+  -H "X-Consul-Token: $CONSUL_HTTP_TOKEN" -d '{
   "Name": "web-query",
   "Service": {
     "Service": "web",
@@ -215,10 +231,10 @@ curl -X POST http://localhost:8500/v1/query -d '{
 }'
 ```
 
-## ACL Configuration
+### ACL Configuration
 
 ```bash
-# Bootstrap ACL system
+# Bootstrap ACL system (once; save the SecretID, e.g. export CONSUL_HTTP_TOKEN)
 consul acl bootstrap
 
 # Create policy
@@ -229,7 +245,7 @@ consul acl policy create -name "app-read" \
 consul acl token create -description "App token" -policy-name "app-read"
 ```
 
-## Common Commands
+### Common Commands
 
 ```bash
 # Cluster management
@@ -242,7 +258,39 @@ consul operator autopilot state
 consul snapshot save backup.snap
 consul snapshot restore backup.snap
 
-# Monitor and debug
 consul monitor -log-level=debug
-consul debug -duration=30s -interval=5s
 ```
+
+
+## Examples
+
+### Example 1: Register a web service and find it
+
+**User request:** "Register my storefront API on port 8080 with a health check and look it up through DNS."
+
+```bash
+consul services register services/web.json
+dig @127.0.0.1 -p 8600 web.service.consul SRV
+curl -s "http://localhost:8500/v1/health/service/web?passing=true"
+```
+
+The SRV answer lists the node and port 8080 only while the `/health` check passes; a failing check removes the instance from the answer.
+
+### Example 2: Lock down service-to-service traffic
+
+**User request:** "Only the web service may call api in our mesh."
+
+```bash
+consul config write intentions.hcl
+consul intention check web api     # Allowed
+consul intention check cart api    # Denied
+```
+
+## Guidelines
+
+- With `acl.default_policy = "deny"`, set `acl.tokens.agent` and `acl.tokens.default`; otherwise registration, anti-entropy and DNS fail with permission errors. Pass tokens through `CONSUL_HTTP_TOKEN` or `-token-file`, never inline in shell history.
+- Do not bind `client_addr` to `0.0.0.0` without ACLs and TLS: the HTTP API then controls the cluster.
+- Run 3 or 5 servers (`bootstrap_expect`), never an even count. Take `consul snapshot save` backups on a schedule and test restores.
+- Back up gossip keys and rotate them with `consul keyring`.
+- Use `deregister_critical_service_after` so dead instances do not linger.
+- For simple discovery without a mesh, Consul can be overkill; use DNS or the platform's own discovery.

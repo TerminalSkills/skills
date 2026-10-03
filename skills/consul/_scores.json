@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3a0d523fc89ffc83a0009fa55078bb56b3bac1ba059106d88b63bd5ec9aee9da",
-  "scoredAt": "2026-05-13T15:53:21.268Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:ef72f74458a146a52d0a8a3e93c30f310ed8100c7e1b307395a5c1ac5b29ec89",
+  "scoredAt": "2026-10-03T12:58:32.339Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error handling or troubleshooting scenarios"
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions assume Linux apt, not cross-platform"
+        "detail": "Mostly happy-path commands with little troubleshooting or error handling (e.g., failed ACL bootstrap, agent join failures, unhealthy checks, snapshot restore errors, Envoy not connecting)."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Missing checksum verification for HashiCorp GPG key download"
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 3.25,
-    "baselineAvg": 20,
-    "treatmentAvg": 65,
+    "multiplier": 1.21,
+    "baselineAvg": 70,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "register-web-service-with-health-check",
-        "baseline": 10,
-        "treatment": 70,
-        "rationale": "Response B meets most rubric items but misses the required file path and command prefix, while Response A fails to meet the rubric at all."
+        "name": "register-service-with-health-check",
+        "baseline": 66,
+        "treatment": 78,
+        "rationale": "A matches the rubric closely: JSON service definition with name, port 8080, an http check at /health, interval 10s and a deregister_critical_service_after value. It registers with `consul services register`, runs the SRV dig, and queries `?passing=true`. B uses HCL rather than JSON, leans on `consul reload` to load the file, and uses `?passing` instead of `?passing=true`. It does show the register command as an alternative and covers DNS and the failure path in more depth, but it misses the JSON format and the exact query form the rubric asks for."
       },
       {
-        "name": "setup-connect-sidecar-with-intentions",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response B correctly specifies the required ports and intention syntax, though it uses a different file name and command, whereas Response A has incorrect port numbers and also omits the required commands."
+        "name": "restrict-mesh-traffic-with-sidecar",
+        "baseline": 72,
+        "treatment": 88,
+        "rationale": "A matches the rubric closely, with the api intention containing both web allow and '*' deny sources, and it uses `consul config write`, `consul intention check web api`, and `consul connect envoy -sidecar-for web`; B gets the sidecar, upstreams, Envoy command and intention check right but puts the '*' deny in a separate wildcard Name='*' entry instead of in the api entry's Sources, so it deviates from the rubric's api-intention structure."
+      },
+      {
+        "name": "harden-production-server-config",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "B puts both agent and default tokens in the acl block, as the rubric asks. It also says never to use -dev, explains the permission errors for registration, anti-entropy and DNS, and names CONSUL_HTTP_TOKEN and -token-file. A deliberately leaves tokens out of the config and sets them at runtime, so it misses the rubric's tokens requirement. A also never mentions -dev or -token-file, though its failure-mode table is detailed."
       }
     ]
   }

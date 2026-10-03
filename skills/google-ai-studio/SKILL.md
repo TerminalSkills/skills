@@ -1,19 +1,22 @@
 ---
 name: google-ai-studio
 description: >-
-  Google AI Studio and Gemini API for multimodal AI. Use when you need multimodal
-  AI (text + image + video + audio), long context up to 1M tokens, code generation
-  with Gemini, grounding with Google Search, or structured output with response schemas.
+  Google AI Studio and the Gemini API give programmatic access to Gemini models for multimodal
+  (text, image, video, audio, PDF) generation, long context, structured JSON output, function
+  calling and Google Search grounding. Use when asked to "call Gemini from Python or Node",
+  "get a Gemini API key", "analyze a PDF or image with Gemini", "return JSON from Gemini", or
+  "migrate from google-generativeai to google-genai".
 license: Apache-2.0
-compatibility: "Python 3.9+ with google-generativeai SDK, or Node.js 18+ with @google/generative-ai"
+compatibility: "Python 3.9+ with google-genai, or Node.js 18+ with @google/genai; a Gemini API key from aistudio.google.com"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["google", "gemini", "multimodal", "long-context", "ai"]
+  repository: https://github.com/googleapis/python-genai
   use-cases:
     - "Analyze images, PDFs, and video files with Gemini's multimodal capabilities"
-    - "Process million-token documents with Gemini 1.5 Pro long context"
+    - "Process very long documents with Gemini's long context window"
     - "Build structured data extractors with Gemini JSON response schemas"
   agents: [claude-code, openai-codex, gemini-cli, cursor]
 ---
@@ -22,286 +25,253 @@ metadata:
 
 ## Overview
 
-Google AI Studio provides access to the Gemini family of models via API. Gemini 2.0 Flash is Google's fastest model for high-frequency tasks; Gemini 1.5 Pro supports up to 1 million token context windows and handles images, audio, video, and PDFs natively. The API supports grounding with Google Search, structured JSON output, and streaming.
+Google AI Studio is the web playground and API-key console for the Gemini API. In code you use the **Google Gen AI SDK**: `google-genai` for Python and `@google/genai` for JavaScript/TypeScript. The older `google-generativeai` (Python) and `@google/generative-ai` (JS) packages are deprecated since 30 November 2025 and no longer maintained, so do not start new code on them. Code written as `genai.configure(...)` / `genai.GenerativeModel(...)` belongs to the old SDK and must be ported (see Migration).
+
+The API supports multimodal input, long context, streaming, structured output, function calling, Google Search grounding, file uploads and embeddings. Google also ships a newer Interactions API (`client.interactions.create`); `client.models.generate_content` remains the stable, widely documented entry point and is used below.
 
 ## Setup
 
 ```bash
-# Python
-pip install google-generativeai
-
-# Node.js
-npm install @google/generative-ai
+pip install google-genai        # Python
+npm install @google/genai       # Node.js
+export GEMINI_API_KEY=your-key-from-aistudio   # GOOGLE_API_KEY also works
 ```
 
-```bash
-export GOOGLE_API_KEY=AIza...
-```
+Create the key at https://aistudio.google.com/apikey. `genai.Client()` with no arguments reads the environment variable. If both `GEMINI_API_KEY` and `GOOGLE_API_KEY` are set, the SDK warns and prefers `GOOGLE_API_KEY`. Keep keys out of source control and never ship one in browser code.
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
+## Choosing a model
 
-## Available Models
+Model IDs and limits change every few months and old generations are retired or restricted to existing users. Before hard-coding an ID, read https://ai.google.dev/gemini-api/docs/models. The SDK README uses the alias `gemini-flash-latest` (always the newest Flash model), which is a safe default for prototypes; pin an exact stable ID in production so a model update cannot change behaviour. Gemini 1.5 and 2.0 IDs found in older tutorials are no longer the recommended choice.
 
-| Model | Context | Best For |
-|---|---|---|
-| `gemini-2.0-flash` | 1M tokens | Fast, cost-efficient, high-volume |
-| `gemini-2.0-flash-thinking-exp` | 1M tokens | Complex reasoning with thoughts |
-| `gemini-1.5-pro` | 2M tokens | Longest context, complex tasks |
-| `gemini-1.5-flash` | 1M tokens | Balanced speed and capability |
-| `text-embedding-004` | 2048 input | Text embeddings |
+| Need | Pick |
+|---|---|
+| Fast, cheap, high volume | A current Flash or Flash-Lite model |
+| Hardest reasoning and coding | The current Pro model (often listed as preview) |
+| Text embeddings | `gemini-embedding-001` (text only) or `gemini-embedding-2` (multimodal) |
 
 ## Instructions
 
-### Basic Text Generation
+### Basic generation and chat
 
 ```python
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
-genai.configure(api_key="AIza...")  # or reads GOOGLE_API_KEY
+client = genai.Client()  # reads GEMINI_API_KEY
 
-model = genai.GenerativeModel("gemini-2.0-flash")
-response = model.generate_content("Explain neural networks in one paragraph.")
-print(response.text)
-```
-
-### Multi-Turn Chat
-
-```python
-import google.generativeai as genai
-
-genai.configure(api_key="AIza...")
-
-model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    system_instruction="You are a Python expert. Always show working code examples.",
+response = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents="Explain neural networks in one paragraph.",
+    config=types.GenerateContentConfig(
+        system_instruction="You are a Python expert. Always show working code.",
+        temperature=0.3,
+    ),
 )
-
-chat = model.start_chat()
-response = chat.send_message("How do I read a CSV with pandas?")
 print(response.text)
 
-response = chat.send_message("Now show me how to filter rows where age > 30.")
-print(response.text)
-```
-
-### Image Analysis
-
-```python
-import google.generativeai as genai
-import PIL.Image
-
-genai.configure(api_key="AIza...")
-
-model = genai.GenerativeModel("gemini-2.0-flash")
-
-# From local file
-image = PIL.Image.open("screenshot.png")
-response = model.generate_content(["What's in this image? List all visible text.", image])
-print(response.text)
-
-# From URL (inline data)
-import httpx
-import base64
-
-img_data = httpx.get("https://example.com/chart.png").content
-image_part = {"mime_type": "image/png", "data": base64.b64encode(img_data).decode()}
-response = model.generate_content(["Analyze this chart:", image_part])
-print(response.text)
-```
-
-### PDF Processing
-
-```python
-import google.generativeai as genai
-import pathlib
-
-genai.configure(api_key="AIza...")
-
-model = genai.GenerativeModel("gemini-1.5-pro")
-
-# Upload a PDF file
-pdf_file = genai.upload_file(
-    path="report.pdf",
-    mime_type="application/pdf",
-    display_name="Annual Report 2024",
-)
-
-response = model.generate_content([
-    "Summarize the key financial metrics from this report.",
-    pdf_file,
-])
-print(response.text)
-
-# Inline PDF (smaller files)
-pdf_bytes = pathlib.Path("document.pdf").read_bytes()
-import base64
-pdf_part = {"mime_type": "application/pdf", "data": base64.b64encode(pdf_bytes).decode()}
-response = model.generate_content(["Extract all dates and deadlines:", pdf_part])
-print(response.text)
+chat = client.chats.create(model="gemini-flash-latest")
+print(chat.send_message("How do I read a CSV with pandas?").text)
+print(chat.send_message("Now filter rows where age > 30.").text)
 ```
 
 ### Streaming
 
 ```python
-import google.generativeai as genai
-
-genai.configure(api_key="AIza...")
-
-model = genai.GenerativeModel("gemini-2.0-flash")
-
-for chunk in model.generate_content("Write a short story about AI.", stream=True):
+for chunk in client.models.generate_content_stream(
+    model="gemini-flash-latest",
+    contents="Write a 200-word story about a lighthouse keeper.",
+):
     print(chunk.text, end="", flush=True)
-print()
 ```
 
-### Structured Output with Response Schema
+### Images and PDFs
+
+Small inputs go inline as `types.Part.from_bytes`; larger ones go through the File API.
 
 ```python
-import google.generativeai as genai
-import json
+import pathlib
 
-genai.configure(api_key="AIza...")
-
-model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    generation_config={
-        "response_mime_type": "application/json",
-        "response_schema": {
-            "type": "object",
-            "properties": {
-                "companies": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "name": {"type": "string"},
-                            "founded": {"type": "integer"},
-                            "country": {"type": "string"},
-                        },
-                        "required": ["name", "founded", "country"],
-                    },
-                }
-            },
-        },
-    },
+image = types.Part.from_bytes(
+    data=pathlib.Path("dashboard.png").read_bytes(), mime_type="image/png"
 )
-
-response = model.generate_content(
-    "List 3 major AI companies with their founding year and country."
+r = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents=["List all visible text and the three largest numbers.", image],
 )
-data = json.loads(response.text)
-print(data)
+print(r.text)
+
+# File API: required when the whole request would exceed 100 MB (PDFs: 50 MB)
+report = client.files.upload(file="annual-report-2025.pdf")
+r = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents=["Summarize the key financial metrics.", report],
+)
+print(r.text)
 ```
+
+Uploaded files are stored for 48 hours (up to 2 GB per file, 20 GB per project) and can be deleted earlier with `client.files.delete(name=report.name)`.
+
+### Structured output
+
+Pass a Pydantic model (or a JSON Schema via `response_json_schema`) and set the JSON MIME type. `response.parsed` returns the model instance.
+
+```python
+from pydantic import BaseModel
+
+class Company(BaseModel):
+    name: str
+    founded: int
+    country: str
+
+r = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents="List 3 major AI companies with founding year and country.",
+    config=types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_schema=list[Company],
+    ),
+)
+for company in r.parsed:
+    print(company.name, company.founded, company.country)
+```
+
+### Function calling
+
+Passing a plain Python function with type hints and a docstring enables automatic function calling: the SDK calls it and returns the final text.
+
+```python
+def get_order_status(order_id: str) -> dict:
+    """Look up the shipping status of an order by its ID."""
+    return {"order_id": order_id, "status": "shipped", "eta": "2026-10-09"}
+
+r = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents="Where is order A-10432?",
+    config=types.GenerateContentConfig(tools=[get_order_status]),
+)
+print(r.text)
+```
+
+The SDK warns that automatic function calling behaviour will change in SDK 3.0; if you rely on it, pin `google-genai<3`.
 
 ### Grounding with Google Search
 
 ```python
-import google.generativeai as genai
-from google.generativeai import types
-
-genai.configure(api_key="AIza...")
-
-model = genai.GenerativeModel("gemini-2.0-flash")
-
-# Enable Google Search grounding
-response = model.generate_content(
-    "What are the latest AI research papers published this week?",
-    tools=[types.Tool(google_search=types.GoogleSearch())],
+r = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents="Who won the most recent Formula 1 race?",
+    config=types.GenerateContentConfig(
+        tools=[types.Tool(google_search=types.GoogleSearch())]
+    ),
 )
-
-print(response.text)
-
-# Check grounding metadata
-if response.candidates[0].grounding_metadata:
-    for source in response.candidates[0].grounding_metadata.search_entry_point or []:
-        print(f"Source: {source}")
+print(r.text)
+meta = r.candidates[0].grounding_metadata
+if meta:
+    print(meta.web_search_queries)
+    for chunk in meta.grounding_chunks or []:
+        print(chunk.web.title, chunk.web.uri)
 ```
 
-### Function Calling
+If you display grounded answers to end users, the terms require showing the search suggestions in `meta.search_entry_point`. Grounding is billed separately from tokens; check the pricing page.
+
+### Long context
+
+Flash and Pro models accept up to roughly a million tokens. Count before you send, then pass the text as one `contents` string.
 
 ```python
-import google.generativeai as genai
-
-genai.configure(api_key="AIza...")
-
-def get_product_info(product_id: str) -> dict:
-    """Simulated product lookup."""
-    return {"id": product_id, "name": "Widget Pro", "price": 49.99, "in_stock": True}
-
-model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
-    tools=[get_product_info],  # Pass Python function directly!
-)
-
-chat = model.start_chat(enable_automatic_function_calling=True)
-response = chat.send_message("What's the price and availability of product P123?")
-print(response.text)
-# Gemini automatically calls get_product_info("P123") and incorporates the result
-```
-
-### Long Context — Process Entire Codebase
-
-```python
-import google.generativeai as genai
 import pathlib
 
-genai.configure(api_key="AIza...")
-
-model = genai.GenerativeModel("gemini-1.5-pro")  # 2M token context
-
-# Read entire codebase into context
-files = list(pathlib.Path("./src").rglob("*.py"))
-code_content = "\n\n".join([
-    f"# File: {f}\n{f.read_text()}" for f in files
-])
-
-response = model.generate_content([
-    "Analyze this codebase and identify security vulnerabilities:",
-    code_content,
-])
-print(response.text)
+code = "\n\n".join(
+    f"# File: {p}\n{p.read_text()}" for p in pathlib.Path("src").rglob("*.py")
+)
+n = client.models.count_tokens(model="gemini-flash-latest", contents=code)
+print(n.total_tokens)
+r = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents=["Find security vulnerabilities in this codebase:", code],
+)
+print(r.text)
 ```
 
-### Text Embeddings
+### Embeddings
 
 ```python
-import google.generativeai as genai
-
-genai.configure(api_key="AIza...")
-
-# Single embedding
-result = genai.embed_content(
-    model="text-embedding-004",
-    content="Machine learning transforms industries.",
-    task_type="retrieval_document",
+r = client.models.embed_content(
+    model="gemini-embedding-001",
+    contents=["Machine learning transforms industries.", "Hello world"],
+    config=types.EmbedContentConfig(
+        task_type="RETRIEVAL_DOCUMENT", output_dimensionality=768
+    ),
 )
-print(f"Embedding dim: {len(result['embedding'])}")  # 768
-
-# Batch embeddings
-texts = ["Hello world", "Machine learning", "AI systems"]
-result = genai.embed_content(
-    model="text-embedding-004",
-    content=texts,
-    task_type="retrieval_document",
-)
-embeddings = result["embedding"]  # List of 768-dim vectors
+vectors = [e.values for e in r.embeddings]
+print(len(vectors), len(vectors[0]))   # 2 768
 ```
 
-## Task Types for Embeddings
+The default dimension is 3072 (adjustable from 128 to 3072). Dimensions below 3072 must be normalized by you for `gemini-embedding-001`. `task_type` values include `RETRIEVAL_DOCUMENT`, `RETRIEVAL_QUERY`, `SEMANTIC_SIMILARITY` and `CLASSIFICATION`; `gemini-embedding-2` instead takes the task as an instruction in the prompt text and returns one aggregated embedding for several inputs.
 
-| Task Type | Use When |
+### Node.js
+
+```typescript
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const response = await ai.models.generateContent({
+  model: "gemini-flash-latest",
+  contents: "Explain event loops in two sentences.",
+});
+console.log(response.text);
+```
+
+## Migration from google-generativeai
+
+| Old | New |
 |---|---|
-| `retrieval_document` | Embedding documents to be retrieved |
-| `retrieval_query` | Embedding search queries |
-| `semantic_similarity` | Comparing text similarity |
-| `classification` | Text classification tasks |
+| `pip install google-generativeai` | `pip install google-genai` |
+| `import google.generativeai as genai` | `from google import genai` and `from google.genai import types` |
+| `genai.configure(api_key=...)` | `client = genai.Client(api_key=...)` |
+| `genai.GenerativeModel(name).generate_content(x)` | `client.models.generate_content(model=name, contents=x)` |
+| `generation_config={...}`, `tools=`, `system_instruction=` on the model | all go in `config=types.GenerateContentConfig(...)` |
+| `model.start_chat()` | `client.chats.create(model=...)` |
+| `genai.upload_file(path=...)` | `client.files.upload(file=...)` |
+| `genai.embed_content(...)` | `client.models.embed_content(...)` |
+
+## Examples
+
+### Example 1: Extract invoice data from a PDF
+
+User: "Pull vendor, total and due date out of invoice-8841.pdf as JSON."
+
+```python
+class Invoice(BaseModel):
+    vendor: str
+    total: float
+    due_date: str
+
+pdf = client.files.upload(file="invoice-8841.pdf")
+r = client.models.generate_content(
+    model="gemini-flash-latest",
+    contents=["Extract the invoice fields.", pdf],
+    config=types.GenerateContentConfig(
+        response_mime_type="application/json", response_schema=Invoice
+    ),
+)
+print(r.parsed)
+```
+
+Result: `vendor='Northwind Traders' total=1842.5 due_date='2026-10-31'`.
+
+### Example 2: Port old code
+
+User: "This script uses google.generativeai and fails with a deprecation warning, fix it."
+
+Replace the import, build a `Client`, move `generation_config` into `types.GenerateContentConfig`, and call `client.models.generate_content(model=..., contents=...)`. Run the script once and confirm the response text prints.
 
 ## Guidelines
 
-- `gemini-2.0-flash` is the best default for most tasks — fast, cheap, and capable.
-- Use `gemini-1.5-pro` only when you need >1M token context or maximum quality.
-- Automatic function calling simplifies tool use — pass Python functions directly to `tools=`.
-- Always specify `response_mime_type: "application/json"` with `response_schema` for structured output.
-- Google Search grounding adds latency but ensures responses reflect current web information.
-- The File API supports uploading files up to 2GB; uploaded files are retained for 48 hours.
-- Rate limits on the free tier are low (~15 RPM) — use an API key with billing for production.
+- Use `google-genai`, not `google-generativeai`; tutorials showing `genai.configure` are outdated.
+- Pin an exact model ID in production; aliases such as `gemini-flash-latest` move without notice.
+- Free-tier rate limits are not published as fixed numbers; read your project's limits in AI Studio and expect 429 errors under load. Add retry with backoff.
+- On the free tier, Google may use prompts and responses to improve its products; use a billed project for private or customer data.
+- Check `response.candidates[0].finish_reason` and `response.prompt_feedback`: safety filters can return empty text.
+- Thinking models spend extra tokens on reasoning; control it with `types.ThinkingConfig` in the config.
+- Do not put API keys in client-side code or commit them.

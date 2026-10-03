@@ -130,7 +130,9 @@ app.post("/webhooks/stripe/v2", express.raw({ type: "application/json" }), async
 
   if (notification.type === "v2.core.account[requirements].updated") {
     const account = await notification.fetchRelatedObject(); // full v2 Account
-    const done = (account.requirements?.currently_due?.length ?? 0) === 0;
+    const done = (account.requirements?.entries ?? []).every(
+      (e) => e.awaiting_action_from !== "user" || e.minimum_deadline.status === "eventually_due"
+    );
     await db.sellers.update(
       { stripeAccountId: account.id },
       { status: done ? "active" : "onboarding" }

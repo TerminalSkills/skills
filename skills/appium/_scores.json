@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a0d6b12317851f5fd88699f891d86d85ad874ecbefd3ba26d0bf61e0b2c05a2c",
-  "scoredAt": "2026-05-13T14:06:19.605Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:0bdd1b592ee4be367d86db9ff664fb4540510681d928b730f7d323513d45b6b4",
+  "scoredAt": "2026-10-02T23:20:37.395Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases for setup and runtime failures."
+        "detail": "Mostly covers happy-path setup and tests; lacks troubleshooting for common failures such as WebDriverAgent signing errors, emulator boot timeouts, stale element or session errors, and WebView context switching for hybrid apps."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.5,
-    "baselineAvg": 20,
-    "treatmentAvg": 70,
+    "multiplier": 0.88,
+    "baselineAvg": 82,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "setup-appium-environment",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B includes all required commands, while Response A omits the driver installs, list, and doctor commands."
+        "name": "fix-invalid-capabilities-android-emulator",
+        "baseline": 80,
+        "treatment": 93,
+        "rationale": "Both add the `appium:` prefix correctly, keep platformName bare and use `appium:avd`, but B explicitly says deviceName doesn't select a device on Android and drops it, while A keeps a prefixed deviceName and only notes in a code comment that Android ignores it for selection."
       },
       {
-        "name": "webdriverio-login-test",
-        "baseline": 20,
-        "treatment": 40,
-        "rationale": "Response B better meets the rubric, using the required selector syntax and assertion method, though it still lacks the second test and proper describe name."
+        "name": "wdio-config-and-accessibility-id-test",
+        "baseline": 80,
+        "treatment": 62,
+        "rationale": "Both install the required packages and give UiAutomator2 capabilities with appium: keys, services: ['appium'], mocha, $('~...') selectors and waitForDisplayed; B wins because it installs appium locally so the service starts it with no extra step. A installs appium globally, uses ESM `export const config` in a .js file that may fail under CommonJS, and omits the spec reporter and local runner, while B uses CommonJS and adds service options, though B omits explicit webdriverio and @wdio/cli install of webdriverio (it installs @wdio/cli and @wdio/local-runner but not webdriverio itself)."
+      },
+      {
+        "name": "android-swipe-gesture-python",
+        "baseline": 85,
+        "treatment": 62,
+        "rationale": "Both use `execute_script` with `mobile: swipeGesture` and `mobile: longClickGesture` with the right parameters, but B explains the TouchAction removal, gives a coordinate alternative and a W3C Actions fallback, and mentions updating the uiautomator2 driver. A adds a good test structure but is thinner on the Appium 3 context. Neither shows `UiAutomator2Options` setup, and A also contains an odd reference to \"the reference\" that the user never supplied."
       }
     ]
   }

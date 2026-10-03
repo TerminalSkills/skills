@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d0c7915377f5eff83663723aaf1c9c404baf99391feb4147aa17960de528498c",
-  "scoredAt": "2026-05-13T15:42:15.722Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:7edbe9e8668e7cd346d4019a1e73f63e549e7cb95df53575d4bb9537f57968b8",
+  "scoredAt": "2026-10-02T23:22:05.734Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0,
-    "baselineAvg": 0,
-    "treatmentAvg": 0,
+    "multiplier": 1.59,
+    "baselineAvg": 39,
+    "treatmentAvg": 62,
     "scenarios": [
       {
-        "name": "review-flask-endpoint",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to provide any review or analysis."
+        "name": "review-sql-injection-endpoint",
+        "baseline": 72,
+        "treatment": 85,
+        "rationale": "Both flag the SQL injection as critical, give the parameterized fix, and cover the async error handling, authorization and validation. B follows the rubric's structured format more closely, with severity labels, file/line, issue, fenced suggestions and a closing summary with verdict, severity counts and top fixes. A has no severity counts, no verdict and no file/line, and its findings aren't individually structured with code blocks."
       },
       {
-        "name": "review-diff",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to meet rubric requirements."
+        "name": "review-pr-diff-with-tooling-first",
+        "baseline": 8,
+        "treatment": 12,
+        "rationale": "Neither response reviewed the PR or ran tooling, but A at least notes the project's test/build commands and commits to running them first and to giving a severity-based verdict with the top 3 fixes, which B doesn't cover."
+      },
+      {
+        "name": "review-react-component-uncertain-findings",
+        "baseline": 38,
+        "treatment": 90,
+        "rationale": "B tags confidence, acknowledges a strength, treats memoization as LOW and likely negligible (mentioning the React Compiler), and ends with a verdict and severity counts, while A omits the confidence tags, praise, and verdict, and its label fix is only partial."
       }
     ]
   }

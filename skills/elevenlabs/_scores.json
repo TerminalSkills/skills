@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4e2f3e125c673789218a464e2931e7c2fbfbb6d351f8e2c0d602f46ae9bbfbf6",
-  "scoredAt": "2026-05-13T08:47:36.679Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:eb580856e45b95dfe9839f3fd43c9183f1ba4133b0f7aba7437d6ea0e962b82e",
+  "scoredAt": "2026-10-03T12:59:46.314Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "Error handling is limited to a brief mention of 401/402 codes; there is no guidance on rate limits (429), retries, text length limits, empty or invalid voice IDs, or failed voice-clone uploads."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples only point back to earlier steps with a one-line description and no full input/output demonstration, and none covers voice cloning or the Node.js SDK end to end."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 95,
-    "multiplier": 2.88,
+    "multiplier": 1.37,
+    "baselineAvg": 65,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Low-latency voice agent TTS",
+        "name": "stream-ulaw-for-phone-bot",
         "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline relies on the legacy generate/stream helpers and the multilingual model; treatment uses convert_as_stream with eleven_turbo_v2_5 and pcm_24000 as the SKILL specifies for WebRTC pipelines."
+        "treatment": 93,
+        "rationale": "B uses `client.text_to_speech.stream`, iterates the chunks, sets `ulaw_8000` and `eleven_flash_v2_5`, and reads `ELEVENLABS_API_KEY` from the environment, so it meets every rubric item. A gets the model, format and env var right but uses the raw WebSocket stream-input endpoint instead of the SDK `text_to_speech.stream` method, so it misses the main rubric item."
       },
       {
-        "name": "Voice cloning + streaming greeting",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline uses the deprecated clone helper without streaming; treatment uses client.voices.add with the documented arguments and reuses the returned voice_id in a turbo streaming call."
+        "name": "clone-voice-and-narrate-mp3",
+        "baseline": 85,
+        "treatment": 82,
+        "rationale": "Both use ivc.create, eleven_multilingual_v2, previous_text/next_text, iterate bytes to mp3, and mention consent; B adds sentence-level fallback chunking, the reuse note, and an older-SDK note, while A passes paths directly (possibly invalid) but openly flags that uncertainty."
+      },
+      {
+        "name": "node-tts-migration-and-voice-lookup",
+        "baseline": 80,
+        "treatment": 92,
+        "rationale": "Both swap to @elevenlabs/elevenlabs-js, import ElevenLabsClient, call textToSpeech.convert with modelId eleven_flash_v2_5 and outputFormat, and use ELEVENLABS_API_KEY; A explicitly looks up the voice with voices.search and says to do so instead of hard-coding IDs, while B pushes an env-var voice ID first and uses voices.search only as a fallback with pageSize 1, which is weaker on the 'advise using voices.search' point."
       }
     ]
   }

@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e51a4c0e8f68d9bca54e181322869f10a133c99f0edb6bef0570638dfa2ae04a",
-  "scoredAt": "2026-05-13T09:22:57.291Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9d8003fa1db481be60cfe139482d17d42054e5c6e13fbe4a64ef7d773b4be6dd",
+  "scoredAt": "2026-10-03T12:03:35.278Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes Node.js, Bun, or Deno environments, limiting cross-platform applicability."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl|bash",
-        "detail": "curl|bash from official source in setup, missing checksums."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 91,
-    "multiplier": 1.82,
+    "multiplier": 1.06,
+    "baselineAvg": 85,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "embedded-replica-setup",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment correctly uses syncUrl, syncInterval, and db.sync() per skill; baseline omits embedded replica primitives and treats Turso as a remote-only client."
+        "name": "edge-runtime-turso-client",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "Both import from @libsql/client/web and pass url and authToken from env, and both say embedded replicas don't work in Workers; A also says outright that the web build supports only remote URLs and rejects file:, and that replicas need a persistent filesystem, which is closer to the rubric, while B gives the reasons (native binding, writable filesystem) but never states the remote-only/no-file: point for the web import."
       },
       {
-        "name": "atomic-transfer",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment uses db.transaction(\"write\") with tx.commit()/tx.rollback() per skill; baseline falls back to raw BEGIN/COMMIT SQL and misses the interactive transaction API."
+        "name": "atomic-transfer-with-rollback",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "Both use the db.transaction('write') pattern with positional args, commit, rollback with rethrow, and close in finally; B states the correct 5-second lock timeout and mentions batch as an alternative, while A says roughly 10 seconds (inaccurate against the rubric) but gives a fuller batch example."
+      },
+      {
+        "name": "insert-returning-and-duplicate-slug",
+        "baseline": 90,
+        "treatment": 93,
+        "rationale": "Both use parameterized db.execute and handle the id correctly; B follows the rubric's primary path exactly (RETURNING id, rows[0], catch LibsqlError and check err.code to map to 409), while A leads with ON CONFLICT DO NOTHING and only offers the rubric's catch-and-check-code approach (with Number(lastInsertRowid)) as an alternative."
       }
     ]
   }

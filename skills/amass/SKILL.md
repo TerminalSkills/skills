@@ -1,19 +1,18 @@
 ---
 name: amass
 description: >-
-  OWASP Amass for in-depth DNS enumeration, subdomain discovery, and network mapping with active
-  and passive modes. Use when: comprehensive subdomain enumeration, ASN and IP range mapping, attack
-  surface discovery, building full network topology of a target organization.
+  OWASP Amass maps an organization's external attack surface: it finds subdomains, IP addresses, netblocks and ASNs from passive sources and active DNS techniques and stores them in an asset database. Use when: comprehensive subdomain enumeration, attack surface discovery, finding forgotten hosts before a pentest, tracking newly appeared assets, building a graph of target infrastructure.
 license: Apache-2.0
-compatibility: "Go 1.18+ (binary) or Docker"
+compatibility: "Linux, macOS or Windows binary, Go 1.26+ to build from source, or Docker"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: research
+  repository: https://github.com/owasp-amass/amass
   tags: [amass, dns, subdomain, attack-surface, network-mapping]
   use-cases:
     - "Enumerate all subdomains for a target domain using passive sources"
-    - "Map ASN, IP ranges, and CIDR blocks for an organization"
+    - "Seed an enumeration with ASNs, CIDR ranges and IP addresses"
     - "Discover shadow IT and forgotten subdomains before a pentest"
     - "Build a visual network graph of target infrastructure"
   agents: [claude-code, openai-codex, gemini-cli, cursor]
@@ -23,251 +22,168 @@ metadata:
 
 ## Overview
 
-OWASP Amass performs network mapping of attack surfaces and external asset discovery using open source information gathering and active reconnaissance techniques. It supports dozens of passive data sources (certificate transparency, DNS datasets, APIs) and active techniques (brute force, DNS zone transfers). Amass is the industry standard for comprehensive subdomain enumeration during penetration tests and red team engagements.
+OWASP Amass performs attack surface mapping and external asset discovery with open source intelligence and active reconnaissance. This skill covers **Amass v5** (v5.1.1 is the latest release checked, April 2026), which is a different tool from v3/v4 in several ways:
+
+- A background **engine** (REST API on `127.0.0.1:4000`) does the work; `amass enum` starts it automatically if it is not running and talks to it as a client. `amass engine` runs it by hand.
+- `enum` is **passive by default** (the `-passive` flag is deprecated and does nothing). `-active` adds zone transfer attempts and certificate name grabs.
+- Results go to an asset database in the config directory (`~/.config/amass` on Linux), not to `-o`/`-json` files. You read them back with `subs`, `track`, `viz` and `assoc`.
+- The v4 subcommands `intel` and `db` and the `-json`, `-o`, `-asn` org lookups of `enum`/`intel` are gone. Subcommands now are: `enum`, `subs`, `track`, `viz`, `assoc`, `engine`.
 
 ## Instructions
 
-### Step 1: Install Amass
+### Step 1: Install
 
 ```bash
-# Option 1: Download pre-built binary (recommended)
-# Visit https://github.com/owasp-amass/amass/releases
-wget https://github.com/owasp-amass/amass/releases/latest/download/amass_Linux_amd64.zip
-unzip amass_Linux_amd64.zip
-sudo mv amass_Linux_amd64/amass /usr/local/bin/
+# Homebrew
+brew tap owasp-amass/homebrew-amass && brew install amass
 
-# Option 2: Go install
-go install -v github.com/owasp-amass/amass/v4/...@master
+# Go (needs Go 1.26+)
+CGO_ENABLED=0 go install -v github.com/owasp-amass/amass/v5/cmd/amass@main
 
-# Option 3: Docker
-docker pull caffix/amass
-alias amass='docker run --rm -v ~/.config/amass:/root/.config/amass caffix/amass'
+# Release archive, verified against the published checksums
+curl -fsSLO https://github.com/owasp-amass/amass/releases/download/v5.1.1/amass_linux_amd64.tar.gz
+curl -fsSLO https://github.com/owasp-amass/amass/releases/download/v5.1.1/amass_checksums.txt
+sha256sum --ignore-missing -c amass_checksums.txt
+tar -xzf amass_linux_amd64.tar.gz
 
-# Verify installation
-amass -version
+# Docker
+docker pull owaspamass/amass:latest
+docker run --rm -v ~/.config/amass:/.config/amass owaspamass/amass:latest enum -d northwind-labs.io
+
+amass --version
 ```
 
-### Step 2: Passive enumeration (safe, no target contact)
+Release archives exist for linux (amd64, arm64, 386, armv6, armv7), darwin and windows; check the actual file names in the release page before downloading.
+
+### Step 2: Passive enumeration (no direct contact with the target)
 
 ```bash
-# Basic passive subdomain enumeration
-amass enum -passive -d example.com
-
-# Multiple domains at once
-amass enum -passive -d example.com -d example.org
-
-# Save results to file
-amass enum -passive -d example.com -o subdomains.txt
-
-# JSON output for programmatic processing
-amass enum -passive -d example.com -json amass_output.json
-
-# Verbose mode to see which sources are returning data
-amass enum -passive -d example.com -v
+amass enum -d northwind-labs.io                    # passive is the default
+amass enum -d northwind-labs.io,northwind-labs.com # several domains
+amass enum -df domains.txt -nocolor -silent        # domains from a file
+amass enum -list                                   # list available data sources
+amass enum -d northwind-labs.io -include Shodan,VirusTotal -exclude Ahrefs
 ```
 
-### Step 3: Active enumeration (comprehensive, touches target DNS)
+### Step 3: Active enumeration (touches the target's DNS and TLS)
 
 ```bash
-# Active mode: passive + DNS brute force + zone transfer attempts
-amass enum -active -d example.com -o active_subdomains.txt
-
-# Use a custom wordlist for brute force
-amass enum -active -d example.com -brute -w /usr/share/wordlists/subdomains.txt
-
-# Specify DNS resolvers
-amass enum -active -d example.com -r 8.8.8.8,1.1.1.1,9.9.9.9
-
-# Limit to specific port for alterations
-amass enum -active -d example.com -alts -o subs_with_alts.txt
-
-# Full active scan with brute force and alterations
-amass enum -active -d example.com -brute -alts -min-for-recursive 2 -o full_enum.txt
+amass enum -active -d northwind-labs.io -p 80,443,8443
+amass enum -d northwind-labs.io -brute -w ./subdomains-top1mil-5000.txt
+amass enum -d northwind-labs.io -brute -alts -max-depth 3
+amass enum -d northwind-labs.io -r 8.8.8.8,1.1.1.1 -timeout 60
+amass enum -d northwind-labs.io -rigid           # do not expand scope to related domains
 ```
 
-### Step 4: Intelligence gathering — org and ASN mapping
+`-brute` uses a built-in short wordlist unless `-w` is given. `-alts` generates altered names (`-aw` for a custom list). `-timeout` is minutes without progress before the run stops (default 30).
+
+### Step 4: Seed with ASNs, CIDRs and addresses
+
+v5 has no `intel` command; ranges are scope seeds for `enum`:
 
 ```bash
-# Find ASNs and IP ranges for an organization name
-amass intel -org "Example Corporation"
-
-# Reverse lookup: find domains from a known IP or CIDR
-amass intel -ip 203.0.113.1
-amass intel -cidr 203.0.113.0/24
-
-# Find ASN for a domain, then map the full ASN
-amass intel -d example.com -asn
-amass intel -asn 12345 -o asn_domains.txt
-
-# Combine: find org → get ASN → enumerate all domains
-amass intel -org "Example Corp" 2>/dev/null | grep ASN | awk '{print $1}' | \
-  while read asn; do amass intel -asn $asn; done
+amass enum -asn 64496 -cidr 198.51.100.0/24
+amass enum -addr 198.51.100.1-254 -d northwind-labs.io
 ```
 
-### Step 5: Configure API keys for maximum coverage
+Finding an organization's ASNs and ranges now has to be done with another source (RIR/RDAP, BGP lookups); Amass also records ASNs and netblocks it meets during enumeration, shown by `subs`.
+
+### Step 5: Read results from the database
+
+```bash
+amass subs -d northwind-labs.io -names -nocolor            # discovered names only
+amass subs -d northwind-labs.io -names -o northwind-names.txt
+amass subs -d northwind-labs.io -ip                        # names with addresses
+amass subs -d northwind-labs.io -summary                   # ASN table summary
+amass subs -d northwind-labs.io -show                      # full results
+```
+
+### Step 6: Track new assets over time
+
+```bash
+amass enum -d northwind-labs.io                            # run again on a schedule
+amass track -d northwind-labs.io -since "09/01 00:00:00 2026 UTC"
+```
+
+`-since` uses the format `MM/DD HH:MM:SS YYYY TZ`; `track` lists assets first seen after that moment.
+
+### Step 7: Visualize
+
+```bash
+amass viz -d northwind-labs.io -d3 -dot -gexf -o ./graphs
+dot -Tpng ./graphs/amass.dot -o ./graphs/amass.png   # Graphviz, file names may differ
+```
+
+`-d3` writes an interactive HTML force graph, `-dot` a Graphviz file, `-gexf` a Gephi file. List the output directory to see the exact names.
+
+### Step 8: Configure data sources and options
+
+Keys live in `~/.config/amass/datasources.yaml`; options in `config.yaml` (both are created on first run). Pass another file with `-config`. Keys come from your own accounts; never commit this file.
+
+```yaml
+# ~/.config/amass/datasources.yaml
+global_options:
+  minimum_ttl: 1440
+datasources:
+  - name: Shodan
+    ttl: 10080
+    creds:
+      account:
+        apikey: REPLACE_WITH_SHODAN_KEY
+  - name: VirusTotal
+    ttl: 10080
+    creds:
+      account:
+        apikey: REPLACE_WITH_VIRUSTOTAL_KEY
+  - name: PassiveTotal
+    creds:
+      account:
+        username: ops@northwind-labs.io
+        apikey: REPLACE_WITH_PASSIVETOTAL_KEY
+```
 
 ```yaml
 # ~/.config/amass/config.yaml
 scope:
   domains:
-    - example.com
-
-# Data source API keys
-data_sources:
-  Shodan:
-    credentials:
-      key: YOUR_SHODAN_API_KEY
-  VirusTotal:
-    credentials:
-      key: YOUR_VT_API_KEY
-  SecurityTrails:
-    credentials:
-      key: YOUR_ST_API_KEY
-  GitHub:
-    credentials:
-      key: YOUR_GITHUB_TOKEN
-  Censys:
-    credentials:
-      api_id: YOUR_CENSYS_ID
-      secret: YOUR_CENSYS_SECRET
-  Hunter:
-    credentials:
-      key: YOUR_HUNTER_KEY
-  URLScan:
-    credentials:
-      key: YOUR_URLSCAN_KEY
-  WhoisXMLAPI:
-    credentials:
-      key: YOUR_WHOISXML_KEY
-  BinaryEdge:
-    credentials:
-      key: YOUR_BINARYEDGE_KEY
-
-# Rate limiting (be respectful of free tier limits)
-resolvers:
-  - 8.8.8.8
-  - 8.8.4.4
-  - 1.1.1.1
-  - 1.0.0.1
+    - northwind-labs.io
+  ports: [80, 443, 8443]
+options:
+  datasources: "./datasources.yaml"
+  bruteforce:
+    enabled: false
+  alterations:
+    enabled: false
 ```
 
-### Step 6: Parse and process JSON output
+The same file can point `options.database` at Postgres (`postgres://…`) or Neo4j instead of the default local database.
 
-```python
-import json
-import subprocess
-from collections import defaultdict
+## Examples
 
-def run_amass_passive(domain, output_file=None):
-    """Run Amass passive enumeration and return parsed results."""
-    json_file = output_file or f"amass_{domain.replace('.', '_')}.json"
-    cmd = [
-        "amass", "enum",
-        "-passive",
-        "-d", domain,
-        "-json", json_file
-    ]
-    print(f"Running Amass passive scan for {domain}...")
-    subprocess.run(cmd, timeout=600)
-    return parse_amass_json(json_file)
-
-def parse_amass_json(json_file):
-    """Parse Amass JSON output (newline-delimited JSON)."""
-    subdomains = []
-    ip_map = defaultdict(list)
-
-    with open(json_file) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                record = json.loads(line)
-                name = record.get("name", "")
-                addresses = record.get("addresses", [])
-                subdomains.append(name)
-                for addr in addresses:
-                    ip = addr.get("ip", "")
-                    if ip:
-                        ip_map[ip].append(name)
-            except json.JSONDecodeError:
-                continue
-
-    return {
-        "subdomains": sorted(set(subdomains)),
-        "ip_to_hosts": dict(ip_map),
-        "unique_ips": sorted(ip_map.keys()),
-    }
-
-def print_summary(results, domain):
-    print(f"\n=== Amass Results: {domain} ===")
-    print(f"Unique subdomains: {len(results['subdomains'])}")
-    print(f"Unique IPs:        {len(results['unique_ips'])}")
-    print("\nTop-level subdomains found:")
-    for sub in results['subdomains'][:30]:
-        print(f"  {sub}")
-    print("\nIPs hosting multiple domains (potential shared hosting):")
-    for ip, hosts in results['ip_to_hosts'].items():
-        if len(hosts) > 1:
-            print(f"  {ip}: {', '.join(hosts[:5])}")
-
-results = run_amass_passive("example.com")
-print_summary(results, "example.com")
-```
-
-### Step 7: Visualize with network graph (dot format)
+### Example 1: "Find all subdomains of our domain before the pentest starts"
 
 ```bash
-# Generate a DOT graph of discovered network relationships
-amass viz -d3 -d example.com -o network_graph.html
-
-# Open in browser
-# The HTML file contains an interactive D3.js visualization
-
-# Export to Graphviz dot format
-amass viz -dot -d example.com -o network.dot
-dot -Tpng network.dot -o network.png
-
-# Import into Neo4j for advanced graph analysis
-amass viz -neo4j neo4j://neo4j:password@localhost:7474 -d example.com
+amass enum -d northwind-labs.io -nocolor -silent
+amass subs -d northwind-labs.io -names -o northwind-names.txt
+wc -l northwind-names.txt
 ```
 
-### Step 8: Track changes over time (database mode)
+Result: `northwind-names.txt` holds one host name per line (for example `vpn.northwind-labs.io`, `staging-api.northwind-labs.io`). Resolve them with `dnsx` or `dig` before reporting, because some are stale or wildcard answers.
+
+### Example 2: "What new hosts appeared since last month?"
 
 ```bash
-# Amass stores results in a local graph database (~/.config/amass/amass.db)
-# Run scans over time and compare
-
-# First scan
-amass enum -passive -d example.com -o scan1.txt
-
-# Later scan (Amass will highlight new discoveries)
-amass enum -passive -d example.com -o scan2.txt
-
-# Show tracked assets from the database
-amass db -d example.com -names
-
-# Show differences between scans
-amass track -d example.com -last 2
+amass enum -d northwind-labs.io -nocolor -silent
+amass track -d northwind-labs.io -since "09/01 00:00:00 2026 UTC"
 ```
 
-## Common Amass Commands Reference
-
-| Command | Description |
-|---------|-------------|
-| `amass enum -passive -d domain.com` | Passive subdomain enumeration |
-| `amass enum -active -d domain.com -brute` | Active + brute force |
-| `amass intel -org "Corp Name"` | Find domains by org name |
-| `amass intel -asn 12345` | Enumerate domains in an ASN |
-| `amass intel -cidr 1.2.3.0/24` | Reverse IP lookup for CIDR |
-| `amass viz -d3 -d domain.com -o out.html` | Interactive D3 visualization |
-| `amass db -d domain.com -names` | Show tracked subdomains |
-| `amass track -d domain.com` | Show newly discovered assets |
+Result: a list of names and addresses first discovered after 1 September 2026, the candidates for review.
 
 ## Guidelines
 
-- **Passive first**: Always start with `-passive` mode. Active mode makes DNS queries that may be logged.
-- **API keys matter**: Without API keys, Amass is limited to certificate transparency and a few free sources. With keys, coverage increases dramatically.
-- **Time**: A thorough passive scan can take 5–30 minutes depending on the number of sources. Active scans with brute force take longer.
-- **False positives**: Some discovered subdomains may be wildcards or expired entries. Always verify with DNS resolution before reporting.
-- **Authorization required**: Active enumeration (especially zone transfer attempts and brute force) is only appropriate with explicit written permission from the target.
+- **Authorization**: passive mode still queries third parties, but `-active`, `-brute` and `-alts` send traffic to the target's DNS and web ports. Use them only with written permission.
+- **Keys matter**: without data source keys coverage is limited to free sources such as certificate transparency. Rate limits of free tiers apply.
+- **Old tutorials are wrong for v5**: commands with `intel`, `db`, `-json`, `-o` on `enum`, or `-d3 -o file.html` will fail. Run `amass enum -h` and `amass <subcommand> -h` to check flags on your build.
+- **Runtime**: a passive run takes minutes; brute force with large wordlists takes hours. The engine port 4000 must be free.
+- **Data stays**: the asset database keeps history between runs; pass `-dir` to separate engagements and delete it when the engagement ends.
+- Verify discovered names yourself: wildcard DNS and third-party data produce false positives.

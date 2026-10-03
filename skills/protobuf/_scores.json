@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ae66b6c340d73ebb6762102ed46429269803fb2fa93f5a142f9f9fc1dd096e0e",
-  "scoredAt": "2026-05-13T09:58:30.700Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fb093d9625732aaa739a265ec0fc99becf118496440a51b65f540e36cb26e2f6",
+  "scoredAt": "2026-10-03T12:07:29.024Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for protobuf usage."
+        "detail": "Covers install, schema, codegen and evolution well but gives little troubleshooting for common errors such as protoc plugin not found, import path resolution failures, or buf lint failures, and edge cases such as unknown-field handling or JSON name collisions are not addressed."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 1.16,
+    "baselineAvg": 76,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Schema evolution: safely removing a field",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline simply deletes the phone line from the message, leaving its field number free to be silently reused by a future field of a different type, while the treatment uses reserved <number> and reserved \"phone\" to lock the wire identity forever."
+        "name": "safe-schema-evolution-with-reserved",
+        "baseline": 62,
+        "treatment": 80,
+        "rationale": "A gives a fresh number 8, keeps both reserved number and name lines, explains that the wire format uses numbers, and runs `buf breaking --against '.git#branch=main'` with a WIRE_JSON variant. B also uses 8 and reserves 4, 7 and the names, but its message sketch is muddled (a placeholder field and an assumed number for email), and it centres on protoc round-trips instead of buf, although it does include the correct `buf breaking` command."
       },
       {
-        "name": "Define a paginated gRPC list endpoint",
-        "baseline": 35,
+        "name": "buf-typescript-codegen-setup",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both give the v2 buf.yaml and a protoc-gen-es buf.gen.yaml with out dir, plus create/toBinary/fromBinary with a {case,value} oneof. A uses an explicit node_modules/.bin path and runs `npx buf generate` as the rubric asks. B uses `local: protoc-gen-es` and `npm run gen`, which is not the literal `npx buf generate`. B also adds `inputs`, scripts and an assumed proto, which is extra, and it shows `user.contact = {...}` assignment, which is still plain-object style."
+      },
+      {
+        "name": "design-order-service-schema-pitfalls",
+        "baseline": 78,
         "treatment": 95,
-        "rationale": "Baseline uses limit/offset and a free-form role string with no package versioning or UNSPECIFIED enum, while the treatment follows the skill's page_size/page_token + filter pattern, declares package myapp.v1, and starts the Role enum with ROLE_UNSPECIFIED = 0."
+        "rationale": "Both use optional, integer minor-unit Money with a currency code, a prefixed UNSPECIFIED=0 enum, and dedicated request/response messages per RPC, but A's package `ecommerce.order.v1` is versioned yet not the `shop.v1` example while B's `shop.v1` matches and B adds clearer design notes, so B edges ahead."
       }
     ]
   }

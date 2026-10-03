@@ -1,15 +1,17 @@
 ---
 name: pandas-ai
-description: |
-  PandasAI enables natural language queries on pandas DataFrames using LLMs.
-  Learn to ask questions in plain English, generate charts, clean data,
-  and integrate with OpenAI and local models for conversational data analysis.
+description: >-
+  PandasAI lets you ask questions about pandas DataFrames and CSV files in plain
+  English, using an LLM that writes and runs the analysis code. Use when a user
+  wants to chat with a DataFrame, query several tables together, generate charts
+  from a prompt, or run PandasAI 3 with OpenAI or a local Ollama model.
 license: Apache-2.0
-compatibility: 'macos, linux, windows'
+compatibility: 'Python 3.8-3.11 (pandasai 3.0.0 does not install on 3.12+), any OS, an LLM API key or a local Ollama model'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/sinaptik-ai/pandas-ai
   tags:
     - pandas-ai
     - pandas
@@ -20,180 +22,89 @@ metadata:
 
 # PandasAI
 
-PandasAI adds natural language capabilities to pandas. Ask questions about your data in English and get answers, charts, and transformations — powered by LLMs.
+## Overview
 
-## Installation
+PandasAI adds a `chat()` method to DataFrames. It sends your question and the column layout (plus a few sample rows) to an LLM, which returns Python or SQL; PandasAI runs it and gives back a string, number, DataFrame or chart. The current release is 3.0.0 (October 2025). Version 3 changed the API: the old `SmartDataframe(df, config={...})` and `from pandasai.llm import OpenAI` style still appears in tutorials, but `SmartDataframe` is deprecated and the `pandasai.llm` module only exposes the base `LLM` class. The model comes from the separate `pandasai-litellm` package. Checked against the package source and docs.pandas-ai.com/v3.
+
+## Instructions
+
+### Step 1: Install (Python 3.11 or older)
 
 ```bash
-# Install PandasAI
-pip install pandasai
-
-# With OpenAI
-pip install pandasai[openai]
-
-# With local models via Ollama
-pip install pandasai[langchain]
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install pandasai pandasai-litellm
 ```
 
-## Basic Usage
+`pandasai` 3.0.0 declares `python <3.12`, so on 3.12 or 3.13 pip refuses to install it; use a 3.11 environment. There are no `pandasai[openai]` or `[langchain]` extras in v3.
+
+### Step 2: Configure an LLM once, globally
 
 ```python
-# basic.py: Ask questions about a DataFrame in natural language
-import pandas as pd
-from pandasai import SmartDataframe
-from pandasai.llm import OpenAI
+import os
+import pandasai as pai
+from pandasai_litellm.litellm import LiteLLM
 
-llm = OpenAI(api_token="your-openai-api-key")
+llm = LiteLLM(model="gpt-4.1-mini", api_key=os.environ["OPENAI_API_KEY"])
+pai.config.set({"llm": llm, "verbose": False, "max_retries": 3})
+```
 
-df = pd.DataFrame({
+LiteLLM model strings select the provider (for example `gpt-4.1-mini` or `ollama/llama3.1`; see the LiteLLM provider list). Config keys in v3 are `llm`, `save_logs`, `verbose`, `max_retries` and `file_manager`; old keys such as `enable_cache`, `conversational`, `save_charts` and `custom_whitelisted_dependencies` are gone.
+
+### Step 3: Load data and chat
+
+```python
+df = pai.read_csv("data/companies.csv")          # or pai.DataFrame({...}), pai.read_excel(...)
+response = df.chat("What is the average revenue by region?")
+print(response)
+print(response.last_code_executed)               # the code the LLM generated
+df.follow_up("And only for 2025?")               # continues the same conversation
+```
+
+### Step 4: Several DataFrames, charts, local models
+
+```python
+employees = pai.read_csv("data/employees.csv")
+departments = pai.read_csv("data/departments.csv")
+pai.chat("Average salary per department name?", employees, departments)   # joins across frames
+
+chart = df.chat("Plot a bar chart of revenue by region")
+chart.save("exports/revenue_by_region.png")      # chart answers are ChartResponse objects
+
+local = LiteLLM(model="ollama/llama3.1", api_base="http://localhost:11434")
+pai.config.set({"llm": local})
+```
+
+## Examples
+
+**Example 1: "Which country has the highest GDP in my CSV?"**
+
+```python
+import pandasai as pai
+countries = pai.DataFrame({
     "country": ["USA", "UK", "France", "Germany", "Japan"],
-    "population": [331_000_000, 67_000_000, 67_000_000, 83_000_000, 125_000_000],
-    "gdp_billion": [25_460, 3_070, 2_780, 4_070, 4_230],
+    "gdp_billion": [25460, 3070, 2780, 4070, 4230],
 })
-
-sdf = SmartDataframe(df, config={"llm": llm})
-
-# Ask questions in natural language
-answer = sdf.chat("Which country has the highest GDP?")
-print(answer)  # USA
-
-answer = sdf.chat("What is the average population?")
-print(answer)  # 134,600,000
-
-answer = sdf.chat("List countries with GDP above 4000 billion")
-print(answer)
+print(countries.chat("Which country has the highest GDP?"))
 ```
 
-## Multiple DataFrames
+Result: prints `USA`, and `response.last_code_executed` shows the pandas expression behind it.
+
+**Example 2: "Compare orders against customers and chart it"**
 
 ```python
-# multi-df.py: Query across multiple related DataFrames
-from pandasai import SmartDatalake
-
-employees = pd.DataFrame({
-    "id": [1, 2, 3, 4, 5],
-    "name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
-    "department_id": [1, 2, 1, 3, 2],
-    "salary": [85000, 72000, 90000, 68000, 95000],
-})
-
-departments = pd.DataFrame({
-    "id": [1, 2, 3],
-    "name": ["Engineering", "Marketing", "Sales"],
-    "budget": [500000, 200000, 300000],
-})
-
-lake = SmartDatalake([employees, departments], config={"llm": llm})
-
-result = lake.chat("What is the average salary per department?")
-print(result)
-
-result = lake.chat("Which department is over budget based on total salaries?")
-print(result)
+orders = pai.read_csv("data/orders.csv")
+customers = pai.read_csv("data/customers.csv")
+answer = pai.chat("Show total order value per customer country as a bar chart", orders, customers)
+answer.save("exports/order_value_by_country.png")
 ```
 
-## Generate Charts
+Result: a PNG of order value per country; check the generated code before trusting the join.
 
-```python
-# charts.py: Create visualizations from natural language
-sdf = SmartDataframe(df, config={
-    "llm": llm,
-    "save_charts": True,
-    "save_charts_path": "./charts",
-})
+## Guidelines
 
-# Generate charts by asking
-sdf.chat("Create a bar chart of GDP by country")
-sdf.chat("Plot a pie chart of population distribution")
-sdf.chat("Show a scatter plot of GDP vs population")
-# Charts saved as PNG in ./charts/
-```
-
-## Data Cleaning
-
-```python
-# cleaning.py: Use natural language for data cleaning tasks
-dirty_df = pd.DataFrame({
-    "name": ["Alice", "bob", "CHARLIE", None, "Eve"],
-    "email": ["alice@co.com", "invalid", "charlie@co.com", "diana@co.com", ""],
-    "age": [30, -5, 45, 200, 28],
-    "salary": [85000, 72000, None, 68000, 95000],
-})
-
-sdf = SmartDataframe(dirty_df, config={"llm": llm})
-
-# Clean with natural language
-cleaned = sdf.chat("Remove rows where age is negative or above 150")
-cleaned = sdf.chat("Fill missing salaries with the median salary")
-cleaned = sdf.chat("Standardize names to title case")
-cleaned = sdf.chat("Remove rows with invalid email addresses")
-```
-
-## Custom Configuration
-
-```python
-# config.py: Advanced PandasAI configuration
-from pandasai import SmartDataframe
-
-sdf = SmartDataframe(df, config={
-    "llm": llm,
-    "conversational": True,         # Natural language responses
-    "verbose": True,                 # Show generated code
-    "enable_cache": True,            # Cache repeated queries
-    "max_retries": 3,                # Retry on LLM errors
-    "custom_whitelisted_dependencies": ["scipy", "sklearn"],
-    "save_logs": True,
-})
-
-# View the generated Python code
-sdf.chat("What is the correlation between GDP and population?")
-print(sdf.last_code_generated)
-```
-
-## Using Local Models
-
-```python
-# local-llm.py: Use Ollama or other local models instead of OpenAI
-from pandasai.llm.local_llm import LocalLLM
-
-# With Ollama running locally
-llm = LocalLLM(api_base="http://localhost:11434/v1", model="llama3")
-
-sdf = SmartDataframe(df, config={"llm": llm})
-answer = sdf.chat("Summarize this dataset")
-print(answer)
-```
-
-## Pipeline Integration
-
-```python
-# pipeline.py: Use PandasAI in an automated analysis pipeline
-from pandasai import SmartDataframe
-from pandasai.llm import OpenAI
-import pandas as pd
-import json
-
-def analyze_dataset(csv_path: str, questions: list[str]) -> dict:
-    """Run a set of natural language questions against a CSV dataset."""
-    llm = OpenAI(api_token="your-key")
-    df = pd.read_csv(csv_path)
-    sdf = SmartDataframe(df, config={"llm": llm, "conversational": True})
-
-    results = {}
-    for question in questions:
-        try:
-            answer = sdf.chat(question)
-            results[question] = str(answer)
-        except Exception as e:
-            results[question] = f"Error: {e}"
-
-    return results
-
-# Usage
-report = analyze_dataset("sales.csv", [
-    "What was the total revenue last month?",
-    "Which product category had the most sales?",
-    "What is the month-over-month growth rate?",
-])
-print(json.dumps(report, indent=2))
-```
+- The LLM sees column names and sample rows, so do not point it at tables with personal or secret data unless that provider is acceptable; use a local Ollama model when data must stay on the machine.
+- By default the generated code is executed in your own Python process. Treat prompts and data as untrusted input, and pass a `Sandbox` implementation via `sandbox=` for anything exposed to other users.
+- Answers can be wrong. Print `last_code_executed`, spot-check numbers against plain pandas, and do not use it where exactness matters without review.
+- `df.chat()` returns analysis results, not a promise to edit the DataFrame in place; do cleaning in plain pandas when you need a reproducible pipeline.
+- Keep API keys in environment variables, never in source. Small local models often fail on multi-table questions.
+- For production reporting, ask the model once, then freeze the generated code as normal pandas.

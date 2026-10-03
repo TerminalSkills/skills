@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2f55ae7b90226edb2b0d4ef5ebe446d1f554f08687c867959f8018f81eb99ab8",
-  "scoredAt": "2026-05-13T10:02:03.622Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:30fe1ee827233a1cf918b85ea36af0b2ac180c08f9275de5e033e4cc49b65d62",
+  "scoredAt": "2026-10-03T13:09:29.165Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill provides high-level guidance but lacks concrete code examples or step-by-step procedures for implementation."
+        "category": "completeness",
+        "detail": "Error handling is limited to ErrorBoundary and validation 400s; edge cases such as codemod failures, session expiry, failed migrations, and rollback steps are not covered."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 86,
-    "multiplier": 1.72,
+    "multiplier": 0.93,
+    "baselineAvg": 86,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "Task CRUD with progressive enhancement",
-        "baseline": 52,
+        "name": "progressive-enhancement-task-route",
+        "baseline": 90,
         "treatment": 88,
-        "rationale": "Treatment uses loader returning json(), action with <Form method='post'>, useFetcher() for inline edits, and ErrorBoundary per route; baseline reaches for useEffect/fetch and client-side onSubmit instead of Remix data APIs."
+        "rationale": "Both use loader, Form method=post, an action reading request.formData(), data() with status 400, plain objects, and Route types from ./+types/notes; A is more thorough (redirect, preserved values, noValidate, SSR note), while B is leaner but equally meets the rubric (it returns a plain object on success and covers the CSRF caveat)."
       },
       {
-        "name": "Cloudflare Workers deploy with streaming",
-        "baseline": 48,
-        "treatment": 84,
-        "rationale": "Treatment configures @remix-run/cloudflare adapter, uses defer() in loaders for below-the-fold data, and reads KV/D1 bindings via context; baseline picks @remix-run/node or misses defer entirely."
+        "name": "migrate-remix-v2-to-react-router-v7",
+        "baseline": 80,
+        "treatment": 62,
+        "rationale": "B covers future flags in detail, package mappings, config files, renames, and json()/defer() replacement, but runs the codemod without `&& npm install` followed by `npm run typecheck && npm run build` as one sequence; A gives the exact codemod and typecheck/build commands and mentions most items but is thinner and its flags advice is generic."
+      },
+      {
+        "name": "like-button-fetcher-and-error-boundary",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both use fetcher.Form with formData-derived optimistic state, a thrown 404 Response, and an ErrorBoundary with isRouteErrorResponse; B is slightly more concise with extra notes, while A adds optimistic count and layout guidance, so they are nearly equal."
       }
     ]
   }

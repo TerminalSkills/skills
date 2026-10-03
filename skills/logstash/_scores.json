@@ -1,13 +1,13 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ea3faa69a828dcd02895389b6c5836372ba7dcfd344bed455e8508c36fcb17ed",
-  "scoredAt": "2026-05-13T09:26:03.412Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9d2357b149536472e82167b1c124811af895c951804eb1438eff7f81d5446ad4",
+  "scoredAt": "2026-10-03T12:03:51.372Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
@@ -17,36 +17,48 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The instructions lack explicit guidance on how to apply the provided code snippets, making it ambiguous for users."
+        "category": "completeness",
+        "detail": "Covers mostly happy paths; lacks guidance on diagnosing grokparsefailure, handling dead letter queue setup (the audit config comment mentions DLQ but none is configured), and troubleshooting backpressure or Elasticsearch outages."
       },
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases beyond basic optional Grok matches, leaving potential gaps in robust pipeline configuration."
+        "severity": "INFO",
+        "category": "security",
+        "detail": "Configs use plaintext http and ssl_enabled => false for beats and Elasticsearch; acceptable for examples but unsuitable for production without TLS and authentication."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "transport-security",
+        "detail": "Examples disable TLS on the beats input and use http:// Elasticsearch hosts with no credentials, which is insecure by default if copied into production."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 95,
-    "multiplier": 1.79,
+    "multiplier": 0.89,
+    "baselineAvg": 83,
+    "treatmentAvg": 74,
     "scenarios": [
       {
-        "name": "Nginx pipeline with geoip and useragent enrichment",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment uses beats input on 5044, an inline Grok pattern for nginx fields plus geoip and useragent filters, and a daily Elasticsearch index template; baseline gets the structure but misses field-typed Grok captures and rotation index."
+        "name": "nginx-filebeat-to-elasticsearch",
+        "baseline": 90,
+        "treatment": 72,
+        "rationale": "A has the correct TLS options, a date filter on the right pattern, geoip, useragent, and a date-pattern index, but it names the index nginx-access-* instead of the logs-nginx example, which the rubric allows with 'such as'; B matches the logs-nginx index and the TLS options exactly, yet its date filter and geoip/useragent run on a hand-rolled grok pattern that has weaknesses, and its output is unencrypted HTTP, so A's fuller, more production-ready answer scores higher."
       },
       {
-        "name": "Multi-pipeline with persisted Kafka audit queue",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Treatment configures pipelines.yml with per-pipeline workers/batch sizes plus queue.type: persisted and queue.max_bytes: 4gb on the Kafka-fed audit pipeline; baseline mentions multiple pipelines but rarely sets the persisted-queue settings correctly."
+        "name": "isolate-audit-pipeline-with-persisted-queue",
+        "baseline": 72,
+        "treatment": 80,
+        "rationale": "A gives separate pipelines with per-pipeline workers and batch.size (nginx, app, audit), a persisted audit queue with max_bytes, and verification via _node/stats/pipelines with events in/out; B omits pipeline.batch.size entirely, though its queue config and monitoring-API verification are otherwise solid and it adds a crash test."
+      },
+      {
+        "name": "parse-mixed-app-logs-with-grok",
+        "baseline": 88,
+        "treatment": 70,
+        "rationale": "A hits nearly every rubric item (the '{' branch, grok with TIMESTAMP_ISO8601/LOGLEVEL/GREEDYDATA, translate, a second grok with tag_on_failure => [], and a date filter on @timestamp), but it uses :int instead of :float for duration_ms. B uses :float and covers the same elements, but it wraps everything in an unrequested [fields][type] conditional, adds a copy-based JSON handling that is more convoluted, and its notes refer to a 'reference' that doesn't exist, which is confusing."
       }
     ]
   }

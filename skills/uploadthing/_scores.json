@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3a3e645202c7e04cefea61834e5ef290b653d305f6a0b071f730b7c9e910081e",
-  "scoredAt": "2026-05-13T10:32:08.243Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:239852a0d395e2e82106157be8578539e853c74539db3705d3664b693450adde",
+  "scoredAt": "2026-10-03T12:08:35.928Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios and edge cases beyond authentication."
+        "detail": "Covers the happy path and auth failure but gives little guidance on error scenarios such as failed uploads, webhook/callback failures in local development, missing or invalid UPLOADTHING_TOKEN, or file-type/size rejection handling beyond a brief mention."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are short prose descriptions that refer back to earlier steps instead of showing full runnable input and output, so they are simplistic."
       }
     ]
   },
@@ -27,24 +32,28 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 89,
-    "multiplier": 2.54,
+    "multiplier": 1.09,
+    "baselineAvg": 80,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Authenticated avatar upload writes user.avatarUrl",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment defines a FileRouter with createUploadthing(), f({ image: { maxFileSize: '2MB', maxFileCount: 1 } }), session-checking .middleware, and .onUploadComplete that calls db.user.update, then renders UploadButton<OurFileRouter, 'avatarUploader'>; baseline proposes manual S3 presigned URLs and misses the FileRouter DSL."
+        "name": "avatar-uploader-with-auth",
+        "baseline": 94,
+        "treatment": 93,
+        "rationale": "Both responses cover every rubric item (2MB/1-file image route, middleware that throws UploadThingError and returns userId, file.ufsUrl saved in onUploadComplete, GET/POST from createRouteHandler, OurFileRouter exported), and B scores marginally higher for its extra notes on callback reliability, old-image cleanup and the older-version URL field."
       },
       {
-        "name": "Drag-and-drop PDF dropzone with 5x10MB limit",
-        "baseline": 35,
+        "name": "pdf-dropzone-typed-components",
+        "baseline": 72,
         "treatment": 88,
-        "rationale": "Treatment uses f({ pdf: { maxFileSize: '10MB', maxFileCount: 5 } }) with a session-guarded .middleware and .onUploadComplete persisting via db.document.create, plus UploadDropzone with the typed endpoint; baseline reaches for react-dropzone + raw S3 multipart and never wires UploadThing's typed components."
+        "rationale": "Both configure a PDF-only maxFileCount 5 route with a typed UploadDropzone, but B states the Tailwind v4 import and that withUt is v3-only and includes the optional NextSSRPlugin with extractRouterConfig, while A gives the v4 import plus an @source line, never mentions withUt and omits NextSSRPlugin."
+      },
+      {
+        "name": "migrate-token-and-manage-files-server-side",
+        "baseline": 74,
+        "treatment": 80,
+        "rationale": "A matches the rubric closely: UPLOADTHING_TOKEN kept server-only, UTApi from uploadthing/server, deleteFiles with an array of keys, uploadFiles with a File, and ufsUrl. B also covers these but passes a bare string to deleteFiles in its main snippet instead of an array, and it uses UTFile rather than a File object, though it is a File subclass."
       }
-    ],
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6"
+    ]
   }
 }

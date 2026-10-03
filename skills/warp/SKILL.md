@@ -1,11 +1,12 @@
 ---
 name: warp
-description: Expert guidance for Warp, the modern terminal built for developer productivity. Helps developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.
+description: Warp is a terminal with command blocks and a built-in coding agent. Use this skill to write Warp Workflows (parameterized commands), share them through Warp Drive, set up themes, tab configs or launch configurations, and use blocks, notebooks and agent mode. Trigger words are warp terminal, warp workflow, warp drive, warp theme, launch configuration.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: macOS, Windows or Linux desktop; Warp account for Warp Drive sync and agents
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/warpdotdev/warp
   category: development
   tags:
   - terminal
@@ -17,188 +18,112 @@ metadata:
 
 # Warp — Modern Terminal & Workflow Automation
 
-
 ## Overview
 
-
-Warp, the modern terminal built for developer productivity. Helps developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.
-
+Warp is a terminal for macOS, Windows and Linux. Each command and its output form a Block you can select, copy and search on its own, and the input is a real text editor. Warp also ships a built-in agent (in the app, as the `warp` CLI, and as cloud agents) and runs third-party CLI agents such as Claude Code and Codex. The app is open source (AGPL v3, `warpdotdev/warp`). This skill covers the parts you configure with files: Workflows, Warp Drive, themes, tab configs and launch configurations. Checked against docs.warp.dev in October 2026; the `workflows` file format below is the legacy YAML format, which Warp says remains supported.
 
 ## Instructions
 
-### Warp Workflows
+### Install
 
-Create reusable, parameterized command templates:
+```bash
+brew install --cask warp      # macOS
+```
+
+On Windows and Linux use the installer or package from warp.dev (the quickstart also lists WinGet and apt).
+
+### Workflows
+
+A workflow is a named command with `{{argument}}` placeholders. Argument names may use letters, digits, hyphens and underscores and cannot start with a digit. Create them in Warp Drive (cloud-synced, shareable with a team) or as YAML files; on macOS local YAML files go in `~/.warp/workflows/`. Open the workflow search with Ctrl+Shift+R. The community collection is at commands.dev (repo `warpdotdev/workflows`).
+
+YAML fields: `name`, `command`, `description`, `arguments` (each with `name`, `description`, `default_value`), `tags`, `shells` (empty means all), `source_url`, `author`, `author_url`. The file format has no conditionals, so write one workflow per operation.
 
 ```yaml
-# ~/.warp/workflows/deploy-service.yaml — Parameterized deployment workflow
+# ~/.warp/workflows/deploy-service.yaml
 name: Deploy Service
-description: Build and deploy a service to production with health checks
-author: DevOps Team
-tags: [deploy, production, docker]
+description: Build, push and roll out a service, then roll back if the health check fails
+author: Platform Team
+tags: [deploy, docker, kubernetes]
 command: |-
-  echo "🚀 Deploying {{service_name}} to {{environment}}..." &&
   docker build -t {{registry}}/{{service_name}}:{{version}} . &&
   docker push {{registry}}/{{service_name}}:{{version}} &&
-  kubectl set image deployment/{{service_name}} \
-    {{service_name}}={{registry}}/{{service_name}}:{{version}} \
-    -n {{namespace}} &&
-  kubectl rollout status deployment/{{service_name}} -n {{namespace}} --timeout=300s &&
-  echo "✅ Deployment complete. Running health check..." &&
-  curl -sf https://{{service_name}}.{{domain}}/health || \
-    (echo "❌ Health check failed! Rolling back..." && \
-     kubectl rollout undo deployment/{{service_name}} -n {{namespace}} && exit 1)
+  kubectl set image deployment/{{service_name}} {{service_name}}={{registry}}/{{service_name}}:{{version}} -n {{namespace}} &&
+  kubectl rollout status deployment/{{service_name}} -n {{namespace}} --timeout=300s ||
+  (kubectl rollout undo deployment/{{service_name}} -n {{namespace}}; exit 1)
 arguments:
   - name: service_name
-    description: Name of the service to deploy
-    default_value: api-server
-  - name: environment
-    description: Target environment
-    default_value: production
+    description: Deployment and image name
+    default_value: billing-api
   - name: registry
-    description: Container registry URL
-    default_value: ghcr.io/myorg
+    description: Container registry path
+    default_value: ghcr.io/northwind-labs
   - name: version
-    description: Image version tag
-    default_value: latest
+    description: Image tag
+    default_value: 2.14.0
   - name: namespace
     description: Kubernetes namespace
     default_value: production
-  - name: domain
-    description: Base domain for health check
-    default_value: api.example.com
 ```
 
 ```yaml
-# ~/.warp/workflows/git-cleanup.yaml — Clean up old git branches
-name: Git Branch Cleanup
-description: Delete merged branches locally and remotely
-tags: [git, cleanup]
-command: |-
-  echo "🧹 Cleaning merged branches..." &&
-  git fetch --prune &&
-  echo "Local merged branches:" &&
-  git branch --merged {{base_branch}} | grep -v "{{base_branch}}" | grep -v "^\*" &&
-  echo "" &&
-  read -p "Delete these local branches? (y/n) " confirm &&
-  if [ "$confirm" = "y" ]; then
-    git branch --merged {{base_branch}} | grep -v "{{base_branch}}" | grep -v "^\*" | xargs -r git branch -d &&
-    echo "✅ Local branches cleaned"
-  fi &&
-  if [ "{{clean_remote}}" = "true" ]; then
-    echo "Remote merged branches:" &&
-    git branch -r --merged {{base_branch}} | grep -v "{{base_branch}}" | grep "origin/" | sed 's/origin\///' &&
-    read -p "Delete these remote branches? (y/n) " confirm2 &&
-    if [ "$confirm2" = "y" ]; then
-      git branch -r --merged {{base_branch}} | grep -v "{{base_branch}}" | grep "origin/" | sed 's/origin\///' | xargs -r -I{} git push origin --delete {} &&
-      echo "✅ Remote branches cleaned"
-    fi
-  fi
-arguments:
-  - name: base_branch
-    description: Base branch to compare against
-    default_value: main
-  - name: clean_remote
-    description: Also clean remote branches (true/false)
-    default_value: "false"
-```
-
-```yaml
-# ~/.warp/workflows/db-ops.yaml — Database operations workflow
-name: Database Operations
-description: Common database tasks with safety checks
+# ~/.warp/workflows/pg-backup.yaml
+name: Postgres Backup
+description: Dump a database in compressed custom format with a timestamped file name
 tags: [database, postgres, backup]
 command: |-
-  {{#if (eq operation "backup")}}
-    echo "📦 Backing up {{db_name}} on {{host}}..." &&
-    pg_dump -h {{host}} -U {{user}} -d {{db_name}} \
-      --format=custom --compress=9 \
-      -f "backup_{{db_name}}_$(date +%Y%m%d_%H%M%S).dump" &&
-    echo "✅ Backup complete: backup_{{db_name}}_$(date +%Y%m%d_%H%M%S).dump"
-  {{else if (eq operation "restore")}}
-    echo "⚠️  Restoring {{db_name}} from {{backup_file}}..." &&
-    echo "This will OVERWRITE the current database!" &&
-    read -p "Continue? (yes/no) " confirm &&
-    if [ "$confirm" = "yes" ]; then
-      pg_restore -h {{host}} -U {{user}} -d {{db_name}} \
-        --clean --if-exists {{backup_file}} &&
-      echo "✅ Restore complete"
-    fi
-  {{else if (eq operation "stats")}}
-    psql -h {{host}} -U {{user}} -d {{db_name}} -c "
-      SELECT schemaname, relname, n_tup_ins, n_tup_upd, n_tup_del,
-             pg_size_pretty(pg_total_relation_size(relid)) as total_size
-      FROM pg_stat_user_tables ORDER BY pg_total_relation_size(relid) DESC LIMIT 20;"
-  {{/if}}
+  pg_dump -h {{host}} -U {{user}} -d {{db_name}} --format=custom --compress=9 -f "backup_{{db_name}}_$(date +%Y%m%d_%H%M%S).dump"
 arguments:
-  - name: operation
-    description: "Operation: backup, restore, or stats"
-    default_value: backup
-  - name: db_name
-    description: Database name
   - name: host
     description: Database host
     default_value: localhost
   - name: user
-    description: Database user
+    description: Database role
     default_value: postgres
-  - name: backup_file
-    description: Backup file path (for restore)
-    default_value: ""
+  - name: db_name
+    description: Database to dump
+    default_value: orders
 ```
 
-### Warp Drive — Team Knowledge Base
-
-Share workflows and snippets with your team:
-
 ```yaml
-# Team-shared workflow: New Developer Onboarding
-# Stored in Warp Drive, accessible to all team members
-name: New Dev Environment Setup
-description: Set up local development environment from scratch
-tags: [onboarding, setup]
+# ~/.warp/workflows/git-prune-merged.yaml
+name: Delete Merged Local Branches
+description: Fetch with prune, list branches merged into the base branch, delete them after confirmation
+tags: [git, cleanup]
 command: |-
-  echo "🔧 Setting up development environment..." &&
-
-  # Clone all required repositories
-  echo "📥 Cloning repositories..." &&
-  mkdir -p ~/projects &&
-  cd ~/projects &&
-  git clone git@github.com:{{org}}/api.git &&
-  git clone git@github.com:{{org}}/frontend.git &&
-  git clone git@github.com:{{org}}/infrastructure.git &&
-
-  # Install dependencies
-  echo "📦 Installing dependencies..." &&
-  cd api && npm install && cd .. &&
-  cd frontend && npm install && cd .. &&
-
-  # Set up local services
-  echo "🐳 Starting Docker services..." &&
-  cd infrastructure &&
-  docker compose -f docker-compose.local.yml up -d &&
-
-  # Run database migrations
-  echo "🗄️ Running migrations..." &&
-  cd ../api &&
-  npm run db:migrate &&
-  npm run db:seed &&
-
-  # Verify everything works
-  echo "🧪 Running smoke tests..." &&
-  npm run test:smoke &&
-
-  echo "✅ Environment ready! Start the API: cd api && npm run dev"
+  git fetch --prune &&
+  git branch --merged {{base_branch}} | grep -v -e "{{base_branch}}" -e "^\*" &&
+  read -p "Delete these branches? (y/n) " confirm &&
+  [ "$confirm" = "y" ] && git branch --merged {{base_branch}} | grep -v -e "{{base_branch}}" -e "^\*" | xargs -r git branch -d
 arguments:
-  - name: org
-    description: GitHub organization
-    default_value: mycompany
+  - name: base_branch
+    description: Branch to compare against
+    default_value: main
+```
+
+### Warp Drive
+
+Warp Drive is the synced space for workflows, notebooks and other saved items; a team shares them there so nobody re-types a deploy command. Items created in the UI live in the cloud and need a Warp account. Treat Drive items as shared: never put tokens in a default value; read secrets from environment variables in the command.
+
+### Notebooks
+
+Notebooks are runnable documents in Warp Drive: Markdown plus shell code blocks. Run a block with Cmd+Enter (macOS) or Ctrl+Enter (Windows/Linux); `{{name}}` placeholders become arguments. Good for runbooks.
+
+```markdown
+# Database Maintenance Runbook
+
+## 1. Check connections
+`psql -c "SELECT count(*) FROM pg_stat_activity;"`
+
+## 2. Vacuum a large table
+`psql -c "VACUUM (VERBOSE, ANALYZE) {{table_name}};"`
 ```
 
 ### Custom Themes
 
+Theme files are YAML. Directories: macOS `~/.warp/themes/`, Windows `%APPDATA%\warp\Warp\data\themes\`, Linux `${XDG_DATA_HOME:-$HOME/.local/share}/warp-terminal/themes/`. Colors must be hex strings. `details` is `darker` or `lighter`; `cursor` is optional. Ready-made themes: `github.com/warpdotdev/themes`.
+
 ```yaml
-# ~/.warp/themes/custom-theme.yaml — Custom terminal theme
+# ~/.warp/themes/midnight-dev.yaml
 name: Midnight Dev
 accent: "#7c3aed"
 background: "#0f172a"
@@ -225,102 +150,69 @@ terminal_colors:
     white: "#f8fafc"
 ```
 
-### Launch Configurations
+### Tab Configs
 
-Configure how Warp starts and behaves:
+Tab Configs are the current way to open a saved tab layout; Warp marks Launch Configurations as legacy. They are TOML files in `~/.warp/tab_configs/` (macOS), `%APPDATA%\warp\Warp\data\tab_configs\` (Windows) or `${XDG_DATA_HOME:-$HOME/.local/share}/warp-terminal/tab_configs/` (Linux). Create one from the `+` menu in the tab bar, by right-clicking a tab and choosing Save as new config, or by hand:
+
+```toml
+# ~/.warp/tab_configs/api-dev.toml
+name = "API Dev"
+
+[[panes]]
+id = "main"
+type = "terminal"
+directory = "~/projects/billing-api"
+commands = ["npm run dev"]
+```
+
+### Launch Configurations (legacy)
+
+YAML files in `~/.warp/launch_configurations/` (macOS), `$env:APPDATA\warp\Warp\data\launch_configurations\` (Windows) or `${XDG_DATA_HOME:-$HOME/.local/share}/warp-terminal/launch_configurations/` (Linux). `cwd` must be an absolute path: with `~` the file does not appear in the list.
 
 ```yaml
-# ~/.warp/launch_configurations.yaml — Startup configurations
-configurations:
-  - name: Full Stack Dev
-    tabs:
-      - title: API Server
-        directory: ~/projects/api
-        command: npm run dev
+---
+name: Full Stack Dev
+windows:
+  - tabs:
+      - title: API
+        layout:
+          cwd: /Users/maria/projects/billing-api
+        color: blue
+        commands:
+          - exec: npm run dev
       - title: Frontend
-        directory: ~/projects/frontend
-        command: npm run dev
-      - title: Logs
-        directory: ~/projects
-        command: docker compose logs -f
-      - title: Shell
-        directory: ~/projects
-
-  - name: DevOps
-    tabs:
-      - title: Cluster
-        command: kubectl get pods -w --all-namespaces
-      - title: Monitoring
-        command: watch -n 5 'kubectl top pods'
-      - title: Logs
-        command: stern -n production "api-*" --tail 100
-      - title: Shell
-        directory: ~/infrastructure
+        layout:
+          cwd: /Users/maria/projects/storefront
+        commands:
+          - exec: npm run dev
 ```
 
-## Warp Features for Developers
+### Blocks, Agent and Editor
 
-### Block-Based Editing
-Warp treats each command and its output as a "block." This means you can:
-- Select and copy just the output of a command (not the prompt)
-- Share a block with teammates (includes command + output)
-- Navigate between blocks with Ctrl+Shift+↑/↓
-- Search command output with Cmd+F within a block
-
-### AI Command Search
-Type `#` in Warp to search for commands using natural language:
-- `# find all files larger than 100MB` → `find / -type f -size +100M`
-- `# compress this directory as tar.gz` → `tar -czf archive.tar.gz directory/`
-- `# show disk usage sorted by size` → `du -sh * | sort -rh`
-
-### Notebooks
-Interactive documents that combine Markdown explanations with runnable commands:
-```markdown
-# Database Maintenance Runbook
-
-## 1. Check current connections
-​```bash
-psql -c "SELECT count(*) FROM pg_stat_activity;"
-​```
-
-## 2. Run VACUUM on large tables
-​```bash
-psql -c "VACUUM (VERBOSE, ANALYZE) large_table;"
-​```
-```
-
+- Select recent blocks with Cmd+Up/Down (macOS) or Ctrl+Up/Down (Windows/Linux); add Shift to extend the selection. Failed commands show a red background; a sticky header keeps the command visible in long output.
+- Shift+Enter inserts a newline in the input editor.
+- Ctrl+Shift+Enter opens agent mode for natural-language requests. Outside the app, run `warp` for the Warp Agent CLI.
 
 ## Examples
 
+### Example 1: Share a deploy command with the team
 
-### Example 1: Setting up Warp with a custom configuration
+**User request:** "Turn our docker build, push and kubectl rollout into something the whole team can run."
 
-**User request:**
+Save the `Deploy Service` workflow above in Warp Drive (or in `~/.warp/workflows/` for local use). Press Ctrl+Shift+R, pick it, and Warp shows fields prefilled with `billing-api`, `ghcr.io/northwind-labs`, `2.14.0` and `production`; change the version and press Enter. The rollout status line prints `deployment "billing-api" successfully rolled out`, or the rollback runs.
 
-```
-I just installed Warp. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
+### Example 2: Open the dev environment in one click
 
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
+**User request:** "I want API and frontend dev servers in separate tabs when I start work."
 
-### Example 2: Extending Warp with custom functionality
-
-**User request:**
-
-```
-I want to add a custom warp drive — team knowledge base to Warp. How do I build one?
-```
-
-The agent scaffolds the extension/plugin project, implements the core functionality following Warp's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
-
+Create two `[[panes]]` tab configs, or the launch configuration above with absolute `cwd` paths. It then appears under the `+` menu (tab configs) or the launch configuration palette, and each tab starts in its directory with `npm run dev` running.
 
 ## Guidelines
 
-1. **Parameterize everything** — Use `{{variables}}` in workflows; never hardcode values that change between environments
-2. **Add descriptions** — Every workflow and argument needs a description; team members shouldn't guess what things do
-3. **Use Warp Drive for team knowledge** — Shared workflows reduce tribal knowledge and onboarding time
-4. **Launch configs for projects** — Define multi-tab setups per project so starting work is one click
-5. **Tag workflows consistently** — Use tags like `deploy`, `database`, `git`, `debug` for quick filtering
-6. **Safety prompts for destructive ops** — Add `read -p "Continue? (y/n)"` before any data-modifying operation
-7. **Version your workflows** — Store workflows in your team's git repo; symlink to `~/.warp/workflows/`
-8. **Notebooks for runbooks** — Incident response and maintenance procedures work better as Warp Notebooks than wiki pages
+- Parameterize everything that changes between environments; give every argument a description and a realistic default.
+- Keep destructive steps behind a confirmation (`read -p`) and never default an argument to a production target for a destructive operation.
+- Use unique, consistent tags (`deploy`, `database`, `git`) for search.
+- Warp's file locations differ per OS and between Stable and Preview builds; check the docs path for your platform before debugging a "missing" theme or config.
+- Use Warp Drive for team items; keep a copy of important workflows in your repo.
+- Command text typed in agent mode and Drive content may be synced or sent to model providers; do not paste secrets.
+- Warp needs a desktop GUI; it is not for headless servers.

@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b8a4afa93ece81c2e87c7fd73a25d652f6f1a7b661f33d1b32d2e19d9bb1b1e3",
-  "scoredAt": "2026-05-13T09:49:54.407Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:d85b8974596c4cfa92bc16636e12c7afc2e1cabdecfd13ab42ef3346207ea606",
+  "scoredAt": "2026-10-03T13:09:36.333Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios, such as authentication failures or network errors."
+        "category": "clarity",
+        "detail": "Several steps defer to external docs instead of being specified (multi-turn conversation input format, polling a background job 'by response id' with no code, 'check the models page', unverified error class names), and the model id 'openai/gpt-5.6-sol' is unexplained."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to the OpenAI SDK and may not work with other AI agents."
+        "category": "completeness",
+        "detail": "Error handling covers only 429 rate limits; there is no handling for auth failures, timeouts, empty search_results, or background job failure, and the retry example relies on an error class the skill itself says to verify."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 87,
-    "multiplier": 2.29,
+    "multiplier": 9.3,
+    "baselineAvg": 5,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Build cited research assistant for current AI regulation",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment uses OpenAI SDK with base_url=https://api.perplexity.ai, sonar-pro model, and reads response.citations URLs; baseline calls Perplexity HTTP REST without the OpenAI-compatible pattern and omits citation extraction."
+        "name": "migrate-sonar-chat-completions",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "B uses responses.create with input, max_output_tokens, a preset, the recency filter inside the web_search tool's filters, and response.output_text, so it meets every rubric item and honestly flags the unverified filter key; A keeps the old chat.completions call and fails the rubric entirely."
       },
       {
-        "name": "Stream Bitcoin price answer with source URLs",
-        "baseline": 40,
-        "treatment": 86,
-        "rationale": "Treatment streams via OpenAI SDK with stream=True and prints chunk.choices[0].delta.content, then reads response.citations; baseline mostly suggests a generic requests-based streaming pattern that misses the citations field."
+        "name": "cited-research-with-sources",
+        "baseline": 2,
+        "treatment": 95,
+        "rationale": "A uses client.responses.create with preset='low', input=, prints response.output_text, and iterates response.search_results for title and url, matching the rubric; B uses the forbidden /chat/completions endpoint via raw requests and so fails the core requirement."
+      },
+      {
+        "name": "long-research-background-job",
+        "baseline": 8,
+        "treatment": 90,
+        "rationale": "B matches the rubric: preset 'high' with background=True, a note to poll by response id, and a preset='fast' stream=True loop that prints event.delta on response.output_text.delta, with only the retrieval call left out. A uses the older sonar-deep-research async API with reasoning_effort, has no presets, no background=True, and no event-type streaming."
       }
     ]
   }

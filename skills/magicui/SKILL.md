@@ -1,17 +1,15 @@
 ---
 name: magicui
 description: >-
-  Add animated React UI components for landing pages and marketing sites with Magic UI.
-  Use when: adding animated UI components, building impressive landing pages, creating
-  particle effects, text animations, number counters, shimmer buttons, and visual
-  effects in React. Tailwind CSS based and shadcn/ui compatible.
+  Adds animated React components (marquee, number ticker, shimmer button, confetti, globe, animated beam) to landing pages with Magic UI, a copy-the-source library built on Tailwind CSS and shadcn/ui. Use when asked to add animated UI components, build an impressive landing page hero, create particle or meteor backgrounds, text animations, number counters, shimmer buttons, or other visual effects in React.
 license: Apache-2.0
-compatibility: "Requires React 18+, Tailwind CSS 3+, Node.js 18+"
+compatibility: "React 18 or 19, Tailwind CSS (v4 recommended), a shadcn/ui project (components.json), Node.js 18+"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: ["magicui", "react", "animations", "ui-components", "tailwind"]
+  repository: https://github.com/magicuidesign/magicui
   use-cases:
     - "Add a particle/confetti effect to a landing page hero section"
     - "Create an animated number counter for displaying stats"
@@ -25,327 +23,233 @@ metadata:
 
 ## Overview
 
-Magic UI is a collection of animated React components built on Tailwind CSS and shadcn/ui. Components are installed via CLI directly into your project — you own the source code and can customize freely.
+Magic UI is a collection of animated React components for landing pages, built on Tailwind CSS and the `motion` animation library. It is distributed as a shadcn registry: one command copies a component's source into your project, so you own the code and can edit it freely. There is no runtime package to depend on.
 
-**Key traits:**
-- CLI-based install (no runtime package dependency)
-- Tailwind CSS + CSS variables for theming
-- shadcn/ui compatible
-- TypeScript first
+Key traits:
 
-## Setup
+- Installed with the shadcn CLI through the `@magicui` registry namespace
+- Components are copied to `components/ui/` (the path set by the `ui` alias in `components.json`)
+- Named exports (`import { Marquee } from "@/components/ui/marquee"`), TypeScript first
+- Animation keyframes live in your global CSS; the CLI adds them for you
+
+The old `magicui-cli` npm package was last published in July 2024 and is no longer maintained. Do not use it; the commands below replace it.
+
+## Instructions
 
 ### Prerequisites
 
+The project needs shadcn/ui initialised (a `components.json` file) and Tailwind CSS:
+
 ```bash
-# Must have Tailwind CSS configured
-npm install tailwindcss @tailwindcss/typography
-# Must have shadcn/ui initialized (or manual cn utility)
 npx shadcn@latest init
 ```
 
-### Install a component
+The `@magicui` namespace is known to the shadcn CLI, so no registry entry has to be added to `components.json`.
+
+### Install components
 
 ```bash
-npx magicui-cli add <component-name>
+npx shadcn@latest add @magicui/marquee
+npx shadcn@latest add @magicui/number-ticker @magicui/shimmer-button   # several at once
+npx shadcn@latest view @magicui/globe                                  # inspect source and dependencies first
 ```
 
-This copies the component source into `components/magicui/`.
+The CLI installs the component's dependencies (for example `motion`, `canvas-confetti`, `cobe`) and writes any `@theme inline` keyframes into your CSS file. To list what exists, read https://magicui.design/llms.txt or browse https://magicui.design/docs/components.
 
-## Component Catalog & Examples
+### Component usage
 
-### 1. AnimatedBeam — connecting lines between elements
+Imports come from `@/components/ui/<name>` and are named exports. Props below are from the current documentation.
 
-```bash
-npx magicui-cli add animated-beam
-```
+**Marquee** — infinite ticker (`reverse`, `pauseOnHover`, `vertical`, `repeat`, default 4). Set speed with the CSS variables `--duration` and `--gap`:
 
 ```tsx
-import { AnimatedBeam } from "@/components/magicui/animated-beam";
+import { Marquee } from "@/components/ui/marquee";
+
+<Marquee pauseOnHover className="[--duration:20s]">
+  {["Vercel", "Stripe", "Linear", "Notion", "Figma"].map((name) => (
+    <span key={name} className="mx-8 text-xl font-semibold text-muted-foreground">{name}</span>
+  ))}
+</Marquee>
+```
+
+**NumberTicker** — counts when it scrolls into view (`value`, `startValue`, `direction`, `delay`, `decimalPlaces`):
+
+```tsx
+import { NumberTicker } from "@/components/ui/number-ticker";
+
+<NumberTicker value={10000} className="text-5xl font-bold" />
+<NumberTicker value={99.9} decimalPlaces={1} className="text-5xl font-bold" />
+```
+
+**ShimmerButton** — props `shimmerColor`, `shimmerSize` (default `0.05em`), `shimmerDuration` (default `3s`), `borderRadius`, `background`:
+
+```tsx
+import { ShimmerButton } from "@/components/ui/shimmer-button";
+
+<ShimmerButton shimmerColor="#ffffff" background="linear-gradient(135deg, #6366f1, #8b5cf6)" className="px-8 py-3">
+  Start free trial
+</ShimmerButton>
+```
+
+**SparklesText** — the text is passed as children, not a `text` prop (`sparklesCount`, `colors={{ first, second }}`):
+
+```tsx
+import { SparklesText } from "@/components/ui/sparkles-text";
+
+<h1 className="text-6xl font-bold">Build <SparklesText colors={{ first: "#6366f1", second: "#ec4899" }}>faster</SparklesText> with AI</h1>
+```
+
+**Ripple** (`mainCircleSize`, `mainCircleOpacity`, `numCircles`) and **Meteors** (`number`, `angle`, `minDuration`, `maxDuration`) are backgrounds: put them in a `relative overflow-hidden` parent and raise your content with `z-10`:
+
+```tsx
+import { Ripple } from "@/components/ui/ripple";
+import { Meteors } from "@/components/ui/meteors";
+
+<div className="relative flex h-96 items-center justify-center overflow-hidden rounded-2xl border">
+  <Ripple mainCircleSize={200} numCircles={8} />
+  <Meteors number={20} />
+  <p className="z-10 text-4xl font-bold">Connect everything</p>
+</div>
+```
+
+**Confetti** — a canvas component controlled by a ref, not a hook. Add `manualstart` so it does not fire on mount, then call `fire()`:
+
+```tsx
+"use client";
 import { useRef } from "react";
+import { Confetti, type ConfettiRef } from "@/components/ui/confetti";
+
+export function CheckoutDone() {
+  const confettiRef = useRef<ConfettiRef>(null);
+  return (
+    <div className="relative">
+      <Confetti ref={confettiRef} manualstart className="pointer-events-none absolute inset-0 size-full" />
+      <button onClick={() => confettiRef.current?.fire({ particleCount: 100, spread: 70 })}>
+        Complete purchase
+      </button>
+    </div>
+  );
+}
+```
+
+**AnimatedBeam** — draws a moving line between two elements; needs three refs (`containerRef`, `fromRef`, `toRef`) and a `relative` container, plus optional `curvature`, `duration`, `reverse`, `gradientStartColor`, `gradientStopColor`:
+
+```tsx
+"use client";
+import { useRef } from "react";
+import { AnimatedBeam } from "@/components/ui/animated-beam";
 
 export function BeamDemo() {
   const containerRef = useRef<HTMLDivElement>(null);
   const fromRef = useRef<HTMLDivElement>(null);
   const toRef = useRef<HTMLDivElement>(null);
-
   return (
     <div ref={containerRef} className="relative flex h-64 items-center justify-between p-10">
-      <div ref={fromRef} className="h-12 w-12 rounded-full bg-blue-500" />
-      <div ref={toRef} className="h-12 w-12 rounded-full bg-purple-500" />
+      <div ref={fromRef} className="size-12 rounded-full bg-blue-500" />
+      <div ref={toRef} className="size-12 rounded-full bg-purple-500" />
       <AnimatedBeam containerRef={containerRef} fromRef={fromRef} toRef={toRef} />
     </div>
   );
 }
 ```
 
-### 2. Marquee — infinite scrolling ticker
+**Text effects** — `BlurIn` no longer exists. Use `TextAnimate` (`animation="blurInUp"`, `by="word" | "character" | "line" | "text"`) or `BlurFade` (`delay`, `duration`, `direction`, `inView`):
+
+```tsx
+import { TextAnimate } from "@/components/ui/text-animate";
+import { BlurFade } from "@/components/ui/blur-fade";
+
+<TextAnimate as="h1" animation="blurInUp" by="word" className="text-5xl font-bold">
+  The future of development
+</TextAnimate>
+<BlurFade delay={0.25} inView><p>Fades in when scrolled into view</p></BlurFade>
+```
+
+**Globe** (`config` takes COBE options; the CLI installs `cobe` and `motion`) and **Particles** (`quantity`, `color`, `size`, `staticity`) take only a sized container:
+
+```tsx
+import { Globe } from "@/components/ui/globe";
+
+<div className="relative mx-auto size-[500px]"><Globe /></div>
+```
+
+### Components that exist today
+
+`animated-beam`, `animated-circular-progress-bar`, `animated-gradient-text`, `animated-grid-pattern`, `animated-list`, `animated-shiny-text`, `animated-theme-toggler`, `aurora-text`, `avatar-circles`, `bento-grid`, `blur-fade`, `border-beam`, `code-comparison`, `confetti`, `cool-mode`, `dock`, `dot-pattern`, `file-tree`, `flickering-grid`, `globe`, `grid-pattern`, `hero-video-dialog`, `highlighter`, `hyper-text`, `icon-cloud`, `interactive-hover-button`, `iphone`, `light-rays`, `magic-card`, `marquee`, `meteors`, `morphing-text`, `neon-gradient-card`, `number-ticker`, `orbiting-circles`, `particles`, `pointer`, `progressive-blur`, `pulsating-button`, `rainbow-button`, `retro-grid`, `ripple`, `safari`, `scroll-based-velocity`, `scroll-progress`, `shimmer-button`, `shine-border`, `shiny-button`, `smooth-cursor`, `sparkles-text`, `spinning-text`, `terminal`, `text-animate`, `text-reveal`, `typing-animation`, `video-text`, `warp-background`, `word-rotate`.
+
+Removed or renamed: `blur-in` (use `text-animate` or `blur-fade`), `word-fade-in`, `word-pull-up`, `letter-pullup`, `flip-text`, `wavy-text`, `vanish-input`, `ticker` (use `marquee`).
+
+## Examples
+
+### Example 1: Hero section with a marquee of customer logos
+
+User request: "Make the landing page hero animated: a ripple behind the headline, a shimmer CTA, and a scrolling row of customer names under it."
 
 ```bash
-npx magicui-cli add marquee
+npx shadcn@latest add @magicui/ripple @magicui/shimmer-button @magicui/marquee @magicui/text-animate
 ```
 
 ```tsx
-import Marquee from "@/components/magicui/marquee";
-
-const logos = ["Vercel", "Stripe", "Linear", "Notion", "Figma"];
-
-export function LogoMarquee() {
-  return (
-    <Marquee pauseOnHover className="[--duration:20s]">
-      {logos.map((name) => (
-        <div key={name} className="mx-8 text-xl font-semibold text-muted-foreground">
-          {name}
-        </div>
-      ))}
-    </Marquee>
-  );
-}
-```
-
-### 3. ShimmerButton — animated gradient CTA
-
-```bash
-npx magicui-cli add shimmer-button
-```
-
-```tsx
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-
-export function HeroCTA() {
-  return (
-    <ShimmerButton
-      shimmerColor="#ffffff"
-      shimmerSize="0.1em"
-      shimmerDuration="2s"
-      background="linear-gradient(135deg, #6366f1, #8b5cf6)"
-      className="px-8 py-3 text-white font-semibold"
-    >
-      Get Started Free →
-    </ShimmerButton>
-  );
-}
-```
-
-### 4. NumberTicker — animated counting up
-
-```bash
-npx magicui-cli add number-ticker
-```
-
-```tsx
-import NumberTicker from "@/components/magicui/number-ticker";
-
-export function StatsSection() {
-  return (
-    <div className="grid grid-cols-3 gap-8 text-center">
-      <div>
-        <NumberTicker value={10000} className="text-5xl font-bold" />
-        <p className="text-muted-foreground">Active Users</p>
-      </div>
-      <div>
-        <NumberTicker value={99} className="text-5xl font-bold" />
-        <span className="text-5xl font-bold">%</span>
-        <p className="text-muted-foreground">Uptime</p>
-      </div>
-      <div>
-        <NumberTicker value={500} className="text-5xl font-bold" />
-        <p className="text-muted-foreground">Customers</p>
-      </div>
-    </div>
-  );
-}
-```
-
-### 5. SparklesText — glittering highlight text
-
-```bash
-npx magicui-cli add sparkles-text
-```
-
-```tsx
-import SparklesText from "@/components/magicui/sparkles-text";
-
-export function HeroHeading() {
-  return (
-    <h1 className="text-6xl font-bold">
-      Build{" "}
-      <SparklesText text="faster" colors={{ first: "#6366f1", second: "#ec4899" }} />
-      {" "}with AI
-    </h1>
-  );
-}
-```
-
-### 6. Ripple — pulsing circle effect
-
-```bash
-npx magicui-cli add ripple
-```
-
-```tsx
-import { Ripple } from "@/components/magicui/ripple";
-
-export function HeroBackground() {
-  return (
-    <div className="relative flex h-96 items-center justify-center overflow-hidden bg-background">
-      <Ripple mainCircleSize={200} numCircles={8} />
-      <p className="z-10 text-4xl font-bold">Connect Everything</p>
-    </div>
-  );
-}
-```
-
-### 7. Confetti — celebration burst
-
-```bash
-npx magicui-cli add confetti
-```
-
-```tsx
-import { useConfetti } from "@/components/magicui/confetti";
-
-export function SuccessButton() {
-  const { fire } = useConfetti();
-
-  return (
-    <button
-      onClick={() => fire({ particleCount: 100, spread: 70, origin: { y: 0.6 } })}
-      className="rounded-lg bg-green-500 px-6 py-3 text-white font-semibold"
-    >
-      🎉 Complete Purchase
-    </button>
-  );
-}
-```
-
-### 8. Meteors — falling meteor streaks background
-
-```bash
-npx magicui-cli add meteors
-```
-
-```tsx
-import { Meteors } from "@/components/magicui/meteors";
-
-export function HeroCard() {
-  return (
-    <div className="relative overflow-hidden rounded-2xl border bg-background p-8">
-      <Meteors number={20} />
-      <h2 className="relative z-10 text-3xl font-bold">Your Product Name</h2>
-      <p className="relative z-10 mt-2 text-muted-foreground">Tagline goes here</p>
-    </div>
-  );
-}
-```
-
-### 9. BlurIn — text fade-in with blur
-
-```bash
-npx magicui-cli add blur-in
-```
-
-```tsx
-import BlurIn from "@/components/magicui/blur-in";
-
-export function AnimatedHero() {
-  return (
-    <BlurIn
-      word="The Future of Development"
-      className="text-5xl font-bold tracking-tight"
-      duration={1.2}
-    />
-  );
-}
-```
-
-### 10. Globe — 3D interactive globe
-
-```bash
-npx magicui-cli add globe
-```
-
-```tsx
-import Globe from "@/components/magicui/globe";
-
-export function GlobalSection() {
-  return (
-    <div className="flex flex-col items-center">
-      <h2 className="text-3xl font-bold">Available Worldwide</h2>
-      <Globe className="h-[500px] w-[500px]" />
-    </div>
-  );
-}
-```
-
-## Full Landing Page Pattern
-
-```tsx
-// app/page.tsx — typical hero section with Magic UI components
-import BlurIn from "@/components/magicui/blur-in";
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
-import { Ripple } from "@/components/magicui/ripple";
-import Marquee from "@/components/magicui/marquee";
-import NumberTicker from "@/components/magicui/number-ticker";
+// app/page.tsx
+import { Ripple } from "@/components/ui/ripple";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { Marquee } from "@/components/ui/marquee";
+import { TextAnimate } from "@/components/ui/text-animate";
 
 export default function LandingPage() {
   return (
     <main>
-      {/* Hero */}
-      <section className="relative flex h-screen flex-col items-center justify-center text-center">
+      <section className="relative flex h-screen flex-col items-center justify-center overflow-hidden text-center">
         <Ripple mainCircleSize={300} numCircles={6} />
-        <BlurIn word="Ship Faster Than Ever" className="z-10 text-6xl font-bold" />
-        <p className="z-10 mt-4 text-xl text-muted-foreground">
-          The platform that gets you from idea to production
-        </p>
+        <TextAnimate as="h1" animation="blurInUp" by="word" className="z-10 text-6xl font-bold">
+          Ship faster than ever
+        </TextAnimate>
+        <p className="z-10 mt-4 text-xl text-muted-foreground">From idea to production in a day</p>
         <ShimmerButton className="z-10 mt-8">Start for free</ShimmerButton>
       </section>
-
-      {/* Social proof logos */}
-      <section className="py-12">
-        <Marquee className="[--duration:30s]">
-          {["Company A", "Company B", "Company C", "Company D", "Company E"].map((name) => (
-            <span key={name} className="mx-12 text-lg text-muted-foreground">{name}</span>
-          ))}
-        </Marquee>
-      </section>
-
-      {/* Stats */}
-      <section className="py-20 text-center">
-        <div className="grid grid-cols-3 gap-12">
-          <div><NumberTicker value={50000} className="text-4xl font-bold" /><p>Users</p></div>
-          <div><NumberTicker value={99} className="text-4xl font-bold" /><span>%</span><p>Uptime</p></div>
-          <div><NumberTicker value={200} className="text-4xl font-bold" /><span>+</span><p>Countries</p></div>
-        </div>
-      </section>
+      <Marquee pauseOnHover className="py-12 [--duration:30s]">
+        {["Northwind", "Globex", "Initech", "Umbrella", "Hooli"].map((name) => (
+          <span key={name} className="mx-12 text-lg text-muted-foreground">{name}</span>
+        ))}
+      </Marquee>
     </main>
   );
 }
 ```
 
-## Available Components (full list)
+Result: `components/ui/` gains `ripple.tsx`, `shimmer-button.tsx`, `marquee.tsx`, `text-animate.tsx`; `motion` is added to `package.json`; the headline fades in word by word while the logos scroll and pause on hover.
+
+### Example 2: Stats row that counts up
+
+User request: "Show three stats that count up when the user scrolls to them."
 
 ```bash
-# Run to see all available components
-npx magicui-cli list
+npx shadcn@latest add @magicui/number-ticker
 ```
 
-Popular ones: `animated-beam`, `animated-gradient-text`, `animated-grid-pattern`, `animated-list`,
-`animated-shiny-text`, `aurora-text`, `blur-in`, `blur-fade`, `border-beam`,
-`confetti`, `cool-mode`, `dock`, `dot-pattern`, `file-tree`, `flip-text`,
-`globe`, `grid-pattern`, `hyper-text`, `interactive-hover-button`, `letter-pullup`,
-`magic-card`, `marquee`, `meteors`, `morphing-text`, `neon-gradient-card`,
-`number-ticker`, `orbiting-circles`, `particles`, `pointer`, `pulsating-button`,
-`rainbow-button`, `retro-grid`, `ripple`, `safari`, `scroll-based-velocity`,
-`shimmer-button`, `shine-border`, `shiny-button`, `sparkles-text`,
-`spinning-text`, `terminal`, `text-reveal`, `ticker`, `typing-animation`,
-`vanish-input`, `wavy-text`, `word-fade-in`, `word-pull-up`, `word-rotate`
+```tsx
+import { NumberTicker } from "@/components/ui/number-ticker";
 
-## Troubleshooting
+export function StatsSection() {
+  return (
+    <div className="grid grid-cols-3 gap-8 text-center">
+      <div><NumberTicker value={50000} className="text-5xl font-bold" /><p>Active users</p></div>
+      <div><NumberTicker value={99.9} decimalPlaces={1} className="text-5xl font-bold" /><span className="text-5xl font-bold">%</span><p>Uptime</p></div>
+      <div><NumberTicker value={42} className="text-5xl font-bold" /><span className="text-5xl font-bold">+</span><p>Countries</p></div>
+    </div>
+  );
+}
+```
 
-| Issue | Fix |
-|-------|-----|
-| `cn` not found | Install `clsx` + `tailwind-merge` and add `lib/utils.ts` |
-| Animation not working | Check `tailwind.config.ts` has `darkMode: "class"` and CSS vars defined |
-| Component not found | Run `npx magicui-cli@latest add <name>` (use `@latest`) |
-| Peer dep warnings | Magic UI needs React 18+ and Tailwind 3+ |
+Result: each number counts from 0 to its value once, when it enters the viewport. Number formatting is fixed to `en-US` (50,000).
+
+## Guidelines
+
+- Use `npx shadcn@latest add @magicui/<name>`, never `magicui-cli`, and never copy code from old blog posts: names such as `blur-in` and import styles such as `import Marquee from` (default export) are outdated.
+- Components that use hooks, refs or browser APIs are client components. In the Next.js App Router, add `"use client"` to the file that renders them (the copied components already have it).
+- `cn` not found: shadcn's `init` creates `lib/utils.ts`; if it is missing, install `clsx` and `tailwind-merge` and add it.
+- Animation does nothing: check that the keyframes were added to your global CSS (`@theme inline { --animate-... }` for Tailwind v4, `tailwind.config` `keyframes` for v3) and that the CSS file is imported in the root layout.
+- Background effects (Ripple, Meteors, Particles, BorderBeam) are absolutely positioned: give the parent `relative overflow-hidden` and an explicit height.
+- Respect users who prefer reduced motion and keep heavy effects (Globe, Particles, Meteors) to one or two per page; they run continuously and cost CPU on phones.
+- Because the source is copied into your repo, updates are not automatic: re-run `npx shadcn@latest add @magicui/<name> --overwrite` to pull a newer version, then review the diff against your edits.
+- Do not use Magic UI for dense application screens or accessible form controls; it targets marketing pages. For plain buttons, dialogs and inputs use shadcn/ui itself.

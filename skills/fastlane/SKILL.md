@@ -7,12 +7,13 @@ description: >-
   upload", "code signing automation", or "mobile release pipeline". Covers
   build automation, code signing, TestFlight, Play Store, screenshots, and CI.
 license: Apache-2.0
-compatibility: "macOS for iOS builds. Any OS for Android. Ruby."
+compatibility: "fastlane 2.240.x needs Ruby 3.1 or newer. macOS with Xcode for iOS builds; any OS for Android."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["mobile", "cicd", "fastlane", "ios", "android"]
+  repository: https://github.com/fastlane/fastlane
 ---
 
 # Fastlane
@@ -34,14 +35,18 @@ Fastlane automates the tedious parts of mobile app releases — building, code s
 ### Setup
 
 ```bash
-# Install
-brew install fastlane  # macOS
-# Or: gem install fastlane
-
-# Initialize in your project
+# Recommended: pin the version per project with Bundler
 cd my-app
-fastlane init
+printf 'source "https://rubygems.org"\ngem "fastlane"\n' > Gemfile
+bundle install
+bundle exec fastlane init      # writes fastlane/Appfile and fastlane/Fastfile
+
+# Alternatives: brew install fastlane (macOS), gem install fastlane
 ```
+
+Run lanes with `bundle exec fastlane ios beta` (platform, then lane). Current release: 2.240.1; it needs Ruby 3.1 or newer.
+
+For uploads to App Store Connect use an API key (Users and Access, Integrations, App Store Connect API) rather than an Apple ID password, which triggers two-factor prompts that CI cannot answer.
 
 ### iOS Configuration
 
@@ -52,6 +57,14 @@ default_platform(:ios)
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
+    setup_ci   # on CI only: creates a temporary keychain for signing
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_P8"],          # contents of the .p8 file
+    )
+    match(type: "appstore", readonly: true)
+
     # Increment build number
     increment_build_number(
       build_number: latest_testflight_build_number + 1
@@ -71,13 +84,18 @@ platform :ios do
 
     # Notify team
     slack(
-      message: "New iOS beta uploaded to TestFlight! 🚀",
+      message: "New iOS beta uploaded to TestFlight",
       slack_url: ENV["SLACK_WEBHOOK"],
     )
   end
 
   desc "Deploy to App Store"
   lane :release do
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_P8"],
+    )
     build_app(
       workspace: "MyApp.xcworkspace",
       scheme: "MyApp",
@@ -111,7 +129,8 @@ platform :android do
   desc "Build and upload to Google Play internal testing"
   lane :beta do
     gradle(
-      task: "clean assembleRelease",
+      task: "clean bundle",
+      build_type: "Release",           # produces an .aab; upload_to_play_store picks it up automatically
       properties: {
         "android.injected.signing.store.file" => ENV["KEYSTORE_PATH"],
         "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
@@ -122,7 +141,7 @@ platform :android do
 
     upload_to_play_store(
       track: "internal",
-      aab: "./app/build/outputs/bundle/release/app-release.aab",
+      json_key: ENV["PLAY_JSON_KEY_PATH"],   # service-account JSON with Play Console access
     )
   end
 
@@ -131,7 +150,8 @@ platform :android do
     upload_to_play_store(
       track: "internal",
       track_promote_to: "production",
-      rollout: "0.1",  # 10% rollout
+      rollout: "0.1",  # 10% staged rollout
+      json_key: ENV["PLAY_JSON_KEY_PATH"],
     )
   end
 end
@@ -148,7 +168,8 @@ fastlane match development
 fastlane match appstore
 
 # On CI — read-only mode (don't create new certs)
-fastlane match appstore --readonly
+bundle exec fastlane match appstore --readonly
+# Needed env vars on CI: MATCH_PASSWORD (decrypts the repo), MATCH_GIT_URL or Matchfile git_url
 ```
 
 ### CI Integration
@@ -175,10 +196,12 @@ jobs:
 
       - name: Deploy to TestFlight
         env:
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.ASC_KEY }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_URL: ${{ secrets.MATCH_REPO }}
-        run: fastlane ios beta
+        run: bundle exec fastlane ios beta
 ```
 
 ## Examples
@@ -187,21 +210,22 @@ jobs:
 
 **User prompt:** "Automate our iOS and Android builds — build on every PR, deploy to TestFlight/Play Store on tag."
 
-The agent will create Fastlane lanes for building, signing, and deploying, set up match for code signing, and configure GitHub Actions workflows.
+The agent will create Fastlane lanes for building, signing, and deploying, set up match for code signing, and configure GitHub Actions workflows. Result: `bundle exec fastlane ios beta` builds, signs and uploads a TestFlight build; `bundle exec fastlane android beta` uploads an .aab to the internal track.
 
 ### Example 2: Automate App Store screenshots
 
 **User prompt:** "Generate App Store screenshots in all required sizes automatically."
 
-The agent will set up Fastlane snapshot with UI tests, capture screenshots in multiple device sizes and languages, and frame them with device bezels.
+The agent will set up Fastlane snapshot (`bundle exec fastlane snapshot init`) with UI tests, run `capture_screenshots` across the device sizes and languages in `Snapfile`, and optionally frame them with `frame_screenshots`. Result: `fastlane/screenshots/en-US/` (and one folder per language) holds one image per device and test step, ready for `upload_to_app_store`.
 
 ## Guidelines
 
 - **`fastlane beta` for testing, `fastlane release` for production** — separate lanes
 - **`match` for code signing** — stores certs in Git, all team members use the same ones
-- **Increment build number automatically** — `increment_build_number` or `increment_version_code`
+- **Increment build number automatically** — `increment_build_number` for iOS; Android has no built-in action for `versionCode`, so compute it in Gradle or use a plugin such as `fastlane-plugin-versioning_android`
+- **`export_method`** — Xcode 15.3 and later accept `"app-store-connect"` as the new name for `"app-store"`; use the one your Xcode supports
 - **macOS required for iOS builds** — use GitHub Actions macOS runners
-- **`.env` files for secrets** — keystore passwords, API keys
+- **Secrets from environment variables** — keystore passwords, API keys and the Play JSON key come from CI secrets or an untracked `fastlane/.env`; never commit them
 - **`Appfile` for app metadata** — app identifier, Apple ID, team ID
 - **`supply` for Play Store metadata** — descriptions, changelogs, screenshots
 - **`precheck` validates before submission** — catches common rejection reasons

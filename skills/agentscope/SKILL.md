@@ -1,224 +1,163 @@
 ---
 name: agentscope
 description: >-
-  Build transparent, observable AI agents using AgentScope — agents you can see, understand,
-  and trust with full execution tracing and debugging. Use when: building production agents
-  that need observability, debugging complex agent behaviors, creating agents with audit trails.
+  Build and trace AI agents in Python with AgentScope, an open-source agent framework with a ReAct loop, tools, middleware, team pipelines and OpenTelemetry tracing. Use when building production agents that need observability, debugging an agent's model and tool calls, capping token spend per reply, or coordinating a leader with specialist agents.
 license: Apache-2.0
-compatibility: "Python 3.10+ or Node.js 18+"
+compatibility: "Python 3.11+ (AgentScope 2.x)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/agentscope-ai/agentscope
   tags:
     - agents
     - observability
-    - debugging
     - tracing
-    - production
+    - opentelemetry
+    - multi-agent
 ---
 
 # AgentScope
 
-Build transparent, observable AI agents using [AgentScope](https://github.com/agentscope-ai/agentscope) — a framework for creating agents you can see, understand, and trust with full execution tracing and debugging.
-
 ## Overview
 
-AgentScope provides three pillars of observability for AI agents: execution tracing (every step recorded with inputs, outputs, timing), decision logging (why the agent chose action A over B), and live debugging (inspect, pause, and replay agent executions). It integrates with monitoring stacks like OpenTelemetry, Prometheus, Datadog, and Grafana.
+[AgentScope](https://github.com/agentscope-ai/agentscope) is a Python framework (Apache-2.0) for building agents on a reasoning-acting (ReAct) loop. Version 2.x (2.0.9 at the time of writing) is a rewrite of the 1.x line: the 1.x names (`agentscope.init`, `ReActAgent`, `DialogAgent`, `msghub`) are gone, and docs for the two majors must not be mixed. Check the installed version with `pip show agentscope` and read the matching docs at `https://docs.agentscope.io/stable/en/index`.
+
+Observability is built in through middleware. `TracingMiddleware` emits OpenTelemetry spans for each reply, model call and tool execution, so traces flow to any OTLP backend (Jaeger, Grafana Tempo, Langfuse, Datadog). AgentScope does not ship its own trace store, decision logger, audit-trail class or replay tool; use your OTLP backend, the streamed events, and persisted agent state for those jobs.
+
+Requires Python 3.11 or newer. There is no Node.js package.
 
 ## Instructions
 
-### Installation
+### Install
 
 ```bash
 pip install agentscope
+# 2.0.9 already installs the OpenTelemetry SDK and OTLP exporters; pin them yourself if you depend on them
+pip install opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
+# Redis state storage and the agent service need extras
+pip install "agentscope[storage-redis,service]"
 ```
 
-Or with Node.js:
+### A minimal agent
 
-```bash
-npm install agentscope
-```
-
-### Basic Agent with Tracing
+An agent needs a name, system prompt and a chat model. Credentials are objects built from environment variables, never literals.
 
 ```python
-from agentscope import Agent, Tracer
+import asyncio, os
+from agentscope.agent import Agent
+from agentscope.credential import AnthropicCredential
+from agentscope.message import UserMsg
+from agentscope.model import AnthropicChatModel
+from agentscope.tool import FunctionTool, Toolkit
 
-tracer = Tracer(output="./traces/")
+def get_order_status(order_id: str) -> str:
+    """Look up the shipping status of an order.
+
+    Args:
+        order_id: The order number, for example A-10482.
+    """
+    return f"Order {order_id} shipped on 2026-09-30 and arrives Monday."
 
 agent = Agent(
-    name="research-assistant",
-    model="claude-sonnet-4-20250514",
-    tracer=tracer,
+    name="support-agent",
+    system_prompt="You answer order questions. Use the tool for any order lookup.",
+    model=AnthropicChatModel(
+        credential=AnthropicCredential(api_key=os.environ["ANTHROPIC_API_KEY"]),
+        model="claude-sonnet-4-5",
+    ),
+    toolkit=Toolkit(tools=[FunctionTool(get_order_status)]),
 )
 
-result = agent.run("Summarize the key findings from this paper")
+async def main():
+    reply = await agent.reply(UserMsg(name="user", content="Where is order A-10482?"))
+    print(reply.get_text_content())
+    print(reply.finished_reason, reply.usage)
 
-trace = tracer.latest()
-print(f"Steps: {trace.step_count}")
-print(f"Duration: {trace.duration_ms}ms")
-print(f"Tokens used: {trace.total_tokens}")
-
-for step in trace.steps:
-    print(f"  [{step.type}] {step.name}: {step.duration_ms}ms")
-    print(f"    Input: {step.input[:100]}...")
-    print(f"    Output: {step.output[:100]}...")
+asyncio.run(main())
 ```
 
-### Decision Logging
+`reply()` returns one `Msg`. Check `finished_reason` (`completed`, `interrupted`, `exceed_max_iters`, `error`; `None` means the reply paused for human confirmation) and `usage` (total input/output tokens). Use `agent.reply_stream(msg)` to receive events as they are produced, and `structured_schema=<Pydantic class>` to force a validated result in `reply.structured_output`.
 
-Track why an agent made specific choices:
+Other providers use the same shape: `OpenAIChatModel`, `GeminiChatModel`, `DashScopeChatModel`, `OllamaChatModel`, each with a matching `*Credential` from `agentscope.credential`.
+
+### Trace with OpenTelemetry
+
+Register a tracer provider once per process, then add the middleware to every agent you want traced.
 
 ```python
-from agentscope import Agent, DecisionLogger
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from agentscope.middleware import TracingMiddleware
 
-logger = DecisionLogger(
-    log_alternatives=True,
-    log_reasoning=True,
+provider = TracerProvider()
+provider.add_span_processor(
+    BatchSpanProcessor(OTLPSpanExporter(endpoint="http://localhost:4318/v1/traces"))
 )
+trace.set_tracer_provider(provider)
 
-agent = Agent(
-    name="trading-agent",
-    model="claude-sonnet-4-20250514",
-    decision_logger=logger,
-    tools=["market-data", "portfolio", "trade-executor"],
-)
-
-result = agent.run("Review portfolio and suggest rebalancing")
-
-for decision in logger.decisions:
-    print(f"Decision: {decision.action}")
-    print(f"Reasoning: {decision.reasoning}")
-    for alt in decision.alternatives:
-        print(f"  - {alt.action} (score: {alt.score:.2f}, rejected: {alt.rejection_reason})")
+agent = Agent(..., middlewares=[TracingMiddleware()])
 ```
 
-### Multi-Agent Observability
+Spans are nested: the reply span (agent name, session ID, input and output messages) contains model-call spans (model, provider, token counts, messages) and tool spans (tool name, call ID, arguments, result). Without a registered provider the middleware does nothing and costs almost nothing. For custom spans, use `trace.get_tracer("agentscope", agentscope.__version__)` and the standard OTel API.
+
+To see spans locally without a collector, swap in `ConsoleSpanExporter` from `opentelemetry.sdk.trace.export`.
+
+### Cap cost per reply
 
 ```python
-from agentscope import AgentTeam, Tracer, Dashboard
+from agentscope.middleware import ReplyBudgetControlMiddleware
 
-tracer = Tracer(output="./traces/")
+middlewares=[TracingMiddleware(),
+             ReplyBudgetControlMiddleware(token_budget=20000, output_token_weight=3.0)]
+```
 
-team = AgentTeam(
-    agents=[
-        Agent(name="researcher", model="claude-sonnet-4-20250514", role="research"),
-        Agent(name="analyst", model="claude-sonnet-4-20250514", role="analysis"),
-        Agent(name="writer", model="claude-sonnet-4-20250514", role="writing"),
+Once the weighted token cost reaches the budget, the agent is told to wrap up and tools are disabled for the next step.
+
+### Leader and members
+
+`TeamPipeline` (experimental) lets a leader agent assign tasks to member agents through an internal `TeamAssign` tool. The leader sees only each member's final reply.
+
+```python
+from agentscope.pipeline import TeamMember, TeamPipeline
+
+pipe = TeamPipeline(
+    leader=leader,                      # Agent with a Toolkit()
+    members=[
+        TeamMember(agent=researcher, description="Finds and summarizes sources."),
+        TeamMember(agent=writer, description="Drafts the report from findings."),
     ],
-    tracer=tracer,
-    coordination="sequential",
 )
-
-result = team.run("Create a market analysis report for Q4 2025")
-
-for message in tracer.messages():
-    print(f"[{message.sender} → {message.receiver}] {message.content[:80]}...")
-
-dashboard = Dashboard(tracer)
-dashboard.serve(port=8080)
 ```
 
-### Structured Audit Trails
+Member names must be unique and differ from the leader's. Tasks for different members run concurrently. `launch_console(pipe)` from `agentscope.console` runs it in the terminal.
 
-```python
-from agentscope import Agent, AuditTrail
+### Persist and resume
 
-audit = AuditTrail(
-    storage="./audit_logs/",
-    format="jsonl",
-    include_timestamps=True,
-    redact_pii=True,
-)
-
-agent = Agent(
-    name="claims-processor",
-    model="claude-sonnet-4-20250514",
-    audit_trail=audit,
-)
-
-result = agent.run("Process insurance claim #12345")
-
-report = audit.export(
-    trace_id=result.trace_id,
-    format="pdf",
-    include_decisions=True,
-)
-report.save("audit-claim-12345.pdf")
-```
-
-### OpenTelemetry Integration
-
-```python
-from agentscope import Agent, Tracer
-from agentscope.exporters import OTelExporter
-
-exporter = OTelExporter(
-    endpoint="http://localhost:4317",
-    service_name="my-agent-service",
-)
-
-tracer = Tracer(exporters=[exporter])
-agent = Agent(name="support-agent", model="claude-sonnet-4-20250514", tracer=tracer)
-# Traces automatically appear in Jaeger/Grafana/Datadog
-```
+`agent.state` (an `AgentState`) serializes to JSON: context, permissions, tool state and the position of a paused reply. Pass `state=` when constructing an agent to resume. `agentscope.app.storage.RedisStorage` stores it under `(user_id, agent_id, session_id)`; use `upsert_session` on the first turn, because `update_session_state` raises `KeyError` for a session that does not exist yet. Saved states are your audit trail of what the agent saw and did.
 
 ## Examples
 
-### Example 1: Debug a Multi-Agent Research Pipeline
+### Example 1: Trace a support agent into a local Jaeger
 
-```python
-from agentscope import AgentTeam, Tracer, Replayer
+Request: "Add tracing to my support agent so I can see each model and tool call in Jaeger."
 
-tracer = Tracer(output="./traces/")
-team = AgentTeam(
-    agents=[
-        Agent(name="researcher", model="claude-sonnet-4-20250514", role="research"),
-        Agent(name="analyst", model="claude-sonnet-4-20250514", role="analysis"),
-    ],
-    tracer=tracer,
-)
+Start Jaeger with OTLP enabled (`docker run --rm -p 16686:16686 -p 4318:4318 jaegertracing/all-in-one`), use the exporter at `http://localhost:4318/v1/traces` from the section above, add `middlewares=[TracingMiddleware()]`, run the agent, and open `http://localhost:16686`. Choose the service name you set (`TracerProvider(resource=Resource.create({"service.name": "support-agent"}))`, `Resource` from `opentelemetry.sdk.resources`) and you will see one trace per reply with child spans for each model call and `get_order_status` execution, including token counts.
 
-result = team.run("Analyze Q4 revenue trends for FAANG companies")
+### Example 2: Researcher and writer team with a spend limit
 
-# Replay and inspect each step
-trace = tracer.latest()
-replayer = Replayer(trace)
-for step in replayer:
-    print(f"Step {step.index}: {step.name} — {step.duration_ms}ms")
-    if step.is_decision:
-        print(f"  Chose: {step.decision.action}, Alternatives: {len(step.decision.alternatives)}")
-```
+Request: "I want a leader that sends research to one agent and drafting to another, and never spends more than about 20k tokens per reply."
 
-### Example 2: Production Audit Trail for Insurance Claims
-
-```python
-from agentscope import Agent, AuditTrail
-from agentscope.exporters import PrometheusExporter
-
-audit = AuditTrail(storage="./audit_logs/", format="jsonl", redact_pii=True)
-metrics = PrometheusExporter(port=9090)
-
-agent = Agent(
-    name="claims-processor",
-    model="claude-sonnet-4-20250514",
-    audit_trail=audit,
-    tracer=Tracer(exporters=[metrics]),
-)
-
-result = agent.run("Process insurance claim #67890 for water damage — $12,400")
-report = audit.export(trace_id=result.trace_id, format="pdf", include_decisions=True)
-report.save("audit-claim-67890.pdf")
-# Prometheus exposes: agent_step_duration_seconds, agent_total_tokens, agent_error_count
-```
+Build `researcher` and `writer` as ordinary `Agent` instances with `ReplyBudgetControlMiddleware(token_budget=20000)` each, build a `leader = Agent(..., toolkit=Toolkit())`, wrap them in `TeamPipeline` as above, and call `launch_console(pipe)`. The leader's trace shows `TeamAssign` calls; each member's own spans carry their token use. A reply that hits its budget finishes with a short wrap-up instead of more tool calls.
 
 ## Guidelines
 
-- Enable `log_alternatives=True` during development to understand agent decision-making
-- Use the Dashboard web UI for visual debugging — much easier than reading JSON traces
-- Set `redact_pii=True` in production to avoid logging sensitive data
-- OpenTelemetry export integrates with existing monitoring stacks (Datadog, Grafana, New Relic)
-- For multi-agent systems, trace inter-agent messages to find communication bottlenecks
-- Execution replay is invaluable for reproducing bugs — save traces from production errors
-- Keep audit trail storage separate from application logs for compliance isolation
+- Do not copy AgentScope 1.x snippets. Search results and older tutorials show `agentscope.init(...)`, `ReActAgent`, `msghub`; none apply to 2.x.
+- Everything is async: `await agent.reply(...)` inside `asyncio.run`.
+- Check `finished_reason` in production code: `exceed_max_iters` and `error` replies still return a `Msg`.
+- Traces contain full prompts and tool arguments. Do not send them to a shared collector if they hold personal data, and keep API keys in environment variables, never in prompts.
+- `TeamPipeline`, SOP and realtime features are marked experimental; their interfaces can change between 2.0.x releases. Pin the version.
+- Tools that run shell commands (`Bash`, `Write`, `Edit`) are powerful; keep AgentScope's permission mode and a sandboxed workspace (Docker or similar) for untrusted tasks.
+- Not the right tool when you need a hosted tracing UI with evaluations out of the box; pair it with an OTLP backend that has one.

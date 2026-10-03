@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ec30e056ed993219888b0a61e64c0bc866f52a3feece46bd624557fbaa85369b",
-  "scoredAt": "2026-05-13T09:40:37.256Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ebb49cfa495895f41e160e2b25770c12c6303cdbd006420f1f47bda5842fb3c9",
+  "scoredAt": "2026-10-03T12:05:34.369Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -17,8 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as missing authtoken or port conflicts."
+        "category": "conciseness",
+        "detail": "Some sections are dense and carry side notes (deprecation commentary, plan and account caveats, load balancing and file serving squeezed into one terse section) that could be trimmed or split out."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 96,
-    "multiplier": 2.53,
+    "multiplier": 7.31,
+    "baselineAvg": 13,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Stable demo URL with basic auth for Next.js client review",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline exposes the port but skips the --domain and --basic-auth flags and the localhost:4040 inspector; treatment chains --domain=, --basic-auth=, and the inspector workflow exactly as documented."
+        "name": "password-protected-client-demo",
+        "baseline": 22,
+        "treatment": 96,
+        "rationale": "B matches the rubric: a policy.yml with an on_http_request basic-auth action, the exact ngrok command with --url and --traffic-policy-file, a warning against the deprecated flags, the 401 behavior, and a note to stop the tunnel; A leads with the deprecated --basic-auth flag and only offers the traffic policy file as an alternative."
       },
       {
-        "name": "Stripe webhook signature verification with replay debugging on :8080",
-        "baseline": 40,
-        "treatment": 96,
-        "rationale": "Baseline relies on app-level SDK verification and ignores ngrok's edge features; treatment uses --verify-webhook=stripe with the matching secret, traffic-policy.yml, and the inspector's replay/API for debugging."
+        "name": "stripe-webhook-local-verification",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response A provides the ngrok Traffic Policy with verify-webhook (provider stripe), the path-scoping expression, the envsubst note that ngrok does not read the shell, a .gitignore entry, the --traffic-policy-file command, and the inspector at 127.0.0.1:4040 with replay; Response B uses the Stripe CLI and in-app verification and only mentions ngrok in passing, with no traffic policy or inspector."
+      },
+      {
+        "name": "multi-endpoint-config-and-ssh-allowlist",
+        "baseline": 12,
+        "treatment": 93,
+        "rationale": "B matches the rubric almost exactly: a version 3 config with an endpoints list (name, url, upstream url), `ngrok start --all`, `ngrok config check`, `ngrok tcp 22 --cidr-allow 203.0.113.0/24`, sharing the tcp:// address, stopping with Ctrl+C and key-based auth. A uses the old tunnels syntax and ufw/sshd instead of ngrok tcp, so it misses almost all of the rubric."
       }
     ]
   }

@@ -7,9 +7,11 @@ description: >-
   domain-specific AI assistants. Covers dataset discovery, download,
   preprocessing into chat format, and integration with PEFT/LoRA training.
 license: Apache-2.0
+compatibility: "Python 3.11+; NVIDIA GPU with CUDA for 4-bit LoRA training; Kaggle account and API token"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/Kaggle/kaggle-api
   category: data-ai
   tags:
     - fine-tuning
@@ -37,13 +39,15 @@ Complete pipeline for downloading Kaggle datasets and fine-tuning LLMs. Handles 
 ## Prerequisites
 
 ```bash
-pip install kaggle peft transformers accelerate bitsandbytes datasets trl
+python -m venv .venv && source .venv/bin/activate
+pip install kaggle peft transformers accelerate bitsandbytes datasets trl pandas
 ```
 
-Set Kaggle API token:
+The Kaggle CLI needs Python 3.11+ (current release 2.x). Authenticate with one of: `kaggle auth login` (browser OAuth), the `KAGGLE_API_TOKEN` environment variable (token from kaggle.com/settings/api), a token file at `~/.kaggle/access_token`, or the legacy `~/.kaggle/kaggle.json`:
 ```bash
-export KAGGLE_API_TOKEN=KGAT_xxxxx
+export KAGGLE_API_TOKEN="$(cat ~/.secrets/kaggle_token)"   # keep the token out of shell history and git
 ```
+Training needs an NVIDIA GPU (4-bit loading via `bitsandbytes` is a CUDA path). Without one, use a Kaggle notebook with a GPU accelerator, or a small model in full precision.
 
 ## Instructions
 
@@ -100,7 +104,11 @@ convert_to_chat_format(
 )
 ```
 
+Check each dataset's license on its Kaggle page before training or redistributing a model built from it.
+
 ### Step 3: Fine-tune with LoRA
+
+Written for TRL 1.x (`trl` 1.14 at the time of checking): `SFTConfig` uses `max_length` (not `max_seq_length`), the trainer takes `processing_class` (not `tokenizer`), and conversational `messages` data gets the chat template applied automatically.
 
 ```python
 from datasets import load_dataset
@@ -123,7 +131,8 @@ model = AutoModelForCausalLM.from_pretrained(
     model_name, quantization_config=bnb_config, device_map="auto"
 )
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-tokenizer.pad_token = tokenizer.eos_token
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
 
 lora_config = LoraConfig(
     task_type=TaskType.CAUSAL_LM, r=16, lora_alpha=32, lora_dropout=0.05,
@@ -137,11 +146,12 @@ trainer = SFTTrainer(
     args=SFTConfig(
         output_dir="./model-finetune", num_train_epochs=3,
         per_device_train_batch_size=2, gradient_accumulation_steps=8,
-        learning_rate=2e-4, fp16=True, max_seq_length=512,
+        learning_rate=2e-4, bf16=True, max_length=512,
+        assistant_only_loss=False,  # True needs a chat template with generation markers
     ),
     train_dataset=dataset,
     peft_config=lora_config,
-    tokenizer=tokenizer,
+    processing_class=tokenizer,
 )
 trainer.train()
 trainer.save_model("./model-lora")
@@ -152,14 +162,16 @@ trainer.save_model("./model-lora")
 ```python
 from peft import PeftModel
 
-model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", torch_dtype=torch.bfloat16)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = PeftModel.from_pretrained(model, "./model-lora")
 
 messages = [{"role": "user", "content": "How can I reset my password?"}]
 text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 inputs = tokenizer(text, return_tensors="pt").to(model.device)
 outputs = model.generate(**inputs, max_new_tokens=100)
-print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+print(tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True))
+# optional: model = model.merge_and_unload() to ship a single standalone model
 ```
 
 ## Examples
@@ -168,7 +180,7 @@ print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 **User prompt:** "Download the Bitext customer support dataset from Kaggle and fine-tune Qwen2.5-3B-Instruct on it using LoRA. I have a 16GB GPU."
 
 The agent will:
-1. Verify the Kaggle CLI is installed and `KAGGLE_API_TOKEN` is set.
+1. Verify the Kaggle CLI is installed and authenticated (`kaggle datasets list -s bitext` succeeds).
 2. Run `kaggle datasets download -d bitext/bitext-gen-ai-chatbot-customer-support-dataset -p ./data --unzip` to fetch the dataset.
 3. Inspect the CSV columns to identify the user input and assistant response fields.
 4. Write and execute a preprocessing script that converts the CSV into JSONL chat format with a system prompt like "You are a helpful customer service assistant."
@@ -178,18 +190,22 @@ The agent will:
 ### Example 2: Build a medical FAQ chatbot from Kaggle mental health data
 **User prompt:** "Find a mental health FAQ dataset on Kaggle and prepare it for fine-tuning. I only have a CPU, so pick a small model."
 
+The agent warns that 4-bit `bitsandbytes` loading is CUDA-oriented, so on CPU it uses a very small model in full precision (or recommends a free Kaggle GPU notebook). Steps:
+
 The agent will:
 1. Search Kaggle with `kaggle datasets list -s "mental health FAQ" --sort-by votes` and select an appropriate dataset.
 2. Download and unzip the dataset to `./data/`.
 3. Convert the FAQ pairs into JSONL chat format with a system prompt suited to mental health support.
-4. Select Qwen2.5-1.5B-Instruct as a CPU-friendly model and configure training with `load_in_4bit=True`, batch size 1, gradient accumulation 16, and `max_seq_length=256` to fit in memory.
-5. Start training and monitor loss, noting it will take several hours on CPU.
+4. Select Qwen2.5-0.5B-Instruct, drop the `BitsAndBytesConfig`, and train with batch size 1, gradient accumulation 16, `max_length=256`, `use_cpu=True`.
+5. Start training and monitor loss, noting it will take hours on CPU and that a small sample (e.g. 500 rows) is enough to validate the pipeline.
 
 ## Guidelines
 
-- Always verify the Kaggle API token is set as `KAGGLE_API_TOKEN` before attempting downloads; the CLI will fail silently or with cryptic errors without it.
+- Authenticate the Kaggle CLI before downloading (`kaggle auth login`, `KAGGLE_API_TOKEN`, or `~/.kaggle/access_token`); never paste the token into scripts or commit it. Competition data also needs the rules accepted on the website first.
 - Choose your base model based on available VRAM: 1.5B parameters for 8GB, 3B-7B (4-bit) for 16GB, and 8B for 24GB.
 - If you encounter out-of-memory errors during training, reduce `per_device_train_batch_size` to 1 and increase `gradient_accumulation_steps` to compensate before reducing model size.
 - Inspect the raw CSV data before preprocessing to verify column names and data quality; missing values or mismatched columns will silently produce poor training data.
 - Start with 3 training epochs and LoRA rank `r=16`; increase epochs to 5 and rank to 32-64 only if evaluation shows the model is underfitting.
-- Enable `fp16=True` (or `bf16=True` on Ampere+ GPUs) to halve memory usage and speed up training with minimal accuracy impact.
+- Use `bf16=True` on Ampere or newer GPUs (the TRL default when `fp16` is unset); use `fp16=True` on older cards such as the T4 and set `bnb_4bit_compute_dtype=torch.float16` to match.
+- TRL's `SFTConfig` turns on gradient checkpointing by default, which saves memory at some speed cost.
+- Hold out a validation split (`dataset.train_test_split(0.05)`) and read sample generations; loss alone does not show a good chatbot.

@@ -1,58 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4da984a3c551e8021ec490fa9e46568128cf6806a9ed496ea7395ab9dc3ddb14",
-  "scoredAt": "2026-05-13T09:48:17.811Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:849add310d24a43bedefc96de167b0c1db02ca8e03a10f177450cf61106b31ad",
+  "scoredAt": "2026-10-03T12:08:06.082Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases."
+        "detail": "Covers mostly the happy path with few error scenarios (e.g. MCP connection failures, schema parse errors, missing WebGPU fallback, plugin load failures) and only brief edge-case notes."
       },
       {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Pascal Editor, not platform-agnostic."
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 1 is a numbered prose outline without runnable code and Example 2 gives no concrete MCP config snippet, so the examples are somewhat simplistic."
+      },
+      {
+        "severity": "INFO",
+        "category": "security",
+        "detail": "Global npm install of @pascal-app/cli and running an authenticated MCP service that edits local project data are standard setup steps from the official package, with no malicious behavior found."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Quick Start uses npx to download packages without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
+    "multiplier": 4.94,
     "baselineAvg": 18,
-    "treatmentAvg": 84,
-    "multiplier": 4.67,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Build a 10m x 8m ground floor with walls, door, windows",
-        "baseline": 18,
-        "treatment": 86,
-        "rationale": "Treatment uses useScene().createNode for typed level/slab/wall/item nodes with parentId, 0.20 m exterior thickness in meters, and door/window items with sillHeight 0 and 0.9; baseline writes raw three.js/R3F geometry without the typed node hierarchy or Pascal stores."
+        "name": "script-two-room-floor-plan",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "B satisfies the rubric: schema parsing, createNode(node, parentId), explicit height and thickness, [x,z] coordinates, and a door with wallId and wall-local position [4, 1.05, 0]; A computes the door position as W-4 (8) with y=0 instead of the expected [4, 1.05, 0], and also omits the 1.05 half-height y, which are the main deviations."
       },
       {
-        "name": "Register a custom wall-thickness validator",
-        "baseline": 18,
-        "treatment": 82,
-        "rationale": "Treatment calls registerSystem from @pascal-app/core with nodeTypes:['wall'], priority>50, and a process(dirtyNodes) that reads node.props.thickness/height; baseline writes a Zustand subscription that misses the dirty-node pipeline and priority ordering."
+        "name": "embed-viewer-nextjs-plugin-registry",
+        "baseline": 5,
+        "treatment": 90,
+        "rationale": "A lists all four Pascal packages plus three, @react-three/fiber, drei and zustand, calls loadPlugin(builtinPlugin), renders <Viewer /> only after it resolves inside a full-size container, and notes WebGPU support; B gives no package names or working code and only placeholders."
+      },
+      {
+        "name": "connect-claude-code-via-mcp",
+        "baseline": 8,
+        "treatment": 88,
+        "rationale": "A gives the exact `npx @pascal-app/cli editor` start command, registers an MCP entry using `pascal mcp connect`, and shows a natural-language prompt, while B gives only generic placeholders and none of the required commands."
       }
     ]
   }

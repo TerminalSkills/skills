@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8db1fa6a48b1b1fa8988a86f14bb1878ffd9beeca7dfe829fdd8b224ab32b91e",
-  "scoredAt": "2026-05-13T10:26:11.295Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:525f0afb4163e8f84ecbd912517d000e03d7bf5c89387bc03f01dcdf9d736a7e",
+  "scoredAt": "2026-10-03T12:09:45.239Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases such as missing layers or invalid tile IDs."
+        "detail": "Covers mostly the happy path and omits error scenarios such as missing tileset image keys, layer-name mismatches (e.g. 'Walls' vs the collision layer in the map anatomy), embedded vs external tilesets, and null returns from createLayer."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 95,
-    "multiplier": 2.38,
+    "multiplier": 1.5,
+    "baselineAvg": 60,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Load Tiled JSON map in Phaser with collision and spawn",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Baseline uses Phaser tilemap basics but reaches for setCollisionBetween/findObject patterns instead of the skill's setCollisionByProperty({ collides: true }) and getObjectLayer + objects.forEach switch on obj.type."
+        "name": "dungeon-tileset-collision-and-torch",
+        "baseline": 58,
+        "treatment": 88,
+        "rationale": "B follows the rubric: it uses `collides: true` and `destructible: false` on walls, `walkable: true` on floors, a 4-frame 200ms torch animation, and 16x16 tiles. A leaves out the `collides` property and marks walls with `walkable: false` plus collision objectgroups, so it misses a required element even though its animation and tile size are correct."
       },
       {
-        "name": "Tileset with animated tiles and per-tile collision properties",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline invents flat property names and a frames array, missing the .tsj schema with tilewidth/tilecount/columns at top level, the properties array of {name, type, value}, and the animation array of {tileid, duration} frames."
+        "name": "phaser-load-map-with-property-collision",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "B hits every rubric item (setCollisionByProperty({collides:true}), getObjectLayer with a switch on obj.type for spawn/loot/trigger, decor depth 10 above player), whereas A defaults to setCollisionByExclusion with the property approach only commented out, uses findObject plus a type/class fallback and a forEach that branches on kind, and sets depth 20, so it only partly meets the rubric."
+      },
+      {
+        "name": "boss-arena-patrol-objects",
+        "baseline": 66,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: a polyline patrol, a trigger at (400,64) sized 128x128, and the exact properties bossId (string) and oneShot (bool), all on one object layer, plus the explanation that logic belongs on object layers and not in magic tile IDs. A uses a polygon instead of a polyline and names its properties spawn and once rather than bossId and oneShot. It does cover the object-layer reasoning well, and its extra detail doesn't make up for those misses against the rubric."
       }
     ]
   }

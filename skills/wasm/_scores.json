@@ -1,24 +1,39 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:25145e7d2abf818b525aa8558ac8c449c09541dec397d557dac698dd48dd20cc",
-  "scoredAt": "2026-05-13T10:35:32.919Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0c814b9e4db929ad73ac9ffe3b4247722f9cdf0571bc646668d6979acca834a2",
+  "scoredAt": "2026-10-03T22:17:54.018Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 73,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "The JS example imports from \"./pkg/image_tools.js\" without saying the crate must be named image_tools, and the edge-platform paragraph says 'no separate build is usually needed' without saying what the platform CLI expects."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for WASM usage."
+        "detail": "The skill covers only the happy path: it has no troubleshooting for build failures, MIME type or CORS errors when serving .wasm, missing wasm32-wasi targets, or the to_grayscale input that is not a multiple of 4 bytes (chunk[3] would panic), and it gives no C/C++ or Go steps even though the description promises them."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Cloudflare Workers and Fastly Compute deployment is only mentioned in one vague sentence with no runnable wrangler or fastly commands, and the C/C++ and Go compile paths in the description have no commands at all."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are prose descriptions that point back to earlier snippets instead of full runnable walkthroughs, and the performance claim ('several hundred ms to under 20ms') is unsupported by any benchmark."
       }
     ]
   },
@@ -27,21 +42,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 1.93,
+    "baselineAvg": 45,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Compile a Rust image-processing function to WASM and call it from the browser",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment uses #[wasm_bindgen] on a Rust function, builds with wasm-pack build --target web, then awaits init() and calls the exported function on canvas ImageData; baseline reaches for emscripten or skips the wasm-bindgen/wasm-pack toolchain."
+        "name": "speed-up-canvas-image-filter",
+        "baseline": 80,
+        "treatment": 92,
+        "rationale": "B matches the rubric closely: a single #[wasm_bindgen] function takes the pixel buffer, it builds with `wasm-pack build --target web`, and the JS awaits init() and passes imageData.data. It then puts the result back with putImageData using new ImageData(new Uint8ClampedArray(...)). A's main path uses a struct and manual pointer and memory management instead of one function call, and it only shows the simple single-function variant as an afterthought. A also puts the result back by mutating img.data rather than building ImageData from a Uint8ClampedArray, and it assumes init() returns the exports."
       },
       {
-        "name": "Run a WASM module server-side with WASI",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment uses wasmtime run my_program.wasm (or wasmer run) as documented and notes Cloudflare/Fastly edge targeting; baseline gives a generic Node.js WebAssembly.instantiate without WASI runtime."
+        "name": "share-validation-node-and-worker",
+        "baseline": 15,
+        "treatment": 90,
+        "rationale": "Response A recommends the Rust and wasm-pack approach the rubric asks for, with `--target nodejs` and `--target web` and the point that only the loader glue differs, so the rules can't drift. Response B recommends shared TypeScript built with tsup and mentions wasm-pack only briefly at the end, so it misses the core of the rubric."
+      },
+      {
+        "name": "assemblyscript-sum-and-optimize",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "A follows the rubric's core path (npm install, asinit, asc with the release target and outFile, wasmtime run with --invoke, wasm-opt from binaryen) and notes the stub runtime, though it uses -Oz instead of -O3 and doesn't compare size against Rust; B never uses wasmtime or the specified asc command, runs the module only in Node, and says nothing was built or run."
       }
     ]
   }

@@ -1,15 +1,14 @@
 ---
 name: onnx
 description: |
-  Open Neural Network Exchange format for model interoperability across frameworks. Export
-  models from PyTorch, TensorFlow, and other frameworks to ONNX, optimize with ONNX Runtime,
-  and deploy for cross-platform inference on CPU, GPU, and edge devices.
+  Open Neural Network Exchange (ONNX) is a framework-neutral file format for machine-learning models, and ONNX Runtime is the engine that runs them on CPU, GPU and edge devices. Use when exporting a PyTorch or Hugging Face model to ONNX, running inference with onnxruntime, simplifying or quantizing a model, validating a .onnx file, or preparing a model for mobile.
 license: Apache-2.0
-compatibility: 'python 3.8+, onnxruntime 1.16+, Linux/macOS/Windows'
+compatibility: 'Python 3.10+, onnx 1.2x, onnxruntime 1.2x, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/onnx/onnx
   tags:
     - model-interoperability
     - optimization
@@ -20,201 +19,134 @@ metadata:
 
 # ONNX
 
-## Installation
+## Overview
+
+ONNX ([onnx/onnx](https://github.com/onnx/onnx)) defines the model format and operator sets; ONNX Runtime ([microsoft/onnxruntime](https://github.com/microsoft/onnxruntime)) executes it through pluggable execution providers (CPU, CUDA, TensorRT, OpenVINO, CoreML, DirectML, QNN). Checked against onnx 1.23.1 and onnxruntime 1.30.0 (October 2026); the runtime-side snippets below were run on those versions.
+
+## Instructions
+
+### Install
 
 ```bash
-# Install ONNX and ONNX Runtime
-pip install onnx onnxruntime
-
-# For GPU inference
-pip install onnxruntime-gpu
-
-# For model optimization
-pip install onnxoptimizer onnxsim
+python -m venv .venv && source .venv/bin/activate
+pip install onnx onnxruntime numpy        # CPU runtime
+pip install onnxsim onnxoptimizer         # optional graph simplifiers
 ```
 
-## Export PyTorch Model to ONNX
+For NVIDIA GPUs install `onnxruntime-gpu` instead of `onnxruntime`. The two packages must never be installed together. `onnxruntime-directml` (Windows) and `onnxruntime-qnn` are other variants. The default GPU wheel targets CUDA 12.x with a separately installed cuDNN.
+
+### Export from PyTorch
+
+Since PyTorch 2.9 `torch.onnx.export` uses the dynamo exporter by default (`dynamo=True`), which needs `pip install onnxscript` and takes `dynamic_shapes` (not `dynamic_axes`) for variable sizes. `dynamic_axes` still works with the legacy exporter (`dynamo=False`).
 
 ```python
-# export_pytorch.py — Convert a PyTorch model to ONNX format
-import torch
-import torch.nn as nn
+# export_pytorch.py
+import torch, torch.nn as nn
 
-class SimpleModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.fc1 = nn.Linear(10, 64)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(64, 3)
-
-    def forward(self, x):
-        return self.fc2(self.relu(self.fc1(x)))
-
-model = SimpleModel()
-model.eval()
-
-dummy_input = torch.randn(1, 10)
+model = nn.Sequential(nn.Linear(10, 64), nn.ReLU(), nn.Linear(64, 3)).eval()
+dummy = torch.randn(2, 10)
+batch = torch.export.Dim("batch_size", min=1, max=4096)
 
 torch.onnx.export(
-    model,
-    dummy_input,
-    "model.onnx",
-    export_params=True,
-    opset_version=17,
-    input_names=["input"],
-    output_names=["output"],
-    dynamic_axes={
-        "input": {0: "batch_size"},
-        "output": {0: "batch_size"},
-    },
+    model, (dummy,), "churn_model.onnx",
+    input_names=["input"], output_names=["output"],
+    dynamic_shapes={"input": {0: batch}},
+    opset_version=18,
 )
-print("Exported model.onnx")
 ```
 
-## Export Hugging Face Transformers
+Legacy path: `torch.onnx.export(model, dummy, "churn_model.onnx", dynamo=False, opset_version=17, dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}})`. Large models are written with external data (`.onnx.data`) next to the file; keep both together.
 
-```python
-# export_transformers.py — Export a Hugging Face model to ONNX using optimum
-# pip install optimum[onnxruntime]
-from optimum.onnxruntime import ORTModelForSequenceClassification
-from transformers import AutoTokenizer
+### Export Hugging Face models
 
-model_name = "distilbert-base-uncased-finetuned-sst-2-english"
-
-# Export and load in one step
-model = ORTModelForSequenceClassification.from_pretrained(model_name, export=True)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-# Save the ONNX model
-model.save_pretrained("./onnx_model")
-tokenizer.save_pretrained("./onnx_model")
-
-# Run inference
-inputs = tokenizer("This movie was fantastic!", return_tensors="pt")
-outputs = model(**inputs)
-print(f"Logits: {outputs.logits}")
+```bash
+pip install "optimum[onnx]"
+optimum-cli export onnx --model distilbert-base-uncased-finetuned-sst-2-english sst2_onnx/
 ```
 
-## ONNX Runtime Inference
+Or from Python, `ORTModelForSequenceClassification.from_pretrained(name, export=True)` from `optimum.onnxruntime` exports and loads in one step, then `save_pretrained("sst2_onnx")`. Text generation tasks use the `-with-past` variant (key/value cache) by default.
+
+### Run inference
 
 ```python
-# inference.py — Run inference with ONNX Runtime for optimized performance
-import onnxruntime as ort
-import numpy as np
+# inference.py
+import numpy as np, onnxruntime as ort
 
-# Create session with optimization
-session_options = ort.SessionOptions()
-session_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-session_options.intra_op_num_threads = 4
+opts = ort.SessionOptions()
+opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+wanted = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+providers = [p for p in wanted if p in ort.get_available_providers()]
+session = ort.InferenceSession("churn_model.onnx", opts, providers=providers)
 
-# Use CPU or GPU provider
-providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-session = ort.InferenceSession("model.onnx", session_options, providers=providers)
-
-# Get input/output details
-print(f"Inputs: {[i.name for i in session.get_inputs()]}")
-print(f"Outputs: {[o.name for o in session.get_outputs()]}")
-
-# Run inference
-input_data = np.random.randn(1, 10).astype(np.float32)
-results = session.run(None, {"input": input_data})
-print(f"Output shape: {results[0].shape}")
-print(f"Predictions: {results[0]}")
+print([i.name for i in session.get_inputs()], [o.name for o in session.get_outputs()])
+batch = np.random.randn(1000, 10).astype(np.float32)   # dtype must match the model input
+logits = session.run(None, {"input": batch})[0]
+print(logits.shape)                                      # (1000, 3)
 ```
 
-## Batch Inference
+Filtering by `get_available_providers()` avoids warnings when the CUDA provider is not installed. Providers are tried in order.
+
+### Simplify and validate
 
 ```python
-# batch_inference.py — Efficient batch processing with ONNX Runtime
-import onnxruntime as ort
-import numpy as np
-import time
-
-session = ort.InferenceSession("model.onnx", providers=["CPUExecutionProvider"])
-
-# Batch of 1000 samples
-batch_data = np.random.randn(1000, 10).astype(np.float32)
-
-start = time.time()
-results = session.run(None, {"input": batch_data})
-elapsed = time.time() - start
-
-print(f"Processed 1000 samples in {elapsed:.3f}s ({1000/elapsed:.0f} samples/sec)")
+import onnx, onnxsim
+model = onnx.load("churn_model.onnx")
+onnx.checker.check_model(model)                   # raises on an invalid graph
+print(model.ir_version, model.opset_import[0].version, len(model.graph.node))
+simplified, ok = onnxsim.simplify(model)
+if ok: onnx.save(simplified, "churn_model_sim.onnx")
 ```
 
-## Model Optimization
+For files above 2 GB pass the path to `check_model("big.onnx")` instead of a loaded proto.
+
+### Quantize
 
 ```python
-# optimize.py — Optimize an ONNX model for faster inference
-import onnx
-from onnxruntime.transformers import optimizer
-
-# Basic optimization with ONNX simplifier
-# pip install onnxsim
-import onnxsim
-model = onnx.load("model.onnx")
-optimized, check = onnxsim.simplify(model)
-onnx.save(optimized, "model_simplified.onnx")
-print(f"Simplified: {check}")
-```
-
-## Quantization
-
-```python
-# quantize.py — Reduce model size and speed up inference with quantization
 from onnxruntime.quantization import quantize_dynamic, QuantType
-
-quantize_dynamic(
-    model_input="model.onnx",
-    model_output="model_quantized.onnx",
-    weight_type=QuantType.QInt8,
-)
-
-import os
-original = os.path.getsize("model.onnx")
-quantized = os.path.getsize("model_quantized.onnx")
-print(f"Original: {original/1024:.1f} KB")
-print(f"Quantized: {quantized/1024:.1f} KB ({quantized/original*100:.1f}%)")
+quantize_dynamic("churn_model.onnx", "churn_model_int8.onnx", weight_type=QuantType.QInt8)
 ```
 
-## Validate ONNX Model
+Dynamic quantization suits MatMul/Linear-heavy models (transformers, MLPs) on CPU. It prints a warning recommending `quant_pre_process` first; run `python -m onnxruntime.quantization.preprocess --input in.onnx --output out.onnx` for best results. Convolution nets usually need static quantization (`quantize_static` with a calibration data reader). Always compare accuracy on real data afterwards.
+
+### Mobile and minimal builds
+
+```bash
+python -m onnxruntime.tools.convert_onnx_models_to_ort churn_model.onnx --output_dir mobile_model
+```
+
+This writes `.ort` files plus a `required_operators.config` for custom minimal builds. The old Python function `ort_format_model.convert_onnx_models_to_ort(...)` does not exist; use the module command above. Standard `.onnx` files also run on the ONNX Runtime Mobile and web packages, so the ORT format is only needed for minimal-size builds.
+
+## Examples
+
+### Example 1: "Export my PyTorch classifier and check it matches"
+
+Run the export above on the trained `model`, then compare outputs:
 
 ```python
-# validate.py — Check model validity and inspect structure
-import onnx
-
-model = onnx.load("model.onnx")
-onnx.checker.check_model(model)
-print("Model is valid!")
-
-# Print model info
-print(f"IR version: {model.ir_version}")
-print(f"Opset: {model.opset_import[0].version}")
-print(f"Graph inputs: {[i.name for i in model.graph.input]}")
-print(f"Graph outputs: {[o.name for o in model.graph.output]}")
-print(f"Nodes: {len(model.graph.node)}")
+import numpy as np, onnxruntime as ort, torch
+x = torch.randn(8, 10)
+expected = model(x).detach().numpy()
+got = ort.InferenceSession("churn_model.onnx", providers=["CPUExecutionProvider"]).run(None, {"input": x.numpy()})[0]
+np.testing.assert_allclose(expected, got, rtol=1e-3, atol=1e-5)
 ```
 
-## Edge Deployment (ONNX Runtime Mobile)
+The assertion passes silently when the export is faithful; a mismatch raises with the worst element.
 
-```python
-# mobile_export.py — Prepare a model for mobile/edge deployment
-from onnxruntime.tools import ort_format_model
+### Example 2: "Make this model smaller for a CPU server"
 
-# Convert to ORT format for mobile
-ort_format_model.convert_onnx_models_to_ort(
-    "model.onnx",
-    output_dir="./mobile_model",
-    optimization_level="all",
-)
-# Use the .ort file with ONNX Runtime Mobile SDK on iOS/Android
+```bash
+python -c "from onnxruntime.quantization import quantize_dynamic, QuantType; quantize_dynamic('churn_model.onnx','churn_model_int8.onnx',weight_type=QuantType.QInt8)"
+ls -l churn_model*.onnx
 ```
 
-## Key Concepts
+For weight-dominated models the int8 file is roughly a quarter of the size; run the accuracy comparison from Example 1 against the quantized file before shipping.
 
-- **ONNX format**: Framework-agnostic model representation — export from PyTorch/TF, run anywhere
-- **ONNX Runtime**: High-performance inference engine with CPU, GPU, TensorRT, and DirectML support
-- **Dynamic axes**: Allow variable batch sizes and sequence lengths in exported models
-- **Quantization**: INT8 quantization reduces model size 2-4x with minimal accuracy loss
-- **Execution providers**: Plug in hardware-specific backends (CUDA, TensorRT, OpenVINO, CoreML)
-- **Opset versions**: Higher opset = more supported operations; use opset 17+ for modern models
+## Guidelines
+
+- Pin `opset_version` explicitly and check the target runtime supports it; newer opsets need a recent onnxruntime.
+- Inputs must be numpy arrays of the exact dtype (`float32`, `int64` for token ids); a wrong dtype is the most common `InvalidArgument` error.
+- Mark batch and sequence dimensions dynamic at export time, or the model only accepts the dummy shape.
+- Test with `eval()` mode and fixed seeds; dropout or batch-norm in training mode produces wrong exports.
+- Never mix `onnxruntime` and `onnxruntime-gpu` in one environment.
+- Load `.onnx` files only from trusted sources: ONNX models can reference external data files and custom operator libraries.
+- Not every PyTorch operator exports; unsupported ops fail at export with the operator name. Rewrite the op or register a custom translation.

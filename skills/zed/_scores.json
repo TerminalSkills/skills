@@ -1,58 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:2ef9382e319888bf36c54f0878519df16f002524c19bf1ebfeaee3dc202ea887",
-  "scoredAt": "2026-05-13T10:40:41.692Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ac427649f45d59a8a629228b8b2fdd29713a76a727904746e1406a01f3fc70a1",
+  "scoredAt": "2026-10-03T12:10:24.017Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for configuration and extension development."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Installation instructions omit Windows support, assuming macOS or Linux."
+        "detail": "Covers the happy path and a few log or default-file checks, but gives little troubleshooting for failures such as GPU/Vulkan problems on Linux, an unreachable Ollama server, or a formatter that cannot be found."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "remote_script_execution",
-        "detail": "Installation uses curl to pipe a remote script into sh without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 90,
-    "multiplier": 3.21,
+    "multiplier": 1.32,
+    "baselineAvg": 69,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Configure Zed for TypeScript+React with Vim mode and inline AI assist on Ctrl+L",
-        "baseline": 30,
+        "name": "typescript-prettier-vim-settings",
+        "baseline": 80,
         "treatment": 92,
-        "rationale": "Baseline mentions vim_mode and JSON but invents action names; treatment uses the exact assistant::InlineAssist binding, TypeScript external prettier formatter, and inline_completions disabled_globs from the skill."
+        "rationale": "A fully meets the rubric with vim_mode, format_on_save \"on\", external prettier formatters for TypeScript and TSX using --stdin-filepath and {buffer_path}, and it names both ~/.config/zed/settings.json and the `zed: open settings file` command, while B has the same snippet content but names neither of those, giving only keyboard shortcuts and `zed: open settings`, and adds a redundant global formatter plus unrequested languages."
       },
       {
-        "name": "Scaffold a Zed extension that registers a custom LSP for a new language",
-        "baseline": 25,
-        "treatment": 88,
-        "rationale": "Baseline gestures at Rust/WASM but invents API surface; treatment uses zed_extension_api types, register_extension! macro, and the documented extension.toml grammars/language_servers sections."
+        "name": "ollama-agent-no-secret-predictions",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "A covers every rubric item (pull and serve, api_url, context_window 16384, edit_predictions.disabled_globs for .env/.pem/.key, no API key), whereas B has no context_window and only a vague note about max_tokens and num_ctx, and it also adds speculative settings (tool_permissions, features) it admits are from memory."
+      },
+      {
+        "name": "write-gleam-lsp-extension",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both give the correct top-level extension.toml with languages = [\"Gleam\"], zed::Extension with worktree.which(\"gleam\") and args [\"lsp\"], register_extension!, and cdylib. B states outright that there is no [extension] table, and it covers `zed: install dev extension`, `zed: open log` and `zed --foreground`. A has the same testing coverage plus useful extras, but it puts zed_extension_api in Cargo.toml with an uncertain pinned version and adds a `name` field to the language server section. B leaves the crate dependency to `cargo add zed_extension_api`, so the dependency isn't shown in Cargo.toml itself, which is a small gap against the rubric."
       }
     ]
   }

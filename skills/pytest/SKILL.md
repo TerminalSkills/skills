@@ -1,15 +1,18 @@
 ---
 name: pytest
 description: >-
-  Test Python code with pytest. Use when a user asks to write unit tests,
-  set up test fixtures, mock dependencies, run async tests, measure coverage,
-  or implement test-driven development in Python.
+  pytest is the standard Python test framework: plain assert statements,
+  fixtures for setup and teardown, parametrized tests and a large plugin
+  ecosystem. Use when a user asks to write unit tests, set up test fixtures,
+  mock dependencies, run async tests, measure coverage, run tests in
+  parallel, or practice test-driven development in Python.
 license: Apache-2.0
-compatibility: 'Python 3.8+'
+compatibility: 'Python 3.10+ (pytest 9); pytest-asyncio, pytest-cov, pytest-mock and pytest-xdist are optional plugins'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/pytest-dev/pytest
   tags:
     - pytest
     - testing
@@ -22,73 +25,83 @@ metadata:
 
 ## Overview
 
-pytest is the standard Python testing framework. It uses plain assert statements (no self.assertEqual), fixtures for setup/teardown, parametrize for data-driven tests, and plugins for async, coverage, and mocking.
+pytest collects functions named `test_*` in files named `test_*.py` (or `*_test.py`), runs them, and rewrites plain `assert` statements so a failure shows both sides of the comparison. Fixtures provide setup and teardown, `parametrize` runs one test over many inputs, and plugins add async support, coverage, mocking and parallel runs. This skill targets pytest 9.x (checked against 9.1) with pytest-asyncio 1.x.
 
 ## Instructions
 
-### Step 1: Basic Tests
+### Step 1: Install and configure
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install pytest pytest-asyncio pytest-cov pytest-mock pytest-xdist
+```
+
+Put configuration in `pyproject.toml` (`[tool.pytest.ini_options]`) or, since pytest 9, in a native `pytest.toml`:
+
+```toml
+# pytest.toml
+[pytest]
+pythonpath = ["."]            # lets tests import top-level modules such as `app`
+testpaths = ["tests"]
+asyncio_mode = "auto"         # pytest-asyncio: no @pytest.mark.asyncio on every test
+markers = ["slow: tests that take more than a second"]
+strict = true                 # unknown markers and options become errors
+```
+
+Without `pythonpath` (or an installed package), `from app import ...` fails with `ModuleNotFoundError` when pytest is run from the project root.
+
+### Step 2: Basic tests
 
 ```python
-# tests/test_users.py — Simple test functions
+# tests/test_users.py
+import pytest
 from app.services.users import create_user, validate_email
 
 def test_create_user_returns_user_object():
-    user = create_user(name="Alice", email="alice@example.com")
-    assert user.name == "Alice"
-    assert user.email == "alice@example.com"
+    user = create_user(name="Priya Nair", email="priya@acme.io")
+    assert user.name == "Priya Nair"
     assert user.id is not None
 
 def test_validate_email_rejects_invalid():
     assert validate_email("not-an-email") is False
-    assert validate_email("") is False
     assert validate_email("user@") is False
 
-def test_validate_email_accepts_valid():
-    assert validate_email("user@example.com") is True
-    assert validate_email("user+tag@example.co.uk") is True
-
 class TestUserService:
-    """Group related tests in a class."""
+    """A class only groups tests; no base class or self.assert* methods needed."""
 
     def test_duplicate_email_raises(self):
-        create_user(name="Alice", email="alice@example.com")
+        create_user(name="Priya Nair", email="priya@acme.io")
         with pytest.raises(ValueError, match="Email already exists"):
-            create_user(name="Bob", email="alice@example.com")
+            create_user(name="Tom Berg", email="priya@acme.io")
 ```
 
-### Step 2: Fixtures
+### Step 3: Fixtures
 
 ```python
-# conftest.py — Shared fixtures
+# tests/conftest.py — shared by every test in this directory and below
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.models import Base
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from app.models import Base, User
 
-@pytest.fixture
+@pytest_asyncio.fixture          # async fixtures need this decorator in strict mode
 async def db():
-    """Fresh database for each test."""
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    async with async_sessionmaker(engine, expire_on_commit=False)() as session:
+        yield session            # code after yield is the teardown
+    await engine.dispose()
 
-    session_maker = async_sessionmaker(engine, expire_on_commit=False)
-    async with session_maker() as session:
-        yield session
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-@pytest.fixture
-def sample_user(db):
-    """Pre-created user for tests that need one."""
-    user = User(name="Test User", email="test@example.com", role="member")
+@pytest_asyncio.fixture
+async def sample_user(db):
+    user = User(name="Priya Nair", email="priya@acme.io", role="member")
     db.add(user)
-    db.commit()
+    await db.commit()
     return user
 
 @pytest.fixture
 def api_client(db):
-    """FastAPI test client with database override."""
     from fastapi.testclient import TestClient
     from app.main import app
     from app.dependencies import get_db
@@ -98,79 +111,100 @@ def api_client(db):
     app.dependency_overrides.clear()
 ```
 
-### Step 3: Parametrize
+That example needs `pip install "sqlalchemy[asyncio]" aiosqlite`. Built-in fixtures worth knowing: `tmp_path` (a fresh directory per test), `monkeypatch` (set env vars and attributes, undone automatically), `capsys` and `caplog` (captured output and log records). A fixture's `scope` can be `function` (default), `class`, `module`, `package` or `session`; widen it only for expensive, read-only resources.
+
+### Step 4: Parametrize
 
 ```python
-# tests/test_pricing.py — Data-driven tests
-import pytest
-
-@pytest.mark.parametrize("plan,users,expected_price", [
-    ("free", 1, 0),
-    ("free", 5, 0),
-    ("starter", 1, 29),
-    ("starter", 10, 29),
-    ("pro", 1, 79),
-    ("pro", 50, 79),
-    ("enterprise", 100, 199),
-])
-def test_calculate_price(plan, users, expected_price):
-    assert calculate_price(plan, users) == expected_price
-
-@pytest.mark.parametrize("input_text,expected_slug", [
-    ("Hello World", "hello-world"),
-    ("  Spaces  Everywhere  ", "spaces-everywhere"),
-    ("Special!@#$Characters", "specialcharacters"),
-    ("Already-a-slug", "already-a-slug"),
-    ("UPPERCASE", "uppercase"),
-])
-def test_slugify(input_text, expected_slug):
-    assert slugify(input_text) == expected_slug
+@pytest.mark.parametrize(
+    "plan,expected_price",
+    [("free", 0), ("starter", 29), ("pro", 79), pytest.param("enterprise", 199, id="enterprise-list-price")],
+)
+def test_calculate_price(plan, expected_price):
+    assert calculate_price(plan) == expected_price
 ```
 
-### Step 4: Mocking
+pytest 9 also ships subtests (a `subtests` fixture) for looping over cases inside one test without stopping at the first failure:
 
 ```python
-# tests/test_notifications.py — Mock external services
-from unittest.mock import AsyncMock, patch
-
-@pytest.mark.asyncio
-async def test_send_welcome_email(db, sample_user):
-    with patch("app.services.email.send_email", new_callable=AsyncMock) as mock_send:
-        mock_send.return_value = {"id": "msg_123"}
-
-        result = await send_welcome_email(sample_user.id)
-
-        mock_send.assert_called_once_with(
-            to=sample_user.email,
-            subject="Welcome!",
-            template="welcome",
-        )
-        assert result["id"] == "msg_123"
-
-@pytest.mark.asyncio
-async def test_payment_webhook_handles_failure(api_client):
-    with patch("app.services.stripe.verify_signature", return_value=True):
-        response = api_client.post("/webhooks/stripe", json={
-            "type": "payment_intent.failed",
-            "data": {"object": {"id": "pi_123"}},
-        })
-        assert response.status_code == 200
+def test_slugify_variants(subtests):
+    for raw, slug in [("Hello World", "hello-world"), ("  Spaces  ", "spaces")]:
+        with subtests.test(raw=raw):
+            assert slugify(raw) == slug
 ```
 
-### Step 5: Run
+### Step 5: Mocking
+
+```python
+# tests/test_notifications.py — pytest-mock provides the `mocker` fixture
+from unittest.mock import AsyncMock
+
+async def test_send_welcome_email(mocker, sample_user):
+    send = mocker.patch("app.services.email.send_email", new_callable=AsyncMock,
+                        return_value={"id": "msg_8841"})
+
+    result = await send_welcome_email(sample_user.id)
+
+    send.assert_awaited_once_with(to="priya@acme.io", subject="Welcome!", template="welcome")
+    assert result["id"] == "msg_8841"
+```
+
+Patch the name where it is looked up (`app.services.notifications.send_email`, if that module did `from ... import send_email`), not where it is defined.
+
+### Step 6: Run
 
 ```bash
-pytest                           # run all tests
-pytest -x                        # stop on first failure
-pytest -k "test_create"          # run tests matching pattern
-pytest --cov=app --cov-report=html  # coverage report
-pytest -n auto                   # parallel execution (pytest-xdist)
+pytest                                  # everything under testpaths
+pytest tests/test_users.py::test_validate_email_rejects_invalid   # one test
+pytest -x --lf                          # stop at first failure; rerun last failures
+pytest -k "create and not duplicate"    # select by expression
+pytest -m "not slow"                    # select by marker
+pytest --cov=app --cov-report=term-missing   # coverage (pytest-cov)
+pytest -n auto                          # parallel workers (pytest-xdist)
+pytest -ra                              # summary of skipped/xfailed reasons
 ```
+
+## Examples
+
+### Example 1: Add tests for a pricing function
+
+User request: "Write pytest tests for calculate_discount in app/pricing.py, including bad input."
+
+```python
+# tests/test_pricing.py
+import pytest
+from app.pricing import calculate_discount
+
+@pytest.mark.parametrize("total,code,expected", [(100.0, "SPRING10", 90.0), (100.0, None, 100.0), (0.0, "SPRING10", 0.0)])
+def test_discount_applies(total, code, expected):
+    assert calculate_discount(total, code) == pytest.approx(expected)
+
+def test_unknown_code_raises():
+    with pytest.raises(ValueError, match="Unknown discount code"):
+        calculate_discount(50.0, "NOPE")
+```
+
+Run `pytest tests/test_pricing.py -q`; expect `4 passed` (three parametrized cases plus the error test).
+
+### Example 2: Fix "async def functions are not natively supported"
+
+User request: "My async tests fail with 'async def functions are not natively supported'."
+
+pytest does not run coroutines on its own. Install the plugin and set the mode:
+
+```bash
+pip install pytest-asyncio
+```
+
+Add `asyncio_mode = "auto"` to `pytest.toml`, or keep the default strict mode and decorate each test with `@pytest.mark.asyncio` and each async fixture with `@pytest_asyncio.fixture`. Re-run `pytest -q`: the tests now pass.
 
 ## Guidelines
 
-- Use plain `assert` — pytest rewrites assertions to show detailed failure info.
-- Fixtures with `yield` handle cleanup automatically — no try/finally needed.
-- `conftest.py` fixtures are available to all tests in the directory and below.
-- Use `@pytest.mark.asyncio` for async tests (requires `pytest-asyncio` plugin).
-- Aim for fast tests: in-memory SQLite for unit tests, real database for integration tests.
+- Use plain `assert`; use `pytest.approx` for floats and `pytest.raises(..., match=...)` for exceptions.
+- In strict asyncio mode (the default), an async fixture declared with plain `@pytest.fixture` errors with "requested an async fixture ... no plugin or hook that handled it"; use `@pytest_asyncio.fixture` or switch to `asyncio_mode = "auto"`.
+- Fixtures with `yield` clean up even when the test fails; no try/finally needed.
+- Keep tests independent: no reliance on order, shared mutable module state or a leftover database. In-memory SQLite suits unit tests; use the real database engine for integration tests.
+- Register custom markers in configuration; with `strict = true` (or `--strict-markers`) a typo fails at collection instead of silently deselecting tests.
+- Parallel runs (`-n auto`) need tests that do not share files, ports or database rows.
+- Do not mock what you own and can run cheaply; mock network calls, clocks and paid APIs.
+- `unittest.TestCase` classes also run under pytest, but fixtures and parametrize do not apply to their methods.

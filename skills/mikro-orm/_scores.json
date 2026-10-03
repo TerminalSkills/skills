@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:96b30ee1d4456f6ce2f448b987d827b76cd8b960668f0cf8940bb7f9d44cfa36",
-  "scoredAt": "2026-05-13T09:35:03.236Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ed2e4fbdf37422cb96f3b113320fbf4581412d2a9faa2d6b2276e8049b5a9e31",
+  "scoredAt": "2026-10-03T12:04:28.373Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path examples."
+        "detail": "Covers mostly the happy path with little on error handling or edge cases such as failed migrations, flush/transaction failures, missing entities, or seeder setup, and the UserSeeder referenced in the seeding command is never defined."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
+    "multiplier": 1.11,
+    "baselineAvg": 79,
     "treatmentAvg": 88,
-    "multiplier": 1.6,
     "scenarios": [
       {
-        "name": "Wire MikroORM into an Express app with per-request EntityManager",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment uses `MikroORM.init` with entities/dbName/type, wraps requests in `RequestContext.create(orm.em, next)`, mutates the entity directly and calls `em.flush()`; baseline manually constructs UPDATE queries instead of leveraging Unit-of-Work change tracking."
+        "name": "fix-shared-entitymanager-express",
+        "baseline": 88,
+        "treatment": 92,
+        "rationale": "Both wrap requests in RequestContext.create(orm.em, next) and explain the shared identity map and unit of work, but B more directly tells the user to replace the global em constant with orm.em in handlers, while A is thorough but implies the existing em import can stay if it is orm.em, and has a minor import-path quirk."
       },
       {
-        "name": "Add soft-delete filter and top-author leaderboard QueryBuilder",
-        "baseline": 55,
+        "name": "soft-delete-and-embedded-address",
+        "baseline": 88,
+        "treatment": 85,
+        "rationale": "Both add a nullable deletedAt, an @Filter with deletedAt: null and default: true, an @Embeddable Address, and @Embedded with nullable: true, and both show migration:create then migration:up; A explicitly says to review the generated SQL before applying and describes the expected columns, which matches the rubric closely, while B leads with schema:update --dump and --run and mentions migration:create only as the production path without clearly telling the user to review the generated migration, though its entity code, caveats and extra detail are richer."
+      },
+      {
+        "name": "querybuilder-top-authors-driver-import",
+        "baseline": 60,
         "treatment": 88,
-        "rationale": "Treatment applies `@Filter({ name: 'active', cond: { deletedAt: null }, default: true })` plus `em.createQueryBuilder(User,'u').leftJoin('u.posts','p').groupBy('u.id').orderBy({post_count:'DESC'})`; baseline writes raw SQL and misses the @Filter automatic application."
+        "rationale": "B follows the rubric closely: it imports MikroORM and defineConfig from @mikro-orm/postgresql, uses leftJoin, groupBy, orderBy DESC, limit(10) and an admin filter, and says no `type` key is needed. A uses an inner join instead of the required leftJoin and imports defineConfig from the right package in a separate file. It also gives a less direct explanation of the driver import, though its code is otherwise sound."
       }
     ]
   }
