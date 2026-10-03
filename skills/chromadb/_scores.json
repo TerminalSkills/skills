@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:09ecd7266fa38b509a845b27be32d9a44b27681634df7d026a7e4a9a9d7864a5",
-  "scoredAt": "2026-05-13T15:22:01.412Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.2.0",
+  "skillHash": "sha256:d1ae03e79ebcf9a97f6e3519da2504183ab59ef5fd39c92053f2834ccc046cce",
+  "scoredAt": "2026-10-03T12:56:31.192Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as network failures or missing metadata."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks concrete runnable code snippets, providing only high-level procedural steps."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.18,
-    "baselineAvg": 45,
-    "treatmentAvg": 98,
+    "multiplier": 1.12,
+    "baselineAvg": 75,
+    "treatmentAvg": 84,
     "scenarios": [
       {
-        "name": "persistent-knowledge-base-ingestion",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Response B meets all rubric requirements, while Response A lacks key elements such as PersistentClient, 5,000‑chunk upsert, and cosine distance specification."
+        "name": "rag-ingest-with-cosine-and-citations",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both use PersistentClient, get_or_create_collection, upsert, the cosine configuration, source/page metadata, and [0]-indexed query results passed to the LLM, but A adds a stable id with a content hash (slightly off the file-page-chunk spec), stale cleanup and a full prompt builder, while B follows the id spec exactly and is more compact, with a thinner LLM prompt step."
       },
       {
-        "name": "cloud-product-recommendation-search",
-        "baseline": 55,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric items, while Response A omits the HttpClient, the search_ef HNSW setting, and the $and filter, making it only partially correct."
+        "name": "filtered-search-price-range",
+        "baseline": 72,
+        "treatment": 80,
+        "rationale": "Both use query_texts, n_results=5, $and with $gte/$lte, and read ids[0] and distances[0]; A also says lower is closer and gives cosine similarity as 1 - distance, which the rubric asks for. B says lower is closer and names the default l2 metric but leaves out the cosine relationship."
+      },
+      {
+        "name": "server-setup-and-migrate-hnsw-config",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "A covers every rubric element: the server command, HttpClient with heartbeat, the configuration hnsw space form, space immutability, and the 1.0 auth removal with a reverse proxy or Chroma Cloud. B gets the server, client and configuration right, and it says the space is fixed, but it omits heartbeat and never states that built-in auth was removed in 1.0 (it only says auth options changed between versions). B also adds unrequested migration code."
       }
     ]
   }

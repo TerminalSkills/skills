@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5fbc88e34f19098175bcaf336537f55f8390899ce91768f7f26a4c9435a1c47b",
-  "scoredAt": "2026-05-13T09:17:02.189Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:541b7cc8cd5c9fdac739f32dda1c97cb38d60ff0d64008a6a12258b5545ee605",
+  "scoredAt": "2026-10-03T13:01:01.584Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 60,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "FAIL"
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions lack error handling and edge case coverage."
-      },
-      {
-        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is tailored to Next.js/React and does not support other platforms."
+        "detail": "The skill is tightly tied to Intercom and Next.js/React with Node-specific server code, and mobile (iOS/Android) setup is mentioned in the compatibility field but never covered in the instructions."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
         "category": "examples",
-        "detail": "No realistic usage examples are provided."
+        "detail": "The two examples are prose descriptions of a request and a result with no runnable code or concrete output, and the second one only sketches the Stripe webhook handler and the PUT /contacts/{id} call."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 1.42,
+    "baselineAvg": 60,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Boot Intercom Messenger in Next.js with authenticated user",
-        "baseline": 55,
+        "name": "nextjs-secure-messenger-logged-in",
+        "baseline": 30,
         "treatment": 90,
-        "rationale": "Treatment correctly uses Intercom('boot') with app_id and user identification fields (user_id, email, name, created_at) from the documented snippet; baseline boots without created_at and misses the SPA update('last_request_at') pattern."
+        "rationale": "A matches nearly every rubric item: the SDK in a client component, an HS256 JWT signed with INTERCOM_MESSENGER_SECRET that includes user_id, the JWT sent without user_hash, shutdown() in the cleanup, and enforcement of identity verification. B uses the deprecated HMAC user_hash and no JWT, and it has no intercom_user_jwt or HS256 signing. B does include the SDK, shutdown(), and enforcement, so it earns partial credit."
       },
       {
-        "name": "Server-side create contact and send in-app message via Intercom REST API",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment uses the documented POST https://api.intercom.io/contacts with role/external_id/custom_attributes and POST /messages with message_type 'inapp' and from.type 'admin'; baseline guesses endpoint shapes and omits the inapp message_type."
+        "name": "sync-upgrade-to-intercom-contact",
+        "baseline": 70,
+        "treatment": 82,
+        "rationale": "A covers every rubric item (env-var Bearer token, Intercom-Version header, custom_attributes plan 'pro', POST /messages inapp from admin 394051 to the contact id, a client trackEvent, and both the data-attribute and 404-retry caveats), while B has most of the server pieces and the data-attribute setup but fires the client event through window.Intercom('trackEvent') instead of the SDK's trackEvent, doesn't mention the 404 retry, and leaves Maria's lookup as placeholders."
+      },
+      {
+        "name": "eu-workspace-logout-and-spa-navigation",
+        "baseline": 80,
+        "treatment": 82,
+        "rationale": "Both configure the EU api_base with app_id, call update() on route changes, and call shutdown() on logout; A explicitly keeps the identity secret server-side but never frames app_id as the only public value, while B's server-side JWT signing with INTERCOM_MESSENGER_SECRET and its public-app_id comment cover the secrets rubric point a bit more directly, and B also adds the EU REST endpoint note."
       }
     ]
   }

@@ -6,55 +6,60 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/livekit/livekit
   tags: ["webrtc", "realtime", "voice", "video", "streaming"]
 ---
 # LiveKit — Real-Time Voice & Video Infrastructure
 
 ## Overview
 
-You are an expert in LiveKit, the open-source WebRTC platform for building real-time voice and video applications. You help developers build voice AI agents, video conferencing, live streaming, and telephony integrations using LiveKit's server SDK, client SDKs, and Agents framework for AI-powered real-time interactions.
+LiveKit is an open-source WebRTC platform for real-time voice and video: a self-hostable SFU server, client SDKs for web/mobile, server SDKs for room and token management, SIP telephony bridging, and the Agents framework for building voice AI. Checked against `livekit-agents` 1.8.4, `livekit-server-sdk` (Node) 2.19.1 and `livekit-client` 2.22.3 (October 2026).
+
+**Breaking change since the 1.0 Agents release:** `livekit.agents.voice_assistant.VoiceAssistant` and `fnc_ctx` are gone. Voice agents are now built from an `Agent` (instructions + tools) run inside an `AgentSession` (STT/LLM/TTS/VAD pipeline), started with `session.start(...)`.
 
 ## Instructions
 
 ### Voice Agent with LiveKit Agents Framework
 
 ```python
-# agent.py — AI voice agent using LiveKit Agents
-from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, JobProcess
-from livekit.agents.voice_assistant import VoiceAssistant
+# agent.py — AI voice agent using LiveKit Agents 1.x
+from livekit.agents import Agent, AgentSession, JobContext, JobProcess, WorkerOptions, cli, function_tool
 from livekit.plugins import deepgram, openai, elevenlabs, silero
 
 def prewarm(proc: JobProcess):
     """Pre-load models at worker startup for faster first response."""
     proc.userdata["vad"] = silero.VAD.load()
 
+class ClinicAssistant(Agent):
+    def __init__(self) -> None:
+        super().__init__(
+            instructions="You are a friendly scheduling assistant for a dental clinic. "
+                         "Confirm the patient's name and desired date before booking.",
+        )
+
+    @function_tool
+    async def book_appointment(self, patient_name: str, date_iso: str) -> str:
+        """Book an appointment for the patient on the given ISO date."""
+        return f"Booked {patient_name} for {date_iso}."
+
 async def entrypoint(ctx: JobContext):
-    """Handle an incoming voice interaction.
+    """Called when a participant joins a LiveKit room."""
+    await ctx.connect()
 
-    Called when a participant joins a LiveKit room.
-    Sets up the full STT → LLM → TTS pipeline.
-    """
-    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
-
-    # Wait for a participant (the caller) to join
-    participant = await ctx.wait_for_participant()
-
-    assistant = VoiceAssistant(
+    session = AgentSession(
         vad=ctx.proc.userdata["vad"],
-        stt=deepgram.STT(model="nova-2"),
+        stt=deepgram.STT(model="nova-3"),
         llm=openai.LLM(model="gpt-4o"),
         tts=elevenlabs.TTS(
             voice_id="pNInz6obpgDQGcFmaJgB",
-            model_id="eleven_turbo_v2_5",
+            model="eleven_turbo_v2_5",
         ),
-        # Function calling — agent can book appointments, check schedules
-        fnc_ctx=MyFunctions(),
     )
 
-    assistant.start(ctx.room, participant)
-    await assistant.say("Hello! How can I help you today?")
+    await session.start(agent=ClinicAssistant(), room=ctx.room)
+    await session.generate_reply(instructions="Greet the caller and ask how you can help.")
 
 if __name__ == "__main__":
     cli.run_app(
@@ -64,6 +69,8 @@ if __name__ == "__main__":
         ),
     )
 ```
+
+Run it locally with `python agent.py console` (talk to it in the terminal, no LiveKit room needed) or `python agent.py dev` (connects to a real room, hot-reloads on save).
 
 ### SIP Telephony Integration
 
@@ -142,10 +149,10 @@ function MeetingRoom({ token, serverUrl }: { token: string; serverUrl: string })
   );
 }
 
-// Generate access token on server
+// Generate access token on server — AccessToken.toJwt() is async as of livekit-server-sdk v2
 import { AccessToken } from "livekit-server-sdk";
 
-function createToken(roomName: string, participantName: string): string {
+async function createToken(roomName: string, participantName: string): Promise<string> {
   const token = new AccessToken(
     process.env.LIVEKIT_API_KEY,
     process.env.LIVEKIT_API_SECRET,
@@ -157,7 +164,7 @@ function createToken(roomName: string, participantName: string): string {
     canPublish: true,
     canSubscribe: true,
   });
-  return token.toJwt();
+  return await token.toJwt();
 }
 ```
 
@@ -179,33 +186,22 @@ npm install livekit-client @livekit/components-react
 
 ## Examples
 
-**Example 1: User asks to set up livekit**
+### Example 1: "Build a voice agent that books dental appointments over the phone"
 
-User: "Help me set up livekit for my project"
+Write `agent.py` with the `ClinicAssistant` from the Instructions section (an `Agent` with a `book_appointment` tool), run `python agent.py console` to talk to it from the terminal first, then wire the SIP trunk and dispatch rule from the SIP Telephony section so inbound calls to the clinic's number land in a fresh room per caller and dispatch to this agent.
 
-The agent should:
-1. Check system requirements and prerequisites
-2. Install or configure livekit
-3. Set up initial project structure
-4. Verify the setup works correctly
+### Example 2: "Add a video call screen to our React app"
 
-**Example 2: User asks to build a feature with livekit**
-
-User: "Create a dashboard using livekit"
-
-The agent should:
-1. Scaffold the component or configuration
-2. Connect to the appropriate data source
-3. Implement the requested feature
-4. Test and validate the output
+Request a token from the server (the `createToken` function in the Video Room section — call it from an API route, not the browser, since it needs `LIVEKIT_API_SECRET`), then render `<LiveKitRoom token={token} serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}><VideoConference /><RoomAudioRenderer /></LiveKitRoom>` in the call page.
 
 ## Guidelines
 
-1. **Agents framework for voice AI** — Use `livekit-agents` with VoiceAssistant for the complete STT→LLM→TTS pipeline; handles interruptions, turn-taking, and audio routing
-2. **SIP for telephony** — Connect phone numbers via SIP trunks (Twilio, Telnyx); LiveKit handles the WebRTC↔SIP bridge
-3. **Silero VAD** — Always include voice activity detection; prevents the agent from responding to background noise
-4. **Prewarm models** — Load VAD and other models in `prewarm_fnc`; eliminates cold-start latency on first call
-5. **Room-per-call** — Create a unique room for each phone call/interaction; clean isolation and easy cleanup
-6. **Cloud for production** — Use LiveKit Cloud instead of self-hosting; handles scaling, TURN servers, and global edge nodes
-7. **Function calling** — Give your agent tools via `fnc_ctx`; the LLM decides when to call APIs during conversation
-8. **Interruption handling** — LiveKit agents handle barge-in natively; the caller can interrupt the AI mid-sentence
+1. **Agents framework for voice AI** — Build an `Agent` (instructions + `@function_tool` methods) and run it in an `AgentSession` (stt/llm/tts/vad); the session handles interruptions, turn-taking, and audio routing. `VoiceAssistant` and `fnc_ctx` were removed in the 1.0 Agents framework — don't use them in new code.
+2. **SIP for telephony** — Connect phone numbers via SIP trunks (Twilio, Telnyx); LiveKit handles the WebRTC↔SIP bridge.
+3. **Silero VAD** — Include voice activity detection (`silero.VAD.load()`); prevents the agent from responding to background noise.
+4. **Prewarm models** — Load VAD and other models in `prewarm_fnc`; eliminates cold-start latency on first call.
+5. **Room-per-call** — Create a unique room for each phone call or interaction for clean isolation and easy cleanup.
+6. **Cloud for production** — LiveKit Cloud (cloud.livekit.io) handles scaling, TURN servers and global edge nodes; self-host only if you need that control.
+7. **`toJwt()` is async** in `livekit-server-sdk` v2 — `await` it; a missed `await` silently returns a Promise object as the "token" and auth will fail.
+8. **Interruption handling** — Agents handle barge-in natively; the caller can interrupt the AI mid-sentence.
+9. **Never hardcode `LIVEKIT_API_SECRET`** or generate tokens in client-side code — issue them from a server endpoint per participant.

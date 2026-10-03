@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:73d983b8742bc7aa4b2ed95c584b3c2eeb22c6e43b1fa97aa9fca008ef90409f",
-  "scoredAt": "2026-05-21T09:18:37.833Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:3d6179512e5789cace18666e3b5ed49fb20edfa07cf59fc106784534b40ff797",
+  "scoredAt": "2026-10-03T12:10:14.911Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,41 +18,42 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly handle API errors, rate limits, or network failures, leaving edge cases unaddressed."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks concrete code snippets or API call examples, making it harder for agents to implement the described workflows directly."
+        "detail": "The skill covers missing credentials and unsupported actions but gives no guidance for API errors, rate limits, partial import failures, bounced or invalid recipients, or how to recover from a failed command."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "credentials",
+        "detail": "The example MCP setup command passes the API key inline on the command line, where it may be stored in shell history. The key shown is an illustrative placeholder, and the skill requires explicit approval before sends and deletes."
+      }
+    ]
   },
   "impact": {
-    "multiplier": 9.5,
-    "baselineAvg": 3,
-    "treatmentAvg": 95,
+    "multiplier": 3.54,
+    "baselineAvg": 24,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "send-password-reset-email",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B fails to provide any relevant command."
+        "name": "draft-trial-welcome-campaign-safely",
+        "baseline": 22,
+        "treatment": 90,
+        "rationale": "B gives the exact CLI flow the rubric asks for: `sequenzy account`, `companies list`, `--company`, a draft made with `campaigns create --html-file --segment`, a review URL, and approval before scheduling; A names no Sequenzy CLI command and only asks questions."
       },
       {
-        "name": "create-onboarding-sequence",
-        "baseline": 10,
-        "treatment": 85,
-        "rationale": "Response B includes the required CLI command, draft status, preview URL, and segment verification steps, while Response A lacks any command or draft/preview details."
+        "name": "add-subscriber-verify-segment",
+        "baseline": 5,
+        "treatment": 82,
+        "rationale": "Response B gives the correct sequenzy command sequence (lists lookup first, subscribers add with --tag founder, lists add-subscribers, segments count and subscribers list --segment verification) but only as unexecuted commands, while Response A uses the wrong tooling (Kompot), does nothing, and asks for clarification."
       },
       {
-        "name": "add-subscriber-and-verify-segment",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully meets rubric, A does not."
+        "name": "cancel-enrollments-with-guardrails",
+        "baseline": 45,
+        "treatment": 82,
+        "rationale": "B inspects before mutating (sequences enrollments, campaigns get), explains that cancel-enrollments previews without --apply and campaigns delete needs --yes, and prompts for approval before the delete, while A uses unverified placeholders, never mentions --apply or --yes, and has no inspection step, though its dry-run default is sensible; neither mentions API key permissions beyond the default safer-agent preset."
       }
     ]
   }

@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ae9e1ccf1632b44e98c23ddb848e8731d50f7fd5b8fb6c7f2774c29a9c11c810",
-  "scoredAt": "2026-05-13T09:10:32.718Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:983565492f46cc87dc9173bf07360bc4188d34d963237588876eef8c08a062fa",
+  "scoredAt": "2026-10-03T13:02:39.209Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing only on happy path."
+        "detail": "Covers mostly the happy path and omits edge cases such as low-traffic products where required A/B sample sizes are unreachable, fraud or abuse handling beyond a brief cap note, and what to do when experiments are inconclusive or show negative results."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Mostly frameworks, benchmarks and templates with no runnable code, such as a sample-size calculator or cohort query, so the user must implement the calculations and analysis themselves."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The examples are bare one-paragraph prompts with no demonstrated output or worked result, so they show requests rather than realistic demonstrations of what the skill produces."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 92,
-    "multiplier": 1.92,
+    "multiplier": 1.06,
+    "baselineAvg": 66,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "Design a SaaS referral program with K-factor projection",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Baseline suggested a generic single-sided referral; treatment proposed double-sided rewards, triggered on a qualifying action (not signup) to prevent fraud, capped rewards per user, and projected K = invites_per_user x conversion_rate_per_invite as the skill prescribes."
+        "name": "referral-program-design-saas",
+        "baseline": 80,
+        "treatment": 62,
+        "rationale": "Both responses offer double-sided rewards, pay on a qualifying action, include a per-referrer cap, and compute K = invites × conversion with concrete numbers. B scores higher because its K table and fraud controls are more detailed and it states the sub-1 K clearly. Neither compares K against the rubric's 0.5 and 1.0 thresholds exactly: A mentions K > 0.5 only to dismiss it as unrealistic, and B only says K is well below 1."
       },
       {
-        "name": "Lift onboarding activation from 23% to 35% with A/B tests",
-        "baseline": 50,
-        "treatment": 91,
-        "rationale": "Baseline proposed loose copy/UX tests; treatment identified the aha moment by comparing retained vs churned behavior, sized variants with n = (Z^2 x p x (1-p)) / MDE^2, and committed to a 1-2 week minimum with no early peeking, matching the skill's discipline."
+        "name": "activation-experiments-sample-size",
+        "baseline": 62,
+        "treatment": 66,
+        "rationale": "Both compute about 8,150–8,160 per variant (about 16,300 total) with the correct formula; B uses the rubric's exact Zβ = 0.84 and says to run at least 1–2 weeks and not to peek, while A says at least 7 days and not to stop early; neither writes experiments in the full 'If we… then… because…' format with success criteria and duration, though both give tables with hypotheses and primary metrics."
+      },
+      {
+        "name": "funnel-drop-off-prioritization",
+        "baseline": 55,
+        "treatment": 82,
+        "rationale": "A matches the rubric closely: it sets activation and retention ahead of acquisition because acquiring users into a leaky funnel wastes money, it compares each step against benchmark ranges, and it reads the cohorts as product changes working with a floor to raise. B also picks activation first, but it skips the benchmark comparison, it reads the cohort data as 'delaying churn, not building habit' when the rubric reads it as improvement, and it puts acquisition and paid ahead of referral by sample-size reasoning rather than the leaky-funnel justification."
       }
     ]
   }

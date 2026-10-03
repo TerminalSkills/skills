@@ -1,69 +1,68 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:288e992d8abcf0a237c91d0d84330db7907aa50f65aebfa0680404a5ee283428",
-  "scoredAt": "2026-05-13T12:21:09.800Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:5a47c04b221de46ab5f0c51cf8fc5093e308b9f267107ead0ba90febea5094ec",
+  "scoredAt": "2026-10-02T23:21:39.097Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 73,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill examples focus on happy path scenarios and do not address error handling or edge cases."
+        "category": "clarity",
+        "detail": "The multi-agent v1 section lists the Network, Hub and channel concepts but defers to external docs ('read the migration guide before writing this part') and gives no concrete API usage, and the streaming and `run.stream...` line is left elliptical."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on Unix-specific tools like grep and Docker, limiting compatibility on non-Unix platforms."
+        "category": "completeness",
+        "detail": "Error handling is thin: there are no tool-failure, API-error, rate-limit or missing-file cases, and `count_lines` opens any caller-supplied path with no validation despite its 'inside the current project' docstring. The skill also admits that most classic details are unverified."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Multi-agent v1 orchestration, the main use case, has no runnable code, and the streaming and HITL hook usage are only described in prose, so only the single-agent v1 example and the classic code are runnable."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 1 describes a run in prose and reuses earlier code, and Example 2 is a bare snippet that uses top-level `await` and an undefined `count_lines` import. Neither covers multi-agent or group-chat scenarios."
       }
     ]
   },
   "security": {
-    "verdict": "MALICIOUS",
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "subprocess_injection",
-        "detail": "search_codebase uses unsanitized user input in subprocess.run, enabling command injection."
-      },
-      {
-        "severity": "HIGH",
-        "category": "subprocess_injection",
-        "detail": "run_tests uses unsanitized test_path in subprocess.run, enabling command injection."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 5,
-    "treatmentAvg": 100,
+    "multiplier": 9.2,
+    "baselineAvg": 9,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "two-agent-code-execution",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not include the required agent definitions or execution evidence."
+        "name": "agent-with-tool-and-followup",
+        "baseline": 3,
+        "treatment": 96,
+        "rationale": "Response B follows the AG2 v1 rubric on every point: the `ag2` imports, a typed and docstringed `@tool`, `tools=[...]`, `await ask` with `reply.body`, `reply.ask` for the follow-up, and the key read from OPENAI_API_KEY. Response A uses the legacy `autogen` API with `initiate_chat` and `register_for_llm`, so it misses nearly all of it, though it does read the key from the environment."
       },
       {
-        "name": "group-chat-notification-service",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the required elements."
+        "name": "test-agent-tools-without-llm",
+        "baseline": 3,
+        "treatment": 92,
+        "rationale": "A uses TestConfig from ag2.testing with a scripted ToolCallEvent plus a final string, asserts on reply.body, and notes that each ask consumes scripted turns, matching the rubric; B uses the classic autogen with a dummy key and hand-built tool_calls messages, so it misses every rubric element."
       },
       {
-        "name": "tool-use-code-search-tests",
-        "baseline": 15,
-        "treatment": 100,
-        "rationale": "Response A fully meets the rubric with proper function signatures, register_function calls, caller/executor, and tester usage; Response B lacks required registration, signatures, and workflow details."
+        "name": "classic-autogen-group-chat-safe",
+        "baseline": 22,
+        "treatment": 88,
+        "rationale": "B keeps classic `autogen` imports, installs `ag2-classic`, uses AutoPattern with run_group_chat(max_rounds=12), sets max_consecutive_auto_reply, and configures use_docker True with a scratch work_dir, so it hits nearly every rubric point; A uses the older GroupChat/GroupChatManager API, recommends `pip install ag2`/pyautogen instead of ag2-classic, and uses DockerCommandLineCodeExecutor instead of `use_docker: True`, though it does bound the loop and use a dedicated work_dir."
       }
     ]
   }

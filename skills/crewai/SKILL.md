@@ -1,166 +1,144 @@
 ---
 name: crewai
 description: >-
-  You are an expert in CrewAI, the framework for orchestrating autonomous AI
-  agents working together as a crew. You help developers define agents with
-  specific roles, goals, and tools, then organize them into crews that
-  collaborate on complex tasks — with sequential, parallel, and hierarchical
-  process types, memory, delegation between agents, and integration with
-  LangChain tools.
+  CrewAI is a Python framework for building multi-agent AI systems: you define
+  agents with roles, goals and tools, give them tasks, and run them as a crew
+  with sequential or hierarchical processes, memory and delegation. Use when a
+  user wants to build a multi-agent workflow, set up a CrewAI project, write
+  custom CrewAI tools, or run a crew from the crewai CLI.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'Python 3.10-3.13, an LLM API key (OpenAI by default, other providers via LiteLLM-style model strings)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: 1.1.0
+  category: data-ai
+  repository: https://github.com/crewAIInc/crewAI
   tags:
-    - agent
+    - crewai
     - multi-agent
-    - crew
     - orchestration
-    - roles
+    - agents
     - python
-    - production
 ---
 
 # CrewAI — Multi-Agent Orchestration
 
-You are an expert in CrewAI, the framework for orchestrating autonomous AI agents working together as a crew. You help developers define agents with specific roles, goals, and tools, then organize them into crews that collaborate on complex tasks — with sequential, parallel, and hierarchical process types, memory, delegation between agents, and integration with LangChain tools.
+## Overview
 
-## Core Capabilities
+CrewAI organizes LLM agents into a `Crew`: each `Agent` has a role, goal, backstory and tools, each `Task` has a description and expected output, and the crew runs the tasks in order (`Process.sequential`) or under an auto-created manager (`Process.hierarchical`). Besides crews, the package has `Flow` for event-driven, stateful pipelines that can call crews. Checked against crewai and crewai-tools 1.15.23 (28 Sep 2026): imports and constructors below were executed; model calls were not (no API key used).
 
-### Agents and Crews
+## Instructions
 
-```python
-from crewai import Agent, Task, Crew, Process
-from crewai_tools import SerperDevTool, WebsiteSearchTool, FileReadTool
+### Step 1: Install and scaffold
 
-# Define specialized agents
-researcher = Agent(
-    role="Senior Research Analyst",
-    goal="Find comprehensive, accurate data about the given topic",
-    backstory="""You are an expert researcher with 15 years of experience
-    in technology analysis. You are meticulous about data accuracy and
-    always cross-reference multiple sources.""",
-    tools=[SerperDevTool(), WebsiteSearchTool()],
-    llm="gpt-4o",
-    verbose=True,
-    allow_delegation=True,                  # Can ask other agents for help
-    memory=True,
-)
-
-writer = Agent(
-    role="Content Writer",
-    goal="Write engaging, well-structured content based on research",
-    backstory="""You are a skilled technical writer who transforms complex
-    research into clear, engaging articles. You write for a developer audience.""",
-    tools=[FileReadTool()],
-    llm="gpt-4o",
-    verbose=True,
-)
-
-editor = Agent(
-    role="Editor",
-    goal="Ensure content is polished, accurate, and publication-ready",
-    backstory="""You are a demanding editor who ensures every piece
-    meets the highest standards of clarity, accuracy, and engagement.""",
-    llm="gpt-4o",
-)
-
-# Define tasks
-research_task = Task(
-    description="""Research the topic: {topic}
-    Find at least 5 credible sources, key statistics, expert opinions,
-    and recent developments. Focus on practical implications.""",
-    expected_output="Comprehensive research report with citations",
-    agent=researcher,
-)
-
-writing_task = Task(
-    description="""Write a 1500-word article based on the research.
-    Include: introduction, 3-4 key sections with examples, conclusion.
-    Target audience: senior developers and tech leads.""",
-    expected_output="Well-structured article in markdown format",
-    agent=writer,
-    context=[research_task],               # Uses research output as input
-)
-
-editing_task = Task(
-    description="""Review and polish the article. Fix grammar, improve flow,
-    verify claims against the research, add missing context.
-    Return the final publication-ready article.""",
-    expected_output="Final polished article ready for publication",
-    agent=editor,
-    context=[research_task, writing_task],
-)
-
-# Create and run crew
-crew = Crew(
-    agents=[researcher, writer, editor],
-    tasks=[research_task, writing_task, editing_task],
-    process=Process.sequential,            # Or Process.hierarchical
-    memory=True,                           # Shared crew memory
-    verbose=True,
-)
-
-result = crew.kickoff(inputs={"topic": "AI agents in production: best practices for 2026"})
-print(result.raw)                          # Final article
-print(result.token_usage)                  # Total tokens used
+```bash
+pip install crewai crewai-tools          # or: uv tool install crewai
+crewai --version
+crewai create crew research-crew         # interactive wizard that writes agents.yaml, tasks.yaml, crew.py
+cd research-crew && crewai install && crewai run
 ```
 
-### Custom Tools
+Set the provider key in a `.env` file or the environment (for OpenAI, `OPENAI_API_KEY`); never commit it. Scaffolded projects keep prompts in `src/<name>/config/agents.yaml` and `tasks.yaml`, with a `@CrewBase` class in `crew.py` using `@agent`, `@task` and `@crew` decorators; `{topic}` placeholders are filled by `kickoff(inputs=...)`.
+
+### Step 2: Agents, tasks and a crew in plain Python
 
 ```python
+from crewai import Agent, Task, Crew, Process, LLM
+from crewai_tools import SerperDevTool, WebsiteSearchTool, FileReadTool   # SerperDevTool needs SERPER_API_KEY
+
+llm = LLM(model="openai/gpt-4o-mini", temperature=0.2)
+
+researcher = Agent(
+    role="Senior Research Analyst",
+    goal="Find accurate, cross-checked facts about {topic}",
+    backstory="You have 15 years in technology analysis and always verify claims against several sources.",
+    tools=[SerperDevTool(), WebsiteSearchTool()],
+    llm=llm,
+    allow_delegation=False,
+    verbose=True,
+)
+writer = Agent(
+    role="Content Writer",
+    goal="Turn research into a clear article for developers",
+    backstory="A technical writer who explains complex topics with concrete examples.",
+    tools=[FileReadTool()],
+    llm=llm,
+)
+
+research_task = Task(
+    description="Research {topic}. Find at least 5 credible sources, key numbers and recent developments.",
+    expected_output="A research brief with source URLs",
+    agent=researcher,
+)
+writing_task = Task(
+    description="Write a 1200-word markdown article from the research brief.",
+    expected_output="A markdown article with intro, 3 sections and conclusion",
+    agent=writer,
+    context=[research_task],               # output of research_task is passed in
+    output_file="article.md",
+)
+
+crew = Crew(agents=[researcher, writer], tasks=[research_task, writing_task],
+            process=Process.sequential, verbose=True)
+result = crew.kickoff(inputs={"topic": "AI agents in production"})
+print(result.raw)                          # final text; also result.pydantic, result.json_dict, result.tasks_output
+print(result.token_usage)
+```
+
+`Task` also accepts `output_pydantic=MyModel` for structured results, `guardrail=` for output checks and `async_execution=True`.
+
+### Step 3: Custom tools
+
+```python
+import json
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
-class DatabaseQueryInput(BaseModel):
-    query: str = Field(description="SQL query to execute")
+class OrdersQueryInput(BaseModel):
+    query: str = Field(description="Read-only SQL SELECT against the orders database")
 
-class DatabaseQueryTool(BaseTool):
-    name: str = "database_query"
-    description: str = "Execute SQL queries against the analytics database"
-    args_schema: type[BaseModel] = DatabaseQueryInput
+class OrdersQueryTool(BaseTool):
+    name: str = "orders_query"
+    description: str = "Run a read-only SQL query on the orders analytics database"
+    args_schema: type[BaseModel] = OrdersQueryInput
 
     def _run(self, query: str) -> str:
-        results = db.execute(query)
-        return json.dumps(results, default=str)
-
-# Use in agent
-analyst = Agent(
-    role="Data Analyst",
-    goal="Extract insights from the database",
-    tools=[DatabaseQueryTool()],
-    llm="gpt-4o",
-)
+        rows = run_readonly_query(query)   # your own function
+        return json.dumps(rows, default=str)
 ```
 
-### Hierarchical Process
+The `@tool("name")` decorator from `crewai.tools` works for simple functions. Agents can also take MCP servers through the `mcps=` field.
+
+### Step 4: Hierarchical process and memory
 
 ```python
-# Manager agent delegates to specialists
 crew = Crew(
-    agents=[researcher, writer, editor, analyst],
-    tasks=[complex_report_task],
-    process=Process.hierarchical,          # Manager auto-created, delegates subtasks
+    agents=[researcher, writer],
+    tasks=[research_task, writing_task],
+    process=Process.hierarchical,          # requires manager_llm or manager_agent
     manager_llm="gpt-4o",
-    memory=True,
+    memory=True,                           # or pass a Memory instance for custom storage
 )
 ```
 
-## Installation
+Memory is a unified store (`Memory`, with scoped views) and calls an embedding model; configure `embedder=` if you do not use OpenAI. Reset it with `crewai reset-memories`. Other useful CLI commands: `crewai test`, `crewai train`, `crewai replay`.
 
-```bash
-pip install crewai crewai-tools
-```
+## Examples
 
-## Best Practices
+**Example 1: "Set up a researcher and writer crew for blog posts"**
 
-1. **Clear roles** — Each agent needs a specific role, goal, and backstory; specificity improves output quality
-2. **Task dependencies** — Use `context=[task1, task2]` to pass output between tasks; explicit data flow
-3. **Sequential for reliability** — Use `Process.sequential` for predictable, ordered execution
-4. **Hierarchical for complex** — Use `Process.hierarchical` when tasks need dynamic delegation
-5. **Custom tools** — Wrap your APIs as CrewAI tools; agents use them autonomously
-6. **Memory** — Enable `memory=True` for long-running crews; agents remember previous interactions
-7. **Delegation** — Set `allow_delegation=True` for agents that should ask others for help
-8. **Token tracking** — Check `result.token_usage` to monitor costs; optimize agent instructions to reduce tokens
+Run the Step 2 script with `OPENAI_API_KEY` and `SERPER_API_KEY` exported. Result: verbose logs show the researcher's tool calls, then `article.md` is written and the token usage dictionary prints.
+
+**Example 2: "Let the crew query our orders database"**
+
+Add `OrdersQueryTool()` to a `Data Analyst` agent's `tools`, give it a Task such as "Summarize last month's refunds by reason", and run `crew.kickoff()`. Result: the agent calls `orders_query` with SQL, and the answer in `result.raw` cites the returned rows.
+
+## Guidelines
+
+- Specific roles, goals and `expected_output` text drive quality; vague agents wander and burn tokens.
+- Use `Process.sequential` by default; hierarchical adds a manager LLM and more calls, so use it only when task assignment must be dynamic.
+- Pass data between tasks explicitly with `context=[...]`; set `max_iter` and `max_rpm` on agents to cap loops and rate-limit errors.
+- Tools run with your credentials: give database tools read-only access and validate inputs; do not let agents run arbitrary shell or write code unless sandboxed (`allow_code_execution` runs code and should stay off unless needed).
+- Delegation (`allow_delegation=True`) increases cost and can loop between agents; enable it only where needed.
+- CrewAI collects anonymous telemetry by default; set `CREWAI_DISABLE_TELEMETRY=true` where policy requires.
+- Old tutorials use `crewai_tools` imports that moved or LangChain tools; prefer `crewai_tools` and `crewai.tools.BaseTool`, and pin the version you tested.

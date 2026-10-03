@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:33eb74595c218e23ea8160f74e6bdd832b552c6644c78bd005d2aef3f76f6feb",
-  "scoredAt": "2026-05-13T09:34:20.643Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cfff7e5526cc8b4dbd24f809bc973f8f739819eebc3f9d3d840dd614d0c090e4",
+  "scoredAt": "2026-10-03T12:03:46.855Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, only happy path scenarios."
+        "detail": "Covers mostly the happy path and gives no guidance on error handling such as LLM or vector store failures, empty search results, missing API keys, or Qdrant being unreachable."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 1.91,
+    "baselineAvg": 43,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Persistent memory for OpenAI chatbot",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline reaches for generic stores or LangChain memory and misses Mem0's search-before-generate / add-after-generate pattern with user_id scoping; treatment imports Memory, calls memory.search then memory.add with user_id on every call as shown in the SKILL.md chat_with_memory pattern."
+        "name": "chatbot-memory-loop-v2-api",
+        "baseline": 40,
+        "treatment": 97,
+        "rationale": "B matches the rubric: search uses filters={\"user_id\": ...} with top_k, memories go into the system prompt, and add() takes both messages in one call with a top-level user_id. A passes user_id as a top-level argument to search and uses limit instead of top_k, which are the two things the rubric says not to do. A's add() call and system-prompt injection are correct."
       },
       {
-        "name": "GDPR delete all memories for a user",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline iterates get_all and deletes each memory or invents an endpoint; treatment uses the single memory.delete_all(user_id=...) call documented in the SKILL.md as the right-to-erasure primitive."
+        "name": "separate-policies-from-customer-notes",
+        "baseline": 22,
+        "treatment": 88,
+        "rationale": "A scopes policies and customer notes under separate user_id/agent_id, tags policies with metadata type, and searches via filters with flat metadata keys (and notes not to nest them under 'metadata'), matching the rubric, while B uses top-level user_id in search, never uses filters for the OSS path, and doesn't filter on flat metadata keys."
+      },
+      {
+        "name": "gdpr-erasure-and-persistent-qdrant",
+        "baseline": 66,
+        "treatment": 62,
+        "rationale": "Both give delete_all(user_id) and a persistent Qdrant host/port config and say /tmp is wiped on reboot (A states /tmp/qdrant explicitly; B names it too); A explicitly covers the LLM-provider data flow and review/prune via update/delete, which the third rubric item asks for, while B only mentions provider logs and omits update/delete, though B adds extra depth on history DB purging and testing."
       }
     ]
   }

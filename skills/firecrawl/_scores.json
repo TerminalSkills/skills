@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:13e29083fd8c94bcca093c7df6e619f180a8e24dee00075b16a8e0ebac1b286b",
-  "scoredAt": "2026-05-13T08:53:11.372Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1fcec1b4bc74c2695d54d1f99d74964b93f4e108a67c97d336d64bbf1f3d1da9",
+  "scoredAt": "2026-10-03T12:14:45.784Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "multiplier": 1.96,
+    "baselineAvg": 46,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Build docs RAG pipeline from a website",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment uses crawlUrl with limit and scrapeOptions formats=['markdown'], then chunks markdown for vector DB ingestion as documented; baseline writes a custom Puppeteer crawler with HTML parsing that doesn't match the Firecrawl-specific pattern."
+        "name": "crawl-docs-into-rag-with-limits",
+        "baseline": 8,
+        "treatment": 93,
+        "rationale": "Response B uses Firecrawl crawl with an explicit limit (noting the 10,000-page default), includePaths, markdown scrapeOptions with onlyMainContent, and metadata.sourceURL as the chunk source, which covers the rubric. Response A never uses Firecrawl and builds a custom sitemap scraper, so it misses nearly every rubric item."
       },
       {
-        "name": "Extract typed product data from a product page",
+        "name": "extract-product-json-with-schema",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both use a `json` format object with a schema and prompt, read `doc.json`, and state 1 base + 4 extra = 5 credits; B adds useful caveats (stealth proxy cost) and field descriptions, while A's Python/TS mostly equal but includes a caveat about guessing SDK details and uses a possibly less standard TS import."
+      },
+      {
+        "name": "self-host-firecrawl-securely",
         "baseline": 40,
-        "treatment": 84,
-        "rationale": "Treatment calls scrapeUrl with formats=['extract'] and an extract.schema (Zod) returning a typed object as the skill documents; baseline scrapes raw HTML and parses with regex/cheerio, missing the LLM-powered structured extract feature."
+        "treatment": 88,
+        "rationale": "B covers nearly every rubric item: from-source Docker Compose with a checked-out release tag, port 3002, apiUrl/FIRECRAWL_API_URL, no-auth default, the AI provider needed for JSON extraction, and a pointer to SELF_HOST.md. A gives from-source compose and apiUrl but never checks out a release tag, omits the JSON-extraction AI provider warning (only mentions an optional OPENAI_API_KEY), and never points to SELF_HOST.md for exposure."
       }
     ]
   }

@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4d2bed8333517727fa60b22311ef5d89af753a0ef55f9642c8aea593652d5d95",
-  "scoredAt": "2026-05-13T09:53:17.382Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d5f88ea2914474873b94b74cc974c9e9e917e062a43bebad84075fa2eb855eaa",
+  "scoredAt": "2026-10-03T13:08:37.284Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill is a template plus principles with no step-by-step procedure for how the agent should gather inputs, handle missing evidence, or sequence drafting and review; the process is only implied by the examples."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 22,
-    "treatmentAvg": 95,
-    "multiplier": 4.32,
+    "multiplier": 1.43,
+    "baselineAvg": 61,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Draft a PRD for a new onboarding wizard",
-        "baseline": 18,
-        "treatment": 96,
-        "rationale": "Baseline produces a generic feature list with no quantified evidence, no primary or counter metric, no non-goals, no acceptance criteria, and no edge cases; treatment fills every section of the documented template — problem with evidence, one primary metric plus counter-metrics, explicit non-goals, INVEST-style user stories with checkbox acceptance criteria, an edge cases table, and a gradual-rollout launch plan with feature flag and rollback."
+        "name": "prd-for-shared-review-boards",
+        "baseline": 40,
+        "treatment": 82,
+        "rationale": "A has an evidence-based problem section (with placeholders), exactly one primary metric with baseline and target, counter-metrics, non-goals, pass/fail checkbox acceptance criteria and open questions, though it includes some implementation dictation; B lacks a single primary metric with baseline and target, has no counter-metrics beyond one guardrail, no acceptance criteria, an unevidenced problem section, and more implementation dictation."
       },
       {
-        "name": "Review a draft team-permissions PRD for completeness",
-        "baseline": 25,
-        "treatment": 94,
-        "rationale": "Baseline gives generic advice without referencing INVEST or a structured rubric; treatment reviews the draft against the skill's checklist — INVEST per story, missing primary/counter metrics and non-goals, edge-case table coverage, feature-flag gradual rollout, and launch criteria — producing specific gaps rather than platitudes."
+        "name": "review-vague-permissions-prd",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "B gives a section-by-section findings table with a concrete numeric metric example, a testable '<1s for 500 members' replacement, edge cases including the last admin and conflicting roles across teams, and launch/rollback criteria. A covers most of the same ground but never mentions conflicting roles across teams, gives no concrete numeric primary metric, names no go/no-go launch criteria, and runs closer to a generic PRD template."
+      },
+      {
+        "name": "prd-for-ai-support-assistant",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both give measurable test-set criteria, fallbacks, and staged rollout with rollback, but B is stronger on the rubric: it names a feature flag explicitly, has an explicit go/no-go launch criteria checklist, and has a clear pass/fail test-set grading protocol (300 tickets, two reviewers, ≥85% correct); A has good eval criteria and rollback triggers but never names a feature flag or gives an explicit go/no-go list (only release gates), and includes some implementation-specific details."
       }
     ]
   }

@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ad36b42f722b2640e23c99d69bd6de4da7d6a6a43dc41107680adb4a9a57685f",
-  "scoredAt": "2026-05-13T09:42:34.565Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cc9380e3dd1367c417a328364777a330fbd5371c6f00c7d16f1692c5bc931bb0",
+  "scoredAt": "2026-10-03T13:00:01.551Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "Skill file lacks separate realistic example demonstrations."
+        "detail": "Covers mostly the happy path with only brief troubleshooting (nx reset, shallow clones) and no guidance on common failures such as a missing base ref, circular dependencies, or cache misses caused by undeclared inputs."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 87,
-    "multiplier": 2.02,
+    "multiplier": 1.64,
+    "baselineAvg": 56,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Affected CI pipeline",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Baseline mentions running tests across packages but lacks the specific nx affected -t test command and nx.json targetDefaults cache config; treatment uses both the affected command and configures cache in nx.json with dependsOn."
+        "name": "ts-monorepo-shared-lib-cache",
+        "baseline": 3,
+        "treatment": 92,
+        "rationale": "Response B follows the rubric: it uses create-nx-workspace with the required flags, generates the library with @nx/js:lib and --bundler=tsc, builds twice, and says the second run shows 1/1 hit (100%). Response A uses Turborepo and npm workspaces, so it misses the Nx approach the rubric asks for."
       },
       {
-        "name": "Init Nx in existing monorepo",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Baseline gives generic monorepo advice and may not surface npx nx init nor demonstrate cache benefit via run-many; treatment uses nx init, configures targetDefaults cache:true, and shows nx run-many -t build for shared caching."
+        "name": "ci-run-only-affected",
+        "baseline": 82,
+        "treatment": 95,
+        "rationale": "B follows the rubric exactly: it uses `nx affected -t lint test build --base=origin/main --head=HEAD --parallel=3`, says dependents also run, sets `fetch-depth: 0`, adds `git fetch origin main`, and explains that a shallow clone gives wrong or empty results; A covers most of this but leans on nx-set-shas, says a shallow clone makes Nx fall back to running everything instead of giving wrong or empty results, and mentions `--base=origin/main` only as an alternative."
+      },
+      {
+        "name": "fix-stale-cache-custom-target",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "Both explain adding the env var and the external file to `inputs` and setting `cache: false` on deploy, but A states `nx reset` more clearly as a required step for clearing the stale cache and daemon state, while B only mentions `nx reset` at the end as a fallback for odd behavior (though B adds useful runtime-input and project.json-override notes)."
       }
     ]
   }

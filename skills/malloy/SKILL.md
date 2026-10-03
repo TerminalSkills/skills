@@ -1,295 +1,189 @@
 ---
 name: malloy
-description: Expert guidance for Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. Helps developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.
+description: >-
+  Malloy is an open-source semantic modeling and query language that compiles to SQL and runs on DuckDB, BigQuery, Snowflake, PostgreSQL, MySQL, Trino, Presto and Databricks. Use when the user wants to write Malloy models, sources, views, joins or nested queries, run .malloy files from the VS Code extension, the malloy-cli command line or Node.js, or replace repetitive SQL analytics with reusable measures.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "VS Code extension, or Node.js 20+ for the npm packages and malloy-cli. Needs a supported SQL database or local Parquet/CSV files via DuckDB."
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/malloydata/malloy
   tags:
-  - sql
-  - analytics
-  - semantic-model
-  - data-exploration
-  - query-language
+    - sql
+    - analytics
+    - semantic-model
+    - data-exploration
+    - query-language
 ---
 
 # Malloy — Semantic Data Language
 
-
 ## Overview
 
-
-Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. Helps developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.
-
+Malloy is a language for describing data relationships and transformations. A `.malloy` file defines sources (a table plus its dimensions, measures, joins and named views) and queries over them; the compiler produces SQL for the database you already use. Nested results are first-class, and every measure is defined once and reused by name. Supported engines include BigQuery, Snowflake, DuckDB, MotherDuck, PostgreSQL, MySQL, Trino, Presto and Databricks. The npm package `@malloydata/malloy` is at 0.0.x, so syntax still gets deprecations; trust compiler messages over old blog posts.
 
 ## Instructions
 
-### Source Definition
-
-Define reusable data models:
+### Sources, dimensions, measures and views
 
 ```malloy
-// models/ecommerce.malloy — Ecommerce data model
+// models/ecommerce.malloy
+source: customers is duckdb.table('customers.parquet') extend {
+  primary_key: id
+  dimension: signup_month is created_at.month
+}
 
 source: orders is duckdb.table('orders.parquet') extend {
-  // Dimensions (attributes to group by)
-  dimension:
-    order_date is created_at::date
-    order_month is created_at.month
-    order_year is created_at.year
-    is_high_value is amount > 100
-    order_size is pick
-      'small' when items_count < 3
-      'medium' when items_count < 10
-      'large'
+  join_one: customers with customer_id        // needs primary_key on customers
 
-  // Measures (aggregations)
+  dimension:
+    order_month is created_at.month           // dot notation truncates time
+    is_high_value is amount > 100
+    order_size is pick 'small' when items_count < 3
+      pick 'medium' when items_count < 10
+      else 'large'
+
   measure:
     order_count is count()
     total_revenue is sum(amount)
-    avg_order_value is avg(amount)
-    unique_customers is count(distinct customer_id)
+    avg_order_value is amount.avg()
+    unique_customers is count(customer_id)    // count(distinct x) is deprecated
     revenue_per_customer is total_revenue / unique_customers
 
-  // Reusable named queries (views)
   view: revenue_by_month is {
     group_by: order_month
-    aggregate:
-      total_revenue
-      order_count
-      avg_order_value
+    aggregate: total_revenue, order_count, avg_order_value
     order_by: order_month
   }
 
   view: top_customers is {
-    group_by: customer_id
-    aggregate:
-      total_revenue
-      order_count
+    group_by: customers.name
+    aggregate: total_revenue, order_count
     order_by: total_revenue desc
     limit: 20
-  }
-
-  view: daily_dashboard is {
-    group_by: order_date
-    aggregate:
-      total_revenue
-      order_count
-      unique_customers
-      avg_order_value
-    order_by: order_date desc
-    limit: 30
   }
 }
 ```
 
+Comments use `//` or `--`. Joined fields are reached with dot notation (`customers.name`). Alias a join with `is`: `join_one: billing is customers with billing_customer_id`. Without a primary key, use `join_one: customers on customer_id = customers.id`.
+
 ### Queries
 
-Write composable, readable analytics queries:
-
 ```malloy
-// queries/analysis.malloy — Analytics queries using the model
-
 import "models/ecommerce.malloy"
 
-// Simple aggregation
-run: orders -> {
-  aggregate:
-    total_revenue
-    order_count
-    avg_order_value
-}
+run: orders -> revenue_by_month                       // run a named view
 
-// Group by with filters
-run: orders -> {
-  where: order_year = 2026
-  group_by: order_month
-  aggregate:
-    total_revenue
-    order_count
-  order_by: order_month
-}
-
-// Nested queries — multiple levels of aggregation in one query
-run: orders -> {
+run: orders -> {                                      // ad-hoc query
+  where: created_at ? @2026-02
   group_by: order_size
-  aggregate:
-    total_revenue
-    order_count
-    avg_order_value
-  // Nested: for each order_size, show monthly breakdown
+  aggregate: total_revenue, order_count
+}
+
+run: orders -> revenue_by_month + { where: status = 'completed' }   // refine a view
+
+run: orders -> revenue_by_month -> {                  // pipeline: second stage reads the first
+  where: total_revenue > 10000
+  select: *
+}
+
+run: orders -> {                                      // nesting: one query, several levels
+  group_by: order_size
+  aggregate: total_revenue
   nest: monthly_trend is {
     group_by: order_month
     aggregate: total_revenue
     order_by: order_month
   }
-  // Nested: for each order_size, show top customers
-  nest: top_customers is {
-    group_by: customer_id
-    aggregate: total_revenue, order_count
+  nest: best_customers is {
+    group_by: customers.name
+    aggregate: total_revenue
     order_by: total_revenue desc
     limit: 5
   }
 }
-
-// Pipeline: chain transformations
-run: orders
-  -> { where: status = 'completed' }
-  -> revenue_by_month                   // Reuse named view
-  -> { where: total_revenue > 10000 }   // Filter the result
 ```
 
-### Joins and Relationships
+If `order_by` is omitted, results sort by the first aggregate, descending.
+
+### Visualization tags
+
+A tag on its own line applies to the thing on the following line (query, view or field):
 
 ```malloy
-// models/full_model.malloy — Multi-table model with joins
+# bar_chart
+run: orders -> { group_by: status aggregate: order_count }
 
-source: customers is duckdb.table('customers.parquet') extend {
-  dimension: signup_month is created_at.month
-  measure:
-    customer_count is count()
-    avg_lifetime_value is avg(lifetime_value)
-}
-
-source: products is duckdb.table('products.parquet') extend {
-  dimension: price_tier is pick
-    'budget' when price < 25
-    'mid-range' when price < 100
-    'premium'
-  measure: product_count is count()
-}
-
-source: order_items is duckdb.table('order_items.parquet') extend {
-  // Join to related tables
-  join_one: orders on order_id = orders.id
-  join_one: products on product_id = products.id
-  join_one: customers is orders.customer_id = customers.id
-
-  measure:
-    total_quantity is sum(quantity)
-    item_revenue is sum(quantity * unit_price)
-
-  // Query across joined tables
-  view: revenue_by_category is {
-    group_by: products.category
-    aggregate:
-      item_revenue
-      total_quantity
-    order_by: item_revenue desc
-  }
-
-  view: customer_product_matrix is {
-    group_by: customers.signup_month
-    aggregate: item_revenue
-    nest: by_category is {
-      group_by: products.category
-      aggregate: item_revenue
-    }
-  }
-}
-```
-
-### Notebooks and Visualization
-
-```malloy
-// In Malloy notebook (.malloynb) or VS Code extension
-
-// Malloy auto-renders results as charts when appropriate
-
-// Bar chart — group by with single measure
-run: orders -> {
-  group_by: status
-  aggregate: order_count
-}
-// # bar_chart
-
-// Line chart — time series
+# line_chart
 run: orders -> revenue_by_month
-// # line_chart
-
-// Dashboard — multiple visualizations from one query
-run: orders -> {
-  group_by: order_size
-  aggregate: total_revenue, order_count
-  nest: trend is {
-    group_by: order_month
-    aggregate: total_revenue
-  }
-}
-// # dashboard
 ```
 
-### DuckDB and BigQuery Connections
+Other tags: `# dashboard`, `# scatter_chart`, `# table`; field tags such as `# currency`, `# percent`, `# hidden`. Charts render in the VS Code extension and in Malloy notebooks (`.malloynb`).
 
-```malloy
-// Connection configuration
-// DuckDB (local files)
-connection: duckdb is duckdb [
-  parquet_path: "./data/"
-]
+### Installing and running
 
-// BigQuery
-connection: bq is bigquery [
-  project_id: "my-gcp-project"
-  dataset: "analytics"
-]
-
-// Use BigQuery tables in models
-source: events is bq.table('analytics.events') extend {
-  measure: event_count is count()
-}
-```
-
-## Installation
-
-```bash
-# VS Code Extension (recommended)
-# Install "Malloy" from VS Code Marketplace
-
-# CLI
-npm install -g @malloydata/malloy-cli
-
-# Python package
-pip install malloy
-
-# Run a Malloy file
-malloy run analysis.malloy
-```
-
+- VS Code: install the "Malloy" extension, then set up the connection in its settings. A browser trial exists at github.dev/malloydata/try-malloy.
+- Command line: `npm install -g malloy-cli`, then `malloy-cli run queries.malloy`; it also has `compile` (print SQL) and `build`. Connections live in `~/.config/malloy/malloy-config.json`.
+- Node.js: `npm install @malloydata/malloy @malloydata/malloy-connections`, then `new Runtime({ config: new MalloyConfig({ includeDefaultConnections: true }) })` and `runtime.loadQuery(text).run()`; call `runtime.shutdown()` when done.
+- Serving models to apps and agents: Malloy Publisher (`npx @malloy-publisher/server --port 4000 --server_root models`) exposes REST and MCP endpoints.
+- Python: the `malloy` package on PyPI (last release 2024.1096) is a thin wrapper, not the main toolchain.
 
 ## Examples
 
+### Example 1: Replace a SQL report with a reusable view
 
-### Example 1: Integrating Malloy into an existing application
+**Request:** "Turn this SQL into Malloy: monthly revenue and order count for completed orders in 2026, from orders.parquet."
 
-**User request:**
+```malloy
+source: orders is duckdb.table('orders.parquet') extend {
+  dimension: order_month is created_at.month
+  measure:
+    order_count is count()
+    total_revenue is sum(amount)
+}
 
+run: orders -> {
+  where: status = 'completed' and created_at ? @2026
+  group_by: order_month
+  aggregate: total_revenue, order_count
+  order_by: order_month
+}
 ```
-Add Malloy to my Next.js app for the AI chat feature. I want streaming responses.
+
+`malloy-cli run monthly.malloy` prints one row per month, for example `2026-01-01 | 48210.50 | 311`. `malloy-cli compile monthly.malloy` shows the generated DuckDB SQL. The same `total_revenue` can now feed any later query.
+
+### Example 2: Run a query from a Node.js script
+
+**Request:** "Call Malloy from my script and print the top products."
+
+```javascript
+require('@malloydata/malloy-connections');
+const { MalloyConfig, Runtime } = require('@malloydata/malloy');
+
+async function main() {
+  const runtime = new Runtime({ config: new MalloyConfig({ includeDefaultConnections: true }) });
+  const result = await runtime.loadQuery(`
+    source: sales is duckdb.table('sales.parquet') extend {
+      measure: total_revenue is revenue.sum()
+    }
+    run: sales -> { group_by: product aggregate: total_revenue limit: 5 }
+  `).run();
+  console.table(result.data.toObject());
+  await runtime.shutdown();
+}
+main().catch(console.error);
 ```
 
-The agent installs the SDK, creates an API route that initializes the Malloy client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
-
-### Example 2: Optimizing queries performance
-
-**User request:**
-
-```
-My Malloy calls are slow and expensive. Help me optimize the setup.
-```
-
-The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Malloy's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
-
+Run `node top-products.js`; the table lists five products with their revenue.
 
 ## Guidelines
 
-1. **Models separate from queries** — Define sources and views in model files; write queries in separate files or notebooks
-2. **Name your views** — Reusable views (named queries) are Malloy's superpower; define common analyses once, use everywhere
-3. **Nested queries for rich analysis** — Instead of multiple separate queries, nest related analyses into a single query
-4. **Use pick for categorization** — The `pick` expression replaces SQL's verbose CASE WHEN for creating dimensions
-5. **Pipeline for progressive filtering** — Chain queries with `->` to progressively refine results; each step is readable
-6. **DuckDB for local analysis** — Use DuckDB connection with Parquet files for fast local analytics; switch to BigQuery for production
-7. **Malloy notebooks for exploration** — Use `.malloynb` files for iterative data exploration with inline visualization
-8. **Version your models** — Malloy models are code; store in Git alongside your data pipelines
+- Keep sources and views in model files and import them from query files and notebooks.
+- Define measures once on the source; avoid repeating `sum(...)` in every query.
+- `join_one ... with key` requires `primary_key` on the joined source; joined measures are aggregated safely (no fan-out double counting).
+- `pick` needs an `else`, and each branch starts with `pick`.
+- Relative file paths in `duckdb.table(...)` resolve against the `.malloy` file, not the shell directory.
+- Never put database passwords in `.malloy` files; keep them in the connection config or environment.
+- When a query fails, read the compiler error, then check the language reference at docs.malloydata.dev; do not guess from SQL habits.
+- Not the right tool for write-heavy SQL (inserts, DDL) or when the team only needs one-off queries.

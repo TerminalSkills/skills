@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:37ec38219f9593d1ef295cd04fbfa3f1f84aa530d505b1fc71e229f60085b007",
-  "scoredAt": "2026-05-13T09:22:27.578Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:06b9b481deae0469ae41a8ee19d1c54afca8676abc0e4bdd335476b9a7ec6e14",
+  "scoredAt": "2026-10-03T12:02:52.188Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "WEAK"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, such as installation failures or missing configuration files."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The installation steps assume the presence of npm or Homebrew, which may not be available on all platforms."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only a single YAML configuration example is provided, lacking multiple realistic demonstrations."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 90,
-    "multiplier": 1.70,
+    "multiplier": 1.78,
+    "baselineAvg": 50,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "parallel-pre-commit-lint",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses parallel: true with glob and {staged_files} placeholder per skill; baseline writes sequential hooks and re-lints all files instead of just staged."
+        "name": "husky-to-lefthook-migration",
+        "baseline": 62,
+        "treatment": 85,
+        "rationale": "B matches the rubric closely: it uses `jobs` with glob, {staged_files} and stage_fixed, runs `npx lefthook install`, and verifies with `npx lefthook run pre-commit`. A uses the older `commands` syntax instead of `jobs` and verifies with `--all-files`, so it covers less of the rubric, though it has useful extras like the partial-staging caveat."
       },
       {
-        "name": "pre-push-test-commit-msg",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment correctly defines pre-push and commit-msg blocks using {1} for the commit message file per skill; baseline approximates with husky-style scripts and misses lefthook's YAML shape."
+        "name": "polyglot-monorepo-changed-files-only",
+        "baseline": 5,
+        "treatment": 92,
+        "rationale": "A matches the rubric closely: it installs lefthook without npm, runs `lefthook install`, and uses per-job `root` and `glob` with {staged_files} and stage_fixed, and it explains that a job is skipped when nothing matches; B uses a hand-written Bash hook and the Python pre-commit framework, so it never uses lefthook."
+      },
+      {
+        "name": "fix-parallel-race-and-pnpm-hooks",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both show LEFTHOOK=0 and sequential jobs, but B states removing `parallel: true` and puts the pnpm-workspace.yaml `onlyBuiltDependencies` fix front and centre as the install cause, while A relies on `piped: true`, leads with a `prepare` script and buries the workspace fix as a secondary option."
       }
     ]
   }

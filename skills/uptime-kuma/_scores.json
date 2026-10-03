@@ -1,50 +1,75 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c0c22c22cfc0d04bc280550c298923c28c212bc9508cea490d04d676c1585fdc",
-  "scoredAt": "2026-05-13T10:32:20.312Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:10c03443bc4329028ee1205a77d6afe6c31c7d8f13ef1d65f99a8625c50a6b41",
+  "scoredAt": "2026-10-03T12:12:57.386Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases for monitoring, notifications, or backup operations."
+        "detail": "Covers mostly the happy path and omits error scenarios such as failed or flapping notification delivery, Socket.IO login failures (including 2FA-enabled accounts), and verifying a backup or restore."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Monitor and notification setup is shown as pseudo-config field lists for the UI rather than runnable commands, and the only runnable automation snippet ignores errors and uses a hardcoded password."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are short prose descriptions with no runnable commands or sample outputs, so they are simplistic demonstrations."
+      },
+      {
+        "severity": "INFO",
+        "category": "security",
+        "detail": "The Compose file mounts /var/run/docker.sock into the container, which grants it broad access to the host Docker daemon even though it is read-only and marked optional."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "docker-socket",
+        "detail": "The optional Docker socket mount, even read-only, exposes the host Docker API to the container; this is noted as optional and is the standard way to enable Docker monitoring."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 87,
-    "multiplier": 2.29,
+    "multiplier": 1.37,
+    "baselineAvg": 62,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Deploy Uptime Kuma in Docker with keyword + container monitors",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment uses louislam/uptime-kuma:1 on port 3001 with the uptime-kuma-data volume, mounts /var/run/docker.sock for container monitoring, and adds an HTTP keyword check on \"status\":\"ok\"; baseline often suggests a different self-hosted tool or omits the keyword/Docker monitor types."
+        "name": "keyword-check-for-false-green",
+        "baseline": 80,
+        "treatment": 92,
+        "rationale": "Both recommend HTTP(s) Keyword with `\"status\":\"ok\"` and explain that Nginx can return 200 while the backend is down, but B gives Retries 3, which is in the rubric's 2-3 range, and stays focused. A's Retries 1-2 only partly fits the range, and its long Nginx and extra-monitor detail dilutes the answer."
       },
       {
-        "name": "Add monitor via Socket.IO API and configure maintenance cron",
-        "baseline": 25,
-        "treatment": 85,
-        "rationale": "Treatment connects with socket.io-client, emits login then add with type/interval/maxretries/accepted_statuscodes/notificationIDList, and sets a cron-strategy maintenance window like 0 2 * * 0; baseline does not know Kuma uses Socket.IO and proposes a fictional REST API."
+        "name": "docker-compose-deploy-with-monitoring",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "A meets every rubric item: the compose file uses a named volume at /app/data, the :ro docker.sock mount, and `docker cp` for kuma.db, plus a Docker Container monitor for orders-api with expected status running. B uses a bind mount instead of a named volume, has no `docker cp` backup (it uses tar and sqlite3 on the host), and never mentions the expected status running."
+      },
+      {
+        "name": "alerting-and-maintenance-window",
+        "baseline": 62,
+        "treatment": 72,
+        "rationale": "A covers the Slack webhook, retries of 3, the Cron maintenance window with `0 2 * * 0`, and the raw Socket.IO `add` event with `notificationIDList`, which is what the rubric asks for, but it uses type keyword rather than http. B covers the same configuration and the maintenance window, but its script uses the Python `uptime-kuma-api` wrapper instead of Socket.IO directly; it uses type HTTP and adds the notification and maintenance window in code, though it admits the parameter names are from memory and unverified."
       }
-    ],
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6"
+    ]
   }
 }

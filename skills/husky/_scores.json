@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c71b6939e67a2ff15470eb4a65f2366c76b7fb8b2a04e006faaf7a1f7ce95bba",
-  "scoredAt": "2026-05-13T09:14:02.635Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:beebf98639d2f2dff9efff39f7589353aecd15797a830760df61c46a68e25da1",
+  "scoredAt": "2026-10-03T11:59:06.304Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "Skill lacks 2+ realistic example demonstrations."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 92,
-    "multiplier": 1.59,
+    "multiplier": 1.12,
+    "baselineAvg": 77,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "Set up pre-commit linting on staged files",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses npx husky init plus lint-staged with file-glob commands in package.json exactly as the skill documents, while baseline used older husky v4 hooks config."
+        "name": "eslint-prettier-on-staged-files",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "Both install the packages, run `npx husky init`, write a plain-command pre-commit hook, and note that `prepare` activates hooks for teammates; B follows the rubric more closely with `lint-staged` as a plain command and the exact `*.{ts,tsx}` mapping, while A uses `npx lint-staged` and a broader glob (still acceptable) and adds extra config and a `--max-warnings` flag beyond what was asked."
       },
       {
-        "name": "Run tests on pre-push only",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Treatment places npm test in .husky/pre-push and explains why heavy tests do not belong in pre-commit, matching the skill's guideline."
+        "name": "monorepo-subfolder-hooks",
+        "baseline": 88,
+        "treatment": 80,
+        "rationale": "Both give the correct prepare script and the hook with cd frontend and explain that Git runs hooks from the repo root; B shows the hook as a two-line file and states the explanation more directly with the hook location, while A mentions the explanation up front and puts the hook in a single line, so both cover the rubric and B is slightly more complete and explicit."
+      },
+      {
+        "name": "ci-skip-and-commit-msg-validation",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "A covers all three rubric points (the exact `npx --no -- commitlint --edit $1` hook, `HUSKY=0` for Docker/CI, `-n` to skip) and says hooks can't be relied on so the checks should also run in CI, while B quotes `\"$1\"`, never states the CI-enforcement caveat, and leaves the setup unapplied awaiting approval, though it does cover `HUSKY=0` and `-n`/`--no-verify`."
       }
     ]
   }

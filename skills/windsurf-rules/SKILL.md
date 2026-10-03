@@ -1,244 +1,148 @@
 ---
 name: windsurf-rules
 description: >-
-  Configure Windsurf AI coding assistant with .windsurfrules and workspace rules.
-  Use when: customizing Windsurf for a project, setting AI coding standards,
-  creating team-shared Windsurf configurations, or tuning Cascade AI behavior.
+  Windsurf rules are Markdown files that tell the Cascade AI agent in the
+  Windsurf IDE (now branded Devin Desktop) how to work in a project: stack,
+  code style, architecture and things to avoid. Use when a user asks to set up
+  .windsurfrules or .windsurf/rules, write global or workspace rules for
+  Windsurf, scope a rule to certain files, share coding standards with a team,
+  or tune Cascade behavior.
 license: Apache-2.0
-compatibility: "Windsurf 1.0+"
+compatibility: "Windsurf / Devin Desktop IDE; workspace rules in .devin/rules/ or .windsurf/rules/, legacy .windsurfrules still read"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
-  tags: ["windsurf", "ai-coding", "rules", "workflow"]
-  use-cases:
-    - "Set up Windsurf rules for a React + TypeScript project"
-    - "Share coding standards with a team through version-controlled rules"
-    - "Tune Cascade AI to follow your project architecture"
-  agents: [claude-code, cursor, windsurf]
+  tags: ["windsurf", "ai-coding", "rules", "cascade"]
 ---
 
 # Windsurf Rules
 
 ## Overview
 
-Windsurf rules customize how Cascade (Windsurf's AI) behaves in your project. Rules can be global (apply to all projects) or workspace-specific (apply only in this directory). Workspace rules are stored in `.windsurfrules` at the project root and can be committed to version control for team sharing.
+Rules are persistent instructions that Cascade (the AI agent in the Windsurf IDE) receives while it works. Windsurf is now published as Devin Desktop (by Cognition); the docs and UI use that name, but the same Cascade rules system, the `.windsurf/` directory and the legacy `.windsurfrules` file are still supported, so this skill keeps the Windsurf name.
+
+Rules come at four levels: a global file, per-rule files in the workspace, `AGENTS.md` files in any directory, and system-level files deployed by IT. Each workspace rule has an activation mode that decides when its text enters the context window, so a rule costs nothing until it is relevant.
 
 ## Instructions
 
-### Rule scopes
+### Step 1: Pick the scope
 
-| Scope | Location | Use for |
-|-------|----------|---------|
-| **Global** | Windsurf Settings → Rules | Cross-project standards (your personal style, preferred libraries) |
-| **Workspace** | `.windsurfrules` in project root | Project-specific conventions, stack details, architecture patterns |
+| Scope | Location | Notes |
+|-------|----------|-------|
+| Global | `~/.codeium/windsurf/memories/global_rules.md` | One file, always on, all workspaces. Limit 6,000 characters. |
+| Workspace | `.devin/rules/*.md` (preferred) or `.windsurf/rules/*.md` | One file per rule, each with an activation mode. Limit 12,000 characters per file. |
+| Directory | `AGENTS.md` (or `agents.md`) in any folder | No frontmatter. Root file is always on; a subfolder file applies only to files inside that folder. |
+| Legacy | `.windsurfrules` at the workspace root | Single plain Markdown file, still read. Prefer separate rule files for new work. |
+| System (enterprise) | `/etc/devin/rules/` (Linux), `/Library/Application Support/Devin/rules/` (macOS), `C:\ProgramData\Devin\rules\` (Windows) | Deployed by IT, read-only; `Windsurf` directories are the legacy fallback. |
 
-Workspace rules override global rules when they conflict.
+Rules are discovered in the workspace, its subdirectories and parent directories up to the git root. Create rules from the UI (the Customizations icon in the Cascade panel, then Rules, then `+ Global` or `+ Workspace`) or write the files by hand and commit them.
 
-### Step 1: Create the workspace rules file
+### Step 2: Write a workspace rule with an activation mode
 
-Create `.windsurfrules` in your project root:
+Each file in `.devin/rules/` starts with frontmatter whose `trigger` field picks the mode:
+
+| `trigger:` | When the rule reaches Cascade |
+|------------|-------------------------------|
+| `always_on` | Full text in the system prompt on every message |
+| `model_decision` | Only the `description` is shown; Cascade reads the file when it judges it relevant |
+| `glob` | When Cascade reads or edits a file matching `globs` (for example `src/**/*.ts`) |
+| `manual` | Only when you type `@rule-name` in the Cascade input |
 
 ```bash
-touch .windsurfrules
+mkdir -p .devin/rules
 ```
-
-### Step 2: Basic structure
-
-`.windsurfrules` is a plain Markdown file. Write it like a system prompt — clear, specific instructions for the AI:
 
 ```markdown
-# Project: My SaaS App
-
-## Tech Stack
-- Frontend: React 19, TypeScript, Vite, Tailwind CSS
-- Backend: Node.js, Fastify, Prisma, PostgreSQL
-- Auth: Clerk
-- Deployment: Railway
-
-## Code Style
-- TypeScript strict mode — no implicit `any`
-- Prefer `const` over `let`; never use `var`
-- Use named exports; avoid default exports except for page-level components
-- Async/await over promises — never mix `.then()` with `await`
-- Format with Prettier (config in `.prettierrc`)
-
-## Architecture Rules
-- Business logic lives in `src/services/` — keep components thin
-- Database access only through Prisma in `src/db/` — no raw SQL
-- API calls go through `src/api/` client functions — never fetch() in components
-- All environment variables accessed through `src/config/env.ts`
-
-## Testing
-- Unit tests with Vitest, E2E with Playwright
-- Test files next to source: `Button.tsx` → `Button.test.tsx`
-- Mock external dependencies, not internal modules
+---
+trigger: always_on
+---
+# Stack and conventions
+- Frontend: React 19, TypeScript strict mode, Vite, Tailwind CSS
+- Backend: Node.js 22, Fastify, Prisma, PostgreSQL
+- Named exports only; default exports just for page components
+- Business logic in `src/services/`; components stay thin
+- Environment variables are read only through `src/config/env.ts`
 ```
-
-### Step 3: Stack-specific instructions
-
-Give Cascade context about your exact versions and patterns:
 
 ```markdown
-## React Patterns
-- Use React Query (TanStack Query v5) for server state management
-- Zustand for global client state — one store per domain
-- React Hook Form + Zod for all forms
-- Prefer Server Components; use `"use client"` only when necessary
-
-## API Conventions
-- REST endpoints follow: `GET /api/resources`, `POST /api/resources`, `PATCH /api/resources/:id`
-- Response shape: `{ data: T }` for success, `{ error: string, code: string }` for errors
-- All inputs validated with Zod schemas in `src/schemas/`
-- Rate limiting applied to all public endpoints via `src/middleware/rateLimit.ts`
+---
+trigger: glob
+globs: "**/*.test.ts"
+---
+- Use `describe`/`it` blocks with Vitest
+- Mock external HTTP calls, never internal modules
+- Test file sits next to the source: `Button.tsx` and `Button.test.tsx`
 ```
 
-### Step 4: Provide examples for key patterns
+### Step 3: Write rules Cascade can follow
 
-Examples work better than prose rules for complex patterns:
+- Keep each rule short and specific; the docs advise against generic lines like "write good code", which the model already follows.
+- Use bullet lists and Markdown. XML-style tags can group related rules.
+- Show a small correct example for patterns that are hard to describe, and name the anti-pattern next to it:
 
 ```markdown
-## File Organization
-
-When creating a new feature, follow this structure:
-```
-src/features/users/
-  components/       # React components
-    UserList.tsx
-    UserCard.tsx
-  hooks/           # Custom hooks
-    useUsers.ts
-  services/        # Business logic
-    users.service.ts
-  schemas/         # Zod schemas
-    user.schema.ts
-  index.ts         # Public exports only
+## Component pattern
+export function UserCard({ userId, onSelect }: UserCardProps) { ... }   // correct
+export default function ({ user, click }) { ... }                      // avoid
 ```
 
-## Component Pattern
+- State prohibitions as a short list: no `useEffect` for data fetching (use TanStack Query), no hardcoded API URLs, no hand-written migrations (use `prisma migrate dev`).
 
-```tsx
-// ✅ Correct
-interface UserCardProps {
-  userId: string;
-  onSelect?: (id: string) => void;
-}
-
-export function UserCard({ userId, onSelect }: UserCardProps) {
-  const { data: user } = useUser(userId);
-  return <div onClick={() => onSelect?.(userId)}>{user?.name}</div>;
-}
-
-// ❌ Avoid
-export default function ({ user, click }) {
-  return <div onClick={click}>{user.name}</div>;
-}
-```
-```
-
-### Step 5: Set constraints and anti-patterns
-
-Tell Cascade what to avoid:
-
-```markdown
-## What NOT to Do
-- Never use `useEffect` for data fetching — use React Query instead
-- Don't install new npm packages without noting them in the conversation
-- Avoid class components — use functional components only
-- Don't use `console.log` in production code — use the logger from `src/lib/logger.ts`
-- Never hardcode API URLs — use `src/config/env.ts` constants
-- Don't write database migrations manually — use `prisma migrate dev`
-- Avoid prop drilling more than 2 levels deep — use context or Zustand
-```
-
-### Step 6: Global rules in Windsurf Settings
-
-For rules that apply across all projects, add them in **Settings → General → Rules for AI**:
-
-```markdown
-## My Global Standards
-
-- Write TypeScript, not JavaScript
-- Add JSDoc comments to exported functions
-- Suggest the simplest solution that solves the problem
-- When multiple approaches exist, briefly explain the tradeoffs
-- Flag security concerns proactively (SQL injection, XSS, secrets in code)
-- Prefer established libraries over custom implementations for auth, crypto, dates
-```
-
-### Step 7: Per-conversation rules with Memories
-
-Windsurf Cascade can store memories that persist across sessions. Trigger them with natural language:
+### Step 4: Add AGENTS.md for folder-specific guidance
 
 ```
-"Remember: in this project we use inches not pixels for all spacing values"
-"Always remind me to run tests before suggesting I commit"
+my-shop/
+  AGENTS.md              # always on: project-wide conventions
+  frontend/AGENTS.md     # applies only when working under frontend/
+  backend/AGENTS.md
 ```
 
-These are stored automatically and referenced in future conversations in the same workspace.
+Plain Markdown, no frontmatter. The same file is also read by other agents (Codex, Claude Code and others), so it is a good place for rules you want shared across tools.
+
+### Step 5: Global rules, memories, workflows and skills
+
+- Global rules (`global_rules.md`) hold personal habits that apply everywhere, for example "flag security concerns proactively" or "explain tradeoffs when several approaches exist".
+- Memories are generated by Cascade (or on request: "create a memory of ...") and stored locally in `~/.codeium/windsurf/memories/`, per workspace, never committed. They apply to the legacy Cascade agent only; the Devin Local agent does not keep memories. For anything the team should rely on, write a rule or `AGENTS.md` instead.
+- Workflows (`.devin/workflows/*.md`, run as `/workflow-name`) are manual runbooks. Skills (`.devin/skills/<name>/SKILL.md`, with optional scripts and templates) are picked by the model or by `@name`. Use a skill when a task needs supporting files; use a rule for a constraint.
 
 ## Examples
 
 ### Example 1: Python FastAPI project
 
-```markdown
-# Backend API — Python FastAPI
+User request: "Set up Windsurf rules for our FastAPI service so Cascade stops writing sync database code."
 
-## Stack
-- Python 3.12, FastAPI, SQLAlchemy 2.0 async, Alembic
-- Pydantic v2 for all schemas
-- pytest + pytest-asyncio for tests
-- Ruff for linting and formatting
-
-## Patterns
-- Dependency injection via FastAPI `Depends()`
-- Repository pattern: routers call services, services call repositories
-- All DB models in `app/models/`, Pydantic schemas in `app/schemas/`
-- Background tasks via FastAPI `BackgroundTasks` or Celery for heavy work
-
-## Rules
-- Type everything — `from __future__ import annotations`
-- Use `async def` for all route handlers and DB operations
-- Validate env vars at startup with a Pydantic settings class in `app/config.py`
-- Return HTTP 422 for validation errors (FastAPI default), 400 for business logic errors
-
-## Anti-patterns to avoid
-- Sync DB calls in async routes (use `await` always)
-- Catching broad `Exception` — be specific with exception types
-- Business logic inside Pydantic validators
-```
-
-### Example 2: Mobile React Native project
+Create `.devin/rules/backend.md`:
 
 ```markdown
-# React Native App
-
-## Stack
-- React Native 0.74, Expo SDK 51, TypeScript
-- Expo Router for navigation (file-based)
-- Zustand for state, React Query for API data
-- NativeWind (Tailwind for RN)
-
-## Rules
-- Use `expo-*` packages over third-party when available
-- All screens in `app/` following Expo Router conventions
-- StyleSheet.create() only for dynamic styles; static styles via NativeWind classes
-- Test on both iOS and Android before declaring complete
-- Accessibility: all interactive elements must have `accessibilityLabel`
-
-## Performance
-- Use `FlashList` instead of `FlatList` for long lists
-- Memoize expensive components with `React.memo()`
-- Avoid anonymous functions in `renderItem` props
+---
+trigger: glob
+globs: "app/**/*.py"
+---
+# Backend API (Python 3.12, FastAPI, SQLAlchemy 2.0 async, Alembic)
+- Use `async def` for route handlers and every database call
+- Dependencies come from FastAPI `Depends()`; routers call services, services call repositories
+- Pydantic v2 schemas live in `app/schemas/`, models in `app/models/`
+- Settings come from a Pydantic settings class in `app/config.py`, validated at startup
+- Never catch bare `Exception`; no business logic inside Pydantic validators
+- Tests: pytest with pytest-asyncio; lint and format with Ruff
 ```
+
+Result: the rule is applied when Cascade reads or edits a `.py` file under `app/`, and costs no context during frontend work.
+
+### Example 2: Move an old .windsurfrules file to rule files
+
+User request: "Our repo has a 400-line .windsurfrules. Cascade ignores half of it."
+
+Split it by topic into files under `.devin/rules/`: `stack.md` (`trigger: always_on`, under 60 lines), `react.md` (`trigger: glob`, `globs: "src/**/*.tsx"`), `testing.md` (`trigger: glob`, `globs: "**/*.test.*"`) and `release.md` (`trigger: manual`, called with `@release`). Delete duplicated or generic lines, keep each file under 12,000 characters, then `git add .devin/rules && git commit -m "Split Windsurf rules by topic"`. Result: less always-on text, so the lines that remain are followed more reliably.
 
 ## Guidelines
 
-- Keep `.windsurfrules` focused — 100-300 lines is ideal; too long dilutes effectiveness
-- Be **specific** and **actionable**: "use React Query for server state" beats "manage state well"
-- Use **examples** liberally — Cascade learns patterns faster from code than prose
-- Commit `.windsurfrules` to git so all team members share the same AI behavior
-- Update rules when you make architecture decisions — treat it like living documentation
-- Global rules for your personal style; workspace rules for project-specific patterns
-- Avoid contradicting yourself — conflicting rules confuse the AI
-- Review and prune outdated rules when the project evolves
+- Prefer `.devin/rules/` for new rules; `.windsurf/rules/` and `.windsurfrules` keep working. If both exist for the same workspace, `.devin/` takes precedence.
+- Respect the limits: 6,000 characters for the global file, 12,000 per workspace rule.
+- Use `always_on` sparingly, since it is paid on every message; scope the rest with `glob`, `model_decision` or `manual`.
+- Commit workspace rules and `AGENTS.md` to git so the team shares them; global rules and memories stay on one machine.
+- Never put secrets, tokens or internal URLs in rules; the files are committed and sent to the model.
+- Avoid contradictions between global, workspace and `AGENTS.md` rules; the docs describe them as combined context, so conflicting lines confuse the model.
+- Review rules when the stack changes: stale version numbers and removed libraries make Cascade generate outdated code.
+- Rules guide behavior but do not enforce it; keep linters, type checks and tests in CI for anything that must never break.

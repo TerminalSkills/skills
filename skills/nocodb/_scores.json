@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e39b3b1244123def479f35a571f02bee658f7a0bc5c813a2f3c77849e7b8c0dd",
-  "scoredAt": "2026-05-13T09:41:30.292Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6d26a14f631ed812718c1c46be7fa2851aee7bf5aa12522cf420db5fda1d3608",
+  "scoredAt": "2026-10-03T12:06:41.358Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, such as authentication failures or database connection errors."
+        "detail": "Error handling is thin beyond the 429 rate-limit note: there are no troubleshooting steps for failed external data source connections, a lost JWT secret, 401/403 token errors, or webhook delivery failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 24,
-    "treatmentAvg": 96,
-    "multiplier": 4.0,
+    "multiplier": 1.82,
+    "baselineAvg": 49,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Self-host NocoDB on existing Postgres",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Treatment uses the documented `NC_DB=\"pg://host:port?u=...&p=...&d=...\"` env var with nocodb/nocodb:latest on port 8080 and explains the no-migration UI-layer model, while the baseline invents a DATABASE_URL env var that NocoDB does not consume."
+        "name": "selfhost-postgres-metadata-stable-jwt",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both give the pg:// NC_DB, port 8080 and a fixed NC_AUTH_JWT_SECRET with an explanation, and both advise pinning the tag. B follows the rubric more closely: it mounts at /usr/app/data/ with the trailing slash and loads the secret from an environment variable. A uses a named volume, hardcodes a placeholder secret, and puts the pin advice only in the notes, though it adds useful extras like URL-encoding and the SSL option."
       },
       {
-        "name": "Filter+sort records via REST API",
-        "baseline": 18,
+        "name": "v3-api-query-and-create-records",
+        "baseline": 12,
         "treatment": 96,
-        "rationale": "Treatment uses the exact documented endpoint /api/v1/db/data/noco/<project>/<table> with xc-auth header, where=(Status,eq,Active) and sort=-CreatedAt, while the baseline gets the path, auth header, filter and sort syntax all wrong."
+        "rationale": "B matches the rubric: v3 endpoint, xc-token header, URL-encoded where/sort/pageSize, a \"fields\" body, and the token from an environment variable. A uses the v2 endpoint with limit/offset and has no \"fields\" wrapper, so it misses most of the rubric."
+      },
+      {
+        "name": "public-form-to-slack-webhook",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "A matches the rubric closely: table with Status, Form view with sharing, After insert webhook to Slack, and a v3 records query using where=(Status,eq,New) plus a public-link caution. B covers the table, form and webhook but verifies with a v2 query that has no Status filter, and it leaves out the Priority field."
       }
     ]
   }

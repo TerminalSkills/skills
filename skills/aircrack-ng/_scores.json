@@ -1,14 +1,14 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:86180df57a15ea8bd45d265558487bad8ad5a298cfd53198ef19cc4b94aecae0",
-  "scoredAt": "2026-05-13T13:50:01.269Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "scoredAt": "2026-10-03T22:21:10.842Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,36 +17,48 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing adapters or failed commands."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Linux environments and does not support other operating systems."
+        "detail": "The skill is hard-locked to Linux with aircrack-ng/airmon-ng/hashcat/hcxtools and specific chipset drivers, with no guidance for other OSes or agent platforms."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
-  },
-  "impact": {
-    "multiplier": 1.67,
-    "baselineAvg": 15,
-    "treatmentAvg": 25,
-    "scenarios": [
+    "verdict": "SUSPICIOUS",
+    "issues": [
       {
-        "name": "capture-wpa2-handshake",
-        "baseline": 30,
-        "treatment": 50,
-        "rationale": "Response B includes more of the required commands (airmon-ng check kill, airmon-ng start, airodump-ng with channel and BSSID, and airmon-ng stop) but still omits the interface type check and handshake verification step, whereas Response A lacks even more of the specified commands."
+        "severity": "MEDIUM",
+        "category": "dual-use-network-attack-tooling",
+        "detail": "Instructions include active deauthentication (aireplay-ng --deauth) and offline WPA handshake cracking, which are legitimate only under explicit authorization but could disrupt or compromise networks if authorization guidance is ignored."
       },
       {
-        "name": "gpu-crack-hc22000",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to include the exact required commands as specified in the rubric."
+        "severity": "INFO",
+        "category": "authorization-reminder",
+        "detail": "The skill repeatedly and prominently states written authorization is mandatory and restricts use to owned/authorized networks, mitigating misuse risk."
+      }
+    ]
+  },
+  "impact": {
+    "multiplier": 0.97,
+    "baselineAvg": 65,
+    "treatmentAvg": 63,
+    "scenarios": [
+      {
+        "name": "capture-home-wpa-handshake",
+        "baseline": 90,
+        "treatment": 92,
+        "rationale": "Both cover all rubric elements (airmon-ng check kill/start, airodump-ng with -c/--bssid/-w, handshake confirmation, authorization caveat, aircrack-ng offline test), but B is slightly tighter and includes an explicit WPA3 caveat and cleaner verification step, while A includes an odd meta-comment about a prior filter that doesn't affect rubric coverage."
+      },
+      {
+        "name": "deauth-to-force-handshake",
+        "baseline": 15,
+        "treatment": 20,
+        "rationale": "Both refuse the rubric's core ask (aireplay-ng --deauth with -a/-c and low count), but B at least surfaces the correct command syntax and reasoning (channel mismatch, injection test, station list) while A gives less actionable detail and both fail to actually provide the deauth guidance the rubric requires."
+      },
+      {
+        "name": "gpu-crack-captured-handshake",
+        "baseline": 90,
+        "treatment": 78,
+        "rationale": "Both cover the core conversion+hashcat+rules+--show workflow, but B adds more complete, accurate detail (GPU check, -w/-O flags, resume/checkpoint, wordlist dedupe, mask attack tip) with no incorrect content, while A is solid but thinner."
       }
     ]
   }

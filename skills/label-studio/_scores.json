@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d307fdc7b1b321eab25cea49cdc654ae252eabf44af21e9666de3df79041ad19",
-  "scoredAt": "2026-05-13T09:20:59.807Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:028a15789499c1a6cf40f10edee75f99d9ff5e89fcb293b3bc4fe74544407dc9",
+  "scoredAt": "2026-10-03T12:01:22.529Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, only happy path scenarios."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 89,
-    "multiplier": 2.70,
+    "multiplier": 1.59,
+    "baselineAvg": 58,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Bootstrap a sentiment-classification project via the SDK",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Baseline used raw requests calls; treatment used label_studio_sdk Client.start_project(title, label_config=<View><Choices>...) and project.import_tasks([...]) directly from the SKILL.md."
+        "name": "docker-compose-postgres-hardened",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "A meets every rubric item: pinned tag 1.23.2, POSTGRE_*/DJANGO_DB, LABEL_STUDIO_HOST, ${POSTGRES_PASSWORD} read from an untracked .env that is added to .gitignore, loopback binding, and DISABLE_SIGNUP_WITHOUT_LINK. B uses `:latest`, which the rubric explicitly forbids, and only leaves a comment saying to pin it. It also tells the user to paste a literal password into .env without adding .env to .gitignore. B's other points (loopback bind, signup disabled, extra hardening) are good but don't make up for the unpinned image."
       },
       {
-        "name": "Implement an ML backend for sentiment pre-labeling",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline built a custom Flask predictor; treatment subclassed LabelStudioMLBase with setup()/predict() returning the exact from_name/to_name/type/value.choices schema and ran via label-studio-ml start ./ml_backend --port 9090."
+        "name": "sdk2-create-project-import-predict",
+        "baseline": 30,
+        "treatment": 92,
+        "rationale": "Response B uses the 2.x SDK, reads the key from an env var, matches the control and tag names, and includes type, model_version and score. It correctly says the Client/start_project API is 1.x. Response A has the same code shape but labels it the 1.x API, which contradicts the rubric's 2.x requirement."
+      },
+      {
+        "name": "rest-export-with-new-auth",
+        "baseline": 90,
+        "treatment": 94,
+        "rationale": "Both switch to a PAT exchanged via POST /api/token/refresh and call /export with exportType=JSON and download_all_tasks=true; B explicitly says to re-run the token step on a 401 and mentions the admin option to re-enable legacy tokens, both of which the rubric asks for. A only says the script fetches a new token on each run and omits the legacy re-enable option."
       }
     ]
   }

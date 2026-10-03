@@ -1,57 +1,64 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:736bcda07f3cedae83413dad355390236fa30909801a1450918a509054577036",
-  "scoredAt": "2026-05-13T10:35:28.495Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a94b2c294a61111ba7142f93c16b596079c87a39694d317ad0dd7623865a57b9",
+  "scoredAt": "2026-10-03T13:13:53.292Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions lack step-by-step guidance, making it unclear how to create workflows beyond the example."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not address error handling or edge cases, focusing only on happy paths."
+        "detail": "Error handling is limited: the deploy workflow's rollback only covers the rollout step, the git-prune workflow does not handle a cancelled prompt or detached HEAD, and there are no troubleshooting steps for Drive sync failures or configs that fail to load."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "Skill contains verbose explanatory text that exceeds necessary instructions."
+        "category": "crossPlatform",
+        "detail": "The skill is specific to the Warp terminal and uses the macOS `~/.warp/` paths and bash-style `read -p` in the examples, so it is not portable to other terminals or to shells where `read -p` behaves differently (such as zsh)."
       }
     ]
   },
   "security": {
     "verdict": "SAFE",
-    "issues": []
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "destructive-command",
+        "detail": "The git-prune workflow runs `git branch -d` through `xargs`, but only after a y/n confirmation and with the safe `-d` flag, so it will not delete unmerged branches."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 85,
-    "multiplier": 2.13,
+    "multiplier": 1.58,
+    "baselineAvg": 57,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Create a parameterized Warp Workflow for deploying a service",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment writes a YAML file under ~/.warp/workflows/ with name/description/tags/command using {{variables}} and an arguments list with description/default_value as documented; baseline produces a generic shell script with no Warp Workflow schema."
+        "name": "parameterized-deploy-workflow",
+        "baseline": 80,
+        "treatment": 84,
+        "rationale": "Both give a valid workflow YAML with name, command, description and arguments (each with name, description and default_value), {{}} placeholders, a typed confirmation prompt through read -r, a staging default and no secrets in the defaults, so they are close; B edges ahead by explicitly stating that no secrets belong in defaults and by describing the Warp Drive team-sharing steps in more detail, whereas A covers Warp Drive more briefly and does not discuss secrets."
       },
       {
-        "name": "Configure a multi-tab launch configuration for full-stack dev",
-        "baseline": 35,
-        "treatment": 82,
-        "rationale": "Treatment writes ~/.warp/launch_configurations.yaml with a configurations list, each entry having tabs with title/directory/command per the SKILL.md format; baseline lacks the launch_configurations file structure and falls back to tmux or aliases."
+        "name": "custom-theme-linux",
+        "baseline": 62,
+        "treatment": 97,
+        "rationale": "A gives the YAML with all required keys and quoted hex strings, plus the exact Linux path with the XDG_DATA_HOME fallback and an explicit note that the macOS ~/.warp/themes/ path is wrong here. B has a valid YAML theme and the right Linux path, but it hardcodes ~/.local/share and ignores XDG_DATA_HOME, and it doesn't mention the macOS path distinction. B also adds a shaky `Ctrl+Shift+P` instruction and a vague 'restart Warp' step that A avoids."
+      },
+      {
+        "name": "dev-environment-tab-layout",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": ""
       }
     ]
   }

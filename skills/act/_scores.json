@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7a9b12fedd9e46d94e3bbd7fa6442c7dbe81fb5516d36b52ca9d37921e95ed89",
-  "scoredAt": "2026-05-13T12:05:11.049Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.2.0",
+  "skillHash": "sha256:c19b079b921fef362aae42cb1287c7e91217185c7bc1b3fa50edbc2c57cd3b6b",
+  "scoredAt": "2026-10-03T12:54:50.413Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, such as missing Docker or act not installed."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The installation step uses Homebrew, which is macOS-specific, limiting cross-platform compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.24,
-    "baselineAvg": 55,
-    "treatmentAvg": 68,
+    "multiplier": 1.27,
+    "baselineAvg": 70,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "run-job-with-secrets",
-        "baseline": 100,
-        "treatment": 80,
-        "rationale": "Response B explicitly states the job runs locally and includes the required command and flag, while Response A omits the explicit mention of local execution without pushing."
+        "name": "debug-failing-job-offline-config",
+        "baseline": 68,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it creates a project .actrc with the -P mapping and --container-architecture linux/amd64, runs `act -j test` with --secret-file and -v, and explicitly checks that Docker is running; A puts the config in ~/.actrc rather than a project file and only says to start Docker in a comment, though its mapping, flags and run command are otherwise correct."
       },
       {
-        "name": "list-and-dry-run",
-        "baseline": 0,
-        "treatment": 70,
-        "rationale": "Response B includes the required commands but omits the Docker image note, while Response A is empty."
+        "name": "skip-slack-step-and-pass-dispatch-inputs",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "B covers every rubric element (--var-file, --secret-file, the ACT guard, throwaway values, .gitignore), while A gives the right command and ACT guard but never mentions .gitignore and leans on inline values over files."
       },
       {
-        "name": "custom-image-workflow",
-        "baseline": 65,
-        "treatment": 55,
-        "rationale": "Response A includes the command and explains image pulling, but uses the wrong workflow path; Response B has the correct path but omits the image‑download note."
+        "name": "job-level-skip-and-dry-run-validation",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "A matches the rubric directly: it explains that job-level `if:` can't see `env`, uses an event file `{\"act\": true}` with `!github.event.act`, and gives `act --validate`, `-n` and `-g`. B leads with an actor-based check, only mentions the event file as a fallback, and omits `--validate`, so it covers less of the rubric."
       }
     ]
   }

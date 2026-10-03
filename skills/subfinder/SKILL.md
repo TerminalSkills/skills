@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Go 1.21+ or Docker"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags:
     - subdomain
@@ -19,6 +19,7 @@ metadata:
     - security
     - dns
     - enumeration
+  repository: https://github.com/projectdiscovery/subfinder
 ---
 
 # Subfinder
@@ -46,19 +47,19 @@ docker pull projectdiscovery/subfinder:latest
 
 ```bash
 # Enumerate subdomains for a single domain
-subfinder -d example.com
+subfinder -d harborline-freight.com
 
 # Multiple domains
-subfinder -d example.com,example.org
+subfinder -d harborline-freight.com,harborline-freight.io
 
 # From a file of domains
 subfinder -dL domains.txt
 
 # Output to file
-subfinder -d example.com -o subdomains.txt
+subfinder -d harborline-freight.com -o subdomains.txt
 
 # JSON output (includes source information)
-subfinder -d example.com -oJ -o subdomains.json
+subfinder -d harborline-freight.com -oJ -o subdomains.json
 ```
 
 ### Configuration
@@ -101,13 +102,13 @@ virustotal:
 
 ```bash
 # Use all sources (default)
-subfinder -d example.com -all
+subfinder -d harborline-freight.com -all
 
 # Use only specific sources
-subfinder -d example.com -s crtsh,dnsdumpster,hackertarget
+subfinder -d harborline-freight.com -s crtsh,dnsdumpster,hackertarget
 
 # Exclude noisy sources
-subfinder -d example.com -es github
+subfinder -d harborline-freight.com -es github
 
 # List available sources
 subfinder -ls
@@ -115,32 +116,31 @@ subfinder -ls
 
 ### Advanced Usage
 
-### Recursive enumeration
+### Recursive-capable sources
 
-Find subdomains of subdomains (e.g., dev.api.example.com):
+Some sources (e.g. certain DNS datasets) can return subdomains of subdomains directly (e.g. dev.api.harborline-freight.com):
 
 ```bash
-# Enable recursive mode — finds deeper subdomains
-subfinder -d example.com -recursive
-
-# Limit recursion depth
-subfinder -d example.com -recursive -max-depth 3
+# Restrict enumeration to sources that support recursive discovery
+subfinder -d harborline-freight.com -recursive
 ```
+
+There is no depth-limiting flag — `-recursive` only changes which sources are queried, it does not control how many levels deep results go.
 
 ### Filtering and processing
 
 ```bash
 # Show only results from specific sources
-subfinder -d example.com -cs  # Show source for each subdomain
+subfinder -d harborline-freight.com -cs  # Show source for each subdomain
 
 # Pipe to other tools for validation
-subfinder -d example.com -silent | httpx -silent  # Check which are live
-subfinder -d example.com -silent | dnsx -silent    # Resolve DNS
-subfinder -d example.com -silent | naabu -silent   # Port scan
+subfinder -d harborline-freight.com -silent | httpx -silent  # Check which are live
+subfinder -d harborline-freight.com -silent | dnsx -silent    # Resolve DNS
+subfinder -d harborline-freight.com -silent | naabu -silent   # Port scan
 
 # Rate limiting (respect API limits)
-subfinder -d example.com -rate-limit 5  # 5 requests/second max
-subfinder -d example.com -t 10          # 10 concurrent threads
+subfinder -d harborline-freight.com -rate-limit 5  # 5 requests/second max
+subfinder -d harborline-freight.com -t 10          # 10 concurrent threads
 ```
 
 ### Integration with other recon tools
@@ -148,7 +148,7 @@ subfinder -d example.com -t 10          # 10 concurrent threads
 ```bash
 # Full recon pipeline:
 # 1. Find subdomains
-subfinder -d target.com -o subs.txt
+subfinder -d harborline-freight.com -o subs.txt
 
 # 2. Check which are live (httpx)
 cat subs.txt | httpx -silent -status-code -title -o live.txt
@@ -189,15 +189,15 @@ For authorized pentests, combine both: subfinder for passive discovery, then act
 Common subdomain patterns and what they reveal:
 
 ```
-admin.example.com        → Admin panel (high-value target)
-staging.example.com      → Staging environment (often less secured)
-dev.example.com          → Development server (may have debug enabled)
-api.example.com          → API endpoint (test for auth bypass)
-old.example.com          → Legacy application (likely unpatched)
-vpn.example.com          → VPN gateway (credential attacks)
-mail.example.com         → Mail server (phishing target)
-jenkins.example.com      → CI/CD (code execution potential)
-grafana.example.com      → Monitoring (information disclosure)
+admin.harborline-freight.com        → Admin panel (high-value target)
+staging.harborline-freight.com      → Staging environment (often less secured)
+dev.harborline-freight.com          → Development server (may have debug enabled)
+api.harborline-freight.com          → API endpoint (test for auth bypass)
+old.harborline-freight.com          → Legacy application (likely unpatched)
+vpn.harborline-freight.com          → VPN gateway (credential attacks)
+mail.harborline-freight.com         → Mail server (phishing target)
+jenkins.harborline-freight.com      → CI/CD (code execution potential)
+grafana.harborline-freight.com      → Monitoring (information disclosure)
 *.s3.amazonaws.com       → S3 buckets (check for public access)
 ```
 
@@ -208,7 +208,7 @@ Prioritize targets: admin panels, staging environments, and legacy hosts are the
 ### Map the attack surface of a target domain
 
 ```prompt
-Run subdomain enumeration on our domain example.com using subfinder. Find all subdomains, check which ones are live with httpx, identify the web technologies with whatweb, and produce a prioritized target list. Flag any staging, development, or admin subdomains as high-priority. Include the source for each subdomain so we know which passive sources are most valuable for this target.
+Run subdomain enumeration on our domain harborline-freight.com using subfinder. Find all subdomains, check which ones are live with httpx, identify the web technologies with whatweb, and produce a prioritized target list. Flag any staging, development, or admin subdomains as high-priority. Include the source for each subdomain so we know which passive sources are most valuable for this target.
 ```
 
 ### Find forgotten or shadow IT subdomains

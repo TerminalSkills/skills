@@ -5,7 +5,8 @@ license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/mudler/LocalAI
   category: data-ai
   tags:
   - local-llm
@@ -28,119 +29,109 @@ LocalAI, the open-source drop-in replacement for OpenAI's API that runs locally.
 
 ### Quick Start with Docker
 
+Backends are downloaded on demand the first time a model needs them, so keep the `backends` volume persistent.
+
 ```bash
-# Run LocalAI with Docker (CPU-only, no GPU needed)
-docker run -p 8080:8080 \
-  -v ./models:/build/models \
-  localai/localai:latest-cpu
+# CPU only
+docker run -d --name local-ai -p 8080:8080 \
+  -v localai-models:/models -v localai-backends:/backends \
+  localai/localai:latest
 
-# With GPU support (NVIDIA CUDA)
-docker run -p 8080:8080 --gpus all \
-  -v ./models:/build/models \
+# NVIDIA GPU (CUDA 12 image; a CUDA 13 image also exists)
+docker run -d --name local-ai -p 8080:8080 --gpus all \
+  -v localai-models:/models -v localai-backends:/backends \
   localai/localai:latest-gpu-nvidia-cuda-12
-
-# Docker Compose for production
 ```
+
+Other tags: `latest-gpu-hipblas` (AMD ROCm, add `--device=/dev/kfd --device=/dev/dri`), `latest-gpu-intel`, `latest-gpu-vulkan`. On macOS use the DMG from the GitHub releases page (remove the quarantine flag as the README describes). Pin a version tag such as `v4.11.0` in production instead of `latest`.
 
 ```yaml
-# docker-compose.yml — Production LocalAI setup
-version: "3.8"
+# docker-compose.yml
 services:
   localai:
-    image: localai/localai:latest-cpu
+    image: localai/localai:latest
     ports:
-      - "8080:8080"
-    volumes:
-      - ./models:/build/models
+      - "127.0.0.1:8080:8080"
     environment:
-      - THREADS=4                    # CPU threads for inference
-      - CONTEXT_SIZE=4096            # Default context window
-      - GALLERIES=[{"name":"model-gallery","url":"github:mudler/LocalAI/gallery/index.yaml@master"}]
+      - MODELS_PATH=/models
+      - LOCALAI_THREADS=4            # physical cores
+      - LOCALAI_CONTEXT_SIZE=4096    # default context window
+      - LOCALAI_API_KEY=${LOCALAI_API_KEY}
+    volumes:
+      - models:/models
+      - backends:/backends
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/readyz"]
-      interval: 30s
-      timeout: 10s
+volumes:
+  models:
+  backends:
 ```
+
+Docs list env vars as `LOCALAI_MODELS_PATH`, `LOCALAI_THREADS`, `LOCALAI_CONTEXT_SIZE`, `LOCALAI_GALLERIES`, `LOCALAI_ADDRESS` and `LOCALAI_API_KEY`. Without an API key anyone who reaches the port can use it; bind to localhost or put a reverse proxy in front.
 
 ### Model Installation
 
 ```bash
-# Install models from the gallery (via API)
-curl -X POST http://localhost:8080/models/apply \
-  -H "Content-Type: application/json" \
-  -d '{"id": "huggingface://TheBloke/Mistral-7B-Instruct-v0.2-GGUF/mistral-7b-instruct-v0.2.Q5_K_M.gguf"}'
+# Gallery model by name (downloads weights, writes the YAML, starts serving)
+docker exec -it local-ai local-ai run qwen3-4b
 
-# Or download GGUF files directly into the models directory
-wget -P ./models/ \
-  https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/resolve/main/llama-2-7b-chat.Q5_K_M.gguf
+# Straight from Hugging Face, the Ollama registry, an OCI image or a YAML URL
+local-ai run huggingface://TheBloke/phi-2-GGUF/phi-2.Q8_0.gguf
+local-ai run ollama://gemma:2b
+local-ai run oci://localai/phi-2:latest
 
-# Create a model configuration
-cat > ./models/mistral.yaml << 'EOF'
+# Browse and install without starting a server
+local-ai models list
+local-ai models install qwen3-4b
+
+# See what the API serves
+curl -s http://localhost:8080/v1/models | jq '.data[].id'
+```
+
+You can also drop a GGUF file into the models directory and add a YAML next to it. `context_size`, `threads`, `gpu_layers` and `f16` are top-level keys, not children of `parameters`. Each model gets its own file (one YAML document per file):
+
+```yaml
+# /models/mistral.yaml
 name: mistral
 backend: llama-cpp
+context_size: 8192
+threads: 4
+gpu_layers: 0            # 0 = CPU only; raise to offload layers to the GPU
 parameters:
   model: mistral-7b-instruct-v0.2.Q5_K_M.gguf
   temperature: 0.7
   top_p: 0.9
-  top_k: 40
-  context_size: 8192
-template:
-  chat_message: |
-    {{.RoleName}}: {{.Content}}
-  chat: |
-    [INST] {{.Input}} [/INST]
-EOF
-
-# List available models
-curl http://localhost:8080/v1/models | jq '.data[].id'
 ```
+
+Current llama.cpp builds normally read the chat template from the GGUF file; add a `template:` block (`chat`, `chat_message`, `completion`) only when a model needs an override.
 
 ### OpenAI-Compatible API
 
 ```typescript
-// src/local-ai.ts — Use LocalAI with OpenAI SDK
+// src/local-ai.ts
+import fs from "node:fs";
 import OpenAI from "openai";
 
 const ai = new OpenAI({
-  apiKey: "not-needed",
+  apiKey: process.env.LOCALAI_API_KEY ?? "not-needed",
   baseURL: "http://localhost:8080/v1",
 });
 
-// Chat completions
 async function chat(prompt: string) {
   const response = await ai.chat.completions.create({
-    model: "mistral",                      // Model name from config
+    model: "mistral", // the `name` in the model YAML or the gallery name
     messages: [
       { role: "system", content: "You are a helpful assistant." },
       { role: "user", content: prompt },
     ],
-    temperature: 0.7,
   });
   return response.choices[0].message.content;
 }
 
-// Embeddings
 async function embed(texts: string[]) {
-  const response = await ai.embeddings.create({
-    model: "text-embedding-ada-002",       // Mapped to local embedding model
-    input: texts,
-  });
-  return response.data.map(d => d.embedding);
+  const response = await ai.embeddings.create({ model: "text-embedding-ada-002", input: texts });
+  return response.data.map((d) => d.embedding);
 }
 
-// Image generation (Stable Diffusion backend)
-async function generateImage(prompt: string) {
-  const response = await ai.images.generate({
-    model: "stablediffusion",
-    prompt,
-    n: 1,
-    size: "512x512",
-  });
-  return response.data[0].url;
-}
-
-// Audio transcription (Whisper backend)
 async function transcribe(audioPath: string) {
   const response = await ai.audio.transcriptions.create({
     model: "whisper-1",
@@ -148,134 +139,115 @@ async function transcribe(audioPath: string) {
   });
   return response.text;
 }
-
-// Text-to-speech
-async function textToSpeech(text: string) {
-  const response = await ai.audio.speech.create({
-    model: "tts-1",
-    voice: "alloy",
-    input: text,
-  });
-  const buffer = Buffer.from(await response.arrayBuffer());
-  fs.writeFileSync("output.mp3", buffer);
-}
 ```
+
+Image generation (`ai.images.generate`) and speech (`ai.audio.speech.create`) work the same way: set `model` to the name of an installed diffusers or TTS model from the gallery.
 
 ### Multi-Model Configuration
 
+Create one file per model in the models directory:
+
 ```yaml
-# models/chat-model.yaml — Chat model
-name: chat
-backend: llama-cpp
-parameters:
-  model: llama-3.1-8b-instruct.Q5_K_M.gguf
-  context_size: 8192
-  threads: 4
-  gpu_layers: 0                            # 0 = CPU only, increase for GPU offloading
-
----
-# models/code-model.yaml — Code completion model
-name: code
-backend: llama-cpp
-parameters:
-  model: codellama-7b-instruct.Q5_K_M.gguf
-  context_size: 16384
-  threads: 4
-
----
-# models/embedding-model.yaml — Embedding model
-name: embedding
+# /models/embedding.yaml  (name matches what OpenAI clients ask for)
+name: text-embedding-ada-002
 backend: sentencetransformers
+embeddings: true
 parameters:
   model: all-MiniLM-L6-v2
+```
 
----
-# models/whisper-model.yaml — Audio transcription
+```yaml
+# /models/whisper.yaml
 name: whisper-1
 backend: whisper
 parameters:
-  model: whisper-base.bin
-  language: en
+  model: ggml-base.en.bin
 ```
+
+For llama.cpp embeddings use `backend: llama-cpp`, `embeddings: true` and a GGUF embedding model. To define many models in one place use a `--models-config-file` list instead.
 
 ### Function Calling
 
+The request shape is the OpenAI `tools` / `tool_choice` one. With the llama.cpp backend tool calls are parsed automatically for GGUF models trained for tools; vLLM needs an explicit tool parser in the model options (for example `tool_parser:hermes`). Pick a tool-capable model (Qwen3, Hermes, Llama 3.1+); small or old models ignore tools.
+
 ```typescript
-// LocalAI supports function calling with compatible models
-async function chatWithFunctions(prompt: string) {
-  const response = await ai.chat.completions.create({
-    model: "mistral",
-    messages: [{ role: "user", content: prompt }],
-    tools: [
-      {
-        type: "function",
-        function: {
-          name: "get_current_weather",
-          description: "Get the weather for a location",
-          parameters: {
-            type: "object",
-            properties: {
-              location: { type: "string" },
-              unit: { type: "string", enum: ["celsius", "fahrenheit"] },
-            },
-            required: ["location"],
-          },
-        },
+const response = await ai.chat.completions.create({
+  model: "qwen3-4b",
+  messages: [{ role: "user", content: "Weather in Lisbon in celsius?" }],
+  tools: [{
+    type: "function",
+    function: {
+      name: "get_current_weather",
+      description: "Get the weather for a location",
+      parameters: {
+        type: "object",
+        properties: { location: { type: "string" }, unit: { type: "string", enum: ["celsius", "fahrenheit"] } },
+        required: ["location"],
       },
-    ],
-    tool_choice: "auto",
-  });
-  return response;
-}
+    },
+  }],
+  tool_choice: "auto",
+});
+console.log(response.choices[0].message.tool_calls);
 ```
 
 ## Installation
 
 ```bash
-# Docker (recommended)
-docker pull localai/localai:latest-cpu
-
-# Binary (Linux/macOS)
-curl -Lo local-ai https://github.com/mudler/LocalAI/releases/latest/download/local-ai-$(uname -s)-$(uname -m)
-chmod +x local-ai
-./local-ai --models-path ./models
-
-# Homebrew (macOS)
-brew install localai
+# Docker is the supported path
+docker pull localai/localai:latest
 ```
+
+Standalone binaries and the macOS DMG are on https://github.com/mudler/LocalAI/releases; check the downloaded file against the checksums published on that release page before running it.
 
 
 ## Examples
 
 
-### Example 1: Integrating Localai into an existing application
+### Example 1: Serve a local chat model to an existing app
 
 **User request:**
 
 ```
-Add Localai to my Next.js app for the AI chat feature. I want streaming responses.
+Run LocalAI on my laptop with a small chat model and point my Next.js app's OpenAI client at it.
 ```
 
-The agent installs the SDK, creates an API route that initializes the Localai client, configures streaming, selects an appropriate model, and wires up the frontend to consume the stream. It handles error cases and sets up proper environment variable management for the API key.
+```bash
+docker run -d --name local-ai -p 127.0.0.1:8080:8080 \
+  -v localai-models:/models -v localai-backends:/backends localai/localai:latest
+docker exec -it local-ai local-ai run qwen3-4b
+curl -s http://localhost:8080/v1/chat/completions -H "Content-Type: application/json" \
+  -d '{"model":"qwen3-4b","messages":[{"role":"user","content":"Say hi"}]}' | jq -r '.choices[0].message.content'
+```
 
-### Example 2: Optimizing model installation performance
+The first call pulls the llama.cpp backend, then returns a JSON completion. In the app set `baseURL: "http://localhost:8080/v1"` and `model: "qwen3-4b"`; nothing else changes.
+
+### Example 2: Local embeddings for a RAG pipeline
 
 **User request:**
 
 ```
-My Localai calls are slow and expensive. Help me optimize the setup.
+I need OpenAI-style embeddings offline for my document search.
 ```
 
-The agent reviews the current implementation, identifies issues (wrong model selection, missing caching, inefficient prompting, no batching), and applies optimizations specific to Localai's capabilities — adjusting model parameters, adding response caching, and implementing retry logic with exponential backoff.
+Add `/models/embedding.yaml` from the section above, restart the container, then:
+
+```bash
+curl -s http://localhost:8080/v1/embeddings -H "Content-Type: application/json" \
+  -d '{"model":"text-embedding-ada-002","input":"invoice 4471 is overdue"}' | jq '.data[0].embedding | length'
+```
+
+It prints the vector length (384 for all-MiniLM-L6-v2). Existing code that calls `embeddings.create` keeps working.
 
 
 ## Guidelines
 
-1. **CPU is fine for most use cases** — 7B models run well on CPU; GPU helps for 13B+ and image generation
-2. **Q5_K_M quantization** — Best balance of quality and speed; Q4_K_M for faster inference, Q6_K for higher quality
-3. **One model per purpose** — Run separate models for chat, embedding, and code; don't force one model to do everything
-4. **Docker for production** — Use Docker Compose with health checks and restart policies; don't run the binary directly
-5. **OpenAI SDK compatibility** — Your existing OpenAI code works with LocalAI; just change the base URL
-6. **Context size = memory** — Each model uses ~(context_size × 2MB) RAM; set context_size based on available memory
-7. **Thread count = physical cores** — Set `THREADS` to your physical CPU core count; hyperthreading doesn't help inference
-8. **Gallery for easy setup** — Use the model gallery for one-click model installation instead of manual GGUF downloads
+1. **Size the model to the machine** - 4B to 8B quantized models run acceptably on CPU; 13B+ and image generation want a GPU
+2. **Quantization** - Q4_K_M is faster and smaller, Q5_K_M balances quality, Q6_K favors quality
+3. **One model per purpose** - separate chat, embedding and transcription models, each with its own YAML
+4. **Persist `/models` and `/backends`** - otherwise every container recreate re-downloads weights and backends
+5. **Secure the port** - set `LOCALAI_API_KEY` and bind to localhost or a reverse proxy; the API has no other protection by default
+6. **Context costs memory** - the KV cache grows with `context_size`; lower it if the container is OOM-killed
+7. **Threads = physical cores** - hyperthreads do not speed up inference
+8. **Pin image tags** - `latest` changes weekly; pin `vX.Y.Z` for reproducible deployments
+9. **Model names are yours** - the `model` field must equal the YAML `name` (or the gallery name), not the file name

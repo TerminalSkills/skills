@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d319615870c431d1d65e1538787c3a92dd8a68043bc32a7d2b3b178330fe511d",
-  "scoredAt": "2026-05-13T10:33:07.348Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ca36bdc8ec7e46ca3239913184121fe3c8b84ac6aa77b0e69909679c3f2933f3",
+  "scoredAt": "2026-10-03T12:09:27.387Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill examples cover only common cases and lack comprehensive error handling for all edge scenarios."
+        "category": "crossPlatform",
+        "detail": "The skill is tied to the Val Town platform and the Deno runtime (Deno.env, esm.town imports, the vt CLI), and the local workflow needs Deno installed."
       },
       {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to Val Town's platform and cannot be used with other AI agents or deployment environments."
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two Examples sections only describe the handlers in prose, with no complete runnable code or full request and response flow, so they are less concrete than the code in the Instructions."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 15,
-    "treatmentAvg": 95,
-    "multiplier": 6.33,
+    "multiplier": 1,
+    "baselineAvg": 81,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "Tiny todo CRUD REST API with persistent storage, no infra",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline reaches for Vercel/Workers/Deno Deploy plus an external DB and misses Val Town's built-in sqlite import URL and HTTP val signature, while treatment uses the documented esm.town/v/std/sqlite import with the exact Request-in/Response-out CRUD handler."
+        "name": "cron-daily-report-to-slack",
+        "baseline": 80,
+        "treatment": 68,
+        "rationale": "Both give an Interval cron val with Deno.env.get webhook, JSON POST to Slack, UTC note and 15-minute Free limit; A is more complete (computes yesterday's date, error handling, and a more explicit schedule), though it hedges the 15-minute limit as 'I recall' and doesn't use lastRunAt, while B states the limit confidently but fetches the API without selecting yesterday and also omits lastRunAt."
       },
       {
-        "name": "Daily 9am Slack report cron without managing servers",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline defaults to GitHub Actions or Lambda+EventBridge rather than a Val Town cron val, while treatment uses the documented argumentless export default async function pattern with Deno.env.get for the Slack webhook secret."
+        "name": "stripe-webhook-signature-verification",
+        "baseline": 88,
+        "treatment": 92,
+        "rationale": "Both read the raw body with req.text(), verify with constructEventAsync and the SubtleCrypto provider, return 400 on failure, and check for checkout.session.completed; B also takes STRIPE_SECRET_KEY from Deno.env as the rubric requires, while A hard-codes a dummy 'sk_unused' key and omits STRIPE_SECRET_KEY, though A is otherwise more thorough on security hardening."
+      },
+      {
+        "name": "sqlite-todo-api-and-local-vt",
+        "baseline": 74,
+        "treatment": 82,
+        "rationale": "Both use the std/sqlite import, CREATE TABLE IF NOT EXISTS, parameterized queries, method branching, and the vt install/clone/push/pull/watch workflow. A uses named args (:title, :id), which the rubric asks for. B uses positional `?` args, so it misses that point, and its row mapping from `res.rows` is questionable. B does add useful caveats about auth and the API key."
       }
     ]
   }

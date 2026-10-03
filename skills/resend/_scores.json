@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f52bd51e8f9053fe95b8bd168d45500d699c729a662be944b1b694f5acdb702a",
-  "scoredAt": "2026-05-13T10:02:54.554Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b8de66a59568179bbe94978a47bd630658e4201045259ef21a77bf1be0e37398",
+  "scoredAt": "2026-10-03T13:04:19.152Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file mentions error handling but does not provide concrete code or detailed guidance for handling all error scenarios and edge cases."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 20,
-    "treatmentAvg": 95,
-    "multiplier": 4.75,
+    "multiplier": 1.52,
+    "baselineAvg": 58,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Welcome email via React Email template",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline defaulted to nodemailer with raw HTML strings; treatment built a typed React Email component using @react-email/components and passed it through the react: field of resend.emails.send with {data, error} handling."
+        "name": "invoice-with-pdf-and-tags",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both meet the core rubric (attachments with filename and a file Buffer, tags as name/value objects, destructured { data, error } with an error check, camelCase), but A is labeled typescript while using .mjs-style ESM and its notes say 'Idempotency-Key header' without showing it. B's error handling is cleaner (console.error plus exit), and it reads the file before the call, includes a run command and gives the tag character constraints."
       },
       {
-        "name": "Batched weekly digest with analytics tags",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline looped resend.emails.send 80 times without tags; treatment used resend.batch.send with a single payload and per-message tags array of {name, value} pairs for category/campaign/user_id."
+        "name": "verified-webhook-for-bounces",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "B matches the rubric closely: it reads the body with req.text(), verifies with resend.webhooks.verify using the svix-id, svix-timestamp and svix-signature headers and a webhookSecret from an env var, handles both events, returns 400 on a failed verification, and tests through ngrok with bounced@resend.dev; A reads the raw body and handles both events but verifies with the svix library instead of resend.webhooks.verify, returns 401 instead of 400 on a bad signature, and treats only permanent bounces as undeliverable, though it does cover the tunnel and bounced@resend.dev."
+      },
+      {
+        "name": "batch-weekly-digest-react-email",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "A uses resend.batch.send with mapped payloads, chunks of 100, calls DigestEmail({ items }) as a function, mentions no attachments/scheduledAt and the 'react-email' import; B uses JSX in react, imports from '@react-email/components', and doesn't call the template as a function, though it does chunk and map correctly."
       }
     ]
   }

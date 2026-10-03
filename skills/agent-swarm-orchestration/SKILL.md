@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags:
     - agents
@@ -52,13 +52,21 @@ Hub-and-spoke (router):
 Router → Specialist B
        └→ Specialist C
 Best for: Task classification and routing to the right expert
+
+Mesh (peer to peer):
+Agent A <-> Agent B <-> Agent C (each can message the others)
+Best for: Debate or negotiation between a few agents. Hardest to debug and
+the most expensive in tokens; prefer a hub unless peers truly need each other.
 ```
+
+Frameworks that already implement these patterns: the Claude Agent SDK (subagents with their own context and tool allowlists), the OpenAI Agents SDK (handoffs between agents), LangGraph (explicit state graphs with checkpoints) and CrewAI (role-based crews). Use one of them for production work and check its current documentation; the code below shows the underlying pattern in plain Python so you can see what the frameworks do.
 
 ### Orchestrator pattern
 
 ```python
 # orchestrator.py — Central coordinator managing agent pipeline
 
+import asyncio
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -114,19 +122,23 @@ class Orchestrator:
         agent = self.agents[role]
         task = AgentTask(id=f"{role.value}_{len(self.tasks)}", role=role, input_data=input_data)
         self.tasks.append(task)
-        try:
-            task.status = "running"
-            result = await agent.execute(input_data)
-            task.output_data = result
-            task.status = "completed"
-            return result
-        except Exception:
-            task.status = "failed"
-            if task.retries < task.max_retries:
+        # One task object carries the retry count, so the limit really applies
+        # (re-calling _run_agent would create a fresh task with retries=0 and never stop).
+        while True:
+            try:
+                task.status = "running"
+                task.output_data = await agent.execute(input_data)
+                task.status = "completed"
+                return task.output_data
+            except Exception:
+                task.status = "failed"
+                if task.retries >= task.max_retries:
+                    raise
                 task.retries += 1
-                return await self._run_agent(role, input_data)
-            raise
+                await asyncio.sleep(2 ** task.retries)  # back off before retrying
 ```
+
+Independent subtasks can run in parallel with `await asyncio.gather(*[...])`; give each worker only the context it needs and merge results in the orchestrator, never by letting workers write to the same files.
 
 ### Router pattern
 
@@ -146,8 +158,9 @@ Return JSON: {{"agent": "name", "confidence": 0.0-1.0, "reasoning": "why"}}"""
         agent_descriptions = "\n".join(
             f"- {name}: {agent.description}" for name, agent in self.agents.items()
         )
-        routing = await self._classify(task, agent_descriptions)
-        return await self.agents[routing["agent"]].execute({"task": task})
+        routing = await self._classify(task, agent_descriptions)  # LLM call returning the JSON above
+        name = routing["agent"] if routing["confidence"] >= 0.7 and routing["agent"] in self.agents else "generalist"
+        return await self.agents[name].execute({"task": task})
 ```
 
 ### Shared memory
@@ -236,3 +249,7 @@ Build a support ticket routing system with 5 specialist agents: Billing, Technic
 - Route to a generalist or escalate to human when classifier confidence is below 70%
 - Log every agent decision and handoff for debugging and optimization
 - Keep individual agent contexts small and focused — specialist agents outperform generalists
+- Cap total spend: every extra agent multiplies token cost, so set a per-run token or dollar budget and a maximum number of agent calls
+- Treat one agent's output as untrusted input to the next: validate structure (JSON schema) and never let fetched web text change an agent's instructions
+- Give each agent the minimum tools it needs; reviewers should be read-only
+- Measure before adding agents: if a single agent with good tools passes your tests, a swarm only adds cost

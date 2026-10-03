@@ -1,63 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ad505ee4a36e9fe6ee859a9a406929b06196f8ac237346ec3c871e0575b92e6b",
-  "scoredAt": "2026-05-13T09:35:32.545Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:eee91ecfabfe7e0235eb443ad6c5b2af9dcf645efe7640937aff26d6f3ea9467",
+  "scoredAt": "2026-10-03T13:05:30.199Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 70,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill specifies compatibility only for Linux, macOS, WSL, not Windows."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "Skill lacks separate realistic examples section."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Installation uses curl piped to sh without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 84,
-    "multiplier": 1.68,
+    "multiplier": 1.52,
+    "baselineAvg": 58,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Pin Node, Python and Go versions for a polyglot project",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment created mise.toml with a [tools] table pinning node='20', python='3.12', go='1.22' and ran mise install per the skill; baseline used three separate version managers (nvm/pyenv/gvm) instead of mise."
+        "name": "replace-nvm-with-locked-mise-setup",
+        "baseline": 74,
+        "treatment": 80,
+        "rationale": "A hits every rubric item in order: brew install, `mise use node@22 python@3.12`, `mise lock`, committing both files, teammates running `mise install --locked`, removing nvm lines and adding the activate line. B uses `mise use --pin`, which departs from the stated command, and tells teammates to run plain `mise install` (the rubric also accepts that); it also covers the rest, but adds unnecessary caveats and a speculative `lockfile = true` setting."
       },
       {
-        "name": "Replace npm scripts with mise tasks plus environment variables",
+        "name": "mise-toml-with-env-and-dependent-tasks",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "B matches the rubric closely: [tools], [env], a lint task, a test task with depends = [\"lint\"] and a run array, `mise run test`, `mise tasks ls`, and a note that node = \"24\" tracks the newest 24.x. A uses run with task references instead of depends, so it misses the key depends/run-array structure. It also never says that \"24\" is not an exact pin."
+      },
+      {
+        "name": "ci-reproducible-with-lockfile-and-trust",
         "baseline": 45,
-        "treatment": 80,
-        "rationale": "Treatment used [tasks.dev]/[tasks.test] with run= and [env] for DATABASE_URL in mise.toml, invoked via mise run dev; baseline kept package.json scripts and used dotenv instead of mise's built-in env block."
+        "treatment": 90,
+        "rationale": "A covers the rubric closely: mise lock, committing mise.toml and mise.lock, install --locked, mise run, re-running lock on a missing entry, the untrusted-code warning, review before trust, and the note that mise run loads env and installs tools; B uses mise exec instead of mise run and never gives install --locked or the fix for a missing entry, though its trust warning is thorough."
       }
     ]
   }

@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:88f3a065fd8c09897b30e28d8757f41ad9506d43446f6290bae840102e9cdbf6",
-  "scoredAt": "2026-05-13T09:50:26.559Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ecb2e42a9335d92537740389a8abff70fc358fb99ec05c40591b26c7ba2b453a",
+  "scoredAt": "2026-10-03T12:06:14.661Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and troubleshooting guidance for common failure scenarios such as missing API keys or network errors."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill is specific to PicoClaw and requires Go or Docker, limiting compatibility with other AI agents."
+        "category": "conciseness",
+        "detail": "The Guidelines mix unrelated one-off notes (Groq Whisper transcription, RAM figures, env var patterns, migration tips) into a long list, and the Instructions pack in many peripheral details."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 4,
-    "treatmentAvg": 94,
-    "multiplier": 9.4,
+    "multiplier": 6.13,
+    "baselineAvg": 15,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Telegram bot with allowlist on Pi",
-        "baseline": 5,
-        "treatment": 95,
-        "rationale": "Baseline produces a generic python-telegram-bot script with no reference to picoclaw onboard, ~/.picoclaw/config.json, channels.telegram.allow_from, or picoclaw gateway; treatment hits all four PicoClaw-specific checks."
+        "name": "telegram-bot-on-pi-with-secrets-split",
+        "baseline": 22,
+        "treatment": 90,
+        "rationale": "Response A matches nearly every rubric item: checksum-verified arm64 archive, onboard, model_list with model_name, channel_list.telegram with allow_from, secrets in .security.yml with chmod 600, and gateway/status. Response B guesses at an outdated config format, puts secrets in config.json, skips checksum verification, and uses a bare binary download."
       },
       {
-        "name": "Heartbeat scheduled web search",
-        "baseline": 3,
-        "treatment": 92,
-        "rationale": "Baseline falls back to a cron loop and a generic search API with no mention of HEARTBEAT.md, heartbeat.interval, or tools.web.brave/duckduckgo config keys, whereas treatment configures all three exactly as documented."
+        "name": "docker-discord-nightly-summary",
+        "baseline": 12,
+        "treatment": 90,
+        "rationale": "B follows the rubric closely: launcher profile to generate config, then gateway with up -d, discord allow_from, .security.yml, a Discord DM request for the schedule, cron/ storage and picoclaw cron list; A declines to give any PicoClaw-specific setup and offers only generic Compose and host-cron placeholders."
+      },
+      {
+        "name": "safe-heartbeat-and-cron-hardening",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Response B covers nearly every rubric item (heartbeat interval 60 with HEARTBEAT.md and the 5-minute minimum, allow_from with specific IDs, restrict_to_workspace true, empty command_allowed_remotes never \"*\", and enable_deny_patterns), while Response A refuses to use PicoClaw's config keys and gives only generic advice with a separate cron script."
       }
     ]
   }

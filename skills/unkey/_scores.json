@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:50b9bebf8e0db1df5b23336680bb7a950c0b5a38e9c4bb23c10c608df57d9d81",
-  "scoredAt": "2026-05-13T10:31:43.188Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e31f2f2c8174973e9f5ac6a6593bfd09e3a1f066cafb87414c6e7919aa85ca1c",
+  "scoredAt": "2026-10-03T12:10:32.942Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment with TypeScript support, which may not be available in all AI agents."
+        "category": "completeness",
+        "detail": "Error handling is mostly left to a one-line note (try/catch and fail-closed on Unkey outage) with no code, and the skill does not cover failures when creating or rerolling keys, analytics query errors, or the self-hosting setup."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 95,
-    "multiplier": 3.8,
+    "multiplier": 1.63,
+    "baselineAvg": 57,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Create Unkey key for customer-42 with rate limit, expiry, and roles",
-        "baseline": 25,
+        "name": "issue-trial-key-with-limits",
+        "baseline": 62,
         "treatment": 95,
-        "rationale": "Baseline guesses generic key-management code without Unkey SDK shape, missing apiId/ownerId/meta/ratelimit{type:'fast',limit,duration}/expires/roles; treatment uses unkey.keys.create with the exact documented options."
+        "rationale": "B matches the rubric almost exactly, with credits: { remaining: 2000 }, correct ratelimits, expires in ms, and data.key and data.keyId; A uses a top-level `remaining: 2000` instead of `credits: { remaining }`, which is the wrong v2 shape, though its store/show guidance is otherwise good."
       },
       {
-        "name": "Auth middleware with verifyKey and 429/403 handling",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline does not know the verifyKey export or the code strings (RATE_LIMITED, NOT_FOUND, etc.); treatment imports verifyKey from @unkey/api, branches on result.code === 'RATE_LIMITED' for 429, and gates roles for 403."
+        "name": "verify-key-http-status-mapping",
+        "baseline": 80,
+        "treatment": 93,
+        "rationale": "Both map NOT_FOUND to 401, RATE_LIMITED to 429, other codes to 403, choose the permission by method, and fail closed with 503 when Unkey is unreachable; B calls the SDK's unkey.keys.verifyKey and destructures `{ data }` from the `{ meta, data }` wrapper exactly as the rubric describes, while A uses raw fetch against the v2 endpoint rather than unkey.keys.verifyKey and hedges on the code values from memory."
+      },
+      {
+        "name": "rotate-leaked-key-and-lookup-customer-keys",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "A matches the rubric closely: it uses the SDK's apis.listKeys with externalId and a for await loop, keys.rerollKey with expiration 0 for the leak and 24h in ms for normal rotation, and notes the new key is returned once in data.key. B uses curl/REST instead of the SDK, has no for await iteration, doesn't mention data.key or that the key is shown once, and hedges that its endpoints and fields are written from memory, though it does get the expiration 0 versus 86400000 distinction right."
       }
     ]
   }

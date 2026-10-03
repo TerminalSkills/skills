@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ded881186e381ebd839137cfa223c62aa7f1aea33c25919a9db9c7ce9cc66479",
-  "scoredAt": "2026-05-13T09:13:03.728Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6e4d64da8b56ae8e9b8469e0414c4df737f0ffec129912d09fa6467fa43c6509",
+  "scoredAt": "2026-10-03T13:03:33.365Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Instructions assume Docker and Node.js environments, which may not be available on all platforms."
+        "detail": "Step 5 gives only a Claude Code-specific registration command (`claude mcp add`) for the MCP server, with no equivalent for other agents such as Codex, Gemini CLI or Cursor."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 89,
-    "multiplier": 1.85,
+    "multiplier": 2.03,
+    "baselineAvg": 39,
+    "treatmentAvg": 79,
     "scenarios": [
       {
-        "name": "Run a Hoppscotch API collection in CI/CD against a saved environment",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment installed @hoppscotch/cli and used `hopp test -e environment.json collection.json` (and the --server/--token variant) as documented; baseline reached for newman/curl scripts and didn't use the hopp CLI."
+        "name": "ci-gate-with-junit-and-csv-iterations",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "A includes the Node.js 22+ requirement, all the required flags, and says the non-zero exit code fails the CI step, while B never mentions Node 22+ (its example uses Node 20), is hedged on flag names, and covers the exit-code gate less directly."
       },
       {
-        "name": "Refresh an expired OAuth access token automatically before every request",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment used the documented pre-request script with pw.env.get/set and pw.api.post against /auth/token, gating on Date.now() vs TOKEN_EXPIRY; baseline wrote external bash refresh scripts and missed the pw.* sandbox."
+        "name": "token-fetch-pre-request-and-status-test",
+        "baseline": 8,
+        "treatment": 95,
+        "rationale": "A matches the rubric: a hopp-namespace pre-request script that checks accessToken, fetches only when it's missing, stores it with hopp.env.set and sets the Bearer header, plus a hopp.test with hopp.expect and asJSON(); B uses the legacy pw.* API throughout, has no pre-request fetch script and no hopp.request.setHeader, and tests the body without asJSON()."
+      },
+      {
+        "name": "self-host-aio-with-migration",
+        "baseline": 55,
+        "treatment": 62,
+        "rationale": "A matches the rubric's core steps: unquoted env values, 32-char DATA_ENCRYPTION_KEY, the VITE_* URLs, `docker run` with ports 3000/3100/3170 and `--env-file`, `pnpm exec prisma migrate deploy` before first start, the admin dashboard on 3100, and the warning about exposing 3100/3170 without a reverse proxy and TLS. B is much more detailed and does cover the reverse proxy, TLS and admin creation, but it uses `pnpm dlx prisma migrate deploy` instead of `pnpm exec`, it quotes `MAILER_ADDRESS_FROM`, it uses compose rather than `docker run`, and it never gives an explicit 'don't expose 3100/3170 publicly' warning."
       }
     ]
   }

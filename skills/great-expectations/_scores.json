@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:065b3bb97103de2ebc17bedd02c955e2b82960da0319574c78bb478137dcb654",
-  "scoredAt": "2026-05-13T09:10:17.066Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:29a57bdd29534f77c92dc63470715350fd15f0cd0545dbdcf05ce9c7a82e79e8",
+  "scoredAt": "2026-10-03T22:13:12.999Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling and edge case scenarios for data source connection and validation failures."
+        "detail": "Covers the happy path but gives no guidance on handling failures such as missing columns, empty DataFrames, connection errors, or how to read failed results and partial failures (e.g. unexpected_index_list, mostly)."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The SQL connection string contains a literal ${WAREHOUSE_PASSWORD} that Python will not expand, the severity guideline gives no code, and the Data Docs generation mentioned in the description is never shown."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 2 reuses an undefined checkpoint from earlier and shows no expectation or suite for the status set, and neither example shows a failing result or output."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 97,
-    "multiplier": 2.94,
+    "multiplier": 1.13,
+    "baselineAvg": 79,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "orders-suite-postgres",
-        "baseline": 35,
+        "name": "validate-csv-before-warehouse-load",
+        "baseline": 95,
         "treatment": 96,
-        "rationale": "Treatment uses the modern fluent datasource API (sources.add_postgres + add_table_asset) and a validator with save_expectation_suite; baseline relies on the legacy from_pandas pattern and skips the Postgres datasource flow entirely."
+        "rationale": "Both responses match the rubric's GX 1.x in-code flow and class-object expectations and end with batch.validate(suite), so they are nearly identical on coverage; A adds more notes on edge cases but B is equally correct and uses the explicit gx.expectations path."
       },
       {
-        "name": "pipeline-dataframe-check",
-        "baseline": 30,
-        "treatment": 97,
-        "rationale": "Treatment builds a runtime pandas datasource + dataframe asset and runs a checkpoint with add_or_update_checkpoint, checking result.success; baseline uses the deprecated from_pandas/ExpectationSuite.from_json approach without checkpoints."
+        "name": "postgres-checkpoint-gate-for-airflow",
+        "baseline": 55,
+        "treatment": 78,
+        "rationale": "A covers every rubric item, including the Checkpoint via context.checkpoints.add and raising when checkpoint_result.success is false. B omits the Checkpoint and calls ValidationDefinition.run() directly, so it misses the required checkpoints.add wiring, though its other pieces are solid."
+      },
+      {
+        "name": "migrate-old-gx-tutorial-code",
+        "baseline": 88,
+        "treatment": 92,
+        "rationale": "Both identify the 0.18 vs 1.x API mismatch and give the right replacements; B matches the rubric more directly by showing the expectation added to an ExpectationSuite and `gx.get_context()` for init, while A's main example validates the expectation ad hoc (suite only in the second block) and uses `get_context(mode=\"file\")`, a small deviation from the rubric's `gx.get_context()`."
       }
     ]
   }

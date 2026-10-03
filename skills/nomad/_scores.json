@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:148d25c091b84a1561da13afcf2f0a0636bdab736c80c39d945386a994617f26",
-  "scoredAt": "2026-05-13T09:41:40.807Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1eca6ad96ec66ffe1ca3383b85e177a48ed1ed1bd596e6e7fa23e41876fe221a",
+  "scoredAt": "2026-10-03T12:05:21.096Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,36 +18,42 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file only provides happy path examples and does not cover error scenarios or edge cases."
+        "detail": "Covers mostly the happy path; there is little troubleshooting for failed deployments, canary health failures, Vault JWT login errors, or placement failures beyond a brief mention."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
+    "verdict": "SAFE",
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Installation uses wget to fetch a GPG key from an official source without verifying a checksum."
+        "severity": "INFO",
+        "category": "docker-privileges",
+        "detail": "The system job uses host network, host PID mode and a read-only root filesystem mount, but the skill explicitly warns that the client must enable these and tells the user to review the settings first."
       }
     ]
   },
   "impact": {
-    "baselineAvg": 31,
-    "treatmentAvg": 95,
-    "multiplier": 3.06,
+    "multiplier": 1.29,
+    "baselineAvg": 68,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Web service job with canary deploys and autoscaling",
-        "baseline": 32,
-        "treatment": 95,
-        "rationale": "Treatment supplies the full HCL with update{canary=1, auto_revert=true}, service{provider=\"consul\"} health checks, and a scaling policy with target-value strategy against Prometheus, while the baseline omits canary updates, the consul provider, and autoscaling entirely."
+        "name": "canary-deploy-with-plan-and-promote",
+        "baseline": 70,
+        "treatment": 80,
+        "rationale": "Both cover plan, run, promote, auto_revert and canary=1, but B uses the exact `-var image_tag=1.4.3` the rubric names while A uses `-var 'version=1.4.3'`, and B states the canary and auto_revert behaviour concisely; A is more thorough but diverges on the variable name."
       },
       {
-        "name": "Nightly batch backup with Vault secrets",
-        "baseline": 30,
+        "name": "nightly-vault-backup-job",
+        "baseline": 72,
         "treatment": 95,
-        "rationale": "Treatment uses periodic{crons=[...], prohibit_overlap=true, time_zone=\"UTC\"} with a Vault template rendering database/creds/backup into env vars, while the baseline uses the deprecated cron field, hardcodes the password, and misses overlap and timezone controls."
+        "rationale": "Both use batch type, periodic with crons, time_zone UTC, prohibit_overlap and a template with env=true, but A uses the legacy `vault { policies }` stanza instead of the required `vault { role = ... }` (mentioning role only in a comment) and puts connection settings in an env block, while B uses `vault { role = ... }` exactly as required and keeps credentials out of env."
+      },
+      {
+        "name": "per-node-exporter-system-job",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "B uses the system job, static 9100, docker host network and pid mode, a read-only volume mount, a pinned tag, and an explicit warning that the Docker driver rejects pid_mode host and volume mounts without plugin docker config volumes enabled. A covers most of this but omits pid_mode = host from the spec, only mentions it in passing, and uses a mount block rather than the host volume the rubric describes, so it is weaker on the pid_mode warning."
       }
     ]
   }

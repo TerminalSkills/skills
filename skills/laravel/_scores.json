@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e71cc86dd4930cb7c3157e4015fd9caf3f80acf07364a3027e5d3b1d8a3ba4ec",
-  "scoredAt": "2026-05-13T09:21:47.178Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:82ae2a828c0acb84bb9170526a318c305b3da16803d2c926bad8ba17617e06a0",
+  "scoredAt": "2026-10-03T13:03:58.634Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
+        "detail": "The skill gives few error-handling or troubleshooting steps (failed migrations, queue job failures beyond listing them, token revocation or expiry, missing PHP extensions), so coverage is mostly the happy path plus upgrade notes."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 84,
-    "multiplier": 1.53,
+    "multiplier": 1.54,
+    "baselineAvg": 54,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Build a paginated User index with search filter and eager-loaded posts",
-        "baseline": 58,
-        "treatment": 86,
-        "rationale": "Treatment uses Eloquent query with when() conditional, with('posts') eager loading and paginate(20) per the skill's controller pattern; baseline returns a working but less idiomatic implementation that often omits eager loading and the when() pattern."
+        "name": "sanctum-token-api-setup",
+        "baseline": 80,
+        "treatment": 72,
+        "rationale": "Both run install:api, add HasApiTokens, use Hash::check with plainTextToken, wrap apiResource in auth:sanctum, and show the Bearer header; A is thorough, scopes orders to the owner, and explicitly covers migrate, while B runs migrate right after install:api but adds an unneeded 'orders:read' ability and leaves the ownership scoping mostly as a note."
       },
       {
-        "name": "Dispatch a background job to process orders with retry/backoff and send confirmation email",
-        "baseline": 52,
-        "treatment": 82,
-        "rationale": "Treatment defines a job implementing ShouldQueue with $tries=3, $backoff=60, constructor property promotion, and dispatches via ProcessOrder::dispatch($order)->onQueue('orders') exactly as documented; baseline gives a generic queue job without retry/backoff defaults and the dispatch->onQueue chain."
+        "name": "offload-slow-pdf-to-queue",
+        "baseline": 3,
+        "treatment": 96,
+        "rationale": "Response A covers the rubric: make:job, ShouldQueue, Queueable, $tries/$backoff, ::dispatch with onQueue, queue:work naming the queue, plus queue:failed and queue:restart. Response B uses Node/NestJS with BullMQ and doesn't address Laravel or any Artisan commands."
+      },
+      {
+        "name": "upgrade-laravel-12-to-13-checklist",
+        "baseline": 80,
+        "treatment": 80,
+        "rationale": "Both cover all the rubric items (the four version bumps, CSRF rename with deprecated alias, serializable_classes, session json logout, CACHE_PREFIX/SESSION_COOKIE), but A states PHP 8.3+ firmly while B hedges on it and adds a lot of extra low-impact detail that dilutes focus, though B explains the hyphen change more concretely, so they come out roughly even."
       }
     ]
   }

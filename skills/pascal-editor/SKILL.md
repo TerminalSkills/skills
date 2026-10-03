@@ -1,227 +1,127 @@
 ---
 name: pascal-editor
 description: >-
-  Build and extend 3D building editor apps using Pascal Editor's architecture (React Three Fiber
-  + Zustand scene graph). Use when: building 3D architectural tools, creating BIM-like editors,
-  extending Pascal Editor with custom features, building floor plan generators.
+  Build and extend 3D building editor apps with Pascal Editor, an open-source React Three Fiber and WebGPU editor whose scene is a flat Zustand node store (site, building, level, wall, door, window, slab, zone). Use when building a 3D architectural tool or BIM-like editor, generating floor plans from code or an AI agent, extending Pascal with custom node plugins, or running its MCP server.
 license: MIT
-compatibility: "Node.js 18+, React 18+"
+compatibility: "Node.js 22.13+, React 18 or 19, three 0.186, @react-three/fiber 9, @react-three/drei 10"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: [pascal-editor, 3d, react-three-fiber, architecture, bim]
+  repository: https://github.com/pascalorg/editor
 ---
 
 # Pascal Editor Integration
 
 ## Overview
 
-Pascal Editor ([pascalorg/editor](https://github.com/pascalorg/editor)) is an open-source 3D building editor built with React Three Fiber and WebGPU. It provides a node-based scene graph, Zustand state management, and a systems architecture ideal for AI-driven architectural generation. This skill covers the core API for creating, manipulating, and exporting building geometry.
+Pascal Editor ([pascalorg/editor](https://github.com/pascalorg/editor), MIT) is a 3D building editor built on React Three Fiber with a WebGPU renderer. The scene is a flat dictionary of typed nodes held in a Zustand store (`useScene`); parent/child links are ids. It ships as npm packages: `@pascal-app/core` (zod node schemas, stores, registry), `@pascal-app/viewer` (3D rendering), `@pascal-app/nodes` (built-in node definitions, renderers and systems as a plugin), `@pascal-app/editor` (tools and panels) and `@pascal-app/cli` (local editor plus MCP server). There is no `@pascal-app/ui` package. Versions checked: core and viewer 1.0.3.
 
 ## Instructions
 
-### Quick Start
+### Run the editor locally, or let an agent drive it
 
 ```bash
-npx create-next-app@latest my-building-app
-cd my-building-app
-npm install @pascal-app/core @pascal-app/ui @react-three/fiber @react-three/drei three zustand
+npm install --global @pascal-app/cli
+npx @pascal-app/cli editor        # editor + authenticated MCP service, projects in ~/.pascal/data/pascal.db
 ```
 
-### Node Hierarchy
+An agent can be pointed at `pascal mcp connect` (no browser needed). To embed instead of run, install into a Next.js app:
 
-Pascal uses a tree of typed nodes:
-
-```
-Site -> Building -> Level -> Wall -> Opening (door/window)
-                          -> Slab (floor/ceiling)
-                          -> Zone (room boundary)
-                          -> Item (furniture, fixture)
+```bash
+npm install @pascal-app/core @pascal-app/viewer @pascal-app/nodes @pascal-app/editor
+npm install next react react-dom three @react-three/fiber @react-three/drei lucide-react zustand
 ```
 
-Every node has: `id` (UUID), `type`, `parentId`, `children` (child IDs), `props` (type-specific), and `dirty` (marks for rebuild).
+### Node hierarchy
 
-### Zustand Stores
+```
+Site -> Building -> Level -> Wall -> Door / Window / Item
+                          -> Slab, Ceiling, Roof, Zone, Stair, Guide, Scan ...
+```
+
+Every node has `id` (prefixed, e.g. `wall_4muwxrhv...`), `type`, `parentId`, `visible`, optional `metadata`, and containers have `children` (ids). Properties are flat on the node: there is no `props` wrapper. Units are metres; plan coordinates are `[x, z]` pairs.
+
+### Stores
 
 ```typescript
-import { useScene, useViewer, useEditor } from '@pascal-app/core'
-
-// useScene -- scene graph (nodes, relations)
-const { nodes, createNode, updateNode, deleteNode } = useScene()
-
-// useViewer -- viewport state (camera, selection)
-const { selectedIds, camera, setSelection } = useViewer()
-
-// useEditor -- tool mode and UI state
-const { activeTool, setTool, history } = useEditor()
+import { useScene } from '@pascal-app/core'   // nodes, rootNodeIds, dirtyNodes, CRUD
+import { useViewer } from '@pascal-app/viewer' // selection, levelMode, wallMode, camera mode
 ```
 
-### Creating Walls with Openings
+`useScene` actions include `createNode(node, parentId?)`, `createNodes`, `updateNode(id, data)`, `updateNodes`, `deleteNode(s)`, `markDirty`, `setScene`, `clearScene`. The scene persists to IndexedDB with undo/redo (Zundo). `useEditor` (active tool, layers, panels) lives in `@pascal-app/editor`.
+
+### Create nodes: parse with the zod schema, then store
+
+Schemas are exported from `@pascal-app/core` and fill defaults and ids. Verified in Node 24:
 
 ```typescript
+import { useScene, SiteNode, BuildingNode, LevelNode, WallNode, DoorNode, SlabNode, ZoneNode } from '@pascal-app/core'
+
 const scene = useScene.getState()
+const site = SiteNode.parse({ polygon: { type: 'polygon', points: [[0, 0], [30, 0], [30, 30], [0, 30]] } })
+scene.createNode(site)
+const building = BuildingNode.parse({}); scene.createNode(building, site.id)
+const level = LevelNode.parse({ level: 0, height: 2.7 }); scene.createNode(level, building.id)
 
-// Exterior wall: 4.5m long, 200mm thick, 2.7m ceiling
-const wall = await scene.createNode({
-  type: 'wall',
-  props: {
-    start: { x: 0, y: 0 }, end: { x: 4.5, y: 0 },
-    thickness: 0.20, height: 2.7,
-    isExterior: true, material: 'masonry',
-  }
-}, levelId)
+const wall = WallNode.parse({ start: [0, 0], end: [10, 0], thickness: 0.2, height: 2.7 })
+scene.createNode(wall, level.id)
 
-// Add a window: 1.2m wide, sill at 900mm
-await scene.createNode({
-  type: 'item',
-  props: {
-    itemType: 'window', wallId: wall.id,
-    offsetFromStart: 1.5, width: 1.2, height: 1.2, sillHeight: 0.9,
-  }
-}, wall.id)
-
-// Add a door: 900mm wide
-await scene.createNode({
-  type: 'item',
-  props: {
-    itemType: 'door', wallId: wall.id,
-    offsetFromStart: 3.0, width: 0.9, height: 2.1, sillHeight: 0,
-  }
-}, wall.id)
+// Door position is the centre in wall-local coordinates; y = half the height
+const door = DoorNode.parse({ position: [3.5, 1.05, 0], width: 1.0, height: 2.1, wallId: wall.id })
+scene.createNode(door, wall.id)
 ```
 
-### Creating Levels and Rooms
+The parent's `children` array is updated by `createNode`. Other useful fields: `WindowNode` has `position`, `width` and `height` (default 1.5), `windowType`, `sill`; `SlabNode` has `polygon`, `holes`, `thickness`, `elevation`; `ZoneNode` has `name`, `polygon`, `ceilingHeight` (2.7), `color`, `spaceRole`. `LevelNode` uses `level` (index), `baseElevation` and `height`, not an `elevation` per level. `updateNode` schedules work with `requestAnimationFrame`, so it only runs in a browser, not a bare Node script.
 
-```typescript
-const level = await scene.createNode({
-  type: 'level',
-  props: { name: 'Ground Floor', elevation: 0, height: 2.7, index: 0 }
-}, buildingId)
-
-// Floor slab
-await scene.createNode({
-  type: 'slab',
-  props: {
-    polygon: [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 8 }, { x: 0, y: 8 }],
-    thickness: 0.25, isRoof: false,
-  }
-}, level.id)
-
-// Room zone for labeling and area calculation
-await scene.createNode({
-  type: 'zone',
-  props: {
-    name: 'Living Room', roomType: 'living',
-    polygon: [{ x: 0.1, y: 0.1 }, { x: 5.4, y: 0.1 }, { x: 5.4, y: 7.9 }, { x: 0.1, y: 7.9 }],
-  }
-}, level.id)
-```
-
-### Exporting Scene to JSON
-
-```typescript
-function exportScene(): BuildingExport {
-  const { nodes } = useScene.getState()
-  const allNodes = Object.values(nodes)
-  const site = allNodes.find(n => n.type === 'site')
-  const building = allNodes.find(n => n.type === 'building')
-  const levels = allNodes
-    .filter(n => n.type === 'level' && n.parentId === building.id)
-    .sort((a, b) => a.props.elevation - b.props.elevation)
-
-  return {
-    units: 'meters',
-    site: { width: site.props.width, depth: site.props.depth },
-    building: {
-      levels: levels.map(level => ({
-        name: level.props.name,
-        elevation: level.props.elevation,
-        height: level.props.height,
-        walls: getChildrenByType(level.id, 'wall', allNodes),
-        rooms: getChildrenByType(level.id, 'zone', allNodes),
-      }))
-    }
-  }
-}
-```
-
-### Rendering with React Three Fiber
+### Render
 
 ```tsx
-import { Canvas } from '@react-three/fiber'
-import { PascalScene, PascalCamera, PascalControls } from '@pascal-app/ui'
+import { loadPlugin } from '@pascal-app/core'
+import { builtinPlugin } from '@pascal-app/nodes'
+import { Viewer } from '@pascal-app/viewer'
 
-export function BuildingViewer() {
-  return (
-    <Canvas camera={{ position: [0, 20, 20], fov: 45 }}>
-      <PascalScene />
-      <PascalCamera />
-      <PascalControls />
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 20, 10]} castShadow />
-    </Canvas>
-  )
+const registryReady = loadPlugin(builtinPlugin)   // register node definitions before rendering
+
+export function BuildingViewer({ ready }: { ready: boolean }) {
+  return ready ? <div style={{ width: '100vw', height: '100vh' }}><Viewer /></div> : null
 }
 ```
 
-### Grid Snapping
+Set `ready` after `registryReady` resolves. `Viewer` creates its own canvas and accepts children such as camera controls. Geometry is rebuilt by systems (`WallSystem`, `ZoneSystem`, ...) for nodes in `dirtyNodes`.
 
-Pascal uses a 100 mm grid (0.1 m) by default:
+### Extending
 
-```typescript
-const snapToGrid = (value: number, gridSize = 0.1) =>
-  Math.round(value / gridSize) * gridSize
-```
+New node types are plugins registered with `loadPlugin`; the reference example is [pascalorg/plugin-trees](https://github.com/pascalorg/plugin-trees). Look up a node's 3D object through `useRegistry`; components talk through the exported `emitter` (mitt).
 
 ## Examples
 
-### Example 1: Build a 10m x 8m Ground Floor
+### Example 1: "Generate a 10 m x 8 m ground floor from a script"
 
-Create a complete ground floor with exterior walls, an interior partition dividing living from bedrooms, and appropriate openings:
+1. Parse and create site, building and a level (`height: 2.7`) as above.
+2. Create four walls with `WallNode.parse({ start, end, thickness: 0.2, height: 2.7 })`: `[0,0]->[10,0]`, `[10,0]->[10,8]`, `[10,8]->[0,8]`, `[0,8]->[0,0]`.
+3. Add `SlabNode` with polygon `[[0,0],[10,0],[10,8],[0,8]]`, thickness 0.25.
+4. Add an entry `DoorNode` (width 1.0, height 2.1) at wall-local x 3.5 on the first wall, and a `WindowNode` on the east wall.
+5. Add two `ZoneNode`s named "Living Room" and "Bedrooms" for labels and area.
 
-1. Create level node with elevation 0, height 2.7 m
-2. Create floor slab: 10 m x 8 m polygon, 0.25 m thick
-3. Create 4 exterior walls (0.20 m thick, masonry): north (10 m), east (8 m), south (10 m), west (8 m)
-4. Add interior partition at x=5.5 (0.10 m thick, timber) running full depth
-5. Add entry door on north wall: 1.0 m x 2.1 m at offset 3.5 m
-6. Add windows on east wall: two 1.2 m x 1.2 m at sill 0.9 m, offsets 1.2 m and 4.5 m
-7. Create zones: Living Room (5.3 m x 7.8 m = 41.3 m2), Bedroom area (4.3 m x 7.8 m = 33.5 m2)
-8. Export to JSON for validation against `architectural-dimensions` rules
+Result: `Object.keys(useScene.getState().nodes)` lists the new ids, and the level's `children` holds walls, slab and zones.
 
-### Example 2: Register a Custom Validation System
+### Example 2: "Let Claude Code edit the model through MCP"
 
-Create a system that checks wall thickness whenever a wall node changes:
-
-```typescript
-import { registerSystem, useScene } from '@pascal-app/core'
-
-registerSystem({
-  name: 'wall-validator',
-  nodeTypes: ['wall'],
-  priority: 100,
-  process(dirtyNodes) {
-    for (const node of dirtyNodes) {
-      const { thickness, isExterior, height } = node.props
-      if (isExterior && thickness < 0.14)
-        console.warn(`Wall ${node.id}: exterior ${thickness}m < 0.14m minimum`)
-      if (height < 2.1)
-        console.warn(`Wall ${node.id}: height ${height}m < 2.1m minimum`)
-    }
-  }
-})
+```bash
+npx @pascal-app/cli editor
 ```
 
-This runs automatically whenever wall nodes are marked dirty, before geometry systems rebuild meshes.
+The CLI prints the editor URL and starts the MCP service on free ports. Add an MCP server entry whose command is `pascal mcp connect` to the agent's configuration, then ask it to "add a 1.2 m window to the south wall of Ground Floor". The agent uses the exposed tools (see `@pascal-app/core/agent-tools`) and you see the change in the open editor.
 
 ## Guidelines
 
-- All dimensions are in meters -- Pascal uses metric internally
-- Use `useScene` for all node CRUD operations, `useViewer` for selection/camera, `useEditor` for tools
-- Snap coordinates to 0.1 m grid for clean geometry
-- Wall thickness: 0.20 m for exterior, 0.10 m for interior partitions
-- Door sill height is always 0 (floor level); window sill height defaults to 0.9 m
-- Register custom systems with priority > 50 to run before geometry rebuild (0-50)
-- Combine with `architectural-dimensions` skill for real-world measurement validation
-- Key packages: `@pascal-app/core`, `@pascal-app/ui`, `@react-three/fiber`, `three`, `zustand`
-- GitHub: [github.com/pascalorg/editor](https://github.com/pascalorg/editor)
+- Node.js 22.13+ is required to build the monorepo; peer versions are three ^0.186, fiber ^9, drei ^10.
+- WebGPU is needed for the renderer; check browser support before blaming your code.
+- Dimensions are metres. Door and window `position` is relative to the wall, not the level.
+- Always create nodes from the schema (`XNode.parse`) so ids and defaults are valid; parent them with the second argument of `createNode`.
+- Wall `height` and `thickness` are optional with no schema default, so pass them explicitly.
+- Do not copy the old `@pascal-app/ui`, `registerSystem` or `props:` examples found in older posts; they do not exist in 1.0.x.
+- Pre-1.0 saved scenes may need `scene-migrations` (`@pascal-app/core/scene-migrations`).
+- Pair with the `architectural-dimensions` skill for real-world size checks.

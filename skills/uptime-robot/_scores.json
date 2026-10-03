@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bb175ca47c745f6c0979dc0f9a149f51c1bc2475bcd5df5c0b768a7d232d9fc5",
-  "scoredAt": "2026-05-13T10:32:26.069Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:f8dfaa4308b2e350f114b4fb527cb10aae9514f41a6933aa53f68a99baa19952",
+  "scoredAt": "2026-10-03T13:14:01.760Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
+        "detail": "Covers rate-limit 429 handling only in passing and gives no error handling for failed monitor creation, an empty alert-contacts list (contacts[0] would crash), or non-2xx responses."
       }
     ]
   },
@@ -29,7 +29,7 @@
   "impact": {
     "baselineAvg": 43,
     "treatmentAvg": 86,
-    "multiplier": 2.0,
+    "multiplier": 2,
     "scenarios": [
       {
         "name": "Create HTTP health-check monitor via API",

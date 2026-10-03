@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ec8349ca0ae6dc1c5bd91b43653fcc7f4099a1f0ac1682c2ffa2b923d1ddb5ee",
-  "scoredAt": "2026-05-13T10:24:15.621Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2a5a6215db800e66393cb26a3365ea094ce18cd7d350dbd928ee635dfbb3ee10",
+  "scoredAt": "2026-10-03T12:11:10.063Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not fully cover error handling scenarios and edge cases such as missing tokens or invalid webhook URLs."
+        "category": "actionability",
+        "detail": "Code is runnable for the core bot, but webhooks, payments, Mini Apps, deployment and the Python path are only described in prose or bullets, and the conversation snippet leaves `backButton` undefined."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be trimmed for brevity."
+        "category": "examples",
+        "detail": "Both examples are input/output descriptions of a finished bot rather than worked demonstrations with runnable code or realistic data such as sample messages or task records."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
+    "multiplier": 1.39,
+    "baselineAvg": 64,
     "treatmentAvg": 89,
-    "multiplier": 1.48,
     "scenarios": [
       {
-        "name": "Multi-step onboarding bot with admin-only commands",
-        "baseline": 60,
+        "name": "webhook-production-setup",
+        "baseline": 86,
         "treatment": 90,
-        "rationale": "Treatment uses grammY's session() + conversations() + createConversation pattern with conversation.wait() for the multi-step flow plus the adminOnly middleware checking ctx.from.id against ADMIN_ID, matching the skill's documented patterns; baseline writes ad-hoc state in a Map and lacks the createConversation primitive."
+        "rationale": "Both include webhookCallback with secretToken, setWebhook with secret_token from env, HTTPS, ports, and deleteWebhook; B explicitly says to answer within about 10 seconds or Telegram re-sends and explicitly states deleteWebhook before returning to polling, whereas A mentions deleteWebhook only in rollback and frames the 10s timeout via grammY's default, though A is more thorough overall."
       },
       {
-        "name": "Deploy a production bot with inline keyboards via webhook",
-        "baseline": 60,
-        "treatment": 88,
-        "rationale": "Treatment configures express with webhookCallback(bot, 'express'), calls bot.api.setWebhook to the HTTPS URL, builds inline_keyboard with callback_data, and uses ctx.answerCallbackQuery() in handlers as required by the skill's guidelines; baseline uses bot.launch()/long polling and forgets answerCallbackQuery, leaving spinners hanging."
+        "name": "registration-conversation-flow",
+        "baseline": 80,
+        "treatment": 82,
+        "rationale": "Both use waitFor('message:text'), conversations() before createConversation(fn, name), enter() from bot.command('register'), external() for the DB write, and bot.catch; B adds an otherwise handler and wraps the write in try/catch, while A has a richer bot.catch and more DB error handling, but A's findUser/saveUser logic is also in external; they are roughly equal with B slightly more idiomatic JS and A more thorough error handling."
+      },
+      {
+        "name": "admin-callback-keyboard",
+        "baseline": 25,
+        "treatment": 95,
+        "rationale": "B matches the rubric's grammY pattern: an adminOnly middleware comparing ctx.from?.id to Number(process.env.ADMIN_ID), passed into bot.command, plus callbackQuery handlers that call answerCallbackQuery and then editMessageText, with nothing hardcoded; A uses python-telegram-bot, which is a different library and doesn't use the required API, so it only matches the intent."
       }
     ]
   }

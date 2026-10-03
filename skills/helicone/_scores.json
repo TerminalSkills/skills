@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:05f56d085e8bece655ac2642d5255cb9916727cd75f14e417a0987767117b873",
-  "scoredAt": "2026-05-13T09:12:15.092Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f6a590bf3fc9edb76a8bfd80b536384d05c9a1bce52a29ee157f8176fec21205",
+  "scoredAt": "2026-10-03T13:03:10.498Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Examples do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Implementation is limited to Python and Node.js, not universally applicable to all AI agents."
+        "detail": "Error scenarios are barely covered: there is no guidance on what happens when Helicone's proxy is down or returns errors (for example a fallback to the direct provider URL), nor on invalid keys, streaming behavior, or how to verify that headers took effect beyond checking the dashboard."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 90,
-    "multiplier": 3.0,
+    "multiplier": 1.4,
+    "baselineAvg": 65,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Observability with per-user cost tracking and caching",
-        "baseline": 30,
+        "name": "per-user-feature-cost-tagging",
+        "baseline": 88,
         "treatment": 90,
-        "rationale": "Treatment swaps base_url to https://oai.helicone.ai/v1, sets the Helicone-Auth bearer header, attaches Helicone-User-Id for per-user attribution, and enables Helicone-Cache-Enabled: true — all three documented Helicone patterns; baseline proposes generic logging middleware and an in-process LRU cache, missing the proxy-based zero-code approach."
+        "rationale": "Both responses meet every rubric item (base_url, Helicone-Auth from the env var, User-Id/Session-Id/Session-Name/Property headers with string values); B is slightly better because it adds a runnable example, warns that header values must be strings and says how to check the Feature property, while A has more explanation and an honest unverified-header caveat but less emphasis on string values."
       },
       {
-        "name": "Per-user rate limit with automatic retries",
-        "baseline": 32,
-        "treatment": 88,
-        "rationale": "Treatment uses the documented Helicone-RateLimit-Policy header in the 10;w=60;s=user form scoped via Helicone-User-Id and enables retries with Helicone-Retry-Enabled/Helicone-Retry-Num/Helicone-Retry-Factor; baseline reaches for tenacity and an in-app token bucket without leveraging proxy headers."
+        "name": "cache-retry-ratelimit-anthropic",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both use the correct proxy URL, Helicone-Auth, cache headers, retry headers with num 4 and factor, and a rate limit policy with 50, w=3600 and s=user; A uses the exact documented format '50;w=3600;s=user' while B adds an extra 'u=request' segment and mostly lowercase retry header names (still valid), so A is slightly closer to the rubric, though B adds useful extras like maxRetries:0 and timeout settings."
+      },
+      {
+        "name": "async-logging-no-proxy-with-feedback",
+        "baseline": 25,
+        "treatment": 93,
+        "rationale": "B matches the rubric: it uses HeliconeAsyncLogger from @helicone/async with logger.init() before the client is created, says cache, rate limits and retries aren't available in async mode, and explains feedback with your own Helicone-Request-Id and a POST of {rating: true}. A uses a different package (@helicone/helpers), doesn't mention retries, and doesn't say the helicone-id response header is unreliable. It also admits its code is written from memory."
       }
     ]
   }

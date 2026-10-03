@@ -1,123 +1,124 @@
 ---
 name: tooljet
 description: >-
-  Build internal tools with ToolJet, the open-source low-code platform. Use when a user asks to create admin dashboards, connect data sources, build CRUD apps with drag-and-drop, or self-host ToolJet.
+  ToolJet is an open-source (AGPL-3.0) low-code platform for building internal tools such as admin panels, dashboards and CRUD apps with a drag-and-drop builder, SQL and REST queries, and JavaScript or Python. Use when a user asks to build an internal tool or admin dashboard, connect a database or API to a visual app, write ToolJet queries and event handlers, or self-host ToolJet with Docker or Helm.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "Docker or Kubernetes for self-hosting, PostgreSQL, a modern browser; ToolJet Cloud needs only an account"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
+  repository: https://github.com/ToolJet/ToolJet
   tags: ["internal-tools", "low-code", "open-source", "admin-panel", "self-hosted"]
 ---
 # ToolJet — Open-Source Low-Code App Builder
 
 ## Overview
 
-You are an expert in ToolJet, the open-source low-code platform for building internal tools with a visual app builder. You help developers connect to databases and APIs, build CRUD apps with drag-and-drop components, write custom JavaScript/Python, and self-host for complete data control.
+ToolJet (github.com/ToolJet/ToolJet, docs.tooljet.com) lets you build internal tools in a browser: drag components (tables, forms, charts) onto a canvas, write queries against 80+ data sources, and bind the two with `{{ }}` expressions. Four data sources are always present: ToolJet Database (built-in, hosted with the instance), REST API, Run JavaScript and Run Python. Apps can have several pages, and workflows run background jobs. The community edition is AGPL-3.0; AI app generation and some governance features belong to the paid edition. Most of ToolJet is configured in the web UI, so an agent's job is mainly setup, query code, expressions and deployment.
 
 ## Instructions
 
-### Setup
+### Self-host
+
+Quick evaluation on one machine (not for production; data lives in the named volume):
 
 ```bash
-# Docker (recommended)
-docker compose up -d
-# UI at http://localhost:80
-
-# Kubernetes
-helm repo add tooljet https://tooljet.github.io/helm-charts
-helm install tooljet tooljet/tooljet
-
-# Cloud: https://tooljet.com (managed hosting)
+docker run --name tooljet --restart unless-stopped -p 80:80 \
+  --platform linux/amd64 -v tooljet_data:/var/lib/postgresql/13/main \
+  tooljet/try:ee-lts-latest
 ```
 
-### Data Sources
+Production uses Docker Compose with the `tooljet/tooljet:ee-lts-latest` image (the LTS line; new LTS versions ship every 3 to 5 months, so pin an exact tag from Docker Hub in production). The docs provide a compose file and an `.env` template:
+
+```bash
+# Save the two files linked from the Docker page of the ToolJet setup docs
+# (docker-compose-db.yaml as docker-compose.yaml, .env.internal.example as .env).
+# ToolJet publishes no checksums for them, so read both before using them.
+mkdir postgres_data
+less docker-compose.yaml .env
+# edit .env: set TOOLJET_HOST (with protocol), LOCKBOX_MASTER_KEY, SECRET_KEY_BASE, PG_* and TOOLJET_DB credentials
+
+# Pin the image: resolve the floating tag to its digest once and write the digest into the compose file
+docker pull tooljet/tooljet:ee-lts-latest
+PINNED=$(docker inspect --format '{{index .RepoDigests 0}}' tooljet/tooljet:ee-lts-latest)
+sed -i "s|image: tooljet/tooljet:ee-lts-latest|image: ${PINNED}|" docker-compose.yaml
+docker compose up -d
+```
+
+Upgrades are then deliberate: pull the tag again, read the release notes, and replace the digest.
+
+Key variables: `TOOLJET_HOST` must include `http://` or `https://`; `LOCKBOX_MASTER_KEY` encrypts stored data-source credentials and `SECRET_KEY_BASE` signs sessions. Generate them with `openssl rand -hex 32` and back them up, because losing `LOCKBOX_MASTER_KEY` makes saved credentials unreadable. The UI is on port 80. For separate worker containers or multiple pods, use an external Redis and set `WORKER=true` on worker containers.
+
+Kubernetes: the docs show a kubectl manifest and a Helm chart (repository `ToolJet/helm-charts` on GitHub); you must provide the PostgreSQL database or keep the chart's bundled one for testing. ToolJet Cloud (tooljet.com) is the hosted alternative.
+
+### Queries and transformations
+
+Queries reference components, other queries and variables with `{{ }}`:
+
+```sql
+-- Query name: getOrders (PostgreSQL data source)
+SELECT o.id, o.amount, o.created_at, u.email
+FROM orders o JOIN users u ON u.id = o.user_id
+WHERE o.status = '{{components.statusFilter.value}}'
+ORDER BY o.created_at DESC
+LIMIT 200;
+```
+
+Prefer the data source's parameterized/bind mode for user-controlled values where the connector offers it; interpolating component values into SQL strings is open to injection.
+
+Run JavaScript queries have `moment`, `_` (Lodash) and `axios` available, can read `queries.<name>.data` and must `return` their result:
 
 ```javascript
-// ToolJet connects to 50+ data sources:
-// Databases: PostgreSQL, MySQL, MongoDB, Redis, BigQuery, Snowflake, DynamoDB
-// APIs: REST, GraphQL, gRPC
-// SaaS: Stripe, Airtable, Google Sheets, Notion, Slack, Twilio
-// Storage: S3, MinIO, GCS
-
-// PostgreSQL query with transformations
-// Query: getOrders
-SELECT o.*, u.email, u.name
-FROM orders o JOIN users u ON o.user_id = u.id
-WHERE o.status = {{components.statusFilter.value}}
-ORDER BY o.created_at DESC
-
-// JavaScript transformation (runs after query)
-return data.map(row => ({
+// Query name: ordersForTable (Run JavaScript)
+return queries.getOrders.data.map(row => ({
   ...row,
   amount_display: `$${(row.amount / 100).toFixed(2)}`,
   created_display: moment(row.created_at).fromNow(),
 }));
 ```
 
-### Events and Actions
+Bind a table's data to `{{queries.ordersForTable.data}}`.
+
+### Events and actions
+
+Event handlers are configured in the UI (component or query, event, action) or in a Run JavaScript query:
 
 ```javascript
-// Button onClick event — chain multiple actions
-// Action 1: Run query
-await queries.processRefund.run();
-
-// Action 2: Show notification
-actions.showAlert('success', `Refund of $${components.table1.selectedRow.amount} processed`);
-
-// Action 3: Refresh data
-await queries.getOrders.run();
-
-// Action 4: Navigate
-actions.navigateTo('/orders');
-
-// Conditional logic in event handlers
-if (components.table1.selectedRow.status === 'refunded') {
-  actions.showAlert('warning', 'Already refunded');
+// Query name: refundSelectedOrder
+const order = components.ordersTable.selectedRow;
+if (order.status === 'refunded') {
+  actions.showAlert('warning', 'Order already refunded');
   return;
 }
+await queries.processRefund.run();
+actions.showAlert('success', `Refund of $${(order.amount / 100).toFixed(2)} processed`);
+await queries.getOrders.run();
+await actions.switchPage('orders', [['highlight', order.id]]);
 ```
 
-### Multi-Page Apps
-
-```markdown
-## App Structure
-- Pages: Dashboard, Orders, Users, Settings
-- Shared components: Header, Sidebar (persist across pages)
-- URL parameters: /orders/:id for detail pages
-- Navigation: programmatic (actions.navigateTo) or link components
-```
+`queries.<name>.run()` also takes parameters and callbacks: `queries.getUsers.run({ limit: 10 }, { onSuccess: (data) => {}, onFailure: (error) => {} })` (pass `{}` when there are no parameters). Alert types are `info`, `success`, `warning` and `danger`. Navigation uses `actions.switchPage('orders', [['status', 'open']])`; the query pairs appear in the page URL.
 
 ## Examples
 
-**Example 1: User asks to set up tooljet**
+### Example 1: Self-host ToolJet for an internal team
 
-User: "Help me set up tooljet for my project"
+**User request:** "Set up ToolJet on our server at https://tools.northwind-logistics.com."
 
-The agent should:
-1. Check system requirements and prerequisites
-2. Install or configure tooljet
-3. Set up initial project structure
-4. Verify the setup works correctly
+Download the compose file and `.env` template, set `TOOLJET_HOST=https://tools.northwind-logistics.com`, generate `LOCKBOX_MASTER_KEY` and `SECRET_KEY_BASE` with `openssl rand -hex 32`, run `docker compose up -d`, and put a TLS reverse proxy in front. Opening the URL shows the sign-up or onboarding page for the first account. Check with `docker compose ps` that the containers are up.
 
-**Example 2: User asks to build a feature with tooljet**
+### Example 2: Orders dashboard with refunds
 
-User: "Create a dashboard using tooljet"
+**User request:** "Build an orders dashboard with a Refund button."
 
-The agent should:
-1. Scaffold the component or configuration
-2. Connect to the appropriate data source
-3. Implement the requested feature
-4. Test and validate the output
+In the app builder add a PostgreSQL data source, create the `getOrders` query above, drop a Table bound to `{{queries.getOrders.data}}`, add `processRefund` (an UPDATE using `{{components.ordersTable.selectedRow.id}}`), and attach the `refundSelectedOrder` Run JavaScript query to the button's On click event. Clicking Refund shows a green alert and the table reloads.
 
 ## Guidelines
 
-1. **Self-host for compliance** — ToolJet is open-source (AGPL); self-host when data must stay on your infrastructure
-2. **Query caching** — Enable query caching for frequently accessed data; reduces database load
-3. **Environments** — Use ToolJet environments (dev/staging/prod) with different database connections
-4. **Custom components** — Build React components for visualizations that don't exist in the component library
-5. **Version control** — Export apps as JSON; store in Git for versioning and backup
-6. **Granular permissions** — Use groups and app-level permissions to control access
-7. **Marketplace plugins** — Browse ToolJet's plugin marketplace for pre-built data source connectors
-8. **Audit logs** — Enable audit logging for compliance; track who accessed what data
+- ToolJet is AGPL-3.0: self-hosting is free, but modifying and offering it as a service carries source-sharing obligations; check the license against your use.
+- Back up the PostgreSQL database and the `.env` secrets; upgrade by changing the image tag and reading the release notes first.
+- Use a read-only database user for dashboards that only display data.
+- Restrict app access with ToolJet's user groups and permissions; some governance features (SSO, audit logs, git sync) depend on the edition, so confirm in the docs for your plan.
+- Query results and component state live in the browser: do not put secrets in expressions; keep them in data-source configuration.
+- Version-pin images and avoid `latest` tags in production.
+- For heavy business logic or public-facing apps, use a regular codebase; ToolJet targets internal tools.

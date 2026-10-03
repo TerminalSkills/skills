@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d183830a02a74a3c0dad45a9e99eaa0ad3cf317d37e5e50f7f5ba3fb1aa6b552",
-  "scoredAt": "2026-05-13T09:25:38.632Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:feda5d295f98a94d3dd68e1cf0f25d74e0ec577e6cf546ac42252f08182995af",
+  "scoredAt": "2026-10-03T12:04:13.258Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Assumes Docker, Linux/macOS, or Homebrew, limiting Windows compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 47,
-    "treatmentAvg": 88,
-    "multiplier": 1.87,
+    "multiplier": 1.23,
+    "baselineAvg": 74,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Self-host an OpenAI-compatible API with model config",
-        "baseline": 50,
+        "name": "secure-compose-persistent-deploy",
+        "baseline": 62,
         "treatment": 88,
-        "rationale": "Treatment uses LocalAI's specific docker-compose with GALLERIES env var, models/<name>.yaml config with backend: llama-cpp and template block, and shows the exact /models/apply gallery API; baseline gives generic llama.cpp/Ollama setup that does not match LocalAI's config schema."
+        "rationale": "A covers every rubric item (both volumes, loopback bind, API key, THREADS=4, pinned tag, though it admits it hasn't confirmed the tag exists), while B uses `latest` and only says to pin it later, which is weaker than an explicit recommendation, though it does persist both volumes, bind to loopback, set the key and threads."
       },
       {
-        "name": "Use existing OpenAI SDK code for embeddings, images, and Whisper locally",
-        "baseline": 45,
-        "treatment": 87,
-        "rationale": "Treatment shows LocalAI as drop-in baseURL replacement with same OpenAI SDK calls for chat, embeddings (text-embedding-ada-002 alias), images (stablediffusion), and whisper-1, plus matching multi-model YAML configs; baseline glues together separate tools and does not preserve OpenAI SDK call shape."
+        "name": "custom-gguf-model-yaml",
+        "baseline": 93,
+        "treatment": 95,
+        "rationale": "Both responses meet every rubric item: name: mistral, backend: llama-cpp, top-level context_size, threads and gpu_layers: 0, the GGUF filename under parameters.model, baseURL http://localhost:8080/v1, and model 'mistral'; B states outright that these keys are top-level and not under parameters and explains that the client model must match the YAML name, while A adds extras such as f16, mmap and a template block and its note about the system role is questionable."
+      },
+      {
+        "name": "offline-embeddings-for-openai-client",
+        "baseline": 66,
+        "treatment": 90,
+        "rationale": "B matches the rubric closely: it uses the sentencetransformers backend with all-MiniLM-L6-v2, mentions the llama-cpp option, tells the user to restart the container, and verifies with a curl that returns 384. A has the right model YAML, embeddings: true and a 384-length curl check, but it never says the container needs a restart or reload to pick up the new YAML."
       }
     ]
   }

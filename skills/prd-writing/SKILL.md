@@ -1,11 +1,12 @@
 ---
 name: prd-writing
-description: Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. Produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
+description: >-
+  A method for writing a Product Requirements Document (PRD), a short spec that states the problem, success metrics, scope, user stories with acceptance criteria, edge cases, and launch criteria without dictating implementation. Use when the user asks to write, structure or review a PRD, product spec, feature brief or user stories and acceptance criteria.
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
   - prd
@@ -21,7 +22,7 @@ metadata:
 ## Overview
 
 
-Writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. This skill produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.
+A PRD is the document that aligns engineering, design and stakeholders on what to build and why. This skill gives a template that defines the problem with evidence, one primary success metric, scope and non-goals, user stories with testable acceptance criteria, edge cases, and a staged launch plan, while leaving implementation choices to engineering. It is a writing method: it needs no tools, and the product names in the template (Mixpanel, Intercom, Figma) are only examples of evidence and design sources.
 
 
 ## Instructions
@@ -204,10 +205,10 @@ As a [persona], I want to [action], so that [outcome/value].
 
 ### Good vs Bad
 
-❌ "As a user, I want a dashboard."
+Bad: "As a user, I want a dashboard."
 (No persona, no action, no outcome)
 
-✅ "As a sales manager, I want to see my team's pipeline
+Good: "As a sales manager, I want to see my team's pipeline
 in a single view, so that I can identify deals at risk
 before the weekly forecast meeting."
 
@@ -230,17 +231,17 @@ before the weekly forecast meeting."
 ## Examples
 
 
-### Example 1: Creating a prd template for a new product
+### Example 1: Creating a PRD for a new product
 
 **User request:**
 
 ```
-We're launching a project management tool for remote design teams. Help me create a prd template.
+We're launching a project management tool for remote design teams. Help me write the PRD for the first feature: shared review boards where designers pin comments on mockups.
 ```
 
-The agent applies the Prd Writing framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
+The agent first asks what it cannot infer: who the target user is, what evidence shows the pain (interviews, tickets, analytics), the one metric that defines success, and what is out of scope for v1. It then fills the template. For example, the problem becomes "Design teams in different time zones lose 2-3 days per review cycle because feedback lives in chat threads", the primary metric "median review cycle time falls from 3 days to 1.5 days within 60 days of launch", the counter-metric "weekly active reviewers does not drop", and non-goals "no version diffing, no external client access in v1". It ends with 3-5 user stories, each with a pass/fail acceptance list, plus an open-questions list for the team to settle.
 
-### Example 2: Reviewing a draft PRD for completeness
+### Example 2: Reviewing a draft PRD
 
 **User request:**
 
@@ -248,8 +249,7 @@ The agent applies the Prd Writing framework, asking clarifying questions about t
 Here's our PRD for the new team permissions feature. Review it for missing edge cases and unclear requirements.
 ```
 
-The agent analyzes the existing work against PRD writing best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
-
+The agent reads the draft against the template and returns a findings list, not a rewrite: for instance "no primary metric (only 'improve security')", "acceptance criterion 'permissions load quickly' is not testable; propose 'the permissions page renders in under 1 second for 500 members'", "edge cases missing: the last admin removes their own role, a user belongs to two teams with conflicting roles, an invited user has no account yet", and "no rollback plan". Each finding names the section and gives a concrete replacement text.
 
 ## Guidelines
 
@@ -261,3 +261,4 @@ The agent analyzes the existing work against PRD writing best practices, identif
 6. **Feature flags for rollout** — Always plan a gradual rollout with rollback; never launch to 100% on day one
 7. **Counter-metrics** — Define metrics you don't want to hurt; optimization without constraints leads to gaming
 8. **Living document** — PRDs evolve; update as you learn during development; the final PRD should reflect what was actually built
+9. **AI-feature PRDs need an evaluation plan** — If the feature uses an LLM, add acceptance criteria that can be measured on a test set (for example, 90% of 200 sampled answers judged correct by two reviewers), plus fallback behavior when the model is wrong or unavailable

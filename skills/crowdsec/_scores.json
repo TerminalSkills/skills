@@ -1,63 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b6e8ee2fcb95e189e18004e3fb38ec9c0bcce09a68d57d1edf6d817b1570a49b",
-  "scoredAt": "2026-05-13T16:08:45.000Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:b76c10662920743ae5597dc35c747c9dd5da1449dffebf47d745e4d2867dd636",
+  "scoredAt": "2026-10-03T12:59:26.638Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
-      "examples": "FAIL"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Completeness: does not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "CrossPlatform: assumes Linux environment, not cross-platform."
-      },
-      {
-        "severity": "HIGH",
-        "category": "examples",
-        "detail": "Examples: lacks realistic examples beyond code snippets."
+        "detail": "Installation steps and commands are Debian/Ubuntu-centric (apt, systemctl, sudo) and RHEL, FreeBSD and Windows are only mentioned in passing without commands, despite the compatibility claim."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl|bash",
-        "detail": "Uses curl piped to bash without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 1.5,
-    "baselineAvg": 50,
-    "treatmentAvg": 75,
+    "multiplier": 1.07,
+    "baselineAvg": 81,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "docker-compose-crowdsec-nginx-bouncer",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response A partially meets the rubric but uses incorrect COLLECTIONS values, while Response B provides no content."
+        "name": "ssh-brute-force-ban-ubuntu",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both install the engine plus nftables bouncer, install the sshd collection, reload via systemctl, and use cscli explain with --type syslog plus cscli decisions list; A adds a burst test, journald fallback, and bouncer verification, while B is more concise but also correct and covers the rubric items fully."
       },
       {
-        "name": "list-blocked-ips-and-alerts",
-        "baseline": 100,
-        "treatment": 100,
-        "rationale": "Both responses correctly mention the required commands, explain their outputs, and note sudo usage; A offers more detail but both satisfy the rubric fully."
+        "name": "docker-compose-crowdsec-nginx",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": ""
+      },
+      {
+        "name": "remote-bouncer-allowlist-manual-ban",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both cover all four rubric items (bouncer key, YAML api_url/api_key, allowlist create/add, 24h ban, bouncers list verification), but A is more complete and runnable, with LAPI listen_uri, a firewall rule and a fallback for older versions, while B leaves the listen_uri setting to the docs and refers to a 'reference' the user never saw."
       }
     ]
   }

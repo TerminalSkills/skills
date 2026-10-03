@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, bq-cli, BigQuery, Cloud Logging, Cloud Monitoring'
 metadata:
   author: google-cloud
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - gcp
@@ -52,26 +52,29 @@ gcloud compute networks subnets update prod-subnet \
 ```
 
 ```bash
-# Route flow logs to BigQuery via a Log Sink (recommended for analysis)
-gcloud logging sinks create vpc-flow-sink \
-  bigquery.googleapis.com/projects/my-project/datasets/network_logs \
-  --log-filter='resource.type="gce_subnetwork" AND log_id("compute.googleapis.com/vpc_flows")' \
-  --use-partitioned-tables
+# Upgrade the log bucket to Log Analytics, then link it to BigQuery
+# (one-time setup; the project's _Default bucket already receives these logs)
+gcloud logging buckets update _Default --location=global --enable-analytics
+
+gcloud logging links create network_logs_link \
+  --bucket=_Default --location=global
 ```
+
+The link creates a BigQuery dataset in the same project containing a virtual view named `_AllLogs` that covers every log type in the bucket — no per-log-type sink or table management needed.
 
 ### Top-Talker Analysis (BigQuery)
 
-Always prefer **BigQuery on `_AllLogs` datasets** for volume-based queries. Cloud Logging's Logs Explorer is for spot-checking, not aggregation.
+Always prefer **BigQuery on the linked dataset's `_AllLogs` view** for volume-based queries. Cloud Logging's Logs Explorer is for spot-checking, not aggregation. Log Analytics uses snake_case column names (`json_payload`, `log_id`, `timestamp`), not the camelCase field names shown in Logs Explorer.
 
 ```sql
 -- Top 20 source→destination IP pairs by bytes (last 24 hours)
 SELECT
-  jsonPayload.connection.src_ip AS src,
-  jsonPayload.connection.dest_ip AS dst,
-  jsonPayload.connection.dest_port AS dst_port,
-  SUM(CAST(jsonPayload.bytes_sent AS INT64)) AS total_bytes,
+  json_payload.connection.src_ip AS src,
+  json_payload.connection.dest_ip AS dst,
+  json_payload.connection.dest_port AS dst_port,
+  SUM(CAST(json_payload.bytes_sent AS INT64)) AS total_bytes,
   COUNT(*) AS flows
-FROM `my-project.network_logs._AllLogs`
+FROM `my-project.network_logs_link._AllLogs`
 WHERE log_id = 'compute.googleapis.com/vpc_flows'
   AND timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)
 GROUP BY src, dst, dst_port
@@ -82,34 +85,34 @@ LIMIT 20;
 ```sql
 -- Find external egress (to non-RFC1918) by VM
 SELECT
-  jsonPayload.src_instance.vm_name AS vm,
-  jsonPayload.connection.dest_ip AS external_dst,
-  SUM(CAST(jsonPayload.bytes_sent AS INT64)) / POW(1024, 3) AS gb_sent
-FROM `my-project.network_logs._AllLogs`
+  json_payload.src_instance.vm_name AS vm,
+  json_payload.connection.dest_ip AS external_dst,
+  SUM(CAST(json_payload.bytes_sent AS INT64)) / POW(1024, 3) AS gb_sent
+FROM `my-project.network_logs_link._AllLogs`
 WHERE log_id = 'compute.googleapis.com/vpc_flows'
-  AND NOT NET.IP_IN_NET(jsonPayload.connection.dest_ip, '10.0.0.0/8')
-  AND NOT NET.IP_IN_NET(jsonPayload.connection.dest_ip, '172.16.0.0/12')
-  AND NOT NET.IP_IN_NET(jsonPayload.connection.dest_ip, '192.168.0.0/16')
+  AND NOT NET.IP_IN_NET(json_payload.connection.dest_ip, '10.0.0.0/8')
+  AND NOT NET.IP_IN_NET(json_payload.connection.dest_ip, '172.16.0.0/12')
+  AND NOT NET.IP_IN_NET(json_payload.connection.dest_ip, '192.168.0.0/16')
   AND DATE(timestamp) = CURRENT_DATE()
 GROUP BY vm, external_dst
 ORDER BY gb_sent DESC
 LIMIT 50;
 ```
 
-If the query returns NULL VM names, the subnet has `EXCLUDE_ALL_METADATA` set. Retry using `jsonPayload.connection.src_ip` as the join key.
+If the query returns NULL VM names, the subnet has `EXCLUDE_ALL_METADATA` set. Retry using `json_payload.connection.src_ip` as the join key.
 
 ### Firewall DENY Analysis
 
 ```sql
 -- Top denied connection attempts (firewall rule + source IP)
 SELECT
-  jsonPayload.rule_details.reference AS rule,
-  jsonPayload.connection.src_ip AS src,
-  jsonPayload.connection.dest_port AS port,
+  json_payload.rule_details.reference AS rule,
+  json_payload.connection.src_ip AS src,
+  json_payload.connection.dest_port AS port,
   COUNT(*) AS hits
-FROM `my-project.network_logs._AllLogs`
+FROM `my-project.network_logs_link._AllLogs`
 WHERE log_id = 'compute.googleapis.com/firewall'
-  AND jsonPayload.disposition = 'DENIED'
+  AND json_payload.disposition = 'DENIED'
   AND timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR)
 GROUP BY rule, src, port
 ORDER BY hits DESC
@@ -139,10 +142,10 @@ Connectivity Tests answer reachability questions deterministically — no log di
 ```sql
 -- Find which VMs are saturating NAT ports
 SELECT
-  jsonPayload.endpoint.vm_name AS vm,
+  json_payload.endpoint.vm_name AS vm,
   COUNT(*) AS allocations,
-  COUNTIF(jsonPayload.allocation_status = 'DROPPED') AS dropped
-FROM `my-project.network_logs._AllLogs`
+  COUNTIF(json_payload.allocation_status = 'DROPPED') AS dropped
+FROM `my-project.network_logs_link._AllLogs`
 WHERE log_id = 'compute.googleapis.com/nat_flows'
   AND timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 MINUTE)
 GROUP BY vm
@@ -193,6 +196,6 @@ User sees a $4k spike in egress charges for the month. Query VPC Flow Logs in Bi
 - **Treat `0` / `null` / `no traffic` as a conclusive answer** — don't search for "more interesting" data
 - For routine reachability questions, **Connectivity Tests beat log mining** every time
 - Enable VPC Flow Logs at 0.5–1.0 sampling for active troubleshooting; 0.05–0.1 for baseline
-- Route to BigQuery via Log Sink — Cloud Logging retention costs add up at high volume
+- Link the log bucket to BigQuery via Log Analytics rather than a classic export sink — one `_AllLogs` view covers every log type, instead of managing a separate per-log-type table
 - Watch `EXCLUDE_ALL_METADATA` subnets — VM names will be NULL, fall back to IPs
 - For NAT port exhaustion, increase `min-ports-per-vm` or scale NAT IPs before app changes

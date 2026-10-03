@@ -1,26 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ebe9b57516ec358b2c17739cceaa0f45ea2003b64bae353bb6b8530a9b70cb9f",
-  "scoredAt": "2026-05-13T10:10:56.567Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4912762586354372268db75e502463b631d8d8e88b1b4baccf2b5cb77e34b4db",
+  "scoredAt": "2026-10-03T13:13:19.973Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as failed scans or non-vulnerable targets."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

@@ -11,9 +11,10 @@ license: Apache-2.0
 compatibility: "PostgreSQL. Clients: React, React Native, Expo, any HTTP client."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["sync", "local-first", "offline", "postgres", "real-time"]
+  repository: https://github.com/electric-sql/electric
 ---
 
 # ElectricSQL
@@ -52,12 +53,15 @@ npm install @electric-sql/react
  */
 import { ShapeStream } from "@electric-sql/client";
 
-// Sync all todos for a specific user
+// Sync all todos for a specific user — use a parameterized `where`
+// (positional $1, $2, ... in `params.params`), never string-interpolate
+// a value into the clause itself.
 const stream = new ShapeStream({
   url: "http://localhost:3000/v1/shape",
   params: {
     table: "todos",
-    where: `user_id = '${userId}'`,
+    where: "user_id = $1",
+    params: [userId],
   },
 });
 
@@ -90,7 +94,8 @@ export function TodoList({ userId }: { userId: string }) {
     url: "http://localhost:3000/v1/shape",
     params: {
       table: "todos",
-      where: `user_id = '${userId}'`,
+      where: "user_id = $1",
+      params: [userId],
       columns: ["id", "title", "completed", "created_at"],
     },
   });
@@ -184,7 +189,7 @@ The agent will configure Electric shapes for dashboard metrics, subscribe to rea
 - **Shapes define what syncs** — sync subsets of data, not entire tables
 - **Reads are instant** — data is local, no network round-trip
 - **Writes go through your API** — Electric syncs the result back to all clients
-- **`where` for filtering** — only sync data the user should see
+- **`where` for filtering** — only sync data the user should see; pass values through the positional `params` array (`where: "user_id = $1"`, `params: [userId]`), never string-interpolate a value into the `where` clause — Electric's HTTP API parses it as SQL and an interpolated value is a SQL-injection vector
 - **`columns` for projection** — reduce sync payload to needed fields
 - **Postgres is the source of truth** — Electric reads the WAL (Write-Ahead Log)
 - **No schema changes needed** — works with your existing Postgres schema

@@ -1,59 +1,54 @@
 ---
 name: tiled
 description: >-
-  You are an expert in Tiled, the free and open-source 2D level editor for
-  creating tilemaps, placing objects, and designing game worlds. You help game
-  developers design levels with tile layers, object layers for spawn points
-  and triggers, terrain brushes for auto-tiling, animated tiles, and custom
-  properties — exporting to JSON or TMX for use in Phaser, Godot, Unity,
-  PixiJS, and other engines.
+  Tiled is a free, open-source 2D level editor for building tilemaps,
+  placing game objects, and designing levels, exporting to JSON (.tmj) or
+  TMX (.tmx) for engines like Phaser, Godot, and Unity. Use when a user wants
+  to design a tile-based game level, set up tile and object layers, build
+  auto-tiling terrain brushes, animate tiles, attach custom properties to
+  tiles or objects, or load a Tiled map into a game engine.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Tiled 1.10+ desktop editor (Windows/macOS/Linux); maps load into Phaser, Godot, Unity, PixiJS, or a custom engine"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Game Development
+  version: "1.1.0"
+  category: development
   tags:
+    - tiled
     - level-editor
     - tilemap
-    - game-design
-    - 2d
-    - map-editor
+    - game-development
     - phaser
-    - godot
+  repository: https://github.com/mapeditor/tiled
 ---
 
 # Tiled — 2D Level Editor for Game Maps
 
-You are an expert in Tiled, the free and open-source 2D level editor for creating tilemaps, placing objects, and designing game worlds. You help game developers design levels with tile layers, object layers for spawn points and triggers, terrain brushes for auto-tiling, animated tiles, and custom properties — exporting to JSON or TMX for use in Phaser, Godot, Unity, PixiJS, and other engines.
+## Overview
 
-## Core Capabilities
+Tiled is a standalone desktop editor for building 2D tile-based maps: tile layers for rendering (ground, walls, decoration), object layers for free-form game logic (spawn points, triggers, paths), image layers for full backgrounds, and group layers for organizing all of these. It exports to its own JSON (`.tmj`) and XML (`.tmx`) formats, plus tileset companions (`.tsj`/`.tsx`), which any game engine's Tiled loader (Phaser, Godot's TileMap importer, Unity via a plugin, PixiJS) can read directly — Tiled itself has no runtime, it only authors the data.
 
-### Tilemap Structure
+## Instructions
 
-```markdown
-## Tiled Map Anatomy
+### Install
 
-A Tiled map consists of:
-- **Tilesets**: Sprite sheets cut into tiles (16×16, 32×32, etc.)
-- **Tile layers**: Grid of tile IDs for rendering (ground, walls, decorations)
-- **Object layers**: Free-form shapes for game logic (spawn points, triggers, paths)
-- **Image layers**: Full images (parallax backgrounds, overlays)
-- **Group layers**: Organize layers into folders
+Download the editor for Windows, macOS, or Linux from https://www.mapeditor.org/download.html, or install it from Steam or itch.io. There is no package-manager install for the desktop app on most platforms (Flathub ships a Linux build: `flatpak install flathub org.mapeditor.Tiled`).
 
-## Layer ordering (bottom to top):
+### Map anatomy and layer order
+
+A Tiled map is a stack of layers, bottom to top:
+
 1. Background (sky, distant mountains)
 2. Ground (floor tiles, terrain)
-3. Decoration-below (grass, flowers behind player)
-4. Collision (invisible wall tiles)
-5. Decoration-above (tree canopies, roofs over player)
-6. Objects (spawn points, items, triggers)
-```
+3. Decoration-below (grass, flowers behind the player)
+4. Collision (invisible wall tiles, usually with a `collides` custom property)
+5. Decoration-above (tree canopies, roofs over the player)
+6. Objects (spawn points, items, triggers — on an object layer, not a tile layer)
 
-### Tileset Configuration
+### Tileset with custom properties and animation
 
-```json
-// tileset.tsj — Tiled tileset file
+```jsonc
+// dungeon.tsj — Tiled tileset, JSON format
 {
   "name": "dungeon",
   "tilewidth": 16,
@@ -67,9 +62,7 @@ A Tiled map consists of:
     {
       "id": 0,
       "type": "floor",
-      "properties": [
-        { "name": "walkable", "type": "bool", "value": true }
-      ]
+      "properties": [{ "name": "walkable", "type": "bool", "value": true }]
     },
     {
       "id": 16,
@@ -93,78 +86,30 @@ A Tiled map consists of:
 }
 ```
 
-### Object Layers for Game Logic
+### Auto-tiling with terrain sets
 
-```json
-// Objects in a Tiled map — exported as JSON
-{
-  "name": "GameObjects",
-  "type": "objectgroup",
-  "objects": [
-    {
-      "name": "PlayerSpawn",
-      "type": "spawn",
-      "x": 160,
-      "y": 240,
-      "properties": [
-        { "name": "facing", "type": "string", "value": "right" }
-      ]
-    },
-    {
-      "name": "Chest",
-      "type": "loot",
-      "x": 320,
-      "y": 112,
-      "properties": [
-        { "name": "lootTable", "type": "string", "value": "common" },
-        { "name": "locked", "type": "bool", "value": true }
-      ]
-    },
-    {
-      "name": "BossZone",
-      "type": "trigger",
-      "x": 400,
-      "y": 64,
-      "width": 128,
-      "height": 128,
-      "properties": [
-        { "name": "bossId", "type": "string", "value": "skeleton-king" },
-        { "name": "oneShot", "type": "bool", "value": true }
-      ]
-    },
-    {
-      "name": "PatrolPath",
-      "type": "path",
-      "polyline": [
-        { "x": 0, "y": 0 },
-        { "x": 96, "y": 0 },
-        { "x": 96, "y": 64 },
-        { "x": 0, "y": 64 }
-      ]
-    }
-  ]
-}
-```
+Tiled's terrain system auto-selects the right tile variant based on its neighbors:
+
+1. Open the tileset (Edit Tileset)
+2. On the tileset editor's toolbar, open Terrain Sets and add a new set — **Corner**, **Edge**, or **Mixed** (Corner and Edge need 16 tiles for a 2-terrain set; Mixed needs up to 256, though the common 47-tile "blob" layout covers the same ground with fewer tiles)
+3. Mark each tile as the corner/edge it represents for its terrain type
+4. Paint with the terrain brush — Tiled fills in the correct tile automatically at every transition
 
 ### Loading in Phaser
 
 ```typescript
-// Load Tiled map in Phaser
 export class GameScene extends Phaser.Scene {
   create() {
     const map = this.make.tilemap({ key: "level-1" });
     const tileset = map.addTilesetImage("dungeon", "dungeon-tiles")!;
 
-    // Create layers in order
-    map.createLayer("Background", tileset);
     const ground = map.createLayer("Ground", tileset)!;
     const walls = map.createLayer("Walls", tileset)!;
     const decorAbove = map.createLayer("DecorationAbove", tileset);
 
-    // Collision from tile properties
+    // Collision from the tileset's custom property, not a hardcoded tile ID list
     walls.setCollisionByProperty({ collides: true });
 
-    // Read object layer for spawn points
     const objects = map.getObjectLayer("GameObjects")!;
     objects.objects.forEach((obj) => {
       switch (obj.type) {
@@ -180,52 +125,78 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    // Decoration layer renders above player
     decorAbove?.setDepth(10);
   }
 }
 ```
 
-### Auto-Tiling (Terrain)
+## Examples
 
-```markdown
-## Terrain Brushes
+### Example 1: "Lay out a dungeon level with collision and a locked chest"
 
-Tiled's terrain system auto-selects the correct tile variant based on neighbors:
-- Paint with "grass" terrain brush
-- Tiled automatically picks corner, edge, and interior tiles
-- Supports Wang tiles (blob/corner) for complex terrain transitions
+The agent creates tile layers (`Ground`, `Walls`, `DecorationAbove`), marks wall tiles with a `collides` boolean property in the tileset, and adds an object layer `GameObjects` with a `Chest` object carrying `lootTable: "common"` and `locked: true` custom properties:
 
-## Setup:
-1. Open tileset in Tiled
-2. View → Terrain Sets
-3. Mark tiles as corners/edges of each terrain type
-4. Paint with terrain brush — Tiled handles tile selection
-
-## Common terrain patterns:
-- 16-tile minimal (corners + edges)
-- 47-tile blob (all neighbor combinations)
-- 15-tile Wang corner set
+```json
+{
+  "name": "GameObjects",
+  "type": "objectgroup",
+  "objects": [
+    {
+      "name": "Chest",
+      "type": "loot",
+      "x": 320,
+      "y": 112,
+      "properties": [
+        { "name": "lootTable", "type": "string", "value": "common" },
+        { "name": "locked", "type": "bool", "value": true }
+      ]
+    }
+  ]
+}
 ```
 
-## Installation
+The game engine reads `obj.properties.lootTable` and `obj.properties.locked` at runtime to decide what the chest drops and whether it needs a key.
 
-```bash
-# Download from https://www.mapeditor.org/
-# Available for Windows, macOS, Linux
-# Also available on Steam and itch.io
+### Example 2: "Give an enemy a patrol route and a boss arena trigger"
 
-# Export formats: JSON (.tmj), TMX (.tmx), CSV, Lua
-# Most game engines prefer JSON export
+The agent adds a `polyline`-type object for the patrol path and a rectangular trigger zone object with custom properties identifying which boss to spawn:
+
+```json
+{
+  "objects": [
+    {
+      "name": "PatrolPath",
+      "type": "path",
+      "polyline": [
+        { "x": 0, "y": 0 },
+        { "x": 96, "y": 0 },
+        { "x": 96, "y": 64 },
+        { "x": 0, "y": 64 }
+      ]
+    },
+    {
+      "name": "BossZone",
+      "type": "trigger",
+      "x": 400,
+      "y": 64,
+      "width": 128,
+      "height": 128,
+      "properties": [
+        { "name": "bossId", "type": "string", "value": "skeleton-king" },
+        { "name": "oneShot", "type": "bool", "value": true }
+      ]
+    }
+  ]
+}
 ```
 
-## Best Practices
+The engine walks the enemy along `PatrolPath`'s points and spawns `skeleton-king` once when the player enters `BossZone`, gating the trigger with `oneShot` so it doesn't refire.
 
-1. **Consistent tile size** — 16×16 for pixel art, 32×32 or 48×48 for HD; match your art pipeline
-2. **Separate collision layer** — Don't mix visual tiles with collision; use a dedicated invisible collision layer
-3. **Object layers for logic** — Spawn points, triggers, loot, paths belong in object layers with custom properties
-4. **Custom properties** — Attach metadata to tiles and objects (damage, lootTable, dialogId); read in engine
-5. **Terrain brushes** — Set up terrains for any tile transition (grass/dirt, water/land); saves hours of manual placement
-6. **Layer groups** — Organize complex maps into groups (Background, Gameplay, Foreground, Debug)
-7. **Tile animations** — Define animations in tileset (torches, water, flags); Phaser plays them automatically
-8. **Export as JSON** — JSON is supported by all major engines and is easy to parse in custom engines
+## Guidelines
+
+- Keep a dedicated, invisible collision layer separate from visual tiles — mixing them makes both art and hitboxes harder to edit.
+- Put game logic (spawn points, triggers, loot, paths) on object layers with custom properties, not encoded as magic tile IDs on a tile layer.
+- Match tile size to the art pipeline (16×16 for pixel art is common; 32×32 or 48×48 for higher-resolution art) — mixing tile sizes inside one tileset is not supported.
+- Export JSON (`.tmj`) rather than TMX (`.tmx`) unless the target engine specifically wants XML — JSON is easier to parse in a custom loader and is what most engine importers expect by default.
+- Terrain/auto-tiling setup has a real cost in tiles drawn up front (up to 256 for a full Mixed set); the 47-tile blob layout is the usual practical compromise over a full Mixed set.
+- Tiled is an authoring tool only — it has no runtime of its own, so a map export is only useful once the target engine's Tiled loader (Phaser's `Tilemaps`, Godot's TileMap import, a Unity plugin, etc.) is in place.

@@ -9,12 +9,13 @@ description: >-
   templating, theme development, Storefront/Admin APIs, custom apps, checkout
   extensions, and Hydrogen (React-based headless).
 license: Apache-2.0
-compatibility: "Liquid (themes). Node.js/Ruby (apps). React/Remix (Hydrogen). Shopify CLI."
+compatibility: "Liquid (themes). Node.js 22.12+ and Git 2.28+ for Shopify CLI. React (Hydrogen)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
-  tags: ["shopify", "ecommerce", "liquid", "storefront", "hydrogen", "themes"]
+  tags: ["shopify", "ecommerce", "liquid", "storefront", "hydrogen"]
+  repository: "https://github.com/Shopify/cli"
 ---
 
 # Shopify
@@ -37,10 +38,11 @@ Shopify is the leading e-commerce platform — from simple stores to enterprise.
 
 ```bash
 # Install Shopify CLI
-npm install -g @shopify/cli @shopify/theme
-shopify theme init my-theme
-cd my-theme
-shopify theme dev  # Local development with hot reload
+npm install -g @shopify/cli@latest   # needs Node.js 22.12+ and Git 2.28+
+shopify theme init            # clones the Dawn reference theme; asks for a name
+cd dawn                       # or the folder name you chose
+shopify theme dev --store my-store.myshopify.com   # local preview with hot reload (asks you to log in)
+shopify theme push --unpublished --theme "Redesign test"   # upload as a new unpublished theme
 ```
 
 #### Theme Structure
@@ -51,15 +53,16 @@ my-theme/
 │   └── theme.liquid          # Main layout (wraps all pages)
 ├── templates/
 │   ├── index.json            # Homepage (JSON template)
-│   ├── product.liquid        # Product page
-│   ├── collection.liquid     # Collection page
-│   ├── cart.liquid            # Cart page
-│   └── page.liquid            # Generic page
+│   ├── product.json          # Product page (JSON template listing sections)
+│   ├── collection.json       # Collection page
+│   ├── cart.json             # Cart page
+│   └── page.json             # Generic page
 ├── sections/
 │   ├── header.liquid          # Header section (customizable in admin)
 │   ├── hero-banner.liquid     # Hero banner section
 │   ├── featured-products.liquid
 │   └── footer.liquid
+├── blocks/                    # Optional: reusable theme blocks (*.liquid)
 ├── snippets/
 │   ├── product-card.liquid    # Reusable product card
 │   └── price.liquid           # Price display with compare-at
@@ -97,66 +100,18 @@ my-theme/
 {
   "name": "Hero Banner",
   "settings": [
-    {
-      "type": "image_picker",
-      "id": "image",
-      "label": "Background Image"
-    },
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Heading",
-      "default": "Welcome to our store"
-    },
-    {
-      "type": "richtext",
-      "id": "text",
-      "label": "Description"
-    },
-    {
-      "type": "text",
-      "id": "button_text",
-      "label": "Button Text"
-    },
-    {
-      "type": "url",
-      "id": "button_link",
-      "label": "Button Link"
-    }
+    { "type": "image_picker", "id": "image", "label": "Background Image" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Welcome to our store" },
+    { "type": "richtext", "id": "text", "label": "Description" },
+    { "type": "text", "id": "button_text", "label": "Button Text" },
+    { "type": "url", "id": "button_link", "label": "Button Link" }
   ],
-  "presets": [
-    {
-      "name": "Hero Banner"
-    }
-  ]
+  "presets": [{ "name": "Hero Banner" }]
 }
 {% endschema %}
 ```
 
-```liquid
-{% comment %} sections/featured-products.liquid — Dynamic product grid {% endcomment %}
-
-<section class="featured-products">
-  <h2>{{ section.settings.title }}</h2>
-  <div class="product-grid">
-    {% for product in section.settings.collection.products limit: section.settings.limit %}
-      {% render 'product-card', product: product %}
-    {% endfor %}
-  </div>
-</section>
-
-{% schema %}
-{
-  "name": "Featured Products",
-  "settings": [
-    { "type": "text", "id": "title", "label": "Section Title", "default": "Featured Products" },
-    { "type": "collection", "id": "collection", "label": "Collection" },
-    { "type": "range", "id": "limit", "label": "Products to show", "min": 2, "max": 12, "step": 1, "default": 4 }
-  ],
-  "presets": [{ "name": "Featured Products" }]
-}
-{% endschema %}
-```
+Collections and products are picked with `collection` and `product` setting types, then looped with `{% for product in section.settings.collection.products limit: 4 %}{% render 'product-card', product: product %}{% endfor %}`.
 
 ```liquid
 {% comment %} snippets/product-card.liquid — Reusable product card {% endcomment %}
@@ -192,44 +147,17 @@ my-theme/
 
 #### Theme Settings (Staff-Editable)
 
-```json
-// config/settings_schema.json — Theme customization panel
-[
-  {
-    "name": "Colors",
-    "settings": [
-      { "type": "color", "id": "color_primary", "label": "Primary Color", "default": "#000000" },
-      { "type": "color", "id": "color_secondary", "label": "Secondary Color", "default": "#333333" },
-      { "type": "color", "id": "color_accent", "label": "Accent Color", "default": "#0066cc" }
-    ]
-  },
-  {
-    "name": "Typography",
-    "settings": [
-      { "type": "font_picker", "id": "font_heading", "label": "Heading Font", "default": "helvetica_n7" },
-      { "type": "font_picker", "id": "font_body", "label": "Body Font", "default": "helvetica_n4" }
-    ]
-  },
-  {
-    "name": "Social Media",
-    "settings": [
-      { "type": "text", "id": "social_instagram", "label": "Instagram URL" },
-      { "type": "text", "id": "social_facebook", "label": "Facebook URL" },
-      { "type": "text", "id": "social_tiktok", "label": "TikTok URL" }
-    ]
-  }
-]
-```
+Global options (colors, fonts, social links) live in `config/settings_schema.json` as groups of settings, for example `{ "name": "Colors", "settings": [{ "type": "color", "id": "color_primary", "label": "Primary Color", "default": "#000000" }] }`. Read them in Liquid as `settings.color_primary`.
 
 ### Storefront API (Headless)
 
 ```typescript
-// lib/shopify.ts — Query Shopify Storefront API
+// lib/shopify.ts — Query Shopify Storefront API (pin an API version; new ones ship quarterly, each supported 12+ months)
 const SHOPIFY_DOMAIN = "my-store.myshopify.com";
 const STOREFRONT_TOKEN = process.env.SHOPIFY_STOREFRONT_TOKEN;
 
 async function shopifyQuery(query: string, variables?: Record<string, any>) {
-  const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/2024-10/graphql.json`, {
+  const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/2026-10/graphql.json`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -262,14 +190,18 @@ const { data } = await shopifyQuery(`
 `, { first: 12 });
 ```
 
+Checkout runs through the cart: create one with `cartCreate` (lines of `merchandiseId` + `quantity`), then send the buyer to the returned `cart.checkoutUrl`. The old Checkout mutations are gone.
+
 ### Admin API (Backend/Apps)
+
+Admin API is GraphQL; the REST Admin API is legacy and new public apps must use GraphQL. Scaffold an app with `shopify app init`. Apps created in the Dev Dashboard get a token by POSTing `grant_type=client_credentials`, `client_id` and `client_secret` to `https://my-store.myshopify.com/admin/oauth/access_token` (works when app and store are in the same organization; the token lasts 24 hours, so cache and refresh it). Never ship the token to the browser.
 
 ```typescript
 // admin/products.ts — Manage products via Admin API
 const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_TOKEN;
 
 async function adminQuery(query: string, variables?: Record<string, any>) {
-  const res = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2024-10/graphql.json`, {
+  const res = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2026-10/graphql.json`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -282,22 +214,32 @@ async function adminQuery(query: string, variables?: Record<string, any>) {
 
 // Create a product
 await adminQuery(`
-  mutation CreateProduct($input: ProductInput!) {
-    productCreate(input: $input) {
+  mutation CreateProduct($product: ProductCreateInput!) {
+    productCreate(product: $product) {
       product { id title }
       userErrors { field message }
     }
   }
 `, {
-  input: {
-    title: "New Product",
-    bodyHtml: "<p>Product description</p>",
-    vendor: "My Brand",
+  product: {
+    title: "Merino Beanie",
+    descriptionHtml: "<p>Soft merino wool beanie.</p>",
+    vendor: "Northwind Knits",
     productType: "Accessories",
     tags: ["new", "featured"],
   },
 });
+// New products start unpublished: publish them with publishablePublish.
 ```
+
+### Headless with Hydrogen
+
+```bash
+npm create @shopify/hydrogen@latest -- --quickstart   # scaffolds a storefront with product, collection, cart and search routes
+cd hydrogen-quickstart && shopify hydrogen dev        # http://localhost:3000
+```
+
+Hydrogen is Shopify's React framework for Storefront API storefronts, deployed to Oxygen or any Node host.
 
 ### Cart with JavaScript (Ajax API)
 
@@ -313,16 +255,7 @@ async function addToCart(variantId, quantity = 1) {
   updateCartUI(cart);
 }
 
-async function updateQuantity(lineItemKey, quantity) {
-  const res = await fetch("/cart/change.js", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: lineItemKey, quantity }),
-  });
-  const cart = await res.json();
-  updateCartUI(cart);
-}
-
+// /cart/change.js takes { id: lineItemKey, quantity } to update a line
 async function getCart() {
   const res = await fetch("/cart.js");
   return res.json();
@@ -355,11 +288,12 @@ The agent will set up Storefront API queries for products/collections/cart, hand
 - **JSON templates** — use `templates/*.json` for drag-and-drop section ordering
 - **Snippets for reusability** — `{% render 'product-card', product: product %}`
 - **Ajax API for cart** — `/cart/add.js`, `/cart/change.js`, `/cart.js` for no-reload cart
-- **Storefront API for headless** — GraphQL, read-only, public token
-- **Admin API for apps** — GraphQL/REST, private token, full CRUD
+- **Storefront API for headless** — GraphQL, buyer-facing, public token
+- **Admin API for apps** — GraphQL, secret token kept server-side, full CRUD
 - **Image optimization** — always use `| image_url: width: X` filter
 - **Metafields for custom data** — extend products/pages with custom fields
 - **Theme settings for global config** — colors, fonts, social links in `settings_schema.json`
 - **`shopify theme dev` for local development** — hot reload, sync with store
-- **Checkout is managed by Shopify** — customize only via checkout extensions (Shopify Plus)
+- **Checkout is managed by Shopify** — `checkout.liquid` is gone; customize with checkout UI extensions and Shopify Functions
+- **Pin an API version** and bump it each quarter; retired versions silently fall forward
 - **Staff training** — sections + settings make themes self-service for non-devs

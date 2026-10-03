@@ -1,60 +1,58 @@
 ---
 name: wasm
 description: >-
-  You are an expert in WebAssembly, the binary instruction format for
-  stack-based virtual machines. You help developers compile Rust, C, C++, Go,
-  and AssemblyScript to WASM for near-native performance in browsers, edge
-  functions, and serverless environments — building image/video processing,
-  games, crypto, AI inference, and compute-intensive tools that run 10-100x
-  faster than JavaScript.
+  Compile Rust, C/C++, Go, or AssemblyScript to WebAssembly (WASM) for
+  near-native performance in browsers, edge functions, and serverless
+  runtimes. Use when a user asks to compile code to WASM, speed up a
+  CPU-heavy browser task (image/video processing, codecs, physics, crypto),
+  run WASM outside the browser with WASI, or deploy a WASM module to
+  Cloudflare Workers or Fastly Compute.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'Rust toolchain, Node.js 18+, or a C/C++ toolchain depending on source language'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Developer Tools
+  version: "1.1.0"
+  category: development
   tags:
     - webassembly
     - performance
     - browser
     - rust
-    - c++
-    - portable
-    - edge
+    - wasi
 ---
 
-# WebAssembly (WASM) — Near-Native Performance in the Browser
+# WebAssembly (WASM)
 
-You are an expert in WebAssembly, the binary instruction format for stack-based virtual machines. You help developers compile Rust, C, C++, Go, and AssemblyScript to WASM for near-native performance in browsers, edge functions, and serverless environments — building image/video processing, games, crypto, AI inference, and compute-intensive tools that run 10-100x faster than JavaScript.
+## Overview
 
-## Core Capabilities
+WebAssembly is a binary instruction format for a stack-based virtual machine, designed as a portable compile target for languages like Rust, C/C++, and Go. Browsers and WASM runtimes (Wasmtime, Wasmer) run it at near-native speed, which makes it the right tool for CPU-heavy work — image/video processing, codecs, physics, crypto, parsing — that would otherwise be slow in JavaScript. WASM is not a replacement for JavaScript or DOM manipulation; it complements JS for the computational hot path.
 
-### Rust → WASM
+## Instructions
+
+### Rust → WASM (most mature toolchain)
+
+```bash
+cargo install wasm-pack
+rustup target add wasm32-unknown-unknown
+```
 
 ```rust
-// src/lib.rs — Rust compiled to WASM
+// src/lib.rs
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn fibonacci(n: u32) -> u64 {
-    match n {
-        0 => 0,
-        1 => 1,
-        _ => {
-            let mut a: u64 = 0;
-            let mut b: u64 = 1;
-            for _ in 2..=n {
-                let tmp = a + b;
-                a = b;
-                b = tmp;
-            }
-            b
-        }
+    let (mut a, mut b) = (0u64, 1u64);
+    for _ in 0..n {
+        let tmp = a + b;
+        a = b;
+        b = tmp;
     }
+    a
 }
 
 #[wasm_bindgen]
-pub fn process_image(pixels: &[u8], width: u32, height: u32) -> Vec<u8> {
+pub fn to_grayscale(pixels: &[u8]) -> Vec<u8> {
     let mut output = Vec::with_capacity(pixels.len());
     for chunk in pixels.chunks(4) {
         let gray = (0.299 * chunk[0] as f32 + 0.587 * chunk[1] as f32 + 0.114 * chunk[2] as f32) as u8;
@@ -62,120 +60,80 @@ pub fn process_image(pixels: &[u8], width: u32, height: u32) -> Vec<u8> {
     }
     output
 }
-
-#[wasm_bindgen]
-pub struct ImageProcessor {
-    width: u32,
-    height: u32,
-    data: Vec<u8>,
-}
-
-#[wasm_bindgen]
-impl ImageProcessor {
-    #[wasm_bindgen(constructor)]
-    pub fn new(width: u32, height: u32) -> Self {
-        Self { width, height, data: vec![0; (width * height * 4) as usize] }
-    }
-
-    pub fn blur(&mut self, radius: u32) {
-        // Gaussian blur implementation — 50x faster than JS Canvas API
-        let kernel_size = (radius * 2 + 1) as usize;
-        // ... optimized blur using SIMD when available
-    }
-
-    pub fn data_ptr(&self) -> *const u8 { self.data.as_ptr() }
-    pub fn data_len(&self) -> usize { self.data.len() }
-}
 ```
 
 ```bash
-# Build with wasm-pack
-cargo install wasm-pack
-wasm-pack build --target web              # For browser
-wasm-pack build --target bundler          # For webpack/vite
-wasm-pack build --target nodejs           # For Node.js
+wasm-pack build --target web       # for direct <script type="module"> use in a browser
+wasm-pack build --target bundler   # for webpack/vite
+wasm-pack build --target nodejs    # for Node.js require()
 ```
 
-### JavaScript Integration
+`wasm-pack` writes the compiled module plus a JS/TypeScript loader into `pkg/`.
 
-```typescript
-// Use WASM from JavaScript
-import init, { fibonacci, process_image, ImageProcessor } from "./pkg/my_wasm.js";
+### Using the module from JavaScript
 
-await init();                             // Initialize WASM module
+```javascript
+import init, { fibonacci, to_grayscale } from "./pkg/image_tools.js";
 
-// Simple function call
-const result = fibonacci(50);             // ~0.001ms vs ~10ms in JS
+await init(); // fetches and instantiates the .wasm file
 
-// Image processing
-const canvas = document.querySelector("canvas")!;
-const ctx = canvas.getContext("2d")!;
+const result = fibonacci(50);
+
+const canvas = document.querySelector("canvas");
+const ctx = canvas.getContext("2d");
 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-const processed = process_image(imageData.data, canvas.width, canvas.height);
-const output = new ImageData(new Uint8ClampedArray(processed), canvas.width, canvas.height);
-ctx.putImageData(output, 0, 0);
-
-// Class instance
-const processor = new ImageProcessor(1920, 1080);
-processor.blur(5);
-
-// Shared memory for zero-copy (advanced)
-const memory = new WebAssembly.Memory({ initial: 256, maximum: 512, shared: true });
+const gray = to_grayscale(imageData.data);
+ctx.putImageData(new ImageData(new Uint8ClampedArray(gray), canvas.width, canvas.height), 0, 0);
 ```
 
-### AssemblyScript (TypeScript-like)
+### AssemblyScript (TypeScript-like syntax)
+
+```bash
+npm install --save-dev assemblyscript
+npx asinit .
+```
 
 ```typescript
-// assembly/index.ts — TypeScript syntax → WASM
-export function add(a: i32, b: i32): i32 {
-  return a + b;
-}
-
-export function sum(arr: Int32Array): i32 {
+// assembly/index.ts
+export function sum(values: Int32Array): i32 {
   let total: i32 = 0;
-  for (let i = 0; i < arr.length; i++) {
-    total += unchecked(arr[i]);           // Skip bounds check for performance
+  for (let i = 0; i < values.length; i++) {
+    total += unchecked(values[i]); // skip bounds check for speed
   }
   return total;
 }
-
-// Build: npx asc assembly/index.ts --outFile build/module.wasm --optimize
 ```
-
-### WASI (Server-Side WASM)
 
 ```bash
-# Run WASM outside browsers with WASI
-wasmtime run my_program.wasm              # Bytecode Alliance runtime
-wasmer run my_program.wasm                # Wasmer runtime
-
-# Edge computing (Cloudflare Workers, Fastly Compute)
-# WASM modules run at the edge with near-native speed
+npx asc assembly/index.ts --target release --outFile build/release.wasm
 ```
 
-## Installation
+### Running WASM outside the browser (WASI)
 
 ```bash
-# Rust → WASM
-cargo install wasm-pack
-rustup target add wasm32-unknown-unknown
-
-# AssemblyScript
-npm install -D assemblyscript
-npx asc --init
-
-# WASM runtimes
-brew install wasmtime                      # Server-side WASM
-brew install wasmer                        # Alternative runtime
+cargo install wasmtime-cli   # or: brew install wasmtime
+wasmtime run build/release.wasm
 ```
 
-## Best Practices
+Edge platforms (Cloudflare Workers, Fastly Compute) accept the same `.wasm` binary and run it at the edge with the platform's own WASI-compatible host, so no separate build is usually needed beyond what the platform's CLI (`wrangler`, `fastly`) expects.
 
-1. **Use for compute** — WASM excels at CPU-intensive tasks (image processing, crypto, parsing, physics); don't use for DOM manipulation
-2. **Rust is the best fit** — Rust has the most mature WASM toolchain (wasm-bindgen, wasm-pack); smallest binaries, no GC
-3. **Minimize JS↔WASM calls** — Cross-boundary calls have overhead; batch data and process in WASM, return results
-4. **SharedArrayBuffer** — Use shared memory for large data (images, audio); avoid copying between JS and WASM
-5. **wasm-opt for size** — Run `wasm-opt -O3` on output; typically reduces binary size 10-30%
-6. **Streaming compilation** — Use `WebAssembly.compileStreaming(fetch(...))` for fastest loading; compiles while downloading
-7. **WASI for portability** — Target WASI for server-side WASM; runs on Cloudflare, Fastly, Wasmtime, Wasmer
-8. **Feature detection** — Check `typeof WebAssembly === "object"` before loading; fall back to JS for unsupported browsers
+## Examples
+
+### Example 1: "Our in-browser image filter is too slow in JavaScript — can we speed it up?"
+
+Write the grayscale/blur logic in Rust with `wasm-bindgen`, build it with `wasm-pack build --target web`, and call `to_grayscale()` from the canvas pipeline as shown above. Moving the per-pixel loop into WASM typically cuts a multi-megapixel filter from several hundred milliseconds in JS to under 20ms, because WASM avoids JS's dynamic typing and garbage collector in the hot loop.
+
+### Example 2: "We want to run the same validation logic in our Cloudflare Worker and our Node backend"
+
+Write the validation logic once in Rust, compile it with `wasm-pack build --target nodejs` for the backend and `--target web` (or a Workers-specific build via `wrangler`) for the edge. Both targets consume the same `.wasm` binary with a thin per-target JS wrapper, so the validation rules can't drift between the two environments.
+
+## Guidelines
+
+- Use WASM for CPU-bound computation (image/video processing, codecs, crypto, physics, parsing); it has no direct DOM access, so UI code stays in JavaScript.
+- Rust has the most mature toolchain (`wasm-bindgen`, `wasm-pack`) — smallest binaries, no garbage collector. AssemblyScript is easier to pick up for JS/TS developers but produces larger, GC'd output.
+- Minimize calls across the JS↔WASM boundary; batch data into a single call and process it inside WASM rather than calling back and forth per element.
+- For large buffers (images, audio), write into WASM linear memory directly (`memory.buffer`) instead of copying typed arrays on every call.
+- Run `wasm-opt -O3 output.wasm -o output.wasm` (from the `binaryen` package) to shrink the compiled binary, often by 10–30%.
+- Use `WebAssembly.instantiateStreaming(fetch(url))` (what `wasm-pack`'s generated loader calls internally) so the browser compiles while the bytes are still downloading.
+- Never pipe an install script into a shell blindly; prefer `cargo install`, `npm install`, or a package manager, and verify any downloaded installer against its published checksum first.
+- Check `typeof WebAssembly === "object"` before loading a module if you need to support environments without WASM support.

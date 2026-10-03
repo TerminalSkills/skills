@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: 'Express, Fastify, Next.js, any HTTP server'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - cors
@@ -103,10 +103,21 @@ export function corsMiddleware(req, res, next) {
 }
 ```
 
+## Examples
+
+### Example 1: "Our React app on app.billing-portal.io gets blocked calling our Express API"
+
+Add the Express middleware from Step 1 with `app.billing-portal.io` in `allowedOrigins`, keep `credentials: true` since the app sends an auth cookie, and confirm the browser's preflight `OPTIONS` request now returns `204` with the right `Access-Control-Allow-*` headers (check the Network tab, not just the follow-up GET/POST).
+
+### Example 2: "A Next.js API route works in Postman but not from the browser"
+
+Postman does not send an `Origin` header, so it skips CORS entirely — that it works there proves nothing about the browser case. Use the `next.config.ts` `headers()` block from Step 2 if one static origin is always correct; `headers()` values are fixed per build, like `vercel.json`, so if the allowed origin needs to vary per request (a whitelist, a wildcard subdomain), set the headers in middleware instead, mirroring Step 3.
+
 ## Guidelines
 
-- NEVER use `Access-Control-Allow-Origin: *` with `credentials: true` — browsers reject this.
-- `*` origin is only safe for truly public APIs with no authentication.
-- Always set `Access-Control-Max-Age` to cache preflight responses (reduces OPTIONS requests).
-- CORS only applies to browser requests — server-to-server calls ignore CORS entirely.
-- If using cookies across domains, also set `SameSite=None; Secure` on cookies.
+- NEVER use `Access-Control-Allow-Origin: *` with `credentials: true` — browsers reject this combination outright.
+- `*` origin is only safe for truly public APIs with no authentication and no cookies.
+- Always set `Access-Control-Max-Age` to cache preflight responses (reduces repeat `OPTIONS` requests).
+- CORS is enforced by the browser, not the server — server-to-server calls, curl and Postman ignore it, so testing from those tools cannot confirm a browser-facing fix.
+- If using cookies across domains, also set `SameSite=None; Secure` on the cookie, and `credentials: true`/`Access-Control-Allow-Credentials: true` on both sides.
+- `next.config.js`/`next.config.ts` `headers()` values are static at build time; use middleware when the allowed origin must be computed per request.

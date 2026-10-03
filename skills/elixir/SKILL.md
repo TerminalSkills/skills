@@ -1,36 +1,51 @@
 ---
 name: elixir
 description: >-
-  You are an expert in Elixir, the functional programming language built on
-  the Erlang VM (BEAM). You help developers build highly concurrent,
-  fault-tolerant, and distributed systems using Elixir's process model,
-  pattern matching, GenServer, supervision trees, Phoenix web framework,
-  LiveView for real-time UI, and Ecto for database interactions — achieving
-  massive concurrency with lightweight processes and "let it crash"
-  reliability.
+  Elixir is a functional language on the Erlang VM (BEAM) for concurrent, fault-tolerant and
+  distributed systems. Use when someone asks to "write Elixir", "build a Phoenix app",
+  "Phoenix LiveView", "GenServer", "supervision tree", "Ecto schema or changeset", "mix project",
+  or needs lightweight processes, "let it crash" reliability and real-time web UIs.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Elixir 1.17+ (current 1.20) on Erlang/OTP 27+; Phoenix 1.8 needs Elixir 1.17+ and PostgreSQL by default"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Backend Development
+  version: 1.1.0
+  category: development
+  repository: "https://github.com/elixir-lang/elixir"
   tags:
-    - functional
+    - elixir
     - erlang
     - beam
-    - concurrent
-    - fault-tolerant
     - phoenix
-    - distributed
+    - concurrency
 ---
 
 # Elixir — Functional Language for Scalable Applications
 
-You are an expert in Elixir, the functional programming language built on the Erlang VM (BEAM). You help developers build highly concurrent, fault-tolerant, and distributed systems using Elixir's process model, pattern matching, GenServer, supervision trees, Phoenix web framework, LiveView for real-time UI, and Ecto for database interactions — achieving massive concurrency with lightweight processes and "let it crash" reliability.
+## Overview
 
-## Core Capabilities
+Elixir runs on the BEAM virtual machine, where millions of cheap isolated processes talk by message passing and are restarted by supervisors when they crash. Typical stack: Phoenix (web framework, current 1.8), LiveView (server-rendered real-time UI), Ecto (database layer), Phoenix.PubSub (events across nodes), `:telemetry` (metrics). Build tool is `mix`; packages come from Hex.
 
-### Language Basics
+## Instructions
+
+### Install and create a project
+
+```bash
+brew install elixir                        # macOS; Ubuntu/Fedora/Arch/Windows options: elixir-lang.org/install
+elixir -v                                  # check Elixir and OTP versions
+
+mix new rate_limiter --sup                 # plain OTP app with a supervision tree
+mix test                                   # run ExUnit tests
+
+mix archive.install hex phx_new            # Phoenix project generator
+mix phx.new shop_app                       # add --database sqlite3 to skip PostgreSQL
+cd shop_app && mix setup                   # deps.get, ecto.create, ecto.migrate, assets
+mix phx.server                             # http://localhost:4000
+```
+
+On Linux install `inotify-tools` so Phoenix live reload works. `mix help phx.new` lists generator options; `mix phx.gen.auth` generates authentication.
+
+### Language basics
 
 ```elixir
 # Pattern matching
@@ -64,7 +79,7 @@ defmodule MyApp.Accounts do
 end
 ```
 
-### GenServer (Stateful Processes)
+### GenServer (stateful processes)
 
 ```elixir
 defmodule MyApp.RateLimiter do
@@ -113,16 +128,16 @@ defmodule MyApp.RateLimiter do
 end
 ```
 
-### Phoenix LiveView (Real-Time UI)
+### Phoenix LiveView (real-time UI)
 
 ```elixir
 defmodule MyAppWeb.DashboardLive do
   use MyAppWeb, :live_view
 
   @impl true
-  def mount(_params, session, socket) do
+  def mount(_params, _session, socket) do
     if connected?(socket) do
-      MyApp.PubSub.subscribe("metrics")
+      Phoenix.PubSub.subscribe(MyApp.PubSub, "metrics")
       :timer.send_interval(5000, :tick)
     end
 
@@ -161,7 +176,7 @@ defmodule MyAppWeb.DashboardLive do
 end
 ```
 
-### Supervision Trees
+### Supervision trees
 
 ```elixir
 defmodule MyApp.Application do
@@ -183,26 +198,32 @@ defmodule MyApp.Application do
 end
 ```
 
-## Installation
+## Examples
+
+### Example 1: Add a rate limiter that survives crashes
+
+Request: "Limit each user to 100 API calls a minute, and don't lose the service if it crashes."
+
+Create `lib/shop_app/rate_limiter.ex` with the GenServer above, add `ShopApp.RateLimiter` to the supervisor's `children`, then call `ShopApp.RateLimiter.check_rate(user.id)` in a plug. Result: `:ok` for the first 100 calls in a window, `{:error, :rate_limited}` after; if the process dies the supervisor restarts it with empty state.
+
+### Example 2: Live dashboard without JavaScript
+
+Request: "Show orders today and revenue on an admin page that updates itself."
 
 ```bash
-# Install Elixir
-brew install elixir                        # macOS
-# Or: https://elixir-lang.org/install.html
-
-# New Phoenix project
-mix phx.new my_app
-cd my_app && mix deps.get
-mix ecto.create && mix phx.server
+mix phx.gen.live Orders Order orders total:decimal status:string   # context, schema, LiveViews, migration
+mix ecto.migrate
 ```
 
-## Best Practices
+Add the `DashboardLive` module above to `router.ex` inside a `live_session`, broadcast `{:new_order, order}` with `Phoenix.PubSub.broadcast(ShopApp.PubSub, "metrics", {:new_order, order})` after each insert. The page updates over the WebSocket for every open browser.
 
-1. **Let it crash** — Don't over-handle errors; use supervisors to restart failed processes automatically
-2. **Pattern matching** — Match on function arguments and return values; avoid if/else chains
-3. **Pipeline operator** — Chain transformations with `|>`; reads top-to-bottom like a data pipeline
-4. **GenServer for state** — Use GenServer for in-memory state, rate limiters, caches; supervised and fault-tolerant
-5. **LiveView over SPAs** — Use Phoenix LiveView for real-time UI; no JavaScript framework needed, server-rendered
-6. **Ecto changesets** — Validate and cast data through changesets; never trust raw input
-7. **PubSub for events** — Use Phoenix.PubSub for inter-process communication; scales across nodes
-8. **Telemetry for observability** — Attach to `:telemetry` events for metrics; Ecto, Phoenix emit events automatically
+## Guidelines
+
+- **Let it crash**: do not wrap everything in try/rescue; put state in supervised processes and pick the strategy deliberately (`:one_for_one` restarts only the failed child).
+- **Pattern match** on function heads and `{:ok, _}` / `{:error, _}` tuples instead of if/else chains; use `with` for chains of fallible steps.
+- **Do not hold all state in one GenServer**: a single process serializes every call. Use ETS, Registry or a process per entity when throughput matters; `GenServer.call` times out after 5 s by default.
+- **Ecto changesets** validate and cast all external input; never pass raw params to `Repo.insert`.
+- **LiveView**: subscribe and start timers only inside `if connected?(socket)`; keep assigns small, use streams (`stream/3`) for long lists.
+- **Never** create atoms from user input (`String.to_atom/1`); atoms are not garbage collected.
+- **Observability**: attach to `:telemetry` events (Ecto and Phoenix emit them); Phoenix ships a `LiveDashboard` for dev.
+- CPU-heavy numeric work is not the BEAM's strength; use Nx or a NIF/port for it.

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:952fa754ee61c178bf02a0313d58eff51b88e003bfd8b81f652b6b86807fbc20",
-  "scoredAt": "2026-05-13T10:32:49.610Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e249286bc33e8854504ed56daf36f742d99c99eb14dc1d677fa1e0f4eeff8520",
+  "scoredAt": "2026-10-03T13:09:17.458Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases."
+        "detail": "Covers the happy path and a few guidelines but gives no troubleshooting for common failures such as port already in use, worker crashes or OOM, import errors for the app module, or failed proxy header trust."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 95,
-    "multiplier": 1.64,
+    "multiplier": 1.08,
+    "baselineAvg": 85,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Production FastAPI deploy on a 4-core VPS",
-        "baseline": 50,
+        "name": "fastapi-behind-nginx-workers",
+        "baseline": 80,
         "treatment": 95,
-        "rationale": "Baseline uses Gunicorn+UvicornWorker but only 4 workers (missed the (2*cores)+1 formula) and omits documented flags like --timeout 120, --graceful-timeout 30, and access/error logfiles; treatment uses 9 workers, all documented flags, warns against --reload in production, and configures proxy_headers behind a reverse proxy."
+        "rationale": "Both give the uvicorn command with --workers 4, --proxy-headers, --forwarded-allow-ips 127.0.0.1, host 127.0.0.1 and no --reload; B explicitly warns against '*' and --reload, while A adds extras, never mentions --reload, and suggests '*' for unix sockets (contradicting the rubric's spirit), though it isn't the primary command."
       },
       {
-        "name": "Real client IP behind a load balancer",
-        "baseline": 65,
-        "treatment": 95,
-        "rationale": "Baseline mentions --proxy-headers and custom middleware as one of several options; treatment anchors to the documented programmatic uvicorn.run config with proxy_headers=True and forwarded_allow_ips and notes the same pattern under Gunicorn+UvicornWorker."
+        "name": "fix-gunicorn-worker-deprecation",
+        "baseline": 92,
+        "treatment": 90,
+        "rationale": "Both name the uvicorn-worker package, switch to uvicorn_worker.UvicornWorker and keep the app path, worker and bind options, but A also says explicitly that uvicorn.workers is deprecated since 0.30 while B only calls the old class 'deprecated' in passing and adds extra Dockerfile and proxy detail."
+      },
+      {
+        "name": "dockerize-fastapi-production",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both use non-root users, exec-form CMD, uvicorn_worker.UvicornWorker, and uvicorn-worker; B puts `--workers`, `--worker-class` and `--bind 0.0.0.0:8000` literally in the CMD as the rubric specifies, while A moves them into gunicorn.conf.py (workers and bind via env/config, not CLI flags) and adds a tini ENTRYPOINT, so gunicorn is not PID 1."
       }
     ]
   }

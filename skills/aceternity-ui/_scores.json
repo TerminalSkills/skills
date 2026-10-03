@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0ed66731099935ea565a5645a28cba02e07e7056e4bfed904b688762cfa4f1d8",
-  "scoredAt": "2026-05-13T11:37:30.294Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:1d3756588088a43b0aea5b9f404d4beb60cd35aa687bf70f2699d180786590f0",
+  "scoredAt": "2026-10-03T12:55:14.331Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing only on happy path usage."
+        "detail": "Covers mostly the happy path and omits error scenarios such as failed registry installs, shadcn CLI versions older than 3.x not supporting the namespace, missing animate-spotlight causing an unstyled spotlight, or a missing simplex-noise dependency."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5.58,
-    "baselineAvg": 12,
-    "treatmentAvg": 67,
+    "multiplier": 1.79,
+    "baselineAvg": 48,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "3d-card-tilt",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B omits all required components and logic."
-      },
-      {
-        "name": "spotlight-follow-cursor",
+        "name": "hero-beams-spotlight-tailwind-v4",
         "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but omits the SpotlightCard example, while Response B lacks key hooks, motion, Tailwind, and the required example."
+        "treatment": 95,
+        "rationale": "B installs both components with the shadcn CLI (namespace and URL forms), defines `--animate-spotlight` and `@keyframes spotlight` in `@theme`, and uses a relative, overflow-hidden section with the heading at `z-10`, so it meets every rubric item. A hand-writes the components instead of installing them, which the rubric forbids. It does define the animation in `@theme inline` and does use a relative, overflow-hidden section with the heading at `z-10`."
       },
       {
-        "name": "wavy-animated-background",
-        "baseline": 5,
-        "treatment": 20,
-        "rationale": "Response B includes some prop usage and hints at a component, while Response A only provides a CSS-based solution with no canvas or animation logic."
+        "name": "register-registry-and-add-moving-border",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both cover init, the registries entry with the CLI 3.x requirement, and the direct URL alternative, but B also names the `duration` prop and has a more complete usage example, while A adds Vite setup that goes beyond the rubric; neither says there is no `aceternity` npm package."
+      },
+      {
+        "name": "wavy-background-performance-setup",
+        "baseline": 35,
+        "treatment": 72,
+        "rationale": "A installs the Aceternity component (with simplex-noise), uses next/dynamic with ssr:false, honors prefers-reduced-motion, uses documented props, and notes the window-sized canvas for full-width use, while B skips the Aceternity package, avoids next/dynamic ssr:false on purpose, and writes a custom reimplementation that only partly matches the rubric."
       }
     ]
   }

@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:15b97e044509d03abaa4294cebd8ee9e830909fb031adc24658019ed7db8e275",
-  "scoredAt": "2026-05-13T10:11:16.196Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6a980b9236ebdf0551ee5f0d67780c9901c15e81c553837b5e37ac8acd290016",
+  "scoredAt": "2026-10-03T12:10:17.210Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Instructions assume bash and ssh-copy-id, which may not be available on all platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 73,
-    "treatmentAvg": 96,
-    "multiplier": 1.32,
+    "multiplier": 1.2,
+    "baselineAvg": 75,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "SSH config with bastion + wildcard dev hosts",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "Treatment uses ProxyJump plus the Host dev-* wildcard with %h substitution from the skill so any dev-<x> alias works; baseline falls back to ProxyCommand -W and individual host entries."
+        "name": "harden-sshd-with-dropin-override",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "Both cover the drop-in override, sshd -T, ssh-copy-id first, sshd -t, and testing from a second session, but B states the alphabetical-order reasoning up front, puts 'keep the session open' as step 1, and validates before reloading with a clear retry loop, while A's sed edits and `||` chain are looser and A mentions the open session only late."
       },
       {
-        "name": "ED25519 key + local port forward via bastion",
-        "baseline": 75,
-        "treatment": 96,
-        "rationale": "Treatment leads with ssh-keygen -t ed25519, includes both ssh-copy-id and the manual cat | ssh fallback, and uses ssh -L 5432:db.internal:5432 bastion; baseline defaults to RSA and skips the manual fallback."
+        "name": "bastion-config-and-db-tunnel",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "A matches the rubric: ProxyJump on prod, ControlMaster/ControlPath/ControlPersist, specific Host blocks before Host *, `ssh -f -N -L 15432:...` via the bastion, and psql to 127.0.0.1:15432; B puts the ControlMaster settings in the trailing Host * block and routes the tunnel through a config alias rather than the explicit `-f -N -L` command (it shows that only as a secondary one-liner), so it fits the rubric less well."
+      },
+      {
+        "name": "fix-host-key-changed-after-rebuild",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both give `ssh-keygen -R 203.0.113.10`, out-of-band fingerprint verification, and a warning against disabling host key checking. B adds the MITM warning and a console-side fingerprint check but doesn't show the ssh-keyscan compare as the primary step. A gives the ssh-keyscan plus ssh-keygen -lf comparison directly and mentions interception, but its warning against disabling checks is framed around lost protection more than interception."
       }
     ]
   }

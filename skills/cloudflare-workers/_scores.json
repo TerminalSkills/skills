@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3d473f1015fd140072ca8cbfaa7dd47db8605ea2c181389f7c2bc2db9539624b",
-  "scoredAt": "2026-05-13T15:37:46.813Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:4f69877e0d6495faee04ec5781f7ba630f877172677e69500436c0a2a3e29664",
+  "scoredAt": "2026-10-03T12:58:55.571Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks explicit error handling steps and edge case coverage in examples."
+        "detail": "Error handling is thin: the examples don't check upstream fetch status (a failed origin response is cached in KV for 5 minutes), and the scheduled sync has no handling for failed fetches or D1 batch errors."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.75,
-    "baselineAvg": 40,
-    "treatmentAvg": 70,
+    "multiplier": 1.04,
+    "baselineAvg": 73,
+    "treatmentAvg": 76,
     "scenarios": [
       {
-        "name": "durable-object-counter",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response B includes the wrangler init, compatibility_date, Durable Object class, binding, Env interface, and fetch handler, but omits ctx.waitUntil(); Response A lacks most required elements."
+        "name": "kv-cached-api-worker",
+        "baseline": 62,
+        "treatment": 85,
+        "rationale": "B scaffolds with `npm create cloudflare@latest`, creates the KV namespace, uses a pinned compatibility_date, reads KV first, uses `expirationTtl` 600 and `Env`, and gives `wrangler dev` and `wrangler deploy`, while A omits `npm create cloudflare@latest` and scaffolds by hand with `npm init`, though it covers the other points."
       },
       {
-        "name": "workers-ai-kv-cache",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items, missing only Cache-Control and ctx.waitUntil, while Response B lacks several key requirements such as wrangler init, compatibility_date, Env interface, and ctx.waitUntil."
+        "name": "cron-sync-into-d1",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both cover d1 create, migrations create/apply, d1_databases, the */30 cron under triggers.crons, and a scheduled handler using prepare with batch; A also uses ctx.waitUntil (which the rubric allows), adds pagination, a watermark and retries, while B is simpler, handles only a single response page, and does not use waitUntil."
+      },
+      {
+        "name": "secrets-and-local-dev-pitfalls",
+        "baseline": 66,
+        "treatment": 62,
+        "rationale": "Both cover `wrangler types`, `wrangler tail`, and why `wrangler dev` doesn't see production KV (local simulation, `--remote`); A explicitly says not to put the key in wrangler.jsonc and notes secrets are per-environment, while B only warns against `vars` in wrangler.toml and never says secrets are per-environment, but B is far more thorough on the other parts, including the `.dev.vars` handling, the tail options, and seeding local KV."
       }
     ]
   }

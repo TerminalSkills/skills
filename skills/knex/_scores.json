@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bd141a1513f51a1e00277dc89caa6d06f7fc53ccc38c03af11eb4324b2f3c82f",
-  "scoredAt": "2026-05-13T09:19:58.980Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ee260f539fb34abaa368a4ffe5054e2dda12aab56f61e24e79be22a50aeb1820",
+  "scoredAt": "2026-10-03T12:02:09.055Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, focusing only on happy path examples."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 90,
-    "multiplier": 1.5,
+    "multiplier": 1.29,
+    "baselineAvg": 68,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Create an order with line items atomically and decrement the user's balance",
-        "baseline": 65,
-        "treatment": 90,
-        "rationale": "Treatment wrapped the three writes in db.transaction(async (trx) => ...) using trx for every statement, used .returning('*') on the order insert, and called .decrement('balance', 99.99) on users; baseline used a Promise.all without a Knex transaction and a manual UPDATE balance = balance - x."
+        "name": "atomic-transfer-with-rollback",
+        "baseline": 62,
+        "treatment": 93,
+        "rationale": "B meets every rubric item: db.transaction with an async callback, trx on every query, forUpdate() on the balance read, an Error thrown on insufficient funds, and decrement/increment for the updates. A uses a transaction, trx, forUpdate and throws, but it does the balance updates with raw SQL instead of decrement/increment, and it doesn't read the balance to check it before debiting."
       },
       {
-        "name": "Author the initial migration for users and posts with a composite index",
-        "baseline": 55,
+        "name": "ts-migration-create-and-run",
+        "baseline": 70,
         "treatment": 90,
-        "rationale": "Treatment used knex migrate:make and a schema.createTable with t.increments primary, foreign key via references().inTable().onDelete('CASCADE'), and t.index(['author_id','published']); baseline wrote raw CREATE TABLE SQL inside a migration without the schema builder helpers."
+        "rationale": "A covers every rubric item: it runs npx knex init -x ts, uses migrate:make -x ts, sets extension 'ts', and uses enu with defaultTo, timestamps(true, true), references().inTable().onDelete('CASCADE'), and a down that drops posts first. It also runs migrate:latest with NODE_OPTIONS=\"--import tsx\". B skips npx knex init -x ts, writes the knexfile by hand, and defaults to ts-node, so the tsx loader appears only as a side note. B's schema is otherwise correct, and its native enum and DROP TYPE handling is a useful extra."
+      },
+      {
+        "name": "monthly-orders-report-postgres",
+        "baseline": 72,
+        "treatment": 80,
+        "rationale": "A matches the rubric's query form closely (db.raw DATE_TRUNC, sum('amount as total'), count('* as orders'), groupByRaw, orderBy month desc) and explains the string cause with both cast-in-SQL and in-code fixes, while B uses raw SUM/COUNT casts instead of sum()/count() builders and different aliases, though its explanation of why strings come back is thorough and it adds the type-parser option; neither mentions .toQuery()/.toSQL() (B does show equivalent SQL)."
       }
     ]
   }

@@ -1,29 +1,24 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:fdbe859bd0fe1164f41eb69950618186e13d6c3f20cafee8025b621efa38c110",
-  "scoredAt": "2026-06-11T19:30:42.308Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b-64k",
+  "version": "1.3.0",
+  "skillHash": "sha256:160ee7b16d13966d7443f5637afd3ff1d21f9f42b6e943ba5170f7dd3fe8510b",
+  "scoredAt": "2026-10-03T13:11:20.232Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases for its functions."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js environment, limiting cross-platform applicability."
+        "detail": "Error handling is largely absent from the main file: no handling of card declines, failed or SCA-required PaymentIntents, Stripe API errors, idempotency keys for charges and transfers, or refund and dispute paths (deferred to references)."
       }
     ]
   },
@@ -32,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 3.03,
-    "baselineAvg": 33,
-    "treatmentAvg": 100,
+    "multiplier": 1.71,
+    "baselineAvg": 55,
+    "treatmentAvg": 94,
     "scenarios": [
       {
-        "name": "onboard-seller-accounts-v2",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully matches the rubric, while Response B uses the wrong API calls and omits required fields."
+        "name": "onboard-seller-v2-express",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response A matches the rubric: it uses stripe.v2.core.accounts.create with dashboard express, the merchant card_payments and recipient stripe_transfers configurations, and application as fees_collector and losses_collector, then creates the link with v2 accountLinks using account_onboarding, both configurations, refresh_url and return_url; Response B makes the v1 stripe.accounts.create({type:'express'}) its primary path, which the rubric forbids, and only mentions v2 in a note."
       },
       {
         "name": "destination-charge-with-fee",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "A meets all rubric requirements; B uses the wrong API."
+        "baseline": 70,
+        "treatment": 95,
+        "rationale": "B hits every rubric item (Math.round on the fee, transfer_data.destination, confirm: true, $18/$102 before Stripe fees, and the recipient configuration for the seller account), while A gets the core split and code right but only mentions the `transfers` capability instead of the recipient configuration and computes the fee as Math.round(totalCents * 0.15), which is fine for the rubric but lacks the recipient-config note."
       },
       {
-        "name": "handle-connect-webhooks",
-        "baseline": 100,
-        "treatment": 100,
-        "rationale": "Both responses fully satisfy the rubric requirements."
+        "name": "hold-funds-then-transfer",
+        "baseline": 90,
+        "treatment": 92,
+        "rationale": "Both correctly describe separate charges and transfers with no transfer_data, latest_charge, and transfer with source_transaction, amount 8500, and destination; B explicitly notes the ch_ vs pi_ distinction as the rubric wants, though it only implies the pattern name, while A names the pattern explicitly but doesn't call out the ch_/pi_ difference as clearly (it does comment 'ch_...')."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:798a3823b9e1e04a89edbbbfd88ba5c18a435571e69cd0af9d12fc0b4253324c",
-  "scoredAt": "2026-05-13T11:44:43.769Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:5b5cfdb6be7cf925ddbd9f191d854164d2b74412239f5453edbc4aeb673a4551",
+  "scoredAt": "2026-10-03T12:55:03.950Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
+        "detail": "Covers mainly the happy path with little troubleshooting guidance (e.g., failed startup, webhook/trigger failures, upgrades, backups of Postgres, or flow run errors)."
       }
     ]
   },
@@ -27,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.1,
-    "baselineAvg": 20,
-    "treatmentAvg": 82,
+    "multiplier": 1.21,
+    "baselineAvg": 66,
+    "treatmentAvg": 80,
     "scenarios": [
       {
-        "name": "self-host-activepieces-docker-compose",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B omits required variables, port mapping, and volume naming."
+        "name": "selfhost-compose-with-secrets",
+        "baseline": 80,
+        "treatment": 72,
+        "rationale": "Both provide compose files with activepieces, postgres and redis from ghcr.io, openssl-generated secrets, and chmod 600 .env. A explicitly warns never to rotate either the encryption key or the JWT secret and says to keep .env out of git. B warns only about the encryption key, never mentions the JWT secret, and doesn't say to keep secrets out of version control. B is much more thorough on production hardening, which pulls the scores closer together despite those two rubric gaps."
       },
       {
-        "name": "create-order-processing-code-step",
-        "baseline": 40,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B deviates in naming, type, and output structure."
+        "name": "shopify-large-order-slack-flow",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "A follows the rubric structure exactly (Shopify New Order trigger, Code step returning total and overThreshold, Branch on overThreshold, Slack Send Message to Channel #orders) with an async function returning an object; B gives the primary path as a total_price branch without a Code step, and its Code step is optional and returns only total with no overThreshold boolean."
       },
       {
-        "name": "build-custom-piece-my-app",
-        "baseline": 20,
-        "treatment": 45,
-        "rationale": "Response B uses createPiece (though not PieceAuth.SecretText) whereas Response A uses registerPiece, so B covers more rubric items."
+        "name": "custom-piece-and-production-urls",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "A covers all rubric points: createPiece with PieceAuth.SecretText, triggers/actions arrays, `npx activepieces pieces create`, and both AP_API_URL and AP_FRONTEND_URL set to the HTTPS domain with the OAuth/webhook breakage warning; B uses a different scaffold command (`npm run cli pieces create`) and omits AP_API_URL (offering AP_WEBHOOK_URL instead), missing a key rubric item despite extensive detail."
       }
     ]
   }

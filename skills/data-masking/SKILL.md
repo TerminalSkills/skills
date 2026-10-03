@@ -6,11 +6,12 @@ description: >-
   anonymizing data for analytics, or applying k-anonymity and differential privacy for
   GDPR-compliant data sharing.
 license: Apache-2.0
-compatibility: "Python 3.9+, Node.js 18+. Libraries: faker, presidio, anonymize-it."
+compatibility: "Python 3.10+, Node.js 18+. Libraries: faker, presidio-analyzer, presidio-anonymizer, spaCy en_core_web_lg."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
+  repository: https://github.com/microsoft/presidio
   tags: ["data-masking", "pii", "privacy", "anonymization", "redaction"]
   use-cases:
     - "Mask production PII before copying to dev/staging environment"
@@ -29,6 +30,13 @@ Data masking replaces real sensitive data with realistic but fake data, preservi
 - **Analytics**: Analyze behavioral patterns without raw PII
 - **Testing**: Realistic test data that won't trigger real consequences
 
+## Instructions
+
+1. Inventory where PII lives (tables, log fields, API payloads, exports) and classify it as direct identifiers or quasi-identifiers.
+2. Pick the technique per use case from the table below; prefer irreversible masking for dev/staging and tokenization only where the real value must be recovered.
+3. Mask at the boundary (export job, log formatter, API serializer), never in the consuming app.
+4. Verify: scan the masked output with the patterns or Presidio and fail the pipeline on any hit.
+
 ## Masking Techniques
 
 | Technique | How | When to Use |
@@ -46,7 +54,7 @@ Data masking replaces real sensitive data with realistic but fake data, preservi
 import re
 
 PII_PATTERNS = {
-    "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+    "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b',
     "phone_us": r'\b(?:\+1[-.]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b',
     "ssn": r'\b(?!000|666|9\d{2})\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b',
     "credit_card": r'\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b',
@@ -57,24 +65,22 @@ PII_PATTERNS = {
 }
 ```
 
+These regexes are a fast first pass and over-match: `passport` and `zip_code` hit ordinary numbers and product codes, `phone_us` hits any 10-digit run. Use them for logs; for free text or unknown columns use Presidio below. Validate card candidates with a Luhn check before redacting.
+
 ## Email and Credit Card Maskers
 
 ```python
-import random
-import string
+import re
 from faker import Faker
 
 fake = Faker()
+Faker.seed(4471)  # same seed -> same fake values on every run (stable fixtures)
 
 def mask_email(email: str) -> str:
     """Mask email preserving domain structure."""
     local, domain = email.split('@')
     masked_local = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '***'
     return f"{masked_local}@{domain}"
-
-def mask_email_fake(email: str) -> str:
-    """Replace email with realistic fake."""
-    return fake.email()
 
 def mask_credit_card(card_number: str) -> str:
     """Mask credit card — show only last 4 digits."""
@@ -90,27 +96,14 @@ def mask_phone(phone: str) -> str:
     """Mask phone — show only last 4 digits."""
     digits = re.sub(r'\D', '', phone)
     return f"***-***-{digits[-4:]}"
-
-def generate_fake_pii() -> dict:
-    """Generate a complete set of realistic fake PII for testing."""
-    return {
-        "name": fake.name(),
-        "email": fake.email(),
-        "phone": fake.phone_number(),
-        "address": fake.address(),
-        "ssn": fake.ssn(),
-        "dob": fake.date_of_birth(minimum_age=18, maximum_age=90).isoformat(),
-        "credit_card": fake.credit_card_number(card_type='visa'),
-        "company": fake.company(),
-    }
 ```
 
 ## Log Sanitizer Middleware
 
-```python
-# Express.js log scrubbing middleware
+```javascript
+// Node.js log scrubbing (winston)
 const PII_PATTERNS = {
-  email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+  email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
   creditCard: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13})\b/g,
   ssn: /\b(?!000|666|9\d{2})\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b/g,
   phone: /\b(?:\+1[-.]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b/g,
@@ -176,36 +169,18 @@ FROM users;
 GRANT SELECT ON users_masked TO dev_team;
 REVOKE SELECT ON users FROM dev_team;
 
--- Column-level masking function using pgcrypto for format-preserving
-CREATE OR REPLACE FUNCTION mask_pan(pan TEXT) RETURNS TEXT AS $$
-BEGIN
-  RETURN RPAD(LEFT(pan, 6), LENGTH(pan) - 4, '*') || RIGHT(pan, 4);
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
--- Dynamic masking based on current user role
-CREATE OR REPLACE FUNCTION get_user_data(p_user_id UUID)
-RETURNS TABLE (name TEXT, email TEXT, phone TEXT) AS $$
-BEGIN
-  IF current_user = 'admin_role' THEN
-    RETURN QUERY SELECT u.name, u.email, u.phone FROM users u WHERE u.id = p_user_id;
-  ELSE
-    RETURN QUERY SELECT 
-      LEFT(u.name, 1) || '***',
-      REGEXP_REPLACE(u.email, '^([^@])([^@]*)(@.+)$', '\1***\3'),
-      '***-***-' || RIGHT(u.phone, 4)
-    FROM users u WHERE u.id = p_user_id;
-  END IF;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Dynamic, role-aware masking: use a SECURITY DEFINER function or the
+-- PostgreSQL Anonymizer extension (anon.start_dynamic_masking) instead of ad-hoc views.
 ```
 
 ## Microsoft Presidio — Auto-Detection
 
 ```python
-# Presidio automatically detects and masks PII using NLP
+# pip install presidio-analyzer presidio-anonymizer && python -m spacy download en_core_web_lg
+# (Python 3.10+; the default NLP engine needs the spaCy model)
+import os
 from presidio_analyzer import AnalyzerEngine
-from presidio_anonymizer import AnonymizerEngine, AnonymizerConfig
+from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
 analyzer = AnalyzerEngine()
@@ -225,8 +200,9 @@ def mask_text_presidio(text: str, masking_style: str = "replace") -> str:
             "US_SSN": OperatorConfig("replace", {"new_value": "[SSN]"}),
         }
     elif masking_style == "hash":
-        # Hash for consistent pseudonymization (same input → same output)
-        operators = {"DEFAULT": OperatorConfig("hash", {"hash_type": "sha256"})}
+        # Since 2.2.361 hashes use a random salt; pass a fixed salt (from a secret)
+        # if the same input must map to the same output across rows
+        operators = {"DEFAULT": OperatorConfig("hash", {"hash_type": "sha256", "salt": os.environ["MASKING_SALT"]})}
     
     anonymized = anonymizer.anonymize(
         text=text,
@@ -236,9 +212,9 @@ def mask_text_presidio(text: str, masking_style: str = "replace") -> str:
     return anonymized.text
 
 # Example
-text = "Contact John Smith at john.smith@email.com or 555-123-4567"
+text = "Contact Dana Whitfield at dana.whitfield@northwind-mail.org or 555-123-4567"
 print(mask_text_presidio(text))
-# → "Contact [NAME] at [EMAIL] or [PHONE]"
+# → "Contact [NAME] at [EMAIL] or [PHONE]"  (exact labels depend on detected entities)
 ```
 
 ## Production DB → Dev DB Pipeline
@@ -248,27 +224,27 @@ print(mask_text_presidio(text))
 # mask-db-for-dev.sh — Safe production → dev data pipeline
 
 set -e
-PROD_DB="postgresql://prod-server/app"
-DEV_DB="postgresql://dev-server/app_dev"
+PROD_DB="${PROD_DATABASE_URL:?set PROD_DATABASE_URL}"   # read-only replica credentials
+DEV_DB="${DEV_DATABASE_URL:?set DEV_DATABASE_URL}"
 
 echo "Dumping production schema..."
-pg_dump --schema-only $PROD_DB > schema.sql
+pg_dump --schema-only "$PROD_DB" > schema.sql
 
 echo "Applying schema to dev..."
-psql $DEV_DB < schema.sql
+psql "$DEV_DB" < schema.sql
 
 echo "Copying and masking data..."
-psql $PROD_DB -c "\COPY (
+psql "$PROD_DB" -c "\COPY (
   SELECT 
     id,
     LEFT(first_name, 1) || 'XXXX' AS first_name,
     'User' AS last_name,
-    'user_' || id || '@example.com' AS email,
+    'user_' || id || '@masked.invalid' AS email,
     '555-000-' || LPAD((ROW_NUMBER() OVER())::TEXT, 4, '0') AS phone,
     created_at,
     status
   FROM users
-) TO STDOUT WITH CSV" | psql $DEV_DB -c "\COPY users_masked FROM STDIN WITH CSV"
+) TO STDOUT WITH CSV" | psql "$DEV_DB" -c "\COPY users FROM STDIN WITH CSV"
 
 echo "Done. Dev database ready with masked data."
 ```
@@ -286,13 +262,31 @@ echo "Done. Dev database ready with masked data."
 
 k-anonymity alone is often insufficient for GDPR -- combine with l-diversity and/or differential privacy.
 
-## Compliance Checklist
+## Examples
 
-- [ ] PII inventory completed (what data, where it lives)
-- [ ] Log scrubbing middleware deployed in all services
-- [ ] Dev/staging environments use masked data only
-- [ ] Database views/roles restrict raw PII access
-- [ ] API responses mask PII for non-privileged callers
-- [ ] CI pipeline scans for hardcoded PII/secrets
-- [ ] Masked data pipeline documented and tested
-- [ ] Masking solution reviewed annually
+### Example 1: Safe staging copy
+
+**User request:** "Refresh staging from production but nobody on the dev team may see real emails or phone numbers."
+
+Run the pipeline script above with `PROD_DATABASE_URL` and `DEV_DATABASE_URL` set, then verify:
+
+```bash
+psql "$DEV_DATABASE_URL" -tAc "SELECT count(*) FROM users WHERE email NOT LIKE '%@masked.invalid'"
+```
+
+Expected output: `0`. Any other number means unmasked rows leaked and the refresh must be discarded.
+
+### Example 2: Scrub PII from application logs
+
+**User request:** "Our request logs contain customer emails and card numbers; clean them before they reach Datadog."
+
+Wrap the logger with `sanitizeLog` from the middleware section. A line such as `{"msg":"refund for dana.whitfield@northwind-mail.org card 4111111111111111"}` is emitted as `{"msg":"refund for [EMAIL] card [CREDIT_CARD]"}`. Add a unit test that feeds sample PII through the logger and asserts none survives.
+
+## Guidelines
+
+- Mask irreversibly by default; a reversible mapping or key stored beside the data is pseudonymization, still personal data under GDPR.
+- Regex finds formats, not names or addresses; use Presidio (and review its misses) for free text.
+- Salts and encryption keys come from a secret manager or environment variable, never from the repository.
+- Keep referential integrity: the same real value must map to the same fake value in every table (seeded Faker or salted hash).
+- Test on a copy first, and scan the output before anyone gets access.
+- Do not treat k-anonymity alone as GDPR-grade anonymization.

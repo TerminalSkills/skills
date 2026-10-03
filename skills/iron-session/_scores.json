@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b850b14586cbb019742be69e8fec05f607b90163a942b30ec7849c7c7cbe4242",
-  "scoredAt": "2026-05-13T09:17:33.635Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a48d175aeba3b9138991be9e856bdfca4f83199ce5a63dd956a11afff350b5b6",
+  "scoredAt": "2026-10-03T13:04:19.530Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill is specific to Next.js and Express, not platform-agnostic."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions that refer back to the steps and show no concrete code, input or output, so they are less realistic than the code elsewhere in the skill."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 62,
+    "multiplier": 1.41,
+    "baselineAvg": 64,
     "treatmentAvg": 90,
-    "multiplier": 1.45,
     "scenarios": [
       {
-        "name": "Next.js login route with iron-session",
-        "baseline": 65,
-        "treatment": 92,
-        "rationale": "Treatment uses getIronSession with cookies() from next/headers, sets password from env, configures httpOnly and maxAge 604800, and calls session.save(); baseline references iron-session generically but misses await cookies() pattern and exact maxAge."
+        "name": "nextjs-login-logout-week-session",
+        "baseline": 68,
+        "treatment": 90,
+        "rationale": "B covers every rubric item, including storing loggedInAt as Date.now() and awaiting save() before the redirect, while A omits loggedInAt entirely and so misses a key element, though A is otherwise solid on the ttl, the env-var secret and the destroy-then-redirect logout."
       },
       {
-        "name": "Protect dashboard server component",
-        "baseline": 58,
-        "treatment": 88,
-        "rationale": "Treatment calls getIronSession<SessionData>(await cookies(), options), checks isLoggedIn, and uses redirect('/login'); baseline often uses middleware-only checks or omits the typed SessionData and the await on cookies()."
+        "name": "protect-dashboard-layout-vs-page",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both correctly say the layout and proxy.ts checks don't protect the data and that each Server Component, Server Action or Route Handler must check the session. B's page example matches the rubric exactly: it reads the session, redirects to /login when session.userId is missing, then queries by that userId. A's page example is wrapped in a DAL helper that does the same redirect and scoping, which is slightly less direct, and A goes further with CVE and IDOR points. Neither mentions nextProxyCookies, which is optional."
+      },
+      {
+        "name": "upgrade-v8-to-v9-and-rotate-secret",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "A matches nearly every rubric item (optional chaining on Partial, Date.now(), numbered password keys with the newest highest, onUnsealError logging unknown-password, Node 22.13+), while B misses Partial/v9 behavior, the Date throwing, onUnsealError, and the Node requirement, and opens by saying it can't confirm what changed in v9 and is assuming the v8 API."
       }
     ]
   }

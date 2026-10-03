@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:81915f6960efe6d2ed399e8dec8ea7d66585e5a89c2b4b80f7df334a80e56ed6",
-  "scoredAt": "2026-05-13T10:28:10.165Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a6865b56b6d671bd1c9dd5c9c65fae0ab4aad53fa62dedc1a60fecc97e7761da",
+  "scoredAt": "2026-10-03T13:11:58.143Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases, focusing only on happy path."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 37,
-    "treatmentAvg": 91,
-    "multiplier": 2.46,
+    "multiplier": 1.32,
+    "baselineAvg": 66,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "SVG-as-component loader migration",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline writes a webpack() function in next.config.js that Turbopack ignores; treatment uses the documented experimental.turbo.rules shape with as: \"*.js\" and resolveAlias canvas:false."
+        "name": "migrate-webpack-config-to-turbopack",
+        "baseline": 80,
+        "treatment": 88,
+        "rationale": "Both give the correct turbopack.rules and resolveAlias config and say webpack plugins aren't supported with a --webpack fallback, but B states plainly that the webpack() function is ignored and should be deleted, while A says the build fails on it and then proposes keeping a gated webpack() function."
       },
       {
-        "name": "HMR scaling at 30k modules",
-        "baseline": 38,
-        "treatment": 90,
-        "rationale": "Baseline gives vague speed claims and may use the obsolete --turbo flag; treatment cites the documented ~12-14ms constant HMR, lazy compilation of visited routes, persistent caching, and the explicit next dev --turbopack flag."
+        "name": "fix-sass-functions-build-failure",
+        "baseline": 72,
+        "treatment": 80,
+        "rationale": "A states the Rust-cannot-call-JS reason, pins only the build to webpack while dev stays on Turbopack, and recommends rewriting as plain Sass or CSS variables, so it matches the rubric closely; B never gives the Rust/JS reason, is less committed to keeping dev on Turbopack, and offers CSS variables only among several follow-up options, though its CI advice is a useful extra."
+      },
+      {
+        "name": "monorepo-linked-package-not-resolved",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "A sets turbopack.root with path.join(__dirname, \"..\"), says the key moved to top-level turbopack as of 15.3, and gives the exact codemod command. B sets root correctly but never mentions the codemod or version 15.3, and it adds extras such as transpilePackages and outputFileTracingRoot that the rubric didn't ask for."
       }
     ]
   }

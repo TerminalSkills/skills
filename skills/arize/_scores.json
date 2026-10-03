@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:752dc5e8bc88286864b78fd3f751830649c516fe2a3017167198b842a26a3285",
-  "scoredAt": "2026-05-13T14:12:35.925Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:a4d55401976adc3feb434512beecfabd352fb4ed733fd0d4cf96875e0bf9fa00",
+  "scoredAt": "2026-10-02T23:22:17.390Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file only demonstrates happy path usage and does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment and specific libraries, limiting portability to other AI agent platforms."
+        "detail": "Covers mostly the happy path and gives no troubleshooting for common failures such as an empty spans dataframe, a missing OPENAI_API_KEY, the Phoenix server being unreachable, or a judge model that lacks tool calling."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 2.27,
+    "baselineAvg": 41,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "setup-phoenix-tracing",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not mention the required Phoenix launch, tracer registration, or OpenAI instrumentation."
+        "name": "trace-openai-to-local-phoenix",
+        "baseline": 80,
+        "treatment": 95,
+        "rationale": "A matches the rubric exactly: it installs all three packages, starts the server with `phoenix serve`, calls `register(project_name=...)` and passes the returned tracer_provider to `OpenAIInstrumentor().instrument(tracer_provider=...)` before making any OpenAI calls; B covers the same items but makes `auto_instrument=True` the primary path and shows the explicit `OpenAIInstrumentor` call only as an alternative."
       },
       {
-        "name": "run-rag-evaluations",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required Phoenix API usage."
+        "name": "score-rag-faithfulness-current-api",
+        "baseline": 12,
+        "treatment": 90,
+        "rationale": "Response B matches the rubric: it uses `Client().spans.get_spans_dataframe` with `SpanQuery().where(\"span_kind == 'LLM'\")`, `project_name` and `limit=200`, and runs `evaluate_dataframe` with `FaithfulnessEvaluator` and `CorrectnessEvaluator` on an `LLM(provider=\"openai\")` judge, then explains filtering on `unfaithful`. Response A relies on the removed `OpenAIModel`, `llm_classify` and the hallucination and QA templates, passes `query=None` with `project_identifier`, and filters on `factual`, so it fails the rubric's main requirements."
+      },
+      {
+        "name": "send-traces-to-arize-eu",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "B matches the rubric: `arize-otel`, `register` from `arize.otel`, env-var credentials, project_name, `auto_instrument=True`, and `Endpoint.ARIZE_EUROPE` imported from `arize.otel`. A hardcodes a guessed EU hostname from memory and never uses the `Endpoint` constant, so it misses the key EU requirement."
       }
     ]
   }

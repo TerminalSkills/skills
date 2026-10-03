@@ -1,24 +1,39 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9fcd0f3f2de18d160eef01f022f4e922fb9e6262aa96b573e704e7f3e1bb7f5f",
-  "scoredAt": "2026-05-13T09:43:53.206Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:007c884189158f06404415876415204bd27d34d110070f31a217a68422161fc3",
+  "scoredAt": "2026-10-03T13:05:26.414Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 73,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "Authentication is left as '// ... same auth setup as other Graph API skills' and the empty 'Common Patterns' heading is a dangling stub, and the Guidelines say images can be 'base64 in multipart request' while no multipart example is shown."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases, only happy path examples."
+        "detail": "There are no error-handling instructions for 429 throttling, 401/403 token or consent failures, or 404 on missing notebooks, sections or pages. Nothing covers pagination via @odata.nextLink, failed PATCH targets, or the fact that Microsoft Search is a poor fit for finding OneNote pages (filetype:one matches files, not pages)."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The auth snippet is not runnable because token acquisition is omitted, `userId` and `graphClient` are never defined, and the examples are prose narratives of REST calls, not code or command sequences. The second Search snippet queries driveItem with 'filetype:one', which would not return individual pages."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples describe agent behavior in prose rather than showing the concrete request and response, and the example 2 search uses `$filter=contains(title, ...)` without a note that this filter is limited on the pages collection."
       }
     ]
   },
@@ -27,21 +42,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 92,
-    "multiplier": 3.07,
+    "multiplier": 2.28,
+    "baselineAvg": 39,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Create structured OneNote standup page with to-do tags via Graph API",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline suggested wrong Graph endpoints or missed XHTML requirements; treatment POSTed to /users/{userId}/onenote/sections/{sectionId}/pages with Content-Type application/xhtml+xml, included <title>, <meta name=created>, and data-tag=to-do on action items as documented."
+        "name": "standup-page-with-todo-tags",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": ""
       },
       {
-        "name": "Find OneNote page by title and append an update via PATCH",
-        "baseline": 25,
+        "name": "append-update-to-existing-page",
+        "baseline": 8,
         "treatment": 92,
-        "rationale": "Baseline tried to overwrite the page or used the wrong PATCH shape; treatment used $filter=contains(title, ...) to find the page, then PATCH /onenote/pages/{pageId}/content with [{target: body, action: append, position: after, content: ...}] exactly as documented."
+        "rationale": "Response A matches the rubric: it finds the page with a contains(title, ...) filter, takes its id, and PATCHes /content with target 'body', action 'append', position 'after' and a paragraph with data-tag=\"important\" containing 1,250 and 900, while Response B does no API calls, gives manual instructions, and wrongly says Graph can't set the Important tag."
+      },
+      {
+        "name": "background-service-auth-pitfall",
+        "baseline": 70,
+        "treatment": 88,
+        "rationale": "Both say app-only auth was retired on March 31, 2025 and that delegated permissions with a signed-in user are required, and both show GET .../pages/{id}/content returning HTML; A names Notes.ReadWrite.All with admin consent as the rubric asks and gives a clean working example, while B recommends Notes.Read.All instead, never names Notes.ReadWrite.All as the required scope, and includes a broken placeholder code block that it then has to correct."
       }
     ]
   }

@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:21fd53955283094321db20f2b7575e360e1b94f0f65145a3921873a52d86c982",
-  "scoredAt": "2026-05-13T09:26:56.101Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ad6f8462252d2e9073b0c65f806bfd715bc71d77511d356e3810ea9bc0b2068d",
+  "scoredAt": "2026-10-03T12:01:30.160Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Installer is downloaded via curl without checksum verification."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "credentialExposure",
-        "detail": "Credentials are passed as environment variables in the command line, potentially exposing them to other processes."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 88,
-    "multiplier": 2.67,
+    "multiplier": 1.85,
+    "baselineAvg": 48,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Login flow with conditional notification permission and secret credentials",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment writes a YAML flow with appId, launchApp, tapOn/inputText, uses runFlow with a when: visible: conditional to dismiss the permission prompt, and injects ${EMAIL}/${PASSWORD} env vars passed via EMAIL=... PASSWORD=... maestro test; baseline writes generic Appium/Detox code that doesn't match Maestro's YAML schema."
+        "name": "conditional-permission-dialog-ios",
+        "baseline": 80,
+        "treatment": 92,
+        "rationale": "Both use the correct runFlow/when visible pattern and mention launchApp permissions, but B gives the exact `maestro --platform ios test flows/checkout.yaml` command the rubric names, while A's run command omits the iOS platform flag and A adds an `optional` tap alternative that waits through the default timeout and a 3-second `extendedWaitUntil` wait that is close to a fixed wait."
       },
       {
-        "name": "GitHub Actions CI running flows on an Android emulator",
-        "baseline": 30,
-        "treatment": 85,
-        "rationale": "Treatment uses the curl get.maestro.mobile.dev installer, reactivecircus/android-emulator-runner@v2 with api-level 34, adb install, and runs ~/.maestro/bin/maestro test flows/ on a directory of YAML flows; baseline produces a generic mobile-test CI yaml without Maestro's install path or directory test runner."
+        "name": "login-flow-with-secret-env",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "B matches the rubric closely: launchApp with clearState: true, ${PASSWORD}, and the password passed via -e or a MAESTRO_-prefixed variable from the CI secret. A uses `- clearState` and `- launchApp` as separate commands rather than launchApp with clearState: true, and it names the variable QA_PASSWORD instead of PASSWORD. A's password handling is still correct, but it only partly fits the rubric. B's `${EMAIL || ...}` env default is slightly dubious syntax."
+      },
+      {
+        "name": "github-actions-android-junit",
+        "baseline": 25,
+        "treatment": 88,
+        "rationale": "B meets nearly every rubric item: pull_request trigger, Java 17, checksum-verified release zip with sha256sum -c, emulator-runner with adb install, the exact maestro command, and a MAESTRO_-prefixed secret env var. A pipes the install script to bash, passes no MAESTRO_ secret, and uses a different argument order and output filename."
       }
     ]
   }

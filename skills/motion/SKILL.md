@@ -1,16 +1,16 @@
 ---
 name: motion
 description: >-
-  You are an expert in Motion, the production-ready animation library for
-  React (formerly Framer Motion). You help developers create fluid animations,
-  layout transitions, scroll-linked effects, gesture interactions, shared
-  layout animations, and exit animations — using a declarative API where
-  animations are defined as props rather than imperative code.
+  Motion (formerly Framer Motion) is an animation library for React that
+  animates components through declarative props. Use when adding fade-ins,
+  hover and tap effects, exit animations with AnimatePresence, layout and shared-element
+  transitions, scroll-linked or scroll-triggered effects, staggered lists, or
+  when migrating from framer-motion to the motion package.
 license: Apache-2.0
-compatibility: ''
+compatibility: "React 18.2+ (React 19 supported); npm package motion"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - animation
@@ -18,15 +18,40 @@ metadata:
     - motion
     - transitions
     - gestures
+  repository: https://github.com/motiondivision/motion
 ---
 
 # Motion (formerly Framer Motion) — Animation for React
 
-You are an expert in Motion, the production-ready animation library for React (formerly Framer Motion). You help developers create fluid animations, layout transitions, scroll-linked effects, gesture interactions, shared layout animations, and exit animations — using a declarative API where animations are defined as props rather than imperative code.
+## Overview
 
-## Core Capabilities
+Motion is the production animation library for React (previously published as `framer-motion`). Animations are declared as props on `motion.*` components: `initial`, `animate`, `exit`, `whileHover`, `whileTap`, `whileInView`, `layout`, `layoutId` and `variants`. Springs are the default for physical values, and transform and opacity animations run on the GPU. Version 14.0.0 was published on 2026-10-02; 12.x and 13.x code keeps working for the APIs shown here, but check the changelog if you relied on internal framer-motion APIs.
 
-### Basic Animations
+## Instructions
+
+### Install and import
+
+```bash
+npm install motion
+```
+
+```tsx
+import { motion, AnimatePresence } from "motion/react";
+```
+
+- The old package `framer-motion` still exists, but new code should use `motion` and import from `motion/react`. Migrating means swapping the dependency and changing `from "framer-motion"` to `from "motion/react"`.
+- Requires React 18.2 or newer.
+- **Next.js App Router**: components using `motion` need `"use client"` at the top of the file, or import `import * as motion from "motion/react-client"` so they can render inside server components.
+- **Bundle size**: the `motion` component is about 34 kB; use `LazyMotion` with the `m` component (`import * as m from "motion/react-m"`) and `domAnimation` (+15 kB: animations, variants, exits, gestures) or `domMax` (+25 kB: adds drag and layout animations).
+- Outside React, `import { animate, scroll } from "motion"` provides the same engine for plain DOM; inside components, `useAnimate` returns a scope and an `animate` function for imperative sequences.
+
+### Accessibility
+
+Wrap the app in `<MotionConfig reducedMotion="user">` so transform and layout animations are disabled for people whose OS asks for reduced motion (opacity and colour animations are kept). `useReducedMotion()` returns the boolean for custom handling, for example setting a parallax `y` to 0.
+
+### Patterns
+
+#### Basic Animations
 
 ```tsx
 import { motion, AnimatePresence } from "motion/react";
@@ -78,7 +103,7 @@ function NotificationList({ notifications }: { notifications: Notification[] }) 
 }
 ```
 
-### Layout Animations
+#### Layout Animations
 
 ```tsx
 // Automatic layout animation
@@ -130,7 +155,7 @@ function TabLayout({ activeTab }: { activeTab: string }) {
 }
 ```
 
-### Scroll Animations
+#### Scroll Animations
 
 ```tsx
 import { motion, useScroll, useTransform } from "motion/react";
@@ -162,7 +187,7 @@ function ScrollReveal({ children }: { children: React.ReactNode }) {
 }
 ```
 
-### Staggered Children
+#### Staggered Children
 
 ```tsx
 const container = {
@@ -191,19 +216,50 @@ function StaggeredList({ items }: { items: { id: string; name: string }[] }) {
 }
 ```
 
-## Installation
+## Examples
 
-```bash
-npm install motion
+### Example 1: Animated notification stack
+
+**User request:** "Make toast notifications slide in from the right and slide out when dismissed, without the list jumping."
+
+Use the exit-animation pattern above and add `mode="popLayout"` to `AnimatePresence` so exiting items leave the layout flow, plus `layout` on each item so siblings glide into the gap:
+
+```tsx
+<AnimatePresence mode="popLayout">
+  {toasts.map((t) => (
+    <motion.div key={t.id} layout
+      initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }}>
+      {t.message}
+    </motion.div>
+  ))}
+</AnimatePresence>
 ```
 
-## Best Practices
+Result: new toasts slide in, dismissed ones slide out, remaining toasts move up smoothly. Keys must be stable ids, never array indexes.
 
-1. **`layout` prop** — Add to any element; automatically animates when size/position changes; works with CSS
-2. **AnimatePresence** — Wrap lists/conditionals to enable exit animations; key prop required for each child
-3. **Spring physics** — Use `type: "spring"` for natural motion; tune `stiffness` (speed) and `damping` (bounciness)
-4. **Scroll animations** — Use `whileInView` for entrance, `useScroll`+`useTransform` for parallax
-5. **Shared layout** — Same `layoutId` on two elements = animated transition between them (tab indicators, cards)
-6. **Gesture props** — `whileHover`, `whileTap`, `whileDrag` for interactive micro-animations
-7. **`layout="position"`** — Animate only position changes, not size; prevents text reflow during animation
-8. **Performance** — Motion uses the GPU-accelerated `transform` and `opacity`; avoids layout thrashing
+### Example 2: Scroll progress bar and reveal-on-scroll sections
+
+**User request:** "Add a reading-progress bar at the top and fade in each section as it scrolls into view."
+
+```tsx
+import { motion, useScroll, useSpring } from "motion/react";
+
+export function ProgressBar() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
+  return <motion.div style={{ scaleX, transformOrigin: "0 0" }} className="fixed inset-x-0 top-0 h-1 bg-emerald-500" />;
+}
+```
+
+Wrap each section in the `ScrollReveal` component above (`whileInView`, `viewport={{ once: true }}`). Result: a bar that fills as the page scrolls and sections that fade up once.
+
+## Guidelines
+
+1. **`layout` prop**: add it to an element and size or position changes animate automatically. Use `layout="position"` on text children to avoid stretching, and `layout` on children of a resized parent to fix scale distortion. Scrollable ancestors need `layoutScroll`; fixed ancestors need `layoutRoot`. Wrap components that do not re-render together in `LayoutGroup`.
+2. **AnimatePresence**: it must wrap the conditional, not be wrapped by it; direct children need unique, stable `key`s. Modes: `sync` (default), `wait` (enter after exit finishes), `popLayout`. `initial={false}` skips the first-render animation.
+3. **Springs**: `type: "spring"` with `stiffness` (speed) and `damping` (bounce); a `duration`/`bounce` pair is easier to tune by feel.
+4. **Scroll**: `whileInView` for entrance effects (with `viewport={{ once: true }}`), `useScroll` plus `useTransform` for scroll-linked effects. Prefer these over scroll listeners with `setState`.
+5. **Shared layout**: the same `layoutId` on two elements animates between them (tab underlines, card-to-modal); make `layoutId`s unique per group.
+6. **Gestures**: `whileHover`, `whileTap`, `whileDrag`, `whileFocus`; hover effects do not fire on touch.
+7. **Performance**: animate `transform` and `opacity`; animating `width`, `height` or `top` forces layout, so use `layout` instead. Avoid re-rendering the parent per frame; use motion values (`useMotionValue`, `useTransform`) which update without renders.
+8. **Do not use** for simple one-off hover colours (CSS transitions are lighter) or for server-only components without the client import noted above.

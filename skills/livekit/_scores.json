@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:32d3c5c5badeef05237b0f3b68ea8f902aadb5813739e72a28bb8a9d22974770",
-  "scoredAt": "2026-05-13T09:24:53.078Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:abdb29446c496416eb16cde2cea8a46c5d85c2c5de65cc9c09b48643ce221ddb",
+  "scoredAt": "2026-10-03T12:03:01.225Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "PASS",
+      "conciseness": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "Covers mostly the happy path with no error handling for failed connections, token expiry, SIP trunk creation failures, missing API keys, or agent dispatch problems."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
+        "category": "actionability",
+        "detail": "The SIP YAML (apiVersion livekit.io/v1, kind SIPTrunk) is not a real LiveKit config format and the Python SIP snippet omits imports (os) and an async context, so parts cannot be run as written and the dispatch rule is never tied to the agent."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are short prose pointers back to earlier snippets rather than self-contained demonstrations with realistic inputs and expected outputs."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
-    "treatmentAvg": 87,
-    "multiplier": 2.72,
+    "multiplier": 1,
+    "baselineAvg": 90,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Build a phone-answering voice agent that uses Deepgram STT, GPT-4o, and ElevenLabs TTS",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Treatment wires up `VoiceAssistant` from livekit-agents with Silero VAD prewarm, the deepgram/openai/elevenlabs plugins, and a `cli.run_app(WorkerOptions(...))` entrypoint; baseline stitches raw WebSocket + provider APIs together and misses the Agents framework entirely."
+        "name": "voice-agent-1x-dental-booking",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both meet every rubric item (Agent subclass with a @function_tool async method, AgentSession with stt/llm/tts/vad, session.start(agent=..., room=...), Silero VAD loaded in prewarm_fnc into proc.userdata and passed through WorkerOptions to cli.run_app, no VoiceAssistant/fnc_ctx, and `python agent.py console`), and A adds more fast-first-response tuning while B explicitly notes the removed APIs and gives a leaner example."
       },
       {
-        "name": "Route inbound Twilio SIP calls into a LiveKit room per call so an AI agent can answer",
-        "baseline": 33,
-        "treatment": 85,
-        "rationale": "Treatment creates a `SIPInboundTrunkInfo` via `lk.sip.create_sip_inbound_trunk` and a `SIPDispatchRuleIndividual` with `room_prefix`, giving each call its own room; baseline configures Twilio TwiML/Media Streams and never touches the LiveKit SIP API."
+        "name": "sip-inbound-room-per-call",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both create the inbound trunk and an individual dispatch rule with room_prefix, reference trunk_ids from the created trunk, and use the right request classes; B explicitly reads URL, key and secret from os.environ, which matches the rubric, while A relies on the LiveKitAPI() default env lookup (implicit) but adds more complete agent dispatch and Twilio setup notes."
+      },
+      {
+        "name": "react-video-call-with-server-token",
+        "baseline": 90,
+        "treatment": 93,
+        "rationale": "Both meet every rubric item: server-side AccessToken with env vars, a grant with roomJoin/room/canPublish/canSubscribe, await toJwt(), and LiveKitRoom with VideoConference and RoomAudioRenderer, with no secret on the client. A is more tightly focused and runnable as written, while B adds useful session-derived identity and error handling but includes placeholder session code and NestJS tangents that slightly dilute it."
       }
     ]
   }

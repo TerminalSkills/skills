@@ -1,13 +1,13 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c0fc1e6980de3d0e3173c3e4578904868fa153347d8a98ce50a8fcef133ed93d",
-  "scoredAt": "2026-05-13T08:47:42.567Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:207961488f72543c52f03818a5cba320544b0ba54f54b879dbaa00a1bb694293",
+  "scoredAt": "2026-10-03T13:00:15.568Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not specific and unambiguous, lacking clear guidance."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill file does not cover error scenarios or edge cases."
+        "detail": "Mostly covers the happy path; the rate limiter has no tests or error handling, and the instructions skip common failure scenarios such as GenServer call timeouts, restart-intensity limits, and Ecto changeset error handling."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 95,
-    "multiplier": 1.64,
+    "multiplier": 1.39,
+    "baselineAvg": 66,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "GenServer rate limiter",
+        "name": "crash-safe-rate-limiter-genserver",
         "baseline": 55,
         "treatment": 95,
-        "rationale": "Baseline uses Agent and lacks scheduled cleanup; treatment matches the documented GenServer + Process.send_after + supervisor pattern exactly."
+        "rationale": "B matches the rubric closely: a GenServer with start_link and check_rate, handle_call returning :ok or {:error, :rate_limited} over a 60s window, Process.send_after with a self-rescheduling handle_info(:cleanup), and the module added to the supervisor's children with :one_for_one. A uses ETS with a `check/1` function that doesn't go through handle_call, returns different tuples, and names its callback :sweep instead of :cleanup, so it misses several specific rubric items even though it is well designed and has the supervisor wiring."
       },
       {
-        "name": "LiveView real-time dashboard",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline subscribes unconditionally and uses the old ~L sigil; treatment uses connected?(socket) guard, ~H sigil, and PubSub-driven handle_info as the SKILL prescribes."
+        "name": "liveview-realtime-orders-dashboard",
+        "baseline": 70,
+        "treatment": 88,
+        "rationale": "A matches the rubric directly, with a {:new_order, order} broadcast and a handler that updates assigns with update/3. B has the connected? guard, :tick, ~H and a broadcast after insert, but it uses {:order_created, id} and re-queries instead of handling {:new_order, order}, which misses a specific rubric requirement."
+      },
+      {
+        "name": "ecto-registration-with-safe-input",
+        "baseline": 72,
+        "treatment": 93,
+        "rationale": "B covers all rubric items (changeset piped to Repo.insert, {:ok}/{:error} case handling, explicit avoidance of String.to_atom, and `mix phx.new --database sqlite3` followed by `mix setup`), while A is strong on changeset and Ecto.Enum safety but omits `mix setup` (uses ecto.create/migrate instead) and never explicitly mentions String.to_atom."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:df0590902d6b685b047cbe23ec74986cf113299749b6b8af83a00e93a48b422b",
-  "scoredAt": "2026-05-13T10:00:53.381Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e2f0f518cd29d27aed9f10e3deac646b0106c426cb8c8c4303f094d52d8f5898",
+  "scoredAt": "2026-10-03T13:10:33.439Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,19 +11,19 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "Covers the happy path and some pitfalls but gives little on error handling, such as failed model loads (no error boundary), WebGL context loss, or SSR hydration problems."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to React Three Fiber and may not work with other AI agent platforms."
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of steps with no runnable code or sample output, and the result claims such as '70-90% smaller' are unsupported."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 85,
-    "multiplier": 2.58,
+    "multiplier": 1.21,
+    "baselineAvg": 67,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "Interactive GLTF product viewer with hover state",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment uses the documented R3F declarative patterns (`<Canvas>`, `useGLTF` from drei, `useGLTF.preload`, `onPointerOver`/`onClick`, `useFrame`) while baseline falls back to imperative Three.js with manual GLTFLoader and requestAnimationFrame."
+        "name": "sneaker-viewer-nextjs-optimized",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "B hits most rubric items (use client, Canvas frameloop=demand, OrbitControls, Suspense, Stage lighting, gltfjsx --transform producing sneaker-transformed.glb, though it omits --types), while A uses gltf-transform instead of gltfjsx, loads sneaker.opt.glb, and so misses the key compression recommendation despite having good component structure and Environment lighting."
       },
       {
-        "name": "Animated 5000-star particle field that drifts toward the pointer",
-        "baseline": 30,
-        "treatment": 85,
-        "rationale": "Treatment uses `<InstancedMesh>`/`<Instances>` plus `useFrame` with `state.pointer` and `viewport` per the skill's instancing guidance, while baseline naively creates thousands of individual meshes and uses a manual animation loop."
+        "name": "fix-star-field-fps",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": "B uses drei's `<Instances limit>` with `<Instance>` children and a raw `instancedMesh` updated in `useFrame`, and says the geometry and material are shared so the field is one draw call. A leads with `<points>`, which isn't the rubric's approach. A's `instancedMesh` option does the setup once in `useLayoutEffect` and never uses `<Instances>` or `useFrame` updates, and it creates Vector3s and Quaternions inside the loop. A also recommends against per-frame updates."
+      },
+      {
+        "name": "hover-click-box-with-animation",
+        "baseline": 90,
+        "treatment": 70,
+        "rationale": "A mutates rotation, scale and colour via a ref in useFrame with delta and no setState, and uses onPointerOver/Out state, onClick stopPropagation and a scale toggle, but drives colour from the useFrame lerp, a slight departure from the rubric's state-based hover colour. B meets the rubric structurally (ref and delta rotation, hover state driving colour, stopPropagation toggle), but its scale lerp uses a fixed 0.1 factor that isn't frame-rate independent, which it admits in its own notes, and it omits the pointer cursor."
       }
     ]
   }

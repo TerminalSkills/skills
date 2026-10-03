@@ -24,7 +24,7 @@
     {
       "name": "a2a-protocol",
       "slug": "a2a-protocol",
-      "description": "Builds Agent-to-Agent (A2A) servers and clients following Google's open protocol for agent interoperability. Use when the user wants to create an A2A-compliant agent, build an Agent Card, implement task management, connect agents across frameworks, set up agent discovery, handle streaming responses, implement push notifications, or orchestrate multi-agent workflows. Trigger words: a2a, agent to agent, agent2agent, a2a protocol, a2a server, a2a client, agent card, agent interoperability, agent collaboration, multi-agent, agent discovery, a2a sdk, a2a task.",
+      "description": "Builds Agent2Agent (A2A) servers and clients, the open protocol (originally from Google, now under the Linux Foundation) that lets AI agents from different frameworks call each other. Use when the user wants to create an A2A-compliant agent, build an Agent Card, implement task management, connect agents across frameworks, set up agent discovery, handle streaming responses, implement push notifications, or orchestrate multi-agent workflows. Trigger words: a2a, agent to agent, agent2agent, a2a protocol, a2a server, a2a client, agent card, agent interoperability, agent collaboration, multi-agent, agent discovery, a2a sdk, a2a task.",
       "category": "development",
       "tags": [
         "a2a",
@@ -69,12 +69,12 @@
     {
       "name": "aceternity-ui",
       "slug": "aceternity-ui",
-      "description": "Add premium animated UI components built with Framer Motion and Tailwind CSS using Aceternity UI. Use when: adding animated effects (3D cards, glowing backgrounds, spotlight effects, moving borders), building visually stunning UIs, creating impressive hero sections and feature showcases in React/Next.js.",
+      "description": "Aceternity UI is a collection of animated React components (3D cards, spotlight, background beams, moving borders, wavy backgrounds) built with Tailwind CSS and the motion library, installed into your project as source through the shadcn CLI. Use when someone asks for \"animated hero section\", \"3D tilt card\", \"spotlight effect\", \"moving border button\", \"Aceternity component\", or \"glowing background\" in a React or Next.js app.",
       "category": "design",
       "tags": [
         "aceternity-ui",
         "react",
-        "framer-motion",
+        "motion",
         "animations",
         "tailwind"
       ]
@@ -82,14 +82,14 @@
     {
       "name": "act",
       "slug": "act",
-      "description": "Run GitHub Actions locally with act. Use when a user asks to test GitHub Actions workflows locally, debug CI pipelines without pushing, or run workflows offline.",
+      "description": "Runs GitHub Actions workflows on your own machine in Docker containers with act, so CI can be tested without pushing. Use when a user asks to test GitHub Actions workflows locally, debug a failing CI pipeline, pass secrets or inputs to a local run, or run workflows offline.",
       "category": "development",
       "tags": []
     },
     {
       "name": "activepieces",
       "slug": "activepieces",
-      "description": "Build workflow automations with Activepieces. Use when a user asks to self-host a Zapier alternative, automate workflows with a visual builder, create no-code integrations, or set up open-source business automation.",
+      "description": "Activepieces is an open-source workflow automation platform with a visual builder, 400+ integrations (\"pieces\"), code steps, branching, loops, and webhooks. Use when a user asks to self-host a Zapier or n8n alternative, automate workflows with a no-code builder, build a custom integration piece, or set up open-source business automation.",
       "category": "automation",
       "tags": []
     },
@@ -130,15 +130,15 @@
     {
       "name": "ag-ui",
       "slug": "ag-ui",
-      "description": "You are an expert in AG-UI (Agent-User Interaction Protocol), the open standard by CopilotKit for connecting AI agents to frontend UIs. You help developers stream agent actions, tool calls, state updates, and text generation to React components in real-time — enabling rich agent UIs where users see what the agent is thinking, doing, and can intervene at any step.",
-      "category": "AI & Machine Learning",
+      "description": "AG-UI (Agent-User Interaction Protocol) is an open, event-based protocol that streams an AI agent's text, tool calls, state and lifecycle events to a frontend over HTTP and Server-Sent Events. Use when the user wants to build an AG-UI server, connect an agent or framework (LangGraph, Mastra, CrewAI, Pydantic AI) to a React or custom UI, stream agent progress and state, or use CopilotKit with AG-UI.",
+      "category": "development",
       "tags": []
     },
     {
       "name": "ag2",
       "slug": "ag2",
-      "description": "You are an expert in AG2 (formerly AutoGen), the open-source multi-agent conversation framework. You help developers build systems where multiple AI agents collaborate through structured conversations — with tool use, human-in-the-loop, code execution, group chat orchestration, and nested conversations — for complex tasks like software development, research, and data analysis.",
-      "category": "AI & Machine Learning",
+      "description": "AG2 (formerly AutoGen) is an open-source Python framework for building AI agents and multi-agent systems that use tools, human approval and structured conversations. Use it when you need agents that call functions, collaborate in a group chat, execute code, or when you are migrating AutoGen or pyautogen code to AG2 v1 or ag2-classic.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -148,7 +148,6 @@
       "category": "data-ai",
       "tags": [
         "memory",
-        "persistence",
         "embeddings",
         "vector-search",
         "context",
@@ -191,7 +190,7 @@
     {
       "name": "agentscope",
       "slug": "agentscope",
-      "description": "Build transparent, observable AI agents using AgentScope — agents you can see, understand, and trust with full execution tracing and debugging. Use when: building production agents that need observability, debugging complex agent behaviors, creating agents with audit trails.",
+      "description": "Build and trace AI agents in Python with AgentScope, an open-source agent framework with a ReAct loop, tools, middleware, team pipelines and OpenTelemetry tracing. Use when building production agents that need observability, debugging an agent's model and tool calls, capping token spend per reply, or coordinating a leader with specialist agents.",
       "category": "data-ai",
       "tags": []
     },
@@ -332,7 +331,7 @@
     {
       "name": "alembic",
       "slug": "alembic",
-      "description": "Manage database migrations with Alembic. Use when a user asks to version database schemas, create migration scripts, handle schema changes in production, or manage SQLAlchemy model migrations.",
+      "description": "Manage database migrations for SQLAlchemy with Alembic. Use when a user asks to version database schemas, autogenerate migration scripts from models, run or roll back migrations, set up async SQLAlchemy migrations, or handle schema changes safely in production.",
       "category": "data-ai",
       "tags": []
     },
@@ -366,7 +365,7 @@
     {
       "name": "amass",
       "slug": "amass",
-      "description": "OWASP Amass for in-depth DNS enumeration, subdomain discovery, and network mapping with active and passive modes. Use when: comprehensive subdomain enumeration, ASN and IP range mapping, attack surface discovery, building full network topology of a target organization.",
+      "description": "OWASP Amass maps an organization's external attack surface: it finds subdomains, IP addresses, netblocks and ASNs from passive sources and active DNS techniques and stores them in an asset database. Use when: comprehensive subdomain enumeration, attack surface discovery, finding forgotten hosts before a pentest, tracking newly appeared assets, building a graph of target infrastructure.",
       "category": "research",
       "tags": [
         "amass",
@@ -440,7 +439,7 @@
     {
       "name": "apache-spark",
       "slug": "apache-spark",
-      "description": "Process large-scale data with Apache Spark. Use when a user asks to process big data, run distributed computations, build ETL pipelines, perform data analysis at scale, or use PySpark for data engineering.",
+      "description": "Apache Spark is a distributed engine for batch, SQL and streaming data processing, used from Python through PySpark. Use when a user asks to process big data, run distributed computations, build ETL pipelines, analyse data at scale, read Parquet from S3, or stream from Kafka with PySpark.",
       "category": "data-ai",
       "tags": []
     },
@@ -507,7 +506,7 @@
     {
       "name": "appium",
       "slug": "appium",
-      "description": "When the user wants to automate mobile app testing on iOS and Android using Appium. Also use when the user mentions \"appium,\" \"mobile automation,\" \"iOS testing,\" \"Android testing,\" \"mobile WebDriver,\" \"XCUITest,\" or \"UiAutomator.\" For React Native-specific testing, see detox.",
+      "description": "Appium is an open-source framework that automates native, hybrid and mobile-web apps on iOS and Android through the WebDriver protocol. Use when the user wants to set up Appium 3, write mobile UI tests in JavaScript (WebdriverIO) or Python, pick capabilities, run gestures, or fix \"appium\", \"XCUITest\", \"UiAutomator2\", \"mobile automation\" problems. For React Native-only testing, see detox.",
       "category": "development",
       "tags": []
     },
@@ -600,8 +599,8 @@
     {
       "name": "arize",
       "slug": "arize",
-      "description": "You are an expert in Arize and its open-source Phoenix library for AI observability. You help developers monitor LLM applications with tracing, evaluation, embedding analysis, drift detection, and retrieval quality metrics — using Phoenix for local development (open-source, self-hosted) and Arize platform for production monitoring at scale.",
-      "category": "AI & Machine Learning",
+      "description": "Arize is an AI observability platform, and Phoenix is its open-source tracing and evaluation tool for LLM applications. Use this skill when the user wants to trace OpenAI or LangChain calls, run a local Phoenix server, score RAG answers for faithfulness, debug slow or wrong LLM responses, or send OpenTelemetry traces to Arize for production monitoring.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -726,7 +725,7 @@
     {
       "name": "aws-cli",
       "slug": "aws-cli",
-      "description": "AWS Command Line Interface for managing Amazon Web Services. Use when the user needs to interact with S3, EC2, Lambda, CloudWatch, IAM, and other AWS services directly from the terminal for operations, scripting, and automation.",
+      "description": "The AWS Command Line Interface (v2) manages Amazon Web Services from the terminal. Use when the user needs to run S3, EC2, Lambda, CloudWatch, IAM or other AWS commands, sign in with SSO or short-term credentials, write AWS automation scripts, or debug an `aws` command and its output.",
       "category": "devops",
       "tags": []
     },
@@ -822,9 +821,15 @@
     {
       "name": "axum",
       "slug": "axum",
-      "description": "You are an expert in Axum, the web framework built on top of Tokio and Tower by the Tokio team. You help developers build high-performance, type-safe APIs and web services using Axum's extractor-based handler system, middleware via Tower layers, WebSocket support, and compile-time route validation — achieving C-level performance with Rust's memory safety guarantees.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Builds HTTP APIs and web services in Rust with Axum, the Tokio team's web framework on top of Tokio, Hyper and Tower. Use when a user asks to create a Rust REST API, add routes, extractors, JSON handlers, shared state, middleware, error handling, WebSockets, graceful shutdown or tests with Axum, or to migrate older Axum code (0.6/0.7 path syntax) to 0.8.",
+      "category": "development",
+      "tags": [
+        "rust",
+        "web-framework",
+        "async",
+        "tokio",
+        "tower"
+      ]
     },
     {
       "name": "azure-blob-storage",
@@ -857,12 +862,12 @@
     {
       "name": "azure-openai",
       "slug": "azure-openai",
-      "description": "Azure OpenAI Service — OpenAI models (GPT-4o, DALL-E 3, Whisper) on Azure infrastructure. Use when deploying OpenAI models with enterprise compliance (GDPR, HIPAA, SOC2), Azure-native auth via Managed Identity, content filtering, or VNET-isolated deployments. Same OpenAI API, hosted on Azure.",
+      "description": "Azure OpenAI is Microsoft's hosted service for OpenAI models (GPT, gpt-image, Whisper, embeddings) on Azure infrastructure. Use when calling OpenAI models through Azure, authenticating with Managed Identity or Entra ID, setting up content filters, or deploying with enterprise compliance, regional data residency or private networking.",
       "category": "data-ai",
       "tags": [
         "azure-openai",
         "azure",
-        "gpt-4",
+        "openai",
         "enterprise",
         "microsoft"
       ]
@@ -964,7 +969,7 @@
     {
       "name": "blender-animation",
       "slug": "blender-animation",
-      "description": "Animate 3D objects and characters in Blender with Python. Use when the user wants to keyframe properties, create armatures and rigs, set up IK/FK chains, animate shape keys for facial animation, edit F-Curves, use the NLA editor to blend actions, add drivers for expression-based animation, or script any animation workflow in Blender.",
+      "description": "Animates 3D objects and characters in Blender with Python (bpy): keyframes, armatures and IK rigs, shape keys, F-Curves, the NLA editor and drivers. Use when the user wants to keyframe properties, create armatures and rigs, set up IK/FK chains, animate shape keys for facial animation, edit F-Curves, blend actions with NLA strips, add drivers, or script any animation workflow in Blender from the terminal.",
       "category": "design",
       "tags": [
         "blender",
@@ -1121,15 +1126,15 @@
     {
       "name": "browser-use",
       "slug": "browser-use",
-      "description": "You are an expert in Browser Use, the Python library that lets AI agents control a web browser. You help developers build agents that can navigate websites, fill forms, click buttons, extract data, and complete multi-step web tasks — using vision and DOM understanding to interact with any website like a human would.",
-      "category": "AI & Machine Learning",
+      "description": "Browser Use is an open-source Python library that lets an LLM agent drive a real browser to navigate sites, fill forms, click and extract data from a plain-English task. Use when the user wants an AI agent to automate a website, scrape pages that need clicking or login, return structured data from the web, add browser tools to a coding agent, or run browser agents locally or in the cloud.",
+      "category": "automation",
       "tags": []
     },
     {
       "name": "browserbase",
       "slug": "browserbase",
-      "description": "You are an expert in BrowserBase, the cloud platform for running headless browsers at scale. You help developers deploy browser-based automations, AI agents, and web scraping pipelines using managed Chromium instances with residential proxies, session recording, stealth mode, and parallel execution — without managing browser infrastructure.",
-      "category": "Developer Tools",
+      "description": "Browserbase runs managed headless Chromium sessions in the cloud, so browser automation, AI agents and scraping jobs need no browser infrastructure of their own. Use when someone asks to \"run Playwright in the cloud\", \"Browserbase session\", \"headless browsers at scale\", \"scrape with proxies and CAPTCHA solving\", \"persist a login across browser sessions\", or \"use Stagehand with Browserbase\". Covers sessions, proxies, contexts, parallel runs and replays.",
+      "category": "devops",
       "tags": []
     },
     {
@@ -1173,8 +1178,8 @@
     {
       "name": "bull-mq",
       "slug": "bull-mq",
-      "description": "You are an expert in BullMQ, the high-performance job queue for Node.js built on Redis. You help developers build reliable background processing systems with delayed jobs, rate limiting, prioritization, repeatable cron jobs, job dependencies, concurrency control, and dead-letter handling — powering email sending, image processing, webhook delivery, report generation, and any async workload.",
-      "category": "Backend Development",
+      "description": "Runs background jobs in Node.js with BullMQ, a job queue library backed by Redis (or PostgreSQL since v6): delayed and prioritized jobs, retries with backoff, rate limiting, cron-style job schedulers, parent-child flows and concurrency control. Use when a user asks to add a background worker, queue emails or webhooks, schedule recurring jobs, retry failed jobs, rate limit an API client, or migrate from Bull or from BullMQ 5 repeatable jobs.",
+      "category": "development",
       "tags": []
     },
     {
@@ -1384,14 +1389,14 @@
     {
       "name": "centrifugo",
       "slug": "centrifugo",
-      "description": "You are an expert in Centrifugo, the scalable real-time messaging server. You help developers add WebSocket-based real-time features (chat, notifications, live updates, presence) to any application with a language-agnostic server that handles millions of concurrent connections — publishing from your backend via HTTP/gRPC API while clients subscribe via WebSocket, SSE, or HTTP streaming.",
-      "category": "Backend Development",
+      "description": "Centrifugo is a self-hosted real-time messaging server: your backend publishes over an HTTP or gRPC API and browsers or mobile apps receive messages over WebSocket, SSE or HTTP streaming. Use when the user wants chat, live notifications, presence (\"who is online\"), message history with recovery, or any WebSocket pub/sub without writing a socket server.",
+      "category": "development",
       "tags": []
     },
     {
       "name": "cerebras",
       "slug": "cerebras",
-      "description": "Expert guidance for Cerebras Inference, the ultra-fast LLM inference service powered by the world's largest chip (Wafer-Scale Engine). Helps developers integrate Cerebras' API for applications requiring the fastest possible token generation — real-time chat, code completion, and interactive AI experiences.",
+      "description": "Cerebras Inference is a hosted LLM API that runs open models on Cerebras wafer-scale chips at thousands of tokens per second, through an OpenAI-compatible endpoint. Use when a user wants the lowest-latency chat, code completion or agent loop, asks how to call the Cerebras API or SDK, needs streaming, tool calling, strict JSON schema output or reasoning control, or hits a \"model not found\" error from a retired Cerebras model ID.",
       "category": "data-ai",
       "tags": []
     },
@@ -1458,7 +1463,7 @@
     {
       "name": "checkly",
       "slug": "checkly",
-      "description": "Expert guidance for Checkly, the synthetic monitoring platform that runs Playwright-based browser checks and API checks from locations worldwide. Helps developers implement monitoring-as-code (MaC) with the Checkly CLI, set up API and browser checks, configure alerting, and integrate monitoring into CI/CD pipelines.",
+      "description": "Checkly is a synthetic monitoring platform that runs API checks and Playwright browser checks from locations worldwide and lets you define them as code with the Checkly CLI. Use when a developer asks to set up monitoring as code, write API or browser checks, configure Slack or email alerts, run checks in CI after a deploy, or turn Playwright tests into production monitors.",
       "category": "devops",
       "tags": []
     },
@@ -1512,7 +1517,7 @@
     {
       "name": "chromatic",
       "slug": "chromatic",
-      "description": "When the user wants to perform visual regression testing with Storybook integration using Chromatic. Also use when the user mentions \"chromatic,\" \"visual regression,\" \"Storybook testing,\" \"UI review,\" \"visual diff,\" or \"component snapshot testing.\" For general screenshot comparison, see percy.",
+      "description": "Chromatic is a visual testing service from the Storybook team that snapshots every story in a cloud browser and shows visual diffs for review on each pull request. Use when the user wants visual regression testing with Storybook, or mentions \"chromatic,\" \"visual regression,\" \"Storybook testing,\" \"UI review,\" \"visual diff,\" or \"component snapshot testing.\" For general screenshot comparison, see percy.",
       "category": "development",
       "tags": []
     },
@@ -1611,7 +1616,7 @@
     {
       "name": "clerk-auth",
       "slug": "clerk-auth",
-      "description": "Add authentication to web apps with Clerk — social login, email/password, magic links, organizations, RBAC, session management, webhooks, and multi-framework support. Use when tasks involve user authentication, team/org management, role-based access control, or integrating auth into Next.js, React, Remix, or Express applications.",
+      "description": "Clerk is a hosted authentication and user-management service with drop-in UI components, social login, email/password, organizations, RBAC and webhooks. Use when adding sign-in to Next.js, React, or Express apps, protecting routes with clerkMiddleware, setting up multi-tenant organizations and roles, or syncing Clerk users to your own database.",
       "category": "development",
       "tags": [
         "clerk",
@@ -1697,7 +1702,7 @@
     {
       "name": "cloudflare-workers",
       "slug": "cloudflare-workers",
-      "description": "Assists with building and deploying applications on Cloudflare Workers edge computing platform. Use when working with Workers runtime, Wrangler CLI, KV, D1, R2, Durable Objects, Queues, or Hyperdrive. Trigger words: cloudflare, workers, edge functions, wrangler, KV, D1, R2, durable objects, edge computing.",
+      "description": "Cloudflare Workers is an edge computing platform for running JavaScript, TypeScript, and WebAssembly close to users worldwide with sub-millisecond cold starts. Use when working with the Workers runtime, the Wrangler CLI, KV, D1, R2, Durable Objects, Queues, or Hyperdrive, or when a user asks to build and deploy an edge function.",
       "category": "development",
       "tags": [
         "cloudflare",
@@ -1723,8 +1728,8 @@
     {
       "name": "cobra",
       "slug": "cobra",
-      "description": "You are an expert in Cobra, the most popular Go library for building modern CLI applications. You help developers create command-line tools with subcommands, flags, argument validation, shell completions, and help generation — powering CLIs like kubectl, Hugo, GitHub CLI, and Docker.",
-      "category": "Developer Tools",
+      "description": "Builds command-line tools in Go with Cobra, the library behind kubectl, Hugo and the GitHub CLI: subcommands, flags, argument validation, generated help and shell completions. Use when a user asks to create a Go CLI, add subcommands or flags, validate arguments, bind flags to config files and environment variables with Viper, or generate bash, zsh, fish or PowerShell completions.",
+      "category": "development",
       "tags": []
     },
     {
@@ -1860,7 +1865,7 @@
     {
       "name": "commitlint",
       "slug": "commitlint",
-      "description": "Enforce conventional commit messages with commitlint. Use when a user asks to standardize commit messages, enforce commit conventions, set up commit linting in CI, or generate changelogs from commits.",
+      "description": "commitlint checks that Git commit messages follow the Conventional Commits format (type(scope): subject) and fails when they do not. Use when a user asks to standardize commit messages, enforce commit conventions with a husky commit-msg hook, lint commits or PR commits in CI, customize rules, or prepare commits for automated changelogs and semantic versioning.",
       "category": "development",
       "tags": []
     },
@@ -2031,7 +2036,7 @@
     {
       "name": "cookie-consent",
       "slug": "cookie-consent",
-      "description": "Implement GDPR/ePrivacy-compliant cookie consent management. Use when adding a cookie banner, managing marketing consent, achieving GDPR compliance for EU users, or integrating consent management with analytics platforms.",
+      "description": "Implement GDPR and ePrivacy-compliant cookie consent: a banner with equal Accept and Reject buttons, per-category choices, stored consent records, consent-gated analytics with Google Consent Mode v2, and Global Privacy Control. Use when adding a cookie banner, managing marketing consent, achieving GDPR compliance for EU users, or integrating consent with analytics platforms.",
       "category": "development",
       "tags": [
         "cookie-consent",
@@ -2142,8 +2147,8 @@
     {
       "name": "crewai",
       "slug": "crewai",
-      "description": "You are an expert in CrewAI, the framework for orchestrating autonomous AI agents working together as a crew. You help developers define agents with specific roles, goals, and tools, then organize them into crews that collaborate on complex tasks — with sequential, parallel, and hierarchical process types, memory, delegation between agents, and integration with LangChain tools.",
-      "category": "AI & Machine Learning",
+      "description": "CrewAI is a Python framework for building multi-agent AI systems: you define agents with roles, goals and tools, give them tasks, and run them as a crew with sequential or hierarchical processes, memory and delegation. Use when a user wants to build a multi-agent workflow, set up a CrewAI project, write custom CrewAI tools, or run a crew from the crewai CLI.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -2170,7 +2175,7 @@
     {
       "name": "crowdsec",
       "slug": "crowdsec",
-      "description": "Protect servers with CrowdSec collaborative security. Use when a user asks to block malicious IPs, detect brute force attacks, protect web servers, or set up a community-driven firewall and intrusion detection system.",
+      "description": "Detects attacks from server logs and blocks malicious IPs with CrowdSec, an open-source, crowd-sourced alternative to fail2ban. Use when a user asks to block brute force attempts, protect SSH or a web server, set up a community blocklist firewall, add a WAF, or install CrowdSec with Docker.",
       "category": "devops",
       "tags": []
     },
@@ -2432,7 +2437,7 @@
     {
       "name": "deepgram",
       "slug": "deepgram",
-      "description": "Transcribe and analyze audio with the Deepgram API. Use when a user asks to convert speech to text, implement real-time transcription, analyze audio intelligence, detect languages, or build voice-enabled applications with Deepgram SDKs.",
+      "description": "Transcribes and analyzes speech with the Deepgram API: pre-recorded audio, real-time streaming, text-to-speech and voice agents. Use when a user asks to convert speech to text, implement real-time transcription, add speaker labels or summaries to a recording, detect languages, build a voice agent with turn detection, or integrate Deepgram SDKs (JavaScript or Python).",
       "category": "data-ai",
       "tags": [
         "speech-to-text",
@@ -2707,8 +2712,8 @@
     {
       "name": "dspy",
       "slug": "dspy",
-      "description": "You are an expert in DSPy, the Stanford framework that replaces prompt engineering with programming. You help developers define LLM tasks as typed signatures, compose them into modules, and automatically optimize prompts/few-shot examples using teleprompters — so instead of manually crafting prompts, you write Python code and DSPy finds the best prompts for your task.",
-      "category": "AI & Machine Learning",
+      "description": "DSPy is a Python framework from Stanford NLP that replaces hand-written prompts with code: you declare LLM tasks as typed signatures, compose them into modules, and let optimizers (BootstrapFewShot, MIPROv2, GEPA) tune the prompts and few-shot examples against your metric. Use when the user asks about DSPy, signatures, ChainOfThought, ReAct, teleprompters or optimizers, or wants to stop hand-tuning prompts.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -2728,8 +2733,8 @@
     {
       "name": "e2b",
       "slug": "e2b",
-      "description": "You are an expert in E2B, the cloud platform for running AI-generated code in secure sandboxes. You help developers give AI agents the ability to execute code, install packages, read/write files, and run long processes in isolated cloud environments — each sandbox is a lightweight VM that boots in ~150ms with full Linux, filesystem, and networking.",
-      "category": "AI & Machine Learning",
+      "description": "E2B is a cloud platform that gives AI agents secure, isolated sandboxes — ephemeral Linux VMs with a filesystem, package managers, and internet access — to run AI-generated code safely. Use when a user wants an agent to execute Python or JavaScript, install packages, read/write files, or run a long process without risking the host machine, or wants to wire code execution into a LangChain, CrewAI, or custom agent loop.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -2801,7 +2806,7 @@
     {
       "name": "elevenlabs",
       "slug": "elevenlabs",
-      "description": "Generate realistic speech with the ElevenLabs API. Use when a user asks to convert text to speech, clone voices, build voice-enabled apps, stream audio, or integrate ElevenLabs voice synthesis into applications.",
+      "description": "Generate realistic speech with the ElevenLabs API and its Python and Node.js SDKs. Use when a user asks to convert text to speech, stream audio, clone a voice, pick a TTS model, or build a voice agent with ElevenLabs.",
       "category": "data-ai",
       "tags": [
         "text-to-speech",
@@ -2814,8 +2819,8 @@
     {
       "name": "elixir",
       "slug": "elixir",
-      "description": "You are an expert in Elixir, the functional programming language built on the Erlang VM (BEAM). You help developers build highly concurrent, fault-tolerant, and distributed systems using Elixir's process model, pattern matching, GenServer, supervision trees, Phoenix web framework, LiveView for real-time UI, and Ecto for database interactions — achieving massive concurrency with lightweight processes and \"let it crash\" reliability.",
-      "category": "Backend Development",
+      "description": "Elixir is a functional language on the Erlang VM (BEAM) for concurrent, fault-tolerant and distributed systems. Use when someone asks to \"write Elixir\", \"build a Phoenix app\", \"Phoenix LiveView\", \"GenServer\", \"supervision tree\", \"Ecto schema or changeset\", \"mix project\", or needs lightweight processes, \"let it crash\" reliability and real-time web UIs.",
+      "category": "development",
       "tags": []
     },
     {
@@ -2873,9 +2878,15 @@
     {
       "name": "ember",
       "slug": "ember",
-      "description": "You are an expert in Ember.js, the opinionated frontend framework for ambitious web applications. You help developers build large-scale SPAs with Ember's convention-over-configuration approach, Glimmer components, tracked properties, Ember Data for data management, routing with nested layouts, services for shared state, and ember-cli for scaffolding — providing Rails-like productivity for frontend development.",
-      "category": "Frontend Development",
-      "tags": []
+      "description": "Ember.js is an opinionated JavaScript framework for large single-page web apps, built on convention over configuration: Glimmer components, tracked state, nested routing, services, Ember Data (WarpDrive) and the ember-cli build tool. Use when someone asks to \"build an Ember app\", \"create an Ember component or route\", \"upgrade Ember\", \"use Ember Data\", or \"convert Ember templates to .gjs/.gts\".",
+      "category": "development",
+      "tags": [
+        "javascript",
+        "ember",
+        "framework",
+        "spa",
+        "typescript"
+      ]
     },
     {
       "name": "encore",
@@ -2906,9 +2917,15 @@
     {
       "name": "envoy",
       "slug": "envoy",
-      "description": "You are an expert in Envoy, the high-performance C++ proxy designed for cloud-native applications. You help teams configure Envoy as an API gateway, service mesh sidecar, and load balancer using its L4/L7 routing, circuit breaking, rate limiting, TLS termination, gRPC support, and observability features — powering Istio, AWS App Mesh, and most modern service mesh implementations.",
-      "category": "Infrastructure & DevOps",
-      "tags": []
+      "description": "Configures Envoy, the high-performance C++ edge and service proxy, as an API gateway, load balancer or service mesh sidecar with L4/L7 routing, retries, circuit breaking, rate limiting, TLS and observability. Use when a user asks to set up Envoy, write an envoy.yaml, route traffic to backends, add health checks or rate limits, do a canary split, read Envoy admin stats, or understand the proxy behind Istio and Envoy Gateway.",
+      "category": "devops",
+      "tags": [
+        "envoy",
+        "proxy",
+        "service-mesh",
+        "load-balancer",
+        "api-gateway"
+      ]
     },
     {
       "name": "error-monitoring",
@@ -2954,8 +2971,8 @@
     {
       "name": "excalibur",
       "slug": "excalibur",
-      "description": "You are an expert in Excalibur.js, the TypeScript-first 2D game engine built for the web. You help developers build browser games using Excalibur's Actor system, Scene management, Tiled integration, physics, animation, sound, and input handling — with first-class TypeScript support, excellent documentation, and a focus on developer experience over raw performance.",
-      "category": "Game Development",
+      "description": "Excalibur.js is a TypeScript-first 2D game engine for the browser with actors, scenes, collision physics, animation, sound, input and a Tiled map plugin. Use when the user wants to build or debug a browser game with Excalibur, load Tiled maps, animate sprite sheets, handle keyboard or pointer input, or manage scenes and cameras.",
+      "category": "development",
       "tags": []
     },
     {
@@ -3153,14 +3170,14 @@
     {
       "name": "fff-nvim",
       "slug": "fff-nvim",
-      "description": "Use fff (Fast File Finder) — a blazing-fast file search tool built in Rust with Node.js bindings, optimized for AI agents and Neovim integration. Supports fuzzy matching, regex, gitignore-aware filtering, and sub-millisecond search across large codebases. Use when tasks involve fast file discovery, AI agent tooling, or Neovim file navigation.",
+      "description": "fff (Fast File Finder, fff.nvim) is a Rust file-search toolkit with typo-resistant path and content search, frecency ranking and an in-memory index, shipped as a Neovim picker, an MCP server for AI agents, Node and Bun, Rust and C libraries. Use when the user wants faster file search or grep for Claude Code, Codex or Cursor, a Telescope replacement in Neovim, or a search library for an agent tool.",
       "category": "development",
       "tags": [
         "file-search",
         "ai-agents",
         "neovim",
         "rust",
-        "fast"
+        "mcp"
       ]
     },
     {
@@ -3457,7 +3474,7 @@
     {
       "name": "gatus",
       "slug": "gatus",
-      "description": "Expert guidance for Gatus, the lightweight, self-hosted health check and status page tool written in Go. Helps developers set up endpoint monitoring with conditions, alerting, and a beautiful status page — all configured via a single YAML file with no database required.",
+      "description": "Gatus is a self-hosted health check and status page tool written in Go, configured from a single YAML file. Use when a user asks to monitor HTTP, TCP, DNS, ICMP or TLS endpoints, define pass/fail conditions on status code, response time or JSON body, send Slack, PagerDuty or email alerts, publish a status page, or run an uptime monitor with no database.",
       "category": "devops",
       "tags": []
     },
@@ -3735,7 +3752,7 @@
     {
       "name": "google-ai-studio",
       "slug": "google-ai-studio",
-      "description": "Google AI Studio and Gemini API for multimodal AI. Use when you need multimodal AI (text + image + video + audio), long context up to 1M tokens, code generation with Gemini, grounding with Google Search, or structured output with response schemas.",
+      "description": "Google AI Studio and the Gemini API give programmatic access to Gemini models for multimodal (text, image, video, audio, PDF) generation, long context, structured JSON output, function calling and Google Search grounding. Use when asked to \"call Gemini from Python or Node\", \"get a Gemini API key\", \"analyze a PDF or image with Gemini\", \"return JSON from Gemini\", or \"migrate from google-generativeai to google-genai\".",
       "category": "data-ai",
       "tags": [
         "google",
@@ -3761,12 +3778,13 @@
     {
       "name": "goose",
       "slug": "goose",
-      "description": "Use Block's Goose — an open-source, extensible AI agent that goes beyond code suggestions to install software, execute commands, edit files, run tests, and manage infrastructure. Use when: setting up Goose, building custom extensions, adding MCP tool support, configuring multi-LLM backends, creating task-specific agents (DevOps, data pipelines, incident response), or comparing Goose to other AI coding agents.",
+      "description": "Goose is an open-source AI agent (desktop app, CLI and API, written in Rust) that runs on your machine, edits files, runs shell commands and connects to tools through MCP extensions. Use when the user asks to set up goose, run it headless in scripts or CI, write a goose recipe, add an MCP extension, switch LLM providers, or compare goose with other coding agents.",
       "category": "development",
       "tags": [
         "ai-agent",
         "extensible",
-        "coding-agent"
+        "coding-agent",
+        "mcp"
       ]
     },
     {
@@ -3818,7 +3836,7 @@
     {
       "name": "great-expectations",
       "slug": "great-expectations",
-      "description": "Great Expectations is a Python framework for data quality testing and validation. Learn to define expectations, create validation suites, build data docs, and integrate with data pipelines for automated quality checks.",
+      "description": "Great Expectations (GX Core) is a Python framework for testing and documenting data quality. Use when a user wants to define expectations about a dataset (nulls, ranges, uniqueness, allowed values), validate a pandas DataFrame or a SQL table against them, wire a checkpoint into a pipeline, or generate Data Docs that show what passed and failed.",
       "category": "data-ai",
       "tags": []
     },
@@ -3859,7 +3877,7 @@
     {
       "name": "grype",
       "slug": "grype",
-      "description": "Expert guidance for Grype, the open-source vulnerability scanner by Anchore that finds known vulnerabilities (CVEs) in container images, filesystems, and SBOMs. Helps developers integrate Grype into CI/CD pipelines, triage findings, and combine it with Syft for SBOM generation.",
+      "description": "Grype is an open-source vulnerability scanner from Anchore that finds known CVEs in container images, directories and SBOMs. Use it to scan images in CI/CD, fail builds on severity, triage and suppress false positives, upload SARIF to GitHub code scanning, or scan Syft-generated SBOMs.",
       "category": "devops",
       "tags": []
     },
@@ -3953,14 +3971,14 @@
     {
       "name": "haystack",
       "slug": "haystack",
-      "description": "You are an expert in Haystack, the open-source framework by deepset for building production RAG pipelines and LLM applications. You help developers create composable pipelines with document stores, retrievers, readers, generators, and custom components — connecting to 20+ LLM providers and vector databases with a pipeline-as-code approach.",
-      "category": "AI & Machine Learning",
+      "description": "Haystack is an open-source Python framework by deepset for building RAG pipelines, search systems and LLM agents from composable components (document stores, retrievers, prompt builders, chat generators, agents). Use when the user wants to build or debug a Haystack pipeline, write a custom component, index documents for retrieval, build an agent with tools, or migrate code from Haystack 2.x to 3.x.",
+      "category": "data-ai",
       "tags": []
     },
     {
       "name": "helicone",
       "slug": "helicone",
-      "description": "LLM observability proxy that sits between your app and LLM providers. Logs every request, enables caching, rate limiting, and provides cost analytics. Works with OpenAI, Anthropic, and other providers with a one-line integration change.",
+      "description": "Helicone is an LLM observability platform and proxy that sits between your app and providers such as OpenAI and Anthropic, logging every request with cost, latency and user metadata, and adding caching, rate limits and retries through HTTP headers. Use when asked to \"add Helicone\", \"log LLM requests\", \"track LLM cost per user\", \"cache OpenAI responses\" or \"monitor my LLM calls\". Note: Helicone joined Mintlify in March 2026 and is in maintenance mode.",
       "category": "data-ai",
       "tags": []
     },
@@ -4053,7 +4071,7 @@
     {
       "name": "hoppscotch",
       "slug": "hoppscotch",
-      "description": "Test and debug APIs with Hoppscotch. Use when a user asks to test API endpoints, debug REST/GraphQL/WebSocket APIs, create API collections, or find a Postman alternative that's open-source.",
+      "description": "Hoppscotch is an open-source API client for sending and testing REST, GraphQL, WebSocket, SSE, Socket.IO and MQTT requests from the browser, desktop app or a self-hosted server. Use when a user asks to test or debug API endpoints, organize requests into collections, run API tests in CI with the hopp CLI, self-host Hoppscotch, or find an open-source Postman alternative.",
       "category": "development",
       "tags": []
     },
@@ -4142,7 +4160,7 @@
     {
       "name": "husky",
       "slug": "husky",
-      "description": "Run scripts on Git hooks with Husky. Use when a user asks to run linters before commit, validate commit messages, run tests before push, or set up Git hooks for a team.",
+      "description": "Runs scripts on Git hooks from a project's repository with Husky, so linters, formatters, tests and commit-message checks run before every commit or push. Use when a user asks to run linters before commit, validate commit messages, run tests before push, set up Git hooks for a team, or skip Husky hooks in CI.",
       "category": "development",
       "tags": []
     },
@@ -4195,7 +4213,7 @@
     {
       "name": "ibc-building-codes",
       "slug": "ibc-building-codes",
-      "description": "Reference for US International Building Code (IBC) occupancy types, construction types, height/area limits, egress requirements, and R-2 residential standards. Use when: generating US-compliant building models, validating building designs against IBC, understanding occupancy classifications and construction types.",
+      "description": "Reference for the US International Building Code (IBC 2024): occupancy groups, construction types, height and story limits, means of egress, occupant load and dwelling unit minimums, with R-2 apartment buildings as the worked case. Use when generating US-compliant building models, checking a design against the IBC, or explaining occupancy classifications and construction types.",
       "category": "design",
       "tags": [
         "ibc",
@@ -4405,9 +4423,15 @@
     {
       "name": "intercom",
       "slug": "intercom",
-      "description": "Add customer messaging and support with Intercom. Use when a user asks to add in-app messaging, build a help center, set up customer onboarding flows, create product tours, or implement a support ticketing system.",
+      "description": "Adds customer messaging and support to a product with Intercom: the Messenger chat widget, user identification, product tours, help center, and the REST API for contacts and messages. Use when a user asks to add in-app chat, install Intercom in a React or Next.js app, secure the Messenger with JWTs, track events for targeting, sync users to Intercom from a backend, or send in-app messages.",
       "category": "business",
-      "tags": []
+      "tags": [
+        "intercom",
+        "chat",
+        "support",
+        "onboarding",
+        "messaging"
+      ]
     },
     {
       "name": "ionic",
@@ -4446,7 +4470,7 @@
     {
       "name": "iron-session",
       "slug": "iron-session",
-      "description": "Manage encrypted sessions in Next.js with iron-session. Use for session auth, encrypted cookies, or stateless sessions without a database.",
+      "description": "Stores login sessions in encrypted, signed cookies with iron-session, so a Next.js or Node.js app needs no session database. Use when a user asks for cookie-based session auth, stateless sessions, a login and logout flow with the App Router, protecting pages with a session, rotating the session password, or upgrading iron-session from v8 to v9.",
       "category": "development",
       "tags": [
         "iron-session",
@@ -4466,15 +4490,14 @@
     {
       "name": "jaeger",
       "slug": "jaeger",
-      "description": "Deploy and use Jaeger for distributed tracing across microservices. Use when a user needs to set up trace collection, instrument applications with OpenTelemetry, analyze trace data to find latency bottlenecks, or configure Jaeger storage backends and sampling strategies.",
+      "description": "Collects, stores and visualizes distributed traces with Jaeger v2 so you can follow a request across microservices and find latency bottlenecks. Use when a user needs to deploy Jaeger, send OpenTelemetry traces to it, pick a storage backend such as Elasticsearch or OpenSearch, configure sampling, or query traces through the API.",
       "category": "devops",
       "tags": [
         "jaeger",
         "tracing",
         "distributed-tracing",
         "opentelemetry",
-        "observability",
-        "spans"
+        "observability"
       ]
     },
     {
@@ -4678,8 +4701,8 @@
     {
       "name": "knex",
       "slug": "knex",
-      "description": "You are an expert in Knex.js, the flexible SQL query builder for Node.js that supports PostgreSQL, MySQL, SQLite, and MSSQL. You help developers write type-safe queries with a chainable API, manage database migrations and seeds, build complex joins and subqueries, and use transactions — providing direct SQL control without the overhead of a full ORM.",
-      "category": "Backend Development",
+      "description": "Knex.js is a SQL query builder for Node.js with a chainable API, schema migrations, seeds and transactions for PostgreSQL, MySQL, MariaDB, SQLite and MSSQL. Use when writing queries without a full ORM, setting up knexfile.js and migrations, running knex migrate:latest, building joins, subqueries and transactions, or typing results with TypeScript.",
+      "category": "development",
       "tags": []
     },
     {
@@ -4698,8 +4721,8 @@
     {
       "name": "koa",
       "slug": "koa",
-      "description": "You are an expert in Koa, the minimalist web framework created by the Express team. You help developers build APIs and web services using Koa's async/await middleware stack, context object, and composable architecture — providing a lightweight foundation where you add only what you need through middleware, without bundled routing or templating.",
-      "category": "Backend Development",
+      "description": "Koa is a minimalist Node.js web framework from the team behind Express, built around async/await middleware and a single context object. Use when a user asks to build a REST API or web service with Koa, add routing, body parsing, CORS or error handling to a Koa app, write custom middleware, or migrate from Express or from Koa 2 to Koa 3.",
+      "category": "development",
       "tags": []
     },
     {
@@ -4758,14 +4781,14 @@
     {
       "name": "label-studio",
       "slug": "label-studio",
-      "description": "Open-source data labeling and annotation platform for ML projects. Supports text, image, audio, video, and time-series data. Features configurable labeling interfaces, ML-assisted labeling, team collaboration, and API integration for automated workflows.",
+      "description": "Open-source data labeling and annotation platform for ML projects. Supports text, image, audio, video, and time-series data. Features configurable labeling interfaces, ML-assisted labeling, team collaboration, and API integration for automated workflows. Use when the user asks to \"label data\", \"annotate images or text\", \"set up Label Studio\", \"export annotations for training\", or \"pre-label with a model\".",
       "category": "data-ai",
       "tags": []
     },
     {
       "name": "lancedb",
       "slug": "lancedb",
-      "description": "Embedded vector database with LanceDB — serverless, zero-config vector search for AI applications. Use when someone asks to \"vector search without a server\", \"embedded vector database\", \"LanceDB\", \"local vector search\", \"serverless vector DB\", \"vector search in a file\", or \"lightweight RAG storage\". Covers table creation, vector search, full-text search, hybrid search, and multimodal embeddings.",
+      "description": "LanceDB is an embedded, serverless vector database that stores data in the Lance columnar format on local disk or object storage, with Node.js, Python and Rust clients. Use when someone asks for \"vector search without a server\", \"embedded vector database\", \"LanceDB\", \"local vector search\", \"vector search in a file\", or \"lightweight RAG storage\". Covers tables, vector search, filters, full-text search, hybrid search, indexes and embedding functions.",
       "category": "data-ai",
       "tags": [
         "vector",
@@ -4778,7 +4801,7 @@
     {
       "name": "langchain",
       "slug": "langchain",
-      "description": "Build LLM-powered applications with LangChain. Use when a user asks to create AI chains, build RAG pipelines, implement agents with tools, set up document loaders, create vector stores, build conversational AI, implement prompt templates, chain LLM calls, add memory to chatbots, or orchestrate language model workflows. Covers LangChain v0.3+ with LCEL (LangChain Expression Language), structured output, tool calling, retrieval, and production deployment patterns.",
+      "description": "Build LLM-powered applications with LangChain. Use when a user asks to create AI chains, build RAG pipelines, implement agents with tools, set up document loaders, create vector stores, build conversational AI, implement prompt templates, chain LLM calls, add memory to chatbots, or orchestrate language model workflows. Covers LangChain 1.x (Python and TypeScript) with LCEL, create_agent, structured output, tool calling, retrieval, and production patterns.",
       "category": "data-ai",
       "tags": []
     },
@@ -4826,9 +4849,15 @@
     {
       "name": "laravel",
       "slug": "laravel",
-      "description": "You are an expert in Laravel, the most popular PHP framework for building web applications and APIs. You help developers build production systems with Eloquent ORM, Blade templating, Artisan CLI, queues, events, middleware, authentication (Sanctum/Breeze), Livewire for reactive UI, and a rich ecosystem of first-party packages — enabling rapid development without sacrificing code quality.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Laravel is a PHP web framework for building full-stack applications and JSON APIs with Eloquent ORM, Blade views, the Artisan CLI, queues, events and Sanctum authentication. Use when a user asks to create a Laravel app, add models, migrations, controllers, form requests, API routes, queued jobs or token auth, run Artisan commands, or upgrade from Laravel 12 to 13.",
+      "category": "development",
+      "tags": [
+        "php",
+        "laravel",
+        "eloquent",
+        "artisan",
+        "api"
+      ]
     },
     {
       "name": "last30days-skill",
@@ -4959,8 +4988,8 @@
     {
       "name": "libsql",
       "slug": "libsql",
-      "description": "libSQL — a fork of SQLite with replication, HTTP API, and embedded replicas (used by Turso). Use when you need embedded SQLite with remote sync, an edge-compatible database, or a Turso cloud database. Covers the @libsql/client SDK, local/in-memory/cloud connections, embedded replicas, batch queries, and transactions.",
-      "category": "database",
+      "description": "Connects JavaScript and TypeScript apps to libSQL, the open-source SQLite fork behind Turso, with the @libsql/client SDK: local files, in-memory databases, remote Turso databases over libsql:// or HTTP, and embedded replicas that sync from the cloud. Use when a user asks for SQLite with remote sync, an edge-friendly SQL database, a Turso setup, or batches, transactions and parameterized queries with libSQL.",
+      "category": "development",
       "tags": [
         "libsql",
         "sqlite",
@@ -4985,14 +5014,14 @@
     {
       "name": "lighthouse-ci",
       "slug": "lighthouse-ci",
-      "description": "Automate Lighthouse audits in CI with Lighthouse CI. Use when a user asks to track Core Web Vitals, prevent performance regressions, audit accessibility in CI, or set performance budgets for web apps.",
+      "description": "Lighthouse CI (lhci) runs Google Lighthouse audits on every pull request, checks the scores and metrics against assertions or performance budgets, and uploads the reports. Use when a user asks to track Core Web Vitals in CI, stop performance regressions, audit accessibility on each PR, or set a performance budget for a web app.",
       "category": "development",
       "tags": []
     },
     {
       "name": "lightpanda-browser",
       "slug": "lightpanda-browser",
-      "description": "Use Lightpanda headless browser optimized for AI agents — fast, lightweight, designed for web scraping and automation at scale. Use when: building AI web scrapers, automating web tasks with agents, running headless browsing in resource-constrained environments.",
+      "description": "Lightpanda is a headless browser written in Zig for AI agents and scraping: no rendering, a V8 JavaScript engine, a CDP server for Puppeteer and Playwright, a fetch command that dumps pages as Markdown, and a built-in MCP server. Use when building AI web scrapers, giving an agent a lightweight browser, or running headless browsing where Chrome is too heavy.",
       "category": "automation",
       "tags": [
         "headless-browser",
@@ -5026,7 +5055,7 @@
     {
       "name": "litellm",
       "slug": "litellm",
-      "description": "Call 100+ LLM APIs with one interface using LiteLLM — unified API proxy for OpenAI, Anthropic, Google, Mistral, Cohere, and self-hosted models. Use when someone asks to \"switch between LLM providers\", \"LiteLLM\", \"unified LLM API\", \"LLM proxy\", \"call Claude and GPT with the same code\", \"LLM load balancing\", or \"multi-model AI gateway\". Covers provider routing, fallbacks, rate limiting, spend tracking, and self-hosted proxy.",
+      "description": "LiteLLM is a Python SDK and self-hosted proxy that calls 100+ LLM providers (OpenAI, Anthropic, Google Gemini, Mistral, Bedrock, Ollama and more) through one OpenAI-compatible interface. Use when someone asks to \"switch between LLM providers\", \"LiteLLM\", \"unified LLM API\", \"LLM proxy\", \"call Claude and GPT with the same code\", \"LLM load balancing\", \"fallbacks between models\", or \"multi-model AI gateway\". Covers SDK calls, Router, fallbacks, virtual keys, budgets and spend tracking.",
       "category": "data-ai",
       "tags": [
         "llm",
@@ -5072,7 +5101,7 @@
     {
       "name": "llamafile",
       "slug": "llamafile",
-      "description": "Expert guidance for llamafile, the tool that packages LLMs into single executable files that run on any OS (Linux, macOS, Windows, FreeBSD) without installation. Helps developers create portable AI applications, run models offline, and distribute LLMs as self-contained binaries with built-in web UI and OpenAI-compatible API.",
+      "description": "llamafile packages a large language model and the llama.cpp runtime into one executable that runs on Linux, macOS, Windows and BSD without installation. Use when running an LLM offline from a single file, serving a local OpenAI- or Anthropic-compatible API, scripting one-shot prompts with --cli, bundling a GGUF model with zipalign, or distributing a portable AI app.",
       "category": "data-ai",
       "tags": []
     },
@@ -5158,8 +5187,7 @@
         "logging",
         "grok",
         "elk",
-        "log-processing",
-        "pipelines"
+        "log-processing"
       ]
     },
     {
@@ -5192,8 +5220,8 @@
     {
       "name": "lovable",
       "slug": "lovable",
-      "description": "You are an expert in Lovable (formerly GPT Engineer), the AI app builder that generates production-ready full-stack applications from natural language descriptions. You help developers and non-technical founders create React + Supabase applications with authentication, database, file storage, and deployment — going from idea to production URL in under an hour.",
-      "category": "Developer Tools",
+      "description": "Lovable (formerly GPT Engineer) is a browser-based AI app builder that turns a natural-language description into a working full-stack web app with a built-in backend, authentication, database and one-click publishing. Use when the user wants to prototype or ship a web app with Lovable, write effective Lovable prompts, connect Supabase or GitHub, review generated security rules, or move a Lovable project into their own editor.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5232,14 +5260,14 @@
     {
       "name": "maestro",
       "slug": "maestro",
-      "description": "When the user wants to write mobile UI tests using Maestro's simple YAML-based flow definitions. Also use when the user mentions \"maestro,\" \"mobile UI testing,\" \"YAML mobile tests,\" \"maestro flows,\" or \"maestro studio.\" For React Native-specific gray-box testing, see detox. For cross-platform mobile automation, see appium.",
+      "description": "Maestro is an open-source UI testing framework that drives Android, iOS and web apps from short YAML flows (launchApp, tapOn, assertVisible). Use when the user wants to write mobile UI tests, set up Maestro in CI, debug a flaky flow, or let a coding agent run flows through the Maestro MCP server. For React Native gray-box testing see detox; for code-based cross-platform automation see appium.",
       "category": "development",
       "tags": []
     },
     {
       "name": "magicui",
       "slug": "magicui",
-      "description": "Add animated React UI components for landing pages and marketing sites with Magic UI. Use when: adding animated UI components, building impressive landing pages, creating particle effects, text animations, number counters, shimmer buttons, and visual effects in React. Tailwind CSS based and shadcn/ui compatible.",
+      "description": "Adds animated React components (marquee, number ticker, shimmer button, confetti, globe, animated beam) to landing pages with Magic UI, a copy-the-source library built on Tailwind CSS and shadcn/ui. Use when asked to add animated UI components, build an impressive landing page hero, create particle or meteor backgrounds, text animations, number counters, shimmer buttons, or other visual effects in React.",
       "category": "design",
       "tags": [
         "magicui",
@@ -5252,7 +5280,7 @@
     {
       "name": "mailgun",
       "slug": "mailgun",
-      "description": "Send and receive emails with Mailgun. Use when a user asks to send bulk emails, set up email routing, validate email addresses, track email engagement, or handle both transactional and marketing emails.",
+      "description": "Mailgun is an email API for sending, receiving and tracking transactional and bulk email. Use when a user asks to send email through Mailgun, send batch emails with per-recipient variables, set up inbound routes, validate email addresses, or verify Mailgun webhooks for delivery, open, click and bounce events.",
       "category": "business",
       "tags": []
     },
@@ -5266,14 +5294,14 @@
     {
       "name": "malloy",
       "slug": "malloy",
-      "description": "Expert guidance for Malloy, the experimental data language from Google that replaces SQL for analytics with a composable, reusable, and more readable syntax. Helps developers write Malloy models, build nested queries, and explore data with Malloy's VS Code extension and notebook interface.",
+      "description": "Malloy is an open-source semantic modeling and query language that compiles to SQL and runs on DuckDB, BigQuery, Snowflake, PostgreSQL, MySQL, Trino, Presto and Databricks. Use when the user wants to write Malloy models, sources, views, joins or nested queries, run .malloy files from the VS Code extension, the malloy-cli command line or Node.js, or replace repetitive SQL analytics with reusable measures.",
       "category": "data-ai",
       "tags": []
     },
     {
       "name": "maltego-transforms",
       "slug": "maltego-transforms",
-      "description": "Build custom Maltego transforms for visual OSINT graph analysis and relationship mapping. Use when: mapping connections between domains, IPs, emails, persons, and organizations; visual threat intelligence; complex OSINT correlation across multiple data sources.",
+      "description": "Build custom Maltego transforms in Python with the maltego-transforms SDK, so any API or data source appears as connected nodes in Maltego's link-analysis graph. Use when mapping domains, IPs, emails, persons and organizations, writing OSINT or threat-intelligence transforms, or migrating from the archived maltego-trx and Canari libraries.",
       "category": "research",
       "tags": [
         "maltego",
@@ -5496,8 +5524,8 @@
     {
       "name": "mem0",
       "slug": "mem0",
-      "description": "You are an expert in Mem0, the memory infrastructure for AI applications. You help developers add persistent, personalized memory to LLM-powered apps and agents — storing user preferences, conversation history, facts, and context that persists across sessions, enabling AI that remembers users, learns from interactions, and provides increasingly personalized responses.",
-      "category": "AI & Machine Learning",
+      "description": "Adds persistent, personalized long-term memory to LLM apps and agents with Mem0, the open-source memory layer: it extracts facts from conversations, stores them in a vector database and retrieves them in later sessions. Use when a user asks to make a chatbot or agent remember user preferences across sessions, add memory to an AI app, or search, update and delete stored memories per user.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -5555,8 +5583,8 @@
     {
       "name": "mikro-orm",
       "slug": "mikro-orm",
-      "description": "You are an expert in MikroORM, the TypeScript ORM built on Unit of Work and Identity Map patterns. You help developers build data layers with decorator-based entities, automatic change tracking, lazy/eager loading, embeddables, query builder, migrations, and seeding — supporting PostgreSQL, MySQL, SQLite, and MongoDB with a DDD-friendly architecture.",
-      "category": "Backend Development",
+      "description": "MikroORM is a TypeScript ORM for Node.js built on the Data Mapper, Unit of Work, and Identity Map patterns, supporting PostgreSQL, MySQL, MariaDB, SQLite, and MongoDB. Use when a user asks to define decorator-based entities, set up automatic change tracking and batched flushes, write query-builder queries, generate or run migrations, seed a database, or build a DDD-friendly data layer in TypeScript.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5615,7 +5643,7 @@
     {
       "name": "mise",
       "slug": "mise",
-      "description": "Manage tool versions and tasks with mise (formerly rtx). Use when a user asks to manage Node.js/Python/Go versions per project, replace nvm/pyenv/asdf, or define project-level tool requirements.",
+      "description": "Manages per-project tool versions (Node.js, Python, Go, Rust, Ruby and hundreds more), environment variables and tasks from one mise.toml file, as a single binary that replaces nvm, pyenv, rbenv and asdf. Use when a user asks to pin Node.js/Python/Go versions per project, replace nvm/pyenv/asdf, share tool requirements with a team or CI, lock resolved versions, or define project tasks.",
       "category": "development",
       "tags": []
     },
@@ -5669,12 +5697,14 @@
     {
       "name": "mlx-vlm",
       "slug": "mlx-vlm",
-      "description": "Run Vision Language Models locally on Apple Silicon Macs using MLX. Use when: installing mlx-vlm, running VLM inference (image + text → response), fine-tuning vision models on custom datasets, batch processing images with local AI, comparing local VLM to cloud APIs (GPT-4V, Claude Vision), or working with LLaVA, Phi-3-Vision, Qwen2-VL, Pixtral, Llama-3.2-Vision on Mac.",
+      "description": "Runs and fine-tunes vision language models (image, audio and video plus text) locally on Apple Silicon Macs with MLX, from a CLI, a Python API or an OpenAI-compatible server. Use when installing mlx-vlm, describing or extracting text from images with a local model, batch processing images, serving a local VLM over HTTP, LoRA fine-tuning a vision model, or comparing a local VLM to cloud vision APIs.",
       "category": "data-ai",
       "tags": [
         "mlx",
         "vision",
-        "apple-silicon"
+        "apple-silicon",
+        "vlm",
+        "local-llm"
       ]
     },
     {
@@ -5760,7 +5790,7 @@
     {
       "name": "motion",
       "slug": "motion",
-      "description": "You are an expert in Motion, the production-ready animation library for React (formerly Framer Motion). You help developers create fluid animations, layout transitions, scroll-linked effects, gesture interactions, shared layout animations, and exit animations — using a declarative API where animations are defined as props rather than imperative code.",
+      "description": "Motion (formerly Framer Motion) is an animation library for React that animates components through declarative props. Use when adding fade-ins, hover and tap effects, exit animations with AnimatePresence, layout and shared-element transitions, scroll-linked or scroll-triggered effects, staggered lists, or when migrating from framer-motion to the motion package.",
       "category": "development",
       "tags": []
     },
@@ -5781,14 +5811,14 @@
     {
       "name": "msgpack",
       "slug": "msgpack",
-      "description": "You are an expert in MessagePack, the efficient binary serialization format. You help developers replace JSON with a compact binary format that's 30-50% smaller and 2-10x faster to parse — supporting all JSON types plus binary data, timestamps, and custom extensions, with libraries available for 50+ programming languages.",
-      "category": "Developer Tools",
+      "description": "Encodes and decodes MessagePack, a compact binary serialization format that carries the same data types as JSON plus raw bytes and timestamps. Use when someone asks to \"replace JSON with MessagePack\", \"serialize to binary\", \"send msgpack over WebSocket\", \"store msgpack in Redis\", or \"decode a msgpack stream\" in JavaScript, TypeScript, Python or Go.",
+      "category": "development",
       "tags": []
     },
     {
       "name": "msw",
       "slug": "msw",
-      "description": "Assists with intercepting network requests for API mocking using Mock Service Worker (MSW). Use when mocking REST or GraphQL APIs for unit tests, integration tests, or local development without modifying application code or running mock servers. Trigger words: msw, mock service worker, api mocking, test mocking, request handlers, setupServer.",
+      "description": "Intercepts network requests to mock REST, GraphQL, SSE and WebSocket APIs with Mock Service Worker (MSW). Use when mocking APIs for unit tests, integration tests, Storybook or local development without changing application code or running a mock server. Trigger words: msw, mock service worker, api mocking, request handlers, setupServer, setupWorker.",
       "category": "development",
       "tags": [
         "msw",
@@ -5841,7 +5871,7 @@
     {
       "name": "n8n-workflow-sdk",
       "slug": "n8n-workflow-sdk",
-      "description": "Build n8n workflows programmatically with the official TypeScript SDK. Use when a user asks to create n8n workflows from code, generate workflow JSON, build automation pipelines programmatically, convert between n8n JSON and TypeScript, or integrate n8n workflow creation into applications.",
+      "description": "Build n8n workflows as TypeScript code with the official @n8n/workflow-sdk package: define nodes and connections, validate them, convert between n8n JSON and SDK code, and push the result to an n8n instance. Use when a user asks to create n8n workflows programmatically, generate workflow JSON, version-control workflows, or let an AI agent write n8n workflows.",
       "category": "automation",
       "tags": []
     },
@@ -5861,8 +5891,8 @@
     {
       "name": "nanostores",
       "slug": "nanostores",
-      "description": "You are an expert in Nanostores, the tiny (< 1KB) state manager for framework-agnostic JavaScript. You help developers manage application state with atoms, maps, computed stores, and async data fetching — working identically across React, Vue, Svelte, Solid, Angular, and vanilla JS with lazy subscriptions that only activate when the store is actually used in a component.",
-      "category": "Frontend Development",
+      "description": "Nano Stores is a tiny, framework-agnostic state manager built from many small atomic stores (atoms, maps, computed stores) with lazy subscriptions. Use when the user wants shared state in React, Preact, Vue, Svelte, Solid, Lit, Angular or vanilla JS, needs derived or async data stores, wants to share state between islands in Astro, or asks how to migrate from Redux, Zustand or Context to nanostores.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5987,7 +6017,7 @@
     {
       "name": "next-safe-action",
       "slug": "next-safe-action",
-      "description": "Type-safe Server Actions in Next.js with next-safe-action. Use when a user asks to validate server action inputs, handle errors in server actions, add middleware to actions, or build type-safe mutations in Next.js.",
+      "description": "next-safe-action is a library for type-safe Next.js Server Actions with schema validation, middleware and typed errors. Use it when a user asks to validate server action inputs with Zod, handle errors in server actions, add authentication middleware to actions, call actions from client components with hooks, or build type-safe mutations in the Next.js App Router.",
       "category": "development",
       "tags": []
     },
@@ -6033,7 +6063,7 @@
     {
       "name": "ngrok",
       "slug": "ngrok",
-      "description": "Expose local services to the internet through secure tunnels. Use ngrok to share development servers, test webhooks locally, demo applications to clients, and create temporary public URLs for any local port.",
+      "description": "Exposes local services to the internet through ngrok tunnels with a public URL. Use it to share a development server, test webhooks locally, demo an app to a client, inspect and replay incoming requests, or put a temporary public URL on any local port.",
       "category": "development",
       "tags": [
         "tunneling",
@@ -6079,8 +6109,8 @@
     {
       "name": "nitropack",
       "slug": "nitropack",
-      "description": "You are an expert in Nitro (NitroJS), the universal server engine powering Nuxt, Analog, and SolidStart. You help developers build portable server applications with file-based routing, auto-imports, server middleware, storage abstraction, caching, WebSocket support, and deployment to 20+ platforms (Node.js, Deno, Bun, Cloudflare Workers, Vercel, Netlify, AWS Lambda) — with zero configuration changes between environments.",
-      "category": "Backend Development",
+      "description": "Builds portable server applications with Nitro (nitropack), the server engine behind Nuxt, Analog and SolidStart: file-based routes, middleware, a storage layer, response caching, scheduled tasks and one build that targets Node.js, Bun, Deno, Cloudflare, Vercel, Netlify and AWS. Use when a user asks to create a Nitro server, add API routes or tasks, configure storage, pick a deployment preset, or move from Nitro 2 to Nitro 3.",
+      "category": "development",
       "tags": []
     },
     {
@@ -6100,7 +6130,7 @@
     {
       "name": "nocodb",
       "slug": "nocodb",
-      "description": "Build database applications with NocoDB, the open-source Airtable alternative. Use when a user asks to create spreadsheet views of databases, build forms, configure automations, use the NocoDB API, or self-host NocoDB.",
+      "description": "NocoDB is an open-source Airtable alternative that turns a database into a spreadsheet-style app with grid, kanban, gallery, calendar and form views, webhooks and a REST API. Use when a user asks to self-host NocoDB with Docker, connect it to PostgreSQL or MySQL, build forms and views, call the NocoDB API with a token, or set up webhooks.",
       "category": "development",
       "tags": [
         "database",
@@ -6113,14 +6143,14 @@
     {
       "name": "nomad",
       "slug": "nomad",
-      "description": "HashiCorp Nomad workload orchestrator for deploying containers, VMs, and standalone applications. Use when the user needs to write job specifications, manage deployments, configure scaling, or run batch and service workloads across a cluster.",
+      "description": "HashiCorp Nomad is a workload orchestrator that schedules containers, VMs and standalone binaries across a cluster using HCL job files. Use when writing Nomad job specifications, running nomad job run and plan, configuring canary deployments, batch and periodic jobs, system jobs, autoscaling, Consul service registration, or Vault secrets in templates.",
       "category": "devops",
       "tags": []
     },
     {
       "name": "northflank",
       "slug": "northflank",
-      "description": "Expert guidance for Northflank, the cloud platform that combines PaaS simplicity with Kubernetes power for deploying applications, databases, and jobs. Helps developers configure build pipelines, deploy services, manage databases, and set up CI/CD workflows with Northflank's Infrastructure as Code and API.",
+      "description": "Northflank is a cloud platform that deploys containers from Git or a registry with managed databases, cron jobs and preview environments, on its own Kubernetes-based infrastructure or in your own cloud account. Use when the user wants to deploy a service, add a Postgres or Redis addon, schedule a job, manage secrets, or script Northflank with the CLI, API or JSON templates.",
       "category": "devops",
       "tags": []
     },
@@ -6178,7 +6208,7 @@
     {
       "name": "nx",
       "slug": "nx",
-      "description": "Build and manage monorepos with Nx. Use when a user asks to set up a monorepo, manage multiple packages/apps, cache builds, run affected tests, or migrate from Lerna.",
+      "description": "Builds and manages JavaScript/TypeScript monorepos with Nx, a build system with task caching, a project graph, code generators and affected commands. Use when a user asks to set up a monorepo, manage multiple packages or apps, cache builds, run only affected tests in CI, or add Nx to an existing repo.",
       "category": "development",
       "tags": []
     },
@@ -6298,7 +6328,7 @@
     {
       "name": "onnx",
       "slug": "onnx",
-      "description": "Open Neural Network Exchange format for model interoperability across frameworks. Export models from PyTorch, TensorFlow, and other frameworks to ONNX, optimize with ONNX Runtime, and deploy for cross-platform inference on CPU, GPU, and edge devices.",
+      "description": "Open Neural Network Exchange (ONNX) is a framework-neutral file format for machine-learning models, and ONNX Runtime is the engine that runs them on CPU, GPU and edge devices. Use when exporting a PyTorch or Hugging Face model to ONNX, running inference with onnxruntime, simplifying or quantizing a model, validating a .onnx file, or preparing a model for mobile.",
       "category": "data-ai",
       "tags": []
     },
@@ -6390,7 +6420,7 @@
     {
       "name": "openbb",
       "slug": "openbb",
-      "description": "Access financial data for analysis, quantitative research, and AI agents using OpenBB platform — stocks, crypto, forex, macro economics, alternative data. Use when: building financial analysis tools, feeding market data to AI agents, creating quantitative research pipelines, accessing free financial data APIs.",
+      "description": "OpenBB Platform is an open-source Python library, REST API and MCP server that gives one interface to financial data: stocks, ETFs, crypto, forex, macro economics and SEC filings. Use when building financial analysis tools, feeding market data to AI agents, creating quantitative research pipelines, or accessing free financial data APIs from Python.",
       "category": "data-ai",
       "tags": []
     },
@@ -6575,7 +6605,7 @@
     {
       "name": "originality-ai",
       "slug": "originality-ai",
-      "description": "Use Originality.ai API to detect AI-generated content and check for plagiarism simultaneously. Use when: SEO content audits, freelancer content verification, editorial review pipelines, originality checks.",
+      "description": "Calls the Originality.ai API to score text for AI authorship and to check it for plagiarism. Use when auditing SEO content, verifying freelancer submissions, building an editorial review queue, or when a user asks to \"check if this article is AI-written\" or \"run an originality check\".",
       "category": "data-ai",
       "tags": [
         "ai-detection",
@@ -6595,9 +6625,15 @@
     {
       "name": "outlines",
       "slug": "outlines",
-      "description": "You are an expert in Outlines, the Python library for reliable structured text generation with LLMs. You help developers generate guaranteed-valid JSON, regex-matching text, and grammar-constrained output from open-source models — using finite state machine guided generation that constrains the token sampling process to produce only valid output on the first try.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "Generates guaranteed-valid structured text from LLMs with Outlines, the Python library that constrains token sampling to a JSON schema, regex, choice list or grammar. Use when a user asks for reliable JSON from a local or hosted model, classification into fixed labels, regex-shaped output, grammar-constrained generation, or structured output with vLLM, Transformers, Ollama or OpenAI-compatible servers.",
+      "category": "data-ai",
+      "tags": [
+        "llm",
+        "structured-generation",
+        "json",
+        "grammar",
+        "regex"
+      ]
     },
     {
       "name": "outlook-email",
@@ -6635,7 +6671,7 @@
     {
       "name": "packer",
       "slug": "packer",
-      "description": "HashiCorp Packer for building automated machine images. Use when the user needs to create AMIs, Docker images, or GCP images using HCL templates with provisioners for consistent, reproducible infrastructure images.",
+      "description": "HashiCorp Packer builds identical machine images (AWS AMIs, Google Compute images, Docker images and more) from one HCL template, with provisioners that configure the image and plugins for each platform. Use when the user wants to bake an AMI or golden image, build a Docker image with provisioners, write a .pkr.hcl template, or fix packer init, validate and build errors.",
       "category": "devops",
       "tags": []
     },
@@ -6708,7 +6744,7 @@
     {
       "name": "pandas-ai",
       "slug": "pandas-ai",
-      "description": "PandasAI enables natural language queries on pandas DataFrames using LLMs. Learn to ask questions in plain English, generate charts, clean data, and integrate with OpenAI and local models for conversational data analysis.",
+      "description": "PandasAI lets you ask questions about pandas DataFrames and CSV files in plain English, using an LLM that writes and runs the analysis code. Use when a user wants to chat with a DataFrame, query several tables together, generate charts from a prompt, or run PandasAI 3 with OpenAI or a local Ollama model.",
       "category": "data-ai",
       "tags": []
     },
@@ -6748,7 +6784,7 @@
     {
       "name": "pascal-editor",
       "slug": "pascal-editor",
-      "description": "Build and extend 3D building editor apps using Pascal Editor's architecture (React Three Fiber + Zustand scene graph). Use when: building 3D architectural tools, creating BIM-like editors, extending Pascal Editor with custom features, building floor plan generators.",
+      "description": "Build and extend 3D building editor apps with Pascal Editor, an open-source React Three Fiber and WebGPU editor whose scene is a flat Zustand node store (site, building, level, wall, door, window, slab, zone). Use when building a 3D architectural tool or BIM-like editor, generating floor plans from code or an AI agent, extending Pascal with custom node plugins, or running its MCP server.",
       "category": "design",
       "tags": [
         "pascal-editor",
@@ -6774,7 +6810,7 @@
     {
       "name": "passport-js",
       "slug": "passport-js",
-      "description": "Add authentication to Express with Passport.js. Use when implementing login with Google/GitHub/email, OAuth, session auth, or social login.",
+      "description": "Passport.js is authentication middleware for Express and other Node.js frameworks, with strategies for local passwords, Google, GitHub and many other providers. Use when implementing login with Google/GitHub/email, OAuth, session auth, or social login.",
       "category": "development",
       "tags": [
         "passport",
@@ -6917,7 +6953,7 @@
     {
       "name": "perplexity-api",
       "slug": "perplexity-api",
-      "description": "Perplexity API for real-time web-search-augmented LLM responses. Use when you need up-to-date information in AI responses, research assistants, fact-checking, current events coverage, or any task requiring knowledge beyond an LLM's training cutoff. Returns cited sources alongside answers.",
+      "description": "Perplexity API gives LLM answers grounded in live web search, with cited sources. Use when you need up-to-date information in AI responses, research assistants, fact-checking, current events coverage, or any task requiring knowledge beyond an LLM's training cutoff. Returns cited sources alongside answers.",
       "category": "data-ai",
       "tags": [
         "perplexity",
@@ -6937,7 +6973,7 @@
     {
       "name": "pgvector",
       "slug": "pgvector",
-      "description": "Store and search vector embeddings in PostgreSQL with pgvector — no separate vector database needed. Use when someone asks to \"vector search in Postgres\", \"store embeddings\", \"pgvector\", \"similarity search\", \"RAG with Postgres\", \"semantic search in existing database\", or \"add AI search to my app without a separate vector DB\". Covers vector columns, indexing (IVFFlat, HNSW), similarity search, and integration with ORMs.",
+      "description": "pgvector is a PostgreSQL extension that stores vector embeddings in ordinary tables and searches them by similarity, so no separate vector database is needed. Use when someone asks for \"vector search in Postgres\", \"store embeddings\", \"pgvector\", \"similarity search\", \"RAG with Postgres\", \"semantic search in an existing database\", or \"HNSW vs IVFFlat\". Covers vector columns, indexes, filtered search, and Node.js and Drizzle usage.",
       "category": "data-ai",
       "tags": [
         "vector",
@@ -6997,7 +7033,7 @@
     {
       "name": "pino",
       "slug": "pino",
-      "description": "Log in Node.js with Pino. Use when a user asks to add structured logging, improve logging performance, configure log levels, format logs for production, or replace console.log with proper logging.",
+      "description": "Pino is a fast Node.js logger that writes structured JSON, one object per line. Use when a user asks to add structured logging, replace console.log, configure log levels, redact secrets from logs, log HTTP requests in Express or Fastify, pretty-print logs in development, or ship logs to Datadog, Loki or Elasticsearch.",
       "category": "devops",
       "tags": []
     },
@@ -7011,8 +7047,8 @@
     {
       "name": "pixijs",
       "slug": "pixijs",
-      "description": "You are an expert in PixiJS, the fastest 2D rendering engine for the web. You help developers build games, interactive visualizations, animated ads, creative coding projects, and rich UI effects using PixiJS's WebGL-first renderer with automatic Canvas fallback — handling sprites, text, filters, masks, blend modes, and custom shaders at 60fps with hundreds of thousands of objects.",
-      "category": "Game Development",
+      "description": "Renders fast 2D graphics in the browser with PixiJS 8, a WebGL and WebGPU engine for sprites, text, filters, masks and particles. Use when a user asks to build a 2D game, an interactive visualization, an animated banner, a sprite animation from a spritesheet, a particle effect, or to speed up a canvas scene with thousands of objects.",
+      "category": "development",
       "tags": []
     },
     {
@@ -7092,7 +7128,7 @@
     {
       "name": "pocketbase",
       "slug": "pocketbase",
-      "description": "Assists with building backends using PocketBase, a single-binary backend with embedded SQLite, real-time subscriptions, file storage, and authentication. Use when creating MVPs, prototyping APIs, configuring collections, or setting up auth flows. Trigger words: pocketbase, backend, sqlite, real-time, single binary, collections, pb.",
+      "description": "Assists with building backends using PocketBase, a single-binary backend with embedded SQLite, real-time subscriptions, file storage, and authentication. Use when creating MVPs, prototyping APIs, configuring collections and API rules, writing pb_hooks, or setting up auth flows. Trigger words: pocketbase, backend, sqlite, real-time, single binary, collections, pb.",
       "category": "devops",
       "tags": [
         "pocketbase",
@@ -7112,9 +7148,15 @@
     {
       "name": "polar",
       "slug": "polar",
-      "description": "You are an expert in Polar, the monetization platform built for developers and open-source maintainers. You help developers add payments, subscriptions, product sales, license keys, and sponsorships to their projects with a developer-first API, webhooks, and embeddable components — replacing Stripe integration complexity with purpose-built tools for software monetization.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Polar is a merchant-of-record billing platform for software: it sells products, subscriptions, license keys and usage-based plans and handles international sales tax. Use when a developer asks to add payments or subscriptions with Polar, create checkout sessions, handle Polar webhooks, validate license keys, or test in the Polar sandbox.",
+      "category": "development",
+      "tags": [
+        "payments",
+        "subscriptions",
+        "license-keys",
+        "webhooks",
+        "billing"
+      ]
     },
     {
       "name": "polars",
@@ -7146,8 +7188,8 @@
     {
       "name": "portkey",
       "slug": "portkey",
-      "description": "You are an expert in Portkey, the AI gateway that sits between your app and LLM providers. You help developers add caching, fallbacks, load balancing, request retries, guardrails, semantic caching, budget limits, and observability to LLM calls — using a single unified API that works with 200+ models from OpenAI, Anthropic, Google, and open-source providers.",
-      "category": "AI & Machine Learning",
+      "description": "Portkey is an AI gateway that sits between an app and LLM providers, adding fallbacks, load balancing, retries, caching, guardrails and request observability behind one OpenAI-compatible API. Use when someone asks to \"add fallbacks between OpenAI and Anthropic\", \"cache LLM responses\", \"load balance LLM providers\", \"log LLM costs and latency\" or \"set up Portkey\".",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -7233,15 +7275,15 @@
     {
       "name": "prd-writing",
       "slug": "prd-writing",
-      "description": "Expert guidance for writing Product Requirements Documents (PRDs), helping product managers create clear, actionable specs that align engineering, design, and stakeholders. Produces PRDs that define the problem, success metrics, scope, user stories, edge cases, and launch criteria — without over-specifying implementation details.",
+      "description": "A method for writing a Product Requirements Document (PRD), a short spec that states the problem, success metrics, scope, user stories with acceptance criteria, edge cases, and launch criteria without dictating implementation. Use when the user asks to write, structure or review a PRD, product spec, feature brief or user stories and acceptance criteria.",
       "category": "business",
       "tags": []
     },
     {
       "name": "preact",
       "slug": "preact",
-      "description": "You are an expert in Preact, the lightweight React alternative with the same modern API in just 3kB. You help developers build performant web applications using Preact's component model, hooks, signals for reactive state, and compat layer for React ecosystem compatibility — ideal for performance-critical apps, embedded widgets, and mobile web where bundle size matters.",
-      "category": "Frontend Development",
+      "description": "Preact is a 3kB alternative to React with the same modern API — components, hooks, and JSX — plus first-class fine-grained reactivity through `@preact/signals`. Use when a user wants to build a performance-critical web app, embedded widget, or mobile-first site with a smaller bundle than React, wants to add reactive signals state, or wants to reuse an existing React component library on top of Preact via the `preact/compat` layer.",
+      "category": "development",
       "tags": []
     },
     {
@@ -7437,9 +7479,15 @@
     {
       "name": "protobuf",
       "slug": "protobuf",
-      "description": "You are an expert in Protocol Buffers (protobuf), Google's language-neutral binary serialization format. You help developers define data schemas with `.proto` files, generate typed code for multiple languages, build efficient APIs with gRPC, and handle schema evolution with backward/forward compatibility — achieving 3-10x smaller payloads and 20-100x faster serialization than JSON.",
-      "category": "Developer Tools",
-      "tags": []
+      "description": "Define data schemas with Protocol Buffers (protobuf), Google's language-neutral binary serialization format, and generate typed code for TypeScript, Go, Python and other languages. Use when the user asks about \".proto files\", \"protobuf schema\", \"gRPC service definition\", \"buf generate\", \"protoc\", \"binary serialization\", or how to change a schema without breaking existing clients (field numbers, reserved fields, backward compatibility).",
+      "category": "development",
+      "tags": [
+        "protobuf",
+        "grpc",
+        "serialization",
+        "schema",
+        "buf"
+      ]
     },
     {
       "name": "pulumi",
@@ -7478,14 +7526,20 @@
     {
       "name": "pydantic-ai",
       "slug": "pydantic-ai",
-      "description": "You are an expert in PydanticAI, the Python agent framework built by the Pydantic team. You help developers create type-safe AI agents with structured outputs, dependency injection, tool definitions, streaming, and model-agnostic design — leveraging Pydantic for validation and type safety throughout the agent lifecycle.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "Builds type-safe AI agents in Python with PydanticAI, the agent framework from the Pydantic team. Use when a user asks to create an LLM agent with validated structured output, add tools with dependency injection, stream responses, switch between OpenAI, Anthropic, Gemini or Ollama models, or test an agent without calling a real model.",
+      "category": "data-ai",
+      "tags": [
+        "agent",
+        "pydantic",
+        "python",
+        "structured-output",
+        "tools"
+      ]
     },
     {
       "name": "pytest",
       "slug": "pytest",
-      "description": "Test Python code with pytest. Use when a user asks to write unit tests, set up test fixtures, mock dependencies, run async tests, measure coverage, or implement test-driven development in Python.",
+      "description": "pytest is the standard Python test framework: plain assert statements, fixtures for setup and teardown, parametrized tests and a large plugin ecosystem. Use when a user asks to write unit tests, set up test fixtures, mock dependencies, run async tests, measure coverage, run tests in parallel, or practice test-driven development in Python.",
       "category": "development",
       "tags": []
     },
@@ -7558,9 +7612,15 @@
     {
       "name": "ragas",
       "slug": "ragas",
-      "description": "Expert guidance for Ragas, the framework for evaluating Retrieval-Augmented Generation pipelines. Helps developers measure and improve the quality of their RAG systems across retrieval accuracy, answer faithfulness, and response relevance.",
+      "description": "Ragas is an open-source Python framework for evaluating RAG pipelines and LLM applications with metrics such as faithfulness, response relevancy, context precision and context recall. Use when asked to evaluate or score a RAG system, generate a synthetic test set from documents, add RAG quality checks to CI, or write a custom LLM-judged metric.",
       "category": "data-ai",
-      "tags": []
+      "tags": [
+        "rag",
+        "evaluation",
+        "llm-testing",
+        "retrieval",
+        "ai-quality"
+      ]
     },
     {
       "name": "rails",
@@ -7572,7 +7632,7 @@
     {
       "name": "railway-deploy",
       "slug": "railway-deploy",
-      "description": "Manage Railway deployments using the CLI. Use when a user asks to deploy to Railway, check deployment status, manage Railway services, set environment variables on Railway, view Railway logs, link a Railway project, add a database on Railway, scale Railway services, manage Railway environments, rollback a Railway deployment, or run commands with Railway env vars. Covers the full deploy lifecycle from project setup to production monitoring.",
+      "description": "Deploys and manages apps on Railway with the Railway CLI: project setup, deploys, services, databases, environment variables, logs and scaling. Use when a user asks to deploy to Railway, check deployment status, set environment variables on Railway, view Railway logs, link a Railway project, add a database on Railway, scale a Railway service, manage Railway environments, redeploy, or run commands with Railway env vars.",
       "category": "devops",
       "tags": [
         "railway",
@@ -7676,8 +7736,8 @@
     {
       "name": "react-three-fiber",
       "slug": "react-three-fiber",
-      "description": "You are an expert in React Three Fiber (R3F), the React renderer for Three.js that lets developers build 3D scenes using JSX components. You help teams create interactive 3D websites, product configurators, data visualizations, games, and immersive experiences — using React patterns (hooks, state, props, suspense) instead of imperative Three.js code, with full access to the Three.js ecosystem.",
-      "category": "3D & Creative",
+      "description": "Builds 3D scenes in React with React Three Fiber (R3F), a React renderer for Three.js where meshes, lights and cameras are JSX components. Use when a user asks to add a 3D scene to a React or Next.js site, build a product configurator, load a GLTF model, animate with useFrame, handle click and hover on 3D objects, or speed up a slow R3F scene.",
+      "category": "development",
       "tags": []
     },
     {
@@ -7798,7 +7858,7 @@
     {
       "name": "remix",
       "slug": "remix",
-      "description": "Assists with building full-stack web applications using Remix. Use when creating apps with nested routing, loader/action patterns, progressive enhancement, or deploying to Node.js, Cloudflare Workers, or other adapters. Trigger words: remix, remix run, loader, action, useFetcher, nested routes, progressive enhancement.",
+      "description": "Assists with building full-stack React web applications with Remix v2 and its successor, React Router framework mode. Use when creating apps with nested routing, loader/action patterns, progressive enhancement, or deploying to Node.js, Cloudflare Workers, or other adapters, or when migrating Remix v2 to React Router v7. Trigger words: remix, remix run, loader, action, useFetcher, nested routes, progressive enhancement, remix to react router.",
       "category": "development",
       "tags": [
         "remix",
@@ -7824,9 +7884,15 @@
     {
       "name": "render",
       "slug": "render",
-      "description": "Expert guidance for Render, the modern cloud platform for deploying web applications, APIs, databases, and background workers. Helps developers configure Render services using `render.yaml` Infrastructure as Code, set up auto-deploy from Git, manage environment variables, and optimize for production workloads.",
+      "description": "Deploys web apps, APIs, static sites, workers, cron jobs and Postgres on Render, the cloud platform configured through a render.yaml Blueprint. Use when a user asks to host an app on Render, write or fix render.yaml, wire environment variables between services, set up auto-deploy from Git, autoscale, add a custom domain, or trigger deploys with the Render API or CLI.",
       "category": "devops",
-      "tags": []
+      "tags": [
+        "paas",
+        "deployment",
+        "hosting",
+        "docker",
+        "postgresql"
+      ]
     },
     {
       "name": "renovate",
@@ -7877,8 +7943,8 @@
     {
       "name": "resend",
       "slug": "resend",
-      "description": "You are an expert in Resend, the developer-first email API. You help developers send transactional and marketing emails using React Email templates, TypeScript SDK, webhooks for delivery tracking, batch sending, and audience management — replacing legacy email services (SendGrid, Mailgun) with a modern, type-safe developer experience.",
-      "category": "Backend Development",
+      "description": "Resend is an email API for developers: send transactional and marketing email from Node.js, Python and other SDKs, with React Email templates, webhooks for delivery events, batch sending and contact broadcasts. Use when someone asks to \"send an email with Resend\", \"set up Resend webhooks\", \"build a React Email template\", \"send a batch of emails\" or to move off SendGrid or Mailgun.",
+      "category": "development",
       "tags": []
     },
     {
@@ -7996,9 +8062,15 @@
     {
       "name": "rsbuild",
       "slug": "rsbuild",
-      "description": "You are an expert in Rsbuild, the Rspack-based build tool for web applications. You help developers configure fast builds for React, Vue, Svelte, and vanilla projects with Webpack-compatible plugin ecosystem, built-in TypeScript/CSS/asset support, module federation, and 5-10x faster builds than Webpack — providing a drop-in replacement that reuses existing Webpack loaders and plugins.",
-      "category": "Developer Tools",
-      "tags": []
+      "description": "Rsbuild is a Rspack-based build tool for web applications with a built-in dev server, TypeScript, CSS and asset support, and 5 to 10 times faster builds than webpack. Use when a developer asks to set up Rsbuild for React, Vue, Svelte or vanilla projects, migrate from webpack, Create React App or Vite, configure the dev server proxy, code splitting or Module Federation, or upgrade Rsbuild v1 to v2.",
+      "category": "development",
+      "tags": [
+        "bundler",
+        "rspack",
+        "build-tool",
+        "webpack-migration",
+        "react"
+      ]
     },
     {
       "name": "rspack",
@@ -8030,12 +8102,12 @@
     {
       "name": "runway-ml",
       "slug": "runway-ml",
-      "description": "Runway ML API for AI video generation and editing — Gen-3 Alpha Turbo, image-to-video, and video-to-video. Use when generating video from text or images, applying AI video effects, or automating creative video production pipelines.",
+      "description": "Runway ML API generates and edits AI video and images from text, images or video, with models such as Gen-4.5, Gen-4 Turbo and Aleph 2.0. Use when generating video from a prompt or a still image, editing a clip with video-to-video, automating B-roll or product-ad pipelines, or polling Runway tasks from Python or Node.js.",
       "category": "data-ai",
       "tags": [
         "runway",
         "video-generation",
-        "gen-3",
+        "gen-4",
         "text-to-video",
         "ai-video"
       ]
@@ -8217,7 +8289,7 @@
     {
       "name": "semgrep",
       "slug": "semgrep",
-      "description": "Expert guidance for Semgrep, the fast, open-source static analysis tool that finds bugs, security vulnerabilities, and anti-patterns in code. Helps developers write custom rules, integrate Semgrep into CI/CD pipelines, and use the registry of community rules for security scanning.",
+      "description": "Semgrep is an open-source static analysis tool that finds bugs, security vulnerabilities and anti-patterns by matching code patterns. Use it to scan a repository, write custom YAML rules, auto-fix findings, or add a Semgrep scan with SARIF output to GitHub Actions or other CI.",
       "category": "devops",
       "tags": []
     },
@@ -8368,8 +8440,7 @@
         "ecommerce",
         "liquid",
         "storefront",
-        "hydrogen",
-        "themes"
+        "hydrogen"
       ]
     },
     {
@@ -8515,7 +8586,7 @@
     {
       "name": "solidity",
       "slug": "solidity",
-      "description": "Write smart contracts with Solidity for Ethereum. Use when a user asks to create a smart contract, build an ERC-20 token, deploy to Ethereum, write NFT contracts, or develop DeFi protocols.",
+      "description": "Solidity is the programming language for smart contracts on Ethereum and other EVM chains. This skill covers contracts, ERC-20 tokens, Hardhat and Foundry. Use when a user asks to create a smart contract, build an ERC-20 token, deploy to Ethereum, write NFT contracts, or develop DeFi protocols.",
       "category": "development",
       "tags": []
     },
@@ -8655,7 +8726,7 @@
     {
       "name": "ssh",
       "slug": "ssh",
-      "description": "Secure server access and tunneling with SSH. Use when a user asks to connect to remote servers, set up SSH keys, create tunnels, configure jump hosts, manage SSH config, or automate remote commands.",
+      "description": "OpenSSH gives encrypted remote login, file transfer and port forwarding between machines. Use when a user asks to connect to a remote server, generate or install SSH keys, write ~/.ssh/config, reach hosts through a bastion with ProxyJump, create local, remote or SOCKS tunnels, harden sshd, or fix permission denied and host key errors.",
       "category": "devops",
       "tags": []
     },
@@ -8722,7 +8793,7 @@
     {
       "name": "step-ca",
       "slug": "step-ca",
-      "description": "Run a private certificate authority with step-ca. Use when a user asks to issue internal TLS certificates, set up mTLS between services, create a private PKI, or manage certificates for internal infrastructure.",
+      "description": "Runs a private certificate authority with step-ca from Smallstep, issuing short-lived TLS certificates for internal services. Use when a user asks to issue internal TLS certificates, set up mTLS between services, create a private PKI or internal CA, renew certificates automatically, or point ACME clients at a private CA.",
       "category": "devops",
       "tags": []
     },
@@ -8856,7 +8927,7 @@
     {
       "name": "supermemory",
       "slug": "supermemory",
-      "description": "Add persistent memory to AI agents using Supermemory API -- the #1 ranked AI memory engine. Use when: building AI assistants that remember users, adding long-term memory to chatbots, creating personalized AI products, storing conversation context across sessions.",
+      "description": "Supermemory is a hosted memory and context API for AI agents: it extracts facts from conversations and documents, keeps a per-user profile, and returns the right context through search. Use when building assistants that remember users across sessions, adding long-term memory to a chatbot, wiring Supermemory into Claude Code or another MCP client, or syncing Notion, Google Drive or GitHub into a searchable knowledge base.",
       "category": "data-ai",
       "tags": [
         "memory",
@@ -9027,7 +9098,7 @@
     {
       "name": "systemd",
       "slug": "systemd",
-      "description": "Manage Linux services with systemd. Use when a user asks to create a system service, run an app on boot, manage background processes, set up timers (cron replacement), or configure service dependencies and auto-restart.",
+      "description": "Manage Linux services with systemd: write unit files, run an app on boot, restart it when it crashes, read its logs with journalctl, and schedule jobs with timers instead of cron. Use when a user asks to create a systemd service, run a background process on boot, set up a systemd timer, configure dependencies or auto-restart, or harden a service.",
       "category": "devops",
       "tags": []
     },
@@ -9192,7 +9263,7 @@
     {
       "name": "telegram-bot-builder",
       "slug": "telegram-bot-builder",
-      "description": "Builds Telegram bots using the Bot API (grammy/telegraf/python-telegram-bot). Use when the user wants to create a Telegram bot, handle commands, build inline keyboards, process callbacks, send media, build conversational flows, handle payments, or create mini apps. Trigger words: telegram bot, telegram integration, telegram commands, inline keyboard, telegram webhook, telegram polling, telegram mini app, telegram payments, BotFather, grammy, telegraf.",
+      "description": "Builds Telegram bots using the Bot API (grammy/telegraf/python-telegram-bot). Use when the user wants to create a Telegram bot, handle commands, build inline keyboards, process callbacks, send media, build conversational flows, handle payments (Telegram Stars), or create Mini Apps. Trigger words: telegram bot, telegram integration, telegram commands, inline keyboard, telegram webhook, telegram polling, telegram mini app, telegram payments, BotFather, grammy, telegraf.",
       "category": "automation",
       "tags": [
         "telegram",
@@ -9343,7 +9414,7 @@
     {
       "name": "threejs",
       "slug": "threejs",
-      "description": "Assists with building interactive 3D experiences in the browser using Three.js. Use when creating 3D product configurators, data visualizations, games, or creative experiences with scenes, cameras, lighting, model loading, and performance optimization. Trigger words: threejs, three.js, 3d, webgl, react three fiber, r3f, glb, gltf.",
+      "description": "Three.js is a JavaScript library for building interactive 3D graphics in the browser with WebGL and WebGPU. Use it for 3D product configurators, data visualizations, games and creative sites: scenes, cameras, lighting, glTF model loading, performance tuning, and React Three Fiber. Trigger words: threejs, three.js, 3d, webgl, webgpu, react three fiber, r3f, glb, gltf.",
       "category": "design",
       "tags": [
         "threejs",
@@ -9376,8 +9447,8 @@
     {
       "name": "tiled",
       "slug": "tiled",
-      "description": "You are an expert in Tiled, the free and open-source 2D level editor for creating tilemaps, placing objects, and designing game worlds. You help game developers design levels with tile layers, object layers for spawn points and triggers, terrain brushes for auto-tiling, animated tiles, and custom properties — exporting to JSON or TMX for use in Phaser, Godot, Unity, PixiJS, and other engines.",
-      "category": "Game Development",
+      "description": "Tiled is a free, open-source 2D level editor for building tilemaps, placing game objects, and designing levels, exporting to JSON (.tmj) or TMX (.tmx) for engines like Phaser, Godot, and Unity. Use when a user wants to design a tile-based game level, set up tile and object layers, build auto-tiling terrain brushes, animate tiles, attach custom properties to tiles or objects, or load a Tiled map into a game engine.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9442,7 +9513,7 @@
     {
       "name": "tooljet",
       "slug": "tooljet",
-      "description": "Build internal tools with ToolJet, the open-source low-code platform. Use when a user asks to create admin dashboards, connect data sources, build CRUD apps with drag-and-drop, or self-host ToolJet.",
+      "description": "ToolJet is an open-source (AGPL-3.0) low-code platform for building internal tools such as admin panels, dashboards and CRUD apps with a drag-and-drop builder, SQL and REST queries, and JavaScript or Python. Use when a user asks to build an internal tool or admin dashboard, connect a database or API to a visual app, write ToolJet queries and event handlers, or self-host ToolJet with Docker or Helm.",
       "category": "development",
       "tags": [
         "internal-tools",
@@ -9522,7 +9593,7 @@
     {
       "name": "triton",
       "slug": "triton",
-      "description": "NVIDIA Triton Inference Server for deploying AI models at scale. Supports multiple frameworks (ONNX, TensorRT, PyTorch, TensorFlow), model ensembles, dynamic batching, model versioning, and GPU/CPU inference with high throughput and low latency.",
+      "description": "Serves trained machine-learning models over HTTP and gRPC with NVIDIA Triton Inference Server: one server for ONNX, TensorRT, PyTorch, TensorFlow, OpenVINO and Python models, with dynamic batching, model ensembles, versioning and Prometheus metrics, on GPU or CPU. Use when a user asks to deploy a model for production inference, write a config.pbtxt, batch requests for GPU throughput, chain preprocessing and a model, or call Triton from Python.",
       "category": "data-ai",
       "tags": []
     },
@@ -9556,8 +9627,8 @@
     {
       "name": "turbopack",
       "slug": "turbopack",
-      "description": "You are an expert in Turbopack, the Rust-based successor to Webpack built by Vercel. You help developers configure and optimize Turbopack for Next.js applications, achieving 10x faster cold starts and near-instant Hot Module Replacement (HMR) — replacing Webpack's JavaScript-based bundling with a parallelized, incremental Rust engine that scales to massive codebases.",
-      "category": "Developer Tools",
+      "description": "Turbopack is the Rust-based incremental bundler built into Next.js, the default for next dev and next build since Next.js 16. Use when someone asks to configure Turbopack, migrate a webpack config or loaders to the turbopack option in next.config, fix a Turbopack build error, or switch back to webpack with --webpack.",
+      "category": "development",
       "tags": []
     },
     {
@@ -9761,23 +9832,29 @@
     {
       "name": "unity",
       "slug": "unity",
-      "description": "You are an expert in Unity, the most widely-used game engine for indie and mobile game development. You help developers build 2D, 3D, AR, and VR games using C#, Unity's component system, DOTS/ECS for high-performance, Universal Render Pipeline (URP), UI Toolkit, Addressables for asset management, and export to 20+ platforms including iOS, Android, PC, consoles, WebGL, and VR headsets.",
-      "category": "Game Development",
+      "description": "Unity is a cross-platform game engine for 2D, 3D, AR and VR games, scripted in C# with a component system, Universal Render Pipeline, UI Toolkit, Addressables and DOTS. Use when a user asks to write Unity C# scripts, build a player controller, use ScriptableObjects or Addressables, set up input, run headless builds in CI, or pick a Unity version and licence.",
+      "category": "development",
       "tags": []
     },
     {
       "name": "unkey",
       "slug": "unkey",
-      "description": "You are an expert in Unkey, the open-source API key management platform. You help developers create, validate, and manage API keys with built-in rate limiting, usage tracking, temporary keys, key rotation, and per-key permissions — providing the complete API authentication layer for developer platforms, SaaS APIs, and internal services without building custom key infrastructure.",
-      "category": "Backend Development",
+      "description": "Unkey is an open-source API key management service: it issues, verifies and revokes API keys with built-in rate limits, usage credits, expiry, roles and permissions. Use when the user wants to add API key authentication to an API, issue keys to customers, rate limit per key, meter usage, rotate keys, or self-host key infrastructure instead of building it.",
+      "category": "development",
       "tags": []
     },
     {
       "name": "unreal-engine",
       "slug": "unreal-engine",
-      "description": "You are an expert in Unreal Engine, Epic Games' professional game engine used for AAA games, architectural visualization, film production, and real-time 3D applications. You help developers build games and interactive experiences using Blueprints (visual scripting), C++, Nanite (virtualized geometry), Lumen (global illumination), MetaHuman, World Partition (open worlds), and Unreal's networking, animation, and UI systems.",
-      "category": "Game Development",
-      "tags": []
+      "description": "Unreal Engine is Epic Games' real-time 3D engine for games, architectural visualization, film and simulation, programmed with Blueprints (visual scripting) or C++. Use when a user asks to write Unreal C++ gameplay classes, expose code to Blueprints, set up Enhanced Input, enable Nanite, Lumen or World Partition, build or package a project from the command line, or fix UnrealBuildTool compile errors.",
+      "category": "development",
+      "tags": [
+        "unreal-engine",
+        "game-engine",
+        "cpp",
+        "blueprints",
+        "3d"
+      ]
     },
     {
       "name": "unsloth",
@@ -9802,7 +9879,7 @@
     {
       "name": "uploadthing",
       "slug": "uploadthing",
-      "description": "Handle file uploads in TypeScript apps with UploadThing. Use when a user asks to implement file uploads, handle image uploads in Next.js, add drag and drop file upload, or integrate S3-backed file storage without managing infrastructure.",
+      "description": "Adds type-safe file uploads to TypeScript apps with UploadThing, a hosted file upload and storage service. Use when a user asks to implement file uploads, handle image uploads in Next.js, add drag and drop file upload, or integrate S3-backed file storage without managing infrastructure.",
       "category": "development",
       "tags": []
     },
@@ -9896,7 +9973,7 @@
     {
       "name": "val-town",
       "slug": "val-town",
-      "description": "Write and deploy server-side TypeScript functions instantly with Val Town. Use when someone asks to \"deploy a function quickly\", \"serverless TypeScript\", \"quick API endpoint\", \"webhook handler\", \"cron job in the cloud\", \"Val Town\", \"instant API without infrastructure\", or \"deploy a script without a server\". Covers HTTP vals, cron vals, email vals, SQLite storage, and the Val Town API.",
+      "description": "Write and deploy server-side TypeScript functions instantly with Val Town. Use when someone asks to \"deploy a function quickly\", \"serverless TypeScript\", \"quick API endpoint\", \"webhook handler\", \"cron job in the cloud\", \"Val Town\", \"instant API without infrastructure\", or \"deploy a script without a server\". Covers HTTP, cron and email triggers, SQLite storage, environment variables, and the vt CLI.",
       "category": "development",
       "tags": [
         "serverless",
@@ -9948,7 +10025,7 @@
     {
       "name": "vector",
       "slug": "vector",
-      "description": "Expert guidance for Vector, the high-performance observability data pipeline built in Rust by Datadog. Helps developers collect, transform, and route logs, metrics, and traces from any source to any destination with minimal resource usage. Vector replaces Logstash, Fluentd, and Filebeat with a single, faster tool.",
+      "description": "Vector is a high-performance observability data pipeline written in Rust and maintained by Datadog. It collects, transforms and routes logs, metrics and traces from any source to any destination using TOML or YAML configs and the VRL remap language. Use it to replace Logstash, Fluentd or Filebeat, filter and sample noisy logs, archive to S3, or write and debug vector.toml, VRL and `vector test` unit tests.",
       "category": "devops",
       "tags": []
     },
@@ -10014,7 +10091,7 @@
     {
       "name": "vibe-voice",
       "slug": "vibe-voice",
-      "description": "Build voice AI applications using Microsoft's VibeVoice — open-source frontier voice synthesis, recognition, and real-time conversation. Use when: building voice assistants, adding TTS/STT to applications, creating real-time voice chat, voice cloning.",
+      "description": "Run Microsoft's VibeVoice, open-source voice AI for long-form speech recognition with speaker labels and timestamps, plus real-time text-to-speech. Use when: transcribing meetings or podcasts with diarization, adding hotwords for domain terms, streaming speech recognition, serving ASR through vLLM, or building a voice assistant with a 0.5B streaming TTS model.",
       "category": "data-ai",
       "tags": []
     },
@@ -10047,8 +10124,8 @@
     {
       "name": "viem",
       "slug": "viem",
-      "description": "You are an expert in Viem, the TypeScript interface for Ethereum that provides low-level, type-safe primitives for interacting with the blockchain. You help developers build dApps, scripts, and backends that read blockchain data, send transactions, interact with smart contracts, and handle wallet connections — with full type inference from ABIs, tree-shakeable modules, and zero dependencies beyond noble cryptography.",
-      "category": "Blockchain & Web3",
+      "description": "Reads blockchain data, sends transactions and calls smart contracts from TypeScript with Viem, the type-safe Ethereum library that wagmi is built on. Use when a user asks to read a balance or ERC-20 token data, call or simulate a contract with an ABI, send ETH or tokens, watch or query contract events, resolve ENS names, batch reads with multicall, or replace ethers.js with viem.",
+      "category": "development",
       "tags": []
     },
     {
@@ -10127,7 +10204,7 @@
     {
       "name": "wagmi",
       "slug": "wagmi",
-      "description": "Build React dApps with wagmi and viem. Use when a user asks to connect wallets in React, read blockchain data in components, send transactions from a frontend, or build a Web3 user interface.",
+      "description": "wagmi is a set of React hooks for Ethereum, built on viem, for connecting wallets, reading contracts, sending transactions and switching chains. Use it when a user asks to connect wallets in React, read blockchain data in components, send transactions from a frontend, upgrade wagmi v2 to v3, or build a Web3 user interface in React or Next.js.",
       "category": "development",
       "tags": []
     },
@@ -10154,15 +10231,15 @@
     {
       "name": "warp",
       "slug": "warp",
-      "description": "Expert guidance for Warp, the modern terminal built for developer productivity. Helps developers create Warp Workflows (shareable command templates), configure Warp Drive for team knowledge sharing, and leverage Warp's AI features and block-based editing for efficient terminal usage.",
+      "description": "Warp is a terminal with command blocks and a built-in coding agent. Use this skill to write Warp Workflows (parameterized commands), share them through Warp Drive, set up themes, tab configs or launch configurations, and use blocks, notebooks and agent mode. Trigger words are warp terminal, warp workflow, warp drive, warp theme, launch configuration.",
       "category": "development",
       "tags": []
     },
     {
       "name": "wasm",
       "slug": "wasm",
-      "description": "You are an expert in WebAssembly, the binary instruction format for stack-based virtual machines. You help developers compile Rust, C, C++, Go, and AssemblyScript to WASM for near-native performance in browsers, edge functions, and serverless environments — building image/video processing, games, crypto, AI inference, and compute-intensive tools that run 10-100x faster than JavaScript.",
-      "category": "Developer Tools",
+      "description": "Compile Rust, C/C++, Go, or AssemblyScript to WebAssembly (WASM) for near-native performance in browsers, edge functions, and serverless runtimes. Use when a user asks to compile code to WASM, speed up a CPU-heavy browser task (image/video processing, codecs, physics, crypto), run WASM outside the browser with WASI, or deploy a WASM module to Cloudflare Workers or Fastly Compute.",
+      "category": "development",
       "tags": []
     },
     {
@@ -10218,7 +10295,7 @@
     {
       "name": "webauthn",
       "slug": "webauthn",
-      "description": "Implement passwordless authentication with WebAuthn and Passkeys. Use when: adding passkey/biometric login, implementing FIDO2 authentication, replacing password-based login, building touch ID / face ID authentication flows in web apps. Covers browser API, server verification, and simplewebauthn library.",
+      "description": "WebAuthn lets users sign in with passkeys (Face ID, Touch ID, Windows Hello, security keys) instead of passwords, using public-key credentials checked by your server. Use when adding passkey or biometric login, implementing FIDO2 authentication, replacing password forms, or verifying credentials with the SimpleWebAuthn library for Node.js, py_webauthn for Python or WebAuthn4J for Java.",
       "category": "development",
       "tags": [
         "webauthn",
@@ -10309,20 +10386,20 @@
     {
       "name": "windmill",
       "slug": "windmill",
-      "description": "Build internal tools and workflows with Windmill. Use when a user asks to create internal tools, build admin dashboards, orchestrate scripts, automate DevOps tasks, or self-host a Retool alternative with code-first approach.",
+      "description": "Windmill is an open-source platform for turning scripts into internal tools, workflows and webhooks, with auto-generated UIs, a flow editor and an app builder. Use when a user asks to build internal tools or admin dashboards, orchestrate scripts and cron jobs, automate DevOps tasks, or self-host a code-first alternative to Retool, Zapier or Airflow.",
       "category": "automation",
       "tags": []
     },
     {
       "name": "windsurf-rules",
       "slug": "windsurf-rules",
-      "description": "Configure Windsurf AI coding assistant with .windsurfrules and workspace rules. Use when: customizing Windsurf for a project, setting AI coding standards, creating team-shared Windsurf configurations, or tuning Cascade AI behavior.",
+      "description": "Windsurf rules are Markdown files that tell the Cascade AI agent in the Windsurf IDE (now branded Devin Desktop) how to work in a project: stack, code style, architecture and things to avoid. Use when a user asks to set up .windsurfrules or .windsurf/rules, write global or workspace rules for Windsurf, scope a rule to certain files, share coding standards with a team, or tune Cascade behavior.",
       "category": "development",
       "tags": [
         "windsurf",
         "ai-coding",
         "rules",
-        "workflow"
+        "cascade"
       ]
     },
     {
@@ -10550,7 +10627,7 @@
     {
       "name": "zed",
       "slug": "zed",
-      "description": "Expert guidance for Zed, the high-performance code editor built in Rust with native collaboration, AI integration, and GPU-accelerated rendering. Helps developers configure Zed, create custom extensions, set up collaborative editing sessions, and integrate AI assistants for productive coding.",
+      "description": "Zed is a fast, GPU-accelerated code editor written in Rust, with built-in AI agent and edit predictions, real-time collaboration, Vim mode and WebAssembly extensions. Use when the user wants to install or configure Zed, edit settings.json or keymap.json, set formatters per language, connect an AI provider such as Anthropic or Ollama, share a project with teammates, or write a Zed extension.",
       "category": "development",
       "tags": []
     },
@@ -10626,5 +10703,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-02T22:56:54.758Z"
+  "updatedAt": "2026-10-03T22:20:00.785Z"
 }

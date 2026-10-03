@@ -1,13 +1,13 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dee1b8b189baafd2f806b2028b5cdfa7aa041ada3294e16f3cd3d0c58ce5f9de",
-  "scoredAt": "2026-05-13T08:46:33.603Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c718cf1f7757c35d4fcdd0ccd4dd5a8115c0dd390b1f675afc33f872c579310a",
+  "scoredAt": "2026-10-03T12:57:24.153Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not specific and lack unambiguous guidance for the agent."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases."
+        "detail": "Covers mostly the happy path; it gives little guidance on failure cases such as LM output parse errors, rate-limit or API failures, an empty retriever corpus, or a metric that crashes during optimization."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 86,
-    "multiplier": 2.26,
+    "multiplier": 0.96,
+    "baselineAvg": 89,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Typed sentiment classifier with reasoning",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment defines a dspy.Signature subclass with typed InputField/OutputField and uses dspy.ChainOfThought to produce reasoning plus typed outputs; baseline crafts a manual prompt string with no typed signature or ChainOfThought module."
+        "name": "typed-signature-with-cot",
+        "baseline": 90,
+        "treatment": 82,
+        "rationale": "Both define a Signature with a Literal category and a float urgency, wrap it in ChainOfThought, mention `reasoning`, and use dspy.configure(lm=dspy.LM(...)). B's Annotated float with ge/le constrains urgency to 0–1 in the type and its example prints the reasoning, while A only requests the range in the field description and adds optimizer material the task didn't ask for."
       },
       {
-        "name": "Auto-optimize a RAG pipeline with few-shot examples",
-        "baseline": 40,
-        "treatment": 84,
-        "rationale": "Treatment composes a dspy.Module with Retrieve + ChainOfThought and compiles it via BootstrapFewShot with a metric function and dspy.Example trainset; baseline hand-writes few-shot examples in a prompt template with no optimizer or metric-driven compile."
+        "name": "optimize-and-persist-rag-module",
+        "baseline": 88,
+        "treatment": 80,
+        "rationale": "Both cover Examples with with_inputs, a train/dev split, a metric with the (example, pred, trace=None) signature, dspy.Evaluate with num_threads, MIPROv2 auto=\"light\", compile on the trainset, .save to JSON, and .load on a fresh module; B adds BootstrapFewShot, cost tracking, a SemanticF1 metric with a custom fallback, and the save_program option, while A is tighter, with a simpler single-file flow and a clear save-only-if-improved gate."
+      },
+      {
+        "name": "port-assert-to-refine-3x",
+        "baseline": 90,
+        "treatment": 93,
+        "rationale": "Both cover the removal of Assert/Suggest, Refine with N/reward_fn/threshold, BestOfN, the (inputs_dict, prediction) reward_fn signature and dspy.configure(lm=dspy.LM(\"openai/...\")); B explicitly calls the model string LiteLLM-style and keeps the example inside a module, while A adds extra notes (fail_count, Suggest mapping) and says activate_assertions no longer exists, but never uses the LiteLLM label."
       }
     ]
   }

@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3e366ec1c6717327c0ab085ac768e5eadb490b60cea05797dc6d3e9859aa2681",
-  "scoredAt": "2026-05-13T15:13:06.857Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:ad3feff4693d4adc69e346da84f772495ef69e57c63d4d9f37e7708daa2c3108",
+  "scoredAt": "2026-10-03T12:57:41.618Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path examples."
+        "category": "examples",
+        "detail": "The two examples are short prose descriptions with inline snippets rather than complete, runnable end-to-end demonstrations, and the Example 2 chat flow omits the client-side code and the sending path."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7,
-    "baselineAvg": 5,
-    "treatmentAvg": 70,
+    "multiplier": 1.29,
+    "baselineAvg": 66,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "setup-centrifugo-server",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B includes the required config and a docker run command, but it omits the mandatory flags for token_hmac_secret_key, api_key, and allowed_origins; Response A lacks both the config and docker command entirely."
+        "name": "v6-config-with-chat-namespace",
+        "baseline": 72,
+        "treatment": 80,
+        "rationale": "Both configs are identical and use the v6 nested layout with the specific origin and the full chat namespace settings. A scores higher because it states plainly that the secrets are placeholders and tells the user to keep them out of git, either with genconfig or with the env vars (it names both CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY and CENTRIFUGO_HTTP_API_KEY). B mentions env vars only briefly and its X-API-Key header detail is less accurate than A's 'apikey' authorization header. Neither includes allow_history_for_subscriber in the config, though A mentions it in the notes."
       },
       {
-        "name": "publish-chat-message-with-jwt",
-        "baseline": 10,
-        "treatment": 90,
-        "rationale": "Response A meets the Centrifugo API and JWT requirements (minor text difference), while Response B uses PubNub and does not satisfy the rubric."
+        "name": "backend-publish-order-shipped",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "B matches the rubric closely: it uses the notifications:#<userId> channel, states allow_user_limited_channels, publishes with the apikey header and checks body.error, and uses a centrifuge subscription with sub in the token. A covers the same mechanics but uses an orders# channel with no namespace separator, so its channel does not match the required notifications:#<userId> form, and it also hedges about the option name."
+      },
+      {
+        "name": "migrate-v5-config-and-secure",
+        "baseline": 70,
+        "treatment": 80,
+        "rationale": "A covers the key mapping, the v5-env-vars-don't-work-unchanged point, checkconfig, the shared-engine requirement with the in-memory history lost on restart, and not exposing the API/admin/Prometheus plus env-var secrets, so it hits nearly every rubric item; B covers the mapping, env vars, checkconfig, Redis, and not exposing the API/admin, but it never says in-memory history is lost on restart, never mentions NATS as an alternative engine in the same way, never mentions Prometheus, and is weaker on keeping secrets in env vars (it only says to rotate them)."
       }
     ]
   }

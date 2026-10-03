@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:93e599803bba2306a06277d52a0632f080d1efc2c7c5c2e8a1a88e5d9b2358a5",
-  "scoredAt": "2026-05-13T12:15:37.666Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:9be679d0728f6ec0c89da63683fc367a3e1c12587e30941ea83cd297c58b3cb9",
+  "scoredAt": "2026-10-02T23:21:10.856Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,8 +17,13 @@
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Error handling is thin: the audit log write can throw and fail the operation or leave it unlogged, the Docker sandbox has no handling for a failed start, a missing Docker daemon, or exec timeouts, and the Layer 1 guard's glob matching and `abs.split(\"/\")` assume POSIX paths."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill requires Docker and Node.js, limiting cross-platform compatibility."
+        "detail": "Layer 0 is specific to Claude Code settings, and the code assumes POSIX paths (`/var/log`, `split(\"/\")`) and a Docker or Linux host, so Windows is not covered and parts only work with one vendor's agent."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.09,
-    "baselineAvg": 22,
-    "treatmentAvg": 90,
+    "multiplier": 1.19,
+    "baselineAvg": 73,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "sandbox-code-modification",
-        "baseline": 10,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A lacks the required AgentSandbox instantiation and related actions."
+        "name": "restrict-agent-to-src-with-audit",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "B follows the rubric closely: an AgentSandbox class with an allowedPaths of src/tests, deniedPaths for .env that win, blockedCommands regexes including rm -rf, JSONL audit that includes blocked actions, a log outside workDir, and an explicit statement that the blocklist is not a security boundary. A takes a different design (an argv allowlist, with no blockedCommands regexes or deniedPaths list) and even argues against regex blocklists. It does cover JSONL logging of denials and an outside log, and it advises an OS sandbox, but it misses the rubric's specific constructs."
       },
       {
-        "name": "docker-isolated-execution",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Response B fully meets the rubric by using DockerSandbox with the required options, starting, executing, and killing the container, while Response A omits DockerSandbox usage, readOnly, and explicit container cleanup details."
+        "name": "docker-sandbox-untrusted-submissions",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both cover the required flags, no docker.sock and a docker kill timer. B uses the rubric's execFileSync for docker kill with an argument array, mounts the workspace read-only, and notes the sync-timer pitfall. A mainly uses a shell script and dockerode, with no execFileSync, and mounts only the script read-only."
       },
       {
-        "name": "kill-switch-audit",
-        "baseline": 5,
-        "treatment": 75,
-        "rationale": "Response B meets most rubric points, while Response A does not use AgentSandbox or required actions."
+        "name": "sandbox-existing-claude-code-and-hostile-code",
+        "baseline": 82,
+        "treatment": 80,
+        "rationale": "Both cover the sandbox settings, allowedDomains, allowUnsandboxedCommands false, and the gVisor/Firecracker/Kata recommendation, but A states the shell-commands-only limit more explicitly (naming file tools, MCP servers and hooks), which B only partly covers by saying Read/Edit/Write tools are outside the sandbox and not mentioning MCP servers or hooks, while B gives fuller hostile-code guidance with microVM prioritization, the `runsc` name, and egress deny with allowlisting, and A's uncertainty hedge about key nesting slightly weakens it."
       }
     ]
   }

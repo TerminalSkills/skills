@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4d66de7581e29e2f01318a14e874bace7ed77a79e12bfcf1e0c5544d0a970ac0",
-  "scoredAt": "2026-05-13T10:35:04.774Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b07e46fa1262a57edb968c2174811b8dfff71087cd7900e9046dd82c75b108d0",
+  "scoredAt": "2026-10-03T12:17:18.212Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack error handling and edge case coverage, focusing only on happy path scenarios."
+        "detail": "Error handling is limited to displaying error.message on write; it does not cover wallet rejection, connector failures, missing wallet extensions, or the wrong-network flow with working code."
       },
       {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to wagmi and viem, limiting its applicability to other libraries or frameworks."
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are prose summaries with only inline snippets (the balance example uses a vague 'formatted-style' phrasing and the upgrade example has no before/after code), so they are less concrete than runnable demonstrations."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 98,
-    "multiplier": 2.18,
+    "multiplier": 1.89,
+    "baselineAvg": 47,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "wagmi v2 multi-chain config with provider tree",
-        "baseline": 50,
-        "treatment": 98,
-        "rationale": "Treatment uses v2 functional connectors (injected/walletConnect) and wraps with both WagmiProvider and QueryClientProvider; baseline uses outdated v1 class connectors and omits the React Query provider entirely."
+        "name": "nextjs-wallet-connect-setup",
+        "baseline": 38,
+        "treatment": 82,
+        "rationale": "A follows the rubric closely (wagmi 3 hooks useConnection/useConnect mutate/useConnectors, config with ssr and cookieStorage, providers with useState QueryClient, and the @walletconnect/ethereum-provider install), whereas B uses wagmi v2 style hooks (useAccount, connect from useConnect, no useConnectors or useConnection) so it misses the wagmi 3 requirement despite a solid config and providers."
       },
       {
-        "name": "ERC-20 balance display and transfer with receipt tracking",
-        "baseline": 40,
-        "treatment": 97,
-        "rationale": "Treatment uses v2 hooks (useReadContract, useWriteContract, useWaitForTransactionReceipt) with erc20Abi from viem; baseline uses v1 API hooks and lacks transaction receipt confirmation tracking."
+        "name": "send-usdc-with-status-and-decimals",
+        "baseline": 80,
+        "treatment": 90,
+        "rationale": "B matches the rubric most closely: it uses the mutate form of useWriteContract, passes chainId 8453 to transfer, parses with parseUnits at 6 decimals, and mentions useSimulateContract and useSwitchChain, while A uses writeContractAsync instead of the required mutate form and has no explicit 8453 constant, although it does use base.id and handles network switching with useSwitchChain."
+      },
+      {
+        "name": "upgrade-wagmi-v2-to-v3",
+        "baseline": 22,
+        "treatment": 95,
+        "rationale": "B hits every rubric item: the install command with wagmi@3, viem@2, react-query@5 and TS ^5.9.3, the useConnection and useConnectors renames, `mutate: writeContract`, connector SDKs, and `npx tsc --noEmit`. A gets the two renames right but says no writeContract change is needed, which is wrong, and it uses loose versions with TS 5.7+ instead of 5.9.3."
       }
     ]
   }

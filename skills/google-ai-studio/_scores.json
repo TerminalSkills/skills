@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6caddf9b503865c6693c8cc5ca776eb699273f190cf3802caf04f3c2857d7e76",
-  "scoredAt": "2026-05-13T09:09:16.680Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8d66f531972bae2e7b74eefec9eee4042f0b3dcfa19320aa50ea926ae021895e",
+  "scoredAt": "2026-10-03T11:58:28.120Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases such as invalid API keys or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The file contains extensive explanatory text and repeated examples, leading to verbosity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The instructions are specific to Python and Node.js, limiting compatibility with other AI agents."
+        "category": "examples",
+        "detail": "Example 2 (porting old code) has no runnable code or before/after snippet and only gives a prose summary, and Example 1 reuses undefined setup (client, types, BaseModel imports) from earlier sections."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 94,
-    "multiplier": 1.77,
+    "multiplier": 0.95,
+    "baselineAvg": 79,
+    "treatmentAvg": 75,
     "scenarios": [
       {
-        "name": "Strict-JSON extractor with response schema",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline tends to ask for JSON via prompt only and may use outdated model names; treatment sets response_mime_type and response_schema on generation_config and json.loads(response.text) as the skill prescribes."
+        "name": "port-legacy-generativeai-script",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both responses cover the rubric: they use `from google import genai` and `from google.genai import types`, create `genai.Client`, call `client.models.generate_content`, put temperature and system_instruction in `types.GenerateContentConfig`, and drop `GenerativeModel`. B says outright that Google replaced the old package, while A only implies deprecation by telling the user to uninstall it. A has a clear old-versus-new table and B has useful chat and reuse notes, so I scored them equal."
       },
       {
-        "name": "Long-context security audit of codebase",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Baseline typically chunks or proposes RAG; treatment uses gemini-1.5-pro with pathlib rglob to concatenate files into a single generate_content call, matching the long-context pattern."
+        "name": "extract-invoice-pdf-structured-json",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "B follows the rubric's upload path with `client.files.upload`, passes the file in `contents` next to an instruction, uses a Pydantic schema with `response_mime_type` and `response_schema`, and reads `r.parsed`. A sends inline bytes and only mentions `files.upload` in a note, though its schema and `response.parsed` handling are correct and its `date` type fits the typed-object request better, while B uses `str` for the date."
+      },
+      {
+        "name": "grounded-answer-with-sources",
+        "baseline": 92,
+        "treatment": 55,
+        "rationale": "Both enable grounding and read web_search_queries and grounding_chunks correctly, but B prints search_entry_point.rendered_content and gives detailed display requirements (render unmodified, chips open Google Search, show sources) plus billing, whereas A only mentions search_entry_point in passing and its code does not render it."
       }
     ]
   }

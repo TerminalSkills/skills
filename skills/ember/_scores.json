@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:950bae54658002208bfb1720ae3d814c57acf6e381db1357d879fde18764d6e6",
-  "scoredAt": "2026-05-13T08:48:13.887Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:add33870fb9009030c1a41a50338f8958a355f8e01c7382a741c701fb81fc65e",
+  "scoredAt": "2026-10-02T23:26:08.868Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path examples."
+        "detail": "Covers mostly the happy path; there is no troubleshooting for build, resolver or deprecation errors, and the Ember Data store/adapter setup is left to an external guide."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are short prose descriptions of steps without concrete code or output, so they are simplistic compared with the detailed code in the Instructions section."
       }
     ]
   },

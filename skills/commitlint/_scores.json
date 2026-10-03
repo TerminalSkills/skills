@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:655cb5f6f9251d479d90f4154c278a5ea328bafcbdef07394c62538fc9d47533",
-  "scoredAt": "2026-05-13T15:47:50.491Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:13655913c3be69f7d9caf5436335d64689a57143fa0e3d0ccef44d6124e8803b",
+  "scoredAt": "2026-10-02T23:24:16.295Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing configuration files or multi-line commit messages."
+        "detail": "Error handling is thin: it does not cover troubleshooting for hooks not firing (for example a missing executable bit or a non-Node/GUI Git client), ESM vs CJS config loading failures, shallow-clone CI failures when the base SHA is unavailable, or pushes to a branch with no pull_request event."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 40,
-    "treatmentAvg": 100,
+    "multiplier": 1.22,
+    "baselineAvg": 72,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "setup-commitlint-with-husky",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Response B meets all rubric requirements, while Response A omits key steps and details."
+        "name": "husky-commit-msg-hook-setup",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "B covers every rubric item: the install, `husky init`, the exact commit-msg line, an extends-conventional config, the `prepare` script for teammates, and the `npm test` pre-commit note with a fix; A removes `.husky/pre-commit` rather than editing it and never says `husky init` adds the prepare script (it sets it manually), and A also hasn't executed anything."
       },
       {
-        "name": "custom-commitlint-config",
-        "baseline": 60,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required extend clause and uses a different file name."
+        "name": "restrict-scopes-and-header-length",
+        "baseline": 92,
+        "treatment": 90,
+        "rationale": "Both configs match the rubric exactly and show a failing `feat(mobile)` commit with a `scope-enum` error and a passing `fix(api)`-style commit; B edges ahead by showing fuller error output, a scope-case failure and a note on scope-empty, though A adds CI notes and more husky detail."
+      },
+      {
+        "name": "ci-lint-pr-commits",
+        "baseline": 62,
+        "treatment": 85,
+        "rationale": "B matches the rubric closely: pull_request trigger, fetch-depth 0, Node 22, `npm ci`, the exact commitlint command, CI as the enforcement point, and linting the PR title for squash-merge. A uses `npm install --no-save` instead of `npm ci` and says it couldn't write the files, though its guidance is otherwise solid."
       }
     ]
   }

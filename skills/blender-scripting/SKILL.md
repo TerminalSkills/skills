@@ -8,12 +8,14 @@ description: >-
   shapes, or import/export 3D models using the bpy API.
 license: Apache-2.0
 compatibility: >-
-  Requires Blender 3.0+ installed and accessible from the command line.
-  Linux: sudo apt install blender or snap install blender.
-  macOS: brew install --cask blender.
+  Requires Blender 3.6+ on the command line (checked on 5.0.1; current stable
+  is 5.2). Linux: snap install blender --classic or the Flatpak (distribution
+  apt packages are often old). macOS: brew install --cask blender. Or
+  pip install bpy (Python 3.13 for Blender 5.x) to use bpy without the app.
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  repository: https://projects.blender.org/blender/blender
+  version: "1.2.0"
   category: automation
   tags: ["blender", "3d", "python", "automation", "procedural"]
 ---
@@ -31,8 +33,10 @@ Automate Blender tasks and create 3D models procedurally using Python and the `b
 ```bash
 blender --background --python script.py
 blender myfile.blend --background --python script.py
-blender --background --python script.py -- --output /tmp/result.png --scale 2.0
+blender --background --factory-startup --python-exit-code 1 --python script.py -- --output /tmp/result.png --scale 2.0
 ```
+
+Your own arguments go after `--`; read them in the script with `sys.argv[sys.argv.index("--") + 1:]`. Without `--python-exit-code 1`, Blender exits with status 0 even when the script raised an exception, so CI and shell `&&` chains never notice the failure. `--factory-startup` ignores the user's saved preferences and add-ons for reproducible runs.
 
 ### 2. Scene setup and cleanup
 
@@ -133,7 +137,7 @@ spline.bezier_points.add(3)
 for i, (x, y, z) in enumerate([(0,0,0), (1,1,0), (2,0,1), (3,1,1)]):
     pt = spline.bezier_points[i]
     pt.co = (x, y, z)
-    pt.handle_type_left = pt.handle_type_right = 'AUTO'
+    pt.handle_left_type = pt.handle_right_type = 'AUTO'
 curve_data.bevel_depth = 0.1
 obj = bpy.data.objects.new("MyCurve", curve_data)
 bpy.context.collection.objects.link(obj)
@@ -142,28 +146,39 @@ bpy.context.collection.objects.link(obj)
 ### 8. Import and export
 
 ```python
-bpy.ops.wm.obj_import(filepath="/path/model.obj")
-bpy.ops.import_scene.fbx(filepath="/path/model.fbx")
-bpy.ops.import_scene.gltf(filepath="/path/model.glb")
-bpy.ops.wm.obj_export(filepath="/path/output.obj")
-bpy.ops.export_scene.gltf(filepath="/path/output.glb", export_format='GLB')
+bpy.ops.wm.obj_import(filepath="assets/chair.obj")
+bpy.ops.import_scene.fbx(filepath="assets/chair.fbx")
+bpy.ops.import_scene.gltf(filepath="assets/chair.glb")
+bpy.ops.wm.obj_export(filepath="build/chair_out.obj")
+bpy.ops.export_scene.gltf(filepath="build/chair_out.glb", export_format='GLB')
+bpy.ops.wm.stl_export(filepath="build/chair_out.stl")
 ```
+
+The OBJ operators are `wm.obj_import` / `wm.obj_export`; the old `import_scene.obj` / `export_scene.obj` were removed in 4.0. FBX and glTF stay under `import_scene` / `export_scene`.
 
 ### 9. Assign materials
 
 ```python
 mat_red = bpy.data.materials.new("Red")
-mat_red.diffuse_color = (1, 0, 0, 1)
-obj.data.materials.append(mat_red)
+bsdf = next(n for n in mat_red.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+bsdf.inputs["Base Color"].default_value = (0.8, 0.05, 0.05, 1)
+bsdf.inputs["Roughness"].default_value = 0.4
+mat_red.diffuse_color = (0.8, 0.05, 0.05, 1)   # viewport colour only
+
+mat_grey = bpy.data.materials.new("Grey")
+obj.data.materials.append(mat_red)    # slot 0
+obj.data.materials.append(mat_grey)   # slot 1
 for i, poly in enumerate(obj.data.polygons):
     poly.material_index = 0 if i % 2 == 0 else 1
 ```
+
+In Blender 5.0+ a new material already has a node tree with a Principled BSDF, and the `use_nodes` flag is deprecated (it warns and is due for removal in 6.0). On 4.x and older, set `mat_red.use_nodes = True` first. Find the node by `type`, not by its name, which is translated in non-English interfaces. `diffuse_color` affects only the viewport, not renders. A `material_index` needs a matching slot, so append both materials first.
 
 ### 10. Batch process files
 
 ```python
 import glob
-for filepath in glob.glob("/path/to/*.blend"):
+for filepath in glob.glob("scenes/*.blend"):
     bpy.ops.wm.open_mainfile(filepath=filepath)
     for obj in bpy.data.objects:
         if obj.type == 'MESH':
@@ -253,4 +268,4 @@ bpy.context.collection.objects.link(obj)
 - Link objects to a collection — unlinked objects won't appear in the scene
 - Blender uses Z-up coordinates; account for this when importing from Y-up systems
 - Use `mathutils` for vector math and matrix operations (bundled with Blender Python)
-- Import/export operator names vary by Blender version; listed ones work for 3.6+
+- Import/export operator names vary by Blender version; the ones listed here were run on 5.0.1 and match the 3.6+ names

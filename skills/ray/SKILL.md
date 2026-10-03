@@ -5,10 +5,11 @@ description: |
   for distributed computing, Ray Serve for model serving, Ray Tune for hyperparameter
   optimization, and Ray Data for distributed data processing.
 license: Apache-2.0
-compatibility: 'python 3.8+, ray 2.9+, Linux/macOS/Windows'
+compatibility: 'Python 3.10+, Ray 2.59, Linux/macOS (Windows is beta)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/ray-project/ray
   category: data-ai
   tags:
     - distributed-computing
@@ -20,19 +21,26 @@ metadata:
 
 # Ray
 
-## Installation
+## Overview
+
+Ray scales Python code from a laptop to a cluster. Ray Core turns functions and classes into distributed tasks and actors; Serve, Tune and Data build model serving, hyperparameter search and dataset processing on top. Examples below were run against Ray 2.59 (Python 3.12).
+
+## Instructions
+
+### Installation
 
 ```bash
-# Install Ray with all components
+# Core + dashboard + cluster launcher (Python 3.10+)
 pip install "ray[default]"
 
 # Or specific components
 pip install "ray[serve]"   # Model serving
 pip install "ray[tune]"    # Hyperparameter tuning
 pip install "ray[data]"    # Distributed data processing
+pip install "ray[train]"   # Distributed training
 ```
 
-## Ray Core — Distributed Functions
+### Ray Core — Distributed Functions
 
 ```python
 # ray_basics.py — Parallelize Python functions across CPUs/GPUs
@@ -60,7 +68,7 @@ def train_on_gpu(data):
     return tensor.sum().item()
 ```
 
-## Ray Actors — Stateful Workers
+### Ray Actors — Stateful Workers
 
 ```python
 # ray_actors.py — Stateful distributed objects for maintaining state across calls
@@ -89,7 +97,7 @@ futures = [servers[i % 3].predict.remote(text) for i, text in enumerate(texts)]
 results = ray.get(futures)
 ```
 
-## Ray Serve — Model Serving
+### Ray Serve — Model Serving
 
 ```python
 # serve_model.py — Deploy ML models as scalable HTTP endpoints
@@ -109,8 +117,14 @@ class SentimentService:
         return {"label": result["label"], "score": result["score"]}
 
 app = SentimentService.bind()
-serve.run(app, host="0.0.0.0", port=8000)
+
+# host and port belong to serve.start(), not serve.run().
+# Bind to localhost; put a reverse proxy or the cluster ingress in front for remote access.
+serve.start(http_options={"host": "127.0.0.1", "port": 8000})
+serve.run(app, route_prefix="/")
 ```
+
+`ray_actor_options={"num_gpus": 0.5}` needs a GPU; drop it on a CPU-only machine. In production prefer a config file: `serve run serve_model:app` for development and `serve deploy config.yaml` for a cluster.
 
 ```bash
 # Test the endpoint
@@ -119,7 +133,7 @@ curl -X POST http://localhost:8000 \
     -d '{"text": "Ray Serve is excellent!"}'
 ```
 
-## Ray Serve — Composition (Multi-Model Pipeline)
+### Ray Serve — Composition (Multi-Model Pipeline)
 
 ```python
 # serve_pipeline.py — Chain multiple models in a serving pipeline
@@ -157,7 +171,9 @@ classifier = Classifier.bind()
 app = Pipeline.bind(preprocessor, classifier)
 ```
 
-## Ray Tune — Hyperparameter Optimization
+Bound deployments are passed to the constructor as `DeploymentHandle`s, so every call is `await handle.method.remote(...)`. Run it with `serve.run(app)` and post `{"text": "  Great! "}` to `http://127.0.0.1:8000/`.
+
+### Ray Tune — Hyperparameter Optimization
 
 ```python
 # tune_experiment.py — Run hyperparameter search across a cluster
@@ -186,25 +202,25 @@ def train_model(config):
 
 scheduler = ASHAScheduler(max_t=20, grace_period=5, reduction_factor=2)
 
-results = tune.run(
-    train_model,
-    config={
+# tune.run is deprecated: use tune.Tuner
+tuner = tune.Tuner(
+    tune.with_resources(train_model, {"cpu": 2, "gpu": 0}),
+    param_space={
         "lr": tune.loguniform(1e-4, 1e-1),
         "hidden_size": tune.choice([32, 64, 128, 256]),
     },
-    num_samples=20,
-    scheduler=scheduler,
-    metric="loss",
-    mode="min",
-    resources_per_trial={"cpu": 2, "gpu": 0},
+    tune_config=tune.TuneConfig(
+        metric="loss", mode="min", num_samples=20, scheduler=scheduler,
+    ),
 )
+results = tuner.fit()
 
 best = results.get_best_result()
 print(f"Best config: {best.config}")
 print(f"Best loss: {best.metrics['loss']:.4f}")
 ```
 
-## Ray Data — Distributed Processing
+### Ray Data — Distributed Processing
 
 ```python
 # ray_data.py — Process large datasets in parallel with Ray Data
@@ -228,32 +244,31 @@ filtered.write_parquet("s3://my-bucket/processed/")
 print(f"Processed {filtered.count()} records")
 ```
 
-## Cluster Setup
+### Cluster Setup
 
-```yaml
-# ray-cluster.yaml — Ray cluster configuration for Kubernetes
-cluster_name: ml-cluster
-max_workers: 4
-provider:
-  type: kubernetes
-  namespace: ray
-head_node_type:
-  node_config:
-    resources:
-      cpu: "4"
-      memory: "16Gi"
-worker_node_types:
-  - name: gpu-worker
-    min_workers: 0
-    max_workers: 4
-    node_config:
-      resources:
-        cpu: "8"
-        memory: "32Gi"
-        nvidia.com/gpu: "1"
+On Kubernetes, use the KubeRay operator and its Helm charts (the old `provider: type: kubernetes` cluster-launcher YAML is not the supported route):
+
+```bash
+helm repo add kuberay https://ray-project.github.io/kuberay-helm/
+helm repo update
+helm install kuberay-operator kuberay/kuberay-operator --version 1.7.0
+helm install raycluster kuberay/ray-cluster --version 1.7.0
+kubectl get rayclusters
 ```
 
-## Key Concepts
+Check the KubeRay docs for the chart version that matches your Ray release. On plain VMs use `ray start --head` on the first machine and `ray start --address=10.0.0.5:6379` on workers.
+
+## Examples
+
+**Request:** "Run my 10,000 slow feature-extraction calls in parallel."
+Wrap the function in `@ray.remote`, submit with `.remote()`, collect with `ray.get`. Ten one-second tasks finish in about 1 s on 10 CPUs and print `Results: [0, 1, 4, ...]`.
+
+**Request:** "Tune my learning rate on 20 samples."
+Use the `tune.Tuner` snippet above; the printout ends with `Best config: {'lr': 0.0018, 'hidden_size': 64}` and the best loss.
+
+## Guidelines
+
+### Key Concepts
 
 - **Ray Core**: `@ray.remote` turns any function/class into a distributed task/actor
 - **Ray Serve**: Production model serving with autoscaling, batching, and multi-model composition
@@ -261,3 +276,11 @@ worker_node_types:
 - **Ray Data**: Distributed data loading and preprocessing for ML training pipelines
 - **Autoscaling**: Automatically scales workers up/down based on demand
 - **Resource management**: Specify CPU, GPU, and memory requirements per task
+
+### Pitfalls
+
+- Tasks that need `num_gpus` stay pending forever on machines without GPUs; check `ray.cluster_resources()`.
+- `ray.get` in a loop serializes work: submit all tasks first, then call `ray.get` once on the list.
+- Large arguments are copied per call; put them in the object store once with `ray.put`.
+- On Windows Ray is beta and multi-node clusters are untested.
+- Stop local clusters with `ray stop` when you finish.

@@ -5,12 +5,12 @@ description: >-
   Use when someone asks to "deploy a function quickly", "serverless TypeScript",
   "quick API endpoint", "webhook handler", "cron job in the cloud", "Val Town",
   "instant API without infrastructure", or "deploy a script without a server".
-  Covers HTTP vals, cron vals, email vals, SQLite storage, and the Val Town API.
+  Covers HTTP, cron and email triggers, SQLite storage, environment variables, and the vt CLI.
 license: Apache-2.0
-compatibility: "Browser or any HTTP client. Deno-compatible TypeScript runtime."
+compatibility: "Browser, or the vt CLI (needs Deno). Deno-based TypeScript runtime."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["serverless", "typescript", "functions", "val-town", "cron"]
 ---
@@ -19,34 +19,36 @@ metadata:
 
 ## Overview
 
-Val Town is a platform for writing and deploying TypeScript functions instantly — no infrastructure, no build step, no deployment pipeline. Write a function in the browser, get a URL. HTTP endpoints, cron jobs, email handlers, and persistent SQLite storage. Think "GitHub Gists that run."
+Val Town is a platform for writing and deploying TypeScript and JavaScript instantly: no infrastructure, no build step. A val is a versioned folder of files that is deployed as you edit, like a repository that can run. A file can be triggered by an HTTP request, a schedule (cron) or an incoming email, and each val has a private SQLite database, blob storage, environment variables, and npm or URL imports. The runtime is Deno. Changes deploy within about 100 ms.
 
 ## When to Use
 
-- Need a quick API endpoint or webhook handler (minutes, not hours)
-- Scheduled tasks (cron) without managing servers
-- Prototyping an idea before building proper infrastructure
-- Webhook receivers for Stripe, GitHub, Slack integrations
+- A quick API endpoint or webhook handler (minutes, not hours)
+- Scheduled tasks without managing servers
+- Prototyping before building proper infrastructure
 - Glue code between services (fetch from API A, transform, POST to API B)
-- Storing small amounts of data with built-in SQLite
+- Small amounts of data in the built-in SQLite database
 
 ## Instructions
 
-### HTTP Val (API Endpoint)
+Create a val in the browser (name it, then use "+ Add trigger" on a file to choose HTTP, Cron or Email) or from your machine with the `vt` CLI. HTTP vals are served at `[name].val.run`.
+
+### HTTP trigger (API endpoint)
+
+The default export takes a standard `Request` and returns a `Response` (frameworks such as Hono work too).
 
 ```typescript
-// @user/myApi — Deployed instantly at https://user-myapi.web.val.run
-export default async function(req: Request): Promise<Response> {
+// index.http.tsx (HTTP trigger)
+export default async function (req: Request): Promise<Response> {
   const url = new URL(req.url);
 
   if (req.method === "GET") {
-    const name = url.searchParams.get("name") || "World";
+    const name = url.searchParams.get("name") ?? "World";
     return Response.json({ message: `Hello, ${name}!` });
   }
 
   if (req.method === "POST") {
     const body = await req.json();
-    // Process the data
     return Response.json({ received: body, timestamp: Date.now() });
   }
 
@@ -54,97 +56,113 @@ export default async function(req: Request): Promise<Response> {
 }
 ```
 
-### Cron Val (Scheduled Task)
+### Cron trigger (scheduled task)
+
+The handler receives an `Interval` (`{ lastRunAt: Date | undefined }`); its return value is ignored. Schedules are either a simple interval or a cron expression, always evaluated in UTC. The Free plan allows a run every 15 minutes at most, Pro every minute.
 
 ```typescript
-// @user/dailyReport — Runs on a schedule
-export default async function() {
-  // Fetch data from an API
-  const response = await fetch("https://api.example.com/stats");
+// daily-report (cron trigger)
+export default async function (interval: Interval) {
+  const response = await fetch("https://api.northwind.dev/v1/stats/daily");
   const stats = await response.json();
 
-  // Send to Slack
-  await fetch(Deno.env.get("SLACK_WEBHOOK")!, {
+  await fetch(Deno.env.get("SLACK_WEBHOOK_URL")!, {
     method: "POST",
-    body: JSON.stringify({
-      text: `📊 Daily Report: ${stats.users} users, ${stats.revenue} revenue`,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: `Daily report since ${interval.lastRunAt ?? "first run"}: ${stats.signups} signups` }),
   });
 }
 ```
 
-### SQLite Storage
+### Email trigger
+
+Each email val gets an address like `yourname@valtown.email`. The handler receives an `Email` object (`from`, `to`, `subject`, `text`, `html`, `attachments`, `headers`); inbound mail, attachments included, must be under 30 MB.
 
 ```typescript
-// @user/todoApi — CRUD API with persistent SQLite storage
-import { sqlite } from "https://esm.town/v/std/sqlite";
+// inbox (email trigger)
+export default async function (email: Email) {
+  console.log("Email received", email.from, email.subject);
+  for (const file of email.attachments) console.log(`Attachment: ${file.name}`);
+}
+```
 
-// Initialize table
+### SQLite storage
+
+Every val has its own private SQLite database (Turso-backed; 10 MB on Free, up to 1 GB on Pro). The older per-account global database is legacy. Results have `columns`, `rows`, `rowsAffected` and `lastInsertRowid`.
+
+```typescript
+// todos.http.tsx
+import { sqlite } from "https://esm.town/v/std/sqlite/main.ts";
+
 await sqlite.execute(`
   CREATE TABLE IF NOT EXISTS todos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
-    done BOOLEAN DEFAULT FALSE,
+    done INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
 
-export default async function(req: Request): Promise<Response> {
+export default async function (req: Request): Promise<Response> {
   const url = new URL(req.url);
 
   if (req.method === "GET") {
-    const todos = await sqlite.execute("SELECT * FROM todos ORDER BY created_at DESC");
-    return Response.json(todos.rows);
+    const result = await sqlite.execute("SELECT * FROM todos ORDER BY created_at DESC");
+    return Response.json(result.rows);
   }
-
   if (req.method === "POST") {
     const { title } = await req.json();
-    await sqlite.execute("INSERT INTO todos (title) VALUES (?)", [title]);
+    await sqlite.execute({ sql: "INSERT INTO todos (title) VALUES (:title)", args: { title } });
     return Response.json({ ok: true }, { status: 201 });
   }
-
   if (req.method === "DELETE") {
-    const id = url.searchParams.get("id");
-    await sqlite.execute("DELETE FROM todos WHERE id = ?", [id]);
+    const id = Number(url.searchParams.get("id"));
+    await sqlite.execute({ sql: "DELETE FROM todos WHERE id = :id", args: { id } });
     return Response.json({ ok: true });
   }
-
   return new Response("Not found", { status: 404 });
 }
 ```
 
-### Webhook Handler
+Use `sqlite.batch([...])` to run several statements together.
+
+### Webhook handler with signature check
 
 ```typescript
-// @user/stripeWebhook — Handle Stripe webhooks
-export default async function(req: Request): Promise<Response> {
-  const signature = req.headers.get("stripe-signature");
+// stripe.http.tsx
+import Stripe from "npm:stripe";
+
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!);
+
+export default async function (req: Request): Promise<Response> {
+  const signature = req.headers.get("stripe-signature")!;
   const body = await req.text();
 
-  // Verify webhook signature
-  // In Val Town, use Deno.env.get() for secrets
-  const secret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-
-  const event = JSON.parse(body);
-
-  switch (event.type) {
-    case "checkout.session.completed":
-      // Handle successful payment
-      await fetch("https://api.myapp.com/activate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId: event.data.object.customer }),
-      });
-      break;
-
-    case "customer.subscription.deleted":
-      // Handle cancellation
-      break;
+  let event;
+  try {
+    event = await stripe.webhooks.constructEventAsync(
+      body, signature, Deno.env.get("STRIPE_WEBHOOK_SECRET")!,
+      undefined, Stripe.createSubtleCryptoProvider(),
+    );
+  } catch {
+    return new Response("Invalid signature", { status: 400 });
   }
 
+  if (event.type === "checkout.session.completed") {
+    console.log("Paid:", event.data.object.id);
+  }
   return Response.json({ received: true });
 }
 ```
+
+### Working locally with vt
+
+```bash
+deno install -grAf jsr:@valtown/vt   # install (requires Deno)
+vt                                   # first run: sign in and create an API key
+vt clone maria/invoice-webhook  # also: vt create, vt pull, vt push, vt watch, vt tail
+```
+Set `VAL_TOWN_API_KEY` instead of the browser sign-in in CI. `vt push` overwrites without asking; `vt pull` may prompt.
 
 ## Examples
 
@@ -152,22 +170,20 @@ export default async function(req: Request): Promise<Response> {
 
 **User prompt:** "I need a quick URL that checks if my website is up and returns the status."
 
-The agent will create an HTTP val that fetches the target URL, measures response time, and returns a JSON status report.
+Create an HTTP val whose handler does `const start = Date.now(); const res = await fetch("https://shop.northwind.dev/health")` and returns `Response.json({ up: res.ok, status: res.status, ms: Date.now() - start })`. Opening `https://[name].val.run` shows `{"up":true,"status":200,"ms":143}`.
 
 ### Example 2: GitHub webhook to Slack
 
 **User prompt:** "When someone stars my GitHub repo, send a message to my Slack channel."
 
-The agent will create an HTTP val that handles GitHub webhook events, filters for star events, and posts to a Slack webhook URL.
+Create an HTTP val, add `SLACK_WEBHOOK_URL` in the val's environment variables, and point a GitHub webhook (event "Watch") at the val URL. The handler checks `req.headers.get("x-github-event") === "watch"`, then POSTs `{ text: "New star from <login>" }` to Slack. A star shows up in the channel within seconds.
 
 ## Guidelines
 
-- **HTTP vals are standard Web API** — `Request` in, `Response` out
-- **Environment variables via `Deno.env.get()`** — store secrets in Val Town settings
-- **SQLite is per-account** — shared across all your vals, persistent
-- **Free tier: 10 vals, 100 cron runs/day** — enough for prototyping
-- **Import from URLs** — `import { x } from "https://esm.town/v/user/module"`
-- **Deno runtime** — use Deno APIs, npm packages via `npm:package` specifier
-- **No cold starts** — vals are always warm, sub-50ms response times
-- **Use for glue code** — connect APIs, transform data, automate workflows
-- **Not for production traffic** — great for webhooks, cron, prototypes; use proper infra for high-traffic APIs
+- Handlers are standard Web API: `Request` in, `Response` out.
+- Read secrets with `Deno.env.get("NAME")` or `process.env.NAME`; set them in the val's settings. Changes apply on the next request without redeploying, and code cannot change them at runtime. Never hard-code keys: public vals expose their source (values stay hidden).
+- Free plan: unlimited public vals, 100,000 runs a day, 1 minute wall-clock time per run, 15-minute cron minimum, 3 days of logs, no private vals or custom domains. Pro raises these (private vals, 1-minute cron, 10-minute runs). Check val.town/pricing for current numbers.
+- npm packages use the `npm:` specifier; other vals import by URL from `esm.town`.
+- Always verify webhook signatures (Stripe, GitHub) before acting on the payload.
+- Cron expressions are UTC; the Free plan cannot run more often than every 15 minutes.
+- Best for webhooks, cron and prototypes; use dedicated infrastructure for high-traffic or latency-critical production APIs.

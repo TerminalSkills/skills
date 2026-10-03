@@ -1,128 +1,113 @@
 ---
 name: unity
 description: >-
-  You are an expert in Unity, the most widely-used game engine for indie and
-  mobile game development. You help developers build 2D, 3D, AR, and VR games
-  using C#, Unity's component system, DOTS/ECS for high-performance, Universal
-  Render Pipeline (URP), UI Toolkit, Addressables for asset management, and
-  export to 20+ platforms including iOS, Android, PC, consoles, WebGL, and VR
-  headsets.
+  Unity is a cross-platform game engine for 2D, 3D, AR and VR games, scripted in C# with a component system, Universal Render Pipeline, UI Toolkit, Addressables and DOTS. Use when a user asks to write Unity C# scripts, build a player controller, use ScriptableObjects or Addressables, set up input, run headless builds in CI, or pick a Unity version and licence.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Unity 6 (6000.x, 6.3 LTS) via Unity Hub on Windows, macOS or Linux; C# 9 scripting. Headless builds still need an activated licence."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Game Development
+  version: "1.1.0"
+  category: development
   tags:
+    - unity
     - game-engine
     - c-sharp
-    - 2d
-    - 3d
     - mobile
     - cross-platform
-    - indie
-    - ar-vr
 ---
 
-# Unity — Cross-Platform Game Engine
+# Unity
 
-You are an expert in Unity, the most widely-used game engine for indie and mobile game development. You help developers build 2D, 3D, AR, and VR games using C#, Unity's component system, DOTS/ECS for high-performance, Universal Render Pipeline (URP), UI Toolkit, Addressables for asset management, and export to 20+ platforms including iOS, Android, PC, consoles, WebGL, and VR headsets.
+## Overview
 
-## Core Capabilities
+Unity is a game engine and editor. A scene holds GameObjects; behaviour comes from components, mostly C# `MonoBehaviour` scripts. It builds to desktop, iOS, Android, WebGL, consoles and XR headsets. The current line is Unity 6 (version numbers `6000.x`; 6.3 is a long-term-support release). Projects created before Unity 6 keep working, but several APIs were renamed (see Guidelines).
 
-### Component System
+Licensing as published on unity.com: Unity Personal is free for organisations with less than $200K revenue and funding in the last 12 months; Unity Pro (about $2,310 per seat per year) is required above that; Enterprise is for companies above $25M. The old Unity Plus plan no longer appears. Check the compare-plans page before quoting numbers.
+
+Most agent work here is writing scripts and editor tooling under `Assets/`, so the examples are C#. Unity regenerates `.csproj` files and `Library/`; commit `Assets/`, `Packages/` and `ProjectSettings/`, not `Library/`, `Temp/` or `Logs/`.
+
+## Instructions
+
+### Install and open a project
+
+Install Unity Hub from unity.com/download, then add an editor version (pick an LTS release) with the platform modules you need (Android Build Support, iOS, WebGL). Create projects from the Hub templates; the Universal 3D and Universal 2D templates use URP. Pin the editor version in `ProjectSettings/ProjectVersion.txt` and keep everyone on the same one.
+
+### A character controller with the Input System
+
+New Unity 6 projects use the Input System package. If a project is set to "Input System Package (New)" under Edit > Project Settings > Player > Other Settings > Active Input Handling, calling the legacy `Input.GetAxis` or `Input.GetKey` throws an `InvalidOperationException` at runtime. Use input actions, or set the option to "Both" for old code.
 
 ```csharp
-// PlayerController.cs — MonoBehaviour component
+// Assets/Scripts/PlayerController.cs
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 7f;      // Editable in Inspector
-    [SerializeField] private float jumpForce = 12f;
+    [SerializeField] private float moveSpeed = 7f;
+    [SerializeField] private float jumpHeight = 1.6f;
     [SerializeField] private float gravity = -25f;
 
-    [Header("Ground Check")]
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private float groundDistance = 0.2f;
-    [SerializeField] private LayerMask groundMask;
+    [Header("Input (assign actions from an Input Actions asset)")]
+    [SerializeField] private InputActionReference move;   // Vector2
+    [SerializeField] private InputActionReference jump;   // Button
 
     private CharacterController controller;
     private Vector3 velocity;
-    private bool isGrounded;
-    private Animator animator;
-    private static readonly int IsRunning = Animator.StringToHash("IsRunning");
-    private static readonly int IsJumping = Animator.StringToHash("IsJumping");
 
-    private void Start()
-    {
-        controller = GetComponent<CharacterController>();
-        animator = GetComponent<Animator>();
-    }
+    private void Awake() => controller = GetComponent<CharacterController>();
+
+    private void OnEnable()  { move.action.Enable();  jump.action.Enable(); }
+    private void OnDisable() { move.action.Disable(); jump.action.Disable(); }
 
     private void Update()
     {
-        // Ground detection
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f;                // Stick to ground
+        if (controller.isGrounded && velocity.y < 0f)
+            velocity.y = -2f;                       // keeps the controller grounded
 
-        // Movement input
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
-        Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * (moveSpeed * Time.deltaTime));
+        Vector2 input = move.action.ReadValue<Vector2>();
+        Vector3 direction = transform.right * input.x + transform.forward * input.y;
+        controller.Move(direction * (moveSpeed * Time.deltaTime));
 
-        // Animation
-        bool moving = move.magnitude > 0.1f;
-        animator.SetBool(IsRunning, moving);
+        if (jump.action.WasPressedThisFrame() && controller.isGrounded)
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
-        // Jump
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            velocity.y = jumpForce;
-            animator.SetBool(IsJumping, true);
-        }
-
-        // Gravity
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
-
-        if (isGrounded)
-            animator.SetBool(IsJumping, false);
     }
 }
 ```
 
-### ScriptableObjects (Data-Driven Design)
+Use `Update` for input and non-physics logic, `FixedUpdate` for Rigidbody forces, and cache `GetComponent` results in `Awake`.
+
+### ScriptableObjects for data
 
 ```csharp
-// WeaponData.cs — Data container (no MonoBehaviour)
+// Assets/Scripts/WeaponData.cs
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewWeapon", menuName = "Game/Weapon Data")]
 public class WeaponData : ScriptableObject
 {
-    public string weaponName;
+    public string weaponName = "Iron Sword";
     public Sprite icon;
     public GameObject prefab;
-    public float damage = 10f;
-    public float attackSpeed = 1f;         // Attacks per second
+    public float damage = 12f;
+    public float attacksPerSecond = 1.5f;
     public float range = 2f;
     public AudioClip attackSound;
-    public ParticleSystem hitEffect;
     [TextArea] public string description;
 }
-
-// Usage: create weapon assets in Project window
-// Drag into Inspector fields — fully data-driven
 ```
 
-### Events and Messaging
+Create assets with Assets > Create > Game > Weapon Data and drag them into inspector fields. Do not write to a ScriptableObject at runtime for save data: changes persist in the Editor but not in builds. Copy values into plain C# classes and serialize those.
+
+### Events between systems
 
 ```csharp
-// GameEvents.cs — Event system using ScriptableObjects
+// Assets/Scripts/GameEvent.cs
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -133,85 +118,122 @@ public class GameEvent : ScriptableObject
 
     public void Raise()
     {
-        // Notify all listeners in reverse (safe for removal during iteration)
-        for (int i = listeners.Count - 1; i >= 0; i--)
+        for (int i = listeners.Count - 1; i >= 0; i--)   // safe if a listener unregisters
             listeners[i].OnEventRaised();
     }
-
-    public void Register(GameEventListener listener) => listeners.Add(listener);
-    public void Unregister(GameEventListener listener) => listeners.Remove(listener);
+    public void Register(GameEventListener l) => listeners.Add(l);
+    public void Unregister(GameEventListener l) => listeners.Remove(l);
 }
 
-// GameEventListener.cs — Attach to any GameObject
 public class GameEventListener : MonoBehaviour
 {
     [SerializeField] private GameEvent gameEvent;
     [SerializeField] private UnityEvent response;
 
-    private void OnEnable() => gameEvent.Register(this);
+    private void OnEnable()  => gameEvent.Register(this);
     private void OnDisable() => gameEvent.Unregister(this);
     public void OnEventRaised() => response.Invoke();
 }
 ```
 
-### Addressables (Asset Management)
+Put each `MonoBehaviour` in a file with the same name as the class (`GameEventListener.cs`), or Unity cannot attach it. The listing above shows two classes only for brevity.
+
+### Addressables
+
+Install the Addressables package from Package Manager, mark assets as Addressable, and set groups in Window > Asset Management > Addressables > Groups. Load and release explicitly:
 
 ```csharp
-// Load assets asynchronously (no Resources folder!)
+using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class LevelLoader : MonoBehaviour
 {
-    public async void LoadLevel(string levelKey)
+    private GameObject currentLevel;
+
+    public async Task LoadLevel(string levelKey)
     {
-        // Load prefab from Addressables (local or remote CDN)
-        AsyncOperationHandle<GameObject> handle =
-            Addressables.InstantiateAsync(levelKey);
-
+        AsyncOperationHandle<GameObject> handle = Addressables.InstantiateAsync(levelKey);
         await handle.Task;
-
         if (handle.Status == AsyncOperationStatus.Succeeded)
-            Debug.Log($"Loaded level: {levelKey}");
+            currentLevel = handle.Result;
+        else
+            Debug.LogError($"Could not load {levelKey}: {handle.OperationException}");
     }
 
-    // Download content update from CDN
-    public async void CheckForUpdates()
+    public void UnloadLevel()
     {
-        var checkHandle = Addressables.CheckForCatalogUpdates();
-        await checkHandle.Task;
+        if (currentLevel != null) Addressables.ReleaseInstance(currentLevel);  // not Destroy
+        currentLevel = null;
+    }
 
-        if (checkHandle.Result.Count > 0)
-        {
-            var updateHandle = Addressables.UpdateCatalogs(checkHandle.Result);
-            await updateHandle.Task;
-            Debug.Log("Content updated from server!");
-        }
+    public async Task UpdateRemoteContent()
+    {
+        var check = Addressables.CheckForCatalogUpdates(false);
+        await check.Task;
+        if (check.Result.Count > 0)
+            await Addressables.UpdateCatalogs(check.Result).Task;
+        Addressables.Release(check);
     }
 }
 ```
 
-## Installation
+### Headless builds in CI
 
-```bash
-# Download Unity Hub from https://unity.com/download
-# Install editor version (LTS recommended)
-# Personal license: FREE (revenue < $200K)
-# Plus: $399/year, Pro: $2,040/year
+Put the build method in an `Editor` folder and call it from the command line:
 
-# CLI builds (CI/CD)
-unity -batchmode -nographics -projectPath ./MyGame \
-  -buildTarget StandaloneWindows64 \
-  -executeMethod BuildScript.Build
+```csharp
+// Assets/Editor/BuildScript.cs
+using UnityEditor;
+using UnityEditor.Build.Reporting;
+
+public static class BuildScript
+{
+    public static void Build()
+    {
+        var options = new BuildPlayerOptions
+        {
+            scenes = new[] { "Assets/Scenes/Main.unity" },
+            locationPathName = "Builds/Win64/Skyline.exe",
+            target = BuildTarget.StandaloneWindows64,
+        };
+        BuildReport report = BuildPipeline.BuildPlayer(options);
+        EditorApplication.Exit(report.summary.result == BuildResult.Succeeded ? 0 : 1);
+    }
+}
 ```
 
-## Best Practices
+```bash
+Unity -batchmode -nographics -quit -projectPath ./Skyline \
+  -buildTarget StandaloneWindows64 -executeMethod BuildScript.Build \
+  -logFile - -accept-apiupdate
+```
 
-1. **Component over inheritance** — Compose GameObjects from small, focused components; don't build deep class hierarchies
-2. **ScriptableObjects for data** — Weapons, items, abilities as ScriptableObject assets; designers edit without code
-3. **Addressables over Resources** — Use Addressables for async asset loading; supports CDN, DLC, and content updates
-4. **Object pooling** — Pool bullets, particles, enemies; `Instantiate`/`Destroy` causes GC spikes
-5. **URP for performance** — Use Universal Render Pipeline for mobile/VR; HDRP for high-end PC/console
-6. **Assembly definitions** — Split code into assemblies; reduces recompile time from 30s to 2s
-7. **Events for decoupling** — Use ScriptableObject events or C# events; avoid direct references between systems
-8. **Profile always** — Use Unity Profiler and Frame Debugger; test on target hardware early and often
+The editor must be activated for batch mode (a Pro or Personal licence, activated with `-username`/`-serial` or a licence file from the Hub). Only one editor instance can open a project at a time. A non-zero exit code means a failure; read the log. For CI, the open-source GameCI Docker images and GitHub Actions wrap this.
+
+## Examples
+
+### Example 1: Add a jump to the player
+
+Request: "My character walks but can't jump, and I get an InvalidOperationException about UnityEngine.Input."
+
+The project uses the new Input System, so legacy `Input` calls throw. Replace them with the `PlayerController` above: create an Input Actions asset with a `Move` (Vector2) and a `Jump` (Button) action, assign both to the component, and press Play. The error disappears and Space or the gamepad south button now jumps about 1.6 units.
+
+### Example 2: Load a level from a CDN
+
+Request: "Ship levels as downloadable content so the app stays under 150 MB."
+
+Mark each level prefab Addressable in a "Levels" group, set the group's build and load paths to Remote, host the build output folder on a CDN, and call `LevelLoader.UpdateRemoteContent()` on startup followed by `LoadLevel("Level_03")`. The first launch downloads the catalog and bundles; later launches use the cache.
+
+## Guidelines
+
+- Pitfalls with Unity 6: `Rigidbody.velocity` is now `linearVelocity` (and `drag` is `linearDamping`); `FindObjectOfType` is deprecated in favour of `FindFirstObjectByType`.
+- Avoid `Resources` folders and `Find` calls in `Update`; pool frequently spawned objects instead of `Instantiate`/`Destroy` to avoid garbage-collection spikes.
+- Release every Addressables handle you create, or the memory stays loaded.
+- Use the Profiler and Frame Debugger on real target hardware early; the Editor is not representative for mobile.
+- Split code into assembly definitions to cut script recompile time.
+- URP suits mobile, VR and most projects; HDRP is for high-end PC and console.
+- Do not edit `.meta` files or `Library/` by hand, and keep `.meta` files in version control; missing ones break asset references.
+- Pre-Unity 6 or Unity 2022 tutorials show `UnityEngine.Input` and the Built-in Render Pipeline; check the project's editor version first.
+- For a code-first alternative with a smaller footprint see Godot; Unity is the better fit when you need its console, XR or asset-store ecosystem.

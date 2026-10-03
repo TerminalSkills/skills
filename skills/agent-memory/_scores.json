@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:41cdf645f2420451761f85f00a17f4fda11dacadf61f316bacc50a48e87b3257",
-  "scoredAt": "2026-05-13T12:12:32.704Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:3413d1cb0acc844d52612e33f02bd6e4b544485f4e3095c3395f03875729ca82",
+  "scoredAt": "2026-10-02T23:21:36.066Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or edge cases such as missing API keys or network failures."
+        "detail": "Code covers mostly the happy path: no handling of embedding API failures or rate limits, empty queries (FileMemory.search divides by zero when the query has no terms), zero-norm vectors in cosine, or Chroma errors."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The two examples are prose descriptions of agent behavior with no concrete code, commands, or actual output, so they are less demonstrative than runnable examples."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.81,
-    "baselineAvg": 31,
-    "treatmentAvg": 56,
+    "multiplier": 1.21,
+    "baselineAvg": 75,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "setup-file-based-memory",
-        "baseline": 12,
-        "treatment": 78,
-        "rationale": "Response A covers most rubric items with a FileMemory class and hooks, missing only periodic consolidation and exact method name, while Response B lacks the required directory structure and class definition."
+        "name": "shared-conventions-without-database",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "B delivers both facts in AGENTS.md with a CLAUDE.md @AGENTS.md import and explicitly mentions /memory plus Claude's auto memory; A has the same core setup and /memory but lacks the auto-memory explanation and spends effort on a tangential directory mismatch caveat."
       },
       {
-        "name": "semantic-search-sqlite",
-        "baseline": 50,
-        "treatment": 30,
-        "rationale": "Response B provides a more complete implementation (database, embeddings, search) than the truncated Response A, but neither meets all rubric requirements."
+        "name": "semantic-search-support-tickets",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "B follows the rubric closely: ticket-<id> ids, upsert, category metadata and filter, 1 - distance similarity, a minimum-similarity cutoff, and a cosine collection configured through the current API. A also does most of this but uses bare ids instead of ticket-<id>, and its query example omits a category filter, though the function supports one."
       },
       {
-        "name": "chroma-production-memory",
-        "baseline": 30,
-        "treatment": 60,
-        "rationale": "Response A provides a more complete implementation with store, recall, deduplication, and category filtering, whereas Response B is incomplete and lacks the required methods and logic."
+        "name": "sqlite-embedding-memory-store",
+        "baseline": 80,
+        "treatment": 93,
+        "rationale": "B matches the rubric closely: a memories table with an embedding BLOB, cosine similarity in JS with a minScore filter, byteOffset/slice copying, and explicit notes on the row-scan scale limit and keeping one embedding model. A is solid but names the table 'notes' instead of 'memories', uses dot product on normalized vectors rather than an explicit cosine, and claims tens of thousands of rows is fine, which contradicts the rubric's 'few thousand'. A does handle model mismatch via a stored model column, but it doesn't say to re-embed everything."
       }
     ]
   }

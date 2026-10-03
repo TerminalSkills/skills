@@ -1,162 +1,137 @@
 ---
 name: elevenlabs
 description: >-
-  Generate realistic speech with the ElevenLabs API. Use when a user asks to convert text to speech, clone voices, build voice-enabled apps, stream audio, or integrate ElevenLabs voice synthesis into applications.
+  Generate realistic speech with the ElevenLabs API and its Python and Node.js
+  SDKs. Use when a user asks to convert text to speech, stream audio, clone a
+  voice, pick a TTS model, or build a voice agent with ElevenLabs.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "Python 3.8+ (elevenlabs 2.x) or Node.js (@elevenlabs/elevenlabs-js 2.x); ELEVENLABS_API_KEY; mpv and ffmpeg only for local playback"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/elevenlabs/elevenlabs-python
   tags: ["text-to-speech", "voice-synthesis", "voice-cloning", "audio", "realtime"]
 ---
 # ElevenLabs — AI Voice Synthesis & Cloning
 
 ## Overview
 
-You are an expert in ElevenLabs, the AI voice platform for high-quality text-to-speech, voice cloning, and conversational AI. You help developers build voice-enabled applications with natural-sounding speech, custom voice creation, multilingual support, and real-time streaming TTS for voice agents, audiobooks, podcasts, and accessibility features.
+ElevenLabs is a hosted voice platform: text-to-speech, speech-to-text, voice cloning and a managed conversational agent product. You call it with an API key through the official SDKs (`elevenlabs` on PyPI, `@elevenlabs/elevenlabs-js` on npm) or plain HTTP. Checked against elevenlabs 2.70.0 (Python, 28 Sep 2026) and the current models page. Two things changed since many tutorials were written: `convert_as_stream` no longer exists (use `text_to_speech.stream`), and the old npm package `elevenlabs` is deprecated in favour of `@elevenlabs/elevenlabs-js`.
 
 ## Instructions
 
-### Text-to-Speech
+### Step 1: Install and authenticate
+
+```bash
+pip install elevenlabs                       # Python
+npm install @elevenlabs/elevenlabs-js        # Node.js (the unscoped "elevenlabs" package is deprecated)
+export ELEVENLABS_API_KEY="..."              # create it in the dashboard; never commit it
+```
+
+### Step 2: Text to speech
 
 ```python
-# Basic TTS — generate audio from text
-from elevenlabs import ElevenLabs
+import os
+from elevenlabs.client import ElevenLabs
+from elevenlabs import VoiceSettings
 
 client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
 
-# Generate and save audio
+# find a voice id available to your account
+for v in client.voices.search(search="narrator").voices:
+    print(v.voice_id, v.name)
+
 audio = client.text_to_speech.convert(
-    voice_id="pNInz6obpgDQGcFmaJgB",    # "Rachel" — warm, professional
+    voice_id="JBFqnCBsd6RMkjVDRZzb",
     text="Welcome to Bright Smile Dental. How can I help you today?",
-    model_id="eleven_turbo_v2_5",         # Optimized for low latency (~200ms)
-    voice_settings={
-        "stability": 0.6,                 # Lower = more expressive, higher = more consistent
-        "similarity_boost": 0.8,           # How closely to match the original voice
-        "style": 0.3,                      # Style exaggeration (0-1)
-        "use_speaker_boost": True,         # Enhance clarity
-    },
+    model_id="eleven_flash_v2_5",
+    output_format="mp3_44100_128",
+    voice_settings=VoiceSettings(stability=0.6, similarity_boost=0.8, style=0.3, use_speaker_boost=True),
 )
-
-# Save to file
 with open("greeting.mp3", "wb") as f:
-    for chunk in audio:
+    for chunk in audio:                      # convert() returns an iterator of bytes
         f.write(chunk)
-
-# Streaming TTS — for real-time applications
-audio_stream = client.text_to_speech.convert_as_stream(
-    voice_id="pNInz6obpgDQGcFmaJgB",
-    text="Let me check our available appointments for next Tuesday.",
-    model_id="eleven_turbo_v2_5",
-    output_format="pcm_24000",            # Raw PCM for WebRTC/LiveKit
-)
-
-for chunk in audio_stream:
-    send_to_audio_output(chunk)            # Stream directly to speaker
 ```
 
-### Voice Cloning
+`from elevenlabs.play import play` plays audio locally (needs mpv/ffmpeg).
+
+### Step 3: Streaming
 
 ```python
-# Instant voice clone — from a single audio sample
-voice = client.voices.add(
+stream = client.text_to_speech.stream(
+    voice_id="JBFqnCBsd6RMkjVDRZzb",
+    text="Let me check our appointments for next Tuesday.",
+    model_id="eleven_flash_v2_5",
+    output_format="pcm_24000",               # raw PCM, no decoding for WebRTC or telephony
+)
+for chunk in stream:
+    send_to_speaker(chunk)                   # your audio sink
+```
+
+Other formats include `mp3_*`, `opus_*`, `ulaw_8000` and `alaw_8000` (phone lines).
+
+### Step 4: Voice cloning
+
+```python
+voice = client.voices.ivc.create(
     name="Dr. Smith",
-    files=[open("dr_smith_sample.mp3", "rb")],
-    description="Calm, authoritative male voice for medical context",
-    labels={"use_case": "voice_agent", "language": "en"},
+    description="Calm, authoritative voice for medical explainers",
+    files=["samples/dr_smith_01.mp3", "samples/dr_smith_02.mp3"],
 )
-print(f"Cloned voice ID: {voice.voice_id}")
-
-# Professional voice clone (higher quality, requires consent)
-# Needs 30+ minutes of clean audio for best results
+print(voice.voice_id)
 ```
 
-### Conversational AI Agent
+Instant cloning (`voices.ivc`) takes a few clean samples; professional cloning (`voices.pvc`) needs much more audio and identity verification in the dashboard. Only clone voices you have consent to use.
+
+### Step 5: Voice agents and Node
 
 ```python
-# ElevenLabs Conversational AI — fully managed voice agent
-from elevenlabs import ConversationalAI
+from elevenlabs.conversational_ai.conversation import Conversation
+from elevenlabs.conversational_ai.default_audio_interface import DefaultAudioInterface
 
-agent = ConversationalAI(
-    api_key=os.environ["ELEVENLABS_API_KEY"],
-    agent_id="your-agent-id",             # Created in ElevenLabs dashboard
-)
-
-# WebSocket connection for real-time conversation
-async def handle_call(websocket):
-    async for audio_chunk in websocket:
-        # Send caller audio to ElevenLabs
-        response = await agent.process_audio(audio_chunk)
-        # Send AI response audio back to caller
-        await websocket.send(response.audio)
+conversation = Conversation(client, agent_id=os.environ["ELEVENLABS_AGENT_ID"],
+                            requires_auth=True, audio_interface=DefaultAudioInterface())
+conversation.start_session()      # runs in the background
+conversation.end_session()
 ```
 
-### JavaScript / React
+The agent itself (prompt, voice, tools) is created in the dashboard or through `client.conversational_ai.agents`.
 
 ```typescript
-// Browser-based TTS
-import { ElevenLabsClient } from "elevenlabs";
-
-const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_KEY });
-
-// Stream audio in browser
-const response = await client.textToSpeech.convertAsStream(voiceId, {
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+const client = new ElevenLabsClient();       // reads ELEVENLABS_API_KEY
+const audio = await client.textToSpeech.convert("JBFqnCBsd6RMkjVDRZzb", {
   text: "Hello! How can I assist you?",
-  model_id: "eleven_turbo_v2_5",
-  output_format: "mp3_44100_128",
+  modelId: "eleven_flash_v2_5",              // camelCase options in the JS SDK
+  outputFormat: "mp3_44100_128",
 });
-
-// Play audio using Web Audio API
-const audioContext = new AudioContext();
-const reader = response.getReader();
-// ... decode and play chunks
 ```
 
-## Available Models
+### Models (per the models page, Oct 2026)
 
-| Model | Latency | Quality | Best For |
-|-------|---------|---------|----------|
-| `eleven_turbo_v2_5` | ~200ms | High | Voice agents, real-time apps |
-| `eleven_multilingual_v2` | ~400ms | Highest | Multilingual, audiobooks |
-| `eleven_english_v1` | ~300ms | Good | English-only, cost-sensitive |
-
-## Installation
-
-```bash
-pip install elevenlabs                    # Python
-npm install elevenlabs                    # Node.js
-```
+| Model | Use for |
+|-------|---------|
+| `eleven_flash_v2_5` | lowest latency (~75 ms), 32 languages, half price per character; agents and real-time |
+| `eleven_multilingual_v2` | stable long-form narration, 29 languages |
+| `eleven_v3` and newer v-series (see the models page) | most expressive speech, higher latency, shorter text limits |
+| `eleven_turbo_v2_5` | deprecated in favour of Flash v2.5 |
 
 ## Examples
 
-**Example 1: User asks to set up elevenlabs**
+**Example 1: "Read this paragraph aloud and save it as MP3"**
 
-User: "Help me set up elevenlabs for my project"
+Run Step 2 with `text` set to the paragraph and `model_id="eleven_multilingual_v2"`. Result: `greeting.mp3` in the working directory; a `401` means the key is wrong, `402` or quota errors mean the plan's character allowance is used up.
 
-The agent should:
-1. Check system requirements and prerequisites
-2. Install or configure elevenlabs
-3. Set up initial project structure
-4. Verify the setup works correctly
+**Example 2: "Stream a reply to my phone-call bot"**
 
-**Example 2: User asks to build a feature with elevenlabs**
-
-User: "Create a dashboard using elevenlabs"
-
-The agent should:
-1. Scaffold the component or configuration
-2. Connect to the appropriate data source
-3. Implement the requested feature
-4. Test and validate the output
+Use Step 3 with `output_format="ulaw_8000"` so chunks can go straight to a Twilio media stream. Result: the first bytes arrive within a few hundred milliseconds and play while the rest is generated.
 
 ## Guidelines
 
-1. **Turbo model for voice agents** — Use `eleven_turbo_v2_5` for real-time conversations; 200ms latency feels instant
-2. **Streaming for real-time** — Use `convert_as_stream` instead of `convert` for voice agents; first audio chunk arrives in ~200ms
-3. **Voice settings tuning** — Lower stability (0.3-0.5) for expressive narration; higher (0.7-0.9) for consistent voice agents
-4. **PCM output for WebRTC** — Use `pcm_24000` or `pcm_16000` output format when feeding into WebRTC/LiveKit; no decoding overhead
-5. **Voice library** — Browse ElevenLabs' voice library (1000+ voices) before cloning; many professional voices are already available
-6. **Pronunciation dictionary** — Upload custom pronunciation rules for medical terms, brand names, and technical jargon
-7. **Character count billing** — ElevenLabs bills per character; cache common phrases and greetings to reduce costs
-8. **SSML-like control** — Use `<break time="0.5s"/>` in text for natural pauses; helps with phone menu options
+- Billing is per character (credits); cache fixed prompts such as greetings instead of regenerating them.
+- Stability around 0.3-0.5 sounds more expressive, 0.7-0.9 stays consistent for agents; not every setting applies to every model.
+- Use `pronunciation_dictionary_locators` for brand names and jargon. `<break time="0.5s"/>` pauses are supported on some models only; check the model's page.
+- Long text: send it in pieces and pass `previous_text` / `next_text` so prosody carries across the joins.
+- The API key is secret: keep it server-side, and for browsers use a short-lived token or signed URL from your backend.
+- Voice IDs and the shared voice library change; look voices up with `voices.search` rather than hard-coding IDs from old tutorials.

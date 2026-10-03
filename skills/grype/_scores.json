@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e8643c24c6ea6ceb1f2e63258fa45dc2dd546e0b16f8c103ac1da8cf4b8af5dc",
-  "scoredAt": "2026-05-13T09:10:50.770Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8808de052d5546bf0248cadb822608960102a57162f01298f63eda94c732e1a0",
+  "scoredAt": "2026-10-03T11:57:38.208Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Skill does not cover all error scenarios and edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes macOS and Linux environments, lacking Windows support."
-      }
-    ]
+    "issues": []
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "installScript",
-        "detail": "Uses curl to download and pipe to sh without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 25,
-    "treatmentAvg": 95,
-    "multiplier": 3.8,
+    "multiplier": 1.76,
+    "baselineAvg": 46,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "Wire Grype into a GitHub Actions pipeline with SBOM generation and SARIF upload",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline reached for a generic scanner step without the Anchore actions; treatment used anchore/sbom-action@v0, anchore/scan-action@v4 with fail-build and severity-cutoff, and uploaded SARIF via github/codeql-action/upload-sarif@v3 exactly as documented."
+        "name": "ci-gate-fixable-high-sarif",
+        "baseline": 12,
+        "treatment": 93,
+        "rationale": "Response B uses anchore/scan-action with fail-build: true and severity-cutoff: high, grants security-events: write, uploads steps.scan.outputs.sarif through upload-sarif with if: always(), and says to pin actions to a commit SHA for production, so it meets the whole rubric. Response A uses Trivy instead of anchore/scan-action and never references the scan's SARIF output, so it misses the core required tooling. It does grant security-events: write, use if: always() on the upload step, and mention SHA pinning."
       },
       {
-        "name": "Suppress a known non-exploitable CVE with documented justification",
-        "baseline": 20,
-        "treatment": 94,
-        "rationale": "Baseline suggested CLI flags or grep-filtering output; treatment authored a .grype.yaml ignore entry with vulnerability, package, and reason fields plus fail-on-severity, which is the skill's prescribed audit-friendly approach."
+        "name": "suppress-false-positive-with-audit-trail",
+        "baseline": 72,
+        "treatment": 88,
+        "rationale": "B hits every rubric item (reason with ticket/date, the `**/testdata/**` location rule, `--show-suppressed` for auditing, and an optional `--vex` mention), while A covers the config and VEX but never mentions `--show-suppressed`, pointing to `ignoredMatches` in JSON output instead, which misses a key required explanation."
+      },
+      {
+        "name": "airgapped-sbom-scan-workflow",
+        "baseline": 55,
+        "treatment": 62,
+        "rationale": "Response A matches the rubric's exact commands (`-o spdx-json=sbom.spdx.json`, `grype sbom:sbom.spdx.json --fail-on critical`), sets both env vars and covers pre-populating the DB and the stale-DB warning, while Response B uses syft-json with a different filename, imports the DB with `grype db import` and mentions staleness only as a validation-age note, so it departs from the required SBOM format and command."
       }
     ]
   }

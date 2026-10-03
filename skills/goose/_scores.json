@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8c42c62149e08448e4b261f007f6da0e3041c9a2785667723605701304a22322",
-  "scoredAt": "2026-05-13T09:09:31.368Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0bc0074c2c3e4941400cbd7e458076fbf7463de79620ed48cb184539fc50d7bd",
+  "scoredAt": "2026-10-02T23:25:39.786Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, focusing only on happy path scenarios."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The installation instructions assume macOS or Linux environments, lacking Windows support."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 93,
-    "multiplier": 2.82,
+    "multiplier": 1.51,
+    "baselineAvg": 57,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "Configure a Goose devops profile with Claude provider and Jira MCP server",
-        "baseline": 35,
-        "treatment": 93,
-        "rationale": "Baseline invents CLI subcommands and is vague on config location; treatment writes the documented ~/.config/goose/profiles.yaml structure with provider/model and a type: mcp Jira extension using npx, then launches with --profile devops."
+        "name": "ci-headless-test-fixer",
+        "baseline": 78,
+        "treatment": 80,
+        "rationale": "Both use goose run with --no-session, quiet, -t, --max-turns, GOOSE_PROVIDER/MODEL and secrets-based API key, and neither invents --stdin or --profile; A uses the short -q, mentions --max-tool-repetitions and GOOSE_MAX_TURNS, and says to keep keys out of config, while B uses --quiet (equivalent) but adds extras (timeouts, </dev/null, a verify step) and omits --max-tool-repetitions and hedges on --max-turns."
       },
       {
-        "name": "Build and register a custom Python health-check extension for Goose",
-        "baseline": 30,
-        "treatment": 92,
-        "rationale": "Baseline writes a generic requests script without the Extension/tool API; treatment subclasses Extension, decorates with @tool, and registers via type: mcp + command: python in profiles.yaml as documented."
+        "name": "write-validated-recipe",
+        "baseline": 72,
+        "treatment": 90,
+        "rationale": "Both give a valid recipe with the right parameters, templating, builtin developer extension, `goose recipe validate`, and `goose run --recipe --params`; B explicitly states the `.yaml`-not-`.yml` requirement and adds a useful render option and notes, while A never mentions the extension rule and includes unverified flags and extra extension fields."
+      },
+      {
+        "name": "add-mcp-extensions-config",
+        "baseline": 20,
+        "treatment": 88,
+        "rationale": "B uses a streamable_http extension with a uri, says Goose no longer supports SSE and that the endpoint should be migrated, and has a correct stdio filesystem entry. A configures the internal server with the deprecated `type: sse`, which contradicts the rubric, though its filesystem entry is correct."
       }
     ]
   }

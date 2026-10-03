@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1b129234ef9b2634801b78534a1fbbbe1165e38bd14a9ddc6d13b7d7a3d31f4f",
-  "scoredAt": "2026-05-13T09:12:09.717Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a0e2d3024b74532c507cd4a4c460ef1572469a938ef4f8cb1e97ba4a9e776e84",
+  "scoredAt": "2026-10-03T13:02:25.354Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, only happy path examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill relies on the Python Haystack library, assuming a Python runtime and may not work on non-Python agents."
+        "category": "actionability",
+        "detail": "The Agents, hooks, Save/load and streaming sections give API names without runnable code, and the migration table refers to MIGRATION.md instead of showing the changes, so only the RAG and custom-component examples can be run as written."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 88,
-    "multiplier": 2.32,
+    "multiplier": 9.3,
+    "baselineAvg": 9,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "RAG pipeline with indexing and query stages",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Treatment uses Haystack's Pipeline class with separate indexing and query pipelines, OpenAIDocumentEmbedder/OpenAITextEmbedder, InMemoryEmbeddingRetriever, PromptBuilder, OpenAIGenerator, and connects components with explicit pipeline.connect() including embedder.embedding to retriever.query_embedding; baseline reaches for a generic LangChain-style chain or hand-rolled cosine similarity, missing the pipeline-as-code primitives."
+        "name": "rag-pipeline-3x-chat-generator",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Response A matches the rubric: separate indexing and query pipelines, in-memory store, ChatPromptBuilder with a ChatMessage template list, OpenAIChatGenerator, question passed to both the embedder and prompt_builder, and the answer read via replies[0].text. Response B uses the legacy PromptBuilder and OpenAIGenerator, has no indexing pipeline with DocumentWriter, and prints replies[0] as a string rather than .text."
       },
       {
-        "name": "Custom metadata filter component",
-        "baseline": 35,
-        "treatment": 86,
-        "rationale": "Treatment uses the @component decorator with @component.output_types(documents=list[Document]) and a run(documents, category) method returning a dict, matching the documented custom component shape; baseline writes a plain Python function that won't slot into a Haystack pipeline."
+        "name": "migrate-2x-code-to-3x",
+        "baseline": 3,
+        "treatment": 88,
+        "rationale": "Response B covers every rubric item (OpenAIChatGenerator with .text, Pipeline with run_async, PromptBuilder with required_variables=None, and ExtractiveReader moved to transformers-haystack as TransformersExtractiveReader), while Response A declines to answer and supplies none of them."
+      },
+      {
+        "name": "custom-component-save-load-yaml",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "A covers all rubric points: the allowlist explanation, both allowed_modules and the env var fix, the unsafe=True warning, and the three Mock components. B never mentions the allowlist or the safe fixes, offers wrong diagnoses, and recommends patching OpenAI components instead of the Mock components."
       }
     ]
   }

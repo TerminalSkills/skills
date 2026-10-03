@@ -5,11 +5,12 @@ description: >-
   dropdowns, dialogs, popovers, tabs, tooltips, or building a design system
   with unstyled, composable components.
 license: Apache-2.0
-compatibility: 'React 18+'
+compatibility: 'React 16.8+ (React 19 and RSC supported); Node.js 18+ for npm'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/radix-ui/primitives
   tags: [radix-ui, accessibility, components, react, primitives]
 ---
 
@@ -17,9 +18,23 @@ metadata:
 
 ## Overview
 
-Radix UI provides unstyled, accessible React primitives — dropdowns, dialogs, popovers, tabs, accordions, and more. Each component handles keyboard navigation, focus management, screen reader support, and ARIA attributes. You add your own styling. Foundation of shadcn/ui.
+Radix UI provides unstyled, accessible React primitives — dropdowns, dialogs, popovers, tabs, accordions, and more. Each component handles keyboard navigation, focus management, screen reader support, and ARIA attributes. You add your own styling. Foundation of shadcn/ui. Install the unified `radix-ui` package (recommended, tree-shakeable) or individual `@radix-ui/react-*` packages; keep all Radix packages on matching versions to avoid duplicated dependencies.
 
 ## Instructions
+
+### Step 0: Install and import
+
+```bash
+npm install radix-ui
+```
+
+```tsx
+import { Dialog, DropdownMenu, Tabs, Tooltip } from 'radix-ui'   // unified package
+// or per primitive: import { Dialog } from 'radix-ui/dialog'
+// older style, still supported: import * as Dialog from '@radix-ui/react-dialog'
+```
+
+The examples below use `import * as` from the individual packages; with the unified package the same `Dialog.Root`, `Dialog.Trigger` names apply.
 
 ### Step 1: Dialog
 
@@ -88,6 +103,8 @@ function UserMenu({ user }) {
 }
 ```
 
+Every `Dialog.Content` needs a `Dialog.Title` for screen readers. Wrap it in `VisuallyHidden` if the design has no visible title; if you omit `Dialog.Description`, pass `aria-describedby={undefined}` to `Dialog.Content` to silence the warning. Use `Dialog.Close asChild` for buttons that close it.
+
 ### Step 3: Tabs
 
 ```tsx
@@ -107,10 +124,46 @@ import * as Tabs from '@radix-ui/react-tabs'
 </Tabs.Root>
 ```
 
+### Step 4: Tooltip
+
+```tsx
+import * as Tooltip from '@radix-ui/react-tooltip'
+
+<Tooltip.Provider delayDuration={300}>
+  <Tooltip.Root>
+    <Tooltip.Trigger asChild><button aria-label="Archive">🗄</button></Tooltip.Trigger>
+    <Tooltip.Portal>
+      <Tooltip.Content className="rounded bg-gray-900 px-2 py-1 text-xs text-white" sideOffset={4}>
+        Archive project
+        <Tooltip.Arrow className="fill-gray-900" />
+      </Tooltip.Content>
+    </Tooltip.Portal>
+  </Tooltip.Root>
+</Tooltip.Provider>
+```
+
+`Tooltip.Provider` is required (put it once near the app root); the default delay is 700 ms.
+
+## Examples
+
+### Example 1: Confirm-delete dialog
+
+Request: "Add a confirmation dialog before deleting an invoice."
+
+Use `ConfirmDialog` from Step 1 with `trigger={<button>Delete invoice</button>}` and `onConfirm={() => deleteInvoice(invoice.id)}`. Result: focus moves into the dialog, Tab stays inside it, Escape closes it and returns focus to the Delete button.
+
+### Example 2: Account menu with keyboard navigation
+
+Request: "Make a user menu in the header that works with the keyboard."
+
+Use `UserMenu` from Step 2 with `onSelect={() => signOut()}` on the Sign out item. Result: Enter or Space opens the menu, arrow keys move between items, typing "S" jumps to Settings, Escape closes it.
+
 ## Guidelines
 
 - Radix is unstyled — bring your own CSS/Tailwind. For pre-styled, use shadcn/ui.
 - `asChild` merges Radix behavior onto your custom elements (no extra DOM wrappers).
 - `data-[state=active]` and `data-[state=open]` for styling based on component state.
-- Install individual packages: `@radix-ui/react-dialog`, `@radix-ui/react-dropdown-menu`.
+- In Next.js App Router, Radix components need `'use client'` in the file that renders interactive parts.
+- Use `onSelect` (not `onClick`) on menu items; call `event.preventDefault()` in it to keep the menu open.
+- Radix Themes is a separate, pre-styled library (`@radix-ui/themes`), not needed for primitives.
 - All components handle keyboard (Escape, Arrow keys, Enter) and screen readers automatically.

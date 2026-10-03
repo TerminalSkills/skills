@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9e54851d46587e000a8cb046fe0fc3ef9eaf2e49ad0f61fddffd67ab91da20c4",
-  "scoredAt": "2026-05-13T10:27:47.449Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e51ec2ede43a841c746349d146cad6487e8091a90b99b32671032296e92e6620",
+  "scoredAt": "2026-10-03T13:12:04.713Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file only covers happy path scenarios and lacks error handling or edge case coverage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes NVIDIA GPU and Linux environment, limiting cross-platform applicability."
+        "detail": "Error handling is covered only for model load failures; it omits GPU out-of-memory, request timeouts, shape or datatype mismatches at inference time, and client-side retry behavior."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 94,
-    "multiplier": 1.77,
+    "multiplier": 1.04,
+    "baselineAvg": 74,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "ONNX text classifier config.pbtxt",
-        "baseline": 55,
-        "treatment": 94,
-        "rationale": "Baseline often guesses platform strings and field names (e.g. onnx_runtime instead of onnxruntime_onnx) and forgets max_queue_delay_microseconds; treatment matches the documented pbtxt exactly including dynamic_batching and KIND_GPU instance_group."
+        "name": "serve-torchscript-model-cpu",
+        "baseline": 80,
+        "treatment": 86,
+        "rationale": "Both cover layout, KIND_CPU, dims excluding the batch dimension, no --gpus, and readiness checks. B states that TorchScript needs a config because Triton can't auto-generate one, which the rubric asks for, and pins a concrete tag (26.09-py3). A leaves the tag as the placeholder <yy.mm> and only implies that a config is needed, though it adds useful extras."
       },
       {
-        "name": "gRPC client batch inference",
-        "baseline": 50,
-        "treatment": 94,
-        "rationale": "Baseline tends to fall back to the HTTP /v2/.../infer endpoint or invents grpcclient APIs; treatment uses tritonclient.grpc with is_server_live/is_model_ready, InferInput.set_data_from_numpy, InferRequestedOutput and result.as_numpy as documented."
+        "name": "tokenizer-classifier-ensemble",
+        "baseline": 80,
+        "treatment": 62,
+        "rationale": "B covers more of the rubric: it has the ensemble config with correct input_map/output_map and an empty version dir, and it includes a Python backend model config plus the model.py tokenizer snippet, but not a full TritonPythonModel class. A has the ensemble config and empty version dir but includes no Python backend model or TritonPythonModel class at all."
+      },
+      {
+        "name": "tune-batching-and-fix-unavailable-model",
+        "baseline": 62,
+        "treatment": 82,
+        "rationale": "A covers the curl config check, dynamic_batching with max_queue_delay_microseconds, instance_group count 2/KIND_GPU/gpus [0], positive max_batch_size, Perf Analyzer, and explicitly avoids preferred_batch_size for non-TensorRT models, while B uses preferred_batch_size on an ONNX model (contrary to the rubric), relies on an onnx script and the deprecated strict-model-config flag as the primary diagnosis, and never mentions the startup status table, though it does include the curl command and perf_analyzer."
       }
     ]
   }

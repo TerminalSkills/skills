@@ -10,7 +10,8 @@ license: Apache-2.0
 compatibility: "TypeScript 5.1+. Node.js/Bun/Deno/browser."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/arktypeio/arktype
   category: development
   tags: ["validation", "typescript", "arktype", "runtime-types", "schema"]
 ---
@@ -19,7 +20,7 @@ metadata:
 
 ## Overview
 
-ArkType is a runtime validation library that uses TypeScript's own syntax for type definitions. Instead of learning a new API (`z.string().email()`), you write types the way you already know (`"string.email"`). It's the fastest TypeScript validator — 100x faster than Zod for complex schemas — with better error messages and 1:1 correspondence between your types and validators.
+ArkType is a runtime validation library that uses TypeScript's own syntax for type definitions. Instead of learning a new API (`z.string().email()`), you write types the way you already know (`"string.email"`). Its own benchmarks put it far ahead of Zod on speed (the project cites an order of magnitude or more; measure your own payloads), and it gives readable error messages and a 1:1 match between your types and validators. Current release at the time of writing: 2.2.x. It implements Standard Schema, so it plugs into libraries that accept that interface.
 
 ## When to Use
 
@@ -45,8 +46,8 @@ import { type } from "arktype";
 
 // String with constraints
 const email = type("string.email");
-const result = email("user@example.com");  // "user@example.com"
-const error = email("not-an-email");       // ArkErrors: must be an email address
+const result = email("maya.chen@northwind.io");  // "maya.chen@northwind.io"
+const error = email("not-an-email");       // ArkErrors: must be an email address (was "not-an-email")
 
 // Object types — looks like TypeScript
 const User = type({
@@ -64,7 +65,7 @@ type User = typeof User.infer;
 // Validate
 const valid = User({
   name: "Kai",
-  email: "kai@example.com",
+  email: "kai.berg@northwind.io",
   age: 25,
   role: "user",
 });
@@ -85,7 +86,7 @@ import { type } from "arktype";
 const Address = type({
   street: "string",
   city: "string",
-  zip: "string.numeric",      // Numeric string
+  zip: "string.numeric",      // Only checks the string looks numeric; stays a string
   country: "string == 2",     // Exactly 2 characters (ISO code)
 });
 
@@ -107,19 +108,27 @@ type Order = typeof Order.infer;
 
 ### Morphs (Transforms)
 
+`string.trim`, `string.numeric.parse`, `string.json.parse` and `string.date.parse` are built-in morphs: they validate and convert in one step. Plain `string.numeric` only validates and leaves a string.
+
 ```typescript
 // morphs.ts — Transform data during validation
 import { type } from "arktype";
 
 // Parse string to number
-const numericString = type("string.numeric").pipe((s) => Number(s));
+const numericString = type("string.numeric.parse");
 numericString("42");  // 42 (number)
+
+// Defaults and custom checks
+const Settings = type({ retries: "number.integer = 3" });
+Settings({});         // { retries: 3 }
+const Even = type("number").narrow((n, ctx) => n % 2 === 0 || ctx.mustBe("even"));
+Even(3).summary;      // "must be even (was 3)"
 
 // Parse and transform API input
 const CreateUserInput = type({
   name: "string.trim",                          // Auto-trim
   email: type("string.email").pipe((e) => e.toLowerCase()),  // Lowercase
-  age: type("string.numeric").pipe(Number),     // String → number
+  age: type("string.numeric.parse"),            // String → number
   tags: type("string").pipe((s) => s.split(",")), // "a,b,c" → ["a","b","c"]
 });
 ```
@@ -135,18 +144,28 @@ const types = scope({
     id: "string.uuid",
     name: "string >= 2",
     email: "string.email",
-    posts: "post[]",
+    "posts?": "post[]",
   },
   post: {
     id: "string.uuid",
     title: "string >= 1",
     content: "string",
-    author: "user",            // Recursive reference
+    "author?": "user",         // Cyclic reference (optional so data can terminate)
     tags: "string[]",
   },
 }).export();
 
-const user = types.user(data);
+const out = types.user({ id: crypto.randomUUID(), name: "Kai" });
+if (out instanceof type.errors) console.error(out.summary);
+```
+
+### Throwing, JSON Schema and Standard Schema
+
+```typescript
+const Config = type({ port: "number.integer", "host?": "string" });
+const config = Config.assert({ port: 8080 });   // returns data or throws TraversalError
+const schema = Config.toJsonSchema();            // JSON Schema draft 2020-12 object
+Config["~standard"].vendor;                      // "arktype" (Standard Schema interface)
 ```
 
 ## Examples
@@ -155,13 +174,13 @@ const user = types.user(data);
 
 **User prompt:** "Validate incoming POST requests in my Express API with clear error messages."
 
-The agent will define ArkType schemas for each endpoint's body, create validation middleware, and return structured error responses.
+The agent installs `arktype`, defines one `type({...})` per endpoint body, and writes a middleware that calls the schema and checks `out instanceof type.errors`. On failure it responds `400` with `out.summary`; on success it passes the typed data on. A bad body such as `{ "age": 3 }` returns `age must be at least 13 (was 3)`.
 
 ### Example 2: Replace Zod with ArkType
 
 **User prompt:** "My Zod validation is slow on large payloads. Switch to something faster."
 
-The agent will translate Zod schemas to ArkType syntax, update validation middleware, and benchmark the improvement.
+The agent translates each Zod schema (`z.string().email()` becomes `"string.email"`, `z.coerce.number()` becomes `"string.numeric.parse"` where the input is a string), swaps `safeParse` for the `instanceof type.errors` check, and times both libraries on a real payload before claiming a speedup.
 
 ## Guidelines
 
@@ -170,8 +189,10 @@ The agent will translate Zod schemas to ArkType syntax, update validation middle
 - **`.infer` for TypeScript type** — no duplicate interface definitions
 - **Morphs for transforms** — `.pipe()` to transform during validation
 - **Scopes for complex schemas** — define interconnected types with forward references
-- **100x faster than Zod** — matters for hot paths and large payloads
+- **Faster than Zod in the project's benchmarks** — matters for hot paths; measure your own payloads
 - **Error messages are human-readable** — `result.summary` for display
 - **`?` suffix for optional** — `"bio?": "string"` makes bio optional
-- **Constraints in the type** — `"number >= 0 < 100"` is a range
+- **Constraints in the type** — `"0 <= number < 100"` is a range
+- **`string.numeric` does not convert** — use `string.numeric.parse` when you need a number
+- **Cyclic types need an escape** — make the back-reference optional or an array, or no finite value validates
 - **Not as battle-tested as Zod** — newer library, smaller ecosystem

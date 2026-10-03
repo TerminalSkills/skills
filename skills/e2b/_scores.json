@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:30b99d71cefb6053b15a6a446f254f7778556af2aefcce56afc3efc87f004ac3",
-  "scoredAt": "2026-05-13T08:46:54.707Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:957984fa06bcd4865d7f411397f6aa93a173a8612e704956e1dfc4b935816e59",
+  "scoredAt": "2026-10-02T23:25:20.325Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill provides Node.js code examples, limiting applicability to agents that support JavaScript/TypeScript."
+        "detail": "Covers mostly the happy path and does not show handling of sandbox creation failures, expired or invalid API keys, timeouts mid-execution, or try/finally cleanup to guarantee sandbox.kill()."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 89,
-    "multiplier": 3.18,
+    "multiplier": 1.54,
+    "baselineAvg": 57,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Pandas + matplotlib on uploaded CSV from an LLM agent",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Baseline suggested local Python or generic Docker exec without naming the @e2b/code-interpreter API; treatment created Sandbox, wrote the CSV with sandbox.files.write, ran code via sandbox.runCode, and pulled the base64 chart from result.results."
+        "name": "csv-chart-in-sandbox",
+        "baseline": 88,
+        "treatment": 80,
+        "rationale": "Both create the sandbox with Sandbox.create(), upload the CSV via files.write, run pandas/matplotlib through runCode, read the base64 PNG from results, and call kill() in a finally block; B streams stdout through the onStdout callback instead of reading logs.stdout, while A reads logs.stdout exactly as the rubric requires, but A's reliance on `dotenv`/.env and its hedging about plt.show() are slightly weaker than B's explicit export of E2B_API_KEY and its more complete output, though B's omission of logs.stdout is a minor rubric miss."
       },
       {
-        "name": "Install scikit-learn at runtime and run inference",
-        "baseline": 25,
+        "name": "long-job-timeout-and-packages",
+        "baseline": 72,
         "treatment": 90,
-        "rationale": "Baseline reached for virtualenv or subprocess; treatment used Sandbox.create, the !pip install runCode pattern, captured result.text, and called sandbox.kill for cleanup as documented."
+        "rationale": "A hits every rubric item directly: 5-minute default, timeoutMs in Sandbox.create, setTimeout, Hobby 1h and Pro 24h limits, '!pip install' via runCode, kill(), and a custom template. B is thorough but uses Python, mainly shows commands.run for the install (the '!pip install' appears only as a side mention), hedges on the plan limits, and says the default 5-minute timeout is 'about 5 minutes'; it does cover custom templates and kill()."
+      },
+      {
+        "name": "langchain-code-execution-tool",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Response A matches the rubric: it uses tool() with a zod code schema, an E2B sandbox created with timeoutMs, runCode returning joined logs.stdout or falling back to error.value, an explanation of isolation, and a warning that outbound internet is open by default; Response B uses a Docker container and no E2B, so it misses the core requirement and only partly touches the isolation point, and it turns the network off instead of warning about it."
       }
     ]
   }

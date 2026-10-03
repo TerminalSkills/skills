@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Works with any language; best results with JS/TS, Python, Go, Java"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["code-quality", "complexity", "metrics", "static-analysis"]
 ---
@@ -28,24 +28,40 @@ This skill analyzes source code to measure cyclomatic complexity, cognitive comp
 
 Detect the primary language from file extensions and package files. Filter to source code only (exclude node_modules, vendor, dist, build, __pycache__, .git).
 
-### Step 2: Measure Cyclomatic Complexity
+### Step 2: Prefer a real analyzer, fall back to counting
 
-For each function/method, count:
+Run an established tool when one is available; counting by reading code is slow and error-prone for large files.
+
+```bash
+pip install lizard radon          # use a virtual environment
+lizard src/ -C 15 -L 100 -w       # any language; warns above CCN 15 or 100 lines (-w = warnings only)
+radon cc -s -n C src/             # Python: only grade C or worse
+```
+For JS/TS, enable the core ESLint `complexity` rule (cyclomatic) and `sonarjs/cognitive-complexity` from `eslint-plugin-sonarjs` (cognitive, default threshold 15) in `eslint.config.js`, then run `npx eslint src/`:
+```javascript
+import sonarjs from 'eslint-plugin-sonarjs'
+export default [{ files: ['src/**/*.{js,ts}'], plugins: { sonarjs },
+  rules: { complexity: ['warn', 15], 'sonarjs/cognitive-complexity': ['warn', 15] } }]
+```
+In Go use `gocyclo` and `gocognit`. Lizard's default CCN threshold is 15, and its CCN counts `&&` and `||`, so it matches the rules below (`lizard` reports 7 for a function with one `if`, one `elif`, one `for`, one inner `if` and an `and` plus an `or`).
+
+If no tool can be installed, count by hand. For each function/method:
 - `if`, `elif`/`else if` → +1 each
 - `for`, `while`, `do-while` → +1 each
 - `case` in switch (each case) → +1 each
 - `catch` → +1
 - `&&`, `||` in conditions → +1 each
 - Ternary `?:` → +1
-- Base complexity starts at 1
+- `else` does not count; base complexity starts at 1
 
 ### Step 3: Measure Cognitive Complexity
 
-More nuanced than cyclomatic — penalizes nesting:
-- Each control flow break: +1
-- Each nesting level: +1 additional per level
+More nuanced than cyclomatic (the SonarSource definition) — penalizes nesting:
+- Each `if`, loop, `catch`, ternary or `switch` (the whole switch counts once, not per case): +1
+- Each of those inside nested structures: an extra +1 per nesting level
+- `else if` / `else`: +1, with no nesting penalty
 - Recursion: +1
-- Boolean operator sequences that switch: +1
+- Each run of the same boolean operator (`a && b && c` is one run; switching to `||` starts a new one): +1
 
 ### Step 4: Identify Hotspot Files
 

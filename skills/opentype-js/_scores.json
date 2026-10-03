@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4b5410d6c2f150da3ce0bf5b54a1e3873356b24af809b59e3d451dbc09b7df0b",
-  "scoredAt": "2026-05-13T09:45:55.859Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:29ea3a8e58a4fb3d85efe3c137050b96887123e28ae846226e9515b9cad71519",
+  "scoredAt": "2026-10-03T12:05:16.526Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill examples focus on happy path usage and do not handle error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The code assumes a Node.js environment (uses fs module) despite claiming browser compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 100,
-    "multiplier": 2.63,
+    "multiplier": 1.45,
+    "baselineAvg": 60,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Measure text width and bounding box for layout",
-        "baseline": 55,
-        "treatment": 100,
-        "rationale": "Baseline derived height from ascender/descender and skipped the bounding box object; treatment used getPath + getBoundingBox plus getAdvanceWidth and returned the full shape."
+        "name": "headline-to-svg-path",
+        "baseline": 62,
+        "treatment": 90,
+        "rationale": "Both slice the ArrayBuffer exactly and use the default import, but B also derives the viewBox from path.getBoundingBox() as the rubric asks. A builds the viewBox from font metrics and only mentions getBoundingBox in a note."
       },
       {
-        "name": "Subset a font to embed only the glyphs used by a banner string",
-        "baseline": 20,
-        "treatment": 100,
-        "rationale": "Baseline reached for pyftsubset rather than opentype.js, missing .notdef inclusion, dedup via seen indices, the new opentype.Font constructor, and download()+Buffer write; treatment matched every step."
+        "name": "digit-font-subset",
+        "baseline": 62,
+        "treatment": 80,
+        "rationale": "A matches the rubric closely: it builds the font from .notdef plus glyphs deduplicated via charToGlyph, copies the metrics, writes with Buffer.from(toArrayBuffer()), says kerning, ligatures and hinting are dropped, and recommends pyftsubset or glyphhanger; B covers the loss points and pyftsubset well but copies glyphs into new Glyph objects without deduplicating and never mentions glyphhanger, so it fits the rubric less closely."
+      },
+      {
+        "name": "measure-text-with-gsub-failure",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "B explicitly wraps the call in try/catch, ties the error to GSUB lookups unimplemented in opentype.js 2.0.0, and gives the per-char charToGlyph advanceWidth sum with fontSize/unitsPerEm scaling and getKerningValue, while A skips the try/catch around the main call and explains the cause less precisely, though its fallback math is correct."
       }
     ]
   }

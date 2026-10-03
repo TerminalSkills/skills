@@ -7,36 +7,41 @@ description: >-
   monitoring website or service availability, setting up alerting, creating
   public status pages, or tracking SLA metrics.
 license: Apache-2.0
-compatibility: "Requires Docker or Node.js 18+"
+compatibility: "Requires Docker, or Node.js 20.4+ for a manual install"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
+  repository: https://github.com/louislam/uptime-kuma
   tags: ["uptime-kuma", "monitoring", "alerts", "status-page", "uptime"]
 ---
 
 # Uptime Kuma
 
-Self-hosted monitoring tool for tracking service availability with alerts and status pages.
+## Overview
 
-## Setup
+Self-hosted monitoring tool for tracking service availability with alerts and status pages. Checked against release 2.5.5 (September 2026): the stable Docker tag is `louislam/uptime-kuma:2` — `:1` is the older 1.x line and no longer gets new monitor types or fixes.
 
-### Docker (recommended)
+## Instructions
+
+### Step 1: Setup
+
+#### Docker (recommended)
 
 ```bash
-docker run -d --name uptime-kuma --restart always \
+docker run -d --name uptime-kuma --restart unless-stopped \
   -p 3001:3001 \
   -v uptime-kuma-data:/app/data \
-  louislam/uptime-kuma:1
+  louislam/uptime-kuma:2
 ```
 
-### Docker Compose
+#### Docker Compose
 
 ```yaml
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
-    restart: always
+    image: louislam/uptime-kuma:2
+    restart: unless-stopped
     ports:
       - "3001:3001"
     volumes:
@@ -49,12 +54,12 @@ volumes:
 
 Dashboard at `http://localhost:3001`. Set admin credentials on first visit.
 
-## Monitor Types
+### Step 2: Monitor Types
 
 ### HTTP(S)
 
 ```
-URL: https://api.example.com/health
+URL: https://billing.northwind-labs.com/health
 Method: GET
 Expected status: 200
 Interval: 60 seconds
@@ -68,7 +73,7 @@ Accepted status codes: 200-299
 More reliable than status-code-only — verifies the response body contains expected content:
 
 ```
-URL: https://api.example.com/health
+URL: https://billing.northwind-labs.com/health
 Expected keyword: "status":"ok"
 ```
 
@@ -87,9 +92,9 @@ Good for databases, Redis, SMTP, and any TCP service.
 ### DNS
 
 ```
-Hostname: example.com
+Hostname: northwind-labs.com
 Record type: A
-Expected value: 93.184.216.34
+Expected value: 76.76.21.142
 DNS server: 8.8.8.8
 ```
 
@@ -116,11 +121,11 @@ Interval: 60 seconds
 ### gRPC
 
 ```
-URL: grpc://api.example.com:50051
+URL: grpc://billing.northwind-labs.com:50051
 Service name: health.v1.HealthService
 ```
 
-## Notifications
+### Step 3: Notifications
 
 ### Slack
 
@@ -135,10 +140,10 @@ Service name: health.v1.HealthService
 SMTP Host: smtp.gmail.com
 Port: 587
 Security: TLS
-Username: monitoring@example.com
+Username: monitoring@northwind-labs.com
 Password: app-specific-password
-From: Uptime Kuma <monitoring@example.com>
-To: oncall@example.com
+From: Uptime Kuma <monitoring@northwind-labs.com>
+To: oncall@northwind-labs.com
 ```
 
 ### Telegram
@@ -157,7 +162,7 @@ Webhook URL: from channel settings → Integrations → Webhooks
 ### Webhook (generic)
 
 ```
-URL: https://your-endpoint.com/alerts
+URL: https://ops.northwind-labs.com/webhooks/uptime-kuma
 Method: POST
 Content-Type: application/json
 Body: {
@@ -171,7 +176,7 @@ Body: {
 
 Use the webhook notification type with the provider's event API endpoint.
 
-## Status Pages
+### Step 4: Status Pages
 
 Public-facing pages showing service health:
 
@@ -188,10 +193,10 @@ Public-facing pages showing service health:
 
 ### Custom Domain
 
-Point `status.example.com` to the Uptime Kuma server. Configure reverse proxy:
+Point `status.northwind-labs.com` to the Uptime Kuma server. Configure reverse proxy:
 
 ```caddyfile
-status.example.com {
+status.northwind-labs.com {
     reverse_proxy localhost:3001
 }
 ```
@@ -208,7 +213,7 @@ Create incidents manually from the status page:
 
 Incidents show on the status page with timestamps and updates — customers see you're aware and working on it.
 
-## Maintenance Windows
+### Step 5: Maintenance Windows
 
 Prevent false alerts during planned downtime:
 
@@ -222,7 +227,7 @@ During maintenance:
 - Status page shows "Scheduled Maintenance"
 - Uptime calculations exclude maintenance periods
 
-## API
+### Step 6: API Automation
 
 Uptime Kuma has a Socket.IO-based API. For HTTP API, use the community REST API wrapper or automate via the dashboard:
 
@@ -238,7 +243,7 @@ socket.emit("login", { username: "admin", password: "secret" }, (res) => {
     socket.emit("add", {
       type: "http",
       name: "New API",
-      url: "https://new-api.example.com/health",
+      url: "https://billing.northwind-labs.com/health",
       interval: 60,
       retryInterval: 30,
       maxretries: 3,
@@ -251,7 +256,7 @@ socket.emit("login", { username: "admin", password: "secret" }, (res) => {
 });
 ```
 
-## Backup and Restore
+### Step 7: Backup and Restore
 
 Data stored in SQLite database at `/app/data/kuma.db`:
 
@@ -264,6 +269,16 @@ docker stop uptime-kuma
 docker cp ./kuma-backup.db uptime-kuma:/app/data/kuma.db
 docker start uptime-kuma
 ```
+
+## Examples
+
+### Example 1: "Our status page shows green but customers say checkout is down"
+
+Switch the checkout API's monitor from a plain HTTP status check to HTTP with Keyword (Step: HTTP with Keyword), checking for `"status":"ok"` in the health response body. A reverse proxy or load balancer in front of a crashed app can still answer with `200`, so a status-code-only check misses exactly this case; the keyword check fails as soon as the body stops matching.
+
+### Example 2: "Alert the on-call Slack channel only during business-impacting outages, not every blip"
+
+Set `Retries: 3` and a 60s interval on the production API monitor (fewer false positives from transient network blips), add a Slack notification with the team's Incoming Webhook URL, and create a recurring maintenance window (`Strategy: Recurring`, cron `0 2 * * 0`) over the Sunday 2 AM deploy window so planned restarts don't page anyone.
 
 ## Guidelines
 

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a115d60dd12b9a1a87dd91cf82467a19a9d1f255c8bf210b7522319ea6797e0d",
-  "scoredAt": "2026-05-13T10:34:19.043Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:06f4a25ea95be4f654ff39c571d78d83675f5509173f0ed6e60eb9c8838d1241",
+  "scoredAt": "2026-10-03T13:10:07.691Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases, focusing mainly on happy paths."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 92,
-    "multiplier": 1.53,
+    "multiplier": 1.25,
+    "baselineAvg": 73,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Type-safe USDC balance read",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses createPublicClient with `chain: mainnet` and an `http(...)` transport, declares the ERC-20 ABI with `as const` for inferred return types, and calls readContract with functionName \"balanceOf\"; baseline often uses ethers.js or omits `as const`, losing type inference."
+        "name": "simulate-then-send-usdc-transfer",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both satisfy every rubric item (simulateContract then writeContract(request), parseUnits with 6 decimals, waitForTransactionReceipt with a status === 'success' check, key from process.env via privateKeyToAccount); B adds more verification and a useful warning that the recipient is a public Hardhat test account, while A is simpler but fully correct."
       },
       {
-        "name": "Send ETH and confirm with receipt",
-        "baseline": 65,
+        "name": "multicall-token-balances-with-ens",
+        "baseline": 90,
+        "treatment": 93,
+        "rationale": "Both normalize the name, handle a null result, and call multicall with allowFailure: false and formatUnits on the fetched decimals; B declares the ABI with parseAbi, which the rubric names explicitly, while A uses viem's built-in erc20Abi (which satisfies the \"as const\" intent only loosely) and also wrongly says the ENS lookup is one eth_call and the multicall is a separate call, so it describes two round trips."
+      },
+      {
+        "name": "watch-and-query-transfer-events",
+        "baseline": 40,
         "treatment": 92,
-        "rationale": "Treatment loads the signer via privateKeyToAccount from viem/accounts, creates a walletClient, sends with parseEther(\"0.1\"), and then calls publicClient.waitForTransactionReceipt({ hash }); baseline frequently skips the receipt wait or uses ethers' wallet flow."
+        "rationale": "B uses watchContractEvent and getContractEvents with an ABI, a small bigint range derived from getBlockNumber, unwatch(), and the http-polling vs webSocket-push note, so it matches the rubric closely; A uses watchEvent and getLogs instead of the required functions, though it does cover unwatch, chunking and the transport note."
       }
     ]
   }

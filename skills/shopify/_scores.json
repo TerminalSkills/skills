@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7d41286c322e1b1e22e7cb10f2f3950ff5331b5ffcefbce1d5410c56909c02ec",
-  "scoredAt": "2026-05-13T10:07:52.934Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6345e69f9de00d9fbd74ce16dd5c2ddf2608a062d89999a17aa0d5b839ab2c96",
+  "scoredAt": "2026-10-03T13:11:23.587Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for API calls and theme development."
+        "detail": "Error handling is thin: the fetch helpers never check HTTP status, GraphQL top-level errors, rate limits or throttling, and webhook setup and HMAC verification are not covered even though Example 2 relies on them."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The three examples are only a user prompt and a one-line description of what the agent will do, with no concrete code or output, and Examples 2 and 3 are not backed by runnable code in the skill, such as webhook handling or cartCreate."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
-    "treatmentAvg": 92,
-    "multiplier": 1.53,
+    "multiplier": 0.96,
+    "baselineAvg": 79,
+    "treatmentAvg": 76,
     "scenarios": [
       {
         "name": "staff-editable-hero-section",
-        "baseline": 55,
-        "treatment": 93,
-        "rationale": "Treatment uses the documented {% schema %} block with image_picker/text/richtext/url settings, presets for theme editor insertion, and section.settings.image | image_url: width: 1920 — baseline writes a Liquid section but misses the schema typing/presets pattern that makes it admin-editable."
+        "baseline": 85,
+        "treatment": 72,
+        "rationale": "Both supply a section file with a schema (image_picker, text, richtext, url), a preset, section.settings.* reads, a blank check guarding the button, and image_url: width:; Response B reads more fully as a finished section because it adds responsive image_tag output, a placeholder fallback and style controls, while Response A is simpler but fully meets the core rubric."
       },
       {
-        "name": "ajax-cart-add-without-reload",
-        "baseline": 65,
-        "treatment": 90,
-        "rationale": "Treatment hits the skill's exact fetch('/cart/add.js') with JSON body { items: [{ id: variantId, quantity }] } plus /cart/change.js and /cart.js helpers; baseline often uses older form-encoded id/quantity payload rather than the items-array shape."
+        "name": "admin-api-create-product",
+        "baseline": 62,
+        "treatment": 68,
+        "rationale": "Both pin the API version, use X-Shopify-Access-Token, select userErrors, call publishablePublish and read the admin token from an environment variable, but A uses the rubric's productCreate mutation with ProductCreateInput while B uses productSet with ProductSetInput, which the rubric doesn't allow; A also states that productCreate leaves the product unpublished, while B explains the same point less directly and verifies more thoroughly."
+      },
+      {
+        "name": "headless-cart-checkout-flow",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both meet every rubric item: POST to the Storefront endpoint with a pinned API version and the token header, products queried with edges/node (A) or nodes (B), cartCreate with merchandiseId and quantity lines, redirect to cart.checkoutUrl, and no legacy Checkout mutations. A follows the rubric's edges/node structure literally, while B uses the `nodes` shorthand and adds a more complete cart (update, fragments, context) plus useful notes, so B is slightly ahead on depth and A slightly ahead on literal match."
       }
     ]
   }

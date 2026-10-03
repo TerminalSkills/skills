@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f85ddd509a5706f3be9a3c56a3148c35f261a4404a4ab539c1208433ec63606a",
-  "scoredAt": "2026-05-13T10:30:03.770Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:becf63f6cba66708636f0c2a7392e2f647d88eb6d6b2971b98bfe8cb76bdcb70",
+  "scoredAt": "2026-10-03T13:12:51.023Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, focusing only on happy paths."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 68,
-    "treatmentAvg": 95,
-    "multiplier": 1.4,
+    "multiplier": 1.51,
+    "baselineAvg": 61,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "PlayerController with CharacterController, ground check, and Animator flags",
-        "baseline": 65,
-        "treatment": 95,
-        "rationale": "Baseline produces working CharacterController code but typically uses string-based SetBool calls each frame and skips the Animator.StringToHash caching pattern shown in the skill; treatment uses Physics.CheckSphere and cached hash IDs."
+        "name": "fix-legacy-input-exception-with-jump",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "A matches the rubric closely, with InputActionReference move and jump actions enabled in OnEnable and disabled in OnDisable, a gravity and isGrounded jump, input read in Update, and an explanation of the Active Input Handling setting including the Both workaround. B explains the setting and gives a working jump, but it polls Keyboard.current and Gamepad.current directly and never uses InputActionReference or input actions, so it misses the central requirement of the rubric's script and has no OnEnable/OnDisable handling."
       },
       {
-        "name": "WeaponData ScriptableObject for designer-driven items",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "ScriptableObject + CreateAssetMenu is widely known so baseline gets the basics, but treatment matches the skill's exact data-driven pattern (damage/attackSpeed/range, [TextArea], asset-creation explanation) more completely."
+        "name": "addressables-remote-levels-with-release",
+        "baseline": 62,
+        "treatment": 93,
+        "rationale": "Response A matches the rubric closely: it marks level prefabs Addressable in a Remote group, uses InstantiateAsync with a Succeeded check, runs CheckForCatalogUpdates then UpdateCatalogs, unloads with ReleaseInstance, and releases the check handle. Response B covers the remote catalog and release-handle parts well, but it loads scenes with LoadSceneAsync and UnloadSceneAsync instead of prefabs with InstantiateAsync and ReleaseInstance, so it misses the rubric's central loading and unloading elements."
+      },
+      {
+        "name": "headless-windows-build-for-ci",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both supply an Editor build method using BuildPipeline.BuildPlayer with EditorApplication.Exit(0/1) and a command line with the required flags, and both mention licence and Windows module. Response A explicitly states the single-instance constraint, which B omits, and A's `-buildTarget StandaloneWindows64` is correct. B adds an extra exit code 2, uses `Win64` as the buildTarget value, and spends a lot of space on a GitHub Actions workflow."
       }
     ]
   }

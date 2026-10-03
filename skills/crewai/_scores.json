@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f3b234e997226ea303fa9b9eb03caf816980d963b6b27363e1e94a66aa278c2e",
-  "scoredAt": "2026-05-13T16:06:08.229Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:0869b5a7fc0072643397f2d01192d89c5b85de3d99d3d596cf11d2126c17bc02",
+  "scoredAt": "2026-10-03T12:59:54.592Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,19 +11,19 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, only happy path examples."
+        "detail": "Covers the happy path and some cost/loop warnings, but gives no troubleshooting for common failures such as missing API keys, rate-limit errors, tool failures, or hierarchical-process misconfiguration."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is specific to the CrewAI framework and may not work with other AI agent frameworks."
+        "category": "examples",
+        "detail": "Examples are brief prose descriptions that point back to the code blocks, and Example 2 relies on an undefined run_readonly_query function with no sample data or output."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.7,
-    "baselineAvg": 53,
-    "treatmentAvg": 90,
+    "multiplier": 0.95,
+    "baselineAvg": 87,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "custom-tool-crew-report",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits the required args_schema, context passing, and crew memory setting."
+        "name": "scaffold-and-run-crew-project",
+        "baseline": 82,
+        "treatment": 88,
+        "rationale": "B hits every rubric item explicitly (create/install/run, YAML files plus @CrewBase in crew.py, kickoff(inputs=...), provider key in .env with don't-commit), while A is more detailed and mostly correct but never mentions @CrewBase or the don't-commit warning, and its crewai install/run steps come after a cd into research_crew instead of the hyphenated dir named in the rubric flow."
       },
       {
-        "name": "hierarchical-report-crew",
-        "baseline": 55,
-        "treatment": 80,
-        "rationale": "Response B better satisfies the rubric by including memory=True, auto‑created manager, and explicit task delegation, whereas Response A lacks memory, uses an explicit manager, and does not clearly delegate tasks."
+        "name": "researcher-writer-crew-with-context",
+        "baseline": 90,
+        "treatment": 90,
+        "rationale": "Both responses satisfy every rubric item (two Agents with role/goal/backstory, two Tasks with expected_output, context=[research_task], output_file, Process.sequential, kickoff(inputs=...), printing result.raw and result.token_usage), but A has a bug: its researcher goal is an f-string with {{topic}} that renders as {topic}, which works yet is needlessly convoluted, while A adds a TOPIC constant and a detailed token breakdown; B is more concise and matches the rubric directly, with a minor unverified claim about checks against crewai 1.15.23."
+      },
+      {
+        "name": "custom-readonly-sql-tool-with-safeguards",
+        "baseline": 88,
+        "treatment": 72,
+        "rationale": "Both subclass BaseTool with an args_schema Pydantic model and a string-returning _run, attach it to an agent with allow_delegation=False, max_iter and max_rpm, and advise read-only DB access and input validation. B is stronger: it gives a concrete read-only role, sqlglot validation, a per-run call cap, an output cap and max_execution_time. A is thinner, and it never defines run_readonly_query. Neither response sets allow_code_execution explicitly, but A at least mentions keeping it off and B does not mention it at all, a small gap for B. B's depth outweighs this."
       }
     ]
   }

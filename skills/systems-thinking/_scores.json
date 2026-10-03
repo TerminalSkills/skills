@@ -1,16 +1,16 @@
 {
   "version": "1.0.0",
   "skillHash": "sha256:4c8f63b7c11d36b42f1b7df39b1a6a83f2564edbeadd3fae114e0d4139267f19",
-  "scoredAt": "2026-05-13T10:22:35.519Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "scoredAt": "2026-10-03T22:23:02.786Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
-      "actionability": "PASS",
+      "conciseness": "WEAK",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,7 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly address error scenarios or edge cases, focusing only on the happy path."
+        "detail": "Covers mostly the happy path and gives no guidance on missing data, ambiguous constraints, multiple candidate bottlenecks, or when the frameworks don't apply."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "Framework sections such as Gall's Law, resilience vs optimization and the second-order tables restate well-known concepts at length."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Mostly conceptual framework descriptions with no step-by-step procedure for how the agent should gather data, run the analysis and structure its output."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 87,
-    "multiplier": 1.58,
+    "multiplier": 1.13,
+    "baselineAvg": 70,
+    "treatmentAvg": 79,
     "scenarios": [
       {
-        "name": "Diagnose stalled SaaS growth",
+        "name": "diagnose-slow-agency-delivery",
         "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment maps the funnel, identifies activation as THE single constraint via Theory of Constraints, and runs a second-order check on support load — all required by the rubric; baseline lists generic tactics without isolating one constraint."
+        "treatment": 92,
+        "rationale": "B explicitly walks through all five Focusing Steps (identify, exploit, subordinate, elevate, repeat) and adds a dedicated second-order section covering the constraint moving, quality drift and single-point-of-failure, while A identifies the constraint and gives good fixes but never names the framework or steps and only implicitly covers the next constraint."
       },
       {
-        "name": "Pre-decision second-order analysis on a price cut",
-        "baseline": 55,
-        "treatment": 86,
-        "rationale": "Treatment explicitly walks first/second/third-order effects and warns about LTV/segment drift per the skill's traps table; baseline lists pros/cons but does not chain order-effects or reference systems thinking patterns."
+        "name": "feedback-loops-subscription-box-churn",
+        "baseline": 82,
+        "treatment": 78,
+        "rationale": "Both lay out explicit cause-effect loops; A labels reinforcing vs balancing more properly, includes a balancing loop, and gives a priority order, but its self-serve intervention is partial; B names self-serve help center/in-app credit as the weakest-link break and a strengthening flywheel, but mislabels loops as 'negative' and leaves the strengthen/break choice less explicit."
+      },
+      {
+        "name": "evaluate-automate-all-support-and-discount",
+        "baseline": 72,
+        "treatment": 66,
+        "rationale": "Both reject doing both moves and propose phased automation with human escalation, but B explains the hard-edge-case problem more concretely (billing disputes, bugs, angry customers need humans) and keeps a 2–3 person escalation team, while A names the automation paradox, offers a free-tier/trial alternative and traces a loop, yet neither runs a clean first/second/third-order analysis and B's discount alternatives (shallower, time-boxed) are less aligned with the rubric's free-tier suggestion."
       }
     ]
   }

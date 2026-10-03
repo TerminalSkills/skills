@@ -1,387 +1,200 @@
 ---
 name: ragas
-description: Expert guidance for Ragas, the framework for evaluating Retrieval-Augmented Generation pipelines. Helps developers measure and improve the quality of their RAG systems across retrieval accuracy, answer faithfulness, and response relevance.
+description: >-
+  Ragas is an open-source Python framework for evaluating RAG pipelines and
+  LLM applications with metrics such as faithfulness, response relevancy,
+  context precision and context recall. Use when asked to evaluate or score a
+  RAG system, generate a synthetic test set from documents, add RAG quality
+  checks to CI, or write a custom LLM-judged metric.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Python 3.9+; an LLM judge (OpenAI key by default, other providers supported); network access for LLM calls"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.1"
   category: data-ai
-  tags:
-  - rag
-  - evaluation
-  - llm-testing
-  - retrieval
-  - ai-quality
+  tags: ["rag", "evaluation", "llm-testing", "retrieval", "ai-quality"]
+  repository: https://github.com/vibrantlabsai/ragas
 ---
 
 # Ragas — RAG Evaluation Framework
 
-
 ## Overview
 
+Ragas scores the output of a retrieval-augmented generation system with LLM-judged metrics: is the answer grounded in the retrieved text (faithfulness), does it address the question (response relevancy), did retrieval return the right passages (context precision and recall), and is it factually close to a reference answer. It can also generate a synthetic test set from your documents. Checked against ragas 0.4.3 (latest on PyPI, January 2026; the repository moved from explodinggradients to vibrantlabsai, the old URL redirects).
 
-Ragas, the framework for evaluating Retrieval-Augmented Generation pipelines. Helps developers measure and improve the quality of their RAG systems across retrieval accuracy, answer faithfulness, and response relevance.
-
+The API changed a lot between 0.1 and 0.4, and most online snippets use the old one. Old names you will see in outdated code and should not write: `Dataset.from_dict` with `question`/`answer`/`contexts`/`ground_truth` columns, lowercase metric objects (`faithfulness`, `context_precision`), `TestsetGenerator.from_langchain`, `simple`/`reasoning`/`multi_context` evolutions, `test_size=`. Current names are below.
 
 ## Instructions
 
-### Basic Evaluation
-
-Evaluate a RAG pipeline with standard metrics:
-
-```python
-# evaluate_rag.py — Run Ragas evaluation on a RAG pipeline
-from ragas import evaluate
-from ragas.metrics import (
-    faithfulness,          # Is the answer grounded in retrieved context?
-    answer_relevancy,      # Does the answer address the question?
-    context_precision,     # Are retrieved docs relevant and well-ranked?
-    context_recall,        # Did retrieval find all necessary information?
-)
-from datasets import Dataset
-
-# Prepare evaluation dataset — each row is one question with ground truth
-eval_data = {
-    "question": [
-        "What is the refund policy for annual subscriptions?",
-        "How do I reset my password?",
-        "What integrations are available with Slack?",
-    ],
-    "answer": [
-        "Annual subscriptions can be refunded within 30 days of purchase.",
-        "Click 'Forgot Password' on the login page and follow the email link.",
-        "We offer native Slack integration with channel notifications and slash commands.",
-    ],
-    "contexts": [
-        # Retrieved documents for each question
-        [
-            "Refund Policy: Annual plans are eligible for a full refund within 30 days. Monthly plans are non-refundable.",
-            "Billing FAQ: Contact support@example.com for billing inquiries.",
-        ],
-        [
-            "Password Reset: Navigate to login page, click 'Forgot Password', enter your email.",
-            "Security: All password reset links expire after 24 hours.",
-        ],
-        [
-            "Integrations: Connect with Slack, Teams, and Discord. Slack supports notifications and /commands.",
-            "API: Use webhooks for custom integrations with any platform.",
-        ],
-    ],
-    "ground_truth": [
-        "Annual subscriptions are eligible for a full refund within 30 days of purchase. Monthly plans cannot be refunded.",
-        "Go to the login page, click 'Forgot Password', enter your email address, and follow the reset link sent to your inbox.",
-        "Slack integration includes channel notifications, slash commands, and is available as a native integration.",
-    ],
-}
-
-dataset = Dataset.from_dict(eval_data)
-
-# Run evaluation across all metrics
-results = evaluate(
-    dataset=dataset,
-    metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
-)
-
-# Results are a dict of metric_name → score (0.0 to 1.0)
-print(results)
-# {'faithfulness': 0.95, 'answer_relevancy': 0.88, 'context_precision': 0.92, 'context_recall': 0.85}
-
-# Convert to pandas DataFrame for per-question analysis
-df = results.to_pandas()
-print(df[['question', 'faithfulness', 'answer_relevancy']].to_string())
-```
-
-### Custom Test Sets with Synthetic Data
-
-Generate evaluation datasets from your own documents:
-
-```python
-# generate_testset.py — Create synthetic Q&A pairs from documents
-from ragas.testset import TestsetGenerator
-from ragas.testset.evolutions import simple, reasoning, multi_context
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_community.document_loaders import DirectoryLoader
-
-# Load your knowledge base documents
-loader = DirectoryLoader("./docs/", glob="**/*.md")
-documents = loader.load()
-
-# Configure the generator with an LLM
-generator = TestsetGenerator.from_langchain(
-    generator_llm=ChatOpenAI(model="gpt-4o"),
-    critic_llm=ChatOpenAI(model="gpt-4o"),
-    embeddings=OpenAIEmbeddings(),
-)
-
-# Generate test set with different question complexities
-# simple: straightforward factual questions
-# reasoning: questions requiring inference across a single document
-# multi_context: questions needing information from multiple documents
-testset = generator.generate_with_langchain_docs(
-    documents,
-    test_size=50,                      # Generate 50 Q&A pairs
-    distributions={
-        simple: 0.4,                   # 40% simple factual
-        reasoning: 0.3,               # 30% reasoning required
-        multi_context: 0.3,           # 30% multi-document synthesis
-    },
-)
-
-# Export for reuse across evaluation runs
-test_df = testset.to_pandas()
-test_df.to_csv("eval_testset.csv", index=False)
-print(f"Generated {len(test_df)} test questions")
-print(f"Distribution: {test_df['evolution_type'].value_counts().to_dict()}")
-```
-
-### Evaluating Specific Components
-
-Isolate and measure individual RAG components:
-
-```python
-# eval_retriever.py — Evaluate retrieval quality independently
-from ragas.metrics import (
-    context_precision,     # Are top results relevant? (ranking quality)
-    context_recall,        # Are all relevant docs retrieved? (coverage)
-    context_entity_recall, # Are key entities from ground truth in context?
-)
-from ragas import evaluate
-from datasets import Dataset
-
-def evaluate_retriever(retriever, test_questions, ground_truths):
-    """Evaluate retriever independently from the generator.
-
-    Args:
-        retriever: Your retrieval function that takes a query and returns docs
-        test_questions: List of test queries
-        ground_truths: List of expected answers for recall measurement
-    """
-    contexts = []
-    for question in test_questions:
-        # Your retriever returns a list of document strings
-        docs = retriever.retrieve(question, top_k=5)
-        contexts.append([doc.page_content for doc in docs])
-
-    dataset = Dataset.from_dict({
-        "question": test_questions,
-        "contexts": contexts,
-        "ground_truth": ground_truths,
-    })
-
-    results = evaluate(
-        dataset=dataset,
-        metrics=[context_precision, context_recall, context_entity_recall],
-    )
-
-    return results
-
-
-# eval_generator.py — Evaluate answer generation quality
-from ragas.metrics import (
-    faithfulness,          # Hallucination detection
-    answer_relevancy,      # Does it answer the question?
-    answer_similarity,     # Semantic similarity to ground truth
-    answer_correctness,    # Factual correctness vs ground truth
-)
-
-def evaluate_generator(rag_pipeline, test_questions, contexts, ground_truths):
-    """Evaluate the generation component with fixed retrieval context.
-
-    Args:
-        rag_pipeline: Your generation function
-        test_questions: List of test queries
-        contexts: Pre-retrieved contexts (fixed to isolate generator)
-        ground_truths: Expected correct answers
-    """
-    answers = []
-    for question, ctx in zip(test_questions, contexts):
-        answer = rag_pipeline.generate(question, context=ctx)
-        answers.append(answer)
-
-    dataset = Dataset.from_dict({
-        "question": test_questions,
-        "answer": answers,
-        "contexts": contexts,
-        "ground_truth": ground_truths,
-    })
-
-    return evaluate(
-        dataset=dataset,
-        metrics=[faithfulness, answer_relevancy, answer_correctness],
-    )
-```
-
-### CI Integration
-
-Run Ragas evaluations in your CI pipeline:
-
-```python
-# tests/test_rag_quality.py — Pytest integration for continuous RAG evaluation
-import pytest
-from ragas import evaluate
-from ragas.metrics import faithfulness, answer_relevancy, context_precision
-from datasets import Dataset
-import json
-
-# Load the pre-generated test set (created by generate_testset.py)
-QUALITY_THRESHOLDS = {
-    "faithfulness": 0.85,          # Minimum acceptable faithfulness
-    "answer_relevancy": 0.80,     # Minimum answer relevance
-    "context_precision": 0.75,    # Minimum retrieval precision
-}
-
-@pytest.fixture(scope="session")
-def eval_results(rag_pipeline, test_dataset):
-    """Run evaluation once per test session and share results."""
-    questions, ground_truths = test_dataset
-
-    # Run the full RAG pipeline on test questions
-    answers, contexts = [], []
-    for q in questions:
-        result = rag_pipeline.query(q)
-        answers.append(result["answer"])
-        contexts.append(result["sources"])
-
-    dataset = Dataset.from_dict({
-        "question": questions,
-        "answer": answers,
-        "contexts": contexts,
-        "ground_truth": ground_truths,
-    })
-
-    results = evaluate(
-        dataset=dataset,
-        metrics=[faithfulness, answer_relevancy, context_precision],
-    )
-
-    # Save results for reporting
-    with open("rag_eval_results.json", "w") as f:
-        json.dump(dict(results), f, indent=2)
-
-    return results
-
-
-def test_faithfulness_above_threshold(eval_results):
-    """Ensure answers are grounded in retrieved context (no hallucinations)."""
-    score = eval_results["faithfulness"]
-    assert score >= QUALITY_THRESHOLDS["faithfulness"], (
-        f"Faithfulness {score:.2f} below threshold {QUALITY_THRESHOLDS['faithfulness']}"
-    )
-
-
-def test_answer_relevancy_above_threshold(eval_results):
-    """Ensure answers actually address the questions asked."""
-    score = eval_results["answer_relevancy"]
-    assert score >= QUALITY_THRESHOLDS["answer_relevancy"], (
-        f"Answer relevancy {score:.2f} below threshold {QUALITY_THRESHOLDS['answer_relevancy']}"
-    )
-
-
-def test_no_regression(eval_results):
-    """Compare against previous run to catch regressions."""
-    try:
-        with open("rag_eval_baseline.json") as f:
-            baseline = json.load(f)
-    except FileNotFoundError:
-        pytest.skip("No baseline found — first run")
-
-    for metric, score in eval_results.items():
-        if metric in baseline:
-            regression = baseline[metric] - score
-            assert regression < 0.05, (   # Allow max 5% regression
-                f"{metric} regressed by {regression:.2f} "
-                f"(baseline: {baseline[metric]:.2f}, current: {score:.2f})"
-            )
-```
-
-### Custom Metrics
-
-Define domain-specific evaluation criteria:
-
-```python
-# custom_metrics.py — Create metrics specific to your use case
-from ragas.metrics.base import MetricWithLLM
-from dataclasses import dataclass, field
-
-@dataclass
-class ToneConsistency(MetricWithLLM):
-    """Evaluate if the answer maintains the expected brand tone.
-
-    Useful for customer-facing RAG applications where tone matters
-    as much as factual accuracy.
-    """
-    name: str = "tone_consistency"
-    expected_tone: str = "professional and empathetic"
-
-    async def _ascore(self, row, callbacks=None):
-        prompt = f"""Rate how well this answer maintains a {self.expected_tone} tone.
-
-        Question: {row['question']}
-        Answer: {row['answer']}
-
-        Score from 0.0 (completely wrong tone) to 1.0 (perfect tone).
-        Return ONLY the numeric score."""
-
-        result = await self.llm.agenerate_text(prompt)
-        try:
-            return float(result.generations[0][0].text.strip())
-        except ValueError:
-            return 0.0
-
-
-# Use custom metric alongside standard ones
-tone_metric = ToneConsistency(expected_tone="friendly and technical")
-results = evaluate(
-    dataset=dataset,
-    metrics=[faithfulness, answer_relevancy, tone_metric],
-)
-```
-
-## Installation
+### Install
 
 ```bash
-pip install ragas
-
-# With LangChain integration for testset generation
-pip install ragas[langchain]
-
-# With all optional dependencies
-pip install ragas[all]
+python -m venv .venv && source .venv/bin/activate
+pip install ragas langchain-openai
+export OPENAI_API_KEY=sk-...   # judge LLM; every metric costs LLM calls
 ```
 
+Pitfall seen on a fresh install of 0.4.3 with the newest LangChain (1.x, `langchain-community` 0.4.x): `import ragas` fails with `ModuleNotFoundError: No module named 'langchain_community.chat_models.vertexai'`. Pinning `pip install "langchain-community<0.4" "langchain<1" "langchain-core<1" "langchain-openai<1"` made the import work. Check the release notes before pinning, as a newer ragas may already fix it.
+
+### Data format
+
+Each row is a single-turn sample with these fields (not the old `question`/`contexts` names):
+
+| Field | Meaning |
+|-------|---------|
+| `user_input` | the question |
+| `retrieved_contexts` | list of retrieved passages (strings) |
+| `response` | the answer your pipeline produced |
+| `reference` | the ground-truth answer (needed by recall, correctness) |
+
+### Evaluate a dataset
+
+`evaluate()` takes `EvaluationDataset` and metric objects from `ragas.metrics`. In 0.4 these classic metrics still work but import with a `DeprecationWarning`, because new-style metrics live in `ragas.metrics.collections` and are scored one sample at a time (next section). `evaluate()` rejects collections metrics.
+
+```python
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from ragas import EvaluationDataset, evaluate
+from ragas.llms import LangchainLLMWrapper
+from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.metrics import (
+    Faithfulness, ResponseRelevancy,
+    LLMContextPrecisionWithReference, LLMContextRecall,
+)
+
+rows = [{
+    "user_input": "What is the refund policy for annual subscriptions?",
+    "retrieved_contexts": [
+        "Refund Policy: Annual plans are eligible for a full refund within 30 days. Monthly plans are non-refundable.",
+        "Billing FAQ: Contact billing@northwind-saas.io for invoice questions.",
+    ],
+    "response": "Annual subscriptions can be refunded within 30 days of purchase.",
+    "reference": "Annual plans get a full refund within 30 days; monthly plans cannot be refunded.",
+}]
+
+result = evaluate(
+    dataset=EvaluationDataset.from_list(rows),
+    metrics=[Faithfulness(), ResponseRelevancy(),
+             LLMContextPrecisionWithReference(), LLMContextRecall()],
+    llm=LangchainLLMWrapper(ChatOpenAI(model="gpt-4o-mini")),
+    embeddings=LangchainEmbeddingsWrapper(OpenAIEmbeddings()),  # ResponseRelevancy needs embeddings
+)
+print(result)                    # {'faithfulness': 1.0, 'answer_relevancy': 0.97, ...} means over rows
+df = result.to_pandas()          # one row per sample, one column per metric
+```
+
+`result["faithfulness"]` returns the per-row list. Column names follow each metric's `name` (for example `answer_relevancy`, `context_recall`).
+
+### Score one sample with the newer collections API
+
+```python
+import asyncio
+from openai import AsyncOpenAI
+from ragas.llms import llm_factory
+from ragas.metrics.collections import Faithfulness
+
+llm = llm_factory("gpt-4o-mini", client=AsyncOpenAI())
+scorer = Faithfulness(llm=llm)
+res = asyncio.run(scorer.ascore(
+    user_input="When was the first Super Bowl?",
+    response="The first Super Bowl was played on January 15, 1967.",
+    retrieved_contexts=["The first AFL-NFL World Championship Game was played on January 15, 1967."],
+))
+print(res.value)   # float 0..1; scorer.score(...) is the sync form
+```
+
+Each collections metric has its own argument list (`AnswerRelevancy` also takes `embeddings`; `ContextRecall` takes `reference`). Other providers go through `llm_factory(model, provider=..., client=...)`.
+
+### Generate a test set from documents
+
+```python
+from langchain_community.document_loaders import DirectoryLoader
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from ragas.llms import LangchainLLMWrapper
+from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.testset import TestsetGenerator
+
+docs = DirectoryLoader("./docs/", glob="**/*.md").load()
+generator = TestsetGenerator(
+    llm=LangchainLLMWrapper(ChatOpenAI(model="gpt-4o")),
+    embedding_model=LangchainEmbeddingsWrapper(OpenAIEmbeddings()),
+)
+testset = generator.generate_with_langchain_docs(docs, testset_size=50)
+testset.to_pandas().to_csv("eval_testset.csv", index=False)
+```
+
+The default mix is single-hop specific (50%), multi-hop abstract (25%) and multi-hop specific (25%) queries; pass `query_distribution=` (built from `ragas.testset.synthesizers`) to change it. The output has `user_input`, `reference`, `reference_contexts` and `synthesizer_name`. It contains questions and references only: run each question through your own pipeline to fill `response` and `retrieved_contexts` before evaluating.
+
+### Evaluate retriever and generator separately
+
+- Retriever: `LLMContextPrecisionWithReference`, `LLMContextRecall`, `ContextEntityRecall` using only `user_input`, `retrieved_contexts`, `reference`.
+- Generator with retrieval held fixed: `Faithfulness`, `ResponseRelevancy`, `FactualCorrectness`, `SemanticSimilarity` (the last two compare `response` with `reference`).
+
+### Quality gate in CI
+
+```python
+# tests/test_rag_quality.py
+import pytest
+from ragas import EvaluationDataset, evaluate
+from ragas.metrics import Faithfulness, LLMContextRecall
+
+THRESHOLDS = {"faithfulness": 0.85, "context_recall": 0.75}
+
+@pytest.fixture(scope="session")
+def scores(rag_pipeline, golden_rows):
+    rows = []
+    for item in golden_rows:   # {"user_input": ..., "reference": ...}
+        out = rag_pipeline.query(item["user_input"])
+        rows.append({**item, "response": out["answer"], "retrieved_contexts": out["sources"]})
+    result = evaluate(EvaluationDataset.from_list(rows),
+                      metrics=[Faithfulness(), LLMContextRecall()], llm=judge_llm)
+    return result.to_pandas()[list(THRESHOLDS)].mean()
+
+@pytest.mark.parametrize("metric,minimum", THRESHOLDS.items())
+def test_metric_above_threshold(scores, metric, minimum):
+    assert scores[metric] >= minimum, f"{metric}={scores[metric]:.2f} < {minimum}"
+```
+
+### Custom metric
+
+`NumericMetric` and `DiscreteMetric` wrap a prompt and return a validated value; the prompt placeholders become the keyword arguments of `score`.
+
+```python
+from openai import OpenAI
+from ragas.llms import llm_factory
+from ragas.metrics import DiscreteMetric
+
+tone = DiscreteMetric(
+    name="support_tone",
+    prompt="Judge whether this support reply is professional and empathetic: {response}. Answer 'pass' or 'fail'.",
+    allowed_values=["pass", "fail"],
+)
+llm = llm_factory("gpt-4o-mini", client=OpenAI())
+print(tone.score(llm=llm, response="I'm sorry about the double charge. I refunded it just now.").value)
+```
+
+`ragas quickstart rag_eval -o ./rag-eval-demo` scaffolds a runnable example project.
 
 ## Examples
 
+### Example 1: "Set up Ragas for my docs chatbot"
 
-### Example 1: Setting up an evaluation pipeline for a RAG application
+Request: "I have a RAG chatbot over our Markdown docs. Give me a baseline quality score."
 
-**User request:**
+Run `pip install ragas langchain-openai`, generate 50 questions with the test-set snippet above from `./docs/`, call the chatbot for each `user_input` to collect `response` and `retrieved_contexts`, then run `evaluate()` with the four metrics. Expected output is a one-line mean per metric, for example `{'faithfulness': 0.91, 'answer_relevancy': 0.88, 'llm_context_precision_with_reference': 0.79, 'context_recall': 0.83}`, plus `df.sort_values('faithfulness').head(10)` to read the ten worst answers first.
 
-```
-I have a RAG chatbot that answers questions from our docs. Set up Ragas to evaluate answer quality.
-```
+### Example 2: "Fail the build when answers start hallucinating"
 
-The agent creates an evaluation suite with appropriate metrics (faithfulness, relevance, answer correctness), configures test datasets from real user questions, runs baseline evaluations, and sets up CI integration so evaluations run on every prompt or retrieval change.
+Request: "Add a CI check so prompt changes cannot lower faithfulness below 0.85."
 
-### Example 2: Comparing model performance across prompts
-
-**User request:**
-
-```
-We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Ragas.
-```
-
-The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
-
+Commit a 40-row `golden.jsonl`, add `tests/test_rag_quality.py` from the CI section, and run `pytest tests/test_rag_quality.py` in the pipeline with `OPENAI_API_KEY` as a CI secret. A prompt change that makes the bot invent details fails with `faithfulness=0.78 < 0.85`.
 
 ## Guidelines
 
-1. **Evaluate before optimizing** — Establish baseline scores before changing retrieval or generation parameters
-2. **Test set diversity** — Include simple, reasoning, and multi-context questions; real user queries are best
-3. **Component isolation** — Evaluate retriever and generator separately to identify which part needs improvement
-4. **Track over time** — Store results in CI; catch regressions before they reach production
-5. **Custom metrics for domain** — Standard metrics miss domain-specific quality requirements (tone, compliance, format)
-6. **Sufficient test size** — Use 50+ questions for stable metrics; small sets produce noisy scores
-7. **Ground truth quality** — Evaluation is only as good as your reference answers; invest in accurate ground truths
-8. **Multiple LLM judges** — Cross-validate with different judge models to reduce evaluation bias
+- Establish a baseline before changing prompts, chunking or retrievers, and compare against it.
+- Metrics are LLM-judged: they cost tokens, vary between runs and depend on the judge model. Pin the judge model and average over 40+ samples; treat 0.02 differences as noise.
+- Missing `reference` silently limits you to reference-free metrics (faithfulness, response relevancy); recall and correctness need it.
+- Synthetic test sets are a start, not ground truth: review a sample, and mix in real user questions.
+- `evaluate()` swallows per-row errors by default (`raise_exceptions=False`) and records NaN: check `df.isna().sum()` and rate limits before trusting a mean.
+- Sending documents to a hosted judge LLM shares that data with the provider; use a local or private model for confidential text.
+- Ragas collects anonymous usage analytics by default; set `RAGAS_DO_NOT_TRACK=true` to opt out.
+- Not a fit for load testing or latency measurement; it only scores quality.

@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4e89e82cac3fafa76cb0614aae545d6726725c51262c87ce0bc88c692dc71349",
-  "scoredAt": "2026-05-13T12:18:19.020Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:55149605fc847e8a16fa56a16936a06d9011fba94ac68bfa8b6b11d1bfda1ee1",
+  "scoredAt": "2026-10-03T12:56:40.953Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as missing agents or invalid outputs."
+        "category": "actionability",
+        "detail": "Code snippets are illustrative skeletons that cannot run as-is: Agent, _classify, and the _check_* quality-gate methods are undefined, and no LLM client is wired in."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "The three examples are one-paragraph prompts with no sample inputs, outputs, or walkthrough of the resulting agent interactions, so they are less realistic than concrete demonstrations."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.15,
-    "baselineAvg": 27,
-    "treatmentAvg": 58,
+    "multiplier": 1.37,
+    "baselineAvg": 60,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "pipeline-data-preprocessing",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response A covers shared memory, quality gates, and agents but lacks orchestrator and retry logic, while Response B is incomplete and does not meet any rubric requirements."
+        "name": "code-review-pipeline-with-retry-gate",
+        "baseline": 68,
+        "treatment": 78,
+        "rationale": "Both deliver an orchestrator with deduplication and severity ranking, a bounded 3-attempt retry and a quality gate that rejects bad output. B is runnable code with backoff, though only on infrastructure errors, and a coverage check. A has no backoff and no blocking-versus-warning distinction, and it wasn't written to disk or run, though the code is inline. B also lacks the blocking/warning distinction."
       },
       {
-        "name": "hierarchical-code-review",
-        "baseline": 0,
-        "treatment": 45,
-        "rationale": "Response B includes SharedMemory, QualityGate, and agents but lacks an Orchestrator and retry logic, whereas Response A is empty."
+        "name": "support-ticket-router-with-fallback",
+        "baseline": 30,
+        "treatment": 93,
+        "rationale": "B matches the rubric directly: an LLM router returns JSON with agent, confidence and reasoning, falls back to a generalist when confidence is below 0.7 or the agent name is unregistered, and builds a name-to-agent registry whose descriptions go into the routing prompt. A uses a different design with per-category thresholds, a margin check, a triage queue and a tool-call classifier that returns probabilities. It has no agent/confidence/reasoning JSON, no 0.7 gate, no registry-name validation and no descriptions in the prompt, so it only partly meets the intent of low-confidence safety."
       },
       {
-        "name": "router-ticket-routing",
-        "baseline": 80,
-        "treatment": 80,
-        "rationale": "Both responses implement classification, routing, and logging, but neither includes the required retry mechanism, so they score equally."
+        "name": "research-swarm-shared-memory-parallel",
+        "baseline": 82,
+        "treatment": 74,
+        "rationale": "Both run the four agents concurrently with asyncio.gather, share a Board with agent attribution, enforce a budget cap, and treat pages as untrusted with quote verification; A uses forced tool-call JSON schemas for inter-agent validation, so it meets the structured-validation requirement more fully, while B relies on parsing free-text JSON, has stubbed search backends, and adds a call cap, a weaker regex filter, and merged corroboration."
       }
     ]
   }

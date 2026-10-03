@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:676122e10e978832b9608f769d655c096fc6ffae7643cabd8fcc5bc4ac119900",
-  "scoredAt": "2026-05-13T14:55:43.378Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:c8070f91cab67c91561a4ec7a14cb3a09770ad5320e61a42af6de1838f5e1e92",
+  "scoredAt": "2026-10-03T12:55:50.025Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill examples focus on happy paths and do not cover error handling or edge cases."
+        "detail": "Error handling is limited to the parallel-run snippet and a few guideline notes, with no coverage of API rejections, rate limits (429), session timeouts, or CDP connection failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The Stagehand section gives no runnable code and defers to the README, and the persistent-context example omits the login step and the connect step."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are prose descriptions of what the agent does, with no concrete code, selectors, or sample output."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 1.18,
+    "baselineAvg": 65,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "create-proxy-session",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A does not use Browserbase SDK or the required connection method."
+        "name": "proxy-scrape-blocked-retailer",
+        "baseline": 55,
+        "treatment": 72,
+        "rationale": "A satisfies nearly every rubric item (proxies: true, region, connectOverCDP, env API key, finally close, replay URL) but prints the replay URL before the try and not in the finally block; B omits the required region option entirely, though it otherwise covers the proxy, CDP, env key, finally close, and replay URL (printed again in finally)."
       },
       {
-        "name": "persistent-login-context",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not mention Browserbase contexts or the required session reuse steps."
+        "name": "persistent-login-context-nightly",
+        "baseline": 74,
+        "treatment": 80,
+        "rationale": "Both create a context, log in with persist: true, and reuse it with persist: false. A explicitly gives both required warnings: wait a few seconds after closing the persist: true session, and don't run two sessions on one context at once. B covers release-before-reuse and concurrency too, but it never says to wait a few seconds. It also says several persist: false sessions can share a context, which partly contradicts the rubric's one-at-a-time warning. B's use of projectId in contexts.create is a slight deviation, and its added caveats don't earn rubric credit."
+      },
+      {
+        "name": "parallel-titles-with-concurrency-limit",
+        "baseline": 66,
+        "treatment": 78,
+        "rationale": "Both use a worker pool (not fixed batches) and no Promise.allSettled, but B's tasks never throw and record errors, and its retry covers failures; B lacks a finally around sessions.create but closes the browser in finally, while A closes in finally plus releases the session; A records errors too, so they are close, with B slightly closer due to simpler direct structure and explicit acknowledgement of the deviation from batches."
       }
     ]
   }

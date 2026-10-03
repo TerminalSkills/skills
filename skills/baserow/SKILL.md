@@ -6,7 +6,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["database", "spreadsheet", "airtable-alternative", "open-source", "no-code"]
 ---
@@ -14,19 +14,24 @@ metadata:
 
 ## Overview
 
-You are an expert in Baserow, the open-source no-code database platform and Airtable alternative. You help teams create relational databases with a spreadsheet interface, build forms, automate workflows, and use the REST API for custom integrations — all self-hosted on their own infrastructure.
+Baserow is an open-source no-code database platform and Airtable alternative, with a spreadsheet interface, a REST API, forms, and workflow automation, self-hosted on the user's own infrastructure. Use this skill when a user asks to create spreadsheet-style relational databases, build API-connected workflows, manage relational data, or self-host Baserow.
 
 ## Instructions
 
 ### Setup
 
 ```bash
-# Docker Compose (production-ready)
-docker compose up -d
-# UI at http://localhost:80
+# All-in-one image, pinned to a specific release (never :latest in production)
+docker run -d --name baserow -p 80:80 -p 443:443 \
+  -v baserow_data:/baserow/data \
+  -e BASEROW_PUBLIC_URL='http://localhost' \
+  baserow/baserow:2.3.3
 
-# Or one-liner for testing
-docker run -p 80:80 -v baserow_data:/baserow/data baserow/baserow:latest
+# Or docker-compose.yml with the same image; production setups split into
+# separate baserow/backend and baserow/web-frontend containers plus Celery
+# workers (see the official "Install with Docker Compose" guide) and require
+# SECRET_KEY, DATABASE_PASSWORD, and REDIS_PASSWORD to be set.
+docker compose up -d
 ```
 
 ### Database Structure
@@ -53,20 +58,22 @@ year(now()) - year(field('Birth Date'))
 
 ### REST API
 
+Create a database token in the Baserow UI (per-table create/read/update/delete permissions) and send it as `Authorization: Token YOUR_DATABASE_TOKEN` — this is different from the `Authorization: JWT ...` header used by the web app's own user session.
+
 ```bash
-# List rows with filtering
-curl "https://baserow.example.com/api/database/rows/table/TABLE_ID/?user_field_names=true&filter__Status__equal=Active&order_by=-Created" \
-  -H "Authorization: Token YOUR_TOKEN"
+# List rows with filtering (filter__<field>__<operator>, or filter__field_<id>__<operator>)
+curl "https://baserow.northstar-robotics.internal/api/database/rows/table/412/?user_field_names=true&filter__Status__equal=Active&order_by=-Created" \
+  -H "Authorization: Token YOUR_DATABASE_TOKEN"
 
 # Create row
-curl -X POST "https://baserow.example.com/api/database/rows/table/TABLE_ID/?user_field_names=true" \
-  -H "Authorization: Token YOUR_TOKEN" \
+curl -X POST "https://baserow.northstar-robotics.internal/api/database/rows/table/412/?user_field_names=true" \
+  -H "Authorization: Token YOUR_DATABASE_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"Name": "New Project", "Status": "Active", "Priority": "High"}'
+  -d '{"Name": "Q3 renewal outreach", "Status": "Active", "Priority": "High"}'
 
 # Update row
-curl -X PATCH "https://baserow.example.com/api/database/rows/table/TABLE_ID/ROW_ID/?user_field_names=true" \
-  -H "Authorization: Token YOUR_TOKEN" \
+curl -X PATCH "https://baserow.northstar-robotics.internal/api/database/rows/table/412/1038/?user_field_names=true" \
+  -H "Authorization: Token YOUR_DATABASE_TOKEN" \
   -d '{"Status": "Completed"}'
 
 # Webhooks — trigger on row events
@@ -76,25 +83,28 @@ curl -X PATCH "https://baserow.example.com/api/database/rows/table/TABLE_ID/ROW_
 
 ## Examples
 
-**Example 1: User asks to set up baserow**
+### Example 1: Self-host Baserow and connect it to an external script
 
-User: "Help me set up baserow for my project"
+**User request:** "Set up Baserow on our server and give me a way to push new leads into a table from a Python script."
 
-The agent should:
-1. Check system requirements and prerequisites
-2. Install or configure baserow
-3. Set up initial project structure
-4. Verify the setup works correctly
+**Agent workflow:**
+1. Deploy with the pinned `baserow/baserow:2.3.3` image (or docker-compose for a production split) and set `BASEROW_PUBLIC_URL` to the real hostname.
+2. In the UI, create a "Leads" table with fields for Name, Email, Status, and Source, then create a database token scoped to that table only.
+3. Give the user a `curl`/Python snippet using `POST /api/database/rows/table/<id>/?user_field_names=true` with the token to insert a row.
+4. Point out the table ID and token belong to that one table, not the whole workspace.
 
-**Example 2: User asks to build a feature with baserow**
+**Output:** A running Baserow instance, a "Leads" table, and a working insert call the user's script can reuse.
 
-User: "Create a dashboard using baserow"
+### Example 2: Build a rollup across linked tables
 
-The agent should:
-1. Scaffold the component or configuration
-2. Connect to the appropriate data source
-3. Implement the requested feature
-4. Test and validate the output
+**User request:** "I have a Clients table and an Invoices table — show total paid per client without duplicating data."
+
+**Agent workflow:**
+1. Add a "Link to table" field on Invoices pointing at Clients (this creates the reverse link on Clients automatically).
+2. Add a Rollup field on Clients that sums the Invoices' Amount field, filtered or using a Lookup + Formula like `sum(lookup('Invoices', 'Amount'))` where Status = Paid.
+3. Verify the rollup updates when a new invoice row is added.
+
+**Output:** A "Total Paid" rollup column on Clients that stays in sync as invoices change, with no copied data.
 
 ## Guidelines
 

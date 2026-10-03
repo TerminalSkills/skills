@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:274b89e5d9775c3dbb3ed24860db39791b222f9ba667ddb448f8e155dfbb91cc",
-  "scoredAt": "2026-05-13T09:41:04.391Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4d5a88f06789f42cf2c6f14330dbc6a02488f8bd8f06af28bdd59c5a766456ba",
+  "scoredAt": "2026-10-03T13:06:50.942Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases comprehensively."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 88,
-    "multiplier": 2.93,
+    "multiplier": 3.64,
+    "baselineAvg": 25,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Scheduled cleanup task with Redis storage",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Treatment uses defineNitroConfig with storage.db driver redis, scheduledTasks cron, and defineTask in server/tasks/cleanup.ts using useStorage(\"db\").getKeys exactly as in the SKILL.md; baseline writes a node-cron script with ioredis and no Nitro primitives."
+        "name": "orders-api-404-srcdir-fix",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "B correctly names srcDir: \"server\" as the cause and covers the fs storage, the imports: false note and the explicit h3/nitropack/runtime imports, while A misses the srcDir cause as the primary fix, relies on auto-imports, and never mentions imports: false."
       },
       {
-        "name": "Auth middleware that bypasses /api/public",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment puts defineEventHandler in server/middleware/auth.ts using getRequestURL/getHeader, sets event.context.user, and throws createError — matching the SKILL pattern; baseline writes generic Express middleware unrelated to Nitro."
+        "name": "nightly-report-scheduled-task",
+        "baseline": 5,
+        "treatment": 96,
+        "rationale": "Response B matches the rubric almost exactly: it sets `experimental.tasks`, adds `scheduledTasks` with `0 2 * * *` pointing at `reports:build`, puts the task at `server/tasks/reports/build.ts`, reads the stored copy through `useStorage` with a not-built fallback, and tests with `nitro task run` and `/_nitro/tasks`. Response A uses NestJS and `@nestjs/schedule` with Mongo, so it misses every Nitro element in the rubric."
+      },
+      {
+        "name": "migrate-handler-to-nitro3",
+        "baseline": 30,
+        "treatment": 88,
+        "rationale": "A matches nearly all rubric items (defineHandler from nitro, event.req.json, HTTPError, useKV from nitro/kv, nitropack→nitro, defineConfig, serverDir, storage→kv, beta/nitropack@^2 note), while B keeps useStorage and the storage config key, omits serverDir and the nitropack@^2 pin, and imports defineHandler from nitro/h3."
       }
     ]
   }

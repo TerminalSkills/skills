@@ -8,27 +8,20 @@ description: >-
   Covers data fetching, caching, revalidation, mutation, pagination, and
   optimistic updates.
 license: Apache-2.0
-compatibility: "React 18+. Next.js, Remix, Vite."
+compatibility: "React 16.11+ (18 or 19 recommended). Works in Next.js, Remix and Vite; hooks need Client Components."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["data-fetching", "swr", "react", "cache", "revalidation"]
+  repository: "https://github.com/vercel/swr"
 ---
 
 # SWR
 
 ## Overview
 
-SWR (stale-while-revalidate) is a React data fetching library — show cached data instantly, then revalidate in the background. Built by Vercel, it handles caching, deduplication, revalidation on focus/reconnect, pagination, and optimistic updates. Simpler than TanStack Query for straightforward data fetching, with a smaller API surface.
-
-## When to Use
-
-- Fetching API data in React components
-- Need instant page loads with background revalidation
-- Real-time data that should refresh automatically
-- Paginated or infinite scroll data
-- Simpler alternative to TanStack Query for most use cases
+SWR (stale-while-revalidate) is a React hooks library from Vercel for remote data: it returns cached data immediately, then revalidates in the background. It deduplicates requests, revalidates on window focus and network reconnect, retries errors with exponential backoff, and supports polling, pagination, infinite loading, mutations and optimistic UI. The current stable release is 2.5.1 (August 2026); 2.5 added an experimental `cacheData` option for preloading from React Server Components and an `unload()` function that clears the whole cache. SWR does not issue requests itself: you give it a key and a fetcher function.
 
 ## Instructions
 
@@ -38,57 +31,62 @@ SWR (stale-while-revalidate) is a React data fetching library — show cached da
 npm install swr
 ```
 
-### Basic Data Fetching
+### Basic data fetching
+
+`fetch` does not throw on 4xx/5xx, so the fetcher must do it or SWR will treat an error body as data.
 
 ```tsx
-// hooks/useUser.ts — Fetch and cache user data
-import useSWR from "swr";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-export function useUser(userId: string) {
-  const { data, error, isLoading, mutate } = useSWR(
-    `/api/users/${userId}`,
-    fetcher,
-  );
-
-  return {
-    user: data,
-    isLoading,
-    isError: error,
-    mutate,  // Manually revalidate
-  };
+// lib/fetcher.ts
+export class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+  }
 }
 
-// Usage in component
-function UserProfile({ userId }) {
-  const { user, isLoading } = useUser(userId);
-  if (isLoading) return <div>Loading...</div>;
-  return <div>{user.name}</div>;
+export const fetcher = async <T,>(url: string): Promise<T> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new ApiError(`Request failed: ${res.status}`, res.status);
+  return res.json();
+};
+```
+
+```tsx
+// hooks/useUser.ts
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
+
+interface User { id: string; name: string; email: string }
+
+export function useUser(userId: string | null) {
+  // A null key skips the request (conditional fetching)
+  const { data, error, isLoading, isValidating, mutate } = useSWR<User>(
+    userId ? `/api/users/${userId}` : null,
+    fetcher,
+  );
+  return { user: data, error, isLoading, isValidating, mutate };
 }
 ```
 
-### Global Configuration
+`isLoading` is true only while there is no data yet; `isValidating` is true during any request, including background revalidation. If the key is an array or object, the whole value is passed to the fetcher as one argument (it is not spread, unlike SWR 1.x).
+
+### Global configuration
 
 ```tsx
-// app/providers.tsx — Global SWR config
+// app/providers.tsx
+"use client";
 import { SWRConfig } from "swr";
+import { fetcher } from "@/lib/fetcher";
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("API error");
-  return res.json();
-};
-
-export function Providers({ children }) {
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SWRConfig
       value={{
         fetcher,
-        revalidateOnFocus: true,      // Refresh when tab regains focus
-        revalidateOnReconnect: true,   // Refresh when internet reconnects
-        dedupingInterval: 2000,        // Dedupe requests within 2s
-        errorRetryCount: 3,
+        revalidateOnFocus: true,       // default true
+        revalidateOnReconnect: true,   // default true
+        dedupingInterval: 2000,        // default 2000 ms
+        errorRetryCount: 3,            // default: retry without a limit
+        shouldRetryOnError: (err) => !(err instanceof Error && "status" in err && err.status === 404),
       }}
     >
       {children}
@@ -97,108 +95,141 @@ export function Providers({ children }) {
 }
 ```
 
-### Mutation and Optimistic Updates
+Polling is `refreshInterval: 5000` (ms) on a hook or in the config. `refreshWhenHidden` and `refreshWhenOffline` are off by default.
+
+### Mutation and optimistic updates
+
+For a write triggered by a user action, use `useSWRMutation`: it sends the request only when `trigger` is called, shares the cache with `useSWR`, and supports `optimisticData` and rollback.
 
 ```tsx
-// components/TodoList.tsx — Optimistic updates
-import useSWR, { useSWRConfig } from "swr";
+// components/TodoList.tsx
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 
-function TodoList() {
-  const { data: todos, mutate } = useSWR("/api/todos");
+interface Todo { id: number; title: string; done: boolean }
 
-  const addTodo = async (title: string) => {
-    const newTodo = { id: Date.now(), title, done: false };
+async function createTodo(url: string, { arg }: { arg: { title: string } }) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(arg),
+  });
+  if (!res.ok) throw new Error("Could not create todo");
+  return (await res.json()) as Todo;
+}
 
-    // Optimistic update — show immediately, revalidate in background
-    await mutate(
-      async () => {
-        await fetch("/api/todos", {
-          method: "POST",
-          body: JSON.stringify({ title }),
-        });
-        // Return updated data (or let SWR refetch)
-      },
+export function TodoList() {
+  const { data: todos = [] } = useSWR<Todo[]>("/api/todos");
+  const { trigger, isMutating } = useSWRMutation("/api/todos", createTodo);
+
+  const addTodo = (title: string) =>
+    trigger(
+      { title },
       {
-        optimisticData: [...(todos || []), newTodo],
-        rollbackOnError: true,  // Revert if API fails
-        revalidate: true,       // Refetch after mutation
-      }
+        optimisticData: (current?: Todo[]) => [...(current ?? []), { id: -1, title, done: false }],
+        populateCache: (created: Todo, current?: Todo[]) => [...(current ?? []), created],
+        rollbackOnError: true,
+        revalidate: false,
+      },
     );
-  };
+  // render todos and a form that calls addTodo
 }
 ```
 
-### Pagination
+With the plain `mutate(key, asyncFn, options)` API the async function must return the new data. A function that returns nothing writes `undefined` into the cache until the revalidation finishes, so `data` is briefly `undefined`:
 
 ```tsx
-// components/PostList.tsx — Paginated data
+const { mutate } = useSWR<Todo[]>("/api/todos");
+await mutate(
+  async (current = []) => [...current, await createTodo("/api/todos", { arg: { title } })],
+  { optimisticData: (current = []) => [...current, { id: -1, title, done: false }], rollbackOnError: true },
+);
+```
+
+`mutate(key)` with no data just marks the key stale and refetches it. The global `mutate` (from `useSWRConfig()` or imported from `swr`) accepts a filter function as key, for example to revalidate every key starting with `/api/todos`.
+
+### Pagination
+
+Keep the previous page on screen while the next one loads with `keepPreviousData`:
+
+```tsx
+import { useState } from "react";
 import useSWR from "swr";
 
 function PostList() {
   const [page, setPage] = useState(1);
-
-  const { data, isLoading } = useSWR(`/api/posts?page=${page}&limit=20`);
-
-  return (
-    <div>
-      {data?.posts.map((post) => <PostCard key={post.id} post={post} />)}
-      <button onClick={() => setPage(page - 1)} disabled={page <= 1}>Previous</button>
-      <button onClick={() => setPage(page + 1)} disabled={!data?.hasMore}>Next</button>
-    </div>
+  const { data, isLoading } = useSWR<{ posts: Post[]; hasMore: boolean }>(
+    `/api/posts?page=${page}&limit=20`,
+    { keepPreviousData: true },
   );
+  // render data?.posts plus Previous / Next buttons using page and data?.hasMore
 }
 ```
 
-### Infinite Loading
+### Infinite loading
+
+`useSWRInfinite` takes a key function that receives the page index and the previous page's data; return `null` to stop.
 
 ```tsx
-// components/InfiniteFeed.tsx — Infinite scroll
 import useSWRInfinite from "swr/infinite";
 
+const getKey = (index: number, previous: { posts: Post[]; hasMore: boolean } | null) => {
+  if (previous && !previous.hasMore) return null;
+  return `/api/feed?page=${index + 1}&limit=20`;
+};
+
 function InfiniteFeed() {
-  const { data, size, setSize, isLoading } = useSWRInfinite(
-    (index) => `/api/feed?page=${index + 1}&limit=20`,
-  );
-
-  const posts = data?.flatMap((page) => page.posts) || [];
-  const hasMore = data?.[data.length - 1]?.hasMore;
-
-  return (
-    <div>
-      {posts.map((post) => <PostCard key={post.id} post={post} />)}
-      {hasMore && (
-        <button onClick={() => setSize(size + 1)} disabled={isLoading}>
-          Load More
-        </button>
-      )}
-    </div>
-  );
+  const { data, size, setSize, isLoading, isValidating } = useSWRInfinite(getKey);
+  const posts = data?.flatMap((page) => page.posts) ?? [];
+  const hasMore = data ? data[data.length - 1].hasMore : false;
+  // render posts and a button: onClick={() => setSize(size + 1)}
 }
 ```
+
+### Other APIs worth knowing
+
+`preload(key, fetcher)` starts a request before the component renders, `useSWRSubscription` wraps WebSocket or SSE sources, `fallbackData` and `fallback` (in `SWRConfig`) seed the cache for SSR, and `unload()` (2.5+) clears all cached data.
 
 ## Examples
 
 ### Example 1: Dashboard with auto-refreshing data
 
-**User prompt:** "Build a dashboard that shows live metrics — refresh every 5 seconds."
+**User prompt:** "Build a dashboard that shows live order metrics for our store and refreshes every 5 seconds."
 
-The agent will use SWR with `refreshInterval: 5000`, show cached data instantly on mount, and handle loading/error states.
+```tsx
+"use client";
+import useSWR from "swr";
 
-### Example 2: CRUD with optimistic updates
+interface Metrics { ordersToday: number; revenue: number; updatedAt: string }
 
-**User prompt:** "Build a todo app where adding/deleting feels instant."
+export function MetricsCard() {
+  const { data, error, isLoading } = useSWR<Metrics>("/api/metrics/orders", {
+    refreshInterval: 5000,
+  });
+  if (isLoading) return <p>Loading metrics…</p>;
+  if (error) return <p role="alert">Could not load metrics. Retrying…</p>;
+  return (
+    <p>
+      {data!.ordersToday} orders, ${data!.revenue.toFixed(2)} revenue (updated {data!.updatedAt})
+    </p>
+  );
+}
+```
 
-The agent will use SWR mutations with optimistic data, rollback on error, and automatic revalidation after changes.
+Result: the card renders the cached value instantly on revisit, polls every 5 seconds, pauses while the tab is hidden, and keeps the last good numbers on screen if a poll fails.
+
+### Example 2: Todo app where adding and deleting feels instant
+
+**User prompt:** "Adding and deleting todos should show up instantly, and roll back if the server rejects it."
+
+Use `useSWR("/api/todos")` for the list and one `useSWRMutation` per action (`POST` for create, `DELETE /api/todos/:id` for remove) with `optimisticData` and `rollbackOnError: true`, as in the mutation section above. For delete, `optimisticData: (current = []) => current.filter((t) => t.id !== id)` removes the row immediately. Result: the UI updates before the request ends; if the API returns 500 the list snaps back and `trigger` rejects so you can show a toast.
 
 ## Guidelines
 
-- **Key = cache key** — same key = same cached data across components
-- **`null` key skips fetching** — conditional fetching: `useSWR(userId ? /api/... : null)`
-- **Revalidation on focus** — data refreshes when user returns to tab
-- **Optimistic updates** — show changes immediately, revert on error
-- **`mutate` for cache updates** — bound (per-key) or global
-- **`useSWRInfinite` for infinite scroll** — accumulates pages
-- **Deduplication** — multiple components using same key = one request
-- **Error retry built-in** — automatic with exponential backoff
-- **Smaller than TanStack Query** — simpler API for simpler needs
-- **Works with any fetcher** — fetch, axios, GraphQL clients
+- The key is the cache key: the same key anywhere in the app shares one cached value and one request. Include every input that changes the response (`/api/posts?page=2`).
+- Throw in the fetcher for non-2xx responses; otherwise `error` is never set.
+- Pass `null` (or a falsy-returning function) as key to wait for a dependency such as a user id; do not call hooks conditionally.
+- Use `useSWRMutation` for writes and `mutate` for revalidating or editing cached data; do not call `fetch` for a POST and hope the list updates.
+- `useSWR` hooks must run in Client Components (`"use client"` in the Next.js App Router). Fetching in a Server Component and passing `fallbackData` avoids a client waterfall.
+- Never put secrets in keys: keys appear in the cache and DevTools.
+- SWR is for client fetching. For complex server-state needs such as dependent mutations with devtools, query invalidation by tag or offline persistence, TanStack Query has more features; for simple read-heavy UIs SWR is smaller.

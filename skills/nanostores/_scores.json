@@ -1,13 +1,13 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3432624c262f614ab27a2d636fcf6c547dbb7cebb38fbc493553eccd566a8127",
-  "scoredAt": "2026-05-13T09:39:03.872Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e50070c46ef51d835a2caf4b1c83a6d65b18cb1c40f59f5a7ecf4e767fe412a6",
+  "scoredAt": "2026-10-03T12:05:17.173Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill file lacks explicit instructions for the agent, making it unclear how to apply the knowledge."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The examples do not cover error handling or edge cases, limiting guidance for robust usage."
+        "detail": "Error handling is thin: the fetch calls in onMount and the mutator have no response.ok checks or failure paths, and the SSR/test guidance is a single prose sentence with no code."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 91,
-    "multiplier": 2.39,
+    "multiplier": 1.14,
+    "baselineAvg": 76,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "User store with map, computed, and React hook",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment uses map() with setKey() per-key updates and computed() with $ prefix and useStore from @nanostores/react; baseline often falls back to atoms only and skips per-key updates."
+        "name": "conditional-search-fetcher",
+        "baseline": 80,
+        "treatment": 88,
+        "rationale": "Both create a fetcher store with a computed key that returns null below 3 characters and explain that a null key part skips the fetch. B scores higher because it URL-encodes inside the computed key, as the rubric asks, and it explicitly describes the idle state. A encodes inside the fetcher instead, which is less aligned with the rubric, and it mentions idle only loosely."
       },
       {
-        "name": "Cached fetcher + mutator with invalidation via @nanostores/query",
-        "baseline": 25,
+        "name": "astro-shared-persistent-cart",
+        "baseline": 85,
+        "treatment": 82,
+        "rationale": "Both use persistentMap, a computed count, Number/String conversion, and useStore from the React and Vue packages, with the store in one module and plain-function actions. B adds removal, cross-tab detail and gotchas, and a more complete Vue island; A is concise and states the strings note more explicitly in a comment, but both only note it in code comments."
+      },
+      {
+        "name": "store-testing-and-mutation-invalidate",
+        "baseline": 62,
         "treatment": 90,
-        "rationale": "Treatment uses nanoquery's createFetcherStore/createMutatorStore with invalidates option; baseline defaults to React Query or manual fetch+atom and misses the library entirely."
+        "rationale": "B covers every rubric item: createMutatorStore with invalidate('/api/projects'), keepMount to trigger onMount, cleanStores in afterEach, and get() only in tests/actions. A uses createMutatorStore and invalidate correctly but never mentions keepMount (it uses listen/allTasks instead) and says nothing about restricting get() to tests and actions."
       }
     ]
   }

@@ -1,15 +1,15 @@
 ---
 name: openbb
 description: >-
-  Access financial data for analysis, quantitative research, and AI agents using OpenBB
-  platform — stocks, crypto, forex, macro economics, alternative data. Use when: building
-  financial analysis tools, feeding market data to AI agents, creating quantitative research
-  pipelines, accessing free financial data APIs.
+  OpenBB Platform is an open-source Python library, REST API and MCP server that gives one
+  interface to financial data: stocks, ETFs, crypto, forex, macro economics and SEC filings.
+  Use when building financial analysis tools, feeding market data to AI agents, creating
+  quantitative research pipelines, or accessing free financial data APIs from Python.
 license: AGPL-3.0
-compatibility: "Python 3.10+"
+compatibility: "Python 3.10+; openbb 5.x"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags:
     - finance
@@ -17,169 +17,154 @@ metadata:
     - quant
     - openbb
     - ai-agents
+  repository: https://github.com/OpenBB-finance/OpenBB
 ---
 
 # OpenBB
 
-Open Data Platform for financial data. Connect once, consume everywhere — Python for quants, REST API for apps, MCP server for AI agents. Access stocks, crypto, forex, macro indicators, and alternative data.
-
-GitHub: [OpenBB-finance/OpenBB](https://github.com/OpenBB-finance/OpenBB)
-
 ## Overview
 
-OpenBB is an open-source financial data platform that aggregates data from multiple providers (Yahoo Finance, FRED, SEC, FMP, Polygon, and more). It offers a Python SDK, REST API server, and MCP server for AI agents, covering equities, crypto, forex, macro economics, and news.
+OpenBB (Open Data Platform, repository OpenBB-finance/OpenBB, Apache-2.0) turns many financial data sources into one typed Python client (`from openbb import obb`), a FastAPI REST server (`openbb-api`) and an MCP server (`openbb-mcp`). Results are `OBBject` objects with `.to_dataframe()`, `.to_dict()` and `.results`. Checked against openbb 5.0.0 / openbb-core 2.0.1 (2026).
+
+Version 5 is a modular rewrite: `openbb-core` ships no commands, and what you can call depends on which extension packages are installed. Older tutorials (4.x) rely on providers such as `yfinance`, `fmp` and `polygon` that are not part of 5.0; commands like `obb.equity.fundamental.metrics` and `obb.equity.discovery.losers` no longer exist. Always list what you have before writing code (see "Discover what is installed").
 
 ## Instructions
 
 ### Installation
 
 ```bash
-# Core package
-pip install openbb
-
-# With all data providers
-pip install "openbb[all]"
+python3 -m venv .venv && source .venv/bin/activate
+pip install "openbb[routers]"     # client + provider extensions + equity/economy/crypto/... routers
 ```
 
-### Quick Start
+Plain `pip install openbb` installs the providers (cboe, nasdaq, sec, fred, oecd, ecb, imf, tmx, ...), `obb.news`, charting, the API and MCP servers, but not the `equity`, `economy`, `crypto`, `currency`, `technical` routers; those come with the `[routers]` extra or individual packages (`pip install openbb-equity openbb-technical`). After adding or removing an extension, `openbb-build` regenerates the static package (it also rebuilds on import).
+
+### Discover what is installed
 
 ```python
 from openbb import obb
 
-# Stock price history
-output = obb.equity.price.historical("AAPL")
-df = output.to_dataframe()
-print(df.head())
+print([n for n in dir(obb) if not n.startswith("_")])           # namespaces
+print([n for n in dir(obb.equity.fundamental) if not n.startswith("_")])
+import inspect
+print(inspect.signature(obb.equity.price.historical))
+print(obb.equity.price.historical.__annotations__["provider"])   # providers allowed for this command
 ```
 
-### Equity Data
+Each command accepts `provider="..."`; without it, the first available provider in the command's priority list is used. In this install `equity.price.historical` accepts `cboe`, `nasdaq`, `tmx`; `crypto.price.historical` only `nasdaq`; `currency.price.historical` `ecb` and `tmx`; `news.company` `nasdaq` and `tmx`.
+
+### Equity data
 
 ```python
-# Historical prices
-df = obb.equity.price.historical("AAPL", start_date="2025-01-01").to_dataframe()
+from openbb import obb
 
-# Real-time quote
-quote = obb.equity.price.quote("AAPL").to_dataframe()
+prices = obb.equity.price.historical("AAPL", start_date="2026-01-01", provider="cboe").to_dataframe()
+quote = obb.equity.price.quote("AAPL", provider="cboe").to_dataframe()
 
-# Fundamental analysis
-income = obb.equity.fundamental.income("AAPL", period="annual").to_dataframe()
-balance = obb.equity.fundamental.balance("AAPL").to_dataframe()
-metrics = obb.equity.fundamental.metrics("AAPL").to_dataframe()
-
-# Technical indicators
-df = obb.equity.price.historical("AAPL", start_date="2025-01-01").to_dataframe()
-sma = obb.technical.sma(data=df, length=20)
-rsi = obb.technical.rsi(data=df, length=14)
-macd = obb.technical.macd(data=df)
+income = obb.equity.fundamental.income("AAPL", provider="sec", limit=4).to_dataframe()   # SEC filings
+ratios = obb.equity.fundamental.ratios("AAPL", limit=4).to_dataframe()                   # nasdaq
+hits = obb.equity.search("apple").to_dataframe()
+universe = obb.equity.screener(provider="nasdaq").to_dataframe()   # about 7,000 rows: filter in pandas
 ```
 
-### Crypto, Forex, and Macro
+Technical indicators take a DataFrame with a `date` index and `close`: `obb.technical.sma(data=prices, length=20)`, `obb.technical.rsi(data=prices, length=14)`, `obb.technical.macd(data=prices)` (columns `macd`, `signal`, `histogram`).
+
+### Macro, currency, news
 
 ```python
-# Crypto
-btc = obb.crypto.price.historical("BTC-USD").to_dataframe()
-
-# Forex
-eurusd = obb.currency.price.historical("EUR/USD").to_dataframe()
-
-# Macro economics
+cpi = obb.economy.cpi(country="united_states", provider="oecd").to_dataframe()
 gdp = obb.economy.gdp.nominal(country="united_states").to_dataframe()
-cpi = obb.economy.cpi(country="united_states").to_dataframe()
-rates = obb.economy.fred_series("FEDFUNDS").to_dataframe()
+eurusd = obb.currency.price.historical("EURUSD").to_dataframe()
+news = obb.news.company("AAPL", limit=5, provider="nasdaq").to_dataframe()
+
+# FRED needs a free key
+fedfunds = obb.economy.fred_series("FEDFUNDS", provider="fred").to_dataframe()
 ```
 
-### AI Agent Integration
+### Credentials
 
-Run OpenBB as an API server:
+Providers that need a key read `<PROVIDER>_<CREDENTIAL>` environment variables (they take precedence), then `~/.openbb_platform/user_settings.json`, or you set them per session:
 
 ```bash
-openbb-api
-# Launches FastAPI at http://127.0.0.1:6900
+export FRED_API_KEY="your FRED key from fredaccount.stlouisfed.org"
+export BLS_API_KEY="your BLS key"
 ```
-
-Query from any language:
-
-```bash
-curl http://127.0.0.1:6900/api/v1/equity/price/historical?symbol=AAPL
-```
-
-OpenBB also exposes an MCP server so AI agents can query financial data directly.
-
-### Data Providers
-
-| Provider | Data | Free Tier |
-|----------|------|-----------|
-| Yahoo Finance | Prices, fundamentals | Yes |
-| FRED | Macro economics | Yes |
-| SEC (EDGAR) | Filings, insider trades | Yes |
-| FMP | Fundamentals, estimates | Limited |
-| Polygon | Real-time prices | Limited |
 
 ```python
-# Use a specific provider
-obb.equity.price.historical("AAPL", provider="yfinance")
-
-# Set API keys for premium providers
-obb.user.credentials.fmp_api_key = "your_key"
+import os
+obb.user.credentials.fred_api_key = os.environ["FRED_API_KEY"]
 ```
+
+A missing key raises `OpenBBError: Missing credential 'fred_api_key'`.
+
+### REST API and MCP server for agents
+
+```bash
+openbb-api                                   # http://127.0.0.1:6900, OpenAPI docs at /docs
+curl "http://127.0.0.1:6900/api/v1/equity/price/historical?symbol=AAPL&provider=cboe&start_date=2026-09-28"
+
+openbb-mcp --transport stdio                 # default transport is streamable-http on 127.0.0.1:8001
+```
+
+The MCP server exposes the installed commands as tools. Limit them with `--allowed-categories` and keep the server on 127.0.0.1. For OpenBB Workspace, add `http://127.0.0.1:6900` as a custom backend in the Apps tab.
+
+### Providers (what each gives, key needed)
+
+| Provider | Data | Key |
+|----------|------|-----|
+| cboe | US equity prices and quotes, options | none |
+| nasdaq | fundamentals, ratios, news, screener, crypto | none |
+| sec | EDGAR filings and financial statements | none |
+| fred | US macro series | `fred_api_key` (free) |
+| oecd, imf, ecb, bls | macro, rates, FX, labor | oecd/imf/ecb none, bls key |
+| tmx | Canadian markets | none |
+
+The `openbb-yfinance` extension exists on PyPI only as a 2.0.0 release candidate (July 2026); install it with `pip install --pre openbb-yfinance` only if you accept that.
 
 ## Examples
 
-### Example 1: Full Stock Analysis Pipeline
+### Example 1: Stock snapshot for an AI agent
+
+**User request:** "Give me a one-call function that summarizes AAPL: last close, 52-week range, latest revenue and net income, and three headlines."
 
 ```python
 from openbb import obb
 
-def analyze_stock(ticker: str) -> dict:
-    """Full analysis for AI agent consumption."""
-    price = obb.equity.price.historical(ticker, start_date="2025-01-01").to_dataframe()
-    fundamentals = obb.equity.fundamental.metrics(ticker).to_dataframe()
-    news = obb.news.company(ticker, limit=5).to_dataframe()
-
+def snapshot(ticker: str) -> dict:
+    px = obb.equity.price.historical(ticker, start_date="2025-10-01", provider="cboe").to_dataframe()
+    inc = obb.equity.fundamental.income(ticker, provider="sec", limit=1).to_dataframe()
+    news = obb.news.company(ticker, limit=3, provider="nasdaq").to_dataframe()
     return {
         "ticker": ticker,
-        "current_price": price["close"].iloc[-1],
-        "52w_high": price["high"].max(),
-        "52w_low": price["low"].min(),
-        "pe_ratio": fundamentals["pe_ratio"].iloc[0] if len(fundamentals) > 0 else None,
-        "market_cap": fundamentals["market_cap"].iloc[0] if len(fundamentals) > 0 else None,
-        "recent_news": news["title"].tolist() if len(news) > 0 else [],
+        "last_close": float(px["close"].iloc[-1]),
+        "range_52w": (float(px["low"].tail(252).min()), float(px["high"].tail(252).max())),
+        "revenue": inc["total_revenue"].iloc[0],
+        "headlines": news["title"].tolist(),
     }
 
-analysis = analyze_stock("AAPL")
+print(snapshot("AAPL"))
 ```
 
-### Example 2: Screening and Discovery
+The agent checks column names with `inc.columns` first, since they differ between providers (`total_revenue` for sec, `revenue` for nasdaq). The result is a dict with the last close, a (low, high) tuple and three titles.
 
-```python
-# Stock screener — find undervalued dividend stocks
-screener = obb.equity.screener(
-    market_cap_min=1e9,
-    pe_ratio_max=20,
-    dividend_yield_min=2.0
-).to_dataframe()
+### Example 2: Inflation versus rates without paid keys
 
-# Top gainers/losers
-gainers = obb.equity.discovery.gainers().to_dataframe()
-losers = obb.equity.discovery.losers().to_dataframe()
+**User request:** "Plot US inflation against the policy rate since 2020 using free data."
 
-# Company news
-news = obb.news.company("AAPL", limit=20).to_dataframe()
-```
+The agent calls `obb.economy.cpi(country="united_states", provider="oecd", start_date="2020-01-01")` and `obb.economy.interest_rates(country="united_states", provider="oecd")`, joins the two DataFrames on `date`, and plots both series with matplotlib. If the user has a FRED key, it swaps in `provider="fred"` for daily-fresh series.
 
 ## Guidelines
 
-- Start with `pip install openbb` (core) — add `[all]` only if you need every provider
-- Use `.to_dataframe()` on all outputs for pandas integration
-- Free data from Yahoo Finance and FRED covers most research needs
-- Run `openbb-api` to expose data to non-Python applications
-- The MCP server lets AI agents query financial data autonomously
-- Check [docs.openbb.co/python/reference](https://docs.openbb.co/python/reference) for all available endpoints
+- Do not copy 4.x snippets: check `dir(obb.<namespace>)` and the provider list of a command before using it.
+- Pass `provider=` explicitly in agent code so results do not change when you install another extension.
+- Free providers have delays, rate limits and gaps (`crypto.price.historical("BTC-USD")` returned no rows in testing); handle `EmptyDataError` and `OpenBBError`.
+- Market data is not investment advice; cite the provider and date in anything shown to users.
+- Never hard-code API keys; use environment variables or `~/.openbb_platform/.env`.
+- Run `openbb-api` and `openbb-mcp` on 127.0.0.1 only.
+- Not a fit for tick-level or low-latency trading data.
 
 ## Resources
 
 - [Documentation](https://docs.openbb.co)
-- [Python Reference](https://docs.openbb.co/python/reference)
-- [OpenBB Workspace](https://pro.openbb.co)
+- [Repository and README](https://github.com/OpenBB-finance/OpenBB)
 - [Agents for OpenBB](https://github.com/OpenBB-finance/agents-for-openbb)
-- [Discord](https://discord.com/invite/xPHTuHCmuV)

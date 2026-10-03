@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:56ed6367402c50fcb30c3a095138dfc87756faafa404df59959d5d099ccb0884",
-  "scoredAt": "2026-05-13T16:28:47.746Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:f9cc9865c8c46921a788ef16a167cbd39032186e84f27c1816021266dd9aee69",
+  "scoredAt": "2026-10-02T23:24:35.642Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks error handling and edge case coverage, focusing only on happy path scenarios."
+        "detail": "Error handling is mostly limited to brief notes (NET-0001 timeout, HTTP 429 backoff) with no code for handling failed requests, WebSocket errors or reconnects, and the Voice Agent API mentioned in the description is not actually covered with instructions or code."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.93,
-    "baselineAvg": 30,
-    "treatmentAvg": 88,
+    "multiplier": 1.92,
+    "baselineAvg": 48,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "real-time-voice-assistant-transcription",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "A fully satisfies all rubric requirements, while B lacks explicit confirmation of required options and event handling."
+        "name": "diarized-call-transcript-python",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "B uses DeepgramClient with listen.v1.media.transcribe_file, nova-3, diarize=True, utterances=True, and loops over response.results.utterances printing speaker, start and transcript, so it covers the whole rubric. A calls the REST API with requests, never uses the SDK or utterances, and groups words by speaker by hand."
       },
       {
-        "name": "pre-recorded-meeting-transcription-with-summary",
-        "baseline": 10,
-        "treatment": 75,
-        "rationale": "Response A meets most rubric requirements using Deepgram and prints utterances with confidence, but omits overall confidence and full transcript; Response B uses a different service entirely."
+        "name": "voice-agent-turn-detection-flux",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "B uses client.listen.v2.connect with flux-general-en, linear16, 16000, eot_threshold, eager_eot_threshold, the 50-70% LLM-call increase tied to TurnResumed, and no language parameter, while A uses a raw WebSocket instead of the SDK and never gives the 50-70% figure."
+      },
+      {
+        "name": "live-captions-nodejs-keepalive",
+        "baseline": 88,
+        "treatment": 90,
+        "rationale": "Both use DeepgramClient and listen.v1.connect with the right options, handle Results and UtteranceEnd, and explain KeepAlive and NET-0001. B passes utterance_end_ms as a string as the rubric requires and states the 3-5 second interval, but its code has a few gaps. A sends utterance_end_ms as a number, which breaks the rubric's string requirement, but it sends CloseStream with Finalize and adds reconnect advice."
       }
     ]
   }

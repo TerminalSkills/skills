@@ -1,15 +1,16 @@
 ---
 name: n8n-workflow-sdk
 description: >-
-  Build n8n workflows programmatically with the official TypeScript SDK.
-  Use when a user asks to create n8n workflows from code, generate workflow
-  JSON, build automation pipelines programmatically, convert between n8n
-  JSON and TypeScript, or integrate n8n workflow creation into applications.
+  Build n8n workflows as TypeScript code with the official @n8n/workflow-sdk
+  package: define nodes and connections, validate them, convert between n8n
+  JSON and SDK code, and push the result to an n8n instance. Use when a user
+  asks to create n8n workflows programmatically, generate workflow JSON,
+  version-control workflows, or let an AI agent write n8n workflows.
 license: Sustainable Use License
-compatibility: 'Node.js 18+, TypeScript'
+compatibility: 'Node.js 20+, TypeScript or modern JavaScript; an n8n instance and API key to deploy'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: automation
   tags:
     - n8n
@@ -17,314 +18,199 @@ metadata:
     - automation
     - sdk
     - typescript
-    - ai
-    - langchain
+  repository: https://github.com/n8n-io/n8n
 ---
 
 # n8n Workflow SDK
 
 ## Overview
 
-`@n8n/workflow-sdk` is the official TypeScript SDK from n8n (v0.2.0, released February 2026) for programmatically creating, validating, and converting workflows. Instead of dragging nodes in the UI, define workflows as code — type-safe, version-controlled, and composable. Supports all n8n node types including AI/LangChain nodes. Includes bidirectional conversion between JSON and TypeScript.
+`@n8n/workflow-sdk` is n8n's own TypeScript SDK (it lives in `packages/@n8n/workflow-sdk` of the n8n monorepo). You declare nodes with a few factory functions, wire them with `.add()` / `.to()`, and get standard n8n workflow JSON. It validates workflows, turns existing JSON into SDK code (`generateWorkflowCode`) and parses SDK code back into JSON (`parseWorkflowCode`). Checked against 0.34.2 (1 October 2026; a `beta` tag 0.35.x also exists). The package is pre-1.0 and changes weekly, so pin an exact version.
+
+The API is generic: there are no per-node helpers such as `httpRequest()` or `code()` and no `new WorkflowBuilder()`. Every node is `node({ type, version, config })`, and the node's `type` and `version` come from n8n (copy them from an exported workflow or `generateWorkflowCode`).
 
 ## Instructions
 
-### Step 1: Install and Create a Basic Workflow
+### Install
 
 ```bash
-npm install @n8n/workflow-sdk
+npm install --save-exact @n8n/workflow-sdk@0.34.2
 ```
 
-```typescript
-// workflows/data-sync.ts — Programmatic workflow creation
-import { WorkflowBuilder, manual, httpRequest, code } from '@n8n/workflow-sdk'
-
-// Build a simple data sync workflow
-const workflow = new WorkflowBuilder()
-  .withName('Daily Data Sync')
-  .addTrigger(manual())
-  .then(httpRequest({
-    url: 'https://api.example.com/users',
-    method: 'GET',
-    headers: {
-      Authorization: '={{ $env.API_KEY }}',      // n8n expression for env variable
-    },
-  }))
-  .then(code({
-    language: 'typescript',
-    code: `
-      // Transform API response to internal format
-      return items.map(item => ({
-        json: {
-          id: item.json.id,
-          email: item.json.email,
-          name: \`\${item.json.firstName} \${item.json.lastName}\`,
-          active: item.json.status === 'active',
-          syncedAt: new Date().toISOString(),
-        }
-      }))
-    `,
-  }))
-  .build()
-
-// workflow is now a valid n8n JSON object ready to import
-console.log(JSON.stringify(workflow, null, 2))
-```
-
-### Step 2: Control Flow — Branching and Merging
+### Building blocks
 
 ```typescript
-// workflows/lead-routing.ts — Conditional workflow with branches
 import {
-  WorkflowBuilder, webhook, ifElse, merge,
-  httpRequest, node, sticky,
-} from '@n8n/workflow-sdk'
+  workflow, node, trigger, ifElse, switchCase, merge, splitInBatches, nextBatch,
+  languageModel, memory, tool, outputParser, newCredential, fromAi,
+  expr, nodeJson, sticky,
+} from '@n8n/workflow-sdk';
+```
 
-const workflow = new WorkflowBuilder()
-  .withName('Lead Routing')
+- `trigger({ type, version, config })` starts a workflow; `node(...)` is any other node; `config` holds `name`, `parameters`, `credentials`, `position`, flags such as `executeOnce`.
+- `workflow('id', 'Name').add(trigger).to(nodeA).to(nodeB)` builds the graph; call `.add(otherTrigger)` again for another entry point.
+- `ifElse({ version, config })` gives `.onTrue(x)` / `.onFalse(y)`; `switchCase(...)` gives `.onCase(0, x)`; `merge(...)` takes branches via `.input(0)` / `.input(1)`; `splitInBatches(...)` gives `.onEachBatch(...)` and `.onDone(...)`, and the loop body ends with `nextBatch(loopNode)`.
+- `expr('{{ $json.email }}')` marks an n8n expression; `nodeJson(someNode, 'body.userId')` reads a field from a specific earlier node.
+- AI nodes: build `languageModel`, `memory`, `tool`, `outputParser` instances and attach them in `subnodes: { model, memory, tools: [...], outputParser }` on the agent node.
+- Credentials are never embedded: `newCredential('OpenAI account')` is a placeholder you bind in n8n.
 
-  // Trigger on incoming webhook
-  .addTrigger(webhook({
-    path: 'new-lead',
-    method: 'POST',
-    responseMode: 'onReceived',
-  }))
+### A branching workflow
 
-  // Branch based on lead score
-  .then(ifElse({
-    conditions: {
-      combinator: 'and',
-      conditions: [
-        { leftValue: '={{ $json.score }}', operator: 'gte', rightValue: 80 },
-      ],
+```typescript
+// workflows/lead-routing.ts
+import { workflow, node, trigger, ifElse, expr } from '@n8n/workflow-sdk';
+
+const intake = trigger({
+  type: 'n8n-nodes-base.webhook',
+  version: 2.1,
+  config: { name: 'New Lead', parameters: { httpMethod: 'POST', path: 'new-lead', responseMode: 'onReceived' } },
+});
+
+const isHot = ifElse({
+  version: 2.2,
+  config: {
+    name: 'Score >= 80?',
+    parameters: {
+      conditions: {
+        options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+        conditions: [{ leftValue: expr('{{ $json.body.score }}'), operator: { type: 'number', operation: 'gte' }, rightValue: 80 }],
+        combinator: 'and',
+      },
     },
-  }))
+  },
+});
 
-  // True branch — high-value lead → Salesforce + Slack notification
-  .onTrue(
-    httpRequest({
-      url: 'https://mycompany.salesforce.com/api/leads',
-      method: 'POST',
-      body: '={{ JSON.stringify($json) }}',
-    })
-  )
+const notifySales = node({
+  type: 'n8n-nodes-base.httpRequest',
+  version: 4.3,
+  config: { name: 'Notify Sales', parameters: { method: 'POST', url: 'https://hooks.acme-crm.io/sales', sendBody: true, specifyBody: 'json', jsonBody: expr('{{ JSON.stringify($json.body) }}') } },
+});
 
-  // False branch — low-score lead → add to nurture campaign
-  .onFalse(
-    httpRequest({
-      url: 'https://api.mailchimp.com/3.0/lists/abc123/members',
-      method: 'POST',
-      body: '={{ JSON.stringify({ email_address: $json.email, status: "subscribed" }) }}',
-    })
-  )
+const addToNurture = node({
+  type: 'n8n-nodes-base.httpRequest',
+  version: 4.3,
+  config: { name: 'Add To Nurture', parameters: { method: 'POST', url: 'https://hooks.acme-crm.io/nurture' } },
+});
 
-  // Add documentation
-  .addSticky(sticky({
-    content: '## Lead Routing\nHigh-score leads (≥80) go to Salesforce.\nOthers enter nurture campaign.',
-    width: 300,
-    height: 150,
-  }))
-
-  .build()
+export const leadRouting = workflow('lead-routing', 'Lead Routing')
+  .add(intake)
+  .to(isHot.onTrue(notifySales).onFalse(addToNurture));
 ```
 
-### Step 3: AI/LangChain Workflows
+`leadRouting.validate()` returns `{ valid, errors, warnings }`; `leadRouting.toJSON()` returns `{ id, name, nodes, connections, settings }`. The `ifElse` conditions object must include `options`, `conditions` and `combinator`.
+
+### An AI agent with memory and a tool
 
 ```typescript
-// workflows/ai-support-agent.ts — AI agent with tools and memory
-import {
-  WorkflowBuilder, webhook,
-  languageModel, memory, tool, outputParser,
-  node,
-} from '@n8n/workflow-sdk'
+const support = trigger({ type: 'n8n-nodes-base.webhook', version: 2.1,
+  config: { name: 'Support Message', parameters: { httpMethod: 'POST', path: 'support', responseMode: 'lastNode' } } });
 
-const workflow = new WorkflowBuilder()
-  .withName('AI Support Agent')
+const model = languageModel({ type: '@n8n/n8n-nodes-langchain.lmChatOpenAi', version: 1.3,
+  config: { name: 'OpenAI Chat Model', parameters: { model: { __rl: true, mode: 'list', value: 'gpt-4o-mini' } },
+            credentials: { openAiApi: newCredential('OpenAI account') } } });
 
-  .addTrigger(webhook({ path: 'support', method: 'POST' }))
+const mem = memory({ type: '@n8n/n8n-nodes-langchain.memoryBufferWindow', version: 1.3,
+  config: { name: 'Window Memory',
+            parameters: { sessionIdType: 'customKey', sessionKey: nodeJson(support, 'body.userId'), contextWindowLength: 20 } } });
 
-  // AI Agent node with LangChain components
-  .then(node('n8n-nodes-langchain.agent', {
-    text: '={{ $json.message }}',
-    systemMessage: `You are a helpful customer support agent for a SaaS product.
-      Use the available tools to look up account information and
-      knowledge base articles. Be concise and helpful.`,
-  }))
+const lookup = tool({ type: 'n8n-nodes-base.httpRequestTool', version: 4.3,
+  config: { name: 'Lookup Account',
+            parameters: { toolDescription: 'Look up a customer account by email',
+                          url: expr('https://api.acme-saas.io/accounts/{{ $fromAI("email", "Customer email") }}') } } });
 
-  // Attach LLM
-  .withSub(languageModel('openAi', {
-    model: 'gpt-4o',
-    temperature: 0.3,
-  }))
+const agent = node({ type: '@n8n/n8n-nodes-langchain.agent', version: 3.1,
+  config: { name: 'Support Agent',
+            parameters: { promptType: 'define', text: expr('{{ $json.body.message }}'),
+                          options: { systemMessage: 'You are a concise support agent. Call Lookup Account before answering billing questions.' } },
+            subnodes: { model, memory: mem, tools: [lookup] } } });
 
-  // Attach conversation memory
-  .withSub(memory('windowBuffer', {
-    sessionKey: '={{ $json.userId }}',
-    windowSize: 20,      // remember last 20 messages
-  }))
-
-  // Attach tools the agent can use
-  .withSub(tool('httpRequest', {
-    name: 'lookup_account',
-    description: 'Look up customer account by email or ID',
-    url: 'https://api.myapp.com/accounts/{{ $fromAi("query") }}',
-    method: 'GET',
-  }))
-  .withSub(tool('httpRequest', {
-    name: 'search_knowledge_base',
-    description: 'Search the knowledge base for help articles',
-    url: 'https://api.myapp.com/kb/search?q={{ $fromAi("query") }}',
-    method: 'GET',
-  }))
-
-  // Parse structured output
-  .then(outputParser('structured', {
-    schema: {
-      answer: { type: 'string', description: 'The response to the customer' },
-      category: { type: 'string', description: 'Issue category: billing, technical, general' },
-      escalate: { type: 'boolean', description: 'Whether to escalate to human agent' },
-    },
-  }))
-
-  .build()
+export const supportAgent = workflow('support-agent', 'Support Agent').add(support).to(agent);
 ```
 
-### Step 4: Batch Processing with Split and Merge
+Sub-nodes (memory, model, tools, parsers) have no normal predecessor, so `expr('{{ $json... }}')` in them is rejected by the validator; reference the source node with `nodeJson(support, 'path')` instead.
+
+### Batch loop
 
 ```typescript
-// workflows/bulk-enrichment.ts — Process records in batches
-import {
-  WorkflowBuilder, schedule, httpRequest,
-  splitInBatches, merge, code, node,
-} from '@n8n/workflow-sdk'
+const loop = splitInBatches({ version: 3, config: { name: 'Batches of 50', parameters: { batchSize: 50 } } });
 
-const workflow = new WorkflowBuilder()
-  .withName('Contact Enrichment Pipeline')
-
-  // Run every night at 2 AM
-  .addTrigger(schedule({ rule: { interval: [{ field: 'hours', triggerAtHour: 2 }] } }))
-
-  // Fetch contacts that need enrichment
-  .then(httpRequest({
-    url: 'https://api.myapp.com/contacts?needs_enrichment=true&limit=500',
-    method: 'GET',
-  }))
-
-  // Process in batches of 50 to respect API rate limits
-  .then(splitInBatches({ batchSize: 50 }))
-
-  // Enrich each contact via Clearbit
-  .then(httpRequest({
-    url: 'https://person.clearbit.com/v2/people/find',
-    method: 'GET',
-    queryParameters: { email: '={{ $json.email }}' },
-    headers: { Authorization: '={{ $env.CLEARBIT_KEY }}' },
-    options: { batching: { batch: { batchSize: 10, batchInterval: 1000 } } },
-  }))
-
-  // Transform and save
-  .then(code({
-    language: 'typescript',
-    code: `
-      return items.map(item => ({
-        json: {
-          contactId: item.json.contactId,
-          company: item.json.company?.name,
-          title: item.json.title,
-          linkedIn: item.json.linkedin?.handle,
-          enrichedAt: new Date().toISOString(),
-        }
-      }))
-    `,
-  }))
-
-  .then(httpRequest({
-    url: 'https://api.myapp.com/contacts/bulk-update',
-    method: 'PATCH',
-    body: '={{ JSON.stringify($json) }}',
-  }))
-
-  .build()
+export const enrichment = workflow('enrichment', 'Contact Enrichment')
+  .add(nightly)                        // a scheduleTrigger 1.3 declared with trigger(...)
+  .to(getPending)
+  .to(loop.onDone(finish).onEachBatch(enrichContact.to(saveContact).to(nextBatch(loop))));
 ```
 
-### Step 5: Convert Between JSON and TypeScript
+An empty list simply skips the loop, so do not guard it with an IF node or `alwaysOutputData`. When a node should run once rather than per input item, set `executeOnce: true` in its config.
+
+### Convert JSON and code, validate in CI
 
 ```typescript
-// tools/convert.ts — Bidirectional workflow conversion
-import {
-  generateWorkflowCode,
-  parseWorkflowCode,
-  validateWorkflow,
-} from '@n8n/workflow-sdk'
+// tools/roundtrip.ts
+import { readFileSync, writeFileSync } from 'node:fs';
+import { generateWorkflowCode, parseWorkflowCode, validateWorkflow } from '@n8n/workflow-sdk';
 
-// JSON → TypeScript (import existing workflows as code)
-const existingWorkflowJson = require('./exported-workflow.json')
-const tsCode = generateWorkflowCode(existingWorkflowJson)
-console.log(tsCode)
-// Outputs clean TypeScript using WorkflowBuilder API
+const exported = JSON.parse(readFileSync('exports/lead-routing.json', 'utf8'));
+writeFileSync('workflows/lead-routing.sdk.ts', generateWorkflowCode(exported));   // JSON -> SDK code
 
-// TypeScript → JSON (deploy code-defined workflows)
-const workflowJson = parseWorkflowCode(tsCode)
-console.log(JSON.stringify(workflowJson, null, 2))
-// Outputs valid n8n JSON ready for import
-
-// Validate before deploying
-const errors = validateWorkflow(workflowJson)
-if (errors.length > 0) {
-  console.error('Validation errors:', errors)
-  process.exit(1)
-}
-console.log('Workflow is valid ✓')
-```
-
-### Step 6: Deploy Workflows via n8n API
-
-```typescript
-// deploy.ts — Push SDK-built workflows to n8n instance
-import { WorkflowBuilder } from '@n8n/workflow-sdk'
-
-async function deployWorkflow(workflow: ReturnType<WorkflowBuilder['build']>) {
-  const response = await fetch(`${process.env.N8N_URL}/api/v1/workflows`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-N8N-API-KEY': process.env.N8N_API_KEY!,
-    },
-    body: JSON.stringify(workflow),
-  })
-
-  const result = await response.json()
-  console.log(`Deployed: ${result.name} (ID: ${result.id})`)
-
-  // Activate the workflow
-  await fetch(`${process.env.N8N_URL}/api/v1/workflows/${result.id}/activate`, {
-    method: 'PATCH',
-    headers: { 'X-N8N-API-KEY': process.env.N8N_API_KEY! },
-  })
-
-  console.log(`Activated: ${result.name}`)
-  return result.id
-}
-
-// Deploy all workflows from code
-const workflows = [
-  require('./workflows/data-sync'),
-  require('./workflows/lead-routing'),
-  require('./workflows/ai-support-agent'),
-]
-
-for (const wf of workflows) {
-  await deployWorkflow(wf)
+const json = parseWorkflowCode(readFileSync('workflows/lead-routing.sdk.ts', 'utf8')); // code -> JSON
+const result = validateWorkflow(json);
+if (!result.valid) {
+  console.error(result.errors.map((e) => `${e.code}: ${e.message}`).join('\n'));
+  process.exit(1);
 }
 ```
+
+`parseWorkflowCode` reads a restricted subset of TypeScript (the code is interpreted, not run): `const` only, no imports, loops, arrow functions, `new`, or named exports, and a single `export default`. Real modules with imports are fine when you just execute them and call `.toJSON()`.
+
+### Deploy through the n8n public API
+
+Create an API key in n8n (Settings, n8n API). The create endpoint rejects unknown fields, so send only `name`, `nodes`, `connections` and `settings`, then publish (what v1 called activate; `POST /workflows/{id}/activate` is deprecated).
+
+```typescript
+// deploy.ts (Node 20+, run as an ES module)
+import { leadRouting } from './workflows/lead-routing';
+
+const base = `${process.env.N8N_URL}/api/v1`;
+const headers = { 'Content-Type': 'application/json', 'X-N8N-API-KEY': process.env.N8N_API_KEY! };
+const { name, nodes, connections, settings } = leadRouting.toJSON();
+
+const created = await fetch(`${base}/workflows`, { method: 'POST', headers, body: JSON.stringify({ name, nodes, connections, settings }) });
+if (!created.ok) throw new Error(`create failed: ${created.status} ${await created.text()}`);
+const { id } = await created.json();
+
+const published = await fetch(`${base}/workflows/${id}/publish`, { method: 'POST', headers, body: '{}' });
+if (!published.ok) throw new Error(`publish failed: ${published.status}`);
+console.log(`Published ${name} as ${id}`);
+```
+
+Credentials referenced by `newCredential()` must exist in n8n and be selected there before a workflow that uses them can run.
+
+## Examples
+
+### Example 1: "Generate a webhook workflow that routes hot leads to sales"
+
+Save the branching workflow above as `workflows/lead-routing.ts` and run:
+
+```bash
+npx tsx -e "import('./workflows/lead-routing.ts').then(m => console.log(m.leadRouting.validate(), m.leadRouting.toJSON().nodes.map(n => n.name)))"
+```
+
+Output: `{ valid: true, errors: [], warnings: [] }` and `[ 'New Lead', 'Score >= 80?', 'Notify Sales', 'Add To Nurture' ]`. Then run `deploy.ts` to create and publish it.
+
+### Example 2: "Move our exported n8n workflows into git as code"
+
+```bash
+npm install --save-exact @n8n/workflow-sdk@0.34.2 tsx
+npx tsx tools/roundtrip.ts
+```
+
+Each exported JSON becomes a readable `trigger(...)`/`node(...)` file with positions; reviewers see parameter changes in a normal diff, and the CI step fails when `validateWorkflow` reports an error such as `UNSAFE_MEMORY_SESSION_KEY_EXPRESSION`.
 
 ## Guidelines
 
-- `@n8n/workflow-sdk` v0.2.0 is an early release (Feb 2026) — API may evolve. Pin the version.
-- Use `generateWorkflowCode()` to migrate existing JSON workflows to code — great for version control.
-- `validateWorkflow()` catches node configuration errors before deployment — use in CI.
-- n8n expressions (`={{ }}`) work in all string parameters — reference previous node data with `$json`, `$env`, `$fromAi()`.
-- AI/LangChain nodes use `.withSub()` to attach language models, memory, and tools to agent nodes.
-- The SDK outputs standard n8n JSON — deploy via the n8n REST API or import through the UI.
-- License is Sustainable Use (n8n proprietary), not open source — check terms for your use case.
-- For workflow-as-code patterns: keep workflows in a `workflows/` directory, validate in CI, deploy with a script.
+- Pre-1.0 and fast-moving: pin the exact version, re-run validation after every upgrade, and treat `type`/`version` pairs as data from your own n8n version (node versions differ between n8n releases).
+- Always run `validate()` or `validateWorkflow()` before deploying; it catches wrong parameters, unsafe `$json` in sub-nodes and missing `conditions` fields. Warnings such as a missing agent system message are worth fixing too.
+- Keep runtime logic in nodes (Set, Filter, IF, Code) or inside `expr('{{ ... }}')`; builder code only describes the graph.
+- Never put API keys or tokens into node parameters; use n8n credentials and `$env` or the credential store.
+- The licence is the Sustainable Use License (source-available, not open source): fine for internal business use, restricted for resale or hosting it for others. Check the terms before building a product on it.
+- The SDK produces workflow definitions only; it does not run them. Execution happens in n8n.

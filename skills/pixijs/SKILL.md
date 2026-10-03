@@ -1,179 +1,179 @@
 ---
 name: pixijs
 description: >-
-  You are an expert in PixiJS, the fastest 2D rendering engine for the web.
-  You help developers build games, interactive visualizations, animated ads,
-  creative coding projects, and rich UI effects using PixiJS's WebGL-first
-  renderer with automatic Canvas fallback — handling sprites, text, filters,
-  masks, blend modes, and custom shaders at 60fps with hundreds of thousands
-  of objects.
+  Renders fast 2D graphics in the browser with PixiJS 8, a WebGL and WebGPU engine for sprites, text, filters, masks and particles. Use when a user asks to build a 2D game, an interactive visualization, an animated banner, a sprite animation from a spritesheet, a particle effect, or to speed up a canvas scene with thousands of objects.
 license: Apache-2.0
-compatibility: ''
+compatibility: 'PixiJS 8.x (pixi.js on npm), any modern browser with WebGL2 or WebGPU; Node.js 20+ for the build tooling.'
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Game Development
+  version: "1.1.0"
+  category: development
   tags:
     - 2d-rendering
     - webgl
-    - canvas
     - graphics
     - animation
-    - interactive
-    - creative-coding
+    - game-development
+  repository: https://github.com/pixijs/pixijs
 ---
 
 # PixiJS — High-Performance 2D WebGL Renderer
 
-You are an expert in PixiJS, the fastest 2D rendering engine for the web. You help developers build games, interactive visualizations, animated ads, creative coding projects, and rich UI effects using PixiJS's WebGL-first renderer with automatic Canvas fallback — handling sprites, text, filters, masks, blend modes, and custom shaders at 60fps with hundreds of thousands of objects.
+## Overview
 
-## Core Capabilities
+PixiJS is a 2D rendering library for the web. It draws a scene graph of sprites, text, vector graphics and meshes on the GPU with WebGL (default) or WebGPU, batches draw calls automatically, and adds an asset loader, a ticker, a pointer-event system and filters. It is a renderer, not a full game engine: physics, audio and game logic come from other libraries.
 
-### Application Setup
+This skill targets PixiJS 8 (current: 8.22). The v8 API differs from v7: the application is created with `new Application()` then `await app.init(...)`, shapes use `rect().fill()`, and `ParticleContainer` holds lightweight `Particle` objects. There is no 2D-canvas fallback renderer; the `CanvasRenderer` is listed as "coming soon", so a device needs WebGL or WebGPU.
 
-```typescript
-// src/main.ts — PixiJS 8 application
-import { Application, Sprite, Text, Container, Assets } from "pixi.js";
+## Instructions
 
-const app = new Application();
-await app.init({
-  width: 800,
-  height: 600,
-  backgroundColor: 0x1a1a2e,
-  antialias: false,                       // Crisp pixel art
-  resolution: window.devicePixelRatio,    // Retina support
-});
-document.body.appendChild(app.canvas);
+### Install and set up
 
-// Load assets
-await Assets.load([
-  { alias: "hero", src: "/sprites/hero.png" },
-  { alias: "tileset", src: "/sprites/tileset.png" },
-  { alias: "particle", src: "/sprites/particle.png" },
-]);
-
-// Create sprite
-const hero = Sprite.from("hero");
-hero.anchor.set(0.5);                    // Center anchor for rotation
-hero.position.set(400, 300);
-app.stage.addChild(hero);
-
-// Game loop
-app.ticker.add((ticker) => {
-  hero.rotation += 0.01 * ticker.deltaTime;
-});
+```bash
+npm create pixi.js@latest      # scaffold a project (Vite template recommended)
+npm install pixi.js            # or add to an existing project
 ```
 
-### Containers and Scene Graph
-
 ```typescript
-// Hierarchical scene graph
-const world = new Container();
-const uiLayer = new Container();
-const particleLayer = new Container();
+// src/main.ts
+import { Application, Assets, Sprite } from 'pixi.js'
 
-app.stage.addChild(world);
-app.stage.addChild(particleLayer);
-app.stage.addChild(uiLayer);            // UI always on top
+(async () => {                  // wrap in a function: top-level await breaks some Vite production builds
+  const app = new Application()
+  await app.init({
+    background: '#1a1a2e',
+    resizeTo: window,
+    antialias: false,                         // crisp pixel art
+    resolution: window.devicePixelRatio,
+    autoDensity: true,                        // keeps CSS size correct on retina screens
+  })
+  document.body.appendChild(app.canvas)       // v8: app.canvas, not app.view
 
-// Sort children by Y position (depth sorting for top-down games)
-world.sortableChildren = true;
-entities.forEach((entity) => {
-  entity.zIndex = entity.y;
-});
+  await Assets.load([
+    { alias: 'hero', src: '/sprites/hero.png' },
+    { alias: 'tileset', src: '/sprites/tileset.png' },
+  ])
+
+  const hero = Sprite.from('hero')            // works for an alias that is already loaded
+  hero.anchor.set(0.5)
+  hero.position.set(app.screen.width / 2, app.screen.height / 2)
+  app.stage.addChild(hero)
+
+  app.ticker.add((ticker) => {
+    hero.rotation += 0.01 * ticker.deltaTime  // v8 passes the Ticker, not a number
+  })
+})()
 ```
 
-### Filters and Shaders
+`preference: 'webgpu'` in `init` asks for the WebGPU renderer; the docs call it experimental and recommend WebGL for production.
+
+### Containers and layers
 
 ```typescript
-import { BlurFilter, ColorMatrixFilter, DisplacementFilter } from "pixi.js";
+import { Container } from 'pixi.js'
 
-// Built-in filters
-const blur = new BlurFilter({ strength: 4 });
-const grayscale = new ColorMatrixFilter();
-grayscale.desaturate();
+const world = new Container()
+const effects = new Container()
+const hud = new Container()
+app.stage.addChild(world, effects, hud)       // later children draw on top
 
-background.filters = [blur];              // Depth-of-field effect
-deadEnemy.filters = [grayscale];          // Desaturate on death
-
-// Displacement map for water/heat effects
-const displacementSprite = Sprite.from("displacement-map");
-displacementSprite.texture.source.addressMode = "repeat";
-const displacement = new DisplacementFilter({
-  sprite: displacementSprite,
-  scale: 20,
-});
-waterLayer.filters = [displacement];
-
-// Animate displacement for flowing water
-app.ticker.add((ticker) => {
-  displacementSprite.x += 0.5 * ticker.deltaTime;
-  displacementSprite.y += 0.3 * ticker.deltaTime;
-});
+world.sortableChildren = true                 // depth sort by zIndex
+app.ticker.add(() => enemies.forEach((e) => { e.zIndex = e.y }))
 ```
 
-### Spritesheet Animation
+### Filters
 
 ```typescript
-import { AnimatedSprite, Spritesheet, Assets } from "pixi.js";
+import { BlurFilter, ColorMatrixFilter, DisplacementFilter, Sprite } from 'pixi.js'
 
-// Load spritesheet
-const sheet = await Assets.load("/sprites/hero.json");
+background.filters = [new BlurFilter({ strength: 4 })]
+const grayscale = new ColorMatrixFilter()
+grayscale.desaturate()
+deadEnemy.filters = [grayscale]
 
-// Create animated sprite
-const heroAnim = new AnimatedSprite(sheet.animations["walk"]);
-heroAnim.animationSpeed = 0.15;
-heroAnim.play();
-app.stage.addChild(heroAnim);
+const map = Sprite.from('displacement-map')
+map.texture.source.style.addressMode = 'repeat'
+waterLayer.filters = [new DisplacementFilter({ sprite: map, scale: 20 })]
+app.stage.addChild(map)                        // the map sprite must be on the stage to be sampled
+```
 
-// Switch animations
-function setAnimation(name: string) {
-  heroAnim.textures = sheet.animations[name];
-  heroAnim.play();
-}
-// setAnimation("idle"), setAnimation("attack"), setAnimation("die")
+Release a filter's memory with `container.filters = null`. Blend filters such as `HardMixBlend` need `import 'pixi.js/advanced-blend-modes'`. More effects live in the separate `pixi-filters` package.
+
+### Spritesheet animation
+
+```typescript
+import { AnimatedSprite, Assets } from 'pixi.js'
+
+const sheet = await Assets.load('/sprites/hero.json')   // TexturePacker or AssetPack JSON
+const walk = new AnimatedSprite(sheet.animations['walk'])
+walk.animationSpeed = 0.15
+walk.play()
+app.stage.addChild(walk)
+
+walk.textures = sheet.animations['attack']               // switch clips
+walk.play()
 ```
 
 ### Text and Graphics
 
 ```typescript
-import { Text, TextStyle, Graphics } from "pixi.js";
+import { Assets, FillGradient, Graphics, Text } from 'pixi.js'
 
-// Styled text
-const style = new TextStyle({
-  fontFamily: "Press Start 2P",          // Pixel font
-  fontSize: 24,
-  fill: ["#ffffff", "#00ff88"],          // Gradient fill
-  stroke: { color: "#000000", width: 4 },
-  dropShadow: { color: "#000000", distance: 2 },
-});
-const scoreText = new Text({ text: "Score: 0", style });
+await Assets.load({ src: '/fonts/press-start-2p.woff2', data: { family: 'Press Start 2P' } })
 
-// Procedural graphics
-const healthBar = new Graphics();
-healthBar.rect(0, 0, 200, 20).fill(0x333333);  // Background
-healthBar.rect(2, 2, 196 * hp, 16).fill(0x00ff00);  // Fill
+const scoreText = new Text({
+  text: 'Score: 0',
+  style: {
+    fontFamily: 'Press Start 2P',
+    fontSize: 24,
+    fill: new FillGradient({ type: 'linear', colorStops: [{ offset: 0, color: '#ffffff' }, { offset: 1, color: '#00ff88' }] }),
+    stroke: { color: '#000000', width: 4 },
+    dropShadow: { color: '#000000', distance: 2 },
+  },
+})
 
-// Minimap
-const minimap = new Graphics();
-minimap.circle(playerX / 10, playerY / 10, 3).fill(0x00ff00);
-rooms.forEach(r => minimap.rect(r.x / 10, r.y / 10, r.w / 10, r.h / 10).stroke(0x666666));
+const healthBar = new Graphics()
+healthBar.rect(0, 0, 200, 20).fill(0x333333)
+healthBar.rect(2, 2, 196 * hp, 16).fill(0x00ff00)   // v8: shape first, then fill()/stroke()
 ```
 
-## Installation
+Gradients are `FillGradient` objects in v8; an array of colours as `fill` was v7 syntax. Changing `text.text` re-rasterizes the text, so for a score that changes every frame use `BitmapText`.
 
-```bash
-npm install pixi.js
-# PixiJS 8 (latest): WebGPU + WebGL, tree-shakeable
+### Many objects: ParticleContainer
+
+```typescript
+import { Particle, ParticleContainer, Texture } from 'pixi.js'
+
+const sparks = new ParticleContainer({ dynamicProperties: { position: true, rotation: true, vertex: false, color: false } })
+for (let i = 0; i < 50_000; i++) {
+  sparks.addParticle(new Particle({ texture: Texture.from('particle'), x: Math.random() * 800, y: Math.random() * 600 }))
+}
+app.stage.addChild(sparks)
 ```
 
-## Best Practices
+Particles have no children, events or filters; use `addParticle`/`removeParticle` instead of `addChild`. Properties not listed as dynamic are uploaded only when you call `sparks.update()`. The API is marked experimental.
 
-1. **Use containers for layers** — Separate world, UI, particles, debug into containers; set `sortableChildren` for depth sorting
-2. **Sprite batching** — Sprites using the same texture atlas are batched automatically; keep atlases under 4096×4096
-3. **Object pooling** — Pre-create sprites and reuse them; PixiJS allocation is fast but GC pauses are not
-4. **ParticleContainer** — Use `ParticleContainer` for thousands of simple sprites (no filters, no children); 10x faster than Container
-5. **Filters sparingly** — Each filter triggers a render texture pass; use 1-2 filters on large containers, not per-sprite
-6. **Asset loading** — Use `Assets.load` with aliases; supports spritesheets, bitmap fonts, JSON, and audio
-7. **Resolution** — Set `resolution: devicePixelRatio` for sharp rendering on retina screens
-8. **Destroy properly** — Call `sprite.destroy(true)` to free GPU texture; prevents memory leaks in long-running apps
+## Examples
+
+### Example 1: Animated hero in a platformer
+
+**User prompt:** "Load hero.json and make the character walk, then switch to attack when I press space."
+
+Load the sheet with `Assets.load('/sprites/hero.json')`, create an `AnimatedSprite` from `sheet.animations['walk']`, call `play()`, and on `keydown` for `Space` set `textures` to `sheet.animations['attack']`, `loop = false`, then `play()` and restore `walk` in `onComplete`. Result: the sprite loops the walk cycle and plays a single attack animation on each key press.
+
+### Example 2: Rain of 100,000 particles
+
+**User prompt:** "My falling-snow effect with 20,000 Sprites runs at 20 fps. Make it smooth."
+
+Replace the `Sprite` objects with `Particle` objects in one `ParticleContainer` with `dynamicProperties: { position: true }`, and in the ticker update each `particle.y += speed * ticker.deltaTime`, wrapping at the bottom. Result: one batched draw call; 100,000 flakes stay at the display refresh rate on a typical laptop.
+
+## Guidelines
+
+- Always `await app.init()` before touching `app.canvas`, `app.stage` or `app.screen`.
+- Keep layers in separate containers; draw order inside a container is child order unless `sortableChildren` is on.
+- Spritesheets batch best: sprites that share a texture atlas draw together, and mixing sprite, graphics and text objects alternately breaks batches.
+- Filters, masks and blend modes cost render passes. Use few, and prefer rectangle masks (scissor) over sprite masks.
+- Textures are garbage-collected after about 3600 idle frames; call `destroy()` on objects you remove. `sprite.destroy(true)` also destroys the texture, which breaks other sprites that share it, so use `sprite.destroy()` for shared textures and `Assets.unload(alias)` to free an asset.
+- Pool objects that appear and disappear often (bullets, particles) instead of creating them every frame.
+- For a plain static page or a simple chart, SVG or Canvas 2D is lighter than PixiJS.
+- Using React? Use the `@pixi/react` package instead of mixing imperative setup into components.

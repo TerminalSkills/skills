@@ -1,14 +1,16 @@
 ---
 name: great-expectations
-description: |
-  Great Expectations is a Python framework for data quality testing and validation.
-  Learn to define expectations, create validation suites, build data docs,
-  and integrate with data pipelines for automated quality checks.
+description: >-
+  Great Expectations (GX Core) is a Python framework for testing and documenting
+  data quality. Use when a user wants to define expectations about a dataset
+  (nulls, ranges, uniqueness, allowed values), validate a pandas DataFrame or a
+  SQL table against them, wire a checkpoint into a pipeline, or generate Data
+  Docs that show what passed and failed.
 license: Apache-2.0
-compatibility: 'macos, linux, windows'
+compatibility: "Python 3.10-3.14; macOS, Linux, Windows"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: data-ai
   tags:
     - great-expectations
@@ -16,224 +18,146 @@ metadata:
     - testing
     - validation
     - python
+  repository: https://github.com/great-expectations/great_expectations
 ---
 
 # Great Expectations
 
-Great Expectations (GX) lets you define, run, and document data quality tests. Express expectations about your data ("this column should never be null"), validate against real data, and generate documentation automatically.
+## Overview
 
-## Installation
+Great Expectations (GX) lets you define, run, and document data quality checks. GX 1.0 (released 2025) was a ground-up rewrite: the global `DataContext`/CLI-driven project from the 0.18 series is gone, replaced by an in-code context you build with `gx.get_context()`. There is no more `great_expectations init` scaffolding step — if an older tutorial opens with that command, it is describing the pre-1.0 API and the rest of its code will not run.
+
+Current version is GX Core 1.23 (`pip show great_expectations`). The core flow is: Data Source → Data Asset → Batch Definition → Batch, then Expectation Suite → Validation Definition → Checkpoint.
+
+## Instructions
+
+### Install
 
 ```bash
-# Install Great Expectations
+python -m venv .venv && source .venv/bin/activate
 pip install great_expectations
-
-# Initialize a project
-great_expectations init
-# Creates great_expectations/ directory with config
+# SQL sources need their driver too, e.g.:
+pip install psycopg2-binary
 ```
 
-## Project Structure
-
-```text
-great_expectations/
-├── great_expectations.yml    # Main config
-├── expectations/             # Expectation suites (JSON)
-├── checkpoints/              # Validation checkpoints
-├── plugins/                  # Custom expectations
-└── uncommitted/
-    └── data_docs/            # Generated documentation
-```
-
-## Connect a Data Source
+### Connect to a pandas DataFrame
 
 ```python
-# setup_datasource.py: Configure a PostgreSQL data source
-import great_expectations as gx
-
-context = gx.get_context()
-
-# Add a PostgreSQL datasource
-datasource = context.sources.add_postgres(
-    name="my_postgres",
-    connection_string="postgresql://user:pass@localhost:5432/analytics",
-)
-
-# Add a data asset (table)
-asset = datasource.add_table_asset(
-    name="orders",
-    table_name="orders",
-)
-
-# Or add a pandas datasource for CSV files
-pandas_ds = context.sources.add_pandas("local_files")
-csv_asset = pandas_ds.add_csv_asset(
-    name="daily_report",
-    filepath_or_buffer="data/daily_report.csv",
-)
-```
-
-## Define Expectations
-
-```python
-# create_expectations.py: Build an expectation suite for the orders table
-import great_expectations as gx
-
-context = gx.get_context()
-
-# Get a batch of data
-datasource = context.get_datasource("my_postgres")
-asset = datasource.get_asset("orders")
-batch_request = asset.build_batch_request()
-
-# Create an expectation suite
-suite = context.add_expectation_suite("orders_quality_checks")
-
-# Get a validator
-validator = context.get_validator(
-    batch_request=batch_request,
-    expectation_suite_name="orders_quality_checks",
-)
-
-# Add expectations
-validator.expect_column_to_exist("id")
-validator.expect_column_to_exist("user_id")
-validator.expect_column_to_exist("amount")
-validator.expect_column_to_exist("status")
-
-validator.expect_column_values_to_not_be_null("id")
-validator.expect_column_values_to_not_be_null("user_id")
-validator.expect_column_values_to_not_be_null("amount")
-
-validator.expect_column_values_to_be_unique("id")
-
-validator.expect_column_values_to_be_between(
-    "amount", min_value=0, max_value=100000,
-)
-
-validator.expect_column_values_to_be_in_set(
-    "status", ["pending", "completed", "cancelled", "refunded"],
-)
-
-validator.expect_column_pair_values_a_to_be_greater_than_b(
-    "updated_at", "created_at", or_equal=True,
-)
-
-# Table-level expectations
-validator.expect_table_row_count_to_be_between(min_value=1, max_value=10_000_000)
-
-# Save the suite
-validator.save_expectation_suite(discard_failed_expectations=False)
-```
-
-## Run Validations
-
-```python
-# validate.py: Run a checkpoint to validate data
-import great_expectations as gx
-
-context = gx.get_context()
-
-# Create a checkpoint
-checkpoint = context.add_or_update_checkpoint(
-    name="orders_checkpoint",
-    validations=[
-        {
-            "batch_request": {
-                "datasource_name": "my_postgres",
-                "data_asset_name": "orders",
-            },
-            "expectation_suite_name": "orders_quality_checks",
-        },
-    ],
-    action_list=[
-        {"name": "store_validation_result", "action": {"class_name": "StoreValidationResultAction"}},
-        {"name": "update_data_docs", "action": {"class_name": "UpdateDataDocsAction"}},
-    ],
-)
-
-# Run the checkpoint
-result = checkpoint.run()
-
-if not result.success:
-    print("❌ Validation failed!")
-    for validation in result.run_results.values():
-        for r in validation["validation_result"]["results"]:
-            if not r["success"]:
-                print(f"  FAILED: {r['expectation_config']['expectation_type']}")
-                print(f"    {r['result']}")
-else:
-    print("✅ All expectations passed!")
-```
-
-## Pipeline Integration
-
-```python
-# pipeline_check.py: Use GX in an ETL pipeline (e.g., with Airflow or Prefect)
 import great_expectations as gx
 import pandas as pd
 
-def validate_dataframe(df: pd.DataFrame, suite_name: str) -> bool:
-    """Validate a pandas DataFrame against an expectation suite."""
-    context = gx.get_context()
+context = gx.get_context()
 
-    datasource = context.sources.add_or_update_pandas("runtime")
-    asset = datasource.add_dataframe_asset("runtime_df")
-    batch_request = asset.build_batch_request(dataframe=df)
+data_source = context.data_sources.add_pandas(name="runtime_dataframes")
+data_asset = data_source.add_dataframe_asset(name="orders_dataframe")
+batch_definition = data_asset.add_batch_definition_whole_dataframe("orders_batch")
 
-    checkpoint = context.add_or_update_checkpoint(
-        name="runtime_check",
-        validations=[{
-            "batch_request": batch_request,
-            "expectation_suite_name": suite_name,
-        }],
+df = pd.read_csv("data/orders_2026_q3.csv")
+batch = batch_definition.get_batch(batch_parameters={"dataframe": df})
+```
+
+### Connect to a SQL table
+
+```python
+data_source = context.data_sources.add_postgres(
+    "warehouse",
+    connection_string="postgresql+psycopg2://gx_reader:${WAREHOUSE_PASSWORD}@warehouse.internal:5432/analytics",
+)
+orders_asset = data_source.add_table_asset(name="orders", table_name="fct_orders")
+batch_definition = orders_asset.add_batch_definition_whole_table("orders_table_batch")
+batch = batch_definition.get_batch()
+```
+
+Pull the password from an environment variable (`os.environ["WAREHOUSE_PASSWORD"]`) rather than hardcoding it in the connection string.
+
+### Build an expectation suite
+
+Expectations are classes under `gx.expectations`, not validator method calls like in 0.18:
+
+```python
+suite = context.suites.add(gx.ExpectationSuite(name="orders_quality"))
+
+suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="order_id"))
+suite.add_expectation(gx.expectations.ExpectColumnValuesToBeUnique(column="order_id"))
+suite.add_expectation(
+    gx.expectations.ExpectColumnValuesToBeBetween(column="total_amount", min_value=0, max_value=50_000)
+)
+suite.add_expectation(
+    gx.expectations.ExpectColumnValuesToBeInSet(
+        column="status", value_set=["pending", "shipped", "delivered", "refunded"]
     )
-
-    result = checkpoint.run()
-    return result.success
-
-# Usage in pipeline
-df = pd.read_csv("data/incoming.csv")
-if not validate_dataframe(df, "orders_quality_checks"):
-    raise ValueError("Data quality check failed — aborting pipeline")
+)
 ```
 
-## Data Docs
+### Validate a single batch directly
 
-```bash
-# docs.sh: Generate and serve data documentation
-# Build data docs
-great_expectations docs build
-
-# Serve locally
-great_expectations docs serve
-# Opens browser at http://localhost:8765
-
-# Data docs include:
-# - All expectation suites with descriptions
-# - Validation results with pass/fail details
-# - Data profiling statistics
+```python
+result = batch.validate(suite)
+print(result.describe())
 ```
 
-## Common Expectations Reference
+### Wire a validation definition and checkpoint (for pipelines)
 
-```text
-Column-level:
-  expect_column_to_exist
-  expect_column_values_to_not_be_null
-  expect_column_values_to_be_unique
-  expect_column_values_to_be_in_set
-  expect_column_values_to_be_between
-  expect_column_values_to_match_regex
-  expect_column_mean_to_be_between
-  expect_column_max_to_be_between
+```python
+validation_definition = context.validation_definitions.add(
+    gx.ValidationDefinition(name="orders_validation", data=batch_definition, suite=suite)
+)
 
-Table-level:
-  expect_table_row_count_to_be_between
-  expect_table_row_count_to_equal
-  expect_table_columns_to_match_ordered_list
+checkpoint = context.checkpoints.add(
+    gx.Checkpoint(name="orders_checkpoint", validation_definitions=[validation_definition])
+)
 
-Multi-column:
-  expect_column_pair_values_a_to_be_greater_than_b
-  expect_compound_columns_to_be_unique
+checkpoint_result = checkpoint.run()
+if not checkpoint_result.success:
+    raise ValueError("orders data quality check failed")
 ```
+
+## Examples
+
+### Example 1: Validate an incoming CSV before loading it
+
+**User request:** "Before we load `orders_2026_q3.csv` into the warehouse, check that `order_id` is unique and not null, and `total_amount` is never negative."
+
+```python
+import great_expectations as gx
+import pandas as pd
+
+context = gx.get_context()
+data_source = context.data_sources.add_pandas(name="runtime_dataframes")
+asset = data_source.add_dataframe_asset(name="orders_dataframe")
+batch_definition = asset.add_batch_definition_whole_dataframe("orders_batch")
+
+df = pd.read_csv("data/orders_2026_q3.csv")
+batch = batch_definition.get_batch(batch_parameters={"dataframe": df})
+
+suite = context.suites.add(gx.ExpectationSuite(name="orders_load_checks"))
+suite.add_expectation(gx.expectations.ExpectColumnValuesToNotBeNull(column="order_id"))
+suite.add_expectation(gx.expectations.ExpectColumnValuesToBeUnique(column="order_id"))
+suite.add_expectation(gx.expectations.ExpectColumnValuesToBeBetween(column="total_amount", min_value=0))
+
+result = batch.validate(suite)
+print(result.describe())
+```
+
+**Result:** a `ValidationResult` whose `.describe()` lists each expectation, pass/fail, and the offending rows for anything that failed — catching a bad load before it reaches the warehouse.
+
+### Example 2: Gate an Airflow task on a Postgres table
+
+**User request:** "Fail the nightly DAG if `fct_orders.status` ever contains a value outside our known set."
+
+```python
+checkpoint_result = checkpoint.run()  # using the warehouse checkpoint built above
+if not checkpoint_result.success:
+    raise ValueError("fct_orders failed its quality checkpoint — check Data Docs")
+```
+
+**Result:** the Airflow task raises and the DAG stops before downstream tasks run on bad data.
+
+## Guidelines
+
+- GX 1.x is a different API from the widely copied 0.18 tutorials: there is no `great_expectations init`, no `context.sources.add_postgres` (it is `context.data_sources.add_postgres`), and expectations are added as `gx.expectations.ExpectX(...)` objects, not `validator.expect_x(...)` calls. Treat any code using those older forms as outdated.
+- A DataFrame batch only exists at runtime — it is not persisted, so `batch_parameters={"dataframe": df}` must be supplied again each time you call `get_batch()`.
+- Never put a database password directly in a connection string in code; read it from an environment variable.
+- Use `severity` on an expectation (`"warning"` vs `"critical"`) to distinguish checks that should merely be logged from ones that should block a pipeline.
+- Great Expectations validates structure and values; it does not fix bad data. Pair it with an alerting step (Slack, PagerDuty, an Airflow failure callback) so a failed checkpoint is actually seen.
+- For large tables, prefer a sampled or windowed batch definition over `add_batch_definition_whole_table` if validation time matters — the whole-table batch definition reads every row.

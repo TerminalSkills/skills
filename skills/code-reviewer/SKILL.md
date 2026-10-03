@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Works with any programming language"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["code-review", "quality", "bugs", "security", "best-practices"]
 ---
@@ -33,7 +33,7 @@ Before reviewing, determine:
 - Are there tests included?
 - Is this a full file or a diff/patch?
 
-Read surrounding files if needed to understand the broader codebase context.
+Read surrounding files if needed to understand the broader codebase context. Get the change itself with `git diff main...HEAD` (local branch) or `gh pr diff 482` (pull request), and run the project's own linter and test command first so the review does not repeat what tooling already reports.
 
 ### Step 2: Review using this checklist
 
@@ -86,17 +86,15 @@ Organize findings by severity. For each issue:
 ```
 ### [SEVERITY] Category: Brief title
 
-**File:** `path/to/file.ext` line XX-YY
+**File:** `src/routes/users.js` line 12-18
 
 **Issue:** What is wrong and why it matters.
 
 **Suggestion:**
-\`\`\`language
-// Suggested fix
-\`\`\`
+(a fenced code block in the file's language with the fixed code)
 ```
 
-Severity levels: CRITICAL, HIGH, MEDIUM, LOW
+Severity levels: CRITICAL, HIGH, MEDIUM, LOW. Tag each finding by how sure you are (confirmed by reading the code, or suspected and needs a check).
 
 ### Step 4: Provide a summary
 
@@ -120,6 +118,7 @@ app.post('/users', async (req, res) => {
   );
   res.json(user);
 });
+// db is a node-postgres Pool; the handler runs under Express 4
 ```
 
 **Review output:**
@@ -158,14 +157,17 @@ malformed data will cause database errors or store invalid records.
 
 **File:** routes/users.js line 3-5
 
-**Issue:** If the database query fails, the error propagates as an
-unhandled promise rejection, crashing the process or returning a 500
-with a stack trace.
+**Issue:** In Express 4 a rejected promise in an async handler is not
+caught: the request hangs and the rejection can crash the process
+(Express 5 forwards it to the error handler).
 
 **Suggestion:**
     try {
-      const user = await db.query(...);
-      res.status(201).json(user);
+      const { rows } = await db.query(
+        'INSERT INTO users (name, email, role) VALUES ($1, $2, $3) RETURNING id, name, email, role',
+        [name, email, role]
+      );
+      res.status(201).json(rows[0]);
     } catch (err) {
       console.error('Failed to create user:', err);
       res.status(500).json({ error: 'Failed to create user' });
@@ -205,8 +207,9 @@ function UserList({ users }) {
 ```
 ### MEDIUM Performance: Filtering runs on every render
 
-**Issue:** The filter operation recalculates on every render, even when
-unrelated state changes. For large lists this causes jank.
+**Issue:** The filter recalculates on every render, even when unrelated
+state changes. Only worth fixing for large lists; with the React Compiler
+enabled it is memoized automatically, so check the build config first.
 
 **Suggestion:**
     const filtered = useMemo(() =>
@@ -251,4 +254,5 @@ Summary: APPROVE with suggestions
 - When reviewing diffs, focus on changed lines but check context for integration issues.
 - For large PRs (500+ lines), start with an architectural overview before line-by-line review.
 - If you are unsure about a finding, say so. Do not present uncertain issues as definitive.
+- Do not run or modify the code under review beyond the project's own test and lint commands, and never paste secrets found in the diff into the report; cite file and line instead.
 - Prioritize: fix all CRITICALs, fix HIGH before merge, MEDIUM/LOW can be follow-up tasks.

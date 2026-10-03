@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d9d071dfd0ca3d9a72896f8a2c12bee81154f0b2eeeb1012a4f1d8a363b7af0f",
-  "scoredAt": "2026-05-13T14:01:04.206Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:7f6325d7869f12245948d97e8b7756bde15a5b9cb16b2477e48722c9228e3fdf",
+  "scoredAt": "2026-10-02T23:22:23.988Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Instructions only provide Python (PySpark) examples, not for Scala, Java, or R."
+        "detail": "Covers mostly the happy path; it gives little guidance on common failure scenarios such as a missing or wrong JDK, S3 credential or hadoop-aws version mismatches, Kafka offset loss, schema drift, or out-of-memory and data-skew errors."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 40,
-    "treatmentAvg": 100,
+    "multiplier": 1.09,
+    "baselineAvg": 81,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "etl-pipeline-parquet",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A meets every rubric requirement, while Response B fails to use parquet, correct revenue calculation, and full aggregation."
+        "name": "s3-parquet-daily-metrics-etl",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "B matches the rubric closely: isin filter, revenue derived as amount*quantity, groupBy date and event_type, count, sum and countDistinct, partitionBy on date, s3a://, hadoop-aws via --packages, and the AWS provider chain. A hedges on the key revenue derivation, summing amount alone and leaving amount*quantity in a comment. That is a significant miss. A also partitions by event_date rather than date. A's run instructions are otherwise thorough."
       },
       {
-        "name": "streaming-kafka-window-count",
-        "baseline": 80,
-        "treatment": 100,
-        "rationale": "Response A satisfies every rubric requirement, while Response B uses 'complete' mode instead of the required 'update' mode."
+        "name": "kafka-windowed-stream-with-checkpoint",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both cover all rubric items (kafka source options, from_json with explicit schema, withWatermark + groupBy window/event_type, checkpointLocation, --packages with a spark-sql-kafka-0-10 artifact); A uses the required _2.13 artifact exactly, while B's main example uses _2.12 (with a note on _2.13 for Spark 4) but adds a durable Parquet sink, null filtering, and restart/supervise guidance."
+      },
+      {
+        "name": "spark4-ansi-mode-dirty-data-sql",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both explain ANSI default, recommend try_cast/try_to_date/try_divide, give the ANSI-off flag as a migration fallback, and advise against collect()/toPandas() in favour of show()/limit; B is slightly more thorough (try_to_timestamp, DECIMAL, maxResultSize, explicit caution on the fallback), though its list includes a minor contradiction by saying not to use show() on an unbounded result while recommending bounded show()."
       }
     ]
   }

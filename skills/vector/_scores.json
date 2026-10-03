@@ -1,53 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d39ac99e9d89453ea78d6ae777fbbc5c2738bbf340bb56591ec0319585774fa4",
-  "scoredAt": "2026-05-13T10:33:32.840Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9084354ba9a9a4a1a1b61f290ab46e18037eafba3b3628cef95cc52d7f688b3a",
+  "scoredAt": "2026-10-03T12:11:18.470Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases."
+        "category": "examples",
+        "detail": "Both examples are brief prose walkthroughs that refer back to the shared config instead of showing complete runnable files or real command output, so they are somewhat simplistic."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl|bash",
-        "detail": "Installation script uses curl piped to bash without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
+    "multiplier": 1.55,
     "baselineAvg": 53,
-    "treatmentAvg": 94,
-    "multiplier": 1.77,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "Cost-cutting log pipeline: filter noise, sample info, archive to S3, route errors to Slack",
-        "baseline": 50,
-        "treatment": 94,
-        "rationale": "Baseline pieces together generic filter/sample/sink TOML but tends to miss the exclude-on-error sample pattern, rate-limit on the Slack sink, and gzip-archive sizing, while treatment uses the skill's exact filter_noise/sample/s3_archive/slack_errors stanzas."
+        "name": "migrate-to-0-57-safe-config",
+        "baseline": 12,
+        "treatment": 95,
+        "rationale": "Response B covers all three rubric items (literal topic prefix or the dangerously_allow_unconfined_template_resolution flag with its injection risk, auth.strategy = basic, and the env-var interpolation flag, env var and envsubst), while Response A only gets auth.strategy right, misses the Kafka and env-var changes, and wrongly says ${ES_PASSWORD} is still valid."
       },
       {
-        "name": "VRL transform: parse JSON, redact email, geoip-enrich country, normalize severity",
-        "baseline": 55,
-        "treatment": 94,
-        "rationale": "Baseline writes valid parse_json/if-else VRL but commonly invents geoip function names or uses del on email instead of the redact() builtin, while treatment uses get_enrichment_table_record and the exact redact() signature from the skill."
+        "name": "sample-logs-keep-errors-alert-slack",
+        "baseline": 80,
+        "treatment": 88,
+        "rationale": "Both meet the core rubric: a filter for noise, a sample with rate=20 and an exclude, a separate errors filter, an http sink with json codec, and an env-var webhook. B's exclude explicitly names error and warn, as the rubric asks, and B explains env interpolation in detail. A's exclude is `level != info`, which is broader, and it normalizes levels and gives less detail on interpolation."
+      },
+      {
+        "name": "fix-vrl-and-add-unit-test",
+        "baseline": 66,
+        "treatment": 62,
+        "rationale": "Both fix the fallible call and give a vector test with insert_at, extract_from and a vrl assert_eq!/assert! condition. A explains the error, uses the `!`/`?? now()` forms, and says to run `vector test vector.toml` (the file name the rubric names), but its explanation is brief and it adds an incorrect claim that a failed `!` leaves the event unchanged. B gives a more thorough treatment and a fuller test, but it uses YAML and `vector test vector.yaml`, not the TOML `[[tests]]` block and `vector test vector.toml` the rubric requires, and it keeps the positional format argument."
       }
     ]
   }

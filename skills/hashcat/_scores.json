@@ -1,31 +1,20 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:39c43977e5837f37200ff469e9c5ba2c881b5fcec27a2846259318642aaa28a3",
-  "scoredAt": "2026-05-13T09:11:38.359Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7e7e620f9cb8f770db6e90af786b84fd5b2ad90c8fcfc9b2f177f075345242ff",
+  "scoredAt": "2026-10-03T11:59:15.087Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions lack explicit error handling for missing files, GPU errors, or invalid hash modes."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes Linux file paths and tools, limiting portability to other operating systems."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",

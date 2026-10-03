@@ -1,14 +1,15 @@
 ---
 name: originality-ai
 description: >-
-  Use Originality.ai API to detect AI-generated content and check for plagiarism
-  simultaneously. Use when: SEO content audits, freelancer content verification,
-  editorial review pipelines, originality checks.
+  Calls the Originality.ai API to score text for AI authorship and to check it
+  for plagiarism. Use when auditing SEO content, verifying freelancer
+  submissions, building an editorial review queue, or when a user asks to
+  "check if this article is AI-written" or "run an originality check".
 license: Apache-2.0
 compatibility: "Requires Node.js 18+ or Python 3.9+"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["ai-detection", "plagiarism", "originality", "content-moderation", "seo"]
 ---
@@ -17,99 +18,93 @@ metadata:
 
 ## Overview
 
-Originality.ai combines AI content detection with plagiarism checking in a single API. It uses a credit-based pricing model where each scan costs credits proportional to word count.
+Originality.ai scores text for AI authorship and checks it for plagiarism through a credit-based HTTP API. Scans are billed in credits that grow with word count, and the API key is tied to a paid account.
 
-- **API base URL:** `https://api.originality.ai/api/v1`
+- **Base URL:** `https://api.originality.ai/api/v1`
 - **Auth:** `X-OAI-API-KEY` header
-- **Docs:** https://docs.originality.ai
+- **Docs:** https://docs.originality.ai (the current reference is labelled "Version 3" and lists `scan`, `batch-scan`, `scan-url`, `credit-balance` and `scan-results`; the older v1 reference is still published)
+- **Rate limit:** the account-level limit is not stated in the docs pages that could be read; Microsoft's connector lists 100 calls per 60 seconds, so throttle and retry on HTTP 429.
+
+The exact field names of the v3 endpoints could not be fetched when this page was last refreshed (the docs site blocks automated clients). The parts below are confirmed by the v1 endpoint, third-party connectors and the docs index; check the field list in the docs before relying on anything not shown here.
 
 ## Instructions
 
 ### Authentication
 
-Set `ORIGINALITY_API_KEY` in your environment. Pass it in the `X-OAI-API-KEY` header for all requests.
+Keep the key on the server only (`ORIGINALITY_API_KEY`) and send it as `X-OAI-API-KEY`. Never ship it to browser JavaScript. Avoid a double slash in the path (`/api/v1//scan/ai` fails).
 
-### AI Detection — POST `/api/v1/scan/ai`
+### AI detection: POST `/api/v1/scan/ai`
 
-Send `{ "content": "<text>", "aiModelVersion": "1", "storeScan": false }`. Returns:
-- `score.ai` (0-1) — probability of AI authorship
-- `score.original` (0-1) — probability of human authorship (equals `1 - ai`)
-- `credits_used` — credits consumed by this scan
+Body: `{ "content": "<text>" }`. The docs also list optional `title`, `aiModelVersion` and `excludedUrls` parameters for the scan endpoint. Response fields confirmed:
 
-| `score.ai`  | Meaning                  |
-|-------------|--------------------------|
-| 0.80 - 1.0  | Very likely AI-generated |
-| 0.50 - 0.79 | Mixed / uncertain        |
-| 0.20 - 0.49 | Probably human-written   |
-| 0.00 - 0.19 | Very likely human        |
+- `success` (boolean)
+- `score.ai` and `score.original` (floats between 0 and 1, summing to 1)
+- `credits_used` and `credits` (the account balance after the scan)
 
-### Plagiarism Detection — POST `/api/v1/scan/plag`
+A response looks like this (only the confirmed fields are shown):
 
-Send `{ "content": "<text>", "storeScan": false }`. Returns:
-- `score.percentUnique` (0-100) — percentage of unique content
-- `score.percentDuplicated` (0-100) — percentage matched elsewhere on the web
-- `matches[]` — array of `{ url, matchedWords, percentage }` for each source found
+```json
+{ "success": true, "score": { "original": 0.08, "ai": 0.92 }, "credits_used": 3, "credits": 4417 }
+```
 
-### Combined Scan
+Scores are probabilities, not proof. A practical triage: above 0.8 route to human review as likely AI, 0.2 to 0.8 treat as uncertain, below 0.2 as likely human.
 
-Run both AI detection and plagiarism checks in parallel for comprehensive content verification. Flag content if AI score >= 0.5 or plagiarism >= 20%.
+### Webpage scan
 
-### Credit Management
+The docs list a `scan-url` operation that takes a `url` and returns the same score plus per-block results (`score_breakdown` with `text`, `ai`, `original`). Look up its current path in the docs before use.
 
-Check your balance via GET `/api/v1/account/credits/balance`. Credits are consumed per word, and AI + plagiarism scans cost credits separately. Use `storeScan: false` to avoid storing content in the dashboard.
+### Plagiarism and readability
+
+The v1 reference documents a combined plagiarism and readability scan under `scan`. Request it with the same `content` body and read the plagiarism result from the response; confirm the response field names in the docs, as they are not reproduced here.
+
+### Credits
+
+Fetch the balance with the credit-balance endpoint (response contains `balance`). Run AI and plagiarism scans in parallel only if you have budgeted credits for both, because each is billed separately.
 
 ## Examples
 
-### Example 1: Checking marketing copy for originality
+### Example 1: Triage a freelancer's blog post
 
-A content team lead verifies a freelancer's submitted blog post about cloud migration:
+Request: "Check draft-cloud-migration.txt for AI writing before we pay the invoice."
 
-```
-AI Detection:
-POST https://api.originality.ai/api/v1/scan/ai
-Headers: { "X-OAI-API-KEY": "oai-key-abc123...", "Content-Type": "application/json" }
-Body: { "content": "Cloud migration is a transformative journey that organizations must carefully plan. It is essential to consider the various deployment models available, including public, private, and hybrid cloud solutions. Furthermore, a comprehensive migration strategy should address data security, compliance requirements, and cost optimization.", "aiModelVersion": "1", "storeScan": false }
-
-Response:
-{ "success": true, "score": { "ai": 0.92, "original": 0.08 }, "credits_used": 1 }
-
-Plagiarism Check:
-POST https://api.originality.ai/api/v1/scan/plag
-Body: { "content": "...(same text)...", "storeScan": false }
-
-Response:
-{ "success": true, "score": { "percentUnique": 73, "percentDuplicated": 27 }, "matches": [{ "url": "https://example-cloud-blog.com/migration-guide", "matchedWords": 42, "percentage": 22 }], "credits_used": 1 }
-
-Result: Flagged — AI score 92%, plagiarism 27% duplicated.
-Total credits used: 2.
+```bash
+curl -s -X POST "https://api.originality.ai/api/v1/scan/ai" \
+  -H "X-OAI-API-KEY: $ORIGINALITY_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data "$(jq -n --rawfile text draft-cloud-migration.txt '{content: $text}')"
 ```
 
-### Example 2: Verifying an original product review
+Result shape: `{"success": true, "score": {"original": 0.08, "ai": 0.92}, "credits_used": 3, "credits": 4417}`. An `ai` of 0.92 goes to an editor, with the score attached to the ticket; it does not reject the invoice automatically.
 
-An e-commerce site checks a customer-submitted product review:
+### Example 2: Batch audit of published articles in Python
 
+Request: "Score the 40 articles in ./content and list anything above 0.5."
+
+```python
+import os, pathlib, time, requests
+
+headers = {"X-OAI-API-KEY": os.environ["ORIGINALITY_API_KEY"]}
+flagged = []
+for path in sorted(pathlib.Path("content").glob("*.md")):
+    r = requests.post("https://api.originality.ai/api/v1/scan/ai",
+                      headers=headers, json={"content": path.read_text()}, timeout=60)
+    if r.status_code == 429:
+        time.sleep(30); continue
+    r.raise_for_status()
+    data = r.json()
+    if data["score"]["ai"] > 0.5:
+        flagged.append((path.name, data["score"]["ai"]))
+print(flagged)
 ```
-AI Detection:
-POST https://api.originality.ai/api/v1/scan/ai
-Body: { "content": "I bought this blender last March after my old Vitamix finally died (RIP, 8 years of smoothies). The Ninja BN701 is louder than I expected — my cat literally bolts out of the kitchen — but it crushes frozen mango like nothing. The lid seal is a bit finicky, learned the hard way when I repainted my ceiling with acai. For $89 though, no complaints.", "aiModelVersion": "1", "storeScan": false }
 
-Response:
-{ "success": true, "score": { "ai": 0.04, "original": 0.96 }, "credits_used": 1 }
-
-Plagiarism Check:
-Response:
-{ "success": true, "score": { "percentUnique": 100, "percentDuplicated": 0 }, "matches": [], "credits_used": 1 }
-
-Result: Passes both checks — AI score 4%, 100% unique content.
-```
+Output is a list such as `[("kubernetes-costs.md", 0.87)]`, and the total spend is the sum of `credits_used`.
 
 ## Guidelines
 
-- Minimum 50 words required for AI detection
-- Best accuracy for English; other languages are supported but less reliable
-- Plagiarism check only works for publicly indexed web content
-- Heavily paraphrased AI text may evade detection
-- Does not detect AI in images, code, or structured data
-- Budget credits for bulk runs: estimate ~1 credit per 100 words per scan type
-- Handle HTTP 402 (insufficient credits) and 429 (rate limited) gracefully
-- Always pair automated detection with human review for final decisions
+- Accuracy drops on short text (below about 100 words); there is no hard minimum enforced by the API.
+- Best on English; about 30 languages are supported but with lower reliability.
+- Edited, translated or non-native writing produces false positives, and paraphrased AI text can evade detection, so scores route documents to human review rather than decide.
+- Plagiarism matching covers publicly indexed web content only.
+- Does not detect AI in images, code or structured data.
+- Handle HTTP 429 (throttled) and an out-of-credits error; log status codes, never full headers.
+- Do not send confidential drafts unless your agreement with the vendor allows it.

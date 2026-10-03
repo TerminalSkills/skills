@@ -1,17 +1,14 @@
 ---
 name: runway-ml
 description: >-
-  Runway ML API for AI video generation and editing — Gen-3 Alpha Turbo,
-  image-to-video, and video-to-video. Use when generating video from text or
-  images, applying AI video effects, or automating creative video production
-  pipelines.
+  Runway ML API generates and edits AI video and images from text, images or video, with models such as Gen-4.5, Gen-4 Turbo and Aleph 2.0. Use when generating video from a prompt or a still image, editing a clip with video-to-video, automating B-roll or product-ad pipelines, or polling Runway tasks from Python or Node.js.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ or Node.js 18+. Runway API key required."
+compatibility: "Python 3.9+ or Node.js 18+. Runway developer account with API key and prepaid credits required."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
-  tags: ["runway", "video-generation", "gen-3", "text-to-video", "ai-video"]
+  tags: ["runway", "video-generation", "gen-4", "text-to-video", "ai-video"]
   use-cases:
     - "Generate cinematic video clips from text descriptions"
     - "Animate a product photo into a dynamic video for ads"
@@ -23,206 +20,156 @@ metadata:
 
 ## Overview
 
-Runway's Gen-3 Alpha Turbo model generates high-quality video from text prompts or images. The REST API follows an async task pattern: create a task, poll for completion, then download the result. Use it to produce cinematic clips, animate images, or build automated video content pipelines.
-
-## Setup
-
-```bash
-pip install requests python-dotenv
-export RUNWAY_API_KEY="your_api_key_here"
-```
-
-Base URL: `https://api.dev.runwayml.com/v1`  
-API docs: https://docs.runwayml.com
-
-## Core Concepts
-
-- **Task**: An async video generation job. Returns a `task_id` immediately.
-- **Gen-3 Alpha Turbo**: Fastest Gen-3 model — best for production pipelines.
-- **image-to-video** (`gen3a_turbo`): Animate a still image into motion.
-- **text-to-video**: Generate video purely from a text prompt.
-- **Duration**: 5 or 10 seconds.
-- **Ratio**: `1280:720` (landscape), `720:1280` (portrait), `1104:832`, `832:1104`, `960:960` (square).
+Runway's developer API (docs.dev.runwayml.com) exposes video, image, audio and upscaling models behind one task pattern: POST a generation request, receive a task id, poll the task until it is `SUCCEEDED`, then download the output. The older Gen-3 Alpha Turbo model (`gen3a_turbo`) is no longer in the model list; current video models include `gen4.5`, `gen4_turbo`, `aleph2` (video editing), `veo3.1`, `seedance2_5`, `hailuo3`, `wan3` and others. Model identifiers change, so check https://docs.dev.runwayml.com/guides/models before hard-coding one. Official SDKs: `runwayml` (Python) and `@runwayml/sdk` (Node.js).
 
 ## Instructions
 
-### Step 1: Set up the client
+### Setup
+
+Create an API key in the Runway developer portal (dev.runway.com), buy credits, and export the key. The SDKs read `RUNWAYML_API_SECRET` automatically.
+
+```bash
+pip install runwayml          # or: npm install @runwayml/sdk
+export RUNWAYML_API_SECRET="key_live_from_dev_portal"
+```
+
+REST base URL is `https://api.dev.runwayml.com/v1`; every request needs `Authorization: Bearer $RUNWAYML_API_SECRET` and `X-Runway-Version: 2024-11-06`.
+
+### Choose an endpoint and model
+
+| Endpoint | Use | Models (examples) |
+|----------|-----|-------------------|
+| `POST /v1/text_to_video` | prompt only | `gen4.5`, `veo3.1`, `veo3.1_fast`, `seedance2`, `wan3` |
+| `POST /v1/image_to_video` | animate a still | `gen4.5`, `gen4_turbo`, `veo3.1`, `seedance2_5` |
+| `POST /v1/video_to_video` | edit or restyle a clip | `aleph2` (input at most 30 s), `seedance2` |
+| `POST /v1/text_to_image` | stills and reference images | `gen4_image`, `gen4_image_turbo`, `gemini_2.5_flash` |
+| `GET /v1/tasks/{id}` | status and output | - |
+
+Allowed `ratio` and `duration` depend on the model. For `gen4.5` text-to-video: ratio `1280:720` or `720:1280`, duration an integer from 2 to 10, `promptText` up to 1000 characters. `gen4_turbo` is image-to-video only; ratios `1280:720`, `720:1280`, `1104:832`, `832:1104`, `960:960`, `1584:672`; `promptText` optional. `veo3.1` takes durations 4, 6 or 8 and an `audio` boolean that changes the price. A wrong ratio for the model returns a 400 error.
+
+### Generate with the Python SDK
 
 ```python
-import os
-import time
-import requests
+from runwayml import RunwayML, TaskFailedError
 
-API_KEY = os.environ["RUNWAY_API_KEY"]
-BASE_URL = "https://api.dev.runwayml.com/v1"
-HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json",
-    "X-Runway-Version": "2024-11-06"
+client = RunwayML()  # reads RUNWAYML_API_SECRET
+
+try:
+    task = client.text_to_video.create(
+        model="gen4.5",
+        prompt_text="Drone shot over a misty alpine valley at golden hour, slow forward motion",
+        ratio="1280:720",
+        duration=5,
+    ).wait_for_task_output()
+    print(task.output[0])          # URL of the mp4
+except TaskFailedError as e:
+    print("Generation failed:", e.task_details)
+```
+
+Image to video accepts an HTTPS URL, a Runway upload URI, or a base64 data URI as `prompt_image`:
+
+```python
+import base64, pathlib
+
+png = base64.b64encode(pathlib.Path("kettle-product.png").read_bytes()).decode()
+task = client.image_to_video.create(
+    model="gen4_turbo",
+    prompt_image=f"data:image/png;base64,{png}",
+    prompt_text="Steam rises from the spout, camera slowly pushes in",
+    ratio="1280:720",
+    duration=5,
+).wait_for_task_output()
+```
+
+### Generate with Node.js
+
+```javascript
+import RunwayML, { TaskFailedError } from '@runwayml/sdk';
+
+const client = new RunwayML();
+try {
+  const task = await client.imageToVideo
+    .create({
+      model: 'gen4.5',
+      promptImage: 'https://assets.northwind-outdoor.com/tent-hero.jpg',
+      promptText: 'Wind moves the grass, light shifts across the tent',
+      ratio: '1280:720',
+      duration: 5,
+    })
+    .waitForTaskOutput();
+  console.log(task.output[0]);
+} catch (error) {
+  if (error instanceof TaskFailedError) console.error(error.taskDetails);
+  else throw error;
 }
 ```
 
-### Step 2: Text-to-video generation
+### Plain REST with polling
 
 ```python
-def text_to_video(
-    prompt_text: str,
-    duration: int = 5,
-    ratio: str = "1280:720",
-    seed: int = None
-) -> str:
-    """Submit a text-to-video task and return the task_id."""
-    payload = {
-        "model": "gen3a_turbo",
-        "promptText": prompt_text,
-        "duration": duration,
-        "ratio": ratio
-    }
-    if seed is not None:
-        payload["seed"] = seed
+import os, time, requests
 
-    r = requests.post(f"{BASE_URL}/image_to_video", json=payload, headers=HEADERS)
+BASE = "https://api.dev.runwayml.com/v1"
+HEADERS = {
+    "Authorization": f"Bearer {os.environ['RUNWAYML_API_SECRET']}",
+    "X-Runway-Version": "2024-11-06",
+}
+
+def generate(payload: dict, endpoint: str = "text_to_video") -> list[str]:
+    r = requests.post(f"{BASE}/{endpoint}", json=payload, headers=HEADERS, timeout=60)
     r.raise_for_status()
-    return r.json()["id"]
-
-task_id = text_to_video(
-    prompt_text="A drone shot flying over a misty mountain valley at golden hour, cinematic, slow motion",
-    duration=5,
-    ratio="1280:720"
-)
-print(f"Task submitted: {task_id}")
-```
-
-### Step 3: Image-to-video generation
-
-```python
-import base64
-from pathlib import Path
-
-def image_to_video(
-    image_path: str,
-    prompt_text: str = "",
-    duration: int = 5,
-    ratio: str = "1280:720",
-    seed: int = None
-) -> str:
-    """Animate an image into video. image_path can be a local file or URL."""
-
-    if image_path.startswith("http"):
-        prompt_image = image_path
-    else:
-        # Encode local file as data URI
-        img_bytes = Path(image_path).read_bytes()
-        ext = Path(image_path).suffix.lstrip(".").lower()
-        mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(ext, "image/png")
-        b64 = base64.b64encode(img_bytes).decode()
-        prompt_image = f"data:{mime};base64,{b64}"
-
-    payload = {
-        "model": "gen3a_turbo",
-        "promptImage": prompt_image,
-        "promptText": prompt_text,
-        "duration": duration,
-        "ratio": ratio
-    }
-    if seed is not None:
-        payload["seed"] = seed
-
-    r = requests.post(f"{BASE_URL}/image_to_video", json=payload, headers=HEADERS)
-    r.raise_for_status()
-    return r.json()["id"]
-
-task_id = image_to_video(
-    image_path="product_shot.png",
-    prompt_text="The product slowly rotates, sparkling particles float around it, luxury feel",
-    duration=5,
-    ratio="1280:720"
-)
-print(f"Task submitted: {task_id}")
-```
-
-### Step 4: Poll for task status
-
-```python
-def get_task(task_id: str) -> dict:
-    r = requests.get(f"{BASE_URL}/tasks/{task_id}", headers=HEADERS)
-    r.raise_for_status()
-    return r.json()
-
-def wait_for_task(task_id: str, poll_interval: int = 5, timeout: int = 600) -> list[str]:
-    """Poll until task completes; return list of output video URLs."""
-    start = time.time()
+    task_id = r.json()["id"]
     while True:
-        task = get_task(task_id)
-        status = task["status"]
-        progress = task.get("progress", 0)
-        print(f"[{int(time.time()-start)}s] Status: {status} ({int(progress*100)}%)")
+        time.sleep(5)            # the API updates a task at most every 5 seconds
+        t = requests.get(f"{BASE}/tasks/{task_id}", headers=HEADERS, timeout=60).json()
+        if t["status"] == "SUCCEEDED":
+            return t["output"]
+        if t["status"] in ("FAILED", "CANCELLED"):
+            raise RuntimeError(f"{t['status']}: {t.get('failure')} ({t.get('failureCode')})")
 
-        if status == "SUCCEEDED":
-            return task["output"]  # list of video URLs
-        elif status in ("FAILED", "CANCELLED"):
-            raise RuntimeError(f"Task {status}: {task.get('failure', '')}")
-        elif time.time() - start > timeout:
-            raise TimeoutError(f"Task not done after {timeout}s")
-
-        time.sleep(poll_interval)
-
-output_urls = wait_for_task(task_id)
-print(f"Video(s) ready: {output_urls}")
+urls = generate({"model": "gen4.5", "promptText": "Close-up of espresso pouring, shallow depth of field",
+                 "ratio": "720:1280", "duration": 5})
+with requests.get(urls[0], stream=True, timeout=120) as resp, open("espresso.mp4", "wb") as f:
+    for chunk in resp.iter_content(1 << 16):
+        f.write(chunk)
 ```
 
-### Step 5: Download the result
+Task statuses: `PENDING`, `THROTTLED`, `RUNNING` (with `progress`), `SUCCEEDED` (with `output`), `FAILED` (with `failure` and `failureCode`), `CANCELLED`. `DELETE /v1/tasks/{id}` cancels or deletes a task.
+
+### Editing video with Aleph 2.0
 
 ```python
-def download_video(url: str, output_path: str = "output.mp4") -> str:
-    r = requests.get(url, stream=True)
-    r.raise_for_status()
-    with open(output_path, "wb") as f:
-        for chunk in r.iter_content(chunk_size=8192):
-            f.write(chunk)
-    size_mb = os.path.getsize(output_path) / 1024 / 1024
-    print(f"Saved: {output_path} ({size_mb:.1f} MB)")
-    return output_path
-
-download_video(output_urls[0], "mountain_valley.mp4")
+task = client.video_to_video.create(
+    model="aleph2",
+    video_uri="https://assets.northwind-outdoor.com/trail-clip.mp4",
+    prompt_text="Change the season to autumn, keep the camera motion",
+).wait_for_task_output()
 ```
 
-## Full pipeline example
+### Cost
 
-```python
-def generate_and_download(prompt: str, output_path: str = "output.mp4", **kwargs) -> str:
-    """One-shot: generate video from text and download it."""
-    print(f"Generating: {prompt[:80]}...")
-    task_id = text_to_video(prompt, **kwargs)
-    urls = wait_for_task(task_id)
-    return download_video(urls[0], output_path)
+Generation costs credits per second of output, and the task response shows `estimatedCost` while running and `cost` when done. At the time of writing `gen4_turbo` is 5 credits per second, `gen4.5` 12, `aleph2` 28 (56-credit minimum); see https://docs.dev.runwayml.com/guides/pricing. Professional formats (`outputFormat`: `prores`, `hdr10`, ...) on Gen-4.5 and Aleph 2.0 add a surcharge.
 
-# Generate a product ad clip
-generate_and_download(
-    prompt="Close-up of a sleek smartphone on a white desk, screen lights up, smooth camera pull-back",
-    output_path="product_ad.mp4",
-    duration=5,
-    ratio="1280:720"
-)
-```
+## Examples
 
-## Parameters reference
+### Example 1: Product ad from a still photo
 
-| Parameter | Values | Description |
-|-----------|--------|-------------|
-| `model` | `gen3a_turbo` | Use Gen-3 Alpha Turbo (fastest) |
-| `duration` | `5`, `10` | Video length in seconds |
-| `ratio` | `1280:720`, `720:1280`, `1104:832`, `832:1104`, `960:960` | Resolution aspect ratio |
-| `seed` | integer | Reproducibility seed for deterministic outputs |
-| `promptText` | string | Text prompt describing the desired video |
-| `promptImage` | URL or data URI | Starting image for image-to-video |
+**User request:** "Turn kettle-product.png into a 5-second landscape clip for our ad."
+
+Run the data-URI `image_to_video` snippet above with `gen4_turbo`. The script prints a task id, waits roughly a minute, and returns a signed URL; download it to `kettle-ad.mp4`. The result is a 1280x720 mp4 of about 5 seconds costing about 25 credits.
+
+### Example 2: Vertical B-roll batch
+
+**User request:** "Make three 6-second vertical clips for our coffee shop reels."
+
+Call `generate()` three times with `model: "gen4.5"`, `ratio: "720:1280"`, `duration: 6` and different `promptText` values, using a thread pool of 2-3 workers. Each call returns an mp4 URL; save them as `reel-1.mp4` to `reel-3.mp4`. Expect about 72 credits per clip.
 
 ## Guidelines
 
-- Runway tasks take 30–120 seconds depending on duration and load.
-- Output URLs expire after a period — download videos promptly after generation.
-- Keep prompts descriptive and cinematic: include camera movement, lighting, mood.
-- Use `seed` to reproduce the same result when iterating on prompts.
-- For batch generation, queue tasks in parallel but respect rate limits (check HTTP 429 and retry after the `Retry-After` header value).
-- Store API keys in environment variables — never hardcode them.
-- Check https://docs.runwayml.com for the latest model names and endpoints as they evolve rapidly.
+- Output URLs expire within 24-48 hours: download and store files immediately; fetching the task again returns fresh URLs.
+- `promptText` is limited to 1000 characters; describe subject, camera movement, lighting and mood.
+- Keep API keys in environment variables, never in code, and call the API only from a server, not from a browser.
+- Handle HTTP 429 and `THROTTLED` tasks by backing off; the SDKs retry some errors twice by default.
+- Reuse `seed` (0 to 4294967295) to compare prompt changes under otherwise identical settings.
+- Content moderation can fail a task (`failureCode`); do not retry blindly, change the input.
+- Pin the model id in config, and re-check the models page when a request starts returning 400: models are retired.

@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ce02735db97531d7aadc0e8ccb4a1af82ecb8105044a8f95ad001635a04a2ee2",
-  "scoredAt": "2026-05-13T09:05:17.718Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ab96c2c57ba830192db7b395b8d90f0f58b54100d50f1717397120415095fa6a",
+  "scoredAt": "2026-10-03T13:00:34.367Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 1 only describes the setup in prose and refers back to the earlier config rather than showing a complete runnable demonstration, and Example 2 is a single short fix."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 88,
-    "multiplier": 1.83,
+    "multiplier": 1.17,
+    "baselineAvg": 78,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Configure a Gatus endpoint that asserts JSON body health plus response-time SLO with Slack alerts after 3 failures",
-        "baseline": 48,
+        "name": "fix-invalid-contains-condition",
+        "baseline": 82,
         "treatment": 90,
-        "rationale": "Treatment uses the documented condition syntax ([STATUS] == 200, [RESPONSE_TIME] < 2000, [BODY].status == healthy) and Slack provider with failure-threshold: 3 and send-on-resolved: true; baseline tends to invent fields or use generic HTTP checks rather than Gatus's bracketed placeholders."
+        "rationale": "Both explain that Gatus has no 'contains' operator and replace the condition with '[BODY] == pat(*Documentation*)', but B explicitly tells the user to look for the 'Monitored ... success=true' log lines as the rubric requires, whereas A expects 'Listening on :8080' and never mentions the Monitored lines."
       },
       {
-        "name": "Monitor TCP connectivity for PostgreSQL and SSL certificate expiry on the same Gatus instance",
-        "baseline": 48,
-        "treatment": 85,
-        "rationale": "Treatment correctly uses the tcp:// URL scheme with [CONNECTED] == true and the [CERTIFICATE_EXPIRATION] > 720h condition documented in the skill; baseline typically resorts to external pg_isready scripts or omits the bracketed Gatus placeholders."
+        "name": "multi-protocol-monitoring-config",
+        "baseline": 91,
+        "treatment": 93,
+        "rationale": "Both responses use the right conditions, DNS block, tcp URL, slack provider with ${VAR} expansion, and per-endpoint alerts; A adds slightly more run detail (sqlite storage, health checks), while B has a minor extra (DNS answer assertion tip) and a less current image name, so they are nearly equal."
+      },
+      {
+        "name": "persistent-history-docker-compose-deploy",
+        "baseline": 60,
+        "treatment": 90,
+        "rationale": "A matches the rubric closely: ghcr.io/twin/gatus:stable, config.yaml mounted read-only at /config/config.yaml, sqlite at /data/gatus.db on a named volume, a note that memory storage resets on restart, ${VAR} secrets, and curl checks of /health and /api/v1/endpoints/statuses; B has good persistence and health checks but uses the twinproduction/gatus:latest image, mounts a ./config directory rather than config.yaml itself, and never says memory storage loses history."
       }
     ]
   }

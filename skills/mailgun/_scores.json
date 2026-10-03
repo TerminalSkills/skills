@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c41cf5dcf78af4157e809b4522199532758c2482bb963e0d3f3f27d9a075ad0a",
-  "scoredAt": "2026-05-13T09:27:13.719Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7f9b0906a6f9ef6f4a55875e6d7cbfc32627d2e86bc226092742f94f8b15f28e",
+  "scoredAt": "2026-10-03T12:04:54.836Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling for email sending or missing environment variables, limiting robustness."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The code examples are specific to Node.js/TypeScript, limiting applicability to other languages or AI agents."
+        "detail": "Error handling is thin: no guidance on API failures such as 4xx/5xx or rate limits, retries, or batch sends over 1,000 recipients, and the in-memory seenTokens set has no expiry or multi-instance handling beyond a comment."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 87,
-    "multiplier": 2.29,
+    "multiplier": 1.33,
+    "baselineAvg": 70,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "GDPR-compliant weekly report send with tracking and tags",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Treatment uses mailgun.js with the EU endpoint (api.eu.mailgun.net), passes o:tag, o:tracking-clicks, and o:tracking-opens options on messages.create, and validates recipients with mg.validate.get before send; baseline sends a basic email without EU routing or Mailgun tracking options."
+        "name": "eu-batch-newsletter-with-variables",
+        "baseline": 93,
+        "treatment": 96,
+        "rationale": "Both satisfy all rubric points (api username, MAILGUN_API_KEY, EU url, domain as first arg, JSON.stringify'd recipient-variables keyed by email, %recipient.x% placeholders); B additionally puts the first name in the subject and explicitly notes the domain-vs-From argument, while A's use of form-data is also correct but slightly less explicit on the domain point."
       },
       {
-        "name": "Webhook handler that verifies HMAC and reacts to bounces/complaints",
-        "baseline": 35,
-        "treatment": 85,
-        "rationale": "Treatment verifies the signature with HMAC-SHA256 over timestamp+token using MAILGUN_WEBHOOK_KEY, then switches on event-data event types including 'failed' with severity='permanent' and 'complained' to suppress/unsubscribe; baseline accepts the webhook without HMAC verification and misses the permanent-bounce and complaint branches."
+        "name": "secure-webhook-handler-bounces",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "A meets all rubric points, including returning 401 on failure, while B returns 406 for invalid signatures (violating the 401 requirement) and silently returns 200 on a replayed token instead of rejecting it, though B's signature check, timestamp window, and event handling are otherwise correct."
+      },
+      {
+        "name": "inbound-support-route-and-validation",
+        "baseline": 55,
+        "treatment": 95,
+        "rationale": "B uses mg.routes.create with match_recipient and forward()/stop(), notes the MX requirement, uses mg.validate.get with check.result and risk, and flags validation as separately metered, while A uses raw curl instead of the SDK calls, omits the metering/plan caveat (it only mentions a validation-enabled plan), and doesn't use mg.validate.get."
       }
     ]
   }

@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:03280448e06e8cdc9041552544944816f13b508317bdf7cdfffd42b99437d618",
-  "scoredAt": "2026-05-13T09:59:53.080Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.1",
+  "skillHash": "sha256:3246226199c2b5fce6bc265e6a78f43962358e2d40db4926724d3ac15b382d39",
+  "scoredAt": "2026-10-03T13:08:58.025Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for missing data or evaluation failures."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 91,
-    "multiplier": 1.65,
+    "multiplier": 1.1,
+    "baselineAvg": 84,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "ragas-baseline-eval",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Treatment uses the exact Ragas pattern with Dataset.from_dict, the four documented metrics, and .to_pandas() output, while the baseline often omits context_recall or misses the HuggingFace Dataset wrapping step."
+        "name": "baseline-rag-eval-four-metrics",
+        "baseline": 90,
+        "treatment": 93,
+        "rationale": "Both use EvaluationDataset.from_list with the current field names, the four metric instances, LLM and embeddings wrappers, and to_pandas() sorted by faithfulness, so B edges ahead on a slightly tighter worst-rows output and an isna check, while A adds a richer worst-answer display and NaN-first sorting."
       },
       {
-        "name": "ragas-ci-pytest-thresholds",
-        "baseline": 50,
+        "name": "synthetic-testset-from-markdown-docs",
+        "baseline": 82,
         "treatment": 90,
-        "rationale": "Treatment follows the skill's QUALITY_THRESHOLDS dict, session-scoped fixture, and baseline JSON regression check, while the baseline runs metrics ad hoc inside each test without the shared fixture or regression delta logic."
+        "rationale": "Both use TestsetGenerator with LangchainLLMWrapper/embedding wrappers, DirectoryLoader, generate_with_langchain_docs(testset_size=30) and to_pandas().to_csv, but B states more explicitly that the CSV lacks response/retrieved_contexts and shows running each user_input through the user's pipeline to fill them, while A covers this too but adds a TextLoader and extra caveats and is less direct in showing the pipeline loop (and claims the docs dir doesn't exist, unverified in the response text)."
+      },
+      {
+        "name": "ci-faithfulness-gate-pytest",
+        "baseline": 80,
+        "treatment": 92,
+        "rationale": "B matches the rubric more closely: it has a THRESHOLDS dict, a session-scoped fixture, a parametrized test, a CI secret, and the 40+ row advice. A has the same fixture and secret but uses two separate tests with env-var thresholds instead of a THRESHOLDS dict and a parametrized test, and only says 'more questions' without a number."
       }
     ]
   }
