@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "terminal-skills",
-      "source": "./claude-plugin",
+      "source": "./plugins/terminal-skills",
       "description": "Connect Claude Code to the Terminal Skills agent: 1000+ audited skills, routed to your task on demand. Ask for anything specialized — deployments, documents, data pipelines, third-party APIs — and get proven instructions instead of improvisation.",
       "category": "productivity",
       "tags": ["skills", "marketplace", "mcp", "agent", "automation"]
