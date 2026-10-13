@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:7afef0510d18db7c79115ff1c15764d90c0bd749db1a2bd0d8945f1c35e005ca",
+  "scoredAt": "2026-10-13T11:46:04.639Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
+  "quality": {
+    "score": 100,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
+      "examples": "PASS"
+    },
+    "issues": []
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 2.52,
+    "baselineAvg": 33,
+    "treatmentAvg": 83,
+    "scenarios": [
+      {
+        "name": "support-ticket-routing",
+        "baseline": 52,
+        "treatment": 80,
+        "rationale": "Response A covers all three rubric requirements: defines distinct team routing options, includes an explicit `other` option, and checks both confidence (<0.6) and `other` status for manual review. Response B omits the `other` option entirely—its schema only allows billing/technical/account—and therefore cannot implement the routing logic for uncertain classifications flagged as `other`. While B offers more realistic, production-ready code using real services (NestJS, Anthropic, MongoDB), it structurally fails to meet the rubric. A uses a fictional API but gets the logic and requirements right; B's architecture is superior but incomplete against spec."
+      },
+      {
+        "name": "sales-lead-scoring",
+        "baseline": 8,
+        "treatment": 92,
+        "rationale": "Response A asks clarifying questions instead of providing any solution, covering 0% of the rubric's core requirements (score-type question, routing logic, confidence thresholds). Response B delivers all three: defines a 4-level purchase-intent scale, implements score > 2 and confidence > 0.65 routing to sales, and explicitly routes lower-confidence/lower-score leads to nurture queues—with working code, examples, and thresholds. Minor deduction for Response B: external API names are unverified, but the implementation structure is correct."
+      },
+      {
+        "name": "destructive-action-gate",
+        "baseline": 38,
+        "treatment": 78,
+        "rationale": "Response A directly implements the rubric's core requirement—a noul-type question that checks probability (>0.5 for destructive, <0.6 for uncertainty) and pauses accordingly—though API authenticity is unclear. Response B ignores the rubric's specific noul requirement entirely, instead building a heuristic risk classifier that would work well in practice but fails to meet the stated rubric criteria."
+      }
+    ]
+  }
+}

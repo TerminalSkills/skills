@@ -4520,6 +4520,19 @@
       "tags": []
     },
     {
+      "name": "jev",
+      "slug": "jev",
+      "description": "Calls Jev, TypeSafe AI's \"System One\" model, which returns typed decisions (a choice, a score, or a yes/no probability) with calibrated probabilities instead of generated text. Use when a user asks to classify or route tickets, messages or documents, score leads or urgency, gate an agent action on a yes/no check, add a confidence threshold before acting, or get fast structured decisions through the TypeSafe API, LiteLLM or the Vercel AI Gateway.",
+      "category": "data-ai",
+      "tags": [
+        "jev",
+        "typesafe-ai",
+        "ai-agents",
+        "classification",
+        "routing"
+      ]
+    },
+    {
       "name": "jira",
       "slug": "jira",
       "description": "Manage projects, issues, and workflows with Jira Cloud. Use when a user asks to set up Jira projects, create and manage issues, configure workflows, build Jira integrations, automate issue transitions, set up boards (Scrum/Kanban), manage sprints, use Jira REST API v3, create webhooks, build custom JQL queries, configure permissions and schemes, set up automation rules, or integrate Jira with CI/CD pipelines. Covers project administration, issue tracking, agile boards, API automation, and Atlassian Connect/Forge apps.",
@@ -10346,6 +10359,18 @@
       "tags": []
     },
     {
+      "name": "webmcp",
+      "slug": "webmcp",
+      "description": "Exposes a web page's functionality to AI agents as callable tools with WebMCP, a draft browser API (document.modelContext) from the W3C Web Machine Learning Community Group. Use when a user asks to \"make my web app agent-ready\", \"let AI agents add items or search on my site\", \"register tools in the browser\", \"use document.modelContext.registerTool\", or \"test WebMCP in Chrome\".",
+      "category": "development",
+      "tags": [
+        "webmcp",
+        "mcp",
+        "ai-agents",
+        "browser-api"
+      ]
+    },
+    {
       "name": "websocket-builder",
       "slug": "websocket-builder",
       "description": "When the user wants to build real-time features using WebSockets. Use when the user mentions \"WebSocket,\" \"real-time,\" \"live updates,\" \"socket,\" \"ws,\" \"push notifications,\" \"live chat,\" \"streaming data,\" or \"bidirectional communication.\" Covers server setup, room management, authentication, reconnection handling, and scaling with Redis pub/sub. For data persistence, see realtime-database.",
@@ -10703,5 +10728,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-03T22:20:00.785Z"
+  "updatedAt": "2026-10-13T13:00:47.227Z"
 }
