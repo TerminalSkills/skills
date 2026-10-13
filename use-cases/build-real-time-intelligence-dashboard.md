@@ -15,7 +15,7 @@ tags: [real-time, monitoring, intelligence, dashboard, websocket, news-analysis,
 
 Analysts at consulting firms need to track 200+ sources across news, social media, and markets — then surface what actually matters. Tab-hopping between Bloomberg, Twitter, and Reuters wastes hours every day. Clients pay for insights, not information, but there is no single tool that ingests everything, deduplicates across sources, and delivers AI-filtered intelligence in real time.
 
-Inspired by [WorldMonitor](https://github.com/worldmonitor/worldmonitor) (43k+ stars) — real-time global event tracking with AI classification.
+Inspired by [WorldMonitor](https://github.com/koala73/worldmonitor) (43k+ stars) — real-time global event tracking with AI classification.
 
 ## The Solution
 

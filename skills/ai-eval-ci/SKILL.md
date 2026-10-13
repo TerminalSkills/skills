@@ -94,7 +94,8 @@ tests:
 npx promptfoo@latest eval
 
 # Run in CI with threshold — exits non-zero if any test fails
-npx promptfoo@latest eval --ci --output results.json
+# No --ci flag: promptfoo exits 100 when any test fails, which fails the CI step.
+npx promptfoo@latest eval --no-progress-bar --no-table -o results.json
 
 # Compare two prompt versions
 npx promptfoo@latest eval --prompts prompt-v1.txt prompt-v2.txt --share
@@ -293,8 +294,6 @@ The agent will:
 - **LLM-as-judge is good enough** — GPT-4o-mini costs pennies and correlates well with human judgment
 - **Use temperature 0 for judges** — deterministic scoring reduces noise
 - **Keep test sets diverse** — happy path, edge cases, adversarial inputs, off-topic
-- **Set realistic thresholds** — start at 0.7, tighten as the agent improves
-- **Track scores over time** — log results to detect gradual quality drift
-- **Separate eval cost from production cost** — eval uses cheap judge models, production uses the best
-- **Cache eval results** — don't re-run unchanged tests; hash input+prompt for cache keys
+- **Set realistic thresholds and track over time** — start at 0.7, tighten as the agent improves, and log results to catch gradual quality drift
+- **Keep eval cheap** — judge with cheap models (production uses the best), and cache unchanged tests (hash input+prompt)
 - **Run evals on PRs, not just main** — catch regressions before merge

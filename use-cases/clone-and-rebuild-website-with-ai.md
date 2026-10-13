@@ -5,7 +5,6 @@ description: "Use AI agents to reverse-engineer any website, extract its design 
 skills:
   - clone-website
   - image-compare
-  - web-design
 category: design
 tags:
   - website-cloning
@@ -68,4 +67,3 @@ Sara, a startup founder, needs a landing page before investor meetings next week
 
 - **clone-website** — The core skill powering this workflow
 - **image-compare** — Visual diff tool for QA comparison
-- **web-design** — Design system generation and component architecture
