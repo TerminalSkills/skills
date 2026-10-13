@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3b8307c9bd2edf3a7abe2a8b73d61945805a6535bd6bf8e88baca0d64600abd6",
-  "scoredAt": "2026-05-13T14:37:04.289Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:ec7b56c3d095a90e31f1fbd27b734e07f94150b96d458b6f6e324f956ba90537",
+  "scoredAt": "2026-10-13T11:16:46.907Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Error handling is thin: Task B/C swallow exceptions with no retry or timeout, the parallel shell examples do not use --joblog/--resume-failed or surface failures (tesseract stderr is discarded with 2>/dev/null), and edge cases like name collisions in a flat output directory (basename in Task D and Example 3), existing output files, or the Task C resume file being shared across different input directories are not addressed."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.18,
-    "baselineAvg": 55,
-    "treatmentAvg": 65,
+    "multiplier": 0.97,
+    "baselineAvg": 65,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "convert-markdown-to-pdf-parallel",
-        "baseline": 80,
-        "treatment": 60,
-        "rationale": "Response A covers almost all rubric items except the final echo, while Response B fails the single-pipeline requirement and places the echo outside the pipeline."
+        "name": "resumable-bulk-ocr-with-failure-log",
+        "baseline": 82,
+        "treatment": 90,
+        "rationale": "Both skip finished files via output-existence checkpointing, log failures, and use atomic renames with OMP_THREAD_LIMIT=1; A uses GNU parallel with --bar and a modest default of 4 jobs, while B uses a live counter with a default of cores−1 (could be high) and has a minor risk that its finally block removes the partial file mid-replace is fine, but its concurrency default is less conservative than the rubric's 'modest' guidance."
       },
       {
-        "name": "resume-csv-processing",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response A covers most rubric items but lacks a named batch_with_resume() and proper KeyboardInterrupt handling, while Response B misses checkpoints, resume logic, and cleanup entirely."
+        "name": "safe-bulk-pdf-compress-spaces-in-names",
+        "baseline": 90,
+        "treatment": 78,
+        "rationale": "Response A uses -print0/xargs -0 with a worker script that receives the path as a single argument and quotes it throughout, writes to a separate mirror tree with mkdir -p, and gives a thorough subset test and post-run verification, though it uses a script rather than bash -c; Response B meets every rubric item literally (print0, xargs -0, bash -c with quoted \"$1\", mkdir -p to a separate dir, a preview step and a 5-file test) but flattens the output so same-named files in different subfolders overwrite each other, and its 'preview' only prints names rather than dry-running the command."
+      },
+      {
+        "name": "async-python-batch-with-semaphore-and-summary",
+        "baseline": 22,
+        "treatment": 22,
+        "rationale": "Both responses use ThreadPoolExecutor with as_completed instead of the required asyncio.Semaphore, so neither meets the core requirement, but both catch per-file exceptions, track counts and error messages, and print a final summary; A prints a per-file progress line and a fuller summary, while B uses a single overwriting progress line and includes a sample process_file body."
       }
     ]
   }

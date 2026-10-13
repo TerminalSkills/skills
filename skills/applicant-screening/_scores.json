@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:536855f976aad1f6029d94846b59e01cd34215cd8b77f91dc66a1d1fc64a0e7c",
-  "scoredAt": "2026-05-13T14:07:10.542Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:74de47a5278c88c42a09e602dac40464ae7c536f030708d0e10dd87b3b0db3bf",
+  "scoredAt": "2026-10-13T11:19:18.161Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly handle error scenarios or edge cases such as missing data or ambiguous qualifications."
+        "detail": "The skill does not explicitly handle missing data or error scenarios for incomplete resumes."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The skill lacks concrete code for parsing resumes and scoring, relying on user-provided steps."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.78,
-    "baselineAvg": 58,
-    "treatmentAvg": 45,
+    "multiplier": 2.76,
+    "baselineAvg": 17,
+    "treatmentAvg": 47,
     "scenarios": [
       {
-        "name": "screen-batch-resumes",
+        "name": "create-custom-rubric",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response B meets all rubric requirements with a proper YAML format and user approval prompt, while Response A lacks YAML and explicit approval."
+      },
+      {
+        "name": "screen-resume-batch",
         "baseline": 20,
-        "treatment": 60,
-        "rationale": "Response A provides a YAML rubric with required and preferred criteria but lacks scoring, ranking, markdown report, and CSV, whereas Response B lacks a YAML rubric and also omits scoring, ranking, and the required outputs."
+        "treatment": 45,
+        "rationale": "Response A presents a rubric and asks for approval, covering some rubric elements, while Response B only offers a keyword‑scoring script and omits rubric presentation, candidate scoring, ranking, and report generation."
       },
       {
         "name": "re-evaluate-with-kubernetes",
-        "baseline": 95,
-        "treatment": 30,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A is incomplete."
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to update the rubric, re-evaluate candidates, or provide a ranked shortlist as required."
       }
     ]
   }

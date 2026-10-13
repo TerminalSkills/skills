@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5e2304e0cd58f6f38661e875e00fd693bff90ec0ee439f2cec093db4d9feaca4",
-  "scoredAt": "2026-05-13T13:46:36.389Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:2d41132554e31d5a031b7a01f1c5c56c3f9a17901d544d839b99e3ecbc606051",
+  "scoredAt": "2026-10-13T11:15:37.809Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases, focusing only on the happy path."
+        "detail": "Covers the happy path of outline generation but gives no handling for missing audience or duration, vague or oversized source content, export tool failures, or content that overflows slides."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Mostly templates and design rules; the export step offers only a Marp CLI one-liner and a python-pptx pointer with no runnable script, and Reveal.js and Google Slides or Keynote routes are left without procedures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 1 is abbreviated to three slides, and Examples 2 and 3 are only bracketed placeholder outlines (e.g. '[Common API design mistakes with code examples]') rather than realistic filled-in slide content."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.3,
-    "baselineAvg": 33,
-    "treatmentAvg": 43,
+    "multiplier": 1.47,
+    "baselineAvg": 59,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "pitch-deck-for-enterprise-ai-tool",
-        "baseline": 35,
-        "treatment": 15,
-        "rationale": "Response A covers more of the required slides and includes key elements like market size, traction, and funding ask, whereas Response B only provides a few slides and omits many rubric requirements."
+        "name": "seed-pitch-deck-with-narrative-arc",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "B gives each slide an explicit Layout, Content, Speaker Notes and Visual Suggestion with mostly claim-style titles (e.g. 'PRs wait 2 days for a first review') and follows the required order, merging only team and ask; A lacks Layout fields and uses bare topic labels for several titles, and omits the financials slide while adding off-structure slides (why now, go-to-market, differentiation)."
       },
       {
-        "name": "q4-engineering-review-deck",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response A covers most rubric items but violates design limits; Response B lacks required slides, notes, and visuals."
+        "name": "rework-text-heavy-slide",
+        "baseline": 62,
+        "treatment": 92,
+        "rationale": "A splits the content into three one-idea slides with takeaway titles, short bullets, and a big '3x' number plus a bar chart suggestion, matching the rubric closely, whereas B keeps everything on a single slide as its main fix (offering a split only as optional) and its title is more of a stat than a clear takeaway, though it does use a hero number."
+      },
+      {
+        "name": "export-marp-deck-with-notes",
+        "baseline": 74,
+        "treatment": 80,
+        "rationale": "Both give Marp markdown with '---' separators, HTML-comment speaker notes, and the exact npx marp-cli --pptx and --pdf commands, but A has real content and uses 7 slides with notes while missing a dedicated Q&A slide and metrics-vs-completed structure is partly merged, whereas B is a generic bracket-placeholder deck that omits an explicit TL;DR slide and a separate metrics slide and Q&A (merged into Asks), though it adds useful export notes."
       }
     ]
   }

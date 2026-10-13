@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e5039926a0d79e210f05c3ae1964dee2497955483b8bdd050b4e1f2e10ba13e3",
-  "scoredAt": "2026-05-13T14:02:35.714Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:8fcbf7a78a770cd756aec64e7fd4e1a2785c6d027b1d0cde897df5a7621e9ff3",
+  "scoredAt": "2026-10-13T11:12:12.499Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not explicitly cover handling network errors, timeouts, or non-JSON responses, which are common edge cases in API testing."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes the presence of curl or Python 3.9+ with the requests library, limiting compatibility with agents lacking these tools."
+        "detail": "Error handling is thin: the Python helper does not handle network errors, timeouts, or invalid JSON bodies, and there is no guidance for retries, redirects, rate limiting (429), or non-JSON responses."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.83,
-    "baselineAvg": 30,
-    "treatmentAvg": 55,
+    "multiplier": 1.73,
+    "baselineAvg": 40,
+    "treatmentAvg": 69,
     "scenarios": [
       {
-        "name": "crud-flow-test",
-        "baseline": 20,
-        "treatment": 30,
-        "rationale": "Response A includes the required curl POST with -s -w and a more complete CRUD flow, whereas Response B lacks the Python snippet, detailed assertions, and PASS/FAIL reporting, making A the better answer."
+        "name": "debug-expired-token-401",
+        "baseline": 40,
+        "treatment": 55,
+        "rationale": "Both give a diagnostic plan without actually running tests, but A explicitly includes a no-auth baseline request, a masked token display (last4), an expiry check with refresh guidance, and a GET vs POST comparison, covering more of the rubric's separated cases and the mask requirement, while B lacks a no-auth case, never shows a refreshed-token test, and doesn't mask the token display beyond length."
       },
       {
-        "name": "auth-failure-debug",
+        "name": "users-crud-chain-with-report",
         "baseline": 40,
-        "treatment": 80,
-        "rationale": "Response A includes the required curl commands and a root‑cause report, but lacks the Python snippet; Response B misses the curl without auth, the Python code, and a clear refresh recommendation."
+        "treatment": 60,
+        "rationale": "A meets the core requirements (30s timeout, id extracted from POST and used in GET/PUT/DELETE, final 404 verification, slow flag over 2s, per-step PASS/FAIL with N/N summary) with minor weaknesses like aborting without cleanup; B uses a 15s timeout instead of 30s, never flags slow responses, uses PATCH rather than PUT, and crashes on network errors, though it does have the 404 check and N/N summary."
+      },
+      {
+        "name": "graphql-200-with-errors",
+        "baseline": 40,
+        "treatment": 93,
+        "rationale": "A satisfies all rubric points: POST with JSON body and Content-Type, token read from env var, explicit check that errors is absent/empty plus separate data validation, and a 30s timeout; B has no 30s timeout (uses 20s), does not read the token from an env var by default (only optional header), though it does check errors and data separately."
       }
     ]
   }

@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Requires curl or Python 3.9+ with requests library"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["api", "testing", "rest", "graphql", "http"]
 ---
@@ -41,17 +41,19 @@ Determine from the user or codebase:
 
 ```bash
 # GET request
-curl -s -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
-  -H "Authorization: Bearer $TOKEN" \
-  "https://api.example.com/users?page=1"
+curl -s --max-time 30 -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
+  -H "Authorization: Bearer $NORTHWIND_API_TOKEN" \
+  "https://api.northwind-shop.dev/v2/users?page=1"
 
 # POST request with JSON
-curl -s -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
+curl -s --max-time 30 -w "\nHTTP Status: %{http_code}\nTime: %{time_total}s\n" \
   -X POST \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"name": "Jane", "email": "jane@example.com"}' \
-  "https://api.example.com/users"
+  -H "Authorization: Bearer $NORTHWIND_API_TOKEN" \
+  -d '{"name": "Jane Alvarez", "email": "jane.alvarez@northwind-shop.dev"}' \
+  "https://api.northwind-shop.dev/v2/users"
+
+# Add --fail-with-body (curl 7.76+) to get a non-zero exit code on 4xx/5xx while still printing the error body
 ```
 
 **Using Python (for complex flows):**
@@ -123,8 +125,8 @@ Body:     Valid JSON, 3 fields
 
 Assertions:
   [PASS] body.id is present
-  [PASS] body.name == "Jane"
-  [PASS] body.email == "jane@example.com"
+  [PASS] body.name == "Jane Alvarez"
+  [PASS] body.email == "jane.alvarez@northwind-shop.dev"
   [FAIL] body.role expected "admin", got "user"
 
 Result: 3/4 assertions passed
@@ -144,17 +146,17 @@ API Test Suite: Users CRUD
 1. POST /api/users
    Status: 201 Created -- PASS
    Time:   156ms
-   Body:   {"id": 42, "name": "Test User", "email": "test@example.com"}
+   Body:   {"id": 42, "name": "Jane Alvarez", "email": "jane.alvarez@northwind-shop.dev"}
 
 2. GET /api/users/42
    Status: 200 OK -- PASS
    Time:   38ms
-   Body:   {"id": 42, "name": "Test User", "email": "test@example.com"}
+   Body:   {"id": 42, "name": "Jane Alvarez", "email": "jane.alvarez@northwind-shop.dev"}
 
 3. PUT /api/users/42
    Status: 200 OK -- PASS
    Time:   89ms
-   Body:   {"id": 42, "name": "Updated Name", "email": "test@example.com"}
+   Body:   {"id": 42, "name": "Jane Alvarez-Reyes", "email": "jane.alvarez@northwind-shop.dev"}
 
 4. DELETE /api/users/42
    Status: 204 No Content -- PASS
@@ -181,7 +183,7 @@ Test 1: No auth header
 
 Test 2: With Bearer token
   Status: 401 -- Response: {"error": "Token expired"}
-  Note: Token exp claim is 2024-01-15T00:00:00Z (expired)
+  Note: Token exp claim is 2026-01-15T00:00:00Z (expired)
 
 Test 3: With refreshed token
   Status: 201 Created -- PASS
@@ -197,6 +199,7 @@ Fix: Refresh the token using POST /api/auth/refresh
 - For sequences of dependent requests (create then read), use the response from the first request to build the second.
 - Include response time in reports. Flag responses over 2 seconds as slow.
 - When testing auth flows, test both the happy path and common failure modes (expired token, wrong credentials, missing permissions).
-- For GraphQL, use POST with the query in the JSON body and validate the `data` field separately from `errors`.
+- For GraphQL, use POST with `{"query": "...", "variables": {...}}` as the JSON body. A GraphQL server often answers 200 even on failure, so check that `errors` is absent or empty and validate `data` separately.
+- Keep tokens in environment variables, not in commands that end up in shell history or reports.
 - If an endpoint returns pagination, test the first page and mention the total count.
 - Always set a timeout (30 seconds) to avoid hanging on unresponsive endpoints.

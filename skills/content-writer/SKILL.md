@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: productivity
   tags: ["writing", "blog", "marketing", "content", "copywriting"]
   use-cases:
@@ -87,7 +87,8 @@ CTA: [Clear next step for the reader]
 - Cut filler words ("very", "really", "basically", "actually")
 - Replace passive voice with active voice
 - Ensure every paragraph earns its place — if it does not advance the point, cut it
-- Verify any claims or statistics are reasonable
+- Verify every claim, statistic and quote against its source, and link the source; if you cannot confirm a number, cut it or mark it as an estimate
+- Avoid dated titles ("in 2025") unless the piece is meant to expire
 - Read the opening — would you keep reading?
 
 ## Examples
@@ -98,7 +99,7 @@ CTA: [Clear next step for the reader]
 
 **Output structure:**
 ```markdown
-# Why Your Team Should Switch to TypeScript in 2025
+# Why Your Team Should Switch to TypeScript
 
 Your JavaScript codebase is a ticking time bomb. Every `undefined is not
 a function` error in production proves it. Here's why TypeScript is worth

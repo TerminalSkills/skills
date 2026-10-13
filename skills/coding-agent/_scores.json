@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1885e25527265532f3886b314dd194783af00ac03e1619b3b53292c4f6b7a562",
-  "scoredAt": "2026-05-13T15:44:01.559Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:fc663e6edd274fa1c9169c1b79476fde26f6b29bc7c93c8ab3a734d2276bd580",
+  "scoredAt": "2026-10-13T11:13:55.301Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill uses bash-specific commands, which may not work on non-Unix platforms."
+        "detail": "Most examples and the monitoring workflow are written around Claude Code flags (--permission-mode, --allowedTools, --max-turns), with Codex and Gemini only briefly covered and no full examples for them."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 6,
-    "baselineAvg": 0,
-    "treatmentAvg": 60,
+    "multiplier": 1.25,
+    "baselineAvg": 65,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "delegate-test-writing",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B provides a shell snippet that starts a Claude agent and captures output, but it does not target src/auth/login.ts specifically, omits the timeout case, and uses the wrong PID variable name; Response A does not meet any rubric requirements."
+        "name": "parallel-agents-non-overlapping-scopes",
+        "baseline": 62,
+        "treatment": 82,
+        "rationale": "A delivers a runnable script that launches two `claude -p` processes with `&`, captures PIDs via `$!`, writes each to its own log, waits on both, and pre-approves only the needed tools with `--permission-mode acceptEdits` and `--allowedTools` plus `--worktree`; B declines to launch and offers an in-session Agent option, and its shell option has the background/PID/log/wait pattern and acceptEdits but omits `--allowedTools`."
       },
       {
-        "name": "parallel-type-and-docs",
-        "baseline": 0,
-        "treatment": 70,
-        "rationale": "B is closer to the rubric, providing a script that spawns agents and waits, but uses different PID variable names."
+        "name": "codex-background-unit-tests",
+        "baseline": 68,
+        "treatment": 80,
+        "rationale": "A uses codex exec with workspace-write, & with $!, -o file, log redirect, and a follow-up to check exit code and run tests; B has most of the same but uses nohup and echoes pid, and its follow-up lacks an explicit exit-code check or independent test run (it asks Codex to run tests), plus it spends effort on not being able to run it."
+      },
+      {
+        "name": "safe-agent-runaway-guard-and-monitor",
+        "baseline": 66,
+        "treatment": 82,
+        "rationale": "Response A hits nearly every rubric item: `timeout` plus `--max-turns` and `--max-budget-usd`, `--allowedTools`, a log capturing stdout and stderr, `ps -p`, `wait` with the exit code, kill by PID, and a post-run review. Response B has strong limits, logging and review but omits `wait`, checks liveness with `ps -o ... -p` rather than plain `ps -p`, kills the process group via `kill -- -PID` instead of plain `kill $AGENT_PID`, and only weakly mentions verifying the CLI (via `claude --help`)."
       }
     ]
   }

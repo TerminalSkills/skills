@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b322a3c293041ddd104528a57ee505e4534ab634b2dd6190e2648568397c4550",
-  "scoredAt": "2026-05-13T14:53:54.260Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:9f07be4e3d9005f00db00cd651c5a6f7a4d4217b62d3ad5b6da1c6900a98c34f",
+  "scoredAt": "2026-10-13T11:13:08.897Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error scenarios such as missing brand assets or incomplete brand information, limiting its robustness."
+        "detail": "Covers only the happy path of building a guide and gives no handling for missing brand info, an existing brand to preserve, conflicting inputs, or a palette that fails contrast checks."
       },
       {
         "severity": "MEDIUM",
         "category": "actionability",
-        "detail": "The skill lacks runnable code or concrete procedures that can be directly executed by an AI agent, reducing immediate usability."
+        "detail": "Steps produce markdown templates with bracketed placeholders but no runnable commands, contrast-checking script, or concrete procedure for generating tints/shades or exporting the guide."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.38,
-    "baselineAvg": 40,
-    "treatmentAvg": 95,
+    "multiplier": 1.19,
+    "baselineAvg": 70,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "eco-coffee-shop-guidelines",
-        "baseline": 80,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits explicit do’s and visual examples of correct usage."
+        "name": "fintech-brand-guide-accessible-colors",
+        "baseline": 76,
+        "treatment": 80,
+        "rationale": "Both supply primary, neutral, semantic colors with hex values, contrast tables flagging white/green failures with Deep Green alternatives, a type scale, and design guidance; A has a dedicated Do's and Don'ts table (explicitly required) and a more complete type scale with a 'Fail' flag plus a safer alternative, while B lacks a formal Do's/Don'ts section (only logo don'ts and a checklist), uses approximate ratios, and omits the white-on-green pairing explicitly, though it has more semantic detail and tokens."
       },
       {
-        "name": "saas-dark-mode-update",
-        "baseline": 0,
+        "name": "developer-tool-color-palette-with-tints",
+        "baseline": 55,
         "treatment": 90,
-        "rationale": "Response B provides a detailed, ready‑to‑copy update covering all rubric items, while Response A is empty."
+        "rationale": "Response B covers the rubric nearly point by point: a tint/shade primary scale with hover/pressed roles, a neutral scale mapped to roles, semantic colors, contrast tables, and an explicit large-text-only case (white on #3b82f6 at 3.7:1) with a darker button fill recommended. Response A has only a single primary pair with hover, a thinner neutral set, and no explicit large-text-only identification."
+      },
+      {
+        "name": "voice-and-tone-plus-logo-rules",
+        "baseline": 78,
+        "treatment": 80,
+        "rationale": "Both cover traits with examples, a tone table, writing rules, logo variants, clear space, and don'ts; A includes the explicit wordmark-only variant, an explicit 25-word sentence limit, and a social media tone row, while B has 4 traits, omits the wordmark-only variant (uses stacked instead), and lacks a social media row in the tone table (though it mentions social emoji in rules) but adds extra useful sections."
       }
     ]
   }

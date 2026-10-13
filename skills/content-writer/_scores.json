@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d5e0bdb1a83ae4ea1a8708f5a27006b3fa7623de06fec6964ddd38cd4c6143ac",
-  "scoredAt": "2026-05-13T15:54:58.581Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:e2a41da6245b939fd3eea798ad48590c06fdb58a7a3347b38666ddab33f9a06a",
+  "scoredAt": "2026-10-13T11:14:22.904Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error scenarios or edge cases for content creation."
+        "detail": "Covers the happy path well but gives no guidance for edge cases such as missing or conflicting briefs, topics the agent cannot research, unavailable sources, or requests for sensitive or regulated claims."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Procedures are mostly general writing advice with no concrete tooling or commands, and the research step does not say how to gather or verify facts."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Examples are mostly skeletal templates with bracketed placeholders rather than fully realized, realistic content."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.29,
-    "baselineAvg": 45,
-    "treatmentAvg": 58,
+    "multiplier": 1.17,
+    "baselineAvg": 71,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "blog-post-type-script-adoption",
-        "baseline": 45,
-        "treatment": 60,
-        "rationale": "Response B better aligns with the rubric by including a hook and CTA, whereas Response A lacks both and also misses the required content brief and outline."
+        "name": "newsletter-with-sourced-claims",
+        "baseline": 62,
+        "treatment": 80,
+        "rationale": "B matches the required structure more closely (subject line, Big Story, Quick Hits with links, Code Corner, One More Thing) and ties claims to linked sources while marking estimates, whereas A lacks a subject line, uses 'Tip of the Week' and 'One Number' instead of Code Corner and One More Thing, and offers only partial source-citation handling."
       },
       {
-        "name": "landing-page-copy-project-management",
-        "baseline": 45,
-        "treatment": 55,
-        "rationale": "Both responses omit the required opening content brief, but Response B explicitly outlines the landing page structure, giving it a slight edge over Response A."
+        "name": "landing-page-copy-with-brief",
+        "baseline": 78,
+        "treatment": 82,
+        "rationale": "Both include hero, problem, solution, social proof and final CTA, but A states explicit assumptions (audience, goal, tone) up front and has a dedicated problem section with feature blocks, while B lacks an explicit assumptions statement and has a thinner problem section, though its copy is richer and more product-specific."
+      },
+      {
+        "name": "technical-blog-post-with-angle",
+        "baseline": 72,
+        "treatment": 88,
+        "rationale": "A opens with a stronger hook and provides a concrete compile-time type error code example, a clear thesis, a migration path, explicit CTA, and properly sourced/caveated statistics (UCL/Microsoft study, Airbnb estimate flagged for verification), while B has a generic title, no code example of a compile error, a less distinct thesis, and cites Airbnb's 38% figure without a clear source marker, though it does have a solid migration plan and CTA."
       }
     ]
   }

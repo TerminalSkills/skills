@@ -1,15 +1,15 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:bba523fd6dac86f6e31eaaaa2aa9f8c63f4346202dd214634fa2cb2a40afee25",
-  "scoredAt": "2026-10-03T13:07:18.969Z",
+  "version": "1.2.0",
+  "skillHash": "sha256:f793a946ce0ed0df200f52c439a4c32f79fb5ddcbe81fad4bc78ee57bd237fd9",
+  "scoredAt": "2026-10-13T11:14:02.838Z",
   "backend": "claude-code",
   "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 80,
+    "score": 73,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "WEAK"
@@ -18,17 +18,22 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Error handling is mostly absent beyond a 402 note and a 'failed' status mention, with no retry guidance, rate limit handling, or what to do when connector OAuth is not approved."
+        "detail": "Error handling is only mentioned by listing error class names; there are no try/catch examples, retry guidance, or handling for failed ingestion, 402 balance errors, or empty search results beyond brief prose."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The Instructions section is dense with long option lists, version-migration notes, and plan/pricing details that could be moved to references and make the skill harder to scan."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Setup instructions and the chat-loop example lean on Claude-specific pieces (Claude Code plugin, Claude Desktop, Anthropic SDK) with only a brief Cursor MCP config for other agents."
+        "detail": "Examples and the chat loop are tied to the Anthropic SDK and Claude-specific setup (Claude Code plugin, claude.ai connectors, claude-sonnet model id), with only a brief Cursor MCP config for other agents."
       },
       {
         "severity": "MEDIUM",
         "category": "examples",
-        "detail": "Example 1 is prose only with no runnable code beyond referencing the earlier function, and Example 2 is a single search call, so both are fairly simplistic."
+        "detail": "The two examples are mostly prose descriptions that point back to earlier snippets rather than standalone runnable demonstrations with concrete inputs and outputs, and Python usage is shown only as one-line fragments."
       }
     ]
   },
@@ -37,27 +42,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7.15,
-    "baselineAvg": 13,
+    "multiplier": 5.17,
+    "baselineAvg": 18,
     "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "support-bot-customer-memory",
-        "baseline": 4,
-        "treatment": 93,
-        "rationale": "B uses client.profile with containerTag and q, injects static/dynamic into the system prompt, saves with add using containerTag and a stable customId, and warns off the deprecated names, while A uses none of the Supermemory API and builds a file-based memory instead."
-      },
-      {
-        "name": "notion-connector-hybrid-search",
-        "baseline": 22,
-        "treatment": 90,
-        "rationale": "A uses client.connections.create(\"notion\") with containerTag, says the authLink must be opened and approved before sync starts, searches with searchMode \"hybrid\" on the same tag, notes chunk vs memory fields, and says there is no includeConnectors flag; B uses containerTags arrays, client.search.documents, never mentions searchMode, doesn't explain the chunk/memory split, and doesn't state that approval gates sync."
-      },
-      {
-        "name": "ingest-docs-cheaply-and-cursor-mcp",
-        "baseline": 12,
+        "name": "support-bot-memory-loop",
+        "baseline": 8,
         "treatment": 95,
-        "rationale": "Response A gives the superrag ingestion with containerTag and customId, the cost reasoning, the OAuth mcp.json config with the correct URL, and warns against the old npx setup, while Response B correctly configures Cursor but says it doesn't know the superrag flag, never mentions taskType or customId, and so misses the main ingestion requirement."
+        "rationale": "Response B follows the rubric: it passes customerId as the first positional argument to profile, search and add, runs a separate search, injects the static, dynamic and search results into the system prompt, and saves with a stable per-session id. Response A uses the v4-style containerTag option, sends a query (`q`) to profile, and omits the stable id on add."
+      },
+      {
+        "name": "ingest-runbook-and-wait",
+        "baseline": 25,
+        "treatment": 92,
+        "rationale": "Response B uses the rubric's SDK calls (client.add with taskType superrag and a stable id, documents.uploadFile, polling documents.get system.status for done/failed, and the async-queued explanation), while Response A uses raw curl, omits taskType superrag, and admits it doesn't know how to avoid memories."
+      },
+      {
+        "name": "notion-connector-and-forget",
+        "baseline": 22,
+        "treatment": 93,
+        "rationale": "B matches the rubric closely: it uses connectors.create with provider notion, authorization.url, the Pro plan, forgetMatching with dryRun, searchMode hybrid, and avoids documents.delete. A uses non-matching APIs (connections.create, authLink, search.memories, memories.add), never uses forgetMatching or dryRun, and hedges on the plan, though it does avoid documents.delete."
       }
     ]
   }

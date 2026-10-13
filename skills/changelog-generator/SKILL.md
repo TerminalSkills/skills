@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Works with any git repository"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["changelog", "release-notes", "git", "documentation", "versioning"]
   use-cases:
@@ -42,13 +42,14 @@ LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
 echo "Last tag: $LAST_TAG"
 
 # If no tags exist, ask the user for a date range or commit range
+# (an empty LAST_TAG turns the range below into "..HEAD", which lists nothing)
 ```
 
 Get the raw commit data:
 
 ```bash
-# Commits since last tag
-git log "$LAST_TAG"..HEAD --oneline --no-merges
+# Commits since last tag (all commits when there is no tag yet)
+git log ${LAST_TAG:+"$LAST_TAG"..}HEAD --oneline --no-merges
 
 # Commits between two tags
 git log v1.1.0..v1.2.0 --oneline --no-merges
@@ -58,6 +59,12 @@ git log --since="2 weeks ago" --oneline --no-merges
 
 # With more detail (author, date, body)
 git log "$LAST_TAG"..HEAD --format="%h %s (%an, %ad)" --date=short --no-merges
+
+# Full messages, to catch "BREAKING CHANGE:" footers and "Closes #123" references
+git log "$LAST_TAG"..HEAD --format="--- %h%n%B" --no-merges
+
+# Repos that squash-merge PRs: one entry per PR is already the first-parent history
+git log "$LAST_TAG"..HEAD --first-parent --oneline
 ```
 
 ### Step 2: Categorize the commits
@@ -79,16 +86,17 @@ Use commit message prefixes as hints:
 - `chore:`, `ci:`, `build:` -> Skip unless significant
 - `security:`, `vuln:` -> Security
 - `deprecate:` -> Deprecated
-- `remove:`, `breaking:` -> Removed
+- `remove:` -> Removed
+- a `!` after the type (`feat!:`) or a `BREAKING CHANGE:` footer (Conventional Commits) -> list it under Changed or Removed, flag it as breaking, and bump the major version
 
 If commits lack conventional prefixes, read the diff to classify:
 
 ```bash
 # See what files changed in a commit
-git show --stat <commit-hash>
+git show --stat 4f9c2ab
 
 # See the actual diff for ambiguous commits
-git show <commit-hash>
+git show 4f9c2ab
 ```
 
 ### Step 3: Write the changelog entry
@@ -96,6 +104,8 @@ git show <commit-hash>
 Format following Keep a Changelog:
 
 ```markdown
+## [Unreleased]
+
 ## [X.Y.Z] - YYYY-MM-DD
 
 ### Added
@@ -208,4 +218,6 @@ git diff main..feature/payments --stat
 - When in doubt about whether a change is user-facing, include it with a note.
 - For monorepos, group changes by package or service.
 - Always include the date in ISO 8601 format (YYYY-MM-DD).
+- Keep an `## [Unreleased]` section at the top while work is in progress; on release, move its items under the new version heading. Keep a Changelog 1.1.0 also uses link references at the bottom (`[2.3.0]: https://github.com/ironwood-labs/dashboard/compare/v2.2.0...v2.3.0`) so each version heading links to its diff.
+- Changelogs are written for humans: do not paste raw `git log` output, and do not include commits that only touch CI or formatting.
 - If the user provides a list of features instead of git history, format them into the same structure.

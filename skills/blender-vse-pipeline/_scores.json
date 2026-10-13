@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b299e14b3292456e9dfa2fce7a9d8120682f004b9647efe1c7a2315ca1599ce6",
-  "scoredAt": "2026-05-13T14:49:42.132Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:cbf9e4e603cbf594af74a6511295ea5696d5cac4cdee3874f68126da35cb6252",
+  "scoredAt": "2026-10-13T11:13:30.161Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 70,
+    "score": 93,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions contain undefined variables like clip_a, making them ambiguous."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill lacks error handling for missing files or invalid paths."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Blender, not platform-agnostic."
+        "detail": "Covers the happy path only: there is no handling for missing files, unsupported codecs, channel collisions, or failed renders, and the description's promised render-time estimation is never covered."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 1.59,
+    "baselineAvg": 54,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "image-sequence-with-audio-fade-and-color-correction",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A satisfies every rubric item, while Response B uses ffmpeg and omits all Blender-specific requirements."
+        "name": "crossfade-timeline-from-shot-list",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "B follows the rubric closely (checks/creates the sequence editor, uses strips.new_movie, alternates channels 1/2, overlaps by 12 frames, and adds GAMMA_CROSS via new_effect with length/input1/input2 on channel 3), while A uses type CROSS, frame_end/seq1/seq2 as the primary kwargs, and a .sequences fallback, which the rubric explicitly excludes."
       },
       {
-        "name": "cross-dissolve-speed-effect-render",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B meets every rubric requirement, while Response A is missing or incomplete."
+        "name": "audio-fade-and-text-overlay",
+        "baseline": 72,
+        "treatment": 80,
+        "rationale": "Both keyframe volume 0→target→0 and set text/color/font_size/location/anchor centering, but A uses strips.new_effect with length=72 and right_handle exactly as the rubric specifies, whereas B uses frame_end for the title (not length), frame_final_end for the end, and sets unverified align_x/align_y properties rather than alignment_x."
+      },
+      {
+        "name": "render-mp4-h264-from-strips",
+        "baseline": 55,
+        "treatment": 88,
+        "rationale": "B meets nearly every rubric item (strips_all with left_handle/right_handle, MPEG4/H264/AAC, 1080p, render animation, blender --background --python), while A uses deprecated frame_final_start/frame_final_end and sequences_all, and passes the .blend with -b rather than the exact invocation, though otherwise setting format/codec correctly."
       }
     ]
   }

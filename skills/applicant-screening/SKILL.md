@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "No external dependencies. Optionally uses Python for batch processing and scoring."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["hiring", "screening", "recruitment", "hr", "candidates"]
   use-cases:
@@ -132,7 +132,7 @@ Evaluation:
 SCREENING RESULTS - Senior Backend Engineer
 ============================================
 Screened: 15 candidates
-Date: 2025-01-15
+Date: 2026-10-13
 
 SHORTLIST (Score >= 70):
   1. Alice Chen        - 90/100 - STRONG YES
@@ -160,7 +160,8 @@ Save the full screening report:
 ```bash
 # Save detailed report
 cat > screening_report.md << 'EOF'
-[full report with individual evaluations]
+# Screening report: Senior Backend Engineer (15 candidates)
+Alice Chen: 90/100, strong yes. Python 20/20, distributed systems 15/15 ...
 EOF
 
 # Save summary CSV for tracking
@@ -229,6 +230,7 @@ rubric:
 - Base scores only on evidence present in the application. Do not infer or assume qualifications.
 - Note when a candidate's experience is ambiguous and flag it for the hiring manager to clarify.
 - Remove identifying information (name, gender, age, photo) from the evaluation if the user requests blind screening.
+- Check the rules where you hire before using automated scoring on real candidates: for example New York City Local Law 144 requires a bias audit and notice for automated employment decision tools, and the EU AI Act classes AI used for recruitment as high-risk. Keep a human reviewer on every decision.
 - Never make final hiring decisions. Present scored recommendations and let the hiring team decide.
 - Flag potential biases: if all top candidates share a background, note this for the user's awareness.
 - Keep individual evaluations factual. Use "Resume does not mention X" rather than "Candidate lacks X."

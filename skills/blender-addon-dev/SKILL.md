@@ -7,11 +7,13 @@ description: >-
   custom tools and workflows.
 license: Apache-2.0
 compatibility: >-
-  Requires Blender 3.0+. Add-ons are standard Python modules.
+  Blender 4.2+ for extensions (blender_manifest.toml); legacy bl_info add-ons
+  still load on older versions. Add-ons are standard Python modules.
   Test: blender --background --python addon.py
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://projects.blender.org/blender/blender
   category: development
   tags: ["blender", "addon", "plugin", "operators", "ui-panels"]
 ---
@@ -20,11 +22,13 @@ metadata:
 
 ## Overview
 
-Create custom Blender add-ons that extend the application with new operators, UI panels, properties, and menus. Add-ons are Python modules that register with Blender's internal system and can be installed, enabled, and shared like any Blender extension.
+Create custom Blender add-ons that extend the application with new operators, UI panels, properties, and menus. Add-ons are Python modules that register with Blender's internal system. Since Blender 4.2 the recommended packaging is an extension (a zip with a `blender_manifest.toml`); the older `bl_info` form is deprecated but still supported as a "legacy add-on".
 
 ## Instructions
 
-### 1. Add-on structure and bl_info
+### 1. Add-on structure and bl_info (legacy form)
+
+The `bl_info` dict is only used by legacy add-ons. For Blender 4.2+ distribution, skip it and use the manifest from step 6.
 
 ```python
 bl_info = {
@@ -85,7 +89,7 @@ class OBJECT_OT_my_operator(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 ```
 
-Naming convention: `CATEGORY_OT_name` for operators, `CATEGORY_PT_name` for panels, `CATEGORY_MT_name` for menus.
+Naming convention: `CATEGORY_OT_name` for operators, `CATEGORY_PT_name` for panels, `CATEGORY_MT_name` for menus. Blender itself requires `bl_idname` of an operator to be `lowercase_category.lowercase_name`.
 
 ### 3. Create a UI panel
 
@@ -174,6 +178,34 @@ def unregister_keymaps():
 
 ### 6. Package for distribution
 
+**Extension (Blender 4.2+, recommended).** Put a `blender_manifest.toml` next to `__init__.py` and remove `bl_info`:
+
+```toml
+schema_version = "1.0.0"
+id = "quick_rename"
+version = "1.0.0"
+name = "Quick Rename"
+tagline = "Batch rename selected objects"
+maintainer = "Studio Lumen"
+type = "add-on"
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Export selected objects to disk"
+```
+
+Required keys: `schema_version`, `id`, `version` (semver), `name`, `tagline` (max 64 chars, no trailing punctuation), `maintainer`, `type`, `blender_version_min` (4.2.0 or higher), `license` (SPDX list). Optional keys must not be empty: omit them instead. Permissions (`files`, `network`, `clipboard`, `camera`, `microphone`) each need a short reason. Then build and validate from the add-on folder:
+
+```bash
+blender --command extension validate
+blender --command extension build
+```
+
+Install the resulting zip with Preferences > Get Extensions > Install from Disk. In extensions, use relative imports (`from . import operators`), use `__package__` instead of a literal module name (for example `bl_idname = __package__` in `AddonPreferences`), bundle third-party modules as wheels listed in `wheels = [...]`, check `bpy.app.online_access` before any network call, and store user data via `bpy.utils.extension_path_user(__package__, create=True)`, not in the add-on folder.
+
+**Legacy add-on.** Structure:
+
 ```
 my_addon/
 ├── __init__.py          # bl_info + register/unregister + imports
@@ -185,6 +217,7 @@ my_addon/
 
 ```python
 # __init__.py
+import bpy
 bl_info = { "name": "My Add-on", "author": "Your Name", "version": (1, 0, 0), "blender": (3, 0, 0), "category": "Object" }
 
 from . import operators, panels, properties
@@ -201,7 +234,7 @@ def unregister():
         bpy.utils.unregister_class(cls)
 ```
 
-Zip the folder and install via Edit > Preferences > Add-ons > Install.
+For a legacy add-on, zip the folder and install it with Preferences > Add-ons > Install legacy Add-on (4.2+) or Install (older versions). For multi-class modules, `bpy.utils.register_classes_factory(classes)` returns ready-made `register`/`unregister` functions for the class list.
 
 ## Examples
 
@@ -219,12 +252,12 @@ Zip the folder and install via Edit > Preferences > Add-ons > Install.
 
 ## Guidelines
 
-- Follow the naming convention strictly: `CATEGORY_OT_name` for operators, `CATEGORY_PT_name` for panels, `CATEGORY_MT_name` for menus. Blender enforces this.
+- Follow the naming convention: `CATEGORY_OT_name` for operators, `CATEGORY_PT_name` for panels, `CATEGORY_MT_name` for menus. Blender checks the operator `bl_idname` format and warns about badly named classes.
 - Register classes in dependency order: PropertyGroups first, then Operators, then Panels. Unregister in reverse.
 - Always implement `poll()` on operators to prevent errors when context is wrong.
 - Use `{'REGISTER', 'UNDO'}` in `bl_options` for operators that modify scene data.
 - Clean up everything in `unregister()`: delete custom properties, remove menu entries, clear keymaps.
 - Use `bpy.path.abspath()` to resolve `//` relative paths in file path properties.
-- For multi-file add-ons, put `bl_info` only in `__init__.py`.
+- For multi-file legacy add-ons, put `bl_info` only in `__init__.py`; extensions have no `bl_info` at all.
 - Test with `blender --background --python addon.py` for registration errors.
 - Use `self.report({'INFO'}, "message")` in operators to show status in Blender's status bar.

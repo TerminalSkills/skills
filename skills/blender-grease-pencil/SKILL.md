@@ -8,20 +8,25 @@ description: >-
   Blender.
 license: Apache-2.0
 compatibility: >-
-  Requires Blender 3.0+. Grease Pencil v3 API available in Blender 4.0+.
-  Run: blender --background --python script.py
+  Requires Blender 5.0+ (Grease Pencil v3 API; the legacy v2 API used by
+  Blender 2.8-4.2 was removed). Run: blender --background --python script.py
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: ["blender", "grease-pencil", "2d-animation", "drawing", "strokes"]
+  repository: https://projects.blender.org/blender/blender
 ---
 
 # Blender Grease Pencil
 
 ## Overview
 
-Create 2D drawings and animations in Blender's 3D space using the Grease Pencil system and Python. Build strokes from point data, manage layers and frames, apply GP-specific modifiers, and animate 2D content — all scriptable from the terminal.
+Create 2D drawings and animations in Blender's 3D space using Grease Pencil and Python. Build strokes from point data, manage layers and frames, apply Grease Pencil modifiers, and animate 2D content, all scriptable from the terminal.
+
+This skill targets the Grease Pencil v3 API (Blender 5.x, checked against the 5.2 Python API reference). The old v2 API (`gpencil_add`, `layer.info`, `stroke.points.add()`, `grease_pencil_modifiers`, `GP_THICK`) no longer exists; scripts written for Blender 2.8-4.2 must be ported. In Blender 4.3-4.5 the v3 data-blocks lived in `bpy.data.grease_pencils_v3`; from 5.0 `bpy.data.grease_pencils` is v3.
+
+Data model: a `GreasePencil` data-block has layers (and layer groups); a layer has frames keyed by frame number; each frame points to a `drawing`; a drawing holds strokes stored as curve and point attributes (`position`, `radius`, `opacity`, `material_index`, `cyclic`).
 
 ## Instructions
 
@@ -30,348 +35,239 @@ Create 2D drawings and animations in Blender's 3D space using the Grease Pencil 
 ```python
 import bpy
 
-# Create a new Grease Pencil data block and object
 gp_data = bpy.data.grease_pencils.new("MyDrawing")
-gp_obj = bpy.data.objects.new("MyDrawing", gp_data)
+gp_obj = bpy.data.objects.new("MyDrawing", gp_data)   # obj.type == 'GREASEPENCIL'
 bpy.context.collection.objects.link(gp_obj)
 
 # Or use the operator
-bpy.ops.object.gpencil_add(type='EMPTY')  # EMPTY, STROKE, MONKEY, SCENE, COLLECTION
+bpy.ops.object.grease_pencil_add(type='EMPTY')   # EMPTY, STROKE, MONKEY, LINEART_SCENE, LINEART_OBJECT, LINEART_COLLECTION
 gp_obj = bpy.context.active_object
 ```
 
-Types for `gpencil_add`: `EMPTY` (blank), `STROKE` (single stroke), `MONKEY` (Suzanne in 2D), `SCENE` (draw over scene), `COLLECTION` (from collection).
+Prefer the data-level route in scripts: it works in `--background` mode and gives you an object with no pre-made layers or frames to trip over.
 
 ### 2. Add layers and frames
 
 ```python
-import bpy
+gp_data = gp_obj.data
 
-gp_data = bpy.context.active_object.data
-
-# Create a layer
-layer = gp_data.layers.new("Outlines", set_active=True)
-layer.info = "Outlines"
-layer.blend_mode = 'REGULAR'  # REGULAR, OVERLAY, ADD, SUBTRACT, MULTIPLY
+layer = gp_data.layers.new("Outlines", set_active=True)   # the name is layer.name
+layer.blend_mode = 'REGULAR'   # REGULAR, HARDLIGHT, ADD, SUBTRACT, MULTIPLY, DIVIDE
 layer.opacity = 1.0
 layer.use_lights = False
 
-# Create a keyframe on the layer at a specific frame
-frame = layer.frames.new(frame_number=1)
+frame = layer.frames.new(1)    # raises if frame 1 already exists on this layer
+drawing = frame.drawing        # the container for strokes
 
-# Additional layers for organization
-color_layer = gp_data.layers.new("Colors", set_active=False)
-color_frame = color_layer.frames.new(frame_number=1)
+# Copy, move, or remove keyframes
+layer.frames.copy(1, 12)
+layer.frames.move(12, 13)
+layer.frames.remove(13)
 ```
+
+Layers can be grouped: `gp_data.layer_groups` and `gp_data.layers.new(name, layer_group=group)`.
 
 ### 3. Draw strokes programmatically
 
+Strokes are added with `drawing.add_strokes(sizes)` (one point count per stroke) and then filled through attributes. The Blender docs recommend the attributes API over `drawing.strokes[n]` for anything beyond small scripts, and warn that stroke slices become invalid after the point or curve count changes.
+
 ```python
-import bpy
+def add_stroke(drawing, points, radius=0.02, material_index=0, cyclic=False):
+    attrs = drawing.attributes
+    first_curve = attrs.domain_size('CURVE')
+    first_point = attrs.domain_size('POINT')
+    drawing.add_strokes([len(points)])
 
-gp_obj = bpy.context.active_object
-gp_data = gp_obj.data
-layer = gp_data.layers.active
-frame = layer.frames[0]  # or layer.active_frame
+    pos = attrs["position"].data
+    rad = attrs["radius"].data
+    for i, co in enumerate(points):
+        pos[first_point + i].vector = co
+        rad[first_point + i].value = radius      # radius, not width: line width is about 2 * radius
 
-# Create a stroke
-stroke = frame.strokes.new()
-stroke.display_mode = '3DSPACE'  # 3DSPACE, 2DSPACE, 2DIMAGE, SCREEN
-stroke.line_width = 10
+    for name, kind, value in (("material_index", 'INT', material_index),
+                              ("cyclic", 'BOOLEAN', cyclic)):
+        attr = attrs.get(name) or attrs.new(name, kind, 'CURVE')   # created on demand
+        attr.data[first_curve].value = value
+    drawing.tag_positions_changed()
 
-# Add points to the stroke
-num_points = 5
-stroke.points.add(num_points)
-
-coords = [(0, 0, 0), (1, 0.5, 0), (2, 1, 0), (3, 0.5, 0), (4, 0, 0)]
-for i, (x, y, z) in enumerate(coords):
-    stroke.points[i].co = (x, y, z)
-    stroke.points[i].pressure = 1.0      # pen pressure (0.0 - 1.0)
-    stroke.points[i].strength = 1.0      # color strength (0.0 - 1.0)
-
-# Assign material index to stroke
-stroke.material_index = 0
+add_stroke(drawing, [(0, 0, 0), (1, 0.5, 0), (2, 1, 0), (3, 0.5, 0), (4, 0, 0)])
 ```
 
-### 4. Create GP materials
+Radius is in scene units (default 0.01 is thin); use 0.02-0.05 for visible lines at normal camera distances. Points also carry `opacity` (0-1).
+
+### 4. Create Grease Pencil materials
 
 ```python
-import bpy
-
-gp_obj = bpy.context.active_object
-
-# Solid fill material
 mat_solid = bpy.data.materials.new("GP_Solid")
 bpy.data.materials.create_gpencil_data(mat_solid)
-mat_solid.grease_pencil.color = (0.1, 0.1, 0.1, 1.0)       # stroke color
-mat_solid.grease_pencil.fill_color = (0.8, 0.2, 0.2, 1.0)  # fill color
-mat_solid.grease_pencil.show_fill = True
-mat_solid.grease_pencil.show_stroke = True
-gp_obj.data.materials.append(mat_solid)
-
-# Line-only material
-mat_line = bpy.data.materials.new("GP_Line")
-bpy.data.materials.create_gpencil_data(mat_line)
-mat_line.grease_pencil.color = (0.0, 0.0, 0.0, 1.0)
-mat_line.grease_pencil.show_fill = False
-mat_line.grease_pencil.show_stroke = True
-gp_obj.data.materials.append(mat_line)
+style = mat_solid.grease_pencil
+style.color = (0.1, 0.1, 0.1, 1.0)          # stroke color
+style.fill_color = (0.8, 0.2, 0.2, 1.0)     # fill color
+style.show_stroke = True
+style.show_fill = True
+gp_obj.data.materials.append(mat_solid)     # slot index = stroke material_index
 ```
 
 ### 5. Apply Grease Pencil modifiers
 
+Grease Pencil modifiers are ordinary object modifiers in v3: use `obj.modifiers` with `GREASE_PENCIL_*` types.
+
 ```python
-import bpy
+thick = gp_obj.modifiers.new("Thickness", 'GREASE_PENCIL_THICKNESS')
+thick.thickness_factor = 1.5                 # use_uniform_thickness + thickness for a fixed value
 
-gp_obj = bpy.context.active_object
-
-# Thickness modifier
-thick = gp_obj.grease_pencil_modifiers.new("Thickness", 'GP_THICK')
-thick.thickness_factor = 1.5
-
-# Smooth modifier
-smooth = gp_obj.grease_pencil_modifiers.new("Smooth", 'GP_SMOOTH')
+smooth = gp_obj.modifiers.new("Smooth", 'GREASE_PENCIL_SMOOTH')
 smooth.factor = 0.5
 smooth.step = 3
 
-# Tint modifier (color shift)
-tint = gp_obj.grease_pencil_modifiers.new("Tint", 'GP_TINT')
+tint = gp_obj.modifiers.new("Tint", 'GREASE_PENCIL_TINT')
 tint.color = (0.2, 0.5, 1.0)
 tint.factor = 0.3
 
-# Noise modifier (hand-drawn look)
-noise = gp_obj.grease_pencil_modifiers.new("Noise", 'GP_NOISE')
+noise = gp_obj.modifiers.new("Noise", 'GREASE_PENCIL_NOISE')   # hand-drawn wobble
 noise.factor = 0.5
 
-# Subdivide modifier (smoother curves)
-subdiv = gp_obj.grease_pencil_modifiers.new("Subdivide", 'GP_SUBDIV')
+subdiv = gp_obj.modifiers.new("Subdivide", 'GREASE_PENCIL_SUBDIV')
 subdiv.level = 2
 
-# Build modifier (animated reveal)
-build = gp_obj.grease_pencil_modifiers.new("Build", 'GP_BUILD')
-build.mode = 'SEQUENTIAL'  # SEQUENTIAL, CONCURRENT, ADDITIVE
-build.start_frame = 1
-build.length = 50
+build = gp_obj.modifiers.new("Build", 'GREASE_PENCIL_BUILD')   # animated reveal
+build.mode = 'SEQUENTIAL'      # SEQUENTIAL, CONCURRENT, ADDITIVE
+build.time_mode = 'FRAMES'     # FRAMES, DRAWSPEED, PERCENTAGE
+build.length = 50              # frames the build runs
+build.use_restrict_frame_range = True   # then frame_start / frame_end apply
+build.frame_start = 1
 
-# Array modifier (repeat strokes)
-array = gp_obj.grease_pencil_modifiers.new("Array", 'GP_ARRAY')
+array = gp_obj.modifiers.new("Array", 'GREASE_PENCIL_ARRAY')
 array.count = 5
-array.offset = (1.0, 0.0, 0.0)
+array.constant_offset = (1.0, 0.0, 0.0)   # also set use_constant_offset = True
 ```
 
-### 6. Animate Grease Pencil frame by frame
+Other types follow the same pattern: `GREASE_PENCIL_OPACITY`, `GREASE_PENCIL_COLOR`, `GREASE_PENCIL_MIRROR`, `GREASE_PENCIL_OFFSET`, `GREASE_PENCIL_LINEART`, and so on. Every modifier has layer, material and pass filters (`tree_node_filter` takes a layer name, `material_filter` a material).
+
+### 6. Animate frame by frame
 
 ```python
-import bpy
 import math
 
-gp_obj = bpy.context.active_object
-gp_data = gp_obj.data
-layer = gp_data.layers.active
-
+layer = gp_obj.data.layers.new("Pulse")
 total_frames = 24
-
 for f in range(total_frames):
-    frame = layer.frames.new(frame_number=f + 1)
-
-    stroke = frame.strokes.new()
-    stroke.display_mode = '3DSPACE'
-    stroke.line_width = 8
-
-    # Animate a circle that grows
-    num_points = 32
-    stroke.points.add(num_points)
+    drawing = layer.frames.new(f + 1).drawing
     radius = 0.5 + (f / total_frames) * 2.0
+    ring = [(radius * math.cos(2 * math.pi * i / 32),
+             radius * math.sin(2 * math.pi * i / 32), 0) for i in range(32)]
+    add_stroke(drawing, ring, radius=0.03, cyclic=True)
 
-    for i in range(num_points):
-        angle = (2 * math.pi * i) / num_points
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        stroke.points[i].co = (x, y, 0)
-        stroke.points[i].pressure = 1.0
-        stroke.points[i].strength = 1.0
-
-# Set playback range
-bpy.context.scene.frame_start = 1
-bpy.context.scene.frame_end = total_frames
+scene = bpy.context.scene
+scene.frame_start, scene.frame_end = 1, total_frames
 ```
 
-### 7. Configure drawing guides
+Each frame owns an independent drawing. Frames hold until the next keyframe, so you only create frames where the drawing changes.
+
+### 7. Drawing guides
+
+Guides (circular, radial, parallel, grid, isometric) are interactive Draw-mode tools in the viewport and have no scripting entry point for generating strokes. In a script, compute constrained points yourself:
 
 ```python
-import bpy
-
-# Guides are properties on the scene's tool settings
-ts = bpy.context.scene.tool_settings
-gp_settings = ts.gpencil_sculpt
-
-# Access guide settings (when in Draw mode)
-guide = ts.gpencil_stroke_placement_view3d
-
-# Guide types are set via the tool settings
-# Circular — concentric rings from reference point
-# Radial — rays extending from reference point
-# Parallel — constrained parallel lines
-# Grid — horizontal/vertical grid lines
-# Isometric — isometric angle constraints
-
-# Note: Guides are interactive Draw mode features.
-# For programmatic geometry, compute constrained points directly:
-import math
-
 def snap_to_grid(point, spacing=1.0):
     return tuple(round(c / spacing) * spacing for c in point)
 
 def snap_to_radial(point, center=(0, 0, 0), num_rays=8):
     dx, dy = point[0] - center[0], point[1] - center[1]
-    angle = math.atan2(dy, dx)
-    snap_angle = round(angle / (2 * math.pi / num_rays)) * (2 * math.pi / num_rays)
-    dist = math.sqrt(dx**2 + dy**2)
-    return (center[0] + dist * math.cos(snap_angle),
-            center[1] + dist * math.sin(snap_angle),
-            point[2])
+    step = 2 * math.pi / num_rays
+    angle = round(math.atan2(dy, dx) / step) * step
+    dist = math.hypot(dx, dy)
+    return (center[0] + dist * math.cos(angle), center[1] + dist * math.sin(angle), point[2])
 ```
 
 ## Examples
 
-### Example 1: Procedural comic panel with text
+### Example 1: Procedural comic panel with a speech bubble
 
-**User request:** "Create a simple comic panel layout with borders and speech bubble"
+**User request:** "Create a simple comic panel layout with borders and a speech bubble, saved as a .blend"
 
 ```python
-import bpy
-import math
+import bpy, math
 
-def clear_scene():
-    bpy.ops.object.select_all(action='SELECT')
-    bpy.ops.object.delete()
-
-clear_scene()
-
-# Create GP object
+# add_stroke() from step 3 must be defined above this point
 gp_data = bpy.data.grease_pencils.new("ComicPanel")
 gp_obj = bpy.data.objects.new("ComicPanel", gp_data)
 bpy.context.collection.objects.link(gp_obj)
 
-# Materials
-mat_black = bpy.data.materials.new("GP_Black")
-bpy.data.materials.create_gpencil_data(mat_black)
-mat_black.grease_pencil.color = (0, 0, 0, 1)
-mat_black.grease_pencil.show_fill = False
-gp_obj.data.materials.append(mat_black)
+mat_ink = bpy.data.materials.new("GP_Ink")
+bpy.data.materials.create_gpencil_data(mat_ink)
+mat_ink.grease_pencil.color = (0, 0, 0, 1)
+mat_ink.grease_pencil.show_fill = False
+gp_data.materials.append(mat_ink)            # index 0
 
 mat_bubble = bpy.data.materials.new("GP_Bubble")
 bpy.data.materials.create_gpencil_data(mat_bubble)
 mat_bubble.grease_pencil.color = (0, 0, 0, 1)
 mat_bubble.grease_pencil.fill_color = (1, 1, 1, 1)
 mat_bubble.grease_pencil.show_fill = True
-gp_obj.data.materials.append(mat_bubble)
+gp_data.materials.append(mat_bubble)         # index 1
 
-# Panel border layer
-border_layer = gp_data.layers.new("Borders")
-border_frame = border_layer.frames.new(frame_number=1)
+def rect(x, y, w, h):
+    return [(x, y, 0), (x + w, y, 0), (x + w, y + h, 0), (x, y + h, 0)]
 
-def draw_rect(frame, x, y, w, h, mat_idx=0, width=12):
-    stroke = frame.strokes.new()
-    stroke.display_mode = '3DSPACE'
-    stroke.line_width = width
-    stroke.material_index = mat_idx
-    stroke.points.add(5)
-    corners = [(x, y, 0), (x+w, y, 0), (x+w, y+h, 0), (x, y+h, 0), (x, y, 0)]
-    for i, co in enumerate(corners):
-        stroke.points[i].co = co
-        stroke.points[i].pressure = 1.0
-        stroke.points[i].strength = 1.0
+borders = gp_data.layers.new("Borders").frames.new(1).drawing
+add_stroke(borders, rect(0, 0, 6, 4), radius=0.05, cyclic=True)
+add_stroke(borders, rect(0.2, 0.2, 2.7, 3.6), radius=0.03, cyclic=True)
+add_stroke(borders, rect(3.1, 0.2, 2.7, 3.6), radius=0.03, cyclic=True)
 
-# Outer border
-draw_rect(border_frame, 0, 0, 6, 4)
-# Inner panels (2 panels side by side)
-draw_rect(border_frame, 0.2, 0.2, 2.7, 3.6)
-draw_rect(border_frame, 3.1, 0.2, 2.7, 3.6)
-
-# Speech bubble layer
-bubble_layer = gp_data.layers.new("Bubbles")
-bubble_frame = bubble_layer.frames.new(frame_number=1)
-
-stroke = bubble_frame.strokes.new()
-stroke.display_mode = '3DSPACE'
-stroke.line_width = 6
-stroke.material_index = 1
-num_pts = 24
-stroke.points.add(num_pts)
-cx, cy, rx, ry = 4.5, 3.0, 0.8, 0.4
-for i in range(num_pts):
-    angle = (2 * math.pi * i) / num_pts
-    stroke.points[i].co = (cx + rx * math.cos(angle), cy + ry * math.sin(angle), 0)
-    stroke.points[i].pressure = 1.0
-    stroke.points[i].strength = 1.0
+bubble = gp_data.layers.new("Bubbles").frames.new(1).drawing
+ellipse = [(4.5 + 0.8 * math.cos(2 * math.pi * i / 24), 3.0 + 0.4 * math.sin(2 * math.pi * i / 24), 0.01)
+           for i in range(24)]
+add_stroke(bubble, ellipse, radius=0.025, material_index=1, cyclic=True)
 
 bpy.ops.wm.save_as_mainfile(filepath="/tmp/comic_panel.blend")
 ```
 
-### Example 2: Animated handwriting effect
+Result: `/tmp/comic_panel.blend` with two layers ("Borders" with three rectangles, "Bubbles" with a white-filled ellipse). Layers draw in stack order (the default `stroke_depth_order` is '2D'), so the bubble layer sits above the borders.
 
-**User request:** "Create an animation that draws text stroke by stroke like handwriting"
+### Example 2: Handwriting reveal with the Build modifier
+
+**User request:** "Animate the letters HI being written stroke by stroke"
 
 ```python
 import bpy
 
-def clear_scene():
-    bpy.ops.object.select_all(action='SELECT')
-    bpy.ops.object.delete()
+# add_stroke() from step 3 must be defined above this point
+gp_data = bpy.data.grease_pencils.new("Handwriting")
+gp_obj = bpy.data.objects.new("Handwriting", gp_data)
+bpy.context.collection.objects.link(gp_obj)
 
-clear_scene()
+ink = bpy.data.materials.new("GP_Ink")
+bpy.data.materials.create_gpencil_data(ink)
+ink.grease_pencil.color = (0.05, 0.05, 0.15, 1)
+gp_data.materials.append(ink)
 
-bpy.ops.object.gpencil_add(type='EMPTY')
-gp_obj = bpy.context.active_object
-gp_data = gp_obj.data
+drawing = gp_data.layers.new("Letters").frames.new(1).drawing
+add_stroke(drawing, [(0, 0, 0), (0, 2, 0)], radius=0.05)                    # H left bar
+add_stroke(drawing, [(0, 1, 0), (1, 1, 0)], radius=0.05)                    # H crossbar
+add_stroke(drawing, [(1, 2, 0), (1, 0, 0)], radius=0.05)                    # H right bar
+add_stroke(drawing, [(2.5, 2, 0), (2.5, 0, 0)], radius=0.05)                # I
 
-# Material
-mat = bpy.data.materials.new("GP_Ink")
-bpy.data.materials.create_gpencil_data(mat)
-mat.grease_pencil.color = (0.05, 0.05, 0.15, 1)
-gp_data.materials.append(mat)
-
-layer = gp_data.layers.active
-frame = layer.frames.new(frame_number=1) if not layer.frames else layer.frames[0]
-
-# Define letter paths as point sequences (simplified "HI")
-letters = {
-    'H': [(0,0,0),(0,2,0),(0,1,0),(1,1,0),(1,2,0),(1,0,0)],
-    'I': [(2.5,2,0),(2.5,0,0)],
-}
-
-for letter, points in letters.items():
-    stroke = frame.strokes.new()
-    stroke.display_mode = '3DSPACE'
-    stroke.line_width = 10
-    stroke.material_index = 0
-    stroke.points.add(len(points))
-    for i, co in enumerate(points):
-        stroke.points[i].co = co
-        stroke.points[i].pressure = 1.0
-        stroke.points[i].strength = 1.0
-
-# Add Build modifier for animated reveal
-build = gp_obj.grease_pencil_modifiers.new("Build", 'GP_BUILD')
+build = gp_obj.modifiers.new("Build", 'GREASE_PENCIL_BUILD')
 build.mode = 'SEQUENTIAL'
-build.start_frame = 1
+build.time_mode = 'FRAMES'
 build.length = 60
 
-bpy.context.scene.frame_start = 1
-bpy.context.scene.frame_end = 60
-
+scene = bpy.context.scene
+scene.frame_start, scene.frame_end = 1, 60
 bpy.ops.wm.save_as_mainfile(filepath="/tmp/handwriting.blend")
 ```
 
+Result: scrubbing frames 1-60 shows the four strokes appearing one after another.
+
 ## Guidelines
 
-- Use `bpy.data.grease_pencils.new()` for data-level creation. Use `bpy.ops.object.gpencil_add()` for quick object creation with defaults.
-- Always create at least one material and assign it before rendering — GP objects without materials render invisible.
-- Stroke `display_mode` controls coordinate space: `3DSPACE` for world-space strokes, `2DSPACE` for screen-relative. Use `3DSPACE` for most scripted workflows.
-- The `pressure` property on points controls line thickness variation. Set to 1.0 for uniform width, vary between 0.0-1.0 for pen-like tapering.
-- GP modifiers use `grease_pencil_modifiers` (not `modifiers`). Type constants are prefixed with `GP_` (e.g., `GP_THICK`, `GP_SMOOTH`).
-- For frame-by-frame animation, create separate `layer.frames.new(frame_number=N)` entries. Each frame holds independent strokes.
-- The Build modifier is the easiest way to animate stroke reveal without per-frame scripting.
-- Grease Pencil objects support the same transform operations as mesh objects (location, rotation, scale, parenting, constraints).
-- For complex 2D art, organize content across multiple layers (outlines, fills, colors, effects) just like in traditional digital art software.
+- Use `bpy.data.grease_pencils.new()` for data-level creation; `bpy.ops.object.grease_pencil_add()` is for quick objects and needs a valid context.
+- Assign at least one Grease Pencil material before rendering: strokes without a material slot do not show the colors you intended.
+- Stroke thickness is `radius` per point (scene units), not a pixel `line_width`; there is no `pressure` or `strength` any more (use `radius` and `opacity`).
+- Never keep references to `drawing.strokes[n]` across `add_strokes`, `remove_strokes` or `resize_strokes`; re-fetch or use attributes.
+- Layer names are `layer.name`; blend modes are REGULAR, HARDLIGHT, ADD, SUBTRACT, MULTIPLY, DIVIDE (OVERLAY is gone).
+- `layer.frames.new()` fails if the frame number is taken; use `layer.get_frame_at()` or `layer.frames.remove()` first.
+- Never hardcode enum names from memory: read them, for example `[i.identifier for i in bpy.types.Modifier.bl_rna.properties["type"].enum_items]`.
+- Build modifier is the cheapest way to animate stroke reveal without per-frame scripting.
+- Scripts here were checked against the API reference, not executed in Blender: run them once in `blender --background --python script.py` and watch the console before relying on them.

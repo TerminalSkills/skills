@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: ["branding", "style-guide", "visual-identity", "design-system", "typography"]
   use-cases:
@@ -75,7 +75,7 @@ Info:        Blue for informational messages
 
 **Color usage rules:**
 - Document exact hex, RGB, and HSL values
-- Specify minimum contrast ratios (WCAG AA: 4.5:1 for text)
+- Specify minimum contrast ratios (WCAG AA: 4.5:1 for body text, 3:1 for large text of 24px or 18.66px bold and for UI component boundaries)
 - Show approved color combinations and forbidden pairings
 - Define tint/shade variants (100-900 scale) for each brand color
 
@@ -174,8 +174,8 @@ Organize the complete guide with these sections:
 Professional, trustworthy, modern. We make finance feel simple.
 
 ## Colors
-- Primary: Deep Navy (#1a2744) — Trust, stability
-- Accent: Emerald (#10b981) — Growth, success
+- Primary: Deep Navy (#1a2744) — Trust, stability (white text on it: 14.8:1)
+- Accent: Emerald (#10b981) — Growth, success (navy text on it: 5.8:1; white text only 2.5:1, so never put white labels on it)
 - Neutrals: Slate scale for text and UI
 
 ## Typography
@@ -224,11 +224,15 @@ Don't: Use flashy gradients or animations on financial data
 
 ### Accessibility
 All text colors meet WCAG AA contrast ratios:
-- zinc-950 on white: 18.4:1 (AAA)
-- zinc-800 on white: 12.6:1 (AAA)
-- zinc-500 on white: 4.6:1 (AA)
-- white on blue-500: 4.7:1 (AA)
+- zinc-950 on white: 19.9:1 (AAA)
+- zinc-800 on white: 14.9:1 (AAA)
+- zinc-500 on white: 4.8:1 (AA)
+- white on blue-600 (#2563eb), the button fill: 5.2:1 (AA)
+- white on blue-500 (#3b82f6): 3.7:1, passes only for large text (3:1), so
+  use blue-500 for icons and borders and blue-600 for button backgrounds
 ```
+
+Ratios are WCAG 2.x relative-luminance contrast; recompute them with a checker whenever a hex value changes.
 
 ## Guidelines
 

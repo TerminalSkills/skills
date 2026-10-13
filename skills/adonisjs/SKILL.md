@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "AdonisJS 7: Node.js 24+, npm 11+. TypeScript."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: development
   tags: ["nodejs", "framework", "orm", "auth", "full-stack"]
   repository: https://github.com/adonisjs/core
@@ -23,7 +23,7 @@ metadata:
 
 AdonisJS is a full-stack Node.js framework — the "Laravel of Node.js." Unlike Express/Fastify where you assemble everything from packages, AdonisJS ships with an ORM (Lucid), authentication, validation (VineJS), mailer, queues, and testing out of the box. Opinionated, TypeScript-first, and production-ready.
 
-This skill targets **AdonisJS 7** (`@adonisjs/core` 7.x, Lucid 22, Auth 10, VineJS 4), which requires Node.js 24. Version 7 changed the starter kits, generates Lucid schema classes from migrations, and adds a controllers barrel file and transformers — v6 snippets found online often no longer match.
+This skill targets **AdonisJS 7** (`@adonisjs/core` 7.6, Lucid 22, Auth 10, VineJS 4, Ally 6), which requires Node.js 24. Version 7 changed the starter kits, generates Lucid schema classes from migrations, and adds a controllers barrel file and transformers — v6 snippets found online often no longer match.
 
 ## When to Use
 
@@ -197,7 +197,7 @@ const token = await User.accessTokens.create(user)
 return { token: token.value!.release() }       // "oat_…", sent as Authorization: Bearer
 ```
 
-Protect routes with `.use(middleware.auth())` or `middleware.auth({ guards: ['api'] })`. Tokens are opaque and stored hashed in `auth_access_tokens`. Social login: `npm install @adonisjs/ally@6 && node ace configure @adonisjs/ally --providers=github` (Ally 6 is the AdonisJS 7 line; npm's `latest` tag currently resolves to 5.x for AdonisJS 6, so a bare `node ace add @adonisjs/ally` fails with ERESOLVE), then `ally.use('github').redirect()` and `await ally.use('github').user()` in the callback.
+Protect routes with `.use(middleware.auth())` or `middleware.auth({ guards: ['api'] })`. Tokens are opaque and stored hashed in `auth_access_tokens`. Social login: `npm install @adonisjs/ally && node ace configure @adonisjs/ally --providers=github` (Ally 6 is the AdonisJS 7 line and is now npm's `latest`; on an older AdonisJS 6 app pin `@adonisjs/ally@5`), then `ally.use('github').redirect()` and `await ally.use('github').user()` in the callback.
 
 ### Upgrading from v6
 

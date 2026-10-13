@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9a2bd9abbb85e6edc9fad4405f5513cf51bc7d17b5b02d4b507918cd95b676d6",
-  "scoredAt": "2026-05-13T15:16:05.398Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:3a8fd3eda0bf20271fd1a8a24490fba17ac3f1fb24da413c7fbf1297917b56af",
+  "scoredAt": "2026-10-13T11:13:48.107Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Covers the no-tag case but does not handle other edge cases such as non-git directories, shallow clones, empty ranges, pre-release tags, or conflicting/unreadable existing CHANGELOG formats."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 7.8,
-    "baselineAvg": 8,
-    "treatmentAvg": 78,
+    "multiplier": 1.6,
+    "baselineAvg": 45,
+    "treatmentAvg": 72,
     "scenarios": [
       {
-        "name": "generate-changelog-from-tags",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B fails to provide a changelog entry."
+        "name": "changelog-since-last-tag-with-breaking",
+        "baseline": 22,
+        "treatment": 72,
+        "rationale": "Response A supplies runnable commands that find the last tag with `git describe --tags --abbrev=0` and read full `%B` messages so BREAKING CHANGE footers are caught, then gives Keep a Changelog sections, a **BREAKING** flag, and a major-bump recommendation, while Response B only asks for clarification and gives a partial command with `%b`, with no entry or version guidance."
       },
       {
-        "name": "create-release-notes-from-feature-list",
-        "baseline": 15,
+        "name": "unprefixed-commits-classification",
+        "baseline": 38,
         "treatment": 55,
-        "rationale": "Response A meets most rubric items but misformats the Highlights section, while Response B fails the required header, Highlights, and link format."
+        "rationale": "Neither response actually ran the `git log --since=\"2 weeks ago\" --oneline --no-merges` command or inspected ambiguous commits with `git show`, but B at least gives the exact scoping/inspection commands and a triage workflow for prefixless messages, uses verb-first user-perspective entries in Keep a Changelog categories, and skips trivial chore commits, while A lumps in chore/report commits, uses non-verb-led bold-label bullets, and only offers a rough log command."
+      },
+      {
+        "name": "user-facing-release-notes-from-feature-list",
+        "baseline": 74,
+        "treatment": 90,
+        "rationale": "A has the 'What's New in v3.1.0' title with Highlights and Bug Fixes sections, a Keep a Changelog entry with correct date and Added/Fixed, and an explicit note about not inventing PR numbers, though its changelog uses 'Add/Fix' verbs; B's release notes lack a clear highlights/bug fixes structure and its changelog items don't start with verbs, and both include a guessed compare link and Changed section."
       }
     ]
   }

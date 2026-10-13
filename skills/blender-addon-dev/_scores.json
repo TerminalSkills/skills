@@ -1,41 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bb6ea94012dea2fd61472df89953dba8987e4132cf3c9d00208e2a32bb7552b3",
-  "scoredAt": "2026-05-13T14:43:17.129Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:8f9a4c2b84dadf7e85521791c540105436463e238cc16db87bb4a0232325e231",
+  "scoredAt": "2026-10-13T11:17:28.635Z",
+  "backend": "claude-code",
+  "model": "claude-sonnet-5-5",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Covers mainly the happy path; there is little guidance on error handling, such as failed registration, missing context, invalid file paths, or Blender version differences beyond the legacy/extension split."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "The two examples describe outputs in prose instead of providing runnable code, and the menu section leaves the `draw_menu_item` function undefined in a comment."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are brief prose descriptions of expected output without actual code, inputs, or realistic detailed demonstrations."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.18,
-    "baselineAvg": 38,
-    "treatmentAvg": 45,
+    "multiplier": 1.02,
+    "baselineAvg": 89,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "dup-and-scale-panel",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response A meets most rubric items (PropertyGroup, operator, panel, registration) but misnames the property; Response B omits the PropertyGroup, uses wrong names, and lacks required panel context."
+        "name": "extension-manifest-quick-rename",
+        "baseline": 90,
+        "treatment": 88,
+        "rationale": "Both provide a correct manifest with all required keys, SPDX license list, and a files permission with a short reason, plus validate/build commands and the bl_info removal; A adds more build options (output-dir, source-dir) and install testing, while B adds useful code guidance on writing the report to extension_path_user and explicitly flags the invented tagline, but A's mention of a false 'skill catalog lookup was denied' preamble is a minor oddity and B's build command is simpler."
       },
       {
-        "name": "menu-and-keymap-cube",
-        "baseline": 45,
-        "treatment": 20,
-        "rationale": "Response B covers more rubric items, including a keymap and register/unregister functions, whereas Response A lacks keymap integration and a proper menu class."
+        "name": "operator-panel-settings-registration",
+        "baseline": 93,
+        "treatment": 93,
+        "rationale": "Both responses satisfy every rubric element — a PropertyGroup attached to Scene via PointerProperty, an Operator with poll() and bl_options {'REGISTER','UNDO'}, a VIEW_3D UI Panel that draws the settings and operator, the PropertyGroup registered first, and unregister that deletes the pointer then unregisters classes in reverse — and differ only in minor extras (B adds bl_context, an extension manifest and a headless check, while A offers a clear notes section), so they are essentially tied."
+      },
+      {
+        "name": "extension-compliant-imports-and-user-data",
+        "baseline": 84,
+        "treatment": 93,
+        "rationale": "Both cover relative imports, __package__, extension_path_user, online_access, network permission, wheels, and removing bl_info; B is cleaner and more accurate, explicitly using bl_idname = __package__ and listing all points concisely, while A adds a questionable files permission and muddled submodule advice, though it adds useful extras like timers."
       }
     ]
   }

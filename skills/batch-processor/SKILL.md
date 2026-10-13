@@ -7,10 +7,10 @@ description: >-
   files concurrently. Covers parallel execution, error handling, and progress
   tracking.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: "bash with GNU xargs; GNU parallel, Python 3.9+, ImageMagick 7, pandoc, tesseract optional per task"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: automation
   tags: ["batch", "parallel", "bulk", "processing", "automation"]
   use-cases:
@@ -35,19 +35,23 @@ When a user asks for batch processing, determine which approach fits their needs
 For simple transformations, use `xargs` or GNU `parallel`:
 
 ```bash
-# Convert all PNG files to JPEG using ImageMagick (8 parallel jobs)
-find ./images -name "*.png" | xargs -P 8 -I {} bash -c \
-  'convert "$1" "${1%.png}.jpg"' _ {}
+# Convert all PNG files to JPEG using ImageMagick 7 (8 parallel jobs).
+# -print0 / -0 keeps file names with spaces intact. On ImageMagick 6 use `convert` instead of `magick`.
+find ./images -name "*.png" -print0 | xargs -0 -P 8 -I {} bash -c \
+  'magick "$1" "${1%.png}.jpg"' _ {}
 
-# Process files with GNU parallel and progress bar
-find ./docs -name "*.csv" | parallel --bar --jobs 8 \
+# Process files with GNU parallel (a separate install) and a progress bar
+find ./docs -name "*.csv" -print0 | parallel -0 --bar --jobs 8 \
   'python transform.py {} {.}_processed.csv'
 
-# Bulk compress PDFs (4 parallel jobs)
-find ./reports -name "*.pdf" | xargs -P 4 -I {} bash -c \
-  'gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook \
-   -dNOPAUSE -dBATCH -sOutputFile="{}.compressed" "{}" && mv "{}.compressed" "{}"'
+# Bulk compress PDFs into a separate folder (4 parallel jobs); originals stay untouched
+mkdir -p ./reports-small
+find ./reports -name "*.pdf" -print0 | xargs -0 -P 4 -I {} bash -c \
+  'gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -dNOPAUSE -dBATCH -dQUIET \
+   -sOutputFile="./reports-small/$(basename "$1")" "$1"' _ {}
 ```
+
+`xargs -P` is available in GNU and BSD xargs; `parallel` adds `--bar`, `--joblog` and `--resume-failed`.
 
 ### Task B: Python batch processor with concurrency control
 
@@ -134,7 +138,7 @@ def batch_with_resume(input_dir: str, pattern: str = "*.*"):
 
     for i, filepath in enumerate(files):
         try:
-            process_single_file(filepath)  # Your processing function
+            process_single_file(filepath)  # your own function: convert, extract, upload...
             completed.add(str(filepath))
             if i % 10 == 0:  # Checkpoint every 10 files
                 save_progress(completed)
@@ -157,27 +161,27 @@ INPUT_DIR="$1"
 OUTPUT_DIR="$2"
 LOG_FILE="batch_$(date +%Y%m%d_%H%M%S).log"
 PARALLEL_JOBS=8
-TOTAL=$(find "$INPUT_DIR" -type f | wc -l)
-COUNT=0
 
 mkdir -p "$OUTPUT_DIR"
 
 process_file() {
     local file="$1"
     local outfile="$OUTPUT_DIR/$(basename "$file")"
-    # Replace with your processing command
-    cp "$file" "$outfile" 2>&1
-    echo $?
+    # Replace cp with your processing command. Its exit status becomes the job's
+    # status, which --joblog records in the Exitval column.
+    cp "$file" "$outfile"
 }
 
 export -f process_file
 export OUTPUT_DIR
 
-find "$INPUT_DIR" -type f | parallel --jobs "$PARALLEL_JOBS" --bar \
+find "$INPUT_DIR" -type f -print0 | parallel -0 --jobs "$PARALLEL_JOBS" --bar \
   --joblog "$LOG_FILE" process_file {}
 
 echo "Results logged to $LOG_FILE"
-awk 'NR>1 {if($7!=0) fail++; else ok++} END {print ok" succeeded, "fail" failed"}' "$LOG_FILE"
+# Joblog columns: Seq Host Starttime JobRuntime Send Receive Exitval Signal Command
+awk -F'\t' 'NR>1 {if($7!=0) fail++; else ok++} END {print ok+0" succeeded, "fail+0" failed"}' "$LOG_FILE"
+# Re-run only the failed jobs later with: parallel --retry-failed --joblog "$LOG_FILE"
 ```
 
 ## Examples
@@ -187,11 +191,10 @@ awk 'NR>1 {if($7!=0) fail++; else ok++} END {print ok" succeeded, "fail" failed"
 **User request:** "Convert all 200 Markdown files in docs/ to PDF"
 
 ```bash
-# Install pandoc if needed
-# Process in parallel with 6 workers
-find ./docs -name "*.md" | parallel --bar --jobs 6 \
+# Needs pandoc and a LaTeX engine (xelatex) installed
+find ./docs -name "*.md" -print0 | parallel -0 --bar --jobs 6 \
   'pandoc {} -o {.}.pdf --pdf-engine=xelatex'
-echo "Conversion complete. Check for errors above."
+# Result: one .pdf next to each .md; failures are printed to stderr
 ```
 
 ### Example 2: Extract text from hundreds of images
@@ -200,7 +203,8 @@ echo "Conversion complete. Check for errors above."
 
 ```bash
 # Using tesseract with parallel processing
-find ./scans -name "*.png" -o -name "*.jpg" | parallel --bar --jobs 4 \
+# Writes scan-001.txt next to scan-001.png; use a modest --jobs because tesseract is already multi-threaded
+find ./scans \( -name "*.png" -o -name "*.jpg" \) -print0 | parallel -0 --bar --jobs 4 \
   'tesseract {} {.} -l eng 2>/dev/null && echo "OK: {}"'
 ```
 
@@ -210,9 +214,10 @@ find ./scans -name "*.png" -o -name "*.jpg" | parallel --bar --jobs 4 \
 
 ```bash
 mkdir -p ./resized
-find ./products -name "*.jpg" | xargs -P 8 -I {} bash -c \
-  'convert "$1" -resize 800x -quality 85 "./resized/$(basename $1)"' _ {}
+find ./products -name "*.jpg" -print0 | xargs -0 -P 8 -I {} bash -c \
+  'magick "$1" -resize 800x -quality 85 "./resized/$(basename "$1")"' _ {}
 echo "Resized $(ls ./resized | wc -l) images"
+# Output: Resized 312 images
 ```
 
 ## Guidelines
@@ -223,5 +228,6 @@ echo "Resized $(ls ./resized | wc -l) images"
 - Write errors to a log file rather than stopping the entire batch.
 - Create a checkpoint/resume mechanism for batches over 100 files.
 - Back up original files or write output to a separate directory; never overwrite in place without confirmation.
-- Use `--dry-run` flags in scripts to preview operations before executing.
+- Preview before executing: `parallel --dry-run ...` prints the commands without running them; add the same flag to your own scripts.
+- Never build shell commands from file names without quoting; use `-print0`/`-0` so names with spaces or quotes cannot break or inject commands.
 - Monitor system resources (RAM, disk space) during large batch operations.

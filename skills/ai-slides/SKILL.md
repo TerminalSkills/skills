@@ -6,9 +6,10 @@ description: >-
   deck, generate a slide deck, create a keynote, prepare a talk, build a
   demo presentation, or produce any slide-based content.
 license: Apache-2.0
+compatibility: "No dependencies for the outline; optional Marp CLI (Node.js) or python-pptx (Python 3.9+) to export files"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: ["presentations", "slides", "pitch-deck", "keynote", "storytelling"]
   use-cases:
@@ -124,7 +125,21 @@ For every slide, provide:
 - Big numbers for single key metrics ("3x growth" large and centered)
 - Tables only when comparing 3+ items across 3+ attributes
 
-### Step 5: Add transitions and flow
+### Step 5: Produce a file when asked
+
+Deliver the outline as Markdown first. If the user wants a file, pick one route:
+
+```bash
+# Marp: Markdown with "---" between slides -> PowerPoint, PDF or HTML (needs Node.js; PDF/PPTX export uses a local Chrome/Edge/Firefox)
+npx @marp-team/marp-cli@latest slides.md --pptx
+npx @marp-team/marp-cli@latest slides.md --pdf
+
+# python-pptx: build .pptx programmatically (pip install python-pptx)
+```
+
+Put speaker notes in Marp as HTML comments (`<!-- note text -->`) under each slide; python-pptx exposes them as `slide.notes_slide.notes_text_frame.text`. Reveal.js (`npm install reveal.js`) suits browser talks. Open the result and check overflow before delivering.
+
+### Step 6: Add transitions and flow
 
 - Each slide should lead naturally to the next
 - Use transition phrases in speaker notes ("Building on that...", "So what does this mean?")
@@ -185,11 +200,11 @@ clone to productive in under 5 minutes.
 ```markdown
 ## Slide 1: Title
 # APIs Are User Interfaces Too
-[Speaker name] — [Conference name] 2025
+Dana Whitfield — DevWorld 2026
 
 ## Slide 2: Hook
 # Your API has more users than your website
-"87% of developers evaluate a product by its API first"
+"For most developer tools, the API is the first thing a new user touches"
 
 ## Slide 3-5: Problem slides
 [Common API design mistakes with code examples]
@@ -215,7 +230,7 @@ clone to productive in under 5 minutes.
 ```markdown
 ## Slide 1: Title
 # Q4 Engineering Review
-Platform Team — January 2025
+Platform Team — January 2026
 
 ## Slide 2: Quarter at a Glance
 [4 big metrics: shipped features, uptime, velocity, team size]
