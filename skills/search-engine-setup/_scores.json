@@ -1,39 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:de803bca81effaf1ba2485365e4d5d3169b260c024782c9b79b27ee4ca91bb3e",
-  "scoredAt": "2026-05-13T10:06:02.365Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:bce83c08c2c3ef16e0045de8e2503beb1b5b9599e59b7d13e5dbc507abf80be4",
+  "scoredAt": "2026-10-13T13:08:04.214Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 73,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all potential error scenarios such as network failures, index mapping errors, or rate limiting, limiting robustness."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains explanatory text that could be trimmed for brevity, leading to verbosity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "While code snippets are provided, the instructions lack step-by-step actionable procedures for setting up the environment and executing the steps."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill references Node.js/Python examples and assumes specific runtime environments, limiting portability across all AI agents."
+        "detail": "Compatibility description claims Python examples are provided, but only JavaScript and JSON examples appear in the Instructions and Examples sections."
       }
     ]
   },
@@ -42,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 93,
-    "multiplier": 1.69,
+    "multiplier": 1.38,
+    "baselineAvg": 66,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "es-blog-index-mapping",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline produced a basic text/keyword mapping with no autocomplete; treatment boosted title 3-5x, mapped author/tags as keyword, added a suggest field of type completion, and applied the documented content_analyzer with lowercase, synonym, and edge_ngram filters."
+        "name": "elasticsearch-product-index",
+        "baseline": 52,
+        "treatment": 96,
+        "rationale": "Response A fully satisfies all six rubric requirements: custom analyzer with edge_ngram, explicit search_analyzer without edge_ngram, text/keyword/numeric mappings, and a completion field for autocomplete. Response B omits the completion field entirely (using edge_ngram multi-fields instead) and lacks an explicitly defined search_analyzer in settings, failing two critical requirements, though it offers broader architectural alternatives."
       },
       {
-        "name": "algolia-ecommerce-config",
-        "baseline": 55,
-        "treatment": 93,
-        "rationale": "Baseline set searchableAttributes/attributesForFaceting/customRanking but omitted filterOnly() and typo tuning; treatment called setSettings with prioritized searchableAttributes, filterOnly(price_cents) in facets, desc()-wrapped customRanking, and minWordSizefor1Typo: 3."
+        "name": "incremental-database-sync",
+        "baseline": 78,
+        "treatment": 85,
+        "rationale": "Both cover all rubric requirements (timestamp queries, ID-based idempotency, soft-delete removal, failure logging), but Response A provides more complete production guidance (class-based structure, explicit batch sizing, SQL schema setup, stronger delete error handling) while Response B offers simpler code with incremental improvements noted separately; Response A's error isolation is more robust for the use case."
+      },
+      {
+        "name": "search-api-and-ranking",
+        "baseline": 68,
+        "treatment": 92,
+        "rationale": "Response A provides a complete MongoDB implementation but uses text search instead of multi_match with field boosting, MongoDB filters instead of bool clauses, and $group aggregations instead of ES aggs—misaligning with all four rubric specifics. Response B uses Elasticsearch throughout, implementing multi_match with name^5 boosting exactly as specified, bool filters for category/price ranges, ES aggregations for facets, and zero-result query analysis with synonym pair examples in the mapping."
       }
     ]
   }

@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:085609fe143b37ec99171f5dc1d33dc90a7a9c2d2a41bcfec0a5059291cec3ed",
-  "scoredAt": "2026-05-13T09:21:37.701Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f4ac36f07db6154510ded57ff000edcc8580d58163309de18d21d446f4af888b",
+  "scoredAt": "2026-10-13T12:08:27.943Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing API keys or empty datasets."
+        "detail": "Instructions cover happy-path scenarios and include a Common Pitfalls section, but lack error handling patterns in the main Steps (e.g., handling missing/invalid API keys, dataset creation failures, network timeouts, rate limiting)."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to LangSmith and does not support other AI platforms."
+        "detail": "Skill claims Python 3.10+ or Node.js 18+ support and mentions npm install, but all runnable examples are Python-only; Node.js users must infer TypeScript translations without concrete code samples."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
+    "multiplier": 2.12,
+    "baselineAvg": 41,
     "treatmentAvg": 87,
-    "multiplier": 2.72,
     "scenarios": [
       {
-        "name": "Add tracing and a correctness+conciseness evaluation pipeline to a LangChain RAG chatbot",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Treatment sets LANGCHAIN_TRACING_V2/LANGCHAIN_API_KEY for auto-tracing, builds a dataset with client.create_examples, and runs langsmith.evaluate() with two custom evaluator functions returning {key, score}; baseline writes generic logging and a homegrown eval loop without the SDK's evaluate() contract."
+        "name": "setup-qa-bot-with-evaluation",
+        "baseline": 48,
+        "treatment": 78,
+        "rationale": "Response A correctly sets LANGSMITH_TRACING and LANGSMITH_API_KEY as specified in the rubric, defines three evaluators, and demonstrates evaluate() integration with clean code; Response B fails the primary requirement by using incorrect LANGCHAIN_* environment variable names instead of LANGSMITH_*, additionally uses outdated callback patterns, and neither response fully demonstrates actual trace output structure with metadata tags."
       },
       {
-        "name": "Filter production traces for errors and high latency and assert minimum quality in CI",
-        "baseline": 28,
-        "treatment": 86,
-        "rationale": "Treatment uses client.list_runs with filter='and(eq(status, \"error\"), gt(latency, 5))' and a pytest that calls evaluate() asserting avg score >= threshold; baseline queries Sentry/Datadog-style metrics and writes ad-hoc assertions without LangSmith's run filter DSL."
+        "name": "monitor-production-latency-and-errors",
+        "baseline": 62,
+        "treatment": 87,
+        "rationale": "Response A comprehensively demonstrates client.list_runs() with multiple complete examples, correct filter syntax (eq, gte, gt operators), and extraction of all three required metrics (latency_ms, error, total_tokens) with aggregations; Response B focuses on instrumentation setup and provides minimal API examples, lacks token count extraction entirely, and does not show programmatic extraction of metrics from run objects."
+      },
+      {
+        "name": "custom-evaluator-from-production-traces",
+        "baseline": 12,
+        "treatment": 96,
+        "rationale": "Response B directly implements the rubric requirements using create_dataset(), create_examples() with 'inputs'/'outputs' keys, and defines evaluators with the correct signature (outputs, reference_outputs) returning {key, score} dicts, then runs evaluate(); Response A uses a completely different framework (Anthropic SDK with manual JSON) and never calls any of the specified functions."
       }
     ]
   }

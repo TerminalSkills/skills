@@ -7,10 +7,10 @@ description: >-
   a downloads folder. Handles smart renaming, content-based sorting, and
   duplicate detection.
 license: Apache-2.0
-compatibility: "Requires Python 3.8+ for smart rename and duplicate detection scripts"
+compatibility: "Requires Python 3.9+ for smart rename and duplicate detection scripts; bash 4+ for the sort script"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: automation
   tags: ["files", "organize", "rename", "cleanup", "automation"]
   use-cases:
@@ -64,7 +64,8 @@ find "$SOURCE_DIR" -maxdepth 1 -type f | while read -r file; do
     echo "[DRY RUN] $file -> $SOURCE_DIR/$dest/"
   else
     mkdir -p "$SOURCE_DIR/$dest"
-    mv "$file" "$SOURCE_DIR/$dest/"
+    # -n: never overwrite a file that already sits in the destination
+    mv -n "$file" "$SOURCE_DIR/$dest/"
     echo "Moved: $(basename "$file") -> $dest/"
   fi
 done
@@ -82,6 +83,9 @@ def rename_by_pattern(directory: str, pattern: str, dry_run: bool = True):
     """
     Rename files using pattern substitution.
     Patterns: {date}, {n}, {ext}, {name}, {YYYY}, {MM}, {DD}
+    {date} and {YYYY}/{MM}/{DD} use the file's modification time (st_mtime),
+    not the EXIF capture date. Photos copied or edited after the shot get the
+    copy date; read DateTimeOriginal with an EXIF library if you need the shot date.
     """
     files = sorted(Path(directory).iterdir())
     files = [f for f in files if f.is_file()]
@@ -100,6 +104,10 @@ def rename_by_pattern(directory: str, pattern: str, dry_run: bool = True):
         new_name = new_name.replace("{DD}", str(mtime.day).zfill(2))
 
         new_path = filepath.parent / new_name
+        if new_path.exists():
+            # Path.rename() silently replaces an existing file on POSIX; refuse instead
+            print(f"  SKIP {filepath.name}: {new_name} already exists")
+            continue
         if dry_run:
             print(f"  {filepath.name} -> {new_name}")
         else:
@@ -120,13 +128,18 @@ from datetime import datetime
 
 def organize_by_date(directory: str, date_format: str = "%Y/%Y-%m"):
     """Sort files into year/year-month folders based on modification date."""
-    for filepath in Path(directory).iterdir():
+    # list() first: moving files while iterating the directory is fragile
+    for filepath in list(Path(directory).iterdir()):
         if not filepath.is_file() or filepath.name.startswith('.'):
             continue
         mtime = datetime.fromtimestamp(filepath.stat().st_mtime)
         dest_dir = Path(directory) / mtime.strftime(date_format)
+        target = dest_dir / filepath.name
+        if target.exists():
+            print(f"  SKIP {filepath.name}: already in {dest_dir}/")
+            continue
         dest_dir.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(filepath), str(dest_dir / filepath.name))
+        shutil.move(str(filepath), str(target))
         print(f"  {filepath.name} -> {dest_dir}/")
 
 def organize_by_size(directory: str):
@@ -155,6 +168,14 @@ import hashlib
 from pathlib import Path
 from collections import defaultdict
 
+def file_sha256(path: Path, chunk_size: int = 1 << 20) -> str:
+    """Hash in 1 MB chunks so large videos are not loaded into memory."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(chunk_size), b""):
+            h.update(block)
+    return h.hexdigest()
+
 def find_duplicates(directory: str, recursive: bool = True) -> dict[str, list[Path]]:
     """Find duplicate files by content hash."""
     hash_map = defaultdict(list)
@@ -163,8 +184,7 @@ def find_duplicates(directory: str, recursive: bool = True) -> dict[str, list[Pa
     for filepath in Path(directory).glob(glob_pattern):
         if not filepath.is_file():
             continue
-        file_hash = hashlib.md5(filepath.read_bytes()).hexdigest()
-        hash_map[file_hash].append(filepath)
+        hash_map[file_sha256(filepath)].append(filepath)
 
     # Return only groups with duplicates
     return {h: paths for h, paths in hash_map.items() if len(paths) > 1}
@@ -204,7 +224,7 @@ Result: Files sorted into `Documents/`, `Images/`, `Video/`, `Audio/`, `Code/`, 
 
 ### Example 2: Rename photos with date-based names
 
-**User request:** "Rename all photos to YYYY-MM-DD format based on when they were taken"
+**User request:** "Rename all photos in vacation_photos to date-based names, using the date each file was last modified"
 
 ```python
 rename_by_pattern(
@@ -220,12 +240,12 @@ rename_by_pattern(
 **User request:** "Find all duplicate files in my project and show how much space they waste"
 
 ```python
-report_duplicates("/home/user/project")
+report_duplicates("./webshop")
 # Output:
 # Duplicate group (3 copies, 245,760 bytes each):
-#   /home/user/project/assets/logo.png
-#   /home/user/project/backup/logo.png
-#   /home/user/project/old/logo.png
+#   webshop/assets/logo.png
+#   webshop/backup/logo.png
+#   webshop/old/logo.png
 #
 # Total duplicates: 47 files
 # Wasted space: 123.4 MB
@@ -235,9 +255,10 @@ report_duplicates("/home/user/project")
 
 - Always run with a dry-run or preview mode first before moving or renaming files.
 - Never delete files automatically. Move duplicates to a `_duplicates/` staging folder for user review.
-- Preserve original file timestamps when moving files with `shutil.move` or `mv -p`.
+- Timestamps survive moves: `mv` keeps modification times on the same filesystem, and `shutil.move` copies metadata (`copy2`) when it has to cross filesystems. There is no `mv -p` option; use `cp -p` if you need a copy that keeps timestamps.
+- Never let a move or rename overwrite. Use `mv -n` in shell and an `exists()` check in Python, as the scripts above do.
 - Skip hidden files and system files (starting with `.`) by default.
-- Handle filename collisions by appending a counter: `file.txt`, `file_1.txt`, `file_2.txt`.
+- For filename collisions, append a counter (`file.txt`, `file_1.txt`, `file_2.txt`) instead of skipping, if the user wants every file kept.
 - For large directories (10,000+ files), process in batches and show progress.
 - Log all operations to a file so they can be reviewed or undone.
 - Use content hashing (MD5 or SHA256) for duplicate detection, not just filename matching.

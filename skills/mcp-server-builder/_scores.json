@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e7ca94f0f63fe363341a7f8ffcf503ec1b4089154851bc92ac5335d4e55b3cf3",
-  "scoredAt": "2026-05-13T10:45:20.650Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5f25af7cba6e409610d0d5c076390e169cda1ee5c573f29d7a0d928c6e0958f4",
+  "scoredAt": "2026-10-13T12:59:47.553Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions cover the happy path but do not comprehensively address all error scenarios and edge cases."
+        "detail": "Error scenarios and edge case handling are incomplete; network failures, malformed API responses, server initialization failures, and comprehensive logging strategies are not addressed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Client configuration examples are Claude-specific (Code and Desktop); limited guidance for Cursor, generic MCP clients, or HTTP-based agents despite mentioning compatibility."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 8,
-    "treatmentAvg": 95,
-    "multiplier": 9.5,
+    "multiplier": 2.42,
+    "baselineAvg": 38,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "Postgres MCP server (TypeScript)",
-        "baseline": 10,
-        "treatment": 95,
-        "rationale": "Baseline invented an HTTP/Express protocol with no SDK, no zod validation, no SELECT-only enforcement, no timeout, and no isError; treatment used McpServer + StdioServerTransport with all guardrails."
+        "name": "postgres-query-mcp",
+        "baseline": 32,
+        "treatment": 96,
+        "rationale": "Response A fully satisfies all four rubric requirements: uses Zod for inputSchema (import and z.object), implements thorough multi-statement rejection with semicolon/quote parsing, provides BOTH a read-only database role SQL script AND statement_timeout configuration, and includes explicit Inspector testing instructions (Step 6). Response B fails critical requirements: uses plain JSON schema instead of Zod, lacks statement_timeout configuration (only has idleTimeoutMillis), provides no read-only role setup, and omits Inspector verification entirely; its multi-statement validation only checks the first keyword, allowing 'SELECT ... ; DELETE ...' to slip through."
       },
       {
-        "name": "Jira MCP server (Python FastMCP)",
-        "baseline": 5,
-        "treatment": 95,
-        "rationale": "Baseline wrote a Flask app with a hardcoded token instead of FastMCP; treatment used @mcp.tool() with type hints, env-var credentials, readable text returns, and the matching Claude Desktop config."
+        "name": "slack-api-mcp",
+        "baseline": 45,
+        "treatment": 92,
+        "rationale": "Response A covers all rubric requirements: Zod schemas with type safety, AbortSignal.timeout(15_000) explicitly implemented, environment variable loading with validation, and detailed testing instructions using the Inspector tool with concrete examples. Response B omits two critical rubric requirements: no timeout parameters are set on API calls (uses WebClient directly without timeout configuration), and provides no testing instructions (no mention of Inspector, mcp dev, or how to verify functionality)."
+      },
+      {
+        "name": "docs-resource-mcp",
+        "baseline": 38,
+        "treatment": 88,
+        "rationale": "Response B correctly uses ResourceTemplate with URI path parameters and returns contents array with uri/mimeType/text fields as specified in the rubric; Response A uses manual request handlers without ResourceTemplate and returns an incorrect response format (type instead of mimeType, missing uri), failing two core rubric requirements."
       }
     ]
   }

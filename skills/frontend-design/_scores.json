@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3d0a807c3e097a34cb9f3cf7178644cbd3788cb755a9e259946543ffb8e68081",
-  "scoredAt": "2026-05-13T09:04:59.487Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:156ca92a020ffbe84f7b2fb774af6440842e35dfb7c5b49b65abdb6dbf1efaac",
+  "scoredAt": "2026-10-13T12:01:57.138Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
+        "detail": "Covers happy path and some edge cases (accessibility, responsive design) but lacks guidance on error scenarios like performance constraints, dark mode handling, testing methodology, and cross-browser compatibility."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be more concise."
+        "category": "crossPlatform",
+        "detail": "Skill content is web-only (HTML/JSX/Tailwind/CSS) but claims compatibility with multiple agents; should clarify that it targets web development or provide guidance for non-web platforms."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 84,
-    "multiplier": 1.45,
+    "multiplier": 1.78,
+    "baselineAvg": 51,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "Design a SaaS hero section that avoids common AI-generated UI tells",
-        "baseline": 60,
-        "treatment": 86,
-        "rationale": "Treatment uses the documented hero pattern (badge + headline + subhead + dual CTA with max-w-4xl text-center), Tailwind tinted neutrals instead of pure gray, avoids the flagged purple gradient default, and uses ease-out transitions; baseline produces a generic centered hero often with the purple gradient anti-pattern."
+        "name": "saas-landing-page-design",
+        "baseline": 35,
+        "treatment": 98,
+        "rationale": "Response A describes design concepts but fails to provide promised HTML/CSS code and violates the color constraint (uses blue-to-purple gradient despite 'avoiding purple gradients'); Response B delivers a complete, production-ready Next.js component that implements all rubric requirements: proper layout sections, documented spacing multiples (16/24/32/48px from Tailwind), blue accent with neutral grays (no purple), and clear visual hierarchy on CTAs."
       },
       {
-        "name": "Design a responsive dashboard stats row with metric cards and trend indicators",
-        "baseline": 56,
+        "name": "dashboard-metrics-layout",
+        "baseline": 79,
+        "treatment": 94,
+        "rationale": "Response B implements the rubric more completely: it uses proper semantic HTML with <aside>, <header>, <main> (vs Response A's generic divs); explicitly applies shadow depths (hover:shadow-md); and has clearer responsive grid breakpoints directly from grid-cols-1 to lg:grid-cols-4, whereas Response A uses an intermediate sm:grid-cols-2 and omits shadow depth specification."
+      },
+      {
+        "name": "improve-generated-ui-polish",
+        "baseline": 38,
         "treatment": 82,
-        "rationale": "Treatment matches the documented grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 layout, uses rounded-xl border bg-white p-6 cards with text-3xl semibold values and conditional text-green-600/text-red-600 trend coloring; baseline tends to ship a flat row without the documented responsive breakpoints or trend-color mapping."
+        "rationale": "Response B explicitly maps to every rubric requirement—naming specific anti-patterns (pure gray, purple gradients, nested cards, bounce animations), describing tinted-neutral color strategy, and committing to WCAG AA contrast and semantic HTML—while Response A offers generic refactoring promises without demonstrating knowledge of the documented issues or stated accessibility standards (44x44px touch targets, color tinting, semantic structure)."
       }
     ]
   }

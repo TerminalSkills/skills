@@ -8,10 +8,10 @@ description: >-
   table design, RLS, row-level security, foreign keys, indexes, migrations,
   ERD, data model, normalization.
 license: Apache-2.0
-compatibility: "PostgreSQL, MySQL, SQLite; examples default to PostgreSQL"
+compatibility: "PostgreSQL 13+ (uuidv7() needs 18+); MySQL and SQLite for the table and index parts only, since row-level security is PostgreSQL-only"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["database", "schema-design", "postgresql", "data-modeling"]
 ---
@@ -36,7 +36,7 @@ Identify the core entities, their relationships, and access patterns:
 
 Apply these principles:
 - **3NF by default** — normalize to third normal form unless denormalization is justified by read performance
-- **UUIDs for public IDs** — use UUID v7 (time-ordered) for primary keys exposed to clients; serial for internal-only
+- **UUIDs for public IDs** — use UUID v7 (time-ordered) for primary keys exposed to clients; serial for internal-only. On PostgreSQL 18+ use `DEFAULT uuidv7()`. On 13–17 `gen_random_uuid()` is built in but returns random v4 UUIDs, so generate v7 in the application or accept v4 (time-ordered keys index better)
 - **Timestamps everywhere** — `created_at` and `updated_at` on all tables
 - **Soft deletes when appropriate** — `deleted_at TIMESTAMPTZ` for recoverable records
 - **JSONB for flexible fields** — use for tenant-specific settings, metadata, but not for frequently queried fields
@@ -65,15 +65,30 @@ ALTER TABLE projects ADD COLUMN tenant_id UUID NOT NULL REFERENCES tenants(id);
 -- Enable RLS
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 
--- Create isolation policy
+-- Create isolation policy. The second argument (true) makes current_setting
+-- return NULL instead of an error when the setting was never set. NULLIF also
+-- maps the empty string left after a transaction-local setting ends to NULL.
+-- Either way the comparison matches no rows (fail closed) instead of raising
+-- "invalid input syntax for type uuid".
 CREATE POLICY tenant_isolation ON projects
     FOR ALL
-    USING (tenant_id = current_setting('app.current_tenant_id')::UUID)
-    WITH CHECK (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID)
+    WITH CHECK (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);
 
 -- Ensure tenant_id is in composite indexes
 CREATE INDEX idx_projects_tenant ON projects(tenant_id, created_at DESC);
 ```
+
+Set the tenant inside each transaction, never with a plain `SET` on a pooled connection (the value would leak to the next request that reuses the connection):
+
+```sql
+BEGIN;
+SELECT set_config('app.current_tenant_id', '3f6c2a1e-8b4d-4e7a-9c1f-5d2e8a7b6c40', true);
+SELECT id, name FROM projects ORDER BY created_at DESC LIMIT 20;
+COMMIT;
+```
+
+Enabling RLS on a table with no policy denies every row to non-bypass roles, so create the policy in the same migration as `ENABLE ROW LEVEL SECURITY`.
 
 ### Step 5: Generate Migration Files
 
@@ -151,16 +166,22 @@ ALTER TABLE orders ALTER COLUMN tenant_id SET NOT NULL;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- Step 3: Create policies
+-- Step 3: Create policies (a policy with only USING also applies that
+-- expression to INSERT and UPDATE rows, as if it were WITH CHECK)
 CREATE POLICY tenant_orders ON orders FOR ALL
-    USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);
 
 CREATE POLICY tenant_users ON users FOR ALL
-    USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);
 
--- Step 4: Superuser bypass (for admin/migration scripts)
+-- Step 4: Admin role policy. Superusers and roles with BYPASSRLS skip RLS
+-- entirely, and the table owner also skips it unless FORCE is set. Policies
+-- are permissive and combine with OR, so this grants admin_role full access
+-- while the tenant policy still applies to everyone else.
+-- FORCE also subjects the owner (often the migration user) to the tenant
+-- policy, so run migrations as a role that has BYPASSRLS or add the policy below.
 ALTER TABLE orders FORCE ROW LEVEL SECURITY;
-CREATE POLICY admin_bypass ON orders FOR ALL TO admin_role USING (true);
+CREATE POLICY admin_bypass ON orders FOR ALL TO admin_role USING (true) WITH CHECK (true);
 ```
 
 ## Guidelines

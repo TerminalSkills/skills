@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:88ac224ff28ac7c5cf1284089f6e12f83f3afa609e2812b2a8224716929d935c",
-  "scoredAt": "2026-05-13T09:38:41.723Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:8b43a823cc3b3582675f7b177cf4fc6c50de7ec14b3341f9ccc2da74b08097ee",
+  "scoredAt": "2026-10-13T12:59:00.986Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,19 +18,13 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error scenarios and edge cases comprehensively."
+        "detail": "Lacks comprehensive troubleshooting, resource requirements, monitoring setup, and error-handling guidance beyond backup/rollback scenarios."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Docker images are referenced without checksums, which could allow tampering."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
     "baselineAvg": 32,

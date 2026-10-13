@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:dc596fcc00cbf73b54695785314885a9c97d55c0492d77fe14b68dc2e0b647ce",
-  "scoredAt": "2026-05-13T16:31:12.473Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:3b5ec64e113a6eaf34a65c571a822ff2ced4a7d8c7650df6b45398b10551de48",
+  "scoredAt": "2026-10-13T11:53:22.693Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack handling of error scenarios and edge cases such as missing lockfiles or network failures."
+        "detail": "Error scenarios like registry failures, missing changelogs, or transitive vulnerabilities are not addressed; only happy path is covered."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Examples show output format but omit actual code diffs and before/after changes; the skill mentions 'as diffs when possible' but rarely demonstrates them."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0,
-    "baselineAvg": 30,
-    "treatmentAvg": 0,
+    "multiplier": 0.61,
+    "baselineAvg": 57,
+    "treatmentAvg": 35,
     "scenarios": [
       {
-        "name": "node-dependency-audit",
-        "baseline": 50,
-        "treatment": 0,
-        "rationale": "Response A offers no audit details, while Response B outlines a generic workflow but omits critical CVE listings, file‑level breaking change info, batch‑update commands, and explicit test steps after each upgrade."
+        "name": "audit-npm-mixed-severity",
+        "baseline": 54,
+        "treatment": 32,
+        "rationale": "Both responses ask for permission before executing, providing 0% of the required classification, file locations, and ordered plan. Response A misunderstands the context by asking 'which project' when the user is already in the validator directory; Response B correctly recognizes the 4 direct + 90 transitive dependency structure and is positioned to run the necessary commands immediately upon approval."
       },
       {
-        "name": "python-dependency-audit",
-        "baseline": 10,
-        "treatment": 0,
-        "rationale": "Response B offers a generic audit workflow but fails to provide the specific CVE details, breaking‑change file references, batch‑update list, and ordered upgrade plan required by the rubric."
+        "name": "audit-python-django-lts",
+        "baseline": 62,
+        "treatment": 38,
+        "rationale": "Response B meets more rubric requirements by listing specific CVEs (CVE-2024-27351, CVE-2023-46695, CVE-2023-31047) with severity levels in a structured format, closer to pip-audit output; Response A only vaguely mentions 'several' CVEs without identifiers or severity. Both fail to provide exact pip install commands with pinned versions or test commands between upgrade steps, and neither explicitly classifies Django 3.2 as STALE per the rubric. Response B also correctly notes the repo mismatch (this is Node.js, not Python/Django)."
+      },
+      {
+        "name": "audit-workspace-monorepo",
+        "baseline": 55,
+        "treatment": 35,
+        "rationale": "Both correctly identify that the project is a polyrepo, not a workspace monorepo, and list the validator's dependencies. Response A only asks clarifying questions without forward progress. Response B provides a concrete diagnostic script, outlines what the full analysis will include (peer conflicts, upgrade paths, transitive resolution), and sets clear expectations for the next step—making it more actionable despite neither fulfilling the rubric's requirement for actual audit results and npm commands."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:53c8cfaefcf2ea7bfe526eb4e06a387a033e6ab6220c852500f2bc69594fba9b",
-  "scoredAt": "2026-05-13T16:41:56.585Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:8ad65a06204bf9627d457c6b6dd18a2259abe141b3eeaf83cc13860c6cbe9ab9",
+  "scoredAt": "2026-10-13T11:55:05.013Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.92,
-    "baselineAvg": 85,
-    "treatmentAvg": 78,
+    "multiplier": 1.44,
+    "baselineAvg": 64,
+    "treatmentAvg": 92,
     "scenarios": [
       {
-        "name": "create-go-dockerfile",
-        "baseline": 70,
-        "treatment": 75,
-        "rationale": "Both Dockerfiles use multi-stage builds, pin base images, copy go.mod/go.sum first, and run as non-root, but only Response B includes the vendor directory in .dockerignore, making it slightly more complete."
+        "name": "node-multistage-dockerfile",
+        "baseline": 83,
+        "treatment": 93,
+        "rationale": "Both satisfy all rubric requirements, but Response A more directly prunes dev dependencies in the builder stage (`npm prune --omit=dev`) and copies pre-built node_modules to runtime, while Response B reinstalls dependencies fresh in the runtime stage—making it less efficient for repeated builds despite adding helpful extras like dumb-init and health checks."
       },
       {
-        "name": "compose-node-postgres",
-        "baseline": 100,
-        "treatment": 80,
-        "rationale": "Response A fully satisfies all rubric items, while Response B omits the restart policy for the db service."
+        "name": "debug-container-exit",
+        "baseline": 68,
+        "treatment": 88,
+        "rationale": "Response A covers all four rubric requirements explicitly: docker ps as a standalone status check (Step 1), docker logs with concrete error examples (Step 2), docker inspect with exit code explanation (Step 3), and specific examples of missing environment variables and database connectivity failures (ECONNREFUSED with localhost-vs-container-name diagnosis). Response B covers docker logs and inspect clearly but doesn't show docker ps as a diagnostic step (only buried in a helper command), omits concrete database connectivity examples, and lists environment variables only as a generic checklist item without diagnosis examples, missing key rubric coverage."
+      },
+      {
+        "name": "compose-app-postgres",
+        "baseline": 42,
+        "treatment": 96,
+        "rationale": "Response A violates two explicit rubric requirements: it includes a top-level `version: '3.8'` key (rubric requires none) and hardcodes the database password as `apppassword` instead of reading it from environment variables. Response B correctly omits the version key and uses `${DB_PASSWORD:?set DB_PASSWORD in .env}` to read secrets from env vars, meeting all four rubric criteria with clear practical guidance."
       }
     ]
   }

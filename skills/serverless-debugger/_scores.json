@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fdc06f08831b47a2fd8150b05ab4d19e4886e6bc39bd5fead4ad4584465a0ffe",
-  "scoredAt": "2026-05-13T10:07:13.602Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f48c53c4b96ec4bedcd4a242ab7cbafb310f2e4bc59db12eaac08e29f29b798f",
+  "scoredAt": "2026-10-13T16:16:31.877Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover all possible error scenarios and edge cases, such as permission errors or missing logs."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 87,
-    "multiplier": 1.74,
+    "multiplier": 1,
+    "baselineAvg": 32,
+    "treatmentAvg": 32,
     "scenarios": [
       {
-        "name": "Diagnose 5-second cold start on a Node Lambda",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment hits the documented priority-order fixes (AWS SDK v2 to v3 modular imports, lazy-load heavy deps, raise memory to scale CPU, arm64); baseline gives generic advice without the specific causes-then-fixes framework."
+        "name": "trace-lambda-timeout",
+        "baseline": 45,
+        "treatment": 25,
+        "rationale": "Response A gives some troubleshooting steps but lacks a concrete trace and root‑cause analysis, while Response B merely requests logs and outlines a plan without any actual diagnostic content."
       },
       {
-        "name": "Trace a chained Lambda timeout across multiple functions",
+        "name": "optimize-cold-start",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required cold‑start analysis, bundle size check, P95 calculation, prioritized fixes, and projected duration."
+      },
+      {
+        "name": "increase-vercel-max-duration",
         "baseline": 50,
-        "treatment": 86,
-        "rationale": "Treatment produces the documented START/END timeline with root cause and platform fix (memorySize/provisionedConcurrency or async via SQS); baseline tells the user to check CloudWatch without correlating across invocations."
+        "treatment": 70,
+        "rationale": "Response A gives the correct vercel.json snippet but omits the default/maximum duration explanation, while Response B uses an incorrect path pattern and also lacks the required explanation."
       }
     ]
   }

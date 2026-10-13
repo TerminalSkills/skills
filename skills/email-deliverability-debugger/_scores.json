@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5230f761b6a473273322520f9aeae914bc219355c79840bc1d175950220b0381",
-  "scoredAt": "2026-05-13T08:47:55.181Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:6ea0bad8d9c848652cff4c4388393a37182771d04c4a57d0ef2f1c6e03c7a6d6",
+  "scoredAt": "2026-10-13T11:56:30.460Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Edge cases like shared hosting DNS limitations, subdomain delegation, and bounce pattern analysis (mentioned in description) are not covered in instructions."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Instructions assume Unix/Linux DNS tools (dig) and include SendGrid-specific examples; lacks guidance for Windows users or platform-agnostic DNS query methods."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 90,
-    "multiplier": 1.88,
+    "multiplier": 1.14,
+    "baselineAvg": 59,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Gmail spam-folder audit for a transactional subdomain",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment ran dig +short TXT for SPF/DKIM selectors and _dmarc, checked SPF lookup count against the 10-lookup limit, flagged DMARC p=none and Return-Path/From alignment per the skill, and prioritized fixes by Critical/High/Medium/Low; baseline only suggested 'check SPF and DKIM' without the lookup count, alignment check, or staged DMARC progression."
+        "name": "gmail-spam-auth-debug",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "Response A covers SPF/DKIM/DMARC verification thoroughly and critically explains the alignment failure root cause (Return-Path/DKIM domain mismatch with third-party providers), providing provider-specific fixes—the key issue for this problem. Response B checks all authentication records but glosses over alignment failures and doesn't explain why authentication is checked first; the missing explanation of why sendgrid.net/AWS SES bounce domains cause spam filtering is a significant gap."
       },
       {
-        "name": "Outlook 550 5.7.1 rejection diagnosis",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment interpreted 550 5.7.1 as content/policy rejection, checked DKIM d= alignment vs the sending domain, ran the reversed-IP DNSBL loop against zen.spamhaus.org/barracudacentral/spamcop, and recommended mail-tester.com verification before bulk sending — all documented patterns; baseline gave generic 'check reputation and warm IPs' advice without alignment or DNSBL queries."
+        "name": "outlook-rejection-ip-blacklist",
+        "baseline": 40,
+        "treatment": 22,
+        "rationale": "Response B correctly identifies poor IP reputation as the primary cause and addresses SPF/DKIM/DMARC alignment verification, but both responses critically omit the rubric's mandatory RBL checks (Spamhaus, Barracuda, SpamCop), the reverse-IP blacklist query method, and 127.0.0.x response interpretation; Response A compounds this by focusing on PTR/TLS/RFC 5322 instead of IP reputation as the root cause."
+      },
+      {
+        "name": "gmail-bulk-sender-compliance",
+        "baseline": 75,
+        "treatment": 92,
+        "rationale": "Both responses cover SPF/DKIM/DMARC/TLS/one-click unsubscribe and provide the correct List-Unsubscribe-Post header format. Response B explicitly recommends Google Postmaster Tools (a rubric requirement), specifies the >5k threshold, and targets 0.30% spam rate; Response A covers spam monitoring but omits the explicit Google Postmaster Tools recommendation and is less specific about the threshold."
       }
     ]
   }

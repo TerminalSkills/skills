@@ -8,10 +8,10 @@ description: >-
   throttle, API abuse, too many requests, request quota, DDoS protection,
   brute force prevention, credential stuffing defense.
 license: Apache-2.0
-compatibility: "Node.js 18+, Python 3.9+, or Go 1.21+. Redis 7+ for distributed mode."
+compatibility: "Node.js 20+ (ioredis 6 requires it), Python 3.9+, or Go 1.21+. Redis 7+ for distributed mode."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["rate-limiting", "api-security", "middleware"]
 ---
@@ -59,14 +59,16 @@ Always implement at least two layers:
 
 ### 4. Response Headers
 
-Always include these headers on EVERY response (not just 429s):
+Send these headers on EVERY response (not just 429s). `X-RateLimit-*` is a widespread convention, not a standard:
 
 ```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 45
-X-RateLimit-Reset: 1708012800
-Retry-After: 30  (only on 429 responses)
+X-RateLimit-Reset: 1708012800     (epoch seconds, as in the example below)
+Retry-After: 30                   (only on 429 responses)
 ```
+
+The IETF draft `draft-ietf-httpapi-ratelimit-headers` (version 11, May 2026, still a draft, not an RFC) defines `RateLimit-Policy` and `RateLimit` instead, with the reset given as seconds from now. Choose one scheme and document it. A precise `Retry-After` is the number of seconds until the oldest counted request leaves the window; the example sends the full window length, which is a safe overestimate.
 
 ### 5. Abuse Detection Patterns
 
@@ -129,7 +131,9 @@ export function rateLimit(category: keyof typeof configs) {
   const config = configs[category];
   return async (req: Request, res: Response, next: NextFunction) => {
     const key = config.keyGenerator(req);
-    const now = Date.now();
+    // Read the Redis server clock so every app instance counts against the same window
+    const [sec, usec] = await redis.time();
+    const now = Number(sec) * 1000 + Math.floor(Number(usec) / 1000);
     const windowStart = now - config.windowMs;
 
     const multi = redis.multi();
@@ -166,3 +170,13 @@ export function rateLimit(category: keyof typeof configs) {
 - Document the rate limits in your API documentation or OpenAPI spec
 - Consider offering rate limit increase for paid tiers via configuration, not code changes
 - Log all rate limit events in structured format for security monitoring
+
+Check the 429 path from the shell. With the auth limit of 5 requests per minute, the first five calls return 200 and the sixth returns 429:
+
+```bash
+for i in $(seq 1 6); do
+  curl -s -o /dev/null -D - -X POST http://localhost:3000/api/login \
+    -H "Content-Type: application/json" -d '{"username":"maya.chen"}' \
+    | grep -i -E "^HTTP|^x-ratelimit|^retry-after"
+done
+```

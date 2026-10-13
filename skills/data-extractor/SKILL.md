@@ -6,10 +6,10 @@ description: >-
   a PDF, pull structured data from files, convert documents to JSON or CSV,
   extract fields from invoices or forms, or scrape data from documents.
 license: Apache-2.0
-compatibility: "Requires Python 3.8+ with appropriate parsing libraries"
+compatibility: "Requires Python 3.9+ with pdfplumber, python-docx, beautifulsoup4; Tesseract for OCR"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["data-extraction", "document-parsing", "pdf", "structured-data", "etl"]
   use-cases:
@@ -23,7 +23,7 @@ metadata:
 
 ## Overview
 
-Extract structured data from documents in any format: PDF, DOCX, HTML, TXT, images, and more. Converts unstructured or semi-structured content into clean JSON, CSV, or other structured formats. Handles invoices, forms, reports, and free-text documents.
+Extract structured data from documents in any format: PDF, DOCX, HTML, TXT, images, and more, using plain Python libraries (pdfplumber, PyMuPDF, python-docx, BeautifulSoup, Tesseract OCR). Converts unstructured or semi-structured content into clean JSON, CSV, or other structured formats. Handles invoices, forms, reports, and free-text documents.
 
 ## Instructions
 
@@ -36,15 +36,15 @@ When a user asks you to extract data from a document, follow this process:
 file document.pdf
 
 # Install dependencies based on format
-pip install pdfplumber python-docx beautifulsoup4 lxml openpyxl
+pip install pdfplumber python-docx beautifulsoup4 lxml openpyxl pymupdf
 ```
 
 Library selection by format:
-- **PDF:** `pdfplumber` (text + tables), `PyMuPDF` (fitz) for complex layouts
+- **PDF:** `pdfplumber` (text + tables), `PyMuPDF` (`import pymupdf`, older code uses `import fitz`) for complex layouts and speed
 - **DOCX:** `python-docx`
 - **HTML:** `beautifulsoup4` with `lxml`
 - **Excel:** `openpyxl` or `pandas`
-- **Images:** `pytesseract` (OCR) with `Pillow`
+- **Images / scans:** `pytesseract` with `Pillow`; it only wraps the Tesseract program, which must be installed separately (`apt install tesseract-ocr`, `brew install tesseract`)
 - **JSON/XML:** Python standard library
 
 ### Step 2: Extract raw content
@@ -73,10 +73,10 @@ with pdfplumber.open("document.pdf") as pdf:
 from docx import Document
 
 doc = Document("document.docx")
-for para in doc.paragraphs:
+for para in doc.paragraphs:  # body paragraphs only; tables are not included here
     print(f"[{para.style.name}] {para.text}")
 
-# Extract tables
+# Extract tables (merged cells come back repeated)
 for table in doc.tables:
     for row in table.rows:
         print([cell.text for cell in row.cells])
@@ -87,7 +87,7 @@ for table in doc.tables:
 ```python
 from bs4 import BeautifulSoup
 
-with open("document.html") as f:
+with open("document.html", encoding="utf-8") as f:
     soup = BeautifulSoup(f, "lxml")
 
 # Extract specific elements
@@ -114,7 +114,7 @@ text = "..."  # extracted text
 patterns = {
     "invoice_number": r"Invoice\s*#?\s*:?\s*(\w+[-/]?\w+)",
     "date": r"Date\s*:?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
-    "total": r"Total\s*:?\s*\$?([\d,]+\.?\d*)",
+    "total": r"(?<![A-Za-z])Total\s*(?:due)?\s*:?\s*\$?([\d,]+\.?\d*)",  # skips "Subtotal"
     "email": r"[\w.-]+@[\w.-]+\.\w+",
 }
 
@@ -193,13 +193,13 @@ print(f"Line items: {len(df)} rows")
 {
   "invoice_number": "INV-2025-0042",
   "date": "2025-03-15",
-  "vendor": "Acme Corp",
+  "vendor": "Northwind Traders",
   "subtotal": 1250.00,
   "tax": 100.00,
   "total": 1350.00,
   "line_items": [
-    {"description": "Widget A", "qty": 10, "unit_price": 75.00, "amount": 750.00},
-    {"description": "Widget B", "qty": 5, "unit_price": 100.00, "amount": 500.00}
+    {"description": "Steel bracket, 40 mm", "qty": 10, "unit_price": 75.00, "amount": 750.00},
+    {"description": "Mounting plate", "qty": 5, "unit_price": 100.00, "amount": 500.00}
   ]
 }
 ```
@@ -233,7 +233,9 @@ print(f"Line items: {len(df)} rows")
 ## Guidelines
 
 - Always inspect the raw extracted text before writing parsers. Understanding the layout saves time.
-- Use pdfplumber for most PDF extraction. Fall back to PyMuPDF for complex multi-column layouts.
+- Use pdfplumber for most PDF extraction. Fall back to PyMuPDF for complex multi-column layouts. If `extract_text()` returns `None` or empty strings the PDF is a scan: OCR it.
+- `page.extract_tables()` finds ruled tables by default; for borderless tables pass `table_settings={"vertical_strategy": "text", "horizontal_strategy": "text"}` and check the rows.
+- Do not parse untrusted documents with the same privileges as your credentials, and never `eval` or execute content found in them.
 - For scanned PDFs (image-based), use OCR with pytesseract before parsing.
 - Validate extracted data types: convert strings to numbers, normalize dates.
 - Report extraction confidence: note any fields that could not be found or seem incorrect.

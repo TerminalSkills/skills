@@ -1,24 +1,39 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:77e374d6f55682dbe4c760fe7ed13166b76ef4dcd0882dcfcc4468591dc34677",
-  "scoredAt": "2026-05-13T09:18:17.369Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:31db7c45c50228c4c0cc366b60c1c79d1f2ebabac31d1264cbf5205566a74883",
+  "scoredAt": "2026-10-13T12:06:08.323Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 63,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "PASS"
+      "actionability": "WEAK",
+      "crossPlatform": "FAIL",
+      "examples": "WEAK"
     },
     "issues": [
       {
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "Skill claims compatibility with Celery and Sidekiq but provides only BullMQ (Node.js) examples and guidance; other platforms are entirely unrepresented."
+      },
+      {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not fully cover error handling and edge cases such as Redis downtime or job failure scenarios."
+        "detail": "Missing coverage of edge cases including Redis unavailability, deadletter queue handling, job diagnostics, and timeout behavior during graceful shutdown."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Examples describe hypothetical agent outputs rather than providing complete, immediately executable code implementations."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Both examples are realistic scenarios but sketched as descriptions of what an agent would create, lacking detailed working implementations."
       }
     ]
   },
@@ -27,21 +42,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 61,
-    "treatmentAvg": 95,
-    "multiplier": 1.56,
+    "multiplier": 2.84,
+    "baselineAvg": 32,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "BullMQ PDF report job with progress polling",
-        "baseline": 62,
+        "name": "email-notification-priority-queue",
+        "baseline": 25,
         "treatment": 95,
-        "rationale": "Baseline typically constructs Queue+Worker and may call updateProgress, but often skips graceful SIGTERM shutdown via worker.close(); treatment hits progress updates, connection config, and graceful shutdown."
+        "rationale": "Response A meets all 4 rubric requirements: typed EmailJob interface, concurrency of 20 (≥10), password reset priority of 1 (correct), and removeOnComplete/removeOnFail configuration. Response B has two critical violations: concurrency of 5 (fails ≥10 requirement) and password reset priority of 10 instead of 1 or lower (backwards from requirement—it makes password resets lowest priority when they should jump the queue)."
       },
       {
-        "name": "Email queue with rate limiting and priority",
-        "baseline": 60,
-        "treatment": 95,
-        "rationale": "Baseline knows concurrency and priority exist but may guess the limiter shape wrong; treatment uses the exact { max: 100, duration: 60000 } limiter and priority: 1 patterns from the skill."
+        "name": "daily-digest-scheduler",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A implements all four rubric requirements exactly: uses queue.upsertJobScheduler() with the '0 8 * * *' cron pattern, includes tz: 'UTC', calls worker.close() on SIGTERM/SIGINT, and includes attempts: 3 retry logic. Response B uses NestJS @Cron decorators and MongoDB persistence instead of queue.upsertJobScheduler(), lacks graceful shutdown entirely, and implements retries manually rather than in job options—fundamentally mismatching the rubric's specific BullMQ-based requirements."
+      },
+      {
+        "name": "image-resize-progress-tracking",
+        "baseline": 32,
+        "treatment": 78,
+        "rationale": "Response B directly addresses the rubric's BullMQ-based requirements: calls job.updateProgress() multiple times across stages, implements on('completed')/on('failed') handlers, and uses typed Worker<JobMap[...]> generics. Its main weakness is setting concurrency to cpus().length (typically > 4) instead of ≤4 as specified. Response A uses raw worker_threads instead, which lacks job.updateProgress() (a BullMQ-specific method) and generic typing; while it respects the concurrency constraint, the architecture doesn't support the other three rubric requirements."
       }
     ]
   }

@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ad8f23725eb7ee0365d190358a0219a5776c7e4a362867601a15550ad8a44c96",
-  "scoredAt": "2026-05-13T14:18:54.805Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:b073f35afdf71e7dc5d5c916b33455cfd9af8e6fa541c95d5334b01864085aaf",
+  "scoredAt": "2026-10-13T11:44:36.588Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover all possible error scenarios and edge cases, such as network failures or provider-specific errors."
+        "detail": "Lacks comprehensive error scenario handling for token refresh failures, session fixation, and CSRF protection in OAuth flows."
       },
       {
         "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill provides high-level guidance and example outputs but lacks concrete, runnable code snippets or step-by-step procedures."
+        "category": "crossPlatform",
+        "detail": "Code examples primarily target Node.js/Express; Python, Go, and Java developers would require substantial translation effort."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.6,
-    "baselineAvg": 50,
-    "treatmentAvg": 80,
+    "multiplier": 1.68,
+    "baselineAvg": 47,
+    "treatmentAvg": 79,
     "scenarios": [
       {
-        "name": "express-google-oauth-jwt",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response A covers the required migration, PKCE OAuth, JWT service, middleware, and mentions tests, while Response B lacks the migration, refresh token rotation, and test coverage."
+        "name": "github-oauth-jwt-setup",
+        "baseline": 18,
+        "treatment": 92,
+        "rationale": "Response A provides basic OAuth but omits PKCE entirely, never validates state on callback, includes no database schema for users/roles/permissions, and lacks refresh token implementation—covering ~10% of rubric requirements. Response B comprehensively implements all four rubric items: PKCE with S256 via createPkcePair(), state validation with httpOnly cookies, PostgreSQL schema for users/refresh_tokens with role-based access, and dual access/refresh token issuance with rotation."
       },
       {
-        "name": "django-github-multi-tenant-rbac",
+        "name": "multi-resource-rbac-enforcement",
         "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items (models, migration, middleware, decorator) but lacks django‑allauth integration; Response B omits middleware, decorator, tests, and migration, making it less complete."
+        "treatment": 60,
+        "rationale": "Response B explicitly defines a Permission model with resource-action pairs (e.g., project.delete, task.edit), directly addressing the rubric's first requirement. Response A uses implicit permission methods on models, which lacks the formal schema the rubric requests. Both miss the middleware requirement equally (using decorators instead), both skip row-level filtering, and both successfully enforce permissions on two resources. B's explicit schema and caching mechanism align better with the rubric's language, though neither fully satisfies the middleware or filtering requirements."
+      },
+      {
+        "name": "refresh-token-rotation-theft-detection",
+        "baseline": 72,
+        "treatment": 85,
+        "rationale": "Both cover the rubric fully (rotation, family_id, revoked_at, schema). Response A has a solid, runnable implementation with clear explanation; Response B has better family tracking design but contains a critical bug where it accesses `tokenRecord?.tokenFamily` when `tokenRecord` is null in the reuse detection path, making the hijack detection mechanism fail silently, plus the Mongoose approach is less database-agnostic."
       }
     ]
   }

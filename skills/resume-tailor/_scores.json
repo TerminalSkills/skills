@@ -1,39 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6f13d2547ca0718fd9b7419c99cb7be214f5a842c1c055dc3ce038fb27925b8f",
-  "scoredAt": "2026-05-13T10:03:47.309Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d02f0490b2ab878b73b9dbfe407c39dc4ebdc25b49871fded68a419cd49bdd5f",
+  "scoredAt": "2026-10-13T13:05:48.643Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 73,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "WEAK",
-      "crossPlatform": "WEAK",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack handling for missing or malformed input documents, leading to potential failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The instructions contain verbose explanations that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The guidance provides high-level steps but lacks detailed, executable procedures for all steps."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes optional Python usage and specific agent capabilities, limiting cross-platform applicability."
+        "detail": "Instructions lack explicit guidance for real-world edge cases such as parsing PDF/Word files, handling ambiguous or incomplete job descriptions, converting unsupported resume formats, or recovering from parsing failures."
       }
     ]
   },
@@ -42,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 52,
-    "treatmentAvg": 86,
-    "multiplier": 1.65,
+    "multiplier": 1.7,
+    "baselineAvg": 43,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Tailor a software engineer resume to a data engineering role",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment categorizes required vs preferred keywords, reports a before/after match rate (targeting 80%+), rewrites bullets only for genuine experience, and reorders sections per the skill; baseline gives generic resume advice."
+        "name": "cloud-engineer-keyword-optimization",
+        "baseline": 15,
+        "treatment": 55,
+        "rationale": "Response A correctly identifies the necessary inputs and explicitly commits to delivering all three rubric requirements (keyword categorization, match rate calculation, before/after examples), but currently provides none of them. Response B refuses the task entirely based on scope concerns, providing 0 rubric content and actively preventing compliance with alternatives instead."
       },
       {
-        "name": "Fix an ATS-rejected resume",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment applies the documented ATS fixes (standard section headers, no tables/columns, spell out acronyms on first use, standard date formats, exact job-title keywords); baseline lists generic resume tips."
+        "name": "career-pivot-section-reordering",
+        "baseline": 60,
+        "treatment": 84,
+        "rationale": "Response A outlines a specific, methodical workflow directly addressing all rubric requirements (keyword extraction, rewriting bullets with action verbs and metrics, before/after comparison showing improved section order), while Response B provides only high-level promises without detailing the techniques or concrete approach that would ensure those requirements are met."
+      },
+      {
+        "name": "ats-compatibility-fix",
+        "baseline": 55,
+        "treatment": 80,
+        "rationale": "Response B meets the rubric more completely by requesting both the resume AND job description (essential for keyword analysis), providing specific formatting examples ('My Journey' → 'Work Experience'), and explicitly committing to extracting posting requirements and rewriting bullets with exact terminology. Response A identifies some formatting issues but omits the job description requirement and provides only generic promises about keyword density without demonstrating understanding of job-specific analysis."
       }
     ]
   }

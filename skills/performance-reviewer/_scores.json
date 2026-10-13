@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a32294880da5b226e8bd2d1efb95f79a5d749d89027d66bd5a7831561f0fb2d1",
-  "scoredAt": "2026-05-13T09:49:46.887Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4b49906873a1693bb8e2097ad90404897e4d30bd42ec5b59fd967cb1ff7e2e98",
+  "scoredAt": "2026-10-13T13:04:48.802Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not specify handling for cases where no performance issues are found or diff retrieval fails, leaving edge cases unaddressed."
+        "detail": "Error scenarios and edge cases are not addressed (e.g., handling unsupported languages, unavailable measurement tools, NoSQL database patterns, or issue prioritization when multiple problems exist)."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Provides manual review procedures but lacks concrete integration steps for optional tools like Lighthouse or webpack-bundle-analyzer mentioned in compatibility; skill reads as descriptive guidance rather than automatable workflow."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Examples and detailed guidance heavily weighted toward SQL databases and React/JavaScript; claims platform-agnostic applicability but provides limited guidance for NoSQL, other languages, or non-React frameworks."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
+    "multiplier": 1.43,
+    "baselineAvg": 60,
     "treatmentAvg": 86,
-    "multiplier": 1.91,
     "scenarios": [
       {
-        "name": "Review Django PR diff for N+1 query in order listing",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment runs git diff main...HEAD, reports file/line, Critical severity, Database category, and suggests select_related/prefetch_related with concrete fix; baseline catches the N+1 conceptually but lacks the structured severity/category/fix format defined in the skill."
+        "name": "detect-n-plus-one-database-query",
+        "baseline": 35,
+        "treatment": 78,
+        "rationale": "Response A asks for code without providing any analysis, failing to identify the N+1 pattern or recommend specific fixes; Response B explicitly identifies and demonstrates the N+1 pattern with concrete examples, specifically recommends prefetch_related as required by the rubric, and provides quantified impact—but neither explicitly states the 'Critical severity' categorization."
       },
       {
-        "name": "Review React PR diff for re-render and bundle size regressions",
-        "baseline": 40,
-        "treatment": 84,
-        "rationale": "Treatment flags inline style/arrow as new references, suggests useMemo/useCallback with concrete code, and calls out moment→dayjs as Info severity per skill's frontend rubric; baseline mentions memoization vaguely without per-line file:line output or severity tiers."
+        "name": "detect-react-re-render-inefficiency",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Response B covers all four rubric requirements: it identifies the issue as Frontend, explicitly recommends React.memo() as a core fix, suggests useCallback, and critically explains that both memo and a stable callback are required together for the optimization to work. Response A covers the useCallback suggestion clearly and identifies the frontend issue, but treats React.memo() as an optional checklist item rather than a primary recommendation, and omits the essential explanation that both strategies must be used together for memoization to skip re-renders."
+      },
+      {
+        "name": "detect-useeffect-memory-leak",
+        "baseline": 84,
+        "treatment": 87,
+        "rationale": "Both identify the memory leak and provide correct cleanup code, but Response A explains the accumulation and duplication mechanism more thoroughly ('Eventually you have N orphaned connections leaking memory and messages arriving in listeners that no longer exist'), which better satisfies the rubric's requirement to explain how listeners accumulate and duplicate on remount. Neither explicitly assigns Critical severity as the rubric requires, which costs both responses points."
       }
     ]
   }

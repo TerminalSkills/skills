@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:391eb3737469bfc82287e5e5166c934715f7247c32402d19c5001d87c7f5eab5",
-  "scoredAt": "2026-05-13T08:48:02.901Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e838a8bcbce9e6ebf68b023dc624e6b5b758798c5429f37b497c6ef7e3ad666b",
+  "scoredAt": "2026-10-13T11:57:08.495Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly handle missing or incomplete user context, which could lead to incomplete email drafts."
+        "detail": "The type/tone table defines eight email types but only three are demonstrated in examples; apology, request, and introduction scenarios lack concrete illustrations."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 86,
-    "multiplier": 1.48,
+    "multiplier": 1.68,
+    "baselineAvg": 53,
+    "treatmentAvg": 89,
     "scenarios": [
       {
-        "name": "Cold outreach to VP of Engineering about a dev tool",
-        "baseline": 60,
-        "treatment": 88,
-        "rationale": "Treatment kept the cold email under 125 words, used a specific subject line under 60 characters, single actionable CTA, and the skill's concise/compelling tone profile; baseline produced a long ~250-word email with multiple asks and a vague closer."
+        "name": "cold-email-saas-product",
+        "baseline": 10,
+        "treatment": 90,
+        "rationale": "Response B delivers a complete cold email meeting all three rubric requirements: subject line (35 chars, specific benefit), concise mobile-friendly body, and concrete CTA proposing specific days; Response A requests clarification instead of attempting the task and provides zero deliverables against the rubric."
       },
       {
-        "name": "Apology email to a client about a missed deadline",
-        "baseline": 55,
-        "treatment": 84,
-        "rationale": "Treatment applied the empathetic/accountable tone for apology emails, front-loaded the issue in 2 sentences, included a specific easy-to-answer CTA (e.g., a concrete time), and used the documented Subject/Greeting/Body/Closing structure; baseline buried the apology in hedging language and offered no concrete next step."
+        "name": "vendor-delay-apology-email",
+        "baseline": 82,
+        "treatment": 93,
+        "rationale": "Both responses meet the rubric requirements, but A provides significantly more concrete detail about resolution steps (weekend work, component arrival, integration progress) and preventive measures (2-week buffer, direct oversight), stronger accountability language ('That's on us, that's a mistake we won't repeat'), and a specific call to action; B hits all rubric points competently but with less depth and detail."
+      },
+      {
+        "name": "team-process-announcement",
+        "baseline": 68,
+        "treatment": 85,
+        "rationale": "Response A provides three explicit, numbered action items (update PR templates, join Slack channel, use SLA as target) that directly address the rubric's requirement for specific team actions, and clearly distinguishes changing from staying the same. Response B has a more specific subject line with actual metrics, but primarily describes the new process rather than stating concrete action items—it has only one clear action ('post in #code-review if blocked'), leaving it short on the implementation guidance the rubric requires."
       }
     ]
   }

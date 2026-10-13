@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:81a3e3e39bd0e1c3eba4d3496d3cb212b2a3bd51b5567e94af9e3b7924c0dda2",
-  "scoredAt": "2026-05-13T10:01:10.173Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2b1941aa66c3829017a7cb2cd49dbd6674e7dc2db21bed1a9d3b85ca8a8565ff",
+  "scoredAt": "2026-10-13T13:07:02.189Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "PASS"
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as missing channels or concurrent updates."
+        "detail": "Lacks comprehensive coverage of error scenarios (failed inserts, connection failures, concurrent write conflicts) and edge cases (clock skew, very stale clients) beyond basic reconnection sync."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "PostgreSQL-specific syntax and patterns (BIGSERIAL, gen_random_uuid, TIMESTAMPTZ, uuidv7, EXPLAIN) require significant adaptation for MySQL, MongoDB, and other databases despite acknowledging their existence."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example section provides prompts and descriptions rather than concrete demonstrations with sample input data and realistic query output."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 3.78,
+    "baselineAvg": 23,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Team chat schema with cursor pagination",
-        "baseline": 30,
-        "treatment": 96,
-        "rationale": "Baseline orders by created_at and paginates with OFFSET (the documented anti-pattern) and lacks channel_members/last_read_message_id; treatment uses BIGSERIAL messages.id, WHERE id < cursor, and the (channel_id, id DESC) WHERE deleted_at IS NULL index."
+        "name": "message-history-cursor-pagination",
+        "baseline": 25,
+        "treatment": 100,
+        "rationale": "Response A meets all four rubric requirements exactly: BIGSERIAL primary key, (channel_id, id DESC) index, keyset filtering with id < cursor and id > cursor, and cursor metadata format. Response B provides a valid cursor-pagination design but uses MongoDB ObjectId instead of BIGSERIAL, indexes (conversationId, createdAt) instead of the required pattern, and uses MongoDB query syntax ($lt) rather than the specified SQL keyset approach."
       },
       {
-        "name": "Unread counts plus reconnection sync",
+        "name": "unread-count-badge",
+        "baseline": 20,
+        "treatment": 78,
+        "rationale": "Response B directly matches the rubric's SQL requirements (last_read_message_id tracking, GROUP BY channel_id, id > filter pattern, 99+ optimization), while Response A uses MongoDB/NoSQL entirely and omits all SQL-specific patterns. Response B's only gap is not explicitly explaining why per-message read status is inefficient; Response A misses the entire technical direction."
+      },
+      {
+        "name": "reconnection-sync-protocol",
         "baseline": 25,
-        "treatment": 94,
-        "rationale": "Baseline tracks reads per-message in a separate table, ignoring soft deletes and sender exclusion; treatment uses one last_read_message_id integer per (channel, user) with the documented JOIN, sender_id filter, and lastMessageIds reconnection protocol."
+        "treatment": 82,
+        "rationale": "Response A directly implements all rubric requirements: client sends per-channel lastMessageIds, server queries id > lastMessageId per channel, includes gap detection with 200-message threshold, and returns per-channel data with hasMore. Response B discusses 5 general sync patterns but implements single-cursor (not per-channel) sync, lacks gap detection logic, and doesn't match the specified return structure—it goes in a different architectural direction than the rubric requires."
       }
     ]
   }

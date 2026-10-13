@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:692aea7c169bed43845b935397bae72b37bfdf2ef79af6887e326549688d1563",
-  "scoredAt": "2026-05-13T10:02:09.208Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a64982e84d9916c5fdf546824f020f809e02eb7d38d0e73eb7896b7a1802228d",
+  "scoredAt": "2026-10-13T13:09:31.179Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack error handling and edge case coverage."
+        "detail": "Instructions cover the happy path and some edge cases (version matching, licensing) but lack guidance on error scenarios such as Chrome Headless download failures, Lambda timeouts, invalid props, or missing asset files."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 89,
-    "multiplier": 2.22,
+    "multiplier": 9.5,
+    "baselineAvg": 9,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Batch render personalized videos",
-        "baseline": 42,
-        "treatment": 90,
-        "rationale": "Treatment loops over users and calls npx remotion render with --props='{...}' per user, with the component reading props via the registered <Composition>; baseline writes a single render command or uses ffmpeg without Remotion-specific prop passing."
+        "name": "personalized-welcome-videos",
+        "baseline": 10,
+        "treatment": 92,
+        "rationale": "Response B directly satisfies all three rubric requirements: a Remotion component accepting userName as a prop, npx remotion render with the --props flag passing inline JSON, and a bash loop iterating through the user list to generate separate output files per user. Response A avoids Remotion entirely, asks for clarification instead, and provides generic ffmpeg examples that don't use the required --props flag or Remotion framework at all."
       },
       {
-        "name": "Animated bar chart with frame-driven animation",
-        "baseline": 38,
-        "treatment": 88,
-        "rationale": "Treatment drives bar height via useCurrentFrame() and interpolate() with extrapolateLeft/Right: 'clamp' inside an AbsoluteFill; baseline reaches for CSS transitions or D3 without Remotion's frame model."
+        "name": "tiktok-captions-overlay",
+        "baseline": 8,
+        "treatment": 97,
+        "rationale": "Response B directly implements every rubric requirement: imports createTikTokStyleCaptions, passes the captions array, sets combineTokensWithinMilliseconds, wraps pages in Sequence with correctly calculated from/durationInFrames. Response A uses moviepy/Python instead of Remotion and ignores the rubric entirely, providing a working but incorrect-direction solution."
+      },
+      {
+        "name": "animated-revenue-chart",
+        "baseline": 8,
+        "treatment": 96,
+        "rationale": "Response A implements all three rubric requirements: calls useCurrentFrame(), uses interpolate() with per-bar animation ranges, and staggers bars starting at frames 0, 15, 30, and 45 respectively. Response B uses matplotlib/Python instead, which lacks useCurrentFrame() and interpolate() entirely, and animates all bars simultaneously with the same progress value—no staggering. The rubric specifies a composition using Remotion-specific APIs; Response A delivers this exactly, while Response B uses an incompatible tech stack that cannot fulfill the requirements."
       }
     ]
   }

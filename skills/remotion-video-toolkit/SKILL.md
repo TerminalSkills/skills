@@ -7,10 +7,11 @@ description: >-
   programmatically, or automate video production. Supports CLI rendering,
   AWS Lambda, and Google Cloud Run deployment.
 license: Apache-2.0
-compatibility: "Requires Node.js 18+ with Remotion and React"
+compatibility: "Requires a current Node.js LTS (or Bun) with the remotion packages and React; Chrome Headless Shell is downloaded on first render. Lambda needs an AWS account."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/remotion-dev/remotion
   category: automation
   tags: ["remotion", "video", "react", "animation", "rendering"]
   use-cases:
@@ -36,7 +37,7 @@ When a user asks to create programmatic video, determine the task:
 # Create a new Remotion project
 npx create-video@latest my-video
 cd my-video
-npm start  # Opens the Remotion Studio at http://localhost:3000
+npm run dev  # starts Remotion Studio (http://localhost:3000)
 ```
 
 Project structure:
@@ -45,8 +46,11 @@ my-video/
   src/
     Root.tsx          # Register all compositions
     MyComposition.tsx # Your video component
+  index.ts          # calls registerRoot(RemotionRoot)
   remotion.config.ts  # Render settings
 ```
+
+Pick a template when prompted (Hello World is the smallest). All `remotion` and `@remotion/*` packages must be on the exact same version (no `^`), or rendering fails with a version-mismatch error. Remotion is free for individuals and for-profit companies with up to 3 employees; larger companies need a paid company license (see remotion.dev/license).
 
 ### Task B: Create a video composition
 
@@ -109,47 +113,39 @@ export const RemotionRoot: React.FC = () => {
 
 ### Task C: Add TikTok-style animated captions
 
+Use `@remotion/captions` (install it at the same version as `remotion`). Transcribe the audio to `Caption[]` first (for example with `@remotion/install-whisper-cpp` and its `toCaptions()`, or `@remotion/openai-whisper`), then group words into pages. Each token's `text` must keep its leading space, otherwise words merge into one page.
+
 ```tsx
-import { AbsoluteFill, useCurrentFrame, Sequence } from "remotion";
+import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
+import { createTikTokStyleCaptions, type Caption } from "@remotion/captions";
 
-interface CaptionWord {
-  text: string;
-  startFrame: number;
-  durationInFrames: number;
-}
-
-const captions: CaptionWord[] = [
-  { text: "This", startFrame: 0, durationInFrames: 15 },
-  { text: "is", startFrame: 15, durationInFrames: 10 },
-  { text: "amazing!", startFrame: 25, durationInFrames: 20 },
-];
-
-export const CaptionOverlay: React.FC = () => {
-  const frame = useCurrentFrame();
-
-  const activeWord = captions.find(
-    (c) => frame >= c.startFrame && frame < c.startFrame + c.durationInFrames
-  );
+export const CaptionOverlay: React.FC<{ captions: Caption[] }> = ({ captions }) => {
+  const { fps } = useVideoConfig();
+  // fewer ms = word-by-word pages, more ms = several words per page
+  const { pages } = createTikTokStyleCaptions({
+    captions,
+    combineTokensWithinMilliseconds: 1200,
+  });
 
   return (
     <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 120 }}>
-      {activeWord && (
-        <div style={{
-          fontSize: 64,
-          fontWeight: "bold",
-          color: "white",
-          textShadow: "2px 2px 8px rgba(0,0,0,0.8)",
-          backgroundColor: "rgba(0,0,0,0.5)",
-          padding: "8px 24px",
-          borderRadius: 12,
-        }}>
-          {activeWord.text}
-        </div>
-      )}
+      {pages.map((page) => (
+        <Sequence
+          key={page.startMs}
+          from={Math.round((page.startMs / 1000) * fps)}
+          durationInFrames={Math.max(1, Math.round((page.durationMs / 1000) * fps))}
+        >
+          <div style={{ fontSize: 64, fontWeight: "bold", color: "white", whiteSpace: "pre" }}>
+            {page.text}
+          </div>
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };
 ```
+
+Each page also has `tokens` with `fromMs`/`toMs`, which lets you highlight the word being spoken.
 
 ### Task D: Render videos
 
@@ -159,6 +155,7 @@ npx remotion render MyVideo out/video.mp4
 
 # Render with custom props
 npx remotion render MyVideo out/video.mp4 --props='{"title":"Custom Title"}'
+npx remotion render MyVideo out/video.mp4 --props=./props.json   # a JSON file also works (use this on Windows)
 
 # Render a still frame (for thumbnails)
 npx remotion still MyVideo out/thumbnail.png --frame=45
@@ -167,15 +164,15 @@ npx remotion still MyVideo out/thumbnail.png --frame=45
 npx remotion render MyVideo out/video.mp4 --codec=h264 --crf=18
 ```
 
-For batch rendering at scale:
+For rendering at scale, use AWS Lambda (needs an AWS account with the Remotion IAM policies; follow remotion.dev/docs/lambda/setup):
 
 ```bash
-# Render on AWS Lambda
-npx remotion lambda render MyVideo --props='{"title":"Video 1"}'
-
-# Render on Google Cloud Run
-npx remotion cloudrun render MyVideo --props='{"title":"Video 1"}'
+npx remotion lambda functions deploy
+npx remotion lambda sites create src/index.ts --site-name=my-video   # prints the serve URL
+npx remotion lambda render my-video MyVideo out/video.mp4 --props=./props.json
 ```
+
+`lambda render` takes the serve URL (or site name) first, then the composition id, then an optional local output path. Lambda splits a video into chunks rendered in parallel, so long videos usually do not need a bigger timeout. Cloud Run support (`@remotion/cloudrun`) is in alpha and no longer actively developed; prefer Lambda or plain server-side rendering with `renderMedia()`.
 
 ### Task E: Animated data visualizations
 
@@ -202,7 +199,6 @@ export const BarChart: React.FC<{ data: DataPoint[] }> = ({ data }) => {
                 height: `${height}%`,
                 backgroundColor: point.color,
                 borderRadius: "8px 8px 0 0",
-                transition: "height 0.3s",
               }} />
               <p style={{ color: "white", marginTop: 12, fontSize: 24 }}>{point.label}</p>
             </div>
@@ -243,12 +239,14 @@ npx remotion render SalesDashboard out/q4_report.mp4 \
 
 **User request:** "Add animated captions to a video for TikTok"
 
-Combine the CaptionOverlay with an `OffthreadVideo` source:
+Combine the CaptionOverlay with a `<Video>` from `@remotion/media` (the recommended video component):
 ```tsx
-import { OffthreadVideo } from "remotion";
+import { AbsoluteFill, staticFile } from "remotion";
+import { Video } from "@remotion/media";
+
 <AbsoluteFill>
-  <OffthreadVideo src="https://example.com/clip.mp4" />
-  <CaptionOverlay />
+  <Video src={staticFile("clip.mp4")} />
+  <CaptionOverlay captions={captions} />
 </AbsoluteFill>
 ```
 
@@ -257,8 +255,8 @@ import { OffthreadVideo } from "remotion";
 - Use `useCurrentFrame()` and `interpolate()` for all animations; avoid CSS transitions.
 - Keep compositions pure: pass all dynamic data as props for easy batch rendering.
 - Use `<Sequence>` to organize sections of your video timeline.
-- Prefer `<OffthreadVideo>` over `<Video>` for better performance with video sources.
-- Set `crf` (Constant Rate Factor) between 16-20 for good quality-to-size ratio.
-- For Lambda rendering, keep compositions under 120 seconds to avoid timeout issues.
+- For video sources use `<Video>` from `@remotion/media`; `<OffthreadVideo>` from `remotion` still works but the docs recommend `<Video>` for new code.
+- Set `--crf` (Constant Rate Factor) around 16-20 for a good quality-to-size ratio; it cannot be combined with `--video-bitrate`.
+- Never use CSS transitions or `setTimeout` for animation: frames render independently, so only values derived from `useCurrentFrame()` are reproducible.
 - Test in Remotion Studio before rendering to catch layout issues early.
 - Use `staticFile()` to reference assets in the `public/` folder.

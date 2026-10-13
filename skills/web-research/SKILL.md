@@ -8,10 +8,10 @@ description: >-
   web sources for a report, or investigate a topic thoroughly using
   multiple online sources.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with requests and beautifulsoup4 installed. Requires a Brave Search API key (free tier: 2000 queries/month)."
+compatibility: "Requires Python 3.9+ with requests and beautifulsoup4 installed. Requires a Brave Search API key (Search plan; $5 free monthly credit, card required)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: research
   tags: ["research", "web-search", "brave", "report", "sources"]
   use-cases:
@@ -44,7 +44,7 @@ Example plan for "Is Rust ready for production web development?":
 Central question: Can Rust be used for production web APIs today?
 
 Sub-queries:
-  1. "Rust web frameworks comparison 2025"
+  1. "Rust web frameworks comparison 2026"
   2. "Rust production web services case studies"
   3. "Rust vs Go web performance benchmarks"
   4. "Rust web development challenges limitations"
@@ -52,6 +52,8 @@ Sub-queries:
 ```
 
 ### Step 2: Search with Brave Search API
+
+Install the helpers once: `pip install requests beautifulsoup4`.
 
 ```python
 import requests
@@ -67,7 +69,8 @@ def brave_search(query, count=10, freshness=None):
         query: Search query string
         count: Number of results (max 20)
         freshness: Optional filter: 'pd' (past day), 'pw' (past week),
-                   'pm' (past month), 'py' (past year)
+                   'pm' (past 31 days), 'py' (past year), or a
+                   range such as '2026-01-01to2026-06-30'
     """
     headers = {
         "Accept": "application/json",
@@ -103,7 +106,7 @@ from bs4 import BeautifulSoup
 
 def extract_page_content(url):
     """Fetch a URL and extract the main text content."""
-    headers = {"User-Agent": "research-bot/1.0.0"}
+    headers = {"User-Agent": "terminal-skills-check (https://terminalskills.io)"}
     response = requests.get(url, headers=headers, timeout=30)
     response.raise_for_status()
 
@@ -133,7 +136,7 @@ For each sub-question, synthesize information from multiple sources:
 ```
 Sub-question: "Rust web frameworks comparison"
 
-Source 1 (blog.example.com): Actix-web is the fastest, Axum has the
+Source 1 (blog.tokio-notes.dev): Actix-web is the fastest, Axum has the
   best developer experience, Rocket is easiest for beginners.
 
 Source 2 (benchmark-site.com): Actix-web handles 650K req/s, Axum
@@ -225,7 +228,7 @@ EOF
 **User request:** "Research the current state of AI code review tools. Who are the players and what are the gaps?"
 
 **Research plan:**
-1. "AI code review tools comparison 2025"
+1. "AI code review tools comparison 2026"
 2. "AI code review market size growth"
 3. "best AI code review GitHub" (product-specific)
 4. "AI code review limitations complaints"
@@ -247,7 +250,7 @@ EOF
 
 ## Guidelines
 
-- Always verify the Brave Search API key is set in the environment. Guide the user to get one at https://brave.com/search/api/ if missing (free tier: 2,000 queries/month).
+- Always verify the Brave Search API key is set in the environment. Guide the user to get one at https://brave.com/search/api/ if missing. Brave now sells a Search plan ($5 per 1,000 requests) that includes $5 of free credit each month, roughly 1,000 queries; a card is required at signup but is not charged within the credit. Send it as the `X-Subscription-Token` header, never in the URL or in committed files.
 - Execute multiple search queries per research topic. A single query is rarely sufficient for thorough research.
 - Cross-reference claims across at least 2-3 sources before including them in the report.
 - Clearly distinguish between facts, opinions, and the report's synthesis.

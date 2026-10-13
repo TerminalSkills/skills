@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Requires Node.js 18+ (Jest/Vitest/Playwright) or Python 3.9+ (Pytest)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["testing", "unit-tests", "e2e", "jest", "pytest"]
 ---
@@ -140,14 +140,14 @@ import { test, expect } from '@playwright/test';
 
 test('user can add item to cart and checkout', async ({ page }) => {
   await page.goto('/products');
-  await page.click('[data-testid="product-widget-a"]');
-  await page.click('button:has-text("Add to Cart")');
+  await page.getByTestId('product-widget-a').click();
+  await page.getByRole('button', { name: 'Add to Cart' }).click();
 
   await page.goto('/cart');
-  await expect(page.locator('.cart-item')).toHaveCount(1);
-  await expect(page.locator('.cart-total')).toContainText('$24.99');
+  await expect(page.getByTestId('cart-item')).toHaveCount(1);
+  await expect(page.getByTestId('cart-total')).toContainText('$24.99');
 
-  await page.click('button:has-text("Checkout")');
+  await page.getByRole('button', { name: 'Checkout' }).click();
   await expect(page).toHaveURL(/\/checkout/);
 });
 ```
@@ -157,9 +157,9 @@ test('user can add item to cart and checkout', async ({ page }) => {
 Run the tests and report results:
 
 ```bash
-# JavaScript
+# JavaScript (once: npm i -D @vitest/coverage-v8)
 npx vitest run --coverage
-# Python
+# Python (once: pip install pytest-cov)
 pytest --cov=src --cov-report=term-missing
 ```
 
@@ -215,7 +215,7 @@ describe('truncate', () => {
 });
 ```
 
-**Result:** 7 tests generated, all passing. Coverage: 100% for `string-helpers.ts`.
+**Result:** 7 tests across both functions. Each expected value is what the function returns, for example `slugify('Price: $99.99!')` gives `price-9999`.
 
 ### Example 2: Generate Pytest tests for a Flask API endpoint
 
@@ -249,10 +249,10 @@ def client():
         yield client
 
 def test_create_user_success(client):
-    response = client.post('/api/users', json={"email": "alice@example.com", "name": "Alice"})
+    response = client.post('/api/users', json={"email": "alice.morgan@brightlane.io", "name": "Alice"})
     assert response.status_code == 201
     data = response.get_json()
-    assert data["email"] == "alice@example.com"
+    assert data["email"] == "alice.morgan@brightlane.io"
     assert "id" in data
 
 def test_create_user_missing_email(client):
@@ -265,7 +265,7 @@ def test_create_user_empty_body(client):
     assert response.status_code == 400
 ```
 
-**Result:** 3 tests generated, all passing. Covers success, validation error, and empty input.
+**Result:** 3 tests covering success, a validation error, and an empty request body.
 
 ## Guidelines
 
@@ -276,6 +276,6 @@ def test_create_user_empty_body(client):
 - For each function, aim for at least: one happy path, one error case, one edge case.
 - Generate `beforeEach`/`afterEach` setup when tests share common fixtures.
 - Do not generate snapshot tests unless explicitly requested — they are brittle and rarely useful.
-- When generating e2e tests, use stable selectors (`data-testid`) over CSS classes.
+- When generating e2e tests, prefer `getByRole` and `getByTestId` locators over CSS classes; `getByTestId` reads the `data-testid` attribute by default.
 - If the project has no testing setup, install the framework and create the config file before writing tests.
 - Report test count and coverage after generation so the user knows the current state.

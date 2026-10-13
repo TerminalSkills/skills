@@ -7,10 +7,10 @@ description: >-
   reimbursement, or compile business expenses for tax filing. Handles receipts,
   CSV data, and manual entries.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with pandas and openpyxl for spreadsheet generation"
+compatibility: "Requires Python 3.11+ with pandas 3 and openpyxl for spreadsheet generation"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["expense", "report", "finance", "receipts", "tax"]
   use-cases:
@@ -40,8 +40,11 @@ import pandas as pd
 
 def load_expenses_csv(file_path):
     df = pd.read_csv(file_path)
-    # Normalize column names
-    df.columns = [col.strip().lower() for col in df.columns]
+    df.columns = [col.strip().lower() for col in df.columns]  # date, description, amount, ...
+    df["date"] = pd.to_datetime(df["date"])  # needed for the monthly grouping below
+    df["amount"] = pd.to_numeric(df["amount"].astype(str).str.replace(r"[$,]", "", regex=True))
+    if "category" not in df.columns:
+        df["category"] = df["description"].map(categorize_expense)
     return df
 ```
 
@@ -54,74 +57,75 @@ Prompt the user for each expense or accept a list:
 - Payment method (credit card, cash, reimbursable)
 
 **From receipt images or PDFs:**
-Extract data using OCR or text extraction, then structure into the same format.
+Extract data using OCR or text extraction, then structure into the same format. Treat OCR output as a draft: confirm amounts and dates with the user.
 
 ### Step 2: Categorize expenses
 
-Assign each expense to a standard category. Auto-categorize based on vendor name and description:
+Assign each expense to a standard category from the vendor name and description. Match whole words: plain substring tests misfile "Attorney fees" under Communication (`att`) and "Las Vegas" under Transportation (`gas`).
 
 ```python
+import re
+
 CATEGORY_RULES = {
-    "Travel": ["airline", "hotel", "uber", "lyft", "taxi", "flight", "airbnb", "rental car"],
-    "Meals & Entertainment": ["restaurant", "cafe", "coffee", "lunch", "dinner", "doordash", "grubhub"],
-    "Office Supplies": ["staples", "office depot", "amazon", "supplies"],
-    "Software & Subscriptions": ["github", "aws", "google cloud", "slack", "zoom", "adobe", "saas"],
+    "Travel": ["airline", "airlines", "hotel", "uber", "lyft", "taxi", "flight", "airbnb", "rental car"],
+    "Meals": ["restaurant", "cafe", "coffee", "lunch", "dinner", "doordash", "grubhub"],
+    "Office Supplies": ["staples", "office depot", "supplies"],
+    "Software & Subscriptions": ["github", "aws", "google cloud", "slack", "zoom", "adobe"],
     "Transportation": ["gas", "parking", "toll", "metro", "transit"],
     "Professional Services": ["consulting", "legal", "accounting", "freelance"],
-    "Communication": ["phone", "internet", "verizon", "att", "tmobile"],
+    "Communication": ["phone", "internet", "verizon", "at&t", "t-mobile"],
     "Training & Education": ["course", "conference", "workshop", "udemy", "training"],
 }
+PATTERNS = {cat: re.compile(r"\b(?:" + "|".join(re.escape(k) for k in kws) + r")\b", re.I)
+            for cat, kws in CATEGORY_RULES.items()}
 
 def categorize_expense(description):
-    desc_lower = description.lower()
-    for category, keywords in CATEGORY_RULES.items():
-        if any(keyword in desc_lower for keyword in keywords):
+    for category, pattern in PATTERNS.items():
+        if pattern.search(description):
             return category
     return "Other"
 ```
+
+Ambiguous vendors (Amazon, Costco, Walmart) cannot be categorized from the name alone: leave them as "Other" and ask the user.
 
 ### Step 3: Calculate totals and summaries
 
 ```python
 def summarize_expenses(df):
-    summary = {
-        "total": df['amount'].sum(),
-        "by_category": df.groupby('category')['amount'].sum().to_dict(),
-        "by_month": df.groupby(df['date'].dt.to_period('M'))['amount'].sum().to_dict(),
+    return {
+        "total": df["amount"].sum(),
+        "by_category": df.groupby("category")["amount"].sum().to_dict(),
+        "by_month": {str(p): v for p, v in df.groupby(df["date"].dt.to_period("M"))["amount"].sum().items()},
         "count": len(df),
-        "date_range": f"{df['date'].min()} to {df['date'].max()}",
-        "avg_per_expense": df['amount'].mean(),
-        "largest_expense": df.loc[df['amount'].idxmax()].to_dict()
+        "date_range": f"{df['date'].min():%Y-%m-%d} to {df['date'].max():%Y-%m-%d}",
+        "avg_per_expense": df["amount"].mean(),
+        "largest_expense": df.loc[df["amount"].idxmax()].to_dict(),
     }
-    return summary
+
+def find_duplicates(df):
+    return df[df.duplicated(["description", "amount", "date"], keep=False)]
 ```
 
 ### Step 4: Generate the report
 
-**Excel report with multiple sheets:**
+**Excel report with multiple sheets** (keep amounts numeric and apply a number format, so the user can still sum and filter in Excel):
 
 ```python
 def generate_excel_report(df, summary, output_path="expense_report.xlsx"):
-    with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-        # Summary sheet
-        summary_df = pd.DataFrame([
-            {"Metric": "Total Expenses", "Value": f"${summary['total']:.2f}"},
-            {"Metric": "Number of Expenses", "Value": summary['count']},
-            {"Metric": "Date Range", "Value": summary['date_range']},
-            {"Metric": "Average per Expense", "Value": f"${summary['avg_per_expense']:.2f}"},
-        ])
-        summary_df.to_excel(writer, sheet_name='Summary', index=False)
+    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+        pd.DataFrame([
+            {"Metric": "Total expenses", "Value": summary["total"]},
+            {"Metric": "Number of expenses", "Value": summary["count"]},
+            {"Metric": "Date range", "Value": summary["date_range"]},
+            {"Metric": "Average per expense", "Value": summary["avg_per_expense"]},
+        ]).to_excel(writer, sheet_name="Summary", index=False)
 
-        # Category breakdown
-        cat_df = pd.DataFrame([
-            {"Category": cat, "Total": f"${amt:.2f}"}
-            for cat, amt in sorted(summary['by_category'].items(), key=lambda x: -x[1])
-        ])
-        cat_df.to_excel(writer, sheet_name='By Category', index=False)
+        by_cat = sorted(summary["by_category"].items(), key=lambda kv: -kv[1])
+        pd.DataFrame(by_cat, columns=["Category", "Total"]).to_excel(writer, sheet_name="By Category", index=False)
+        for cell in writer.sheets["By Category"]["B"][1:]:
+            cell.number_format = "$#,##0.00"
 
-        # All expenses detail
-        df.to_excel(writer, sheet_name='All Expenses', index=False)
-
+        df.to_excel(writer, sheet_name="All Expenses", index=False)
     return output_path
 ```
 
@@ -132,14 +136,13 @@ def generate_markdown_summary(summary):
     lines = [
         "# Expense Report Summary",
         f"**Period:** {summary['date_range']}",
-        f"**Total Expenses:** ${summary['total']:.2f}",
+        f"**Total Expenses:** ${summary['total']:,.2f}",
         f"**Number of Items:** {summary['count']}",
         "",
         "## By Category",
     ]
-    for cat, amt in sorted(summary['by_category'].items(), key=lambda x: -x[1]):
-        pct = (amt / summary['total']) * 100
-        lines.append(f"- **{cat}:** ${amt:.2f} ({pct:.1f}%)")
+    for cat, amt in sorted(summary["by_category"].items(), key=lambda kv: -kv[1]):
+        lines.append(f"- **{cat}:** ${amt:,.2f} ({amt / summary['total'] * 100:.1f}%)")
     return "\n".join(lines)
 ```
 
@@ -165,7 +168,7 @@ Display the summary and flag any potential issues:
 
 **Output:**
 ```
-Expense Report: January 2025
+Expense Report: January 2026
 =============================
 Total Expenses: $4,287.50
 Number of Items: 34
@@ -174,7 +177,7 @@ Average per Expense: $126.10
 By Category:
   Travel:                   $1,850.00 (43.1%)
   Software & Subscriptions:   $680.00 (15.9%)
-  Meals & Entertainment:      $542.30 (12.7%)
+  Meals:                     $542.30 (12.7%)
   Office Supplies:            $418.20 (9.8%)
   Transportation:             $365.00 (8.5%)
   Professional Services:      $320.00 (7.5%)
@@ -189,12 +192,12 @@ Flags:
   - 2 potential duplicates found (review recommended)
   - 3 expenses over $200 may require manager approval
 
-Report saved: expense_report_jan_2025.xlsx
+Report saved: expense_report_jan_2026.xlsx
 ```
 
 ### Example 2: Annual tax expense summary
 
-**User request:** "Summarize all my business expenses from 2024 for tax filing"
+**User request:** "Summarize all my business expenses from 2025 for tax filing"
 
 **Actions taken:**
 1. Load expense data for full year
@@ -203,7 +206,7 @@ Report saved: expense_report_jan_2025.xlsx
 
 **Output:**
 ```
-Annual Expense Summary: 2024
+Annual Expense Summary: 2025
 ============================
 Total Business Expenses: $48,320.75
 
@@ -223,7 +226,7 @@ Monthly Trend:
   Highest month: November ($6,420)
   Lowest month: August ($2,180)
 
-Report saved: annual_expenses_2024.xlsx
+Report saved: annual_expenses_2025.xlsx
 ```
 
 ### Example 3: Organize receipts from a business trip
@@ -259,10 +262,12 @@ Report saved: trip_expense_chicago.xlsx
 
 - Auto-categorize expenses by default but allow the user to override categories.
 - Always flag potential duplicates (same vendor, amount, and date within 1 day).
+- Keep entertainment separate from meals: entertainment is generally not deductible in the US, and business meals are generally 50% deductible. Rules change, so point the user to the current IRS Publication 463 and Schedule C instructions.
 - Use standard business expense categories that align with common reimbursement policies and IRS Schedule C.
 - For tax reports, note which categories have special deduction rules (e.g., meals at 50%).
 - Format all currency amounts consistently with two decimal places.
 - When generating Excel reports, include a summary sheet, category breakdown, and full detail sheet.
 - Date formats should be consistent. Parse and normalize dates from various input formats.
 - Never assume tax rates or reimbursement policies. Present the data and let the user or their accountant make tax decisions.
-- Install pandas and openpyxl with `pip install pandas openpyxl` if not available.
+- Install the libraries in a virtual environment: `python -m venv .venv && .venv/bin/pip install pandas openpyxl`. pandas 3 needs Python 3.11 or newer.
+- Receipts hold personal data (card numbers, addresses): keep report files out of shared folders and version control.

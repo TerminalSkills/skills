@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:19b3ed83274b8a6cac8d5e7d10e1318ccf2adb3f33cc08937779f708a6c56469",
-  "scoredAt": "2026-05-13T13:53:07.861Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:5798d8c98c4a2795b5eab6f92a74779d6783fed8aa4d31461f7ea46d380b4689",
+  "scoredAt": "2026-10-13T11:44:28.472Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not handle error scenarios or edge cases such as missing platform information or invalid input."
+        "detail": "Instructions omit error scenarios for unsupported platform features, configuration validation procedures, and handling conflicts when users operate multiple monitoring systems simultaneously."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 6.3,
-    "baselineAvg": 10,
-    "treatmentAvg": 63,
+    "multiplier": 1.11,
+    "baselineAvg": 71,
+    "treatmentAvg": 79,
     "scenarios": [
       {
-        "name": "sentry-alert-creation",
-        "baseline": 20,
-        "treatment": 55,
-        "rationale": "Response B better meets the rubric, providing a JSON rules array with correct tier prefixes, event_frequency conditions, filters, frequency caps, and auto-resolve for P3, though it omits one integration per rule; Response A lacks the required structure and key fields."
+        "name": "sentry-payment-alerts",
+        "baseline": 68,
+        "treatment": 92,
+        "rationale": "Response A directly satisfies all rubric requirements: three alerts in explicit When/If/Then/Throttle format, P1 at 5-min throttle, P2 at 30-min throttle, tagged filters, and PagerDuty/Slack routing. Response B is technically more comprehensive (SDK fingerprinting, custom dashboards, granular tagging) but fails the rubric's format requirement: it uses \"Trigger: if...at least X times in Y minutes\" instead of When/If/Then/Throttle, and Alert 3's 1-hour time window with frequency thresholds doesn't clearly establish a 30-minute throttle per the rubric specification."
       },
       {
-        "name": "pagerduty-escalation-runbook",
-        "baseline": 0,
-        "treatment": 70,
-        "rationale": "Response B covers the escalation policy and a full runbook, while Response A only provides the policy JSON and omits the event rule and runbook."
+        "name": "escalation-policy-small-team",
+        "baseline": 68,
+        "treatment": 58,
+        "rationale": "Both responses acknowledge small team size and specify notification channels, but Response A explicitly proposes only two tiers (contradicting the rubric's mandatory three tiers) and escalates P1 at 15 minutes instead of 10. Response B defines all three required tiers and specifies channels but also misses critical timings: P1 escalates at 5 minutes (not 10) and P2 response is 15 minutes (not 1 hour). Response B is more compliant with the structural requirements despite timing errors."
+      },
+      {
+        "name": "database-runbook",
+        "baseline": 76,
+        "treatment": 87,
+        "rationale": "Response A delivers more detailed diagnostic SQL queries and clearer time-based escalation triggers (30min, hours), plus a bonus prevention checklist, meeting all rubric requirements comprehensively. Response B covers required sections adequately but with less diagnostic depth, weaker escalation clarity (mixes time-based with condition-based triggers), and loses points for the awkward permission-request preamble; however, it correctly targets MongoDB+Docker infrastructure while A assumes PostgreSQL."
       }
     ]
   }

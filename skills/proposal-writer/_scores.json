@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9d161f89b51e06ae37e0bfbc59762f89f815bbdb2a7dbd9753a558ee0540742d",
-  "scoredAt": "2026-05-13T09:58:24.345Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c22671a4e559b8c007e3ac2cb97eb1970fa44655607ebe6887333e6d60ef6c06",
+  "scoredAt": "2026-10-13T13:09:07.176Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling for missing or invalid user input."
+        "detail": "Limited coverage of error scenarios such as missing python-docx or LibreOffice, malformed data structures, dependency import failures, or conversion failures."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill requires a Python 3.9+ environment, which is a minor platform assumption."
+        "category": "conciseness",
+        "detail": "Verbose sections in guidelines and overview; DOCX/PDF conversion workflow and writing principles could be tightened."
       }
     ]
   },

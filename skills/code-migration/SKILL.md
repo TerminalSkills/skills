@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Any modern development environment"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["migration", "typescript", "modernization", "refactoring", "upgrade"]
 ---
@@ -52,7 +52,7 @@ Before changing code, produce a migration plan:
 **Estimated effort:** ~2 hours with AI assistance
 
 ### Phase 1: Setup (non-breaking)
-- Add tsconfig.json with allowJs: true
+- Add tsconfig.json with allowJs: true, strict: false, "types": ["node"]
 - Install TypeScript and type packages
 - Rename entry point to .ts
 
@@ -63,7 +63,7 @@ Before changing code, produce a migration plan:
 - Fix type errors
 
 ### Phase 3: Strict mode
-- Enable strict: true in tsconfig
+- Remove strict: false (strict is the default since TypeScript 6)
 - Resolve remaining `any` types
 - Add return type annotations
 ```
@@ -184,16 +184,36 @@ onMounted(fetchItems);
 ### Step 4: Update dependencies and configuration
 
 ```bash
-# For JS→TS
+# For JS→TS (current release is TypeScript 7, the native compiler; `tsc` works as before)
 npm install -D typescript @types/node @types/react
 npx tsc --init
 
-# For Vue 2→3
-npm install vue@3 @vue/compiler-sfc
+# For Vue 2→3 (@vue/compat is the migration build; remove it when warnings are gone)
+npm install vue@3 @vue/compat
 npm uninstall vue-template-compiler
 
 # Update import paths, build config (vite/webpack), and aliases
 ```
+
+**TypeScript 6/7 changed the defaults, which matters for a JS→TS migration.** A fresh `tsc --init` now writes `strict: true`, `types: []`, `verbatimModuleSyntax` and `noUncheckedIndexedAccess`; a missing `rootDir` means the tsconfig folder. On an untouched JS project that gives hundreds of errors on day one, including `Cannot find name 'process'` until `"types": ["node"]` is set. For an incremental migration write the options you want explicitly:
+
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "types": ["node"],
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "module": "nodenext",
+    "noEmit": false
+  },
+  "include": ["src"]
+}
+```
+
+Vue 2 reached end of life on 31 December 2023, and Vue 3.5 is the current line. Rewriting `data`/`methods` to the Composition API is optional: the Options API still works in Vue 3, so migrate the build and breaking changes first and convert components later. Check Vue-ecosystem replacements too: Vuex to Pinia, Vue CLI to Vite, Vue Router 3 to 4.
 
 ### Step 5: Verify after migration
 
@@ -212,9 +232,9 @@ Report any errors and fix them before proceeding.
 **User request:** "Convert my Express app from JS to TS"
 
 **Actions taken:**
-1. Analyzed project: 23 JS files, Express 4.18, no existing types
-2. Installed TypeScript, `@types/express`, `@types/node`, `ts-node`
-3. Created `tsconfig.json` with `allowJs: true` for incremental migration
+1. Analyzed project: 23 JS files, Express 5, no existing types
+2. Installed TypeScript, `@types/express`, `@types/node`, and `tsx` for running source in development
+3. Created `tsconfig.json` with `allowJs: true`, `strict: false` and `types: ["node"]` for incremental migration
 4. Renamed files `.js` → `.ts` starting from leaf modules (utils, models)
 5. Added interfaces for request/response bodies
 6. Converted `require` → `import`, `module.exports` → `export`
@@ -229,7 +249,7 @@ Build: ✅ passing
 Tests: ✅ 34/34 passing
 ```
 
-### Example 2: Update deprecated React Router v5 to v6
+### Example 2: Upgrade React Router v5 to v6 (then v7)
 
 **User request:** "Upgrade our app from React Router 5 to 6"
 
@@ -241,7 +261,7 @@ Tests: ✅ 34/34 passing
    - `useHistory()` → `useNavigate()`
    - `<Redirect to="/">` → `<Navigate to="/" replace>`
    - Nested routes restructured with `<Outlet />`
-3. Updated `react-router-dom` to v6.20
+3. Updated `react-router-dom` to 6.30 (the last v6 release)
 
 **Before/After:**
 ```tsx
@@ -262,6 +282,8 @@ Tests: ✅ 34/34 passing
 
 **Result:** 12 files updated, 0 type errors, all 28 tests passing.
 
+**Next step:** React Router 7 is the current stable line (`react-router-dom` 7.x re-exports the same API from the single `react-router` package) and v8 needs Node 22.22+ and React 19.2.7+. Enable the v7 future flags while still on 6.30, then follow the "Upgrading from v6" page in the React Router docs.
+
 ## Guidelines
 
 - Always migrate incrementally — one file or module at a time. Never attempt a big-bang rewrite.
@@ -270,7 +292,8 @@ Tests: ✅ 34/34 passing
 - Preserve existing behavior exactly. Migration should not change functionality.
 - Run tests after every file migration. If tests break, fix before proceeding.
 - When migrating frameworks, check the official migration guide first (e.g., Vue 2→3, Angular upgrade guide).
-- Handle deprecated APIs by checking the library's changelog for the recommended replacement.
 - For large codebases (100+ files), suggest migrating in phases across multiple PRs.
+- TypeScript can now run without a build step: Node 22.18+ and 24 strip types from `.ts` files natively, but only for erasable syntax (no `enum`, no parameter properties, no `namespace`). Set `erasableSyntaxOnly` if you rely on it.
+- Python 2 to 3: `2to3` was removed in Python 3.13; use `futurize`, `pyupgrade` or `ruff check --select UP`.
 - Keep `require`/`import` style consistent within each file during migration — don't mix.
 - Add type annotations starting with function signatures, then variables, then generics. Don't over-type.

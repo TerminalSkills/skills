@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "No external dependencies required. Optionally uses Python for automated keyword analysis."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["resume", "ats", "job-search", "optimization", "keywords"]
   use-cases:
@@ -70,18 +70,19 @@ Soft Skills:
 Compare the resume against extracted requirements:
 
 ```python
-def analyze_keyword_match(resume_text, job_keywords):
-    resume_lower = resume_text.lower()
-    results = []
-    for keyword in job_keywords:
-        found = keyword.lower() in resume_lower
-        results.append({
-            "keyword": keyword,
-            "found": found,
-            "priority": "required" if keyword in required_skills else "preferred"
-        })
+import re
 
-    match_rate = sum(1 for r in results if r["found"]) / len(results)
+def analyze_keyword_match(resume_text, required_keywords, preferred_keywords):
+    """Case-insensitive whole-word match. A plain substring test would count
+    'Go' as found inside 'good' and 'R' inside 'React'."""
+    results = []
+    for priority, keywords in (("required", required_keywords), ("preferred", preferred_keywords)):
+        for keyword in keywords:
+            pattern = r"(?<![a-z0-9])" + re.escape(keyword.lower()) + r"(?![a-z0-9])"
+            found = re.search(pattern, resume_text.lower()) is not None
+            results.append({"keyword": keyword, "found": found, "priority": priority})
+
+    match_rate = sum(r["found"] for r in results) / len(results)
     missing = [r["keyword"] for r in results if not r["found"]]
     return match_rate, missing
 ```

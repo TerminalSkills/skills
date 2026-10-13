@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d6e813dbaad2636654325143abf01f3451449e34f4eff07c97f4d46383abd028",
-  "scoredAt": "2026-05-13T16:40:23.966Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:f6016036a7ce4a76f268b1b21330dd2c6bda4d8f3e968cb12029d1dab24d144c",
+  "scoredAt": "2026-10-13T11:54:30.082Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "DNS concepts like void lookups, PermError, and DNSSEC delegation signer are referenced without sufficient explanation for users unfamiliar with DNS terminology."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Instructions assume dig or nslookup availability; restricted environments, containers, or sandboxes may lack these tools, with no fallback to online tools or DNS libraries mentioned."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 3,
-    "baselineAvg": 30,
-    "treatmentAvg": 90,
+    "multiplier": 1.11,
+    "baselineAvg": 53,
+    "treatmentAvg": 59,
     "scenarios": [
       {
-        "name": "full-domain-dns-audit",
-        "baseline": 10,
-        "treatment": 80,
-        "rationale": "Response A covers the required record types and gives recommendations, while Response B only provides a script without analysis."
+        "name": "domain-security-audit",
+        "baseline": 80,
+        "treatment": 55,
+        "rationale": "Response A provides commands but defers all validation logic to a later report without explaining the rubric's specific checks; Response B includes commands AND a detailed security checklist that explicitly validates SPF format/policy, DMARC policy values (quarantine/reject not none), and CAA requirements, aligning with most rubric items, though both miss SPF lookup count ≤10 and explicit DKIM revocation detection (empty p=)."
       },
       {
-        "name": "spf-lookup-limit-check",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with detailed counts, impact, and fixes, while Response B only offers a generic script and example counts, missing the specific total and impact for the domain."
+        "name": "spf-lookup-analysis",
+        "baseline": 38,
+        "treatment": 68,
+        "rationale": "Response A attempts recursive lookup estimates for each service (Google ~4, Mailchimp ~2, etc.) and correctly explains that exceeding the limit breaks all SPF validation, while Response B makes a critical error by treating each include as exactly 1 lookup, missing the recursive expansion that's essential to diagnosing SPF lookup limits; A also provides more specific service-to-lookup mapping despite needing the actual domain."
+      },
+      {
+        "name": "dkim-selector-verification",
+        "baseline": 40,
+        "treatment": 55,
+        "rationale": "Response A correctly identifies the specific DKIM selectors (google._domainkey and s1._domainkey), shows the exact dig commands that will be used, and recognizes the need to check both TXT and CNAME records; Response B is less specific about selector standards and asks for information that should be known from provider documentation. Both critically fail to explain how to verify the key size (≥1024 bits), check the p= parameter for revocation status, or provide the exact record formats needed for remediation, but Response A demonstrates better technical grounding for the eventual verification process."
       }
     ]
   }

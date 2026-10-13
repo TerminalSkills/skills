@@ -1,16 +1,16 @@
 ---
 name: search-engine-setup
 description: >-
-  Set up and optimize search engines for applications. Use when someone asks to
+  Sets up and optimizes search engines for applications. Use when someone asks to
   "add search to my app", "set up Elasticsearch", "configure Algolia",
   "fix search relevance", "add autocomplete", "fuzzy search", or "faceted
   filtering". Covers index design, data sync, search API, autocomplete,
   relevance tuning, and query analysis.
 license: Apache-2.0
-compatibility: "Elasticsearch 8.x or Algolia. Node.js/Python examples provided."
+compatibility: "Elasticsearch 8.x or 9.x, or Algolia (JavaScript client v5). Node.js/Python examples provided."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["search", "elasticsearch", "algolia", "full-text-search"]
 ---
@@ -49,9 +49,11 @@ This skill helps AI agents implement production-quality search in applications. 
    }
    ```
 
-3. Boost fields by search importance: title/name (3-5x), tags (2x), description (1x).
+3. Boost fields by search importance at query time, not in the mapping: `fields: ["title^5", "tags^2", "description"]` in the `multi_match` (title/name 3-5x, tags 2x, description 1x).
 
 4. Always add a `suggest` field of type `completion` for typeahead.
+
+5. Use the `edge_ngram` filter only in the index-time analyzer. Give fields a `search_analyzer` without it (lowercase and synonyms only). If the query side is also edge-n-grammed, a short query like `hea` matches every word starting with those letters and relevance falls apart.
 
 ### Index Design (Algolia)
 
@@ -81,7 +83,7 @@ Query construction (Elasticsearch):
 {
   "query": {
     "bool": {
-      "must": [{ "multi_match": { "query": "q", "fields": ["name^5", "description"], "fuzziness": "AUTO" }}],
+      "must": [{ "multi_match": { "query": "wireless headphones", "fields": ["name^5", "description"], "fuzziness": "AUTO" }}],
       "filter": [
         { "term": { "category": "electronics" }},
         { "range": { "price_cents": { "gte": 2000, "lte": 10000 }}},
@@ -126,7 +128,7 @@ Analyze search logs to improve quality:
 {
   "mappings": {
     "properties": {
-      "title":        { "type": "text", "analyzer": "content_analyzer", "boost": 5.0 },
+      "title":        { "type": "text", "analyzer": "content_analyzer" },
       "body":         { "type": "text", "analyzer": "content_analyzer" },
       "author":       { "type": "keyword" },
       "tags":         { "type": "keyword" },
@@ -143,18 +145,28 @@ Analyze search logs to improve quality:
 
 **Output:**
 ```js
-index.setSettings({
-  searchableAttributes: ['name', 'brand', 'category', 'description'],
-  attributesForFaceting: ['category', 'brand', 'filterOnly(price_cents)', 'rating'],
-  customRanking: ['desc(sales_count)', 'desc(rating)'],
-  typoTolerance: true,
-  minWordSizefor1Typo: 3,
-  minWordSizefor2Typos: 6,
-  hitsPerPage: 20,
-  snippetEllipsisText: '…',
-  attributesToSnippet: ['description:30'],
+// npm install algoliasearch@5
+import { algoliasearch } from 'algoliasearch';
+
+// Settings need an admin key with the editSettings ACL. Keep it on the server only.
+const client = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_ADMIN_API_KEY);
+
+await client.setSettings({
+  indexName: 'products',
+  indexSettings: {
+    searchableAttributes: ['name', 'brand', 'category', 'description'],
+    attributesForFaceting: ['category', 'brand', 'filterOnly(price_cents)', 'rating'],
+    customRanking: ['desc(sales_count)', 'desc(rating)'],
+    typoTolerance: true,
+    minWordSizefor1Typo: 3,
+    minWordSizefor2Typos: 6,
+    hitsPerPage: 20,
+    snippetEllipsisText: '…',
+    attributesToSnippet: ['description:30'],
+  },
 });
 ```
+The v4 style `index.setSettings(...)` from `initIndex()` is gone in v5; the v5 call takes the index name in the object.
 
 ## Guidelines
 

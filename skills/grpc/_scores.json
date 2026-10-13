@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7d5d3fa510ce9eb5dec5827cc8282e670c72a7e7fc30f1b242e691b5b0b9d7f3",
-  "scoredAt": "2026-05-13T09:10:39.231Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2f3b1ed53e76aad80c8f66aa11988afd2e26cb7f2a5a6327e2763247a9b1a59b",
+  "scoredAt": "2026-10-13T12:07:26.270Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "WEAK",
+      "completeness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains extensive explanatory text that could be considered verbose."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Platform-specific installation commands (brew, apt) introduce minor platform assumptions."
+        "category": "completeness",
+        "detail": "Description promises interceptors, load balancing, and gRPC-Web implementation, but instructions omit these production patterns; focuses on happy path only."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 92,
-    "multiplier": 1.92,
+    "multiplier": 1.08,
+    "baselineAvg": 83,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Build a Node.js gRPC user service with server streaming for live updates",
-        "baseline": 40,
-        "treatment": 93,
-        "rationale": "Baseline used grpc-tools codegen and ad-hoc errors; treatment loaded the proto dynamically with @grpc/proto-loader using keepCase/longs/enums/defaults/oneofs, returned grpc.status.NOT_FOUND, and cleaned up server-stream intervals on call.on('cancelled')."
+        "name": "bidirectional-stock-price-updates",
+        "baseline": 92,
+        "treatment": 90,
+        "rationale": "Both responses fully satisfy the rubric: bidirectional RPC with stream on both request/response, call.on('data') receiving symbols, call.write() sending updates, and messages containing symbol, price, timestamp. Response A edges ahead with more complete setup (full package.json, interactive CLI for testing), making it immediately runnable. Response B is more professional (uses google.protobuf.Timestamp, includes backpressure handling, cleaner code organization) but lacks the setup completeness that makes A more practically useful for learning and testing the bidirectional flow."
       },
       {
-        "name": "Add a bidirectional chat RPC between two clients",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Both implemented bidirectional streaming, but treatment matched the skill's exact proto shape (stream ChatMessage returns stream ChatMessage) and handler pattern (call.on('data') + call.write + call.on('end', () => call.end())), while baseline used ad-hoc message types."
+        "name": "payment-service-error-handling",
+        "baseline": 76,
+        "treatment": 88,
+        "rationale": "Response B explicitly invokes callbacks with `{ code: grpc.status.X, message: '...' }` structure as the rubric requires, while Response A abstracts this through NestJS framework (correct but implicit). Response B also includes more comprehensive error scenarios, gateway simulation, and concrete test commands."
+      },
+      {
+        "name": "client-deadline-enforcement",
+        "baseline": 82,
+        "treatment": 92,
+        "rationale": "Both cover all three rubric requirements: Date deadline created with setSeconds(), passed as second argument in options object, and DEADLINE_EXCEEDED handling. Response A is focused and concise with immediately runnable code plus a production helper function; Response B is more comprehensive (proto definition, server example, TypeScript) but introduces an alternative Promise.race() timeout pattern that sidesteps gRPC's native deadline mechanism, potentially misleading users about best practices."
       }
     ]
   }

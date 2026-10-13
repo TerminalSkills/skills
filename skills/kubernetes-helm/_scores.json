@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:cda43ea44976325f0d9fb22d69bb3d2555b16418a781f88664fbfe7695fe3c6b",
-  "scoredAt": "2026-05-13T09:20:39.705Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5b3b68e799a38c65cbd201b53e4d13b472bbc32eca8dad8ed28244cfa115f60b",
+  "scoredAt": "2026-10-13T12:06:35.005Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Guidelines reference PodDisruptionBudgets and NetworkPolicies but no YAML examples provided; cluster troubleshooting depth is limited for edge cases like node pool issues or taint/toleration scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Example 1 and Example 2 sections describe outputs as prose rather than providing complete, runnable YAML code blocks; users must synthesize manifest examples from the Instructions section."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 78,
-    "treatmentAvg": 93,
-    "multiplier": 1.19,
+    "multiplier": 1.85,
+    "baselineAvg": 52,
+    "treatmentAvg": 96,
     "scenarios": [
       {
-        "name": "Zero-downtime Deployment with secret env",
-        "baseline": 70,
-        "treatment": 92,
-        "rationale": "Both use RollingUpdate with maxUnavailable: 1, secretKeyRef and both probes, but only treatment adds preStop sleep, terminationGracePeriodSeconds: 30, and resource requests/limits as recommended in the skill."
+        "name": "deploy-multi-tier-app-with-autoscaling",
+        "baseline": 65,
+        "treatment": 98,
+        "rationale": "Response A meets all rubric requirements: Deployment with replicas/resources, HPA with correct min/max/CPU targets, StatefulSet with serviceName AND volumeClaimTemplate (with storage size + storageClassName), and Ingress with TLS. Response B covers deployment/HPA/Ingress correctly but critically fails the StatefulSet requirement by using a separate PersistentVolumeClaim instead of volumeClaimTemplate, and the PVC lacks storageClassName specification—a fundamental architectural deviation from the rubric's explicit requirement."
       },
       {
-        "name": "Helm upgrade with preview and rollback",
-        "baseline": 85,
-        "treatment": 93,
-        "rationale": "Both invoke helm diff upgrade, helm upgrade --install with --set image.tag, and helm rollback; treatment matches the skill's exact flag set (-n app, --create-namespace, helm template debug) more completely."
+        "name": "create-helm-chart-for-reusable-service",
+        "baseline": 12,
+        "treatment": 96,
+        "rationale": "Response A only outlines a plan without delivering files or commands; Response B provides complete, working Helm chart files with all required fields (Chart.yaml, values.yaml with image.repository/tag, replicaCount, service.port, ingress.enabled/hostname), templates using {{ .Values.* }} syntax in Deployment/Service/Ingress manifests, and demonstrates both helm diff upgrade with -f/-n/--wait flags and helm upgrade --install commands exactly as specified in the rubric."
+      },
+      {
+        "name": "diagnose-pod-crash-loop",
+        "baseline": 80,
+        "treatment": 94,
+        "rationale": "Response A covers all rubric requirements comprehensively: kubectl describe pod with detailed event interpretation, kubectl logs --previous with multi-container support, and explicit root cause identification including missing environment variables (DATABASE_URL example, kubectl exec verification). Response B covers describe and logs correctly but is less thorough on the missing configuration pattern—it mentions config/secrets briefly but lacks kubectl exec verification or practical examples of environment variable failures, which is specifically called out in the rubric."
       }
     ]
   }

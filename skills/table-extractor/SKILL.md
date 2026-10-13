@@ -7,10 +7,11 @@ description: >-
   data from a document, convert PDF tables to CSV or Excel, or parse
   structured tables from reports.
 license: Apache-2.0
-compatibility: "Requires Python 3.8+ with camelot-py and ghostscript"
+compatibility: "Requires Python 3.10+ and camelot-py 1.0 or newer (2.0.0 current). Ghostscript is optional since 1.0; pdfium is the default backend. Text-based PDFs only; scans need OCR first."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/camelot-dev/camelot
   category: data-ai
   tags: ["table-extraction", "pdf", "camelot", "csv", "spreadsheet"]
   use-cases:
@@ -24,7 +25,7 @@ metadata:
 
 ## Overview
 
-Extract tables from PDF documents with high accuracy using camelot-py. Handles complex table structures including merged cells, multi-line rows, spanning headers, and borderless tables. Outputs clean DataFrames that can be exported to CSV, Excel, or JSON.
+Extract tables from PDF documents using camelot-py (2.0). Camelot offers lattice (ruled tables), stream and network (whitespace-based), and hybrid parsers, plus an optional neural `ml` flavor for borderless tables, and handles multi-line rows and spanning headers with some post-processing. Outputs clean DataFrames that can be exported to CSV, Excel, or JSON.
 
 ## Instructions
 
@@ -33,14 +34,13 @@ When a user asks you to extract tables from a PDF, follow this process:
 ### Step 1: Install and verify dependencies
 
 ```bash
-# Install camelot and its dependencies
-pip install "camelot-py[base]" ghostscript opencv-python-headless pandas
-
-# Verify ghostscript is available (required by camelot)
-gs --version 2>/dev/null || echo "Install ghostscript: sudo apt install ghostscript"
+pip install camelot-py pandas
+python -c "import camelot; print(camelot.__version__)"
 ```
 
-If ghostscript is not available, fall back to pdfplumber:
+Since Camelot 1.0 Ghostscript is no longer required: pages are rasterized with pdfium, which installs with pip. Install the `ghostscript` extra (plus the Ghostscript system package) only if you want that backend. If `import cv2` fails and the environment also has the full `opencv-python`, uninstall `opencv-python`; Camelot needs `opencv-python-headless`. Camelot reads text-based PDFs only; for scans, run `ocrmypdf` first (or install the `ocr`/`ml` extras and use `flavor="ml"`).
+
+If Camelot cannot be installed, fall back to pdfplumber:
 
 ```bash
 pip install pdfplumber pandas
@@ -55,7 +55,8 @@ import camelot
 tables = camelot.read_pdf("document.pdf", pages="all", flavor="lattice")
 print(f"Found {len(tables)} tables using lattice detection")
 
-# If no tables found, try stream detection (for borderless tables)
+# If no tables found, try stream detection (for borderless tables).
+# flavor="auto" lets Camelot probe the first page and pick lattice or network.
 if len(tables) == 0:
     tables = camelot.read_pdf("document.pdf", pages="all", flavor="stream")
     print(f"Found {len(tables)} tables using stream detection")
@@ -63,7 +64,8 @@ if len(tables) == 0:
 # Summary of each table
 for i, table in enumerate(tables):
     print(f"\nTable {i}: {table.shape[0]} rows x {table.shape[1]} cols (page {table.page})")
-    print(f"Accuracy: {table.accuracy:.1f}%")
+    print(f"Accuracy: {table.accuracy:.1f}%  whitespace: {table.whitespace:.1f}%")
+    print(table.parsing_report)   # also holds a 0-1 "confidence" score
     print(table.df.head(3))
 ```
 
@@ -81,7 +83,7 @@ tables = camelot.read_pdf(
 )
 ```
 
-**Stream flavor** (for borderless tables, whitespace-separated):
+**Stream flavor** (for borderless tables, whitespace-separated). `flavor="network"` and `flavor="hybrid"` are alternative text-alignment parsers worth trying when stream splits columns badly:
 
 ```python
 tables = camelot.read_pdf(
@@ -230,9 +232,9 @@ combined.to_csv("all_summaries.csv", index=False)
 
 ## Guidelines
 
-- Always try `lattice` flavor first (bordered tables). Fall back to `stream` for borderless tables.
-- Check the `accuracy` score on each table. Below 80% indicates extraction issues that need manual review.
-- For scanned PDFs, run OCR first (e.g., `ocrmypdf`) before table extraction.
+- Lattice is the default; use it for bordered tables. Fall back to `stream`, `network` or `hybrid` for borderless tables, or `auto` to let Camelot choose.
+- Check `accuracy`, `whitespace` and `confidence` in each table's `parsing_report`. Accuracy below about 80% or high whitespace usually means the wrong flavor or settings; review manually.
+- For scanned PDFs, run OCR first (e.g., `ocrmypdf`) before table extraction; Camelot cannot read image-only pages with the lattice or stream flavors.
 - When camelot struggles, try pdfplumber as an alternative: `page.extract_table(table_settings={...})`.
 - Clean numeric data aggressively: remove currency symbols, commas, and handle parenthesized negatives.
 - For tables with merged cells, use forward-fill on the appropriate columns.

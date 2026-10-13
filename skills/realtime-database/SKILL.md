@@ -8,10 +8,10 @@ description: >-
   messaging, activity feeds, notifications, and collaborative apps with
   efficient pagination and sync. For WebSocket transport, see websocket-builder.
 license: Apache-2.0
-compatibility: "PostgreSQL 14+, MySQL 8+, or MongoDB 6+"
+compatibility: "PostgreSQL 13+ (examples use PostgreSQL syntax; tested on PostgreSQL 18)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["database", "real-time", "messaging", "schema-design"]
 ---
@@ -63,11 +63,11 @@ CREATE INDEX idx_messages_channel_cursor
   ON messages(channel_id, id DESC) WHERE deleted_at IS NULL;
 ```
 
-Use BIGSERIAL for message IDs — sequential, sortable, perfect for cursor pagination.
+Use BIGSERIAL for message IDs — sequential, sortable, perfect for cursor pagination. The DDL above is PostgreSQL; MySQL and MongoDB need their own equivalents (`AUTO_INCREMENT`, ObjectId ordering). Check the index with `EXPLAIN` on the history query: it should show an index scan on `idx_messages_channel_cursor`.
 
 ### 2. Cursor-Based Pagination
 
-Never use OFFSET for message history — it's O(n) and results shift as new messages arrive.
+Never use OFFSET for message history. The database still reads and discards every skipped row, so deep pages get slower, and rows shift as new messages arrive. A keyset (cursor) query seeks straight to the index position, so its cost depends on the page size, not on how far back you go.
 
 ```sql
 -- Load 50 messages before a cursor (scrolling up)
@@ -77,11 +77,12 @@ WHERE channel_id = $1 AND id < $2 AND deleted_at IS NULL
 ORDER BY id DESC
 LIMIT 50;
 
--- Load messages after a cursor (sync on reconnect)
+-- Load messages after a cursor (sync on reconnect); cap the batch
 SELECT id, sender_id, content, created_at
 FROM messages
 WHERE channel_id = $1 AND id > $2 AND deleted_at IS NULL
-ORDER BY id ASC;
+ORDER BY id ASC
+LIMIT 200;
 ```
 
 Return cursor metadata: `{ messages: [...], nextCursor: 12345, hasMore: true }`
@@ -108,6 +109,8 @@ SET last_read_message_id = $2
 WHERE channel_id = $1 AND user_id = $3;
 ```
 
+The count scans every unread row, so its cost grows with the backlog. For channels with large backlogs, show "99+" and stop counting, or keep a counter column updated on insert.
+
 ### 4. Reconnection Sync
 
 When a client reconnects, minimize data transfer:
@@ -133,7 +136,7 @@ Messages should use soft deletes to maintain thread integrity:
 
 **Prompt**: "Design the database for chat in my project management tool. Direct messages and project channels."
 
-**Output**: Complete migration with channels, members, messages tables; cursor pagination queries; unread count query; and index strategy. Estimated performance: sub-10ms for message history with 10M+ messages.
+**Output**: Complete migration with channels, members, messages tables; cursor pagination queries; unread count query; and index strategy. The history page is an index-only scan on `(channel_id, id DESC)`, so its cost tracks the page size rather than the table size. Measure with `EXPLAIN ANALYZE` on your own data before promising a latency.
 
 ### Example 2: Activity Feed Schema
 
@@ -143,8 +146,9 @@ Messages should use soft deletes to maintain thread integrity:
 
 ## Guidelines
 
-- **Use sequential IDs** (BIGSERIAL) for cursor pagination — UUIDs can't be sorted by creation order
-- **Never use OFFSET** — cursor pagination is O(1), OFFSET is O(n)
+- **Use sequential IDs** (BIGSERIAL) for cursor pagination — random UUIDv4 values do not sort by creation time. UUIDv7 does, and PostgreSQL 18 has `uuidv7()`
+- **Sequence IDs are not commit-ordered** — a value is taken at INSERT, not at COMMIT, and gaps can appear when transactions abort (see the PostgreSQL sequence docs). A reconnect sync using `id > last_id` can therefore skip a message that commits late. Re-read a small overlap (e.g. the last 50 ids) and de-duplicate by id on the client
+- **Never use OFFSET** — keyset pagination seeks into the index; OFFSET reads and discards every skipped row
 - **Track reads per-channel, not per-message** — one integer vs. millions of rows
 - **Index for your access patterns** — (channel_id, id DESC) covers 90% of chat queries
 - **Soft delete messages** — hard deletes break reply chains and confuse users

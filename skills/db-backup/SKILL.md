@@ -1,17 +1,17 @@
 ---
 name: db-backup
 description: >-
-  Set up automated database backup, restore, and disaster recovery procedures
+  Sets up automated database backup, restore, and disaster recovery procedures
   for PostgreSQL, MySQL, MongoDB, and Redis. Use when you need to implement backup
   schedules, point-in-time recovery, cross-region replication, backup verification,
   or disaster recovery runbooks. Trigger words: database backup, pg_dump, mysqldump,
   mongodump, disaster recovery, point-in-time recovery, WAL archiving, backup rotation,
   restore database, RTO, RPO, backup verification.
 license: Apache-2.0
-compatibility: "Linux/macOS; target database CLI tools must be installed"
+compatibility: "Linux/macOS; target database CLI tools must be installed (MongoDB Database Tools for mongodump/mongorestore)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["database", "backup", "disaster-recovery", "postgresql", "mysql"]
 ---
@@ -36,35 +36,50 @@ Determine the backup strategy based on:
 
 #### PostgreSQL
 ```bash
-# Full logical backup (small-medium databases)
+# Full logical backup, custom format (pg_dump compresses -Fc output by default; do not gzip it again)
 pg_dump -Fc --no-owner --no-acl -h $DB_HOST -U $DB_USER $DB_NAME | \
-  gzip | aws s3 cp - s3://backups/pg/$(date +%Y%m%d_%H%M%S).dump.gz
+  aws s3 cp - s3://backups/pg/$(date +%Y%m%d_%H%M%S).dump
 
 # WAL archiving for point-in-time recovery (large databases)
 # postgresql.conf:
 #   archive_mode = on
 #   archive_command = 'aws s3 cp %p s3://backups/pg-wal/%f'
 
-# Base backup + WAL for PITR
+# Base backup for PITR: in tar format, pg_basebackup writes one .tar.gz per
+# tablespace (base.tar.gz, 16384.tar.gz, ...) and the WAL as pg_wal.tar.gz
 pg_basebackup -D /backups/base -Ft -z -P -h $DB_HOST -U replication
 ```
 
 #### MySQL
 ```bash
-# Full logical backup
-mysqldump --single-transaction --routines --triggers --all-databases \
-  -h $DB_HOST -u $DB_USER -p$DB_PASS | gzip > backup_$(date +%Y%m%d).sql.gz
+# One-time: store the credentials in a login path so the password is not in the process list
+mysql_config_editor set --login-path=backup --host=$DB_HOST --user=$DB_USER --password
 
-# Binary log for point-in-time recovery
+# Full logical backup
+mysqldump --login-path=backup --single-transaction --routines --triggers --all-databases \
+  | gzip > backup_$(date +%Y%m%d).sql.gz
+
+# Binary log for point-in-time recovery (needs a user with REPLICATION SLAVE privilege)
 mysqlbinlog --read-from-remote-server --host=$DB_HOST --raw binlog.000001
 ```
 
 #### MongoDB
+`mongodump` and `mongorestore` ship with the separate MongoDB Database Tools package.
 ```bash
-# Full backup with oplog for PITR
+# Full backup with oplog for PITR (--oplog needs a replica set or sharded cluster)
 mongodump --uri="$MONGO_URI" --oplog --gzip --archive | \
   aws s3 cp - s3://backups/mongo/$(date +%Y%m%d_%H%M%S).archive.gz
+
+# Restore, replaying the oplog to the backup point
+mongorestore --uri="$MONGO_URI" --gzip --archive=backup.archive.gz --oplogReplay
 ```
+
+#### Redis
+```bash
+# RDB snapshot pulled over the replication protocol; the password comes from the environment
+REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli -h $REDIS_HOST --rdb /backups/redis/dump-$(date +%Y%m%d_%H%M%S).rdb
+```
+Check the exit code of this command in cron jobs. Redis also writes its own `dump.rdb` on `SAVE` or `BGSAVE`, which you can copy instead.
 
 ### 3. Backup Rotation Policy
 
@@ -90,7 +105,10 @@ Every backup strategy must include automated verification:
 
 Generate a step-by-step runbook covering:
 - How to identify which backup to restore
-- Exact restore commands with parameters
+- Exact restore commands with parameters, for example:
+  - PostgreSQL custom-format dump: `pg_restore --clean --if-exists --no-owner -d "$TARGET_DB" backup.dump`
+  - MongoDB archive: `mongorestore --uri="$MONGO_URI" --gzip --archive=backup.archive.gz --oplogReplay`
+  - Redis: stop the server, replace `dump.rdb` in its data directory, start it again
 - How to verify the restored data
 - How to redirect application traffic to the restored instance
 - Communication template for stakeholders
@@ -125,14 +143,14 @@ pg_basebackup \
   -D /tmp/backup_${TIMESTAMP} \
   -Ft -z -P --checkpoint=fast --wal-method=stream
 
-# Upload to S3
+# Upload the base backup (STANDARD_IA suits a copy that is rarely read)
 aws s3 cp /tmp/backup_${TIMESTAMP}/base.tar.gz \
   "${S3_BUCKET}/base/${TIMESTAMP}/base.tar.gz" \
   --storage-class STANDARD_IA
 
-# Upload WAL files
-aws s3 sync /tmp/backup_${TIMESTAMP}/pg_wal/ \
-  "${S3_BUCKET}/base/${TIMESTAMP}/pg_wal/"
+# Upload every tar file: one per tablespace plus pg_wal.tar.gz
+aws s3 sync /tmp/backup_${TIMESTAMP}/ \
+  "${S3_BUCKET}/base/${TIMESTAMP}/" --exclude "*" --include "*.tar.gz"
 
 # Cleanup local
 rm -rf /tmp/backup_${TIMESTAMP}

@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Works with CSV, JSON, Parquet (via Python), and SQL query results"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["data-quality", "validation", "etl", "data-pipeline"]
 ---
@@ -94,11 +94,21 @@ Dataset: orders_export.csv | Checked: 2026-02-17 14:30 UTC
 2. **Status enum drift** — New value "on_hold" not in expected set
 
 ### ✅ Passed Checks (8)
-- Primary key uniqueness (order_id): PASS (99.98%)
+- Primary key not null (order_id): PASS
 - Amount non-negative: PASS
 - Date range valid: PASS (excluding 7 future dates)
 ...
 ```
+
+Quick pandas profile and checks (works on CSV, JSON lines or Parquet loaded into a DataFrame):
+```python
+import pandas as pd
+df = pd.read_csv("orders_export.csv", parse_dates=["created_at"])
+print(df.isna().mean().sort_values(ascending=False).head(10))   # null rate per column
+print(df[df.duplicated("order_id", keep=False)].head())          # duplicate keys with sample rows
+print(df[df["created_at"] > pd.Timestamp.now(tz="UTC")].shape[0]) # future dates (needs tz-aware column)
+```
+For rules that must run on every load, a schema library such as pandera or Great Expectations keeps them in code rather than in a prompt.
 
 ### 4. Suggest fixes
 
@@ -174,4 +184,5 @@ with session_id as optional for mobile sources.
 - Suggest SQL or code fixes, not just descriptions of problems
 - For time series data, check for gaps and seasonality, not just latest timestamp
 - Track validation results over time to detect data drift
+- Parse dates with an explicit format or `errors="coerce"` and count the failures; silent coercion hides bad rows
 - Be specific about which rows/records are affected — "23 duplicates" beats "some duplicates"

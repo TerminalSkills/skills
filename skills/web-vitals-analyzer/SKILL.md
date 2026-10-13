@@ -12,7 +12,7 @@ compatibility: >-
   and static sites.
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - performance
@@ -28,12 +28,15 @@ metadata:
 
 Diagnoses Core Web Vitals failures and frontend performance issues by analyzing page structure, resource loading patterns, JavaScript bundle composition, and rendering behavior. Produces prioritized fixes with estimated metric improvements.
 
+The three metrics are scored at the 75th percentile of real user visits. Google treats them as good when LCP is 2.5 s or less, CLS is 0.1 or less, and INP is 200 ms or less. INP replaced First Input Delay (FID) as a Core Web Vital in March 2024. Lighthouse runs a single lab load and cannot measure INP directly, so field data (Chrome UX Report, PageSpeed Insights "Discover what your real users experience") decides pass or fail.
+
 ## Instructions
 
 When asked to optimize frontend performance or Core Web Vitals:
 
 1. **Gather the current state** — ask for or analyze:
-   - Lighthouse report (JSON or screenshot)
+   - Field values from PageSpeed Insights or the Chrome UX Report for the URL, if the site has enough traffic. These are the numbers that count.
+   - Lighthouse report (JSON or screenshot). A lab run from the CLI: `npx lighthouse https://terminalskills.io --only-categories=performance --output=json --output-path=./lighthouse.json` (Lighthouse 13.x needs a local Chrome)
    - The page URL or source code (HTML, CSS, JS entry points)
    - Framework used (React, Next.js, Vue, vanilla, etc.)
    - Current LCP, CLS, and INP values if available
@@ -60,7 +63,7 @@ When asked to optimize frontend performance or Core Web Vitals:
    - Check: Long tasks (> 50ms) blocking the main thread
    - Check: Is there unnecessary re-rendering (React: missing memoization, excessive state updates)?
    - Check: Are third-party scripts blocking interaction (analytics, chat widgets, A/B testing)?
-   - Suggest: `requestIdleCallback`, `scheduler.yield()`, web workers for heavy computation
+   - Suggest: `scheduler.yield()` where available (Chromium only, so feature-detect it), `setTimeout` to move non-urgent work after the paint, web workers for heavy computation. `requestIdleCallback` is not available in Safari, so do not rely on it alone.
 
 5. **Analyze bundle and resource loading:**
    - Identify total JS bundle size and largest chunks
@@ -109,7 +112,7 @@ Root Causes (ranked by impact):
 
 3. MODERATE: Google Fonts loaded via @import in CSS (parser-blocking)
    Fix: Switch to <link rel="preconnect" href="https://fonts.gstatic.com">
-        and <link rel="stylesheet" href="fonts-url"> in HTML <head>
+        and <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"> in HTML <head>
    Expected LCP improvement: -0.3s
 
 Quick wins (< 15 min each):
@@ -142,9 +145,9 @@ Root Causes:
 
 2. HIGH: Analytics script (third-party) runs 180ms synchronous task on click
    Source: analytics.min.js:1 — event listener on document.body
-   Fix: Load analytics with async/defer. Move tracking to requestIdleCallback:
+   Fix: Load analytics with async/defer. Move tracking off the click path:
      document.addEventListener('click', (e) => {
-       requestIdleCallback(() => trackClick(e));
+       setTimeout(() => trackClick(e), 0); // runs after the next paint
      });
    Expected INP improvement: -180ms
 
@@ -161,5 +164,6 @@ Root Causes:
 - For INP, focus on the main thread. Network latency doesn't directly affect INP.
 - Recommend `fetchpriority="high"` only for the single most important above-fold resource.
 - When suggesting image format changes, note that AVIF has better compression but slower decode — WebP is the safer default.
-- Account for framework-specific patterns: Next.js Image component, Nuxt's `useAsyncData`, SvelteKit's load functions.
+- Account for framework-specific patterns: in Next.js, give the LCP image `priority` on `next/image` (it disables lazy loading and adds a preload) rather than hand-writing a preload tag; Nuxt's `useAsyncData`; SvelteKit's load functions.
+- Pick the metric before the fix: a slow LCP is usually TTFB, image weight, or render-blocking CSS; a slow INP is almost always main-thread JavaScript run inside an input handler.
 - Don't recommend service workers for performance unless the use case specifically involves repeat visits.

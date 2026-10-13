@@ -9,8 +9,9 @@ license: Apache-2.0
 compatibility: "Works with any HTML/JSX/Vue/Svelte component code. Framework-agnostic."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
+  repository: https://github.com/dequelabs/axe-core
   tags: ["accessibility", "wcag", "a11y", "compliance", "screen-reader"]
 ---
 
@@ -27,7 +28,8 @@ When asked to audit accessibility:
 1. **Determine the scope:**
    - Single component, full page, or entire application?
    - Target compliance level: A, AA (default), or AAA?
-   - Any specific regulations: EAA (European Accessibility Act), ADA, Section 508?
+   - Any specific regulations: EAA (European Accessibility Act, in force since 28 June 2025, points to EN 301 549 which is based on WCAG 2.1 AA), ADA (US DOJ Title II rule for public bodies names WCAG 2.1 AA), Section 508? WCAG 2.2 is a superset, so auditing against it covers them.
+   - If the app runs, start with an automated pass (axe-core via `@axe-core/cli`, Lighthouse, or `pa11y`) and then review by hand what tools cannot judge.
 
 2. **Check semantic structure (WCAG 1.3.1, 1.3.2):**
    - Heading hierarchy: h1 → h2 → h3, no skipped levels
@@ -45,7 +47,7 @@ When asked to audit accessibility:
 
 4. **Check color and contrast (WCAG 1.4.3, 1.4.11):**
    - Normal text: minimum 4.5:1 contrast ratio
-   - Large text (18px+ or 14px+ bold): minimum 3:1
+   - Large text (18pt / 24px or larger, or 14pt / about 18.66px bold): minimum 3:1
    - UI components and graphical objects: minimum 3:1
    - Information not conveyed by color alone (WCAG 1.4.1)
    - Compute exact contrast ratios for flagged elements
@@ -57,6 +59,9 @@ When asked to audit accessibility:
    - Custom components have appropriate keyboard handlers (Enter, Space, Arrow keys)
    - Modal dialogs trap and restore focus correctly
    - Skip-to-content link present
+   - Focus not hidden behind sticky headers or cookie banners (WCAG 2.4.11, new in 2.2)
+   - Every drag interaction has a click/tap alternative (WCAG 2.5.7, new in 2.2)
+   - Pointer targets at least 24x24 CSS px or sufficiently spaced (WCAG 2.5.8, new in 2.2)
 
 6. **Check ARIA usage (WCAG 4.1.2):**
    - ARIA roles match element behavior
@@ -65,12 +70,15 @@ When asked to audit accessibility:
    - No redundant ARIA (e.g., `role="button"` on `<button>`)
    - `aria-label`/`aria-labelledby` on elements without visible text
 
-7. **Check forms (WCAG 1.3.5, 3.3.1, 3.3.2):**
+7. **Check forms (WCAG 1.3.5, 3.3.1, 3.3.2, 3.3.7, 3.3.8):**
    - All inputs have associated `<label>` elements (not just placeholder text)
    - Error messages are programmatically associated with inputs
    - Required fields indicated with more than just color
    - `autocomplete` attributes on common fields (name, email, address)
    - Form validation errors announced to screen readers
+   - Data already entered is not requested again in the same flow (3.3.7)
+   - Login does not require a cognitive test: allow paste and password managers (3.3.8)
+   - Help links appear in the same place across pages (3.2.6)
 
 8. **Output format for each violation:**
    - WCAG criterion number and name
@@ -119,7 +127,8 @@ CRITICAL [WCAG 2.1.1] — Submit button is not keyboard accessible
 
 MAJOR [WCAG 3.3.1] — Error message not associated with input
   Element: <div className="error">
-  Fix: Add role="alert" and aria-live="polite" to announce errors.
+  Fix: Add role="alert" (implicitly assertive live region) to the message, or
+       aria-live="polite" if it should not interrupt.
        Associate with input: aria-describedby="login-error" on the relevant input.
 
 MAJOR [WCAG 1.4.1] — Error indicated by color alone
@@ -128,7 +137,7 @@ MAJOR [WCAG 1.4.1] — Error indicated by color alone
 
 MINOR [WCAG 1.4.3] — Verify error text contrast
   Red (#FF0000) on white (#FFFFFF) = 4.0:1 — fails for normal text.
-  Fix: Use #D32F2F (darker red) for 5.9:1 ratio.
+  Fix: Use #D32F2F (darker red) for about 5.0:1.
 ```
 
 ### Example 2: Keyboard navigation audit
@@ -168,6 +177,9 @@ MAJOR [WCAG 4.1.2] — Missing ARIA attributes
 - Always provide exact code fixes, not just descriptions of the problem.
 - Prioritize Critical issues (blocks entire user groups) over Minor (suboptimal experience).
 - Test ARIA patterns against established WAI-ARIA Authoring Practices for correctness.
-- Note that automated audits catch ~30% of accessibility issues — recommend manual testing with screen readers for the rest.
+- Note that automated tools such as axe-core find only a part of all issues (Deque reports about 57% by volume; many criteria need human judgement) — recommend manual testing with screen readers for the rest.
 - For color contrast, calculate actual ratios — don't eyeball it.
+- WCAG 2.2 removed criterion 4.1.1 Parsing; do not report duplicate-id or markup errors under it.
+- Prefer native elements (`<button>`, `<dialog>`, `<details>`) over ARIA; no ARIA is better than wrong ARIA.
+- A menu-button that opens action items follows the "menu button" pattern (`role="menu"`/`menuitem`); `listbox` is for selecting a value.
 - Flag `tabIndex` values greater than 0 as an anti-pattern (disrupts natural tab order).

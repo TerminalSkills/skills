@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f76faff3caa3e3ca9079c53a2ce72d2947b3b23da6636377c7cdb9c3ace0d3ec",
-  "scoredAt": "2026-05-13T09:39:25.176Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d27b70709300be0b527765d287fc504d45c35a1ce86f3ebd3b884593f8f9e2f3",
+  "scoredAt": "2026-10-13T16:07:59.480Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling for missing or incomplete data."
+        "detail": "The skill does not handle missing or incomplete user data, nor does it specify error handling for invalid inputs."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill requires Python 3.9+ and specific libraries, limiting compatibility with non-Python agents."
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations and guidelines that add unnecessary length without adding actionable value."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 53,
-    "treatmentAvg": 89,
-    "multiplier": 1.68,
+    "multiplier": 1.43,
+    "baselineAvg": 37,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "Mutual partnership NDA in DOCX",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment follows the full 9-section template with symmetric mutual obligations and disclaimer, while baseline produces ad-hoc structure missing several required sections."
+        "name": "mutual-partnership-nda",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response B better meets the rubric by providing a DOCX generation script, whereas Response A lacks file creation, summary, and disclaimer."
       },
       {
-        "name": "Employee NDA covering source code and customer data",
-        "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment hits the prescribed scope, employment+3y duration, four standard exclusions, and DOCX default; baseline covers scope but skips standard exclusions and uses a generic shorter term."
+        "name": "employee-source-code-nda",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Response B better meets the rubric by generating a DOCX and including non‑solicitation, but still lacks DTSA notice, summary, disclaimer, and correct filename; Response A lacks a DOCX and several required elements."
+      },
+      {
+        "name": "investor-meeting-nda",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response B better meets the rubric by actually generating the DOCX file and including all required sections, though it still lacks a summary, PDF alternative, and disclaimer; Response A lacks file generation and the same missing elements."
       }
     ]
   }

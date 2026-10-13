@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:88f25864af379307dd130b901e713e4cf6d72df14e26406ebbd98a0c3699858c",
-  "scoredAt": "2026-05-13T15:57:39.158Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:3ecd0b3cb7bfa8e4d2aa0838b058d146574b1ecbfee490364c5fcfce75090dd4",
+  "scoredAt": "2026-10-13T11:49:24.222Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as unsupported file formats or parsing failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill requires Python 3.9+ and specific libraries, limiting compatibility to agents that support Python execution."
+        "detail": "Does not address error scenarios such as corrupted files, encrypted PDFs, non-English contracts, or memory constraints for extremely long documents."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 6.8,
-    "baselineAvg": 0,
-    "treatmentAvg": 68,
+    "multiplier": 2.79,
+    "baselineAvg": 24,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "review-employment-contract",
-        "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response B provides most rubric items and a pdfplumber snippet, but lacks a concrete overall risk score, earning it a high but not perfect score."
+        "name": "employment-offer-negotiation",
+        "baseline": 10,
+        "treatment": 50,
+        "rationale": "Response A correctly interprets the task and addresses all four rubric elements (identifies employment contract type, mentions non-compete duration/geography checks, IP assignment red flags, and promises risk-ranked recommendations), though execution is blocked by lack of contract; Response B incorrectly refuses the task based on a false scope claim and attempts none of the required analysis."
       },
       {
-        "name": "compare-nda-versions",
-        "baseline": 0,
-        "treatment": 55,
-        "rationale": "Response A provides the required code snippet but omits the comparison table, recommendations, and summary, whereas Response B offers no relevant content."
+        "name": "vendor-saas-risk-assessment",
+        "baseline": 58,
+        "treatment": 91,
+        "rationale": "Response A identifies SLA and data protection risks but fails the liability cap requirement—it mentions liability only as a red flag to escalate without assessing specific caps against market practices. Response B directly addresses all four rubric requirements: identifies missing SLAs as the top risk with specific benchmarks (99.9%), explicitly calls out missing DPAs with detailed required contents, assesses liability caps with concrete market standards (one month = too low, 12 months = minimum for critical systems, unlimited for data breaches), and provides prioritized, actionable negotiation points with model language."
+      },
+      {
+        "name": "nda-scope-evaluation",
+        "baseline": 5,
+        "treatment": 60,
+        "rationale": "Response A refuses to engage and provides no attempt at the four core rubric requirements (extract definition/duration/exceptions, assess reasonableness, identify scope issues, recommend changes). Response B demonstrates clear understanding of what needs to be analyzed and promises to deliver most of it (definition, exceptions, duration, missing clauses, risk flags) with appropriate disclaimers, though it hasn't performed the analysis yet because the document hasn't been provided."
       }
     ]
   }

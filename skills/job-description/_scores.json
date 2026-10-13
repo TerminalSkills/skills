@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4abdb44bbd6295056211f5d184ca18d25e22b285626f752f4f56067605be38d4",
-  "scoredAt": "2026-05-13T09:18:12.057Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:156abf7379aeeed8186637ec4edc7bfb4fe8c124b14bbd905c57b374ab46e301",
+  "scoredAt": "2026-10-13T12:04:43.409Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error scenarios or edge cases for missing user inputs."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be trimmed for brevity."
+        "detail": "Does not address error scenarios or edge cases such as missing user information, ambiguous requirements, or non-standard reporting structures."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 69,
-    "treatmentAvg": 93,
-    "multiplier": 1.35,
+    "multiplier": 1.93,
+    "baselineAvg": 41,
+    "treatmentAvg": 79,
     "scenarios": [
       {
-        "name": "Senior backend payments engineer JD",
-        "baseline": 68,
-        "treatment": 93,
-        "rationale": "Baseline produces a competent JD with Required/Nice-to-Have split but often blows past 6 required items and uses passive voice; treatment follows the skill's 4-6 required cap, you-language, and EEO statement."
+        "name": "new-role-job-posting",
+        "baseline": 2,
+        "treatment": 96,
+        "rationale": "Response B comprehensively covers all seven required sections (About Company, About Role, What You'll Do, What We're Looking For with separate Required/Nice to Have, What We Offer, How to Apply, EEO), uses consistent active 'you' language, and provides exactly 8 well-structured responsibilities starting with action verbs that explain impact ('Own the roadmap,' 'Define product strategy,' 'Partner to unblock expansion opportunities'); Response A declines entirely as out-of-project-scope, meeting zero rubric requirements."
       },
       {
-        "name": "Rewrite developer JD for inclusivity",
-        "baseline": 70,
-        "treatment": 92,
-        "rationale": "Baseline DEI advice is reasonably strong (removes 'rockstar', softens degree), but rarely cites the 60-vs-100% requirements gap or restructures the required list aggressively; treatment applies the full set of inclusivity fixes from the skill."
+        "name": "inclusive-job-rewrite",
+        "baseline": 52,
+        "treatment": 58,
+        "rationale": "Both responses appropriately request the job posting first, but Response B more precisely aligns with the rubric by specifying the exact 4-6 requirement range (vs A's 3-5), providing concrete linguistic examples ('you'll build' vs 'must own'), and offering more detailed rewriting guidance; neither explicitly commits to X+ years formatting with equivalent-experience clauses or an explicit equal opportunity statement, which are two of the four rubric requirements."
+      },
+      {
+        "name": "job-board-variants",
+        "baseline": 68,
+        "treatment": 82,
+        "rationale": "Both appropriately request source material before creating variants, but Response B explicitly commits to each rubric requirement (150-word HN format with salary/tech upfront, LinkedIn with company branding, detailed careers page) while Response A characterizes platforms more vaguely; Response B also provides more systematic information gathering with both detailed-field and paste-existing-description pathways."
       }
     ]
   }

@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bac3bfa9aa720dd7d5d4ecef705c8b3d49759eda326a9be186a6d0e29dcb2b04",
-  "scoredAt": "2026-05-13T09:08:08.035Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:83c5301c6fe5537ad0d2a89920ec9fa10c0420f4bddc2afac1b3ee76d92992c7",
+  "scoredAt": "2026-10-13T12:03:07.554Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling for command failures or network issues."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains verbose explanatory text that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The instructions assume macOS or Linux environments and do not address Windows compatibility."
+        "detail": "Missing error handling for common scenarios like rate limiting, token expiry, invalid credentials, and network failures; only covers the happy path for most workflows."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 90,
-    "multiplier": 1.55,
+    "multiplier": 1.5,
+    "baselineAvg": 46,
+    "treatmentAvg": 69,
     "scenarios": [
       {
-        "name": "Diagnose failing CI on current PR",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment uses gh pr view with statusCheckRollup JSON projection and gh run view --log-failed pattern from SKILL.md; baseline relies on web UI navigation and generic gh commands without the targeted failure-log flow."
+        "name": "verify-and-merge-pr",
+        "baseline": 68,
+        "treatment": 78,
+        "rationale": "Both responses show the two required commands (`gh pr checks` and `gh pr merge --squash --delete-branch`), but neither confirms the merge with a URL as the rubric requires; Response A is more direct and actionable, while Response B unnecessarily gatekeeps execution with permission-asking that the system handles automatically."
       },
       {
-        "name": "Search before filing duplicate issue",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment combines gh search issues and gh issue list --search --state all per the skill's dedup pattern; baseline only runs one search and misses the cross-repo + closed-issue coverage."
+        "name": "search-related-issues",
+        "baseline": 35,
+        "treatment": 60,
+        "rationale": "Response A uses the correct `gh search issues` command with proper filters (--state, --limit, --repo) as required by the rubric, but doesn't execute it. Response B uses the wrong command entirely (`gh issue list --search` instead of `gh search issues`), which violates the explicit rubric requirement; it also fails to deliver actual results or recommendations from the search."
+      },
+      {
+        "name": "investigate-workflow-failure",
+        "baseline": 35,
+        "treatment": 68,
+        "rationale": "Response B includes all three commands from the rubric (`gh run list`, `gh run view`, and crucially `gh run view --log-failed`), while Response A omits the `--log-failed` option entirely; both fail to execute the commands to actually identify the failing job and root cause, but Response B properly requests permission and provides complete, runnable command syntax."
       }
     ]
   }

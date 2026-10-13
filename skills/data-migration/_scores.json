@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:de78b93e8e0b4757113c7b9ecc18ea3447db6ca1561a3287d4f8816014dddc41",
-  "scoredAt": "2026-05-13T16:21:04.310Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:a3e66ce84d3f7bbea7228d9ca73e162e3811bdc2892da92b61d285fc49511fa7",
+  "scoredAt": "2026-10-13T11:51:06.152Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "PASS"
+      "examples": "WEAK"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Examples describe scenarios and expected outputs at a high level but lack concrete step-by-step walkthroughs or actual code demonstrations with realistic data transformations."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 30,
-    "treatmentAvg": 75,
+    "multiplier": 1.45,
+    "baselineAvg": 56,
+    "treatmentAvg": 81,
     "scenarios": [
       {
-        "name": "mysql-to-postgresql-large-migration",
-        "baseline": 40,
-        "treatment": 60,
-        "rationale": "Response A includes a detailed schema map and dependency order, while B lacks the required mapping and batch logic."
+        "name": "mysql-postgresql-encoding-conversion",
+        "baseline": 52,
+        "treatment": 85,
+        "rationale": "Response B directly satisfies all rubric requirements: DATETIME→TIMESTAMPTZ with explicit timezone decision, ENUM→PostgreSQL ENUM with DDL, and UTF-8 re-encoding planning with specific commands. Response A fails on two critical requirements by recommending timestamp-without-timezone instead of TIMESTAMPTZ and advocating a lookup table instead of the rubric-specified ENUM/VARCHAR-with-CHECK options, though it excels on encoding conversion depth with hex dumps and pgloader details."
       },
       {
-        "name": "sqlite-consolidation-postgresql",
-        "baseline": 20,
-        "treatment": 90,
-        "rationale": "Response A covers the schema diff, merge strategy, migration script, and logging, while Response B lacks a diff report, detailed strategy, and conflict resolution logic."
+        "name": "large-table-batch-migration-checkpoint",
+        "baseline": 57,
+        "treatment": 87,
+        "rationale": "Response B covers the rubric completely: it specifies the exact 5000-row batch size, implements proper lastId-based checkpoint/resume with WHERE pk > lastId pattern, shows disabling triggers and rebuilding with REINDEX, and clearly demonstrates resumption detection. Response A uses a 10k default (not the recommended 5000), implements offset-based pagination rather than the efficient lastId pattern, and critically omits any guidance on disabling/rebuilding indexes—a mandatory rubric requirement."
+      },
+      {
+        "name": "circular-dependency-referential-validation",
+        "baseline": 60,
+        "treatment": 72,
+        "rationale": "A directly addresses topological sort and FK dropping as required, with clear dependency ordering and orphan checks, but lacks aggregate/row-count validation; B sidesteps topological sort via constraint disabling, has superior orphan detection queries, but explicitly avoids the core requirement and also omits aggregate checks."
       }
     ]
   }

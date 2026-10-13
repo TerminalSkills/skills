@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Requires git repository with history; supports any language"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["technical-debt", "code-quality", "refactoring", "engineering"]
 ---
@@ -32,10 +32,14 @@ Scan the codebase for these indicators:
 # TODO/FIXME/HACK markers with context
 grep -rn "TODO\|FIXME\|HACK\|XXX\|WORKAROUND" --include="*.ts" --include="*.js" --include="*.py" --include="*.go" --include="*.java" src/
 
-# Long functions (proxy: count lines between function declarations)
-# Outdated dependencies
-npm outdated 2>/dev/null || pip list --outdated 2>/dev/null || go list -m -u all 2>/dev/null
+# Outdated dependencies: run only the command that matches the project.
+# npm outdated exits non-zero when anything is outdated, so do not chain it with ||
+npm outdated
+pip list --outdated
+go list -m -u all
 ```
+
+Long functions have no portable one-line metric. Measure them in Step 2 with the complexity counts, or with your language's linter (for example, ESLint's `max-lines-per-function` rule).
 
 ### Step 2: Measure Complexity
 
@@ -51,10 +55,10 @@ For each file, estimate cyclomatic complexity:
 git log --since="6 months ago" --pretty=format: --name-only | sort | uniq -c | sort -rn | head -30
 
 # Bug-fix correlation (commits mentioning fix/bug/hotfix)
-git log --since="6 months ago" --grep="fix\|bug\|hotfix" --pretty=format: --name-only | sort | uniq -c | sort -rn | head -20
+git log -E -i --since="6 months ago" --grep="fix|bug|hotfix" --pretty=format: --name-only | sort | uniq -c | sort -rn | head -20
 
-# Developer contention (unique authors per file)
-git log --since="3 months ago" --pretty=format:"%an" -- <file> | sort -u | wc -l
+# Developer contention (unique authors per file, last 3 months)
+git log --since="3 months ago" --pretty=format:"%an" -- src/checkout/order.ts | sort -u | wc -l
 ```
 
 ### Step 4: Score and Prioritize

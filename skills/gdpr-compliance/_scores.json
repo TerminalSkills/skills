@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:768447f2f1851a173911a410d586222545bdb16227d011a6f806e332f28d0bbf",
-  "scoredAt": "2026-05-13T09:07:27.492Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b0330b2830d4a785accc456826eddeeb78c1741565bc3b0a19d78af6b76f1591",
+  "scoredAt": "2026-10-13T12:04:15.889Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack guidance on handling errors, edge cases, and failure scenarios during scanning and processing."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill provides high-level procedures but does not include fully runnable code or detailed implementation steps for all components."
+        "detail": "Covers core DSR flows and cooling-off period but lacks error handling for API call failures, email delivery failures, and partial transaction rollback; also missing guidance on other mandatory GDPR rights (Article 16 rectification, Article 18 restrict processing, Article 21 objection, and Article 33 breach notification)."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 91,
-    "multiplier": 3.25,
+    "multiplier": 1.72,
+    "baselineAvg": 43,
+    "treatmentAvg": 74,
     "scenarios": [
       {
-        "name": "GDPR-compliant deletion handler with cooling-off",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Baseline hard-deletes immediately and misses third-party cascade; treatment implements the skill's 30-day cooling-off queue, cancel-link email, anonymize-over-delete, third-party cascade, and DSR audit log."
+        "name": "pii-audit-schema-inventory",
+        "baseline": 38,
+        "treatment": 45,
+        "rationale": "Both fail to attempt accessing the schema themselves and incorrectly assume directory restrictions, but Response B explicitly commits to the exact Data Flow Inventory table format with specific columns (Data Type, Storage Location, Shared With, Legal Basis, Retention Period) that the rubric requires, whereas Response A outlines a vaguer plan mentioning compliance notes and other items outside the rubric scope."
       },
       {
-        "name": "PII audit of Prisma schema",
-        "baseline": 30,
+        "name": "data-deletion-with-cooling-off",
+        "baseline": 52,
+        "treatment": 87,
+        "rationale": "Response A has a critical security flaw: it stores the raw cancellation token in the database without hashing, violating the explicit rubric requirement to 'store hash, send raw token.' Response B correctly implements SHA256 hashing of the token before storage. Additionally, Response B provides more comprehensive cascade deletion (explicitly redacts audit logs vs anonymizes), better third-party error handling with logging, truly random anonymization (UUID-based not userId-based), and includes schema/template examples for production use."
+      },
+      {
+        "name": "consent-banner-granular-tracking",
+        "baseline": 38,
         "treatment": 90,
-        "rationale": "Baseline gives vague PII flags; treatment uses the skill's direct/indirect/sensitive taxonomy, recommends deletedAt + consentVersion fields, and produces the Data Flow Inventory table."
+        "rationale": "Response A omits the 'functional' category (only 3 of 4 required) and lacks version number storage in the database — both explicit rubric requirements. Response B implements all four categories (strictly_necessary, functional, analytics, marketing) with version tracking, a more robust script-blocking mechanism via prototype interception, event emission with example listeners, and includes a testing checklist and GDPR compliance notes."
       }
     ]
   }

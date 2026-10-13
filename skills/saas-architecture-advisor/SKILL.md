@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Language and database agnostic; examples default to PostgreSQL and Node.js"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["saas", "multi-tenant", "architecture", "database-design"]
 ---
@@ -41,7 +41,7 @@ Present trade-offs for these models:
 
 **Shared Everything** (single DB, shared tables, tenant_id column):
 - Best for: <1,000 tenants, uniform data model, no strict isolation requirements
-- Cost: Lowest ($1 DB serves all tenants)
+- Cost: Lowest. One database instance serves every tenant, so cost grows with instance size, not tenant count
 - Risk: Query bugs can leak data; noisy neighbor issues
 - Mitigation: Row-level security (PostgreSQL RLS), application-layer checks
 
@@ -53,7 +53,7 @@ Present trade-offs for these models:
 
 **Database per Tenant** (dedicated DB per tenant):
 - Best for: <100 tenants, strict compliance, large enterprise clients
-- Cost: Highest ($274+/mo per tenant on RDS)
+- Cost: Highest. Each tenant pays for its own instance (storage, backups, minimum instance size). Get the per-instance quote from the AWS Pricing Calculator; RDS prices vary by instance class and region
 - Risk: Operational overhead managing N databases
 - Mitigation: Infrastructure-as-code templates, centralized monitoring
 
@@ -108,10 +108,12 @@ with row-level security gives you the best simplicity-to-isolation ratio.
 Implementation:
 1. Add tenant_id UUID column to all tenant-scoped tables
 2. Enable RLS: ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;
-3. Create policies: USING (tenant_id = current_setting('app.tenant_id')::UUID)
-4. Set tenant context per request in middleware via SET LOCAL
+3. Create policies: USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID)
+4. Set tenant context per request in middleware, inside the request's transaction:
+   SELECT set_config('app.current_tenant_id', $1, true)  -- true = transaction-local, pool-safe
 
-Cost: Single db.t3.medium handles this easily at ~$50/month.
+Cost: one small managed PostgreSQL instance. Size it from a load test rather than a guess;
+the exact monthly price comes from the AWS Pricing Calculator for the chosen instance class.
 Migration path: If you later need dedicated DBs for enterprise clients,
 the repository pattern lets you route specific tenants without changing app code.
 ```
@@ -132,11 +134,13 @@ are operationally feasible and satisfy compliance auditors.
 
 Architecture:
 - Tenant registry DB (shared): Stores tenant metadata + routing config
-- Per-tenant RDS instances: db.t3.medium ($50/mo each) = $2,500/mo for 50
+- Per-tenant RDS instances: 50 × (Pricing Calculator quote for the chosen instance class, storage and backups)
 - Connection routing: Middleware resolves tenant → connection string from registry
-- Encryption: RDS encryption at rest + tenant-specific KMS keys
+- Encryption: RDS encryption at rest + tenant-specific KMS keys (each customer-managed KMS key has its own monthly charge)
 
-Budget fit: $2,500 for DBs + $1,000 compute + $500 other = $4,000/mo ✅
+Budget check: 50 × the quoted per-instance price + compute + other must stay under $5,000/mo.
+Recompute with the real quote before promising the client a number; if it does not fit,
+move the smallest tenants to a shared-database tier (the Hybrid model above).
 
 Key HIPAA controls addressed:
 - Physical data isolation (separate DB instances)

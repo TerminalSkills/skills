@@ -6,10 +6,10 @@ description: >-
   "set up escalation policies", "tune alerting thresholds", or "create on-call runbooks".
   Generates platform-specific alert configurations and tiered escalation policies.
 license: Apache-2.0
-compatibility: "Generates configurations for Sentry, PagerDuty, Datadog, OpsGenie, or generic webhook-based systems"
+compatibility: "Generates configurations for Sentry, PagerDuty, Datadog, Jira Service Management (for OpsGenie migrations), or generic webhook-based systems"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["alerting", "on-call", "pagerduty", "incident-response", "observability"]
 ---
@@ -29,6 +29,7 @@ Ask for or infer:
 - Current alert volume and on-call team size
 - Notification channels available (Slack, PagerDuty, email, SMS)
 - Any existing severity definitions
+- If the team uses Opsgenie: Atlassian ended sales on June 4, 2025 and ends support on April 5, 2027. Plan the move to Jira Service Management now; do not build new Opsgenie-only rules.
 
 ### 2. Define Severity Tiers
 
@@ -40,12 +41,20 @@ Create a three-tier model (unless the user specifies otherwise):
 | P2 - Warning | Degraded experience, >5% users affected, error rate spike | 1 hour | Slack channel |
 | P3 - Info | Known issues, cosmetic errors, self-healing transients | Weekly review | Log only |
 
+Severity routing in one line per tier, to paste into the team runbook:
+
+```text
+P1  page on-call (PagerDuty, SMS)       ack in 5 min   escalate to team lead at 10 min
+P2  post to #team-alerts (Slack)        ack in 1 hour  review at the next standup
+P3  log only; weekly digest email       review weekly  no paging
+```
+
 ### 3. Generate Alert Rules
 
 For each error group, produce a platform-specific alert configuration:
-- **Sentry**: JSON alert rule with conditions, filters, and actions
+- **Sentry**: an issue alert with one trigger (When), optional filters (If), actions (Then) and a throttle. Sentry sets these in the UI (Alerts → Create Alert). Throttle options run from 5 minutes to 30 days. Write the spec as a table first; if it must be automated, check the field names against the current Sentry API reference before using them.
 - **Datadog**: Monitor definition with query, thresholds, and notification targets
-- **PagerDuty**: Event rules with severity mapping and escalation policy
+- **PagerDuty**: Event Orchestration rules for severity mapping and routing (Global and Service orchestration). The older Global Event Rules are no longer part of Event Orchestration. Services that still use Service Event Rules can switch to Service Orchestrations, which PagerDuty describes as the more robust option.
 - **Generic**: Webhook payload template with routing logic
 
 ### 4. Create Escalation Policies
@@ -70,38 +79,25 @@ For each P1 alert, create a runbook with:
 
 **Input**: Error audit showing PaymentProcessingError as P1, RedisTimeout as P3.
 
-**Output**:
-```json
-{
-  "rules": [
-    {
-      "name": "P1: Payment Processing Failure",
-      "conditions": [
-        {"id": "sentry.rules.conditions.event_frequency", "value": 1, "interval": "5m"}
-      ],
-      "filters": [
-        {"id": "sentry.rules.filters.tagged_event", "key": "error_type", "value": "PaymentProcessingError"}
-      ],
-      "actions": [
-        {"id": "sentry.integrations.pagerduty.notify_action", "service": "engineering-oncall"},
-        {"id": "sentry.integrations.slack.notify_action", "channel": "#incidents", "tags": "environment,transaction"}
-      ],
-      "frequency": 5
-    },
-    {
-      "name": "P3: Redis Connection Timeout (Log Only)",
-      "conditions": [
-        {"id": "sentry.rules.conditions.event_frequency", "value": 100, "interval": "1h"}
-      ],
-      "filters": [
-        {"id": "sentry.rules.filters.tagged_event", "key": "error_type", "value": "TimeoutError"}
-      ],
-      "actions": [],
-      "frequency": 1440
-    }
-  ]
-}
+**Output** (set in Sentry under Alerts → Create Alert, project `payments-api`):
 ```
+Alert P1: Payment processing failure
+  When:      A new issue is created, or an event is captured
+  If:        all of
+               - Tagged event: error_type equals PaymentProcessingError
+  Then:      Notify PagerDuty service engineering-oncall
+             Notify Slack channel #incidents
+  Throttle:  5 minutes
+
+Alert P3: Redis connection timeout (log only)
+  When:      An event is captured
+  If:        all of
+               - Tagged event: error_type equals TimeoutError
+               - Frequency: more than 100 events in 1 hour
+  Then:      no notification (the issue stays in the Sentry issue list)
+  Throttle:  24 hours
+```
+The P1 throttle of 5 minutes matches the cap in the Guidelines. The P3 alert fires only when the error is frequent, and it notifies no one.
 
 ### Example 2: On-Call Runbook Entry
 
@@ -121,7 +117,7 @@ For each P1 alert, create a runbook with:
 3. Check if deployment happened in last 30 min (new query pattern?)
 
 ### Common Fixes
-- Kill the blocking query: `SELECT pg_terminate_backend(<pid>);`
+- Cancel the blocking query first, using the pid from step 1: `SELECT pg_cancel_backend(48213);`. Terminate the session only if cancel does not work: `SELECT pg_terminate_backend(48213);`. Terminating drops the connection's open transaction.
 - If recurring post-deploy: rollback last migration
 - If load-related: enable connection pooling or add read replica
 
@@ -138,3 +134,4 @@ For each P1 alert, create a runbook with:
 - Runbooks should be copy-pasteable — include actual commands, not pseudocode
 - When the user has fewer than 3 people on-call, simplify escalation to two tiers
 - Test configurations by asking the user to dry-run before applying
+- Check each platform's current docs before shipping a config: alert UIs, API field names and vendor product names change (Opsgenie and PagerDuty rules both changed recently)

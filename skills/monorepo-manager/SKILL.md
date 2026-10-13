@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Node.js monorepos (npm/pnpm/yarn workspaces, Turborepo, Nx)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["monorepo", "dependencies", "workspaces", "turborepo"]
 ---
@@ -31,7 +31,7 @@ Identify the monorepo tool in use:
 - Check `package.json` for `"workspaces"` → npm/yarn workspaces
 - Check for `turbo.json` → Turborepo
 - Check for `nx.json` → Nx
-- Check for `lerna.json` → Lerna (legacy)
+- Check for `lerna.json` → Lerna (maintained by the Nx team; versioning and publishing)
 
 Map all packages:
 ```
@@ -87,10 +87,10 @@ Flag circular dependencies and suggest extraction points.
 ### 5. Optimize build configuration
 
 For Turborepo/Nx, ensure:
-- Build tasks declare correct `dependsOn` relationships
+- Build tasks declare correct `dependsOn` relationships (`"^build"` means "build my dependencies first"); in Turborepo 2.x tasks live under the `tasks` key of `turbo.json` (it was `pipeline` in 1.x)
 - Caching is configured for all cacheable tasks
-- Only affected packages rebuild on changes
-- CI pipeline uses remote caching
+- Only affected packages rebuild on changes (`turbo run build test --affected`, `nx affected -t build`)
+- CI pipeline uses remote caching (`turbo login` and `turbo link`, or Nx Cloud)
 
 ## Examples
 
@@ -127,14 +127,14 @@ Current date-fns usage:
 - apps/admin: not installed
 
 Plan:
-1. Add date-fns@3.6.0 to packages/utils
-2. Upgrade apps/web from 3.3.1 → 3.6.0
-3. Upgrade apps/api from 2.30.0 → 3.6.0 (breaking changes — see migration notes)
+1. Add date-fns@^4.1.0 to the pnpm catalog and to packages/utils
+2. Upgrade apps/web from 3.3.1 → 4.x (no code changes expected)
+3. Upgrade apps/api from 2.30.0 → 4.x (major jump — see migration notes)
 4. Remove direct date-fns deps from apps, import via packages/utils
 
-⚠️ date-fns v2→v3 breaking changes:
-- Named exports only (no default import)
-- `format` tokens changed: `DD` → `dd`, `YY` → `yy`
+⚠️ date-fns v2→v3+ breaking changes:
+- Per-function default imports (`import format from 'date-fns/format'`) are gone; use named imports from 'date-fns'
+- Check the changelog for removed or renamed helpers before merging
 
 Updated 4 package.json files. Review the v3 migration in apps/api.
 ```
@@ -144,7 +144,8 @@ Updated 4 package.json files. Review the v3 migration in apps/api.
 - Always map the full dependency graph before making changes
 - Check for breaking changes before bumping major versions
 - Prefer hoisting shared deps to the root when possible
-- Use `catalog:` protocol in pnpm or `resolutions` in yarn for version pinning
+- Use the `catalog:` protocol (versions defined once in `pnpm-workspace.yaml`, pnpm 9.5+) or `resolutions` in yarn for version pinning
+- A tool like `syncpack list-mismatches` can find drifting versions automatically in large repos
 - After any dependency change, verify builds across all affected packages
 - Circular dependencies between packages are a code smell — suggest extraction
 - For large monorepos (50+ packages), prioritize the most impactful mismatches first

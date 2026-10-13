@@ -6,10 +6,10 @@ description: >-
   proposal, prepare a bid, write a pitch document, or generate a partnership
   proposal. Produces structured, persuasive documents ready for client delivery.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with python-docx or reportlab for document generation"
+compatibility: "Python 3.9+ with python-docx (pip install python-docx; imported as docx); LibreOffice for DOCX-to-PDF conversion"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["proposal", "business", "writing", "sales", "pitch"]
   use-cases:
@@ -23,7 +23,7 @@ metadata:
 
 ## Overview
 
-Create professional, persuasive business proposals structured to win deals. This skill generates complete proposal documents with executive summaries, scope of work, timelines, pricing, team qualifications, and terms. Outputs polished documents in DOCX or PDF format ready for client delivery.
+Create professional, persuasive business proposals structured to win deals. This skill generates complete proposal documents with executive summaries, scope of work, timelines, pricing, team qualifications, and terms. The script writes an editable DOCX; a LibreOffice conversion produces the PDF for delivery.
 
 ## Instructions
 
@@ -126,6 +126,16 @@ def generate_proposal(data, output_path="proposal.docx"):
     doc.save(output_path)
     return output_path
 ```
+
+Run it from a script file, for example `python make_proposal.py`, then check the result with `python -c "from docx import Document; print(len(Document('proposal_greenleaf_redesign.docx').paragraphs))"`. The `Table Grid` style exists in python-docx's default template, so no template file is needed.
+
+To produce the PDF for delivery, convert the DOCX with LibreOffice. This needs `soffice` on the PATH; install LibreOffice with your system package manager:
+
+```bash
+soffice --headless --convert-to pdf --outdir ./delivery proposal_greenleaf_redesign.docx
+```
+
+Open the PDF and check the page count and the pricing table before sending, because the PDF is what the client sees.
 
 ### Step 5: Review and finalize
 

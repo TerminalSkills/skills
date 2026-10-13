@@ -6,9 +6,10 @@ description: >-
   draft a reply, write a follow-up, create an outreach email, respond to a
   client, write a cold email, or craft any professional correspondence.
 license: Apache-2.0
+compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: productivity
   tags: ["email", "writing", "communication", "business", "outreach"]
   use-cases:
@@ -97,26 +98,26 @@ Subject: [Specific, actionable subject line - under 60 characters]
 ```
 Subject: Next Steps from Today's Demo
 
-Hi [Name],
+Hi Priya,
 
-Thanks for taking the time to see [Product] in action today. It was great
-hearing about your team's workflow challenges, especially around [specific
-pain point discussed].
+Thanks for taking the time to see Ledgerline in action today. It was great
+hearing about your team's month-end reconciliation backlog, especially the
+three days your analysts spend matching bank feeds by hand.
 
 Based on our conversation, here's what I'd suggest as next steps:
 
-- **Trial setup:** I can have a sandbox environment ready for your team
-  by [day]. No commitment needed.
-- **Custom integration:** Our engineering team can scope the [System]
-  integration you mentioned. I'll send a brief questionnaire.
-- **Pricing:** I'll put together a proposal based on the 50-seat
-  configuration we discussed.
+- **Trial setup:** I can have a sandbox workspace ready for your finance
+  team by June 17. No commitment needed.
+- **Bank feed integration:** Our engineers can scope the connection to your
+  Chase and Wells Fargo accounts. I'll send a short questionnaire on the
+  account formats you use.
+- **Pricing:** I'll put together a proposal for the 50-seat plan we discussed.
 
-Would Thursday or Friday work for a 15-minute call to walk through the
+Would June 19 at 2pm work for a 15-minute call to walk through the
 proposal? Happy to work around your schedule.
 
 Best,
-[Name]
+Daniel
 ```
 
 ### Example 2: Cold outreach email
@@ -127,21 +128,20 @@ Best,
 ```
 Subject: Cut your team's PR review time by 40%
 
-Hi [Name],
+Hi Marcus,
 
-I noticed [Company] recently expanded your engineering team to 80+
-developers. Scaling code review is usually one of the first bottlenecks.
+I noticed Brightwell recently grew your platform team past 80 engineers.
+Review queues usually become the first bottleneck at that size.
 
-We built [Tool] to automate the repetitive parts of PR review — style
-checks, security patterns, and test coverage gaps. Teams like [Similar
-Company] and [Similar Company] reduced their review cycle from 2 days
-to under 4 hours.
+We built Reviewly to take over the repetitive parts of PR review: style
+checks, secret scanning, and missing-test flags. Before a human opens the
+diff, the bot has already commented on the mechanical issues.
 
-Would you be open to a 15-minute call to see if this could help your
-team? No pitch deck, just a quick look at how it works.
+Would you be open to a 15-minute call next week to see whether this fits
+your team? No slides, just a live look at a sample pull request.
 
 Best,
-[Name]
+Daniel
 ```
 
 ### Example 3: Internal team announcement
@@ -154,8 +154,8 @@ Subject: New Deployment Process Starting March 1
 
 Hi team,
 
-Starting March 1, we're moving to a new deployment process. Here's what
-changes and what stays the same.
+Starting March 1, we're moving to a new deployment process. Here's
+what changes and what stays the same.
 
 **What's changing:**
 - Deployments now go through the CI/CD pipeline (no more manual deploys)
@@ -169,14 +169,14 @@ changes and what stays the same.
 
 **What you need to do:**
 1. Read the updated runbook: [link]
-2. Test your service in the new staging environment by Feb 25
+2. Test your service in the new staging environment by February 27
 3. Reach out in #deploy-help with any questions
 
-I'll hold a 30-minute walkthrough on Feb 20 at 3pm ET. Calendar invite
-incoming.
+I'll hold a 30-minute walkthrough on February 26 at 3pm ET. The
+calendar invite is on its way.
 
 Thanks,
-[Name]
+Daniel
 ```
 
 ## Guidelines
@@ -186,7 +186,7 @@ Thanks,
 - Subject lines should tell the recipient what the email is about and what they need to do.
 - Avoid passive voice where possible. "I'll send the report by Friday" beats "The report will be sent by Friday."
 - Keep emails under 200 words when possible. Every sentence should earn its place.
-- For cold emails, keep under 125 words. Shorter emails get higher response rates.
+- For cold emails, keep the body short enough to read on a phone without scrolling (roughly 125 words or fewer). Shorter is a style choice, not a measured result, so do not promise reply rates.
 - Never use "per my last email" or other passive-aggressive phrases.
 - Match the formality of the relationship. When in doubt, start slightly more formal and adjust.
 - Always include a specific, easy-to-answer call to action. "Thoughts?" is vague. "Does Thursday at 2pm work?" is actionable.

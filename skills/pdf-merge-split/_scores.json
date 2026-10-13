@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1b6573dee48c35adfedf863c508fe4640a2315468d4b79990e72323fec95ccd1",
-  "scoredAt": "2026-05-13T09:49:06.025Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5e0c7f14013b9c6b4acacd3edd173490ef73e322593ee7ce3d63fa641359e04d",
+  "scoredAt": "2026-10-13T13:06:07.612Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not fully handle all error scenarios such as encrypted PDFs, invalid page ranges, or permission errors."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill requires Python 3.9+ and specific libraries, limiting its use to Python environments."
+        "detail": "Split by size operation mentioned in Step 1 but not implemented in Step 3 code examples."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 70,
-    "treatmentAvg": 92,
-    "multiplier": 1.31,
+    "multiplier": 1.86,
+    "baselineAvg": 44,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "merge-quarterly",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline merges correctly with PdfMerger but skips pre-validation and reporting; treatment validates each file via PdfReader, merges in order, then reports total page count as the skill outlines."
+        "name": "merge-quarterly-reports",
+        "baseline": 15,
+        "treatment": 82,
+        "rationale": "Response B provides a complete, runnable script that validates input files, merges them with PdfWriter.append(), and reports output page count and file size; Response A only offers three unexecuted suggestions and asks the user to choose, providing no validation or reporting; both responses omit individual input file page count reporting."
       },
       {
-        "name": "extract-mixed-pages",
-        "baseline": 85,
-        "treatment": 92,
-        "rationale": "Both expand the range correctly and use PdfReader/PdfWriter with 1-based-to-0-based indexing; treatment adds the bounds check and structured reporting that the skill prescribes."
+        "name": "extract-specific-pages",
+        "baseline": 68,
+        "treatment": 82,
+        "rationale": "Response A fully reports extracted pages using 1-based numbering (critical rubric requirement) and creates the PDF, but hard-codes the page list instead of parsing the format. Response B Option 1 elegantly parses the format string directly via Ghostscript but provides zero reporting of which pages were extracted (fails explicit rubric requirement); Option 2 replicates Response A's approach without its reporting benefits. Response A better satisfies the reporting requirement despite less elegant parsing."
+      },
+      {
+        "name": "split-textbook-into-chapters",
+        "baseline": 48,
+        "treatment": 82,
+        "rationale": "Response B fulfills the rubric's explicit requirement to report page counts for each output file; Response A provides working approaches but completely omits page count reporting and result verification."
       }
     ]
   }
