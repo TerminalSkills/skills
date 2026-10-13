@@ -9,10 +9,11 @@ description: >-
   slack webhook, slack blocks, slack modal, bolt framework, slack events,
   slack notification, slack automation.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.9+. Requires a Slack workspace with admin access to install apps."
+compatibility: "Node.js 20+ (Bolt for JavaScript 5) or Python 3.9+ (slack-bolt). Requires a Slack workspace with admin access to install apps."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: "https://github.com/slackapi/bolt-js"
   category: automation
   tags: ["slack", "bot", "messaging", "integration"]
 ---
@@ -33,8 +34,8 @@ When creating a new Slack bot:
 2. Recommend "From a manifest" for faster setup
 3. Generate the app manifest YAML based on required scopes and features
 4. Set up the following based on needs:
-   - **Bot Token Scopes**: `chat:write`, `commands`, `app_mentions:read`, `channels:history`, `users:read`
-   - **Event Subscriptions**: `message.channels`, `app_mention`, `message.im`
+   - **Bot Token Scopes**: `chat:write`, `commands`, `app_mentions:read`, `channels:history` (for `message.channels`), `im:history` (for `message.im`), `users:read`
+   - **Event Subscriptions**: `message.channels`, `app_mention`, `message.im` (in Socket Mode no request URL is needed)
    - **Interactivity**: Enable for buttons, modals, dropdowns
    - **Slash Commands**: Register command names and descriptions
 
@@ -43,11 +44,30 @@ When creating a new Slack bot:
 Use Bolt.js (Node) or Bolt for Python:
 
 ```bash
-# Node.js
-npm init -y && npm install @slack/bolt dotenv
+# Node.js (run with: node --env-file=.env app.js)
+npm init -y && npm install @slack/bolt
+# In CI and production, commit package-lock.json and install with `npm ci`,
+# which installs the exact, integrity-checked versions from the lockfile.
 
 # Python
-pip install slack-bolt python-dotenv
+pip install slack-bolt
+```
+
+Python equivalent of the Socket Mode setup (tokens from the environment):
+```python
+import os
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+
+app = App(token=os.environ["SLACK_BOT_TOKEN"])
+
+@app.command("/deploy")
+def deploy(ack, respond, command):
+    ack()  # within 3 seconds
+    respond(f"Deploying {command['text']} to staging...")
+
+if __name__ == "__main__":
+    SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()
 ```
 
 Standard project structure:
@@ -61,7 +81,7 @@ slack-bot/
 │   └── views.js        # Modal submission handlers
 ├── services/           # Business logic
 ├── blocks/             # Block Kit message templates
-├── .env                # SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, SLACK_APP_TOKEN
+├── .env                # SLACK_BOT_TOKEN (xoxb-), SLACK_SIGNING_SECRET, SLACK_APP_TOKEN (xapp-); gitignored
 └── package.json
 ```
 
@@ -119,12 +139,13 @@ Use https://app.slack.com/block-kit-builder for visual design.
 
 ### 5. Socket Mode vs HTTP
 
-- **Socket Mode** (recommended for internal bots): No public URL needed, uses WebSocket
-  - Set `SLACK_APP_TOKEN` (starts with `xapp-`)
-  - `const app = new App({ token, signingSecret, socketMode: true, appToken })`
-- **HTTP mode** (for public apps): Needs public URL, use ngrok for dev
-  - `const app = new App({ token, signingSecret })`
-  - `app.start(3000)`
+- **Socket Mode** (recommended for internal bots and local development): no public URL needed, uses a WebSocket
+  - Create an app-level token (`xapp-`) with the `connections:write` scope and enable Socket Mode in the app settings
+  - `const app = new App({ token: process.env.SLACK_BOT_TOKEN, appToken: process.env.SLACK_APP_TOKEN, socketMode: true })`, then `await app.start()`
+  - Apps using Socket Mode cannot be published in the Slack Marketplace
+- **HTTP mode** (for Marketplace/distributed apps): needs a public HTTPS URL for events, commands and interactivity (a tunnel such as ngrok works for dev)
+  - `const app = new App({ token: process.env.SLACK_BOT_TOKEN, signingSecret: process.env.SLACK_SIGNING_SECRET })`
+  - `await app.start(3000)`
 
 ### 6. Deployment
 
@@ -134,13 +155,9 @@ Use https://app.slack.com/block-kit-builder for visual design.
 
 ### 7. Rate Limits
 
-Slack API rate limits:
-- **Tier 1** (chat.postMessage): ~1 req/sec per workspace
-- **Tier 2** (conversations.list): ~20 req/min
-- **Tier 3** (users.list): ~50 req/min
-- **Tier 4** (admin endpoints): varies
+Web API methods sit in tiers: Tier 1 is 1+ requests/min, Tier 2 20+/min, Tier 3 50+/min, Tier 4 100+/min (per method, per workspace and app). `chat.postMessage` is a special case: about 1 message per second per channel, with short bursts tolerated. Since 29 May 2025, new commercially distributed apps that are not Marketplace-approved get a much stricter limit on `conversations.history` and `conversations.replies` (1 request/min); check each method's page for its tier.
 
-Handle 429 responses with exponential backoff. The Bolt framework handles basic retry logic.
+On HTTP 429, wait for the number of seconds in the `Retry-After` header before retrying. The Node `WebClient` queues and retries rate-limited calls on its own; in Python add `RateLimitErrorRetryHandler` to the client.
 
 ## Examples
 
@@ -160,7 +177,7 @@ Handle 429 responses with exponential backoff. The Bolt framework handles basic 
 
 **Output:** A Bolt.js app with:
 - HTTP endpoint receiving PagerDuty webhook payloads
-- Auto-creates `#incident-{date}-{title}` channel
+- Auto-creates `#incident-{date}-{title}` channel (needs `channels:manage` and `pins:write`)
 - Posts incident details with severity-colored sidebar
 - Pins runbook links based on service name lookup
 - Adds on-call responders to channel automatically

@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.10+. Requires a message queue (Redis, RabbitMQ, or SQS)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["webhooks", "retry-logic", "event-driven", "idempotency"]
 ---
@@ -39,7 +39,8 @@ const webhookQueue = new Queue("webhooks", {
 });
 
 app.post("/webhooks/:source", async (req, res) => {
-  const signature = req.headers["x-signature-256"] as string;
+  // GitHub's header; other providers name theirs differently, so check their docs.
+  const signature = req.headers["x-hub-signature-256"] as string | undefined;
   const idempotencyKey =
     req.headers["x-idempotency-key"] ||
     crypto.createHash("sha256").update(req.body).digest("hex");
@@ -65,25 +66,24 @@ app.post("/webhooks/:source", async (req, res) => {
 ```
 
 ### 2. Verify webhook signatures
-Always validate the signature before processing. Each provider uses different schemes:
+Always validate the signature before processing, over the raw request bytes (the `express.raw` middleware above keeps them intact). GitHub sends `X-Hub-Signature-256: sha256=<hex HMAC of the body>`. Each provider uses its own header and format:
 
 ```typescript
 function verifySignature(
   payload: string,
-  signature: string,
+  signature: string | undefined,
   secret: string,
   scheme: "hmac-sha256" | "hmac-sha1"
 ): boolean {
+  if (!signature) return false;
   const algo = scheme === "hmac-sha256" ? "sha256" : "sha1";
-  const expected = crypto
-    .createHmac(algo, secret)
-    .update(payload, "utf8")
-    .digest("hex");
   const prefix = scheme === "hmac-sha256" ? "sha256=" : "sha1=";
-  return crypto.timingSafeEqual(
-    Buffer.from(prefix + expected),
-    Buffer.from(signature)
+  const expected = Buffer.from(
+    prefix + crypto.createHmac(algo, secret).update(payload, "utf8").digest("hex")
   );
+  const received = Buffer.from(signature);
+  // timingSafeEqual throws when the lengths differ, so compare lengths first
+  return received.length === expected.length && crypto.timingSafeEqual(expected, received);
 }
 ```
 
@@ -91,7 +91,7 @@ function verifySignature(
 Process jobs from the queue. Failed jobs retry with exponential backoff. After all retries exhaust, move to a dead letter queue.
 
 ```typescript
-import { Worker } from "bullmq";
+import { Worker, UnrecoverableError } from "bullmq";
 
 const worker = new Worker(
   "webhooks",
@@ -99,7 +99,8 @@ const worker = new Worker(
     const { source, payload, signature } = job.data;
     const secret = getSecretForSource(source);
     if (!verifySignature(payload, signature, secret, "hmac-sha256")) {
-      throw new Error("Invalid webhook signature — will not retry");
+      // A plain Error would be retried with backoff; UnrecoverableError fails the job at once.
+      throw new UnrecoverableError("Invalid webhook signature");
     }
     const event = JSON.parse(payload);
     await routeEvent(source, event);
@@ -138,7 +139,7 @@ async function isProcessed(key: string): Promise<boolean> {
 
 **Agent output:**
 - Creates `src/webhooks/payment-handler.ts` with signature verification using the provider's signing secret
-- Creates `src/workers/payment-worker.ts` with BullMQ retry config (5 attempts, 3s/9s/27s/81s/243s backoff)
+- Creates `src/workers/payment-worker.ts` with BullMQ retry config (5 attempts, exponential backoff with a 3000 ms base: waits of 3 s, 6 s, 12 s, 24 s, since BullMQ waits `2^(attempts-1) × delay`)
 - Creates `src/utils/dead-letter.ts` that stores failed events in a `dead_letters` database table
 - Adds integration test that simulates an invalid signature and verifies rejection
 
@@ -155,7 +156,7 @@ async function isProcessed(key: string): Promise<boolean> {
 
 - **Always return 200 immediately** — process asynchronously. Webhook senders timeout after 5-30 seconds and will retry, causing duplicates.
 - **Use `crypto.timingSafeEqual`** for signature comparison to prevent timing attacks.
-- **Set idempotency key TTL** to at least 24 hours — most providers retry for up to 72 hours.
+- **Set idempotency key TTL** to at least as long as the provider's retry window, which each provider documents. Check it before picking a TTL.
 - **Monitor your dead letter queue** — set up alerts when it grows beyond a threshold.
 - **Log the raw payload** before processing — invaluable for debugging malformed events.
 - **Rate limit your worker** to avoid overwhelming downstream services during webhook storms.

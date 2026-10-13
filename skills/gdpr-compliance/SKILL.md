@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Any web stack. Examples use Node.js/Prisma but patterns apply to any framework."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["gdpr", "privacy", "compliance", "data-protection"]
 ---
@@ -63,12 +63,13 @@ Implement three endpoints:
 - Return as JSON with a clear structure. Optionally offer CSV.
 - Redact any third-party secrets or internal IDs that are not user data.
 
-**Data Deletion (Right to Erasure):**
-- Do NOT immediately delete. Use a 30-day cooling-off queue.
+**Data Deletion (Right to Erasure, Article 17):**
+- Do NOT immediately delete. Use a cooling-off queue (30 days is a product choice, not a legal requirement).
 - Send confirmation email with a cancel link.
-- After 30 days, either anonymize (replace PII with hashed/null values) or hard-delete.
+- The controller must act on a request "without undue delay and in any event within one month of receipt" (Article 12(3)), extendable by two months only with notice. A 30-day cooling-off uses most of that month, so schedule the erasure to finish inside it, or document the extension.
+- After the cooling-off, either erase or irreversibly anonymize. Replacing an email with a hash does NOT anonymize it: pseudonymised data remains personal data (Recital 26). Overwrite PII with random tombstone values or null.
 - Cascade to: logs (redact), sessions (delete), third-party (trigger deletion APIs where available).
-- Keep anonymized records for aggregate analytics if needed.
+- Keep data only where Article 17(3) applies, such as a legal obligation or defence of legal claims; anonymized aggregates may be kept for analytics.
 
 **Consent History:**
 - Return all consent records for the user, ordered by date.
@@ -80,7 +81,7 @@ Implement three endpoints:
    - Session data: 90 days
    - IP addresses: 30 days (anonymize by zeroing last octet)
    - Soft-deleted accounts: 30 days then hard delete
-   - Audit logs: 1 year (legal requirement)
+   - Audit logs: 1 year (a design choice; keep longer only where a legal obligation or legal claim requires it, Article 17(3)(b) and (e))
    - Marketing data: until consent withdrawn
 2. Build a scheduled job that runs daily and enforces these policies.
 3. Always implement dry-run mode first: log what would be affected without deleting.
@@ -131,31 +132,47 @@ Recommendations:
 
 **Output:**
 ```js
+import crypto from 'node:crypto';
+
+const COOLING_OFF_MS = 30 * 24 * 60 * 60 * 1000;
+
 async function handleDeletionRequest(userId) {
-  // 1. Create deletion request record
+  // 1. Store only a hash of the cancel token; the raw token goes in the email
+  const token = crypto.randomBytes(32).toString('base64url');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
   await db.deletionRequest.create({
-    data: { userId, status: 'pending', expiresAt: addDays(new Date(), 30) }
+    data: { userId, tokenHash, status: 'pending', expiresAt: new Date(Date.now() + COOLING_OFF_MS) }
   });
 
   // 2. Send confirmation email with cancel link
   await emailService.send(userId, 'deletion-confirmation', {
-    cancelUrl: `${BASE_URL}/api/privacy/cancel-deletion?token=${token}`
+    cancelUrl: `${process.env.APP_BASE_URL}/privacy/cancel-deletion?token=${token}`
   });
+}
 
-  // 3. After 30 days (triggered by cron job):
-  // await db.user.update({ where: { id: userId }, data: {
-  //   email: `deleted-${hash}@anonymized.local`,
-  //   name: 'Deleted User', phone: null
-  // }});
-  // await db.session.deleteMany({ where: { userId } });
-  // await analyticsService.deleteUser(userId);
+// 3. Run daily from a cron job for requests past expiresAt and still pending
+async function executeDueDeletions() {
+  const due = await db.deletionRequest.findMany({
+    where: { status: 'pending', expiresAt: { lte: new Date() } }
+  });
+  for (const req of due) {
+    await db.user.update({ where: { id: req.userId }, data: {
+      email: `erased+${crypto.randomUUID()}@invalid.example`, // random tombstone, not a hash
+      name: 'Deleted User', phone: null
+    }});
+    await db.session.deleteMany({ where: { userId: req.userId } });
+    await analyticsService.deleteUser(req.userId);
+    await db.deletionRequest.update({ where: { id: req.id }, data: { status: 'completed' } });
+  }
 }
 ```
+
+Keep the `deletionRequest` rows (status, timestamps, no PII) as the DSR log. Only raw tokens belong in the email; the database stores the hash.
 
 ## Guidelines
 
 - **GDPR compliance is not just technical.** Always recommend the client consult a legal professional for their specific jurisdiction.
 - **Default to opt-out.** In the EU, analytics and marketing require explicit opt-in. Never pre-check consent boxes.
 - **Anonymize over delete when possible.** Anonymized data is no longer personal data and can be kept for analytics.
-- **Log every DSR.** Regulators may ask for proof that requests were handled within the 30-day deadline.
+- **Log every DSR.** Regulators may ask for proof that requests were handled within one month of receipt (Article 12(3)), and any extension notified within that first month.
 - **Test deletion cascades thoroughly.** Missing a single table or third-party integration means non-compliance.

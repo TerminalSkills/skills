@@ -1,9 +1,9 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:9929479ef3f65df292a190ed2a1a7aa4fe896d6622c8ee503c303fc16eb4475f",
-  "scoredAt": "2026-05-13T10:02:43.778Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:b84dfd84079f3f255812210f03417a215364be5e009339697874c47312529e1b",
+  "scoredAt": "2026-10-13T15:59:11.066Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions lack explicit error handling for data loading and processing, leaving edge cases unaddressed."
+        "detail": "Instructions do not cover error handling or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment with specific libraries, limiting compatibility with non-Python agents."
+        "detail": "Skill is specific to Python environment and may not work with other AI agent platforms."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 95,
-    "multiplier": 4.13,
+    "multiplier": 1.87,
+    "baselineAvg": 47,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Weekly engineering status report from raw notes",
-        "baseline": 20,
+        "name": "generate-data-report-pdf",
+        "baseline": 35,
         "treatment": 95,
-        "rationale": "Baseline wrote free-form prose with no template structure; treatment hit every section of the skill's template — Summary, Completed, In Progress table, Blockers, Metrics table with This Week/Last Week/Trend, Next Week Plan — and surfaced the blocker honestly with the velocity drop quantified."
+        "rationale": "Response B fulfills every rubric requirement, while Response A omits key steps such as total orders, base64 conversion, Jinja2 templating, and WeasyPrint PDF generation."
       },
       {
-        "name": "Self-contained HTML sales report from CSV",
-        "baseline": 25,
+        "name": "write-weekly-status-report",
+        "baseline": 20,
         "treatment": 95,
-        "rationale": "Baseline saved separate PNG files with no headless backend or embedding; treatment set matplotlib.use('Agg'), built the fig_to_base64 BytesIO helper, and rendered a single self-contained Jinja2 HTML with metric cards, embedded charts, and source/period metadata."
+        "rationale": "Response B fully meets the rubric with all required sections and a correctly formatted In Progress table, while Response A lacks the specified sections and table structure."
+      },
+      {
+        "name": "create-executive-summary",
+        "baseline": 85,
+        "treatment": 75,
+        "rationale": "Response A provides more detailed metrics and charts, though it lacks separate department narratives, whereas Response B offers a dashboard layout but fewer metrics."
       }
     ]
   }

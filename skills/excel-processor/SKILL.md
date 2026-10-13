@@ -6,12 +6,13 @@ description: >-
   tables, clean up data, convert between Excel and CSV, add formulas, filter
   rows, or generate reports from tabular data. Handles .xlsx, .xls, and .csv.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with openpyxl and pandas installed"
+compatibility: "Requires Python 3 with pandas 3.x and openpyxl; xlrd only for legacy .xls files"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["excel", "csv", "spreadsheet", "data", "pandas"]
+  repository: https://github.com/pandas-dev/pandas
 ---
 
 # Excel Processor
@@ -29,8 +30,11 @@ When a user asks you to work with spreadsheets, Excel files, or CSV data, follow
 ```python
 import pandas as pd
 
-# For Excel files
+# For .xlsx files (openpyxl engine, the default)
 df = pd.read_excel("data.xlsx", sheet_name=0)  # or sheet_name="Sheet1"
+
+# For legacy .xls files, install xlrd (pip install xlrd) or pass engine="calamine"
+# df = pd.read_excel("legacy.xls", sheet_name=0, engine="calamine")
 
 # For CSV files
 df = pd.read_csv("data.csv")
@@ -89,7 +93,8 @@ pivot = df.pivot_table(
 ```python
 df["name"] = df["name"].str.strip().str.title()
 df["email"] = df["email"].str.lower()
-df["date"] = pd.to_datetime(df["date"], errors="coerce")
+# State the format: without it pandas guesses per value and warns
+df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d", errors="coerce")
 df = df.drop_duplicates(subset=["id"])
 df = df.dropna(subset=["required_field"])
 ```
@@ -97,7 +102,7 @@ df = df.dropna(subset=["required_field"])
 ### Step 4: Export results
 
 ```python
-# To Excel with formatting
+# To .xlsx (openpyxl writes the values; pandas does not apply cell styling)
 with pd.ExcelWriter("output.xlsx", engine="openpyxl") as writer:
     df.to_excel(writer, sheet_name="Data", index=False)
     summary.to_excel(writer, sheet_name="Summary", index=False)
@@ -162,7 +167,9 @@ Saved to sales_summary.xlsx
 ## Guidelines
 
 - Always show data shape and column names after loading so the user can verify correctness.
-- When dealing with dates, explicitly parse them with `pd.to_datetime()` and specify the format when ambiguous (e.g., is 01/02/03 Jan 2 or Feb 1?).
+- When dealing with dates, explicitly parse them with `pd.to_datetime()` and specify the format when ambiguous (e.g., is 01/02/03 Jan 2 or Feb 1?). Without `format=`, pandas 3 parses each value separately and emits a "Could not infer format" warning, which is slower and can silently mix day-first and month-first dates.
+- `.xls` (Excel 97-2003) needs `xlrd` or `engine="calamine"`; `.xlsx` needs `openpyxl`. A `sheet_name` that does not exist raises `ValueError: Worksheet named ... not found`.
+- Excel rows are capped at 1,048,576 per sheet; split larger exports across sheets or CSV files.
 - For large files (100k+ rows), warn about memory and suggest chunked processing.
 - Preserve original files. Write output to new files unless the user explicitly asks to overwrite.
 - When merging multiple files, check that column names match and report any discrepancies before proceeding.

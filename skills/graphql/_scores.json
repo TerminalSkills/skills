@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5a1f67256798ee569f9c8d3550bdb2348662b55c35862170578350132ab8e815",
-  "scoredAt": "2026-05-13T09:10:04.007Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b07e4b6d161bbfc64e6f9356b1e61d1bc9d9acb710442e618c7493bc0d1d3dec",
+  "scoredAt": "2026-10-13T12:06:34.985Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,17 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover all possible error scenarios such as invalid input or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The instructions contain verbose explanations that could be trimmed for brevity."
+        "detail": "Description promises file uploads and REST-to-GraphQL migration guidance, but Instructions section omits these features entirely."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is tailored to Node.js environments and does not support other platforms."
+        "detail": "Claims Python 3.9+ (Strawberry, Ariadne) compatibility in header but provides zero Python examples, setup instructions, or code—only JavaScript/Apollo examples."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 97,
-    "multiplier": 2.43,
+    "multiplier": 1.36,
+    "baselineAvg": 47,
+    "treatmentAvg": 64,
     "scenarios": [
       {
-        "name": "blog-api-cursor-pagination",
-        "baseline": 25,
-        "treatment": 96,
-        "rationale": "Treatment uses Relay-style PostConnection/PostEdge/PageInfo with base64-encoded id cursors and throws GraphQLError with extensions.code UNAUTHENTICATED; baseline invents a flat PostFeed shape, uses raw ids as cursors, and throws a generic Error."
+        "name": "authenticated-blog-api-with-batching",
+        "baseline": 62,
+        "treatment": 85,
+        "rationale": "Response A includes the required CreatePostInput type and createPost mutation as specified; Response B omits CreatePostInput entirely and uses inline mutation arguments instead. Both fail to use GraphQLError with UNAUTHENTICATED code (both throw generic Error), but Response A meets 3.5/4 rubric items while Response B meets only 2.5/4. Response B's additional features (signup, login, MongoDB) are not in the rubric and don't offset the missing CreatePostInput requirement."
       },
       {
-        "name": "dataloader-n-plus-1",
-        "baseline": 55,
-        "treatment": 97,
-        "rationale": "Treatment builds a Map then remaps ids to preserve input order, exposes the loader via dataSources in context, and calls it from Post.author; baseline uses DataLoader but acknowledges ordering is unreliable and never fixes it."
+        "name": "realtime-post-notifications",
+        "baseline": 50,
+        "treatment": 28,
+        "rationale": "Response A has correct, working GraphQL subscription code (asyncIterator method, proper WebSocketServer/useServer setup) but uses wrong field/event names (postPublished vs postCreated) and includes an irrelevant Socket.IO section; Response B has better documentation and client setup but contains a critical runtime error (asyncIterableIterator does not exist in graphql-subscriptions—should be asyncIterator) that breaks the entire subscription resolver."
+      },
+      {
+        "name": "cursor-pagination-react-feed",
+        "baseline": 28,
+        "treatment": 78,
+        "rationale": "Response A implements cursor pagination correctly but uses REST/fetch instead of GraphQL/Apollo Client, so it fails the rubric's core requirements (no PostConnection schema, no useQuery, no fetchMore, no Apollo initialization). Response B directly addresses all rubric elements: defines the GraphQL schema with PostConnection/edges/pageInfo structure, uses useQuery and fetchMore with endCursor, and mentions base64 encoding—though it lacks explicit Apollo Client initialization with HttpLink/InMemoryCache (typically at app root) and doesn't show base64 encoding implementation details."
       }
     ]
   }

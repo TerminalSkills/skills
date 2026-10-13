@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Works with exported data from Sentry, Datadog, Rollbar, or any JSON/CSV error log"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["error-monitoring", "sentry", "observability", "debugging", "triage"]
 ---
@@ -26,7 +26,30 @@ When the user provides error data (JSON export, CSV, or pasted logs), follow thi
 
 ### 1. Parse and Normalize
 
-- Accept Sentry JSON exports, Datadog event logs, generic JSON arrays, or CSV files
+- Accept these inputs, whichever the user has:
+  - **Sentry**: there is no native JSON issue export in the UI. Pull issues with the Organization Issues API, `GET https://sentry.io/api/0/organizations/{org}/issues/` (Bearer token with `event:read` scope; `query`, `statsPeriod`, `sort`, `project`, `limit` up to 100, `cursor` pagination; the next cursor is in the response headers). The project-level `/projects/{org}/{project}/issues/` endpoint is deprecated. Discover CSV downloads also work.
+  - **Datadog**: Log Explorer CSV export (up to 100,000 individual logs per export; values are sanitized for spreadsheets) or the Logs API (at most 1,000 logs per request, so paginate).
+  - **Rollbar**: occurrences via `GET /api/1/item/{item_id}/instances` with a read access token in the `X-Rollbar-Access-Token` header (`limit` up to 5000, `last_id` for the next page). Use the same item endpoints the Rollbar "download items" guide describes.
+  - Generic JSON arrays or CSV files
+- Never ask the user to paste API tokens into the chat; read them from an environment variable such as `SENTRY_AUTH_TOKEN` and never echo them into reports
+
+Example request for the last 14 days of unresolved Sentry issues, saved to a file:
+
+```bash
+curl -s -D sentry-headers.txt \
+  -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+  "https://sentry.io/api/0/organizations/brightcart/issues/?statsPeriod=14d&sort=freq&limit=100&query=is:unresolved" \
+  -o sentry-issues-page1.json
+grep -i '^link:' sentry-headers.txt   # cursor for the next page
+```
+
+Rollbar occurrences for one item, using a read-scoped project token:
+
+```bash
+curl -s -H "X-Rollbar-Access-Token: $ROLLBAR_READ_TOKEN" \
+  "https://api.rollbar.com/api/1/item/1184207311/instances?limit=500" \
+  -o rollbar-item-1184207311.json
+```
 - Extract key fields: error message, stack trace (top frame), timestamp, occurrence count, status, affected users
 - Normalize error messages by stripping variable parts (IDs, timestamps, file paths) to find true duplicates
 

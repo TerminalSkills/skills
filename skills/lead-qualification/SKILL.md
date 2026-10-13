@@ -6,10 +6,10 @@ description: >-
   quality, rank leads by fit, assess sales pipeline, or determine which leads to
   pursue first. Supports BANT, MEDDIC, and custom scoring frameworks.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with pandas for data processing"
+compatibility: "Requires Python 3.11+ with pandas 3 (and openpyxl for .xlsx input)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["sales", "leads", "qualification", "scoring", "pipeline"]
   use-cases:
@@ -79,60 +79,58 @@ Key fields to look for or request:
 
 ### Step 3: Score each lead
 
+Match keywords as whole words. Plain substring tests misfire: `'cto' in 'contractor'` is true, and `'3 month' in '13 months'` is true.
+
 ```python
+import re
+
+def has(text, words):
+    return re.search(r"\b(?:" + "|".join(re.escape(w) for w in words) + r")\b", text, re.I) is not None
+
 def score_lead_bant(lead):
-    score = 0
-    reasons = []
+    score, reasons = 0, []
 
     # Budget (30 points)
-    budget = str(lead.get('budget', '')).lower()
-    if budget in ['yes', 'confirmed', 'approved']:
-        score += 30
-        reasons.append("Budget confirmed")
-    elif budget in ['exploring', 'pending', 'maybe']:
-        score += 15
-        reasons.append("Budget being explored")
+    budget = str(lead.get("budget", "")).lower()
+    if budget in ["yes", "confirmed", "approved"]:
+        score += 30; reasons.append("Budget confirmed")
+    elif budget in ["exploring", "pending", "maybe"]:
+        score += 15; reasons.append("Budget being explored")
     else:
         reasons.append("No budget information")
 
     # Authority (25 points)
-    title = str(lead.get('title', '')).lower()
-    if any(t in title for t in ['ceo', 'cto', 'cfo', 'vp', 'director', 'head of', 'owner']):
-        score += 25
-        reasons.append("Decision maker")
-    elif any(t in title for t in ['manager', 'lead', 'senior']):
-        score += 15
-        reasons.append("Influencer role")
+    title = str(lead.get("title", ""))
+    if has(title, ["ceo", "cto", "cfo", "coo", "founder", "owner", "vp", "svp", "evp", "vice president", "director", "head of"]):
+        score += 25; reasons.append("Decision maker")
+    elif has(title, ["manager", "lead", "senior", "principal"]):
+        score += 15; reasons.append("Influencer role")
     else:
-        score += 5
-        reasons.append("Researcher / early stage")
+        score += 5; reasons.append("Researcher / early stage")
 
     # Need (25 points)
-    need = str(lead.get('need', lead.get('pain_point', ''))).lower()
-    if any(n in need for n in ['urgent', 'critical', 'immediate', 'asap']):
-        score += 25
-        reasons.append("Urgent need identified")
-    elif need and need not in ['none', 'no', '']:
-        score += 15
-        reasons.append("Need acknowledged")
+    need = str(lead.get("need", lead.get("pain_point", ""))).strip().lower()
+    if has(need, ["urgent", "critical", "immediate", "asap"]):
+        score += 25; reasons.append("Urgent need identified")
+    elif need and need not in ["none", "no", "nan"]:
+        score += 15; reasons.append("Need acknowledged")
     else:
-        score += 5
-        reasons.append("Need unclear")
+        score += 5; reasons.append("Need unclear")
 
     # Timeline (20 points)
-    timeline = str(lead.get('timeline', '')).lower()
-    if any(t in timeline for t in ['now', 'this month', 'asap', '1 month', '2 month', '3 month', 'q1']):
-        score += 20
-        reasons.append("Near-term timeline")
-    elif any(t in timeline for t in ['quarter', '6 month', 'this year']):
-        score += 10
-        reasons.append("Medium-term timeline")
+    timeline = str(lead.get("timeline", "")).lower()
+    months = re.search(r"\b(\d+)\s*(?:-\s*\d+\s*)?months?\b", timeline)  # "3 months", "4-6 months"
+    if has(timeline, ["now", "asap", "this month", "this quarter"]) or (months and int(months.group(1)) <= 3):
+        score += 20; reasons.append("Near-term timeline")
+    elif has(timeline, ["next quarter", "this year"]) or (months and int(months.group(1)) <= 6):
+        score += 10; reasons.append("Medium-term timeline")
     else:
-        score += 5
-        reasons.append("No clear timeline")
+        score += 5; reasons.append("No clear timeline")
 
     return score, reasons
 ```
+
+**MEDDIC** (for larger, multi-stakeholder deals) scores six questions instead: Metrics (the quantified business result), Economic buyer (who signs), Decision criteria, Decision process, Identify pain, Champion (an internal advocate). Many teams add a seventh C for Competition (MEDDICC). Give each a 0-2 rating (unknown, partial, confirmed) and rank by the total; unanswered questions are the next discovery-call agenda.
 
 ### Step 4: Classify and rank leads
 
@@ -152,14 +150,18 @@ def classify_lead(score):
 
 ### Step 5: Generate the qualification report
 
-Output a ranked list with scores, tiers, and recommended actions:
+Output a ranked list with scores, tiers, reasons, and recommended actions:
 
 ```python
-def generate_report(scored_leads, output_path="qualified_leads.csv"):
-    df = pd.DataFrame(scored_leads)
-    df = df.sort_values('score', ascending=False)
-    df.to_csv(output_path, index=False)
-    return df
+def qualify(df, output_path="qualified_leads.csv"):
+    rows = []
+    for lead in df.to_dict("records"):
+        score, reasons = score_lead_bant(lead)
+        tier, action = classify_lead(score)
+        rows.append({**lead, "score": score, "tier": tier, "action": action, "reasons": "; ".join(reasons)})
+    ranked = pd.DataFrame(rows).sort_values("score", ascending=False)
+    ranked.to_csv(output_path, index=False)
+    return ranked
 ```
 
 ## Examples
@@ -237,7 +239,7 @@ Weak Fit (consider deprioritizing):
 
 **Output:**
 ```
-Pipeline Quality Analysis: Q1 2025
+Pipeline Quality Analysis: Q4 2026
 ====================================
 Total opportunities: 50
 Total pipeline value: $2.4M
@@ -249,11 +251,13 @@ Quality Distribution:
   Stalled (no activity 30+ days):   6 deals ($260K)
 
 Recommended Focus (Top 10):
-  [Ranked list of 10 deals with scores and specific next steps]
+  1. Northwind Logistics - $120K - score 92 - sign-off meeting with CFO booked for Nov 4
+  2. Brightline Health - $85K - score 88 - security review pending, send SOC 2 report
+  (8 more, each with score and next step)
 
 Stalled Deals Requiring Attention:
-  - Deal X: No contact in 45 days, re-engage or close out
-  - Deal Y: Champion left company, identify new sponsor
+  - Harbor Freight Systems ($60K): no contact in 45 days, re-engage or close out
+  - Lumen Analytics ($45K): champion left the company, identify a new sponsor
 
 Quarterly Forecast:
   Best case:   $820K (high quality deals)
@@ -271,4 +275,6 @@ Quarterly Forecast:
 - For pipeline analysis, flag stalled deals (no activity in 30+ days) as a separate category.
 - Scoring weights should be configurable. Use the defaults but adjust if the user specifies different priorities.
 - Never present raw scores without context. Always include the tier classification and a recommended action.
-- Install pandas with `pip install pandas` if not available.
+- Install in a virtual environment: `python -m venv .venv && .venv/bin/pip install pandas openpyxl` (pandas 3 needs Python 3.11+).
+- Lead data is personal data (names, work emails): keep exports out of shared folders and version control, and do not send it to third-party enrichment tools without the user's approval.
+- Scores rank leads; they do not predict closing. Revisit the weights after comparing scores with real won/lost outcomes.

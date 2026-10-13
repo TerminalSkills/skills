@@ -6,11 +6,12 @@ description: >-
   PDF into pages, extract pages from a PDF, or separate a PDF into parts.
   Supports page range selection and custom ordering.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with PyPDF2 or pikepdf installed"
+compatibility: "Requires Python 3.9+ with pypdf (pip install pypdf); pikepdf optional"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: documents
+  repository: https://github.com/py-pdf/pypdf
   tags: ["pdf", "merge", "split", "combine", "pages"]
   use-cases:
     - "Merge multiple report PDFs into a single document for distribution"
@@ -23,7 +24,7 @@ metadata:
 
 ## Overview
 
-Combine multiple PDF files into a single document or split a PDF into separate files by page ranges. This skill handles merging in a specified order, splitting by page numbers, extracting specific pages, and preserving bookmarks and metadata where possible.
+Combine multiple PDF files into a single document or split a PDF into separate files by page ranges. This skill handles merging in a specified order, splitting by page numbers, extracting specific pages, and adding bookmarks per merged file, and dealing with encrypted input. It uses `pypdf`, the maintained successor of PyPDF2 (PyPDF2 is no longer developed and its `PdfMerger` is gone from pypdf).
 
 ## Instructions
 
@@ -43,7 +44,7 @@ Check that all input files exist and are valid PDFs:
 
 ```python
 import os
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 
 def validate_pdfs(file_paths):
     results = []
@@ -68,21 +69,24 @@ def validate_pdfs(file_paths):
 **For merging:**
 
 ```python
-from PyPDF2 import PdfMerger
+from pypdf import PdfWriter
 
 def merge_pdfs(input_paths, output_path):
-    merger = PdfMerger()
+    writer = PdfWriter()
     for path in input_paths:
-        merger.append(path)
-    merger.write(output_path)
-    merger.close()
+        # outline_item adds a bookmark named after the file
+        writer.append(path, outline_item=os.path.splitext(os.path.basename(path))[0])
+    writer.write(output_path)
+    writer.close()
     return output_path
 ```
+
+`writer.append(path, pages=(0, 3))` takes only pages 1-3 (0-based, end exclusive) and `pages=[0, 4, 8]` takes those pages. A merged document keeps the pages' content and links, but form fields with the same name across files can clash.
 
 **For splitting by page ranges:**
 
 ```python
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 
 def split_pdf(input_path, ranges, output_dir="."):
     reader = PdfReader(input_path)
@@ -185,7 +189,8 @@ Output: extracted_pages.pdf (7 pages, 540 KB)
 - Preserve the original files. Never modify input PDFs in place.
 - When merging, respect the order specified by the user. If no order is given, use alphabetical.
 - Use 1-based page numbering in all user-facing output to match what users see in PDF viewers.
-- For encrypted PDFs, inform the user that a password is needed before processing.
+- For encrypted PDFs, `len(reader.pages)` raises `FileNotDecryptedError` until `reader.decrypt(password)` succeeds. Ask the user for the password; never try to guess or crack one.
 - When splitting, create descriptive filenames that include page ranges.
 - Report file sizes alongside page counts so the user knows the output scale.
-- Install PyPDF2 with `pip install PyPDF2` if not available. For advanced features like preserving form fields, use pikepdf instead.
+- Install with `pip install pypdf`. Do not use the abandoned `PyPDF2` package in new code. For damaged files or heavy rewriting, `pikepdf` (`pdf.pages.extend(src.pages)`) is a sturdier alternative.
+- For a quick merge without Python, poppler-utils has `pdfunite a.pdf b.pdf out.pdf` and `pdfseparate -f 1 -l 3 in.pdf page-%d.pdf` (one file per page).

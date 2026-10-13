@@ -8,10 +8,10 @@ description: >-
   Trigger words: cache, Redis, Memcached, TTL, cache invalidation, response time,
   throughput, rate limiting.
 license: Apache-2.0
-compatibility: "Redis 7+ or Memcached 1.6+. Node.js 18+ or Python 3.10+."
+compatibility: "Redis 7+ or 8.x, or Memcached 1.6+. Node.js 20+ (ioredis 6) or Python 3.10+."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["caching", "redis", "performance", "api-optimization"]
 ---
@@ -40,8 +40,10 @@ Before adding caching, identify what to cache by examining query patterns:
 The application checks cache first, falls back to database, then populates cache:
 
 ```typescript
-import Redis from "ioredis";
+import { Redis } from "ioredis"; // ioredis 6: named import is the documented TypeScript form
 
+// ioredis queues commands while disconnected; maxRetriesPerRequest makes them fail
+// fast so a Redis outage falls through to the database instead of hanging requests.
 const redis = new Redis({ host: "localhost", port: 6379, maxRetriesPerRequest: 3 });
 
 async function getCached<T>(
@@ -49,11 +51,17 @@ async function getCached<T>(
   fetcher: () => Promise<T>,
   ttlSeconds: number = 300
 ): Promise<T> {
-  const cached = await redis.get(key);
-  if (cached) return JSON.parse(cached);
+  try {
+    const cached = await redis.get(key);
+    if (cached) return JSON.parse(cached);
+  } catch (err) {
+    console.warn(`cache read failed for ${key}, going to the database`, err);
+    return fetcher();
+  }
 
   const data = await fetcher();
-  await redis.set(key, JSON.stringify(data), "EX", ttlSeconds);
+  // A failed write must not fail the request; the next read simply misses again.
+  await redis.set(key, JSON.stringify(data), "EX", ttlSeconds).catch(() => undefined);
   return data;
 }
 

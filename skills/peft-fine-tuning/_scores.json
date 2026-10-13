@@ -1,53 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1c9573535ee5bb0c7d37fca09fa184d88866b183ddaed1ec64ecde8c9562a68c",
-  "scoredAt": "2026-05-13T09:49:28.046Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:715d6f22acaaa51e00a7872861a7bac768219b31928015540e0350487397e69f",
+  "scoredAt": "2026-10-13T13:04:25.930Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as insufficient VRAM or missing GPU."
+        "detail": "Missing error handling and debugging guidance for common training failures (OOM errors, convergence problems, divergence) and evaluation beyond eval_loss metrics."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Tightly coupled to Hugging Face ecosystem (transformers, PEFT, TRL libraries); NVIDIA GPU with CUDA is a hard requirement with only secondary mention of GGUF export for portability."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Pip install commands lack checksum verification, potentially exposing to malicious package tampering."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 88,
-    "multiplier": 1.83,
+    "multiplier": 2.11,
+    "baselineAvg": 46,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "QLoRA fine-tune Llama 3.1 8B for customer-support on a 12 GB GPU",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment uses BitsAndBytesConfig with load_in_4bit + nf4 + bnb_4bit_use_double_quant, LoraConfig r=16 alpha=32 targeting all 7 linear projections, and SFTTrainer with cosine scheduler + 3% warmup; baseline picks LoRA without 4-bit quant and targets only q_proj/v_proj."
+        "name": "qlora-on-limited-vram",
+        "baseline": 32,
+        "treatment": 100,
+        "rationale": "Response A implements all three rubric requirements exactly: BitsAndBytesConfig with load_in_4bit=True and nf4, quantization_config and device_map in model_init_kwargs, and SFTConfig with per_device_train_batch_size=2 and gradient_checkpointing=True. Response B configures BitsAndBytesConfig correctly but fails the other two: it passes quantization_config/device_map directly to from_pretrained (not in model_init_kwargs), uses standard Trainer/TrainingArguments instead of SFTTrainer/SFTConfig, sets per_device_train_batch_size=4 (exceeds ≤2 requirement), and omits gradient_checkpointing entirely."
       },
       {
-        "name": "Merge a trained LoRA adapter and export weights for downstream inference",
+        "name": "conversational-assistant-only-loss",
         "baseline": 45,
-        "treatment": 86,
-        "rationale": "Treatment loads PeftModel.from_pretrained on the base model, calls merge_and_unload, saves with save_pretrained, and copies the tokenizer; baseline saves the adapter separately and omits merge_and_unload or tokenizer copy."
+        "treatment": 98,
+        "rationale": "Response B directly implements all three rubric requirements (assistant_only_loss=True, messages format, LoraConfig with task_type=CAUSAL_LM) with specific, runnable code; Response A shows conceptual mastery but omits the exact API parameters, never mentioning assistant_only_loss=True and only showing LoraConfig in a secondary 'manual' approach."
+      },
+      {
+        "name": "merge-and-export-gguf",
+        "baseline": 60,
+        "treatment": 92,
+        "rationale": "Response B meets all 5 rubric requirements exactly (16-bit dtype, PeftModel.from_pretrained, merge_and_unload, saved tokenizer, convert_hf_to_gguf.py), while Response A uses 'auto' precision instead of explicit 16-bit and substitutes convert.py instead of the specified convert_hf_to_gguf.py script."
       }
     ]
   }

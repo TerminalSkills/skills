@@ -8,10 +8,10 @@ description: >-
   Trigger words: load test, stress test, benchmark, RPS, concurrent users,
   breaking point, performance test, k6, wrk.
 license: Apache-2.0
-compatibility: "Requires k6, wrk, or autocannon installed; Node.js for autocannon"
+compatibility: "Requires k6 (v1.x or v2.x), wrk, or autocannon 8.x; Node.js for autocannon"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["load-testing", "performance", "api", "k6", "benchmarking"]
 ---
@@ -28,6 +28,10 @@ This skill generates realistic load test scripts from API definitions and execut
 
 Prefer k6 for complex scenarios (multi-step flows, thresholds, custom metrics). Use wrk for quick single-endpoint benchmarks. Use autocannon if only Node.js is available.
 
+- **k6**: the current release is v2.3.0 (v2.0.0 shipped 2026-05-11). Scripts written for v1 mostly still run, but v2 removed old commands: write `k6 cloud run script.js` (the `k6 cloud script.js` form is gone), use `--summary-mode=disabled` instead of `--no-summary`, and drop `executor: externally-controlled` along with `k6 pause`, `resume`, `scale` and `status`. Use `ramping-vus` or `constant-arrival-rate` instead.
+- **autocannon** (8.0.0): a Node.js benchmark with `-c` for connections and `-d` for duration in seconds. Example: `npx autocannon@8.0.0 -c 100 -d 60 "https://api.brightcart.io/api/search?q=laptop&page=1"`.
+- **wrk**: install it from your OS package manager (`brew install wrk` or `apt install wrk`). It is single-endpoint only and has no scripted multi-step flows without Lua. Its current release was not checked for this skill.
+
 Gather endpoint information from:
 - OpenAPI/Swagger spec files
 - Route definitions (Express, FastAPI, etc.)
@@ -36,7 +40,7 @@ Gather endpoint information from:
 ### Step 2: Generate Realistic Payloads
 
 Read request/response types from the codebase (TypeScript interfaces, Python dataclasses, Go structs) and generate payloads with:
-- Realistic field values (not "test123" or "foo")
+- Realistic field values (real-looking product names, SKUs and emails in the test domain, never dummy strings)
 - Proper data distributions (varied product IDs, realistic quantities)
 - Edge cases mixed in (long strings, special characters at ~5% rate)
 
@@ -105,14 +109,15 @@ Benchmark our /api/search endpoint handling 100 concurrent connections
 
 **Agent output:**
 ```bash
-# Quick benchmark with k6
+# Quick benchmark with k6 (the trailing "-" reads the script from stdin; tested on k6 v2.2.0)
 k6 run --vus 100 --duration 60s - <<'EOF'
 import http from 'k6/http';
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 
 export default function () {
-  const res = http.get('https://api.example.com/api/search?q=laptop&page=1');
+  const res = http.get('https://api.brightcart.io/api/search?q=laptop&page=1');
   check(res, { 'status 200': (r) => r.status === 200 });
+  sleep(1 + Math.random() * 2);
 }
 EOF
 ```
@@ -127,6 +132,8 @@ Results — /api/search @ 100 VUs for 60s
 Verdict: Endpoint handles 140 RPS at 100 VUs. p99 approaching 1s suggests
 database query optimization needed for sustained higher load.
 ```
+
+The figures above are an example of the report format, not a measurement.
 
 ### Example 2: Multi-Step Flow
 
@@ -146,8 +153,9 @@ Create a load test for our signup → login → create-project flow
 
 - **Never load test production without explicit confirmation** — always clarify the target environment
 - **Start low, ramp gradually** — sudden jumps make it hard to identify the exact breaking point
-- **Realistic think time** — add `sleep(1-3)` between requests to simulate real users; without it, you're testing throughput, not user concurrency
+- **Realistic think time** — add `sleep(1 + Math.random() * 2)` between requests to simulate real users (k6 `sleep` takes seconds); without it, you're testing throughput, not user concurrency
 - **Authentication matters** — many bottlenecks only appear with real auth flows (token validation, session lookups)
 - **Watch for connection reuse** — k6 reuses connections by default, which is realistic for browsers but not for serverless/mobile clients
 - **Rate limit awareness** — if the API has rate limiting, note it in the report; it's not a performance bottleneck, it's intentional
 - **Report infrastructure context** — always note the server specs, pod count, and database size alongside results
+- **Do not use real credentials in scripts** — read tokens from environment variables such as `BRIGHTCART_TEST_TOKEN` and keep them out of the report

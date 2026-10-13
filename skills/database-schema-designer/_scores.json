@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4c707450fa703f92b9ae3f56bab4bc28340b3ed31d33429ac46fd85b1380c9c4",
-  "scoredAt": "2026-05-13T16:22:50.207Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:3ffbf40dee7f45dc91a9cb0b475927b5b95418660623986215c697f7668e88fb",
+  "scoredAt": "2026-10-13T11:52:14.324Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases, focusing only on the happy path."
+        "detail": "Testing and validation examples are missing; guidelines mention testing RLS but provide no test cases or error scenario examples."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill relies on PostgreSQL-specific features like RLS and gen_random_uuid(), limiting cross-platform applicability."
+        "detail": "Most sophisticated features (RLS, policies, tenant isolation) are PostgreSQL-only; MySQL and SQLite users would find only basic table/index design applicable."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1,
-    "baselineAvg": 43,
-    "treatmentAvg": 43,
+    "multiplier": 1.43,
+    "baselineAvg": 58,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "multi-tenant-project-management-schema",
-        "baseline": 20,
-        "treatment": 0,
-        "rationale": "Response A partially meets some schema aspects but fails on UUID v7, updated_at, correct RLS variable, and idempotent migration syntax; Response B provides no content."
+        "name": "multi-tenant-rls-schema",
+        "baseline": 48,
+        "treatment": 72,
+        "rationale": "Response A correctly implements the secure RLS pattern with `current_setting('app.current_tenant_id', true)` and NULLIF (requirement 1), uses FOR ALL policies (requirement 2), and includes ON DELETE clauses (requirement 4), but several composite indexes lack tenant_id first or omit it entirely (requirement 3). Response B has a critical security failure: it omits both the `true` parameter and NULLIF from the RLS policies, allowing potential connection-pool leakage of tenant context; additionally, many composite indexes are missing from its design, though the one composite index (tenant_email) is correctly ordered."
       },
       {
-        "name": "add-tenant-isolation-to-orders",
-        "baseline": 65,
-        "treatment": 85,
-        "rationale": "Response A correctly adds NOT NULL tenant_id columns, enables RLS with the required session variable, creates indexes, and is largely idempotent, whereas Response B uses the wrong session variable name and defaults, missing the exact rubric requirement."
+        "name": "retrofit-rls-existing-tables",
+        "baseline": 55,
+        "treatment": 89,
+        "rationale": "Response A omits UPDATE statements to populate existing data and critically uses plain SET instead of set_config() in transactions—both explicit rubric requirements. Response B covers all rubric elements: ALTER TABLE for tenant_id, addresses UPDATE (via migration template), enables RLS, uses USING/WITH CHECK correctly, implements set_config() in proper transactions, and includes explicit admin bypass policies."
+      },
+      {
+        "name": "index-strategy-performance",
+        "baseline": 70,
+        "treatment": 88,
+        "rationale": "Response B addresses all four rubric criteria (FKs, composite indexes, partial indexes integrated into primary design, and tenant_id-first for multi-tenant) with practical examples; Response A covers three well but entirely omits multi-tenant consideration and treats partial indexes as optional refinement rather than primary design."
       }
     ]
   }

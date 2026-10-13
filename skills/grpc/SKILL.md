@@ -10,10 +10,10 @@ description: >-
   server/client/bidirectional streaming, interceptors, deadlines, metadata,
   reflection, and production patterns.
 license: Apache-2.0
-compatibility: 'Node.js 18+, Python 3.9+, or Go 1.21+ (grpc, protobuf)'
+compatibility: 'Node.js 18+, Python 3.9+, or a currently supported Go release (grpc, protobuf)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - grpc
@@ -27,7 +27,7 @@ metadata:
 
 ## Overview
 
-Build high-performance, strongly-typed RPC services using gRPC and Protocol Buffers. gRPC uses HTTP/2 for transport, protobuf for serialization (10x smaller than JSON, 5-10x faster parsing), and generates client/server code in 12+ languages. Ideal for microservice communication, real-time streaming, and performance-critical APIs.
+Build high-performance, strongly-typed RPC services using gRPC and Protocol Buffers. gRPC uses HTTP/2 for transport, protobuf for serialization (compact binary format, typically much smaller and faster to parse than JSON), and generates client/server code in 12+ languages. Ideal for microservice communication, real-time streaming, and performance-critical APIs.
 
 ## Instructions
 
@@ -40,6 +40,7 @@ apt install -y protobuf-compiler # Ubuntu/Debian
 
 # Node.js
 npm install @grpc/grpc-js @grpc/proto-loader
+npm install @grpc/reflection grpc-health-check   # optional: reflection + standard health service
 
 # Python
 pip install grpcio grpcio-tools grpcio-reflection grpcio-health-checking
@@ -47,7 +48,10 @@ pip install grpcio grpcio-tools grpcio-reflection grpcio-health-checking
 # Go
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+# make sure $(go env GOPATH)/bin is on PATH, or protoc cannot find the plugins
 ```
+
+Prefer [Buf](https://buf.build) (`buf generate`, `buf lint`, `buf breaking`) when a repo has many protos: it replaces long protoc command lines and catches breaking changes in CI.
 
 ### Step 2: Define Protocol Buffers
 
@@ -153,7 +157,11 @@ const userService = {
 
 const server = new grpc.Server();
 server.addService(proto.UserService.service, userService);
-server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {});
+// grpc-js 1.10+ starts serving once bound; server.start() is deprecated and not needed
+server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), (err, port) => {
+  if (err) throw err;
+  console.log(`gRPC listening on ${port}`);
+});
 ```
 
 ### Step 5: Client Implementation
@@ -171,8 +179,8 @@ stream.on('data', (event) => console.log('Event:', event));
 
 // Client streaming
 const batch = client.BatchCreateUsers((err, resp) => console.log(`Created: ${resp.created_count}`));
-batch.write({ email: 'alice@test.com', name: 'Alice' });
-batch.write({ email: 'bob@test.com', name: 'Bob' });
+batch.write({ email: 'alice.moreau@northwind.dev', name: 'Alice' });
+batch.write({ email: 'bob.keller@northwind.dev', name: 'Bob' });
 batch.end();
 ```
 
@@ -196,7 +204,7 @@ INTERNAL (13)          — Server error (like HTTP 500)
 ```bash
 brew install grpcurl
 grpcurl -plaintext localhost:50051 list
-grpcurl -plaintext -d '{"email": "alice@test.com", "name": "Alice"}' \
+grpcurl -plaintext -d '{"email": "alice.moreau@northwind.dev", "name": "Alice"}' \
   localhost:50051 userservice.v1.UserService/CreateUser
 ```
 
@@ -226,7 +234,8 @@ The agent will:
 2. **Never change field numbers** — add new fields, deprecate old ones with `reserved`
 3. **Use `FieldMask` for updates** — distinguishes "not sent" from "set to empty"
 4. **Always set deadlines** — unbound calls leak resources; 5-30s for most RPCs
-5. **Enable reflection in dev** — makes debugging with grpcurl/grpcui easy
+5. **Enable reflection in dev only** — `@grpc/reflection` (Node), `grpcio-reflection` (Python) make grpcurl/grpcui work without the .proto; do not expose it publicly in production
+11. **Use TLS outside localhost** — `createInsecure()` is for local development; use `grpc.ServerCredentials.createSsl(...)` or terminate TLS at the mesh
 6. **Health checks on every service** — standard gRPC health protocol for load balancers
 7. **Interceptors for cross-cutting concerns** — auth, logging, metrics, tracing
 8. **Use streaming sparingly** — unary RPCs are simpler to debug and load-balance

@@ -7,10 +7,11 @@ description: >-
   forms from a spreadsheet. Supports any document format including DOCX,
   PDF, HTML, and plain text.
 license: Apache-2.0
-compatibility: "Requires Python 3.8+ with docxtpl and Jinja2 for template filling"
+compatibility: "Requires Python 3.9+ with docxtpl (python-docx-template) and Jinja2; weasyprint for PDF output (needs Pango system libraries)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/elapouya/python-docx-template
   category: automation
   tags: ["template", "mail-merge", "documents", "automation", "generation"]
   use-cases:
@@ -42,6 +43,8 @@ pip install docxtpl openpyxl
    - Use `{{ variable }}` for simple values
    - Use `{% for item in items %}...{% endfor %}` for loops
    - Use `{% if condition %}...{% endif %}` for conditionals
+   - To repeat or hide a whole paragraph or table row, put the tag alone in it with a `p` or `tr` prefix: `{%p for item in items %}` ... `{%p endfor %}`, `{%tr for row in rows %}` ... `{%tr endfor %}`. Plain `{% %}` inside a paragraph leaves empty paragraphs behind
+   - Write each tag in one go in Word (type or paste as plain text); Word splits formatted text into runs and can break a tag in half
 
 3. Fill the template:
 
@@ -51,36 +54,38 @@ import json
 
 def fill_docx_template(template_path: str, data: dict, output_path: str):
     doc = DocxTemplate(template_path)
-    doc.render(data)
+    doc.render(data, autoescape=True)  # escapes &, <, > so "Smith & Sons" does not corrupt the XML
     doc.save(output_path)
 
 # Single document
 data = {
-    "client_name": "Acme Corp",
-    "date": "2025-01-15",
+    "client_name": "Northwind Traders",
+    "date": "2026-10-13",
     "items": [
         {"description": "Consulting", "amount": 5000},
         {"description": "Development", "amount": 12000},
     ],
     "total": 17000
 }
-fill_docx_template("invoice_template.docx", data, "invoice_acme.docx")
+fill_docx_template("invoice_template.docx", data, "invoice_northwind.docx")
 ```
 
 4. Bulk generation from CSV:
 
 ```python
 import csv
+import re
 from docxtpl import DocxTemplate
 
 def mail_merge_docx(template_path: str, csv_path: str, output_dir: str):
-    with open(csv_path) as f:
+    with open(csv_path, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
 
     for i, row in enumerate(rows):
         doc = DocxTemplate(template_path)
-        doc.render(row)
-        filename = f"{output_dir}/{row.get('name', i)}.docx"
+        doc.render(row, autoescape=True)
+        safe_name = re.sub(r"[^A-Za-z0-9_-]+", "_", row.get("name") or str(i))
+        filename = f"{output_dir}/{safe_name}.docx"
         doc.save(filename)
         print(f"Generated: {filename}")
 
@@ -92,10 +97,13 @@ mail_merge_docx("letter_template.docx", "contacts.csv", "./output")
 ### Task B: HTML/Markdown templates with Jinja2
 
 ```python
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 import csv
 
-env = Environment(loader=FileSystemLoader("./templates"))
+env = Environment(
+    loader=FileSystemLoader("./templates"),
+    autoescape=select_autoescape(["html", "xml"]),  # off by default in Jinja2
+)
 template = env.get_template("report.html")
 
 with open("data.csv") as f:
@@ -129,26 +137,21 @@ Example Jinja2 template (`templates/report.html`):
 
 ### Task C: PDF generation from templates
 
+Render HTML with Jinja2, then convert it with WeasyPrint (`pip install weasyprint`; it needs the Pango library, which is a system package on Linux and macOS; see the WeasyPrint install docs):
+
 ```python
-from jinja2 import Environment, FileSystemLoader
-import pdfkit  # requires wkhtmltopdf installed
-
-def generate_pdf_from_template(template_name: str, data: dict, output: str):
-    env = Environment(loader=FileSystemLoader("./templates"))
-    template = env.get_template(template_name)
-    html = template.render(**data)
-    pdfkit.from_string(html, output, options={"page-size": "A4", "encoding": "UTF-8"})
-
-# Alternative: use weasyprint (pure Python, no external deps)
-# pip install weasyprint
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML
 
-def generate_pdf_weasyprint(template_name: str, data: dict, output: str):
-    env = Environment(loader=FileSystemLoader("./templates"))
-    template = env.get_template(template_name)
-    html_content = template.render(**data)
-    HTML(string=html_content).write_pdf(output)
+env = Environment(loader=FileSystemLoader("./templates"),
+                  autoescape=select_autoescape(["html", "xml"]))
+
+def generate_pdf(template_name: str, data: dict, output: str):
+    html = env.get_template(template_name).render(**data)
+    HTML(string=html, base_url="./templates").write_pdf(output)
 ```
+
+Set page size and margins in the template's CSS (`@page { size: A4; margin: 2cm; }`). WeasyPrint does not run JavaScript; if the page needs a real browser (charts, JS layout), render with a headless Chromium tool such as Playwright's `page.pdf()` instead. Avoid `pdfkit`/wkhtmltopdf: the wkhtmltopdf project was archived in 2023.
 
 ### Task D: Plain text templates (emails, notifications)
 
@@ -200,7 +203,7 @@ for hire in hires:
         "salary": f"${int(hire['salary']):,}",
         "start_date": hire["start_date"],
         "manager": hire["manager"]
-    })
+    }, autoescape=True)
     doc.save(f"./offers/offer_{hire['name'].replace(' ', '_')}.docx")
 
 print(f"Generated {len(hires)} offer letters in ./offers/")
@@ -211,14 +214,15 @@ print(f"Generated {len(hires)} offer letters in ./offers/")
 **User request:** "Generate PDF invoices for all clients in our billing data"
 
 ```python
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML
 import json
 
 with open("billing.json") as f:
     clients = json.load(f)
 
-env = Environment(loader=FileSystemLoader("./templates"))
+env = Environment(loader=FileSystemLoader("./templates"),
+                  autoescape=select_autoescape(["html", "xml"]))
 template = env.get_template("invoice.html")
 
 for client in clients:
@@ -255,7 +259,7 @@ with open("contacts.csv") as f:
 
 for contact in contacts:
     email_body = template.render(**contact)
-    with open(f"./emails/{contact['email']}.txt", "w") as out:
+    with open(f"./emails/{contact['email'].replace('/', '_')}.txt", "w") as out:
         out.write(email_body)
 
 print(f"Generated {len(contacts)} email drafts")
@@ -268,6 +272,7 @@ print(f"Generated {len(contacts)} email drafts")
 - Preview the first 2-3 generated documents before running a full batch.
 - Keep templates in version control separate from data files.
 - For DOCX templates, test with complex formatting (tables, images, headers) early since not all features are supported.
-- Sanitize user-provided data to prevent template injection in HTML output.
+- Jinja2 does not escape HTML unless you enable `autoescape` (shown above). Never build templates from untrusted strings (`from_string`) or use untrusted input as a filename; for untrusted templates use `jinja2.sandbox.SandboxedEnvironment`.
+- `string.Template` and Jinja2 use different syntax (`$name` vs `{{ name }}`); do not mix them in one template.
 - Use consistent naming for output files that includes a unique identifier.
 - For large batches (1000+ documents), process in chunks and report progress.

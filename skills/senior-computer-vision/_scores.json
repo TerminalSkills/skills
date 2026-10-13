@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:94e595fe245da71f7fbe3850571cd43a6a9de5e9e0020ca31e33d3d100650ef0",
-  "scoredAt": "2026-05-13T10:06:50.487Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e0fb85505d15fb21b61fcbb16eab54470bdf805c1e7dd9848e8ae78ed5c1dd25",
+  "scoredAt": "2026-10-13T16:14:14.655Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not handle error scenarios such as missing files or GPU unavailability."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment and may not work with non-Python agents."
+        "detail": "The instructions lack error handling and edge case coverage."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 97,
-    "multiplier": 2.16,
+    "multiplier": 5.67,
+    "baselineAvg": 15,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "Count and annotate cars with YOLO11",
-        "baseline": 55,
-        "treatment": 97,
-        "rationale": "Treatment uses ultralytics YOLO11, iterates result.boxes with box.cls/box.conf filtering by model.names, and calls results[0].save() exactly as the skill teaches; baseline reaches for older yolov5 patterns."
+        "name": "yolo-detection-count",
+        "baseline": 45,
+        "treatment": 75,
+        "rationale": "Response A meets most rubric items but uses a different filename and save method, while Response B uses a different model and manual drawing, missing the required YOLO('yolo26n.pt') and results[0].save('result.jpg') steps."
       },
       {
-        "name": "TensorRT FP16 export for production",
-        "baseline": 35,
-        "treatment": 96,
-        "rationale": "Treatment uses the one-liner model.export(format='engine', half=True) and reloads via YOLO('.engine'); baseline takes the slower ONNX+trtexec path that misses the ultralytics-native export documented in the skill."
+        "name": "sam-segmentation-mask",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A follows the SAM workflow but uses a different output filename, while Response B uses an entirely different model and fails the rubric."
+      },
+      {
+        "name": "tensorrt-export-inference",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A follows the rubric exactly, while Response B does not use the required export/load steps."
       }
     ]
   }

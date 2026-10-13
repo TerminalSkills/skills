@@ -1,41 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:05d939d56906f46d2aaac180ea9c4bd294e5d68629e5fc6af5e5123eda133f4e",
-  "scoredAt": "2026-05-13T08:49:06.695Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5f4c09790c648c12f1f4d18f98743231419a48e62601dc62b59a8caa6fdbcdd4",
+  "scoredAt": "2026-10-13T11:58:31.395Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Edge cases like partial rotation recovery, complex validation rules (format/range), and conditional variable requirements (required only in specific environments) are not addressed."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Environment comparison procedure lacks automation; matrix building requires manual inspection of CI/CD platforms and hosting dashboards, and platform-specific rotation procedures (Stripe, SendGrid, etc.) are too generic."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Bash-specific grep commands and Node.js validation script assume Unix/macOS; Windows PowerShell equivalents and guidance for non-JavaScript projects (Python, Go, Rust) are minimal or absent."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 91,
-    "multiplier": 2.02,
+    "multiplier": 2.18,
+    "baselineAvg": 28,
+    "treatmentAvg": 61,
     "scenarios": [
       {
-        "name": "Audit codebase for missing or undocumented environment variables",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Baseline suggests grepping process.env but typically produces a single list; treatment matches the skill's three-category report (undocumented, no validation, stale) using the exact grep+sed+sort pipeline."
+        "name": "audit-env-variables",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A asks for prerequisites instead of auditing; Response B performs the required audit, identifies undocumented variables and crash-prone references with file locations, but lacks explicit grep commands and comprehensive comparison table between code usage and .env.example."
       },
       {
-        "name": "Compare staging vs production env vars before launch",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Baseline diffs variable names but misses the identical-secret-as-security-risk flag and the NEXT_PUBLIC_/VITE_ client-exposure check that the skill explicitly enforces."
+        "name": "compare-staging-production",
+        "baseline": 15,
+        "treatment": 22,
+        "rationale": "Both responses fail to deliver the required audit (no comparison matrix, no missing-variable flags, no identical-secret detection, no variable-type classification), but B is more actionable by proposing specific grep commands to discover what env vars the code references, whereas A only asks what information is available and defers the entire audit to the user providing data first."
+      },
+      {
+        "name": "rotate-jwt-secret-safe",
+        "baseline": 48,
+        "treatment": 91,
+        "rationale": "Response A omits grep commands entirely and doesn't explicitly verify for hardcoded secrets—critical rubric requirements—despite providing excellent phase-based logic and detailed NestJS code. Response B includes specific grep commands for locating all JWT_SECRET usages and helper functions, meets all four rubric criteria, though could be more explicit about hardcoded-value detection."
       }
     ]
   }

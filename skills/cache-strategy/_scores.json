@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0995d4259acaa7509291495426960aee25a9394638ec58633b52a72a3409e117",
-  "scoredAt": "2026-05-13T15:01:49.887Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:1f4e1c5f79c1a49328385da47fd251ec9151b73bd7da4ff306fbebd90d56c5ad",
+  "scoredAt": "2026-10-13T11:47:26.522Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error handling or fallback scenarios for Redis failures."
+        "detail": "Missing error handling for fetcher function failures and recovery from distributed lock timeouts when a lock holder crashes."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes a Node.js environment and uses TypeScript code, limiting cross-platform applicability."
+        "detail": "Compatibility statement claims Python 3.10+ and Memcached support but provides only Node.js/TypeScript examples; no Python or Memcached implementations are shown."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.35,
-    "baselineAvg": 63,
-    "treatmentAvg": 85,
+    "multiplier": 1.43,
+    "baselineAvg": 60,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "write-through-caching",
-        "baseline": 65,
-        "treatment": 70,
-        "rationale": "Both responses implement write‑through caching with a 30‑minute TTL and namespaced keys, but neither includes explicit error handling for cache write failures; A is marginally better due to its clearer namespacing and service‑layer structure."
+        "name": "high-traffic-endpoint-with-stampede-prevention",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Response A implements cache-aside and distributed locking correctly but critically lacks error handling—Redis operation calls have no try-catch, so the service crashes if Redis is unavailable instead of falling back to the database. Response B covers all three rubric requirements: it implements cache-aside with TTL, distributed locking with SET NX/EX, and robust error handling via .catch() on every Redis operation, allowing requests to degrade gracefully to direct database access when Redis fails."
       },
       {
-        "name": "stampede-prevention",
-        "baseline": 60,
-        "treatment": 100,
-        "rationale": "Response B fully meets the rubric by using NX/EX locks, retry logic, TTL, and an Express route, whereas Response A lacks Express integration and explicit NX/EX usage."
+        "name": "cache-invalidation-on-data-update",
+        "baseline": 50,
+        "treatment": 98,
+        "rationale": "Response A explicitly implements SCAN with MATCH and COUNT parameters for pattern-based invalidation (lines: `redis.scan(cursor, \"MATCH\", pattern, \"COUNT\", 100)`) and invalidates both specific product keys and list patterns in the update handler. Response B fails the rubric's core requirement: it uses `cache.store.keys()` instead of SCAN, which is a blocking operation and anti-pattern for Redis at scale; it only invalidates a single list key, not the pattern, and the `delByPattern` method implements client-side regex filtering rather than server-side SCAN-based matching."
+      },
+      {
+        "name": "analyze-and-implement-tiered-caching",
+        "baseline": 76,
+        "treatment": 70,
+        "rationale": "A provides a production-grade tiered implementation with correct LRU logic, memory management, and NestJS patterns, but lacks a structured endpoint analysis framework. B excels at endpoint analysis with a detailed decision matrix comparing frequency vs. change rate, but has a critical flaw: its 'LRU' cache is actually FIFO (removes oldest, not least-recently-used), which defeats the core caching optimization for hot data; both lack explicit schema versioning in keys."
       }
     ]
   }

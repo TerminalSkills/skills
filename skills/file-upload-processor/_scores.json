@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4130cbe2e4b0775a75ba718cc15ce0acc92d79fee7f6650cff16cfb662f5d5b9",
-  "scoredAt": "2026-05-13T08:52:51.405Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9735b8ae8b3198f8659fb5480392ff0f6ca1ac6b7d8157816e89968348c5dfd4",
+  "scoredAt": "2026-10-13T16:02:48.735Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 89,
-    "multiplier": 1.78,
+    "multiplier": 1.62,
+    "baselineAvg": 45,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Express endpoint accepting images and PDFs to S3",
+        "name": "small-file-upload-endpoint",
         "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment validates by magic bytes (0xFF 0xD8 0xFF for JPEG, 0x25 0x50 0x44 0x46 for PDF), streams instead of buffering, uses a {type}/{userId}/{fileId}/{filename} storage key, and creates a files row with the documented status enum; baseline trusted multer's mimetype and let multer buffer to disk."
+        "treatment": 65,
+        "rationale": "Response A covers more rubric items, including correct multer config, magic‑byte check, S3 upload, and returns a file ID, while B lacks webp support, proper fileFilter, and DB persistence."
       },
       {
-        "name": "Large video uploads (up to 2GB) bypassing the server",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment exposes the documented /api/files/multipart/init and /api/files/multipart/complete endpoints with presigned parts and tracks status through the uploading -> uploaded -> processing -> processed enum; baseline returned a single presigned PUT URL with no multipart or status tracking."
+        "name": "large-file-presigned-endpoint",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response B better meets key format and filename usage, though both miss expiresIn and StorageService call."
+      },
+      {
+        "name": "upload-status-and-download",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "A fully meets the rubric; B misses status handling, expiry range, and error handling."
       }
     ]
   }

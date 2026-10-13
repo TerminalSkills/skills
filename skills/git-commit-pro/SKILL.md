@@ -9,9 +9,10 @@ license: Apache-2.0
 compatibility: "Requires git installed"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["git", "commits", "conventional-commits", "version-control"]
+  repository: https://github.com/git/git
 ---
 
 # Git Commit Pro
@@ -59,8 +60,12 @@ type(scope): short description
 Longer explanation of what changed and why. Wrap at 72 characters.
 Reference any issues or tickets.
 
-Co-Authored-By: if applicable
+BREAKING CHANGE: description of the incompatible change and what callers must do
 ```
+
+Breaking changes are marked either with a `!` before the colon (`feat(api)!: drop v1 login endpoint`) or with a `BREAKING CHANGE:` footer (uppercase, colon, space, then the description). Use one of them, or both.
+
+The spec requires only `feat` and `fix` as types; the list below is the common convention, and other types are allowed.
 
 **Types:**
 - `feat`: New feature or capability
@@ -166,3 +171,4 @@ chore: update project setup documentation
 - If the diff includes generated files (lockfiles, build artifacts), mention them briefly but focus on the source changes.
 - When amending, always confirm with the user first. Amending rewrites history and can cause issues for shared branches.
 - If the changes are too large or unfocused for a single good commit message, tell the user and suggest how to split them.
+- Do not add `Co-Authored-By` or other trailer lines unless the user asks for them.

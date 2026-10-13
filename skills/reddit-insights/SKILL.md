@@ -7,10 +7,11 @@ description: >-
   what people complain about on Reddit, validate a business idea on Reddit,
   find pain points in a subreddit, or mine Reddit for product insights.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with requests installed. No Reddit API key required for basic access."
+compatibility: "Requires Python 3.10+ with praw installed and a Reddit script-app client ID and secret (free to register; API access is subject to Reddit approval)."
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
+  repository: https://github.com/praw-dev/praw
   category: research
   tags: ["reddit", "research", "sentiment", "market-research", "validation"]
   use-cases:
@@ -24,7 +25,7 @@ metadata:
 
 ## Overview
 
-Perform semantic research across Reddit to extract actionable insights. Search for discussions, analyze sentiment patterns, identify recurring pain points, validate product ideas, and discover niche opportunities. Uses Reddit's public JSON API to access posts and comments without requiring authentication.
+Perform semantic research across Reddit to extract actionable insights. Search for discussions, analyze sentiment patterns, identify recurring pain points, validate product ideas, and discover niche opportunities. Uses Reddit's official OAuth API (through PRAW) to read posts and comments; anonymous `.json` scraping is blocked by Reddit.
 
 ## Instructions
 
@@ -39,68 +40,59 @@ Clarify with the user:
 - **Research goal**: Pain points, sentiment, idea validation, competitor analysis, or trend discovery
 - **Output format**: Summary report, raw data, or structured analysis
 
-### Step 2: Fetch Reddit data via public JSON API
+### Step 2: Fetch Reddit data through the official API (OAuth)
 
-Access Reddit's public JSON endpoints without authentication:
+Reddit now answers anonymous requests to `www.reddit.com/*.json` with HTTP 403, and its API rules require OAuth2 clients. Use the official API through PRAW (Python 3.10+). The user must register a "script" app at https://www.reddit.com/prefs/apps and, under Reddit's Responsible Builder Policy, may need approval for API access; ask them to export the credentials as environment variables, never paste them into code:
+
+```bash
+pip install praw
+export REDDIT_CLIENT_ID=...        # shown under the app name
+export REDDIT_CLIENT_SECRET=...
+export REDDIT_USER_AGENT="script:market-research:v1.0 (by u/your_reddit_username)"
+```
 
 ```python
-import requests
-import time
+import os
+import praw
 
-HEADERS = {"User-Agent": "research-bot/1.2.0"}
+reddit = praw.Reddit(
+    client_id=os.environ["REDDIT_CLIENT_ID"],
+    client_secret=os.environ["REDDIT_CLIENT_SECRET"],
+    user_agent=os.environ["REDDIT_USER_AGENT"],
+)  # read-only mode: enough for search and reading
 
-def search_reddit(query, subreddit=None, sort="relevance", time_filter="year", limit=100):
-    """Search Reddit posts via public JSON API."""
-    if subreddit:
-        url = f"https://www.reddit.com/r/{subreddit}/search.json"
-        params = {"q": query, "sort": sort, "t": time_filter,
-                  "limit": min(limit, 100), "restrict_sr": "on"}
-    else:
-        url = "https://www.reddit.com/search.json"
-        params = {"q": query, "sort": sort, "t": time_filter,
-                  "limit": min(limit, 100)}
-
-    response = requests.get(url, headers=HEADERS, params=params, timeout=30)
-    response.raise_for_status()
-    time.sleep(1)  # Rate limiting
-
-    data = response.json()
+def search_reddit(query, subreddit="all", sort="relevance", time_filter="year", limit=100):
+    """Search posts; PRAW pages through results and respects rate limits."""
     posts = []
-    for child in data["data"]["children"]:
-        post = child["data"]
+    for post in reddit.subreddit(subreddit).search(
+        query, sort=sort, time_filter=time_filter, limit=limit
+    ):
         posts.append({
-            "title": post["title"],
-            "selftext": post.get("selftext", ""),
-            "subreddit": post["subreddit"],
-            "score": post["score"],
-            "num_comments": post["num_comments"],
-            "url": f"https://reddit.com{post['permalink']}",
-            "created_utc": post["created_utc"],
+            "title": post.title,
+            "selftext": post.selftext,
+            "subreddit": post.subreddit.display_name,
+            "score": post.score,
+            "num_comments": post.num_comments,
+            "url": f"https://www.reddit.com{post.permalink}",
+            "created_utc": post.created_utc,
+            "id": post.id,
         })
     return posts
 
+def get_post_comments(post_id, limit=200):
+    """Top-level comments of one post, best first."""
+    submission = reddit.submission(id=post_id)
+    submission.comment_sort = "top"
+    submission.comments.replace_more(limit=0)  # drop "load more" stubs
+    return [
+        {"body": c.body, "score": c.score, "author": str(c.author or "[deleted]")}
+        for c in submission.comments[:limit]
+    ]
 
-def get_post_comments(permalink, limit=200):
-    """Fetch comments for a specific post."""
-    url = f"https://www.reddit.com{permalink}.json"
-    params = {"limit": limit, "sort": "top"}
-    response = requests.get(url, headers=HEADERS, params=params, timeout=30)
-    response.raise_for_status()
-    time.sleep(1)
-
-    comments = []
-    data = response.json()
-    if len(data) > 1:
-        for child in data[1]["data"]["children"]:
-            if child["kind"] == "t1":
-                c = child["data"]
-                comments.append({
-                    "body": c["body"],
-                    "score": c["score"],
-                    "author": c.get("author", "[deleted]"),
-                })
-    return comments
+posts = search_reddit("project management agency", subreddit="agency", time_filter="year", limit=50)
 ```
+
+`sort` accepts relevance, hot, top, new, comments; `time_filter` accepts hour, day, week, month, year, all. If the user has no credentials and will not register, say so plainly and fall back to data they supply (exported threads, pasted links) or a search engine with `site:reddit.com`; do not try to bypass the 403 by spoofing a browser, which Reddit's rules prohibit.
 
 ### Step 3: Analyze the content
 
@@ -225,14 +217,14 @@ Validation Signal: MODERATE-STRONG
 
 ## Guidelines
 
-- Always add a 1-second delay between API requests to respect Reddit's rate limits.
-- Set a descriptive User-Agent header. Reddit blocks requests without one.
-- Reddit's public JSON API has a 100-post limit per request. Use pagination with the `after` parameter for larger datasets.
-- Do not scrape user profiles or collect personally identifiable information.
-- Present findings with context: a single upvoted complaint does not equal a validated market need. Look for patterns across multiple discussions.
-- Always include source links so the user can verify findings and read full context.
-- Distinguish between vocal minorities and genuine widespread sentiment. A post with 500 upvotes carries more weight than one with 3.
-- Note the subreddit context: complaints in r/technology have different implications than those in r/startups.
-- For idea validation, look for both demand signals (people wanting a solution) and supply signals (existing tools already addressing the need).
-- Save all raw data alongside the analysis so the user can explore further.
-- If the public API is rate-limited or returns errors, suggest the user try again after a brief wait.
+- Authenticate with OAuth and send a descriptive User-Agent in Reddit's format (`script:<app>:<version> (by u/<username>)`). Generic or browser-like agents are throttled or blocked.
+- The limit is 60 requests per minute for OAuth clients; PRAW waits automatically. Avoid repeated single-item calls when a listing returns many.
+- One listing returns at most about 1,000 items, so split big research into several queries, subreddits and time filters.
+- Keep client ID, secret and password in environment variables; never commit them or print them.
+- Check Reddit's Data API Terms before commercial use or before feeding content into model training; they restrict both.
+- Do not collect personal profiles or personally identifiable information; quote usernames only when necessary.
+- Present findings with context: one upvoted complaint is not a validated market need. Look for patterns across discussions and weigh upvotes (a 500-upvote post counts more than a 3-upvote one).
+- Note the subreddit context: complaints in r/technology mean something different from those in r/startups.
+- For idea validation, look for both demand signals (people asking for a solution) and supply signals (existing tools already addressing it).
+- Always include source links and save raw data alongside the analysis so the user can verify and explore further.
+- If a call fails with 401, 403 or 429, report it and retry after a pause instead of looping.

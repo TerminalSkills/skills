@@ -10,10 +10,11 @@ description: >-
   terraform state, terraform plan, terraform apply, terraform import,
   cloud provisioning, AWS terraform, GCP terraform, Azure terraform.
 license: Apache-2.0
-compatibility: "Terraform 1.5+ or OpenTofu 1.6+. Requires provider credentials (AWS, GCP, Azure, etc.)."
+compatibility: "Terraform 1.11+ or OpenTofu 1.10+. Requires provider credentials (AWS, GCP, Azure, etc.)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: "https://github.com/hashicorp/terraform"
   category: devops
   tags: ["terraform", "infrastructure-as-code", "cloud", "devops"]
 ---
@@ -33,56 +34,33 @@ Standard Terraform project layout:
 ```
 infrastructure/
 ├── environments/
-│   ├── dev/
-│   │   ├── main.tf          # Environment-specific config
-│   │   ├── variables.tf     # Environment variables
-│   │   ├── terraform.tfvars  # Variable values
-│   │   └── backend.tf       # State backend config
+│   ├── dev/          # main.tf, variables.tf, terraform.tfvars, backend.tf
 │   ├── staging/
 │   └── production/
 ├── modules/
-│   ├── networking/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
+│   ├── networking/   # main.tf, variables.tf, outputs.tf
 │   ├── compute/
-│   ├── database/
-│   └── monitoring/
-├── shared/
-│   └── providers.tf         # Provider version constraints
+│   └── database/
 └── README.md
 ```
 
-For smaller projects, a flat structure is acceptable:
-```
-├── main.tf
-├── variables.tf
-├── outputs.tf
-├── terraform.tfvars
-└── backend.tf
-```
+Small projects can keep `main.tf`, `variables.tf`, `outputs.tf` and `backend.tf` in one directory.
 
 ### 2. Writing Resources
 
 Follow these conventions:
 
 ```hcl
-# Use meaningful resource names that describe purpose
 resource "aws_instance" "api_server" {
-  ami           = var.ami_id
-  instance_type = var.instance_type
-
-  # Group related arguments
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.api.id]
   subnet_id              = module.networking.private_subnet_ids[0]
 
-  # Tags on everything
   tags = merge(var.common_tags, {
     Name = "${var.project}-api-${var.environment}"
-    Role = "api-server"
   })
 
-  # Lifecycle rules when needed
   lifecycle {
     create_before_destroy = true
     ignore_changes        = [ami]  # AMI updated by CI/CD
@@ -90,11 +68,7 @@ resource "aws_instance" "api_server" {
 }
 ```
 
-**Naming conventions:**
-- Resources: `snake_case`, descriptive (`web_server` not `ws1`)
-- Variables: `snake_case`, prefixed by component when ambiguous (`db_instance_type`)
-- Outputs: `snake_case`, prefixed by module name in root (`networking_vpc_id`)
-- Files: group by logical component (`networking.tf`, `compute.tf`, `database.tf`)
+**Naming:** `snake_case` everywhere, descriptive (`web_server` not `ws1`), files grouped by component (`networking.tf`, `database.tf`).
 
 ### 3. Variables and Validation
 
@@ -108,17 +82,6 @@ variable "environment" {
   validation {
     condition     = contains(["dev", "staging", "production"], var.environment)
     error_message = "Environment must be dev, staging, or production."
-  }
-}
-
-variable "instance_type" {
-  type        = string
-  description = "EC2 instance type for the API server"
-  default     = "t3.medium"
-
-  validation {
-    condition     = can(regex("^t3\\.", var.instance_type))
-    error_message = "Only t3 instance types are allowed for cost control."
   }
 }
 
@@ -142,27 +105,24 @@ Write reusable modules for repeated patterns:
 
 ```hcl
 # modules/ecs-service/variables.tf
-variable "name" {
-  type        = string
-  description = "Service name"
+variable "name"            { type = string }
+variable "container_image" { type = string }
+variable "container_port" {
+  type    = number
+  default = 8080
 }
-
-variable "container_image" {
-  type        = string
-  description = "Docker image URI"
-}
-
 variable "cpu" {
   type    = number
   default = 256
 }
-
 variable "memory" {
   type    = number
   default = 512
 }
 
-# modules/ecs-service/main.tf
+# modules/ecs-service/main.tf (excerpt)
+data "aws_region" "current" {}
+
 resource "aws_ecs_task_definition" "this" {
   family                   = var.name
   requires_compatibilities = ["FARGATE"]
@@ -171,18 +131,15 @@ resource "aws_ecs_task_definition" "this" {
   memory                   = var.memory
 
   container_definitions = jsonencode([{
-    name      = var.name
-    image     = var.container_image
-    essential = true
-    portMappings = [{
-      containerPort = var.container_port
-      protocol      = "tcp"
-    }]
+    name         = var.name
+    image        = var.container_image
+    essential    = true
+    portMappings = [{ containerPort = var.container_port, protocol = "tcp" }]
     logConfiguration = {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = aws_cloudwatch_log_group.this.name
-        "awslogs-region"        = data.aws_region.current.name
+        "awslogs-region"        = data.aws_region.current.region
         "awslogs-stream-prefix" = var.name
       }
     }
@@ -193,7 +150,7 @@ resource "aws_ecs_task_definition" "this" {
 module "api" {
   source          = "./modules/ecs-service"
   name            = "api"
-  container_image = "123456.dkr.ecr.us-east-1.amazonaws.com/api:latest"
+  container_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/api:1.8.2"
   cpu             = 512
   memory          = 1024
 }
@@ -201,9 +158,8 @@ module "api" {
 
 **Module guidelines:**
 - One module per logical component (networking, compute, database, monitoring)
-- Expose only necessary variables — sensible defaults for everything else
 - Always define outputs for values other modules need
-- Pin module source versions: `source = "git::https://...?ref=v1.2.0"`
+- Pin module versions: `?ref=v1.2.0` on git sources, `version = "~> 1.2"` on registry modules
 
 ### 5. State Management
 
@@ -213,22 +169,20 @@ module "api" {
 # AWS S3 backend
 terraform {
   backend "s3" {
-    bucket         = "company-terraform-state"
-    key            = "env/production/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-locks"
-    encrypt        = true
+    bucket       = "northwind-terraform-state"
+    key          = "env/production/terraform.tfstate"
+    region       = "us-east-1"
+    use_lockfile = true   # native S3 locking (Terraform 1.11+, OpenTofu 1.10+)
+    encrypt      = true
   }
 }
 ```
 
+The `dynamodb_table` argument is deprecated; existing setups keep working, and you can migrate by enabling `use_lockfile` alongside it, applying, then removing the DynamoDB table. Backend blocks cannot reference variables, so pass differing values with `terraform init -backend-config=production.s3.tfbackend`.
+
 **State operations:**
 ```bash
-# List all resources in state
 terraform state list
-
-# Show details of a resource
-terraform state show aws_instance.api_server
 
 # Move a resource (rename without recreate)
 terraform state mv aws_instance.old_name aws_instance.new_name
@@ -241,8 +195,8 @@ terraform state rm aws_instance.temp_server
 ```
 
 **State safety:**
-- Always use remote state with locking (DynamoDB for S3, GCS native for GCP)
-- Never edit state files manually
+- Always use remote state with locking (S3 `use_lockfile`, GCS locks natively)
+- Never edit state files manually; state holds secrets in plain text, so restrict access
 - Use `terraform plan` before every `apply`
 - Enable state versioning on the storage bucket
 
@@ -262,21 +216,8 @@ environments/staging/ → mirrors prod at smaller scale
 environments/prod/    → full HA, multi-AZ, larger instances
 ```
 
-Each environment references shared modules with different variable values.
 
-**Option C: Terragrunt** (DRY multi-environment):
-```hcl
-# terragrunt.hcl
-terraform {
-  source = "../../modules//networking"
-}
-
-inputs = {
-  environment   = "production"
-  vpc_cidr      = "10.0.0.0/16"
-  az_count      = 3
-}
-```
+**Option C: Terragrunt** (a separate tool that keeps backend and inputs DRY across directories; see its docs).
 
 ### 7. Import Existing Infrastructure
 
@@ -293,7 +234,7 @@ terraform plan
 # 4. Adjust config until plan shows no changes
 ```
 
-Terraform 1.5+ supports import blocks:
+Import blocks (1.5+) make imports reviewable in a normal plan; `for_each` in import blocks arrived in 1.7:
 ```hcl
 import {
   to = aws_instance.api_server
@@ -301,7 +242,7 @@ import {
 }
 ```
 
-Generate config automatically:
+Generate a first draft of the resource config (the file must not already exist), then review and trim it:
 ```bash
 terraform plan -generate-config-out=generated.tf
 ```
@@ -310,31 +251,30 @@ terraform plan -generate-config-out=generated.tf
 
 ```yaml
 # GitHub Actions
+- uses: hashicorp/setup-terraform@v3
 - name: Terraform Plan
   run: |
-    terraform init
-    terraform plan -out=tfplan -no-color
-    
+    terraform init -input=false
+    terraform plan -input=false -out=tfplan -no-color
+
 - name: Terraform Apply
   if: github.ref == 'refs/heads/main'
   run: terraform apply -auto-approve tfplan
 ```
 
 **Best practices for CI/CD:**
-- Always run `plan` on PRs, `apply` only on merge to main
-- Use `-out=tfplan` to ensure apply matches the reviewed plan
-- Store plan artifacts for audit trails
+- Run `plan` on PRs, `apply` only on merge to main, applying the saved `-out=tfplan`
 - Use OIDC for cloud credentials (no static keys in CI)
 - Add cost estimation with Infracost: `infracost breakdown --path .`
+- Run `terraform test` (1.6+) for modules with `.tftest.hcl` files
 
 ### 9. Security
 
-- Never commit `.tfvars` files with secrets — use environment variables or a secrets manager
-- Use `sensitive = true` on variables containing secrets
-- Enable encryption on state backends
-- Use IAM roles with least privilege for Terraform execution
-- Scan configs with `tfsec`, `checkov`, or `trivy config`
-- Pin provider versions: `required_providers { aws = { version = "~> 5.0" } }`
+- Never commit `.tfvars` files with secrets; use `sensitive = true`, environment variables or a secrets manager, least-privilege IAM roles and encrypted state backends
+- Scan configs with `trivy config` (tfsec was folded into Trivy) or `checkov`
+- Pin provider versions: `required_providers { aws = { source = "hashicorp/aws", version = "~> 6.0" } }`; commit `.terraform.lock.hcl`
+- Keep secrets out of state where possible: ephemeral values and write-only arguments (1.10/1.11+) are never stored, if the provider supports them
+- Terraform is under the BSL license; OpenTofu is the MPL-licensed fork and uses the `tofu` command with the same workflow
 
 ## Examples
 
@@ -342,34 +282,18 @@ terraform plan -generate-config-out=generated.tf
 
 **Input:** "Set up a production VPC with public/private subnets across 3 AZs, a NAT gateway, an ECS Fargate cluster running our API service behind an ALB, and a PostgreSQL RDS instance in the private subnet. Include security groups that only allow necessary traffic."
 
-**Output:** Complete Terraform config with:
-- VPC module: 3 public + 3 private subnets, NAT gateway, route tables, flow logs
-- ECS module: Fargate cluster, task definition, service with ALB target group
-- RDS module: PostgreSQL Multi-AZ, encrypted, private subnet group, automated backups
-- Security groups: ALB (80/443 from internet) → ECS (8080 from ALB only) → RDS (5432 from ECS only)
-- Outputs: ALB DNS name, RDS endpoint, ECS cluster ARN
+**Output:** `modules/vpc`, `modules/ecs-service`, `modules/rds` wired from `environments/production/main.tf`: 3 public + 3 private subnets, NAT gateway, Fargate service behind an ALB, encrypted Multi-AZ PostgreSQL, security groups chained ALB (80/443) → ECS (8080) → RDS (5432). Outputs: ALB DNS name, RDS endpoint. `terraform plan` ends with a summary like `Plan: 47 to add, 0 to change, 0 to destroy.`
 
 ### Example 2: Multi-Cloud with Modules
 
 **Input:** "We're running on both AWS and GCP. Create Terraform modules for: a Kubernetes cluster (EKS on AWS, GKE on GCP), a managed database (RDS on AWS, Cloud SQL on GCP), and a CDN (CloudFront on AWS, Cloud CDN on GCP). Each module should have the same interface so we can swap providers."
 
-**Output:** Standardized modules with identical input/output interfaces:
-- `modules/kubernetes/aws/` and `modules/kubernetes/gcp/` — both accept `cluster_name`, `node_count`, `node_type`, output `cluster_endpoint`, `kubeconfig`
-- `modules/database/aws/` and `modules/database/gcp/` — both accept `engine`, `size`, output `connection_string`
-- `modules/cdn/aws/` and `modules/cdn/gcp/` — both accept `origin_url`, `domain`, output `cdn_url`
-- Provider selection via a single variable: `cloud_provider = "aws"` or `"gcp"`
+**Output:** `modules/kubernetes/{aws,gcp}`, `modules/database/{aws,gcp}`, `modules/cdn/{aws,gcp}`, each pair with identical variables (`cluster_name`, `node_count`; `engine`, `size`; `origin_url`, `domain`) and outputs (`cluster_endpoint`, `connection_string`, `cdn_url`), chosen by one `cloud_provider` variable.
 
 ## Guidelines
 
-- Always run `terraform fmt` before committing — consistent formatting
-- Run `terraform validate` to catch syntax errors early
-- Use `terraform plan` as a review tool — never apply without reviewing the plan
+- Run `terraform fmt` and `terraform validate` before committing; use `terraform plan` as a review tool — never apply without reviewing the plan
 - Prefer `for_each` over `count` — it handles additions/removals without index shifting
-- Use `data` sources to reference existing resources, not hardcoded IDs
-- Tag every resource with at least: Project, Environment, ManagedBy, Team
-- Keep modules focused — one module should do one thing well
-- Document modules with a README.md including usage examples
-- Use `moved` blocks for refactoring without destroying resources
+- Use `moved` blocks for refactoring without destroying resources, and `removed` blocks (1.7+) to drop a resource from state without destroying it
 - For large configs: split into smaller state files by component (networking, compute, data)
-- Pin all provider and module versions for reproducible builds
-- Use `terraform-docs` to auto-generate module documentation
+- Use `terraform-docs` to generate module documentation

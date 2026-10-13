@@ -13,7 +13,7 @@ license: Apache-2.0
 compatibility: 'Node.js 18+ (Express, Fastify) or Python 3.9+ (FastAPI, Flask)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
   tags:
     - rest
@@ -35,12 +35,14 @@ Design and build production-grade RESTful APIs following industry conventions. T
 
 **Express:**
 ```bash
-npm install express cors helmet morgan compression zod jsonwebtoken bcrypt swagger-jsdoc swagger-ui-express
+npm install express@5 cors helmet morgan compression zod jsonwebtoken bcrypt swagger-jsdoc swagger-ui-express
 ```
 
-**FastAPI:**
+**FastAPI** (the FastAPI security tutorial now uses PyJWT and pwdlib; python-jose and passlib are no longer maintained):
 ```bash
-pip install "fastapi[standard]" uvicorn sqlalchemy pydantic-settings python-jose[cryptography] passlib[bcrypt]
+pip install "fastapi[standard]" uvicorn sqlalchemy pydantic-settings pyjwt "pwdlib[argon2]"
+# Commit the lockfile (package-lock.json / uv.lock or a pinned requirements.txt) and install from it
+# in CI and production (`npm ci`, `pip install -r requirements.txt`) for exact, integrity-checked versions.
 ```
 
 ### Step 2: Resource Design
@@ -80,7 +82,7 @@ import helmet from 'helmet';
 
 const app = express();
 app.use(helmet());
-app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(',') || '*' }));
+app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(',') ?? false }));
 app.use(express.json({ limit: '10kb' }));
 app.use('/api/v1/users', usersRouter);
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
@@ -95,7 +97,7 @@ import { z } from 'zod';
 
 const createUserSchema = z.object({
   body: z.object({
-    email: z.string().email(),
+    email: z.email(),
     name: z.string().min(2).max(100),
     password: z.string().min(8).max(128),
   }),
@@ -111,7 +113,7 @@ router.delete('/:id', authenticate, authorize('admin'),    usersController.remov
 ```javascript
 // src/controllers/users.js
 export async function list(req, res) {
-  const { page, limit, sort, search } = req.query;
+  const { page, limit, sort, search } = req.validated.query; // coerced and defaulted by Zod
   const [users, total] = await Promise.all([
     db.user.findMany({ where: search ? { name: { contains: search } } : {}, skip: (page - 1) * limit, take: limit }),
     db.user.count(),
@@ -143,7 +145,7 @@ export function validate(schema) {
   return (req, res, next) => {
     const result = schema.safeParse({ body: req.body, query: req.query, params: req.params });
     if (!result.success) throw new AppError(400, 'Validation failed', result.error.issues);
-    Object.assign(req, result.data);
+    req.validated = result.data; // Express 5: req.query is read-only, so never assign to it
     next();
   };
 }
@@ -160,10 +162,11 @@ export function errorHandler(err, req, res, next) {
 ### Step 6: FastAPI Implementation
 
 ```python
+from datetime import datetime
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, EmailStr, Field
 
-app = FastAPI(title="My API", version="1.0.0", docs_url="/api/docs")
+app = FastAPI(title="Orbit Projects API", version="1.0.0", docs_url="/api/docs", redoc_url="/api/redoc")
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -204,7 +207,7 @@ Common query params: `sort=-createdAt,title`, `fields=id,title`, `search=keyword
 **User prompt:** "Create a REST API with Express for managing projects and tasks. Include JWT authentication, input validation, and paginated list endpoints."
 
 The agent will:
-1. Set up Express with `helmet`, `cors`, `compression`, and JSON body parsing
+1. Set up Express 5 with `helmet`, `cors`, `compression`, and JSON body parsing
 2. Define routes: `GET/POST /api/v1/projects`, `GET/PATCH/DELETE /api/v1/projects/:id`, `GET/POST /api/v1/projects/:id/tasks`
 3. Create Zod schemas for `createProject` and `updateProject` input validation
 4. Implement JWT authentication middleware that extracts the user from the Bearer token
@@ -233,3 +236,6 @@ The agent will:
 8. **Idempotent PUT/DELETE** — calling twice produces the same result
 9. **Error responses include machine-readable codes** — `VALIDATION_FAILED`, not just messages
 10. **Version from day one** — `/api/v1/` costs nothing and saves future pain
+11. **Express 4 vs 5** — Express 5 forwards rejected promises from async handlers to the error middleware; on Express 4 wrap handlers (or use `express-async-errors`) or `throw` inside `async` code will hang the request
+12. **Validation status** — FastAPI returns 422 for invalid bodies by default; the Express examples use 400. Pick one convention per API and document it
+13. **Passwords** — hash with Argon2id or bcrypt, never store or log them; `EmailStr` needs `pip install email-validator` (included in `fastapi[standard]`)

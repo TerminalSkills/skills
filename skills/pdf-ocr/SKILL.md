@@ -7,11 +7,12 @@ description: >-
   a photograph of a document. Supports multiple languages and handles low-quality
   scans.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+, Tesseract OCR installed, and pytesseract + pdf2image packages"
+compatibility: "Requires Tesseract 5 and poppler-utils; Python 3.9+ with pytesseract, pdf2image, Pillow; optional OCRmyPDF"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: documents
+  repository: https://github.com/tesseract-ocr/tesseract
   tags: ["ocr", "pdf", "scanned", "text-extraction", "tesseract"]
   use-cases:
     - "Extract text from scanned paper documents saved as PDFs"
@@ -24,7 +25,7 @@ metadata:
 
 ## Overview
 
-Extract readable text from scanned or image-based PDF documents using optical character recognition (OCR). This skill converts PDF pages to images, runs OCR to detect text, and outputs clean structured text. Handles multi-page documents, multiple languages, and low-quality scans with preprocessing.
+Extract readable text from scanned or image-based PDF documents using optical character recognition (OCR). This skill converts PDF pages to images, runs OCR to detect text, and outputs clean structured text. Handles multi-page documents, multiple languages, and low-quality scans with preprocessing. To keep the original pages and add an invisible text layer (a searchable PDF) use OCRmyPDF instead of extracting text yourself.
 
 ## Instructions
 
@@ -51,20 +52,29 @@ def check_text_content(pdf_path):
 Ensure the required tools are available:
 
 ```bash
-# Install Tesseract OCR engine
+# Tesseract engine and poppler (pdf2image needs pdftoppm from poppler)
 # Ubuntu/Debian:
-sudo apt-get install tesseract-ocr
+sudo apt-get install tesseract-ocr poppler-utils
 # macOS:
-brew install tesseract
+brew install tesseract poppler
 
-# Install Python packages
-pip install pytesseract pdf2image Pillow
+# Python packages (pdfplumber is used for the text-layer check)
+pip install pytesseract pdf2image Pillow pdfplumber
 
-# For additional languages:
-sudo apt-get install tesseract-ocr-deu  # German
-sudo apt-get install tesseract-ocr-fra  # French
-sudo apt-get install tesseract-ocr-jpn  # Japanese
+# Language packs: the Debian package name is tesseract-ocr-<code>
+sudo apt-get install tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-jpn
+tesseract --list-langs   # confirm the packs are installed (eng is included by default)
 ```
+
+For a searchable PDF, OCRmyPDF does the whole job (`pip install ocrmypdf` or the distribution package, plus tesseract and ghostscript):
+
+```bash
+ocrmypdf -l eng+deu --deskew --rotate-pages scan_contract.pdf scan_contract_searchable.pdf
+ocrmypdf --skip-text mixed.pdf mixed_searchable.pdf        # leave pages that already have text
+ocrmypdf --sidecar scan_contract.txt scan_contract.pdf out.pdf   # also write the plain text
+```
+
+By default it stops with `PriorOcrFoundError` on a page that already has text; choose `--skip-text`, `--redo-ocr`, or `--force-ocr` (rasterizes the page).
 
 ### Step 3: Convert PDF pages to images
 
@@ -80,7 +90,7 @@ Use 300 DPI for standard documents. Increase to 400-600 DPI for small text or lo
 
 ### Step 4: Preprocess images for better accuracy
 
-Apply preprocessing to improve OCR quality:
+Tesseract already binarizes internally (Otsu), so clean scans need no preprocessing at all. Try the raw image first and add steps only for poor scans (shadows, noise, faint print):
 
 ```python
 from PIL import Image, ImageFilter, ImageEnhance
@@ -93,7 +103,8 @@ def preprocess_image(image):
     enhanced = enhancer.enhance(2.0)
     # Sharpen
     sharpened = enhanced.filter(ImageFilter.SHARPEN)
-    # Binarize (threshold)
+    # Binarize only if the background is even; a fixed threshold erases faint
+    # text on shadowed or yellowed pages (Tesseract 5 also offers Sauvola/adaptive Otsu)
     threshold = 150
     binary = sharpened.point(lambda x: 255 if x > threshold else 0)
     return binary
@@ -211,7 +222,9 @@ Output files saved to ./receipts/ocr_output/
 - Use 300 DPI as the default resolution. Increase for small fonts or poor quality scans.
 - Report confidence scores per page so users know which pages may need manual review.
 - For multi-language documents, specify the correct Tesseract language code. Multiple languages can be combined: `lang='eng+deu'`.
-- Preprocess images before OCR: grayscale conversion, contrast enhancement, and binarization significantly improve accuracy.
-- For rotated or skewed scans, apply deskewing before OCR using image rotation detection.
+- Compare raw and preprocessed output on one page before processing a whole file: for clean scans preprocessing gives no gain, and a hard threshold can lose text on uneven pages.
+- For forms, receipts or single lines, set the page segmentation mode: `pytesseract.image_to_string(img, config="--psm 6")` (6 = one block of text, 4 = columns, 7 = one line). Text must be dark on a light background.
+- For rotated or skewed scans, use `ocrmypdf --deskew --rotate-pages`, or deskew the image before OCR.
+- OCR output is a recognition guess: check amounts, dates and names by eye before relying on them, and keep scans of sensitive documents on the local machine (Tesseract runs offline).
 - Large PDFs should be processed page by page to manage memory usage.
 - Common Tesseract language codes: eng (English), deu (German), fra (French), spa (Spanish), jpn (Japanese), chi_sim (Chinese Simplified), kor (Korean).

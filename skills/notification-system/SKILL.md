@@ -12,7 +12,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+, Python 3.9+. Requires a message queue (Redis/BullMQ, RabbitMQ, or SQS) for production use."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["notifications", "messaging", "email"]
 ---
@@ -66,13 +66,14 @@ Always classify notifications into categories that determine default behavior:
 ### 3. Channel-Specific Constraints
 
 **Email**:
-- Must include unsubscribe link (CAN-SPAM / GDPR)
-- Use `List-Unsubscribe` header for one-click unsubscribe
+- Commercial and marketing email needs an unsubscribe link and must honor opt-outs (CAN-SPAM, 15 U.S.C. 7704). CAN-SPAM does not treat transactional or relationship messages (receipts, password resets) as commercial email, but keep promotional content out of them
+- Gmail requires one-click unsubscribe for subscribed and marketing mail. Send both `List-Unsubscribe: <https://terminalskills.io/unsubscribe/7f3c9a2e>` and `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058). DKIM must sign both headers, and the POST handler must complete the unsubscribe itself, without a login or confirmation page
+- Senders of 5,000 or more messages a day to Gmail must meet Google's bulk-sender rules (SPF or DKIM, PTR records, TLS, DMARC alignment)
 - HTML + plain text versions
 - Sender reputation — batch marketing emails separately from transactional
 
 **Push Notifications**:
-- Title: max 65 characters, Body: max 178 characters (iOS truncation)
+- Keep titles near 65 characters and bodies near 178: lock screens cut longer text, and the cut-off varies by OS and device. These are display guidance, not API limits; check your provider's payload size limit
 - Include `data` payload for deep linking
 - Handle token expiration and refresh
 - Respect OS-level notification settings

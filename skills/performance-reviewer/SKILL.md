@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Works with any codebase. Optional: lighthouse CLI, webpack-bundle-analyzer"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["performance", "optimization", "code-review", "profiling"]
 ---
@@ -101,7 +101,8 @@ def list_orders(request):
     orders = Order.objects.filter(user=request.user).prefetch_related(
         Prefetch('items', queryset=OrderItem.objects.select_related('product'))
     )
-  Result: Reduces to 3 queries regardless of order count.
+  Result: 2 queries regardless of order count (the orders query, plus one prefetch
+  query that joins product). The Prefetch assumes OrderItem.order has related_name="items".
 ```
 
 ### Example 2: React Re-render Issue
@@ -129,13 +130,22 @@ function UserList({ users, onSelect }) {
 🟡 Warning — Unnecessary Re-renders
   File: components/UserList.jsx:6-7
   Issue: Inline object `style={{ padding: 16, margin: 8 }}` and arrow function
-         `() => onSelect(user.id)` create new references every render, causing
-         all UserCard components to re-render even when users haven't changed.
+         `() => onSelect(user.id)` create new references every render. UserCard
+         is not memoized, so it re-renders whenever UserList does, whatever its props.
   Fix:
-    const cardStyle = useMemo(() => ({ padding: 16, margin: 8 }), []);
-    const handleClick = useCallback((id) => onSelect(id), [onSelect]);
-    // Then: style={cardStyle} onClick={() => handleClick(user.id)}
-  Impact: With 100+ users, prevents ~100 unnecessary DOM diffing operations per parent render.
+    // module scope: one object shared by every render, no hook needed
+    const CARD_STYLE = { padding: 16, margin: 8 };
+
+    const UserCard = memo(function UserCard({ user, style, onSelect }) {
+      return <div style={style} onClick={() => onSelect(user.id)}>{user.name}</div>;
+    });
+
+    // UserList passes the same style object and the parent's onSelect
+    <UserCard key={user.id} user={user} style={CARD_STYLE} onSelect={onSelect} />
+    // onSelect must be stable too: the parent wraps it in useCallback
+  Impact: With 100+ users, an unchanged UserCard is skipped on each parent render.
+          The gain requires both memo() on the child and a stable onSelect; useMemo or
+          useCallback alone do nothing for a child that is not memoized.
 ```
 
 ## Guidelines
@@ -146,3 +156,5 @@ function UserList({ users, onSelect }) {
 - Consider the scale: an O(n²) loop on a 5-element array is fine; on user-generated data it's not
 - When suggesting caching, specify what to cache and invalidation strategy
 - Don't flag micro-optimizations that harm readability for negligible gain
+- For React, check the whole chain before suggesting `useMemo`/`useCallback`: a memoized value only saves work if the receiving component is wrapped in `memo` and every prop is stable. One always-new prop breaks the skip for the whole component
+- Measure before and after (React Profiler, Lighthouse, query counts in the test log) when the change claims a gain

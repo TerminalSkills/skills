@@ -1,34 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:09546bdd7e2b41ad0e3a95c17b3a8feb91dedf2731285ac9da86be2a7cbdff4e",
-  "scoredAt": "2026-05-13T15:34:45.351Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:bdeb2623a8a4948d0ca749aa07bcf5aaf821fc784db478fe4304dbf3d404a779",
+  "scoredAt": "2026-10-13T11:48:20.276Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions contain placeholders and lack full context, making them ambiguous."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Error scenarios and edge cases are not addressed in the instructions."
+        "detail": "Error scenarios (CLI failures, authentication errors, rate limiting, no resources found) are not systematically addressed in procedural steps, only in Guidelines."
       },
       {
         "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "Runnable code blocks have placeholders and missing steps, reducing direct actionability."
+        "category": "crossPlatform",
+        "detail": "Detailed instructions and executable examples are AWS-specific; GCP and Azure are mentioned but lack equivalent command examples and cost estimation."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.12,
-    "baselineAvg": 25,
-    "treatmentAvg": 53,
+    "multiplier": 1.13,
+    "baselineAvg": 53,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "full-aws-audit",
-        "baseline": 20,
-        "treatment": 35,
-        "rationale": "Response A provides a more detailed scan and a cleanup script skeleton, whereas Response B only offers a high‑level playbook without the required report or safe‑cleanup script."
+        "name": "full-aws-multi-region-audit",
+        "baseline": 55,
+        "treatment": 20,
+        "rationale": "Response A provides runnable AWS CLI commands for 2 of 3 required checks (describe-volumes with status filter, describe-addresses for unassociated IPs) and structure for cost estimation, but critically omits the snapshot audit with age filtering, doesn't implement costs using provided pricing ($0.08/GB gp3, $0.05/GB snapshots, $0.005/hour IPs), lacks category organization (STORAGE/NETWORK/COMPUTE) sorted by monthly savings, and never mentions AMI dependencies; Response B mentions all requirements but provides zero implementation—no commands, no calculations, no organization—and asks for permission instead of attempting the task, making it a placeholder rather than a solution."
       },
       {
-        "name": "targeted-ebs-cleanup-us-west-2",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response A covers most rubric items (listing details, dry-run/execute/force options, snapshot creation, tagging) but misses cost and confirmation; Response B lacks cost, tagging, dry-run/execute/force, and snapshot creation."
+        "name": "ebs-cleanup-script-generation",
+        "baseline": 67,
+        "treatment": 73,
+        "rationale": "Response A implements the core safety mechanisms explicitly required in the rubric—snapshots before deletion and scheduled-for-deletion tags with future dates—plus a clear three-stage execution progression (dry-run → tag → force). Response B omits both snapshots and scheduled-for-deletion tags, instead using age-based filtering without a grace period, despite offering stronger explicit warnings about data loss and attempting cost calculations; the absence of snapshots is a critical safety gap when dealing with potentially critical data."
+      },
+      {
+        "name": "rds-rightsize-analysis",
+        "baseline": 38,
+        "treatment": 87,
+        "rationale": "Response A shows basic CloudWatch command structure but uses --period 3600 (hourly) instead of the required 86400 seconds (daily), and fails to recommend checking connections and IOPS before making downsizing decisions. Response B correctly implements get-metric-statistics with 86400-second period, dynamic 14-day calculation, and explicitly requires evaluating CPU, connections, and IOPS together before recommending downsizing—directly meeting all rubric requirements."
       }
     ]
   }

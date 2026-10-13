@@ -8,10 +8,10 @@ description: >-
   indexing status. Also use when the user mentions "Google Indexing API",
   "request indexing", "submit to Google", or "pages not indexed".
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with google-auth and requests libraries, and a Google Cloud service account with Indexing API enabled"
+compatibility: "Requires Python 3.9+ with google-auth and requests libraries (pip install google-auth requests), and a Google Cloud service account with Indexing API enabled"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: automation
   tags: ["google", "indexing", "seo", "search-console", "sitemap"]
 ---
@@ -20,7 +20,9 @@ metadata:
 
 ## Overview
 
-Submit URLs to Google for fast indexing using the Indexing API and service account authentication. Supports single URL submission, batch submission from sitemaps, and indexing status checks. Bypasses the slow sitemap-based discovery process and gets pages indexed within hours instead of days.
+Submit URLs to Google with the Indexing API and service account authentication. Supports single URL submission, bulk submission from sitemaps, and notification-status checks.
+
+**Important limit:** Google documents the Indexing API only for pages with `JobPosting` structured data or `BroadcastEvent` inside a `VideoObject` (livestreams). For ordinary pages (blog posts, product or docs pages) Google's supported routes are the URL Inspection tool's "Request indexing" in Search Console (a few URLs, quota-limited) and sitemaps. Use this API for eligible pages, and tell the user plainly when theirs are not.
 
 ## Instructions
 
@@ -32,7 +34,7 @@ The Google Indexing API requires a Google Cloud service account. Check that the 
 
 1. A Google Cloud project with the **Indexing API** enabled
 2. A service account JSON key file
-3. The service account email added as an **Owner** in Google Search Console for the target property
+3. The property verified in Search Console, with the service account email added as a **delegated owner** (property Settings → Users and permissions → Add user → Owner; Google's docs call it adding an owner under the verified owner list)
 
 If the user doesn't have these, walk them through the setup:
 
@@ -46,7 +48,7 @@ If the user doesn't have these, walk them through the setup:
 
 # 3. Add the service account email as Owner in Search Console
 # Visit: https://search.google.com/search-console → Settings → Users and permissions
-# Add the service account email (e.g., my-indexer@project.iam.gserviceaccount.com) as Owner
+# Add the service account email (e.g., my-indexer@terminal-skills-prod.iam.gserviceaccount.com) as Owner
 ```
 
 Verify the key file exists and is valid:
@@ -70,20 +72,20 @@ print('Key file is valid.')
 import json
 import time
 import requests
+from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
+
+import os
 
 SCOPES = ["https://www.googleapis.com/auth/indexing"]
 ENDPOINT = "https://indexing.googleapis.com/v3/urlNotifications:publish"
-CREDENTIALS_FILE = "service-account.json"
+CREDENTIALS_FILE = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]   # path to the key file; never hard-code or commit it
 
 def get_auth_session(credentials_file):
     credentials = service_account.Credentials.from_service_account_file(
         credentials_file, scopes=SCOPES
     )
-    session = requests.Session()
-    credentials.refresh(requests.Request())
-    session.headers.update({"Authorization": f"Bearer {credentials.token}"})
-    return session
+    return AuthorizedSession(credentials)  # fetches and refreshes the token
 
 def submit_url(session, url, action="URL_UPDATED"):
     body = {"url": url, "type": action}
@@ -91,14 +93,14 @@ def submit_url(session, url, action="URL_UPDATED"):
     return response.status_code, response.json()
 
 session = get_auth_session(CREDENTIALS_FILE)
-status, result = submit_url(session, "https://example.com/my-page")
+status, result = submit_url(session, "https://jobs.northwind-careers.com/openings/senior-data-engineer")
 print(f"Status: {status}")
 print(json.dumps(result, indent=2))
 ```
 
 The `type` field accepts:
-- `URL_UPDATED` — request indexing or re-indexing (use this for new and updated pages)
-- `URL_DELETED` — request removal from the index
+- `URL_UPDATED` — new or changed content
+- `URL_DELETED` — request removal; the page must return 404/410 or carry a `noindex` meta tag
 
 **Batch submission from a list of URLs:**
 
@@ -125,7 +127,8 @@ def batch_submit(session, urls, delay=1):
 Parse the sitemap and submit all URLs:
 
 ```python
-import xml.etree.ElementTree as ET
+# pip install defusedxml
+import defusedxml.ElementTree as ET   # guards untrusted sitemaps against XML-bomb / entity-expansion attacks
 
 def parse_sitemap(sitemap_url):
     response = requests.get(sitemap_url, timeout=30)
@@ -163,7 +166,7 @@ def submit_sitemap(credentials_file, sitemap_url, delay=1):
 
 ### Step 4: Check indexing status
 
-Query the notification metadata to see when Google last processed a URL:
+Query the notification metadata. It reports when Google last received a notification for the URL, not whether the URL is indexed (use the URL Inspection tool in Search Console or its API for that):
 
 ```python
 METADATA_ENDPOINT = "https://indexing.googleapis.com/v3/urlNotifications/metadata"
@@ -173,8 +176,9 @@ def check_status(session, url):
     if response.status_code == 200:
         data = response.json()
         print(f"URL:           {data.get('url')}")
-        notify = data.get("latestUpdate", {})
-        print(f"Last notified: {notify.get('notifyTime', 'never')}")
+        # REST JSON is camelCase; Google's docs show snake_case, so accept both
+        notify = data.get("latestUpdate") or data.get("latest_update") or {}
+        print(f"Last notified: {notify.get('notifyTime') or notify.get('notify_time', 'never')}")
         print(f"Type:          {notify.get('type', 'n/a')}")
     elif response.status_code == 404:
         print(f"URL not found in notification history: {url}")
@@ -190,21 +194,21 @@ def check_status(session, url):
 
 **Output:**
 ```
-Parsing sitemap: https://terminalskills.io/sitemap.xml
+Parsing sitemap: https://jobs.northwind-careers.com/sitemap.xml
 Found 87 URLs
 
-[ 1/87] OK    https://terminalskills.io/
-[ 2/87] OK    https://terminalskills.io/skills
-[ 3/87] OK    https://terminalskills.io/skills/api-tester
-[ 4/87] OK    https://terminalskills.io/skills/code-reviewer
-[ 5/87] FAIL  https://terminalskills.io/old-page — URL not allowed for this service account
+[ 1/87] OK    https://jobs.northwind-careers.com/
+[ 2/87] OK    https://jobs.northwind-careers.com/openings
+[ 3/87] OK    https://jobs.northwind-careers.com/openings/api-engineer
+[ 4/87] OK    https://jobs.northwind-careers.com/openings/qa-lead
+[ 5/87] FAIL  https://jobs.northwind-careers.com/old-page — URL not allowed for this service account
 ...
-[87/87] OK    https://terminalskills.io/use-cases/automate-deployments
+[87/87] OK    https://jobs.northwind-careers.com/openings/devops-engineer
 
 Done: 86 submitted, 1 failed
 
 Failed URLs:
-  https://terminalskills.io/old-page — 403 URL not allowed for this service account
+  https://jobs.northwind-careers.com/old-page — 403 URL not allowed for this service account
 ```
 
 ### Example 2: Submit specific pages and check their status
@@ -222,28 +226,27 @@ Submitting 3 URLs...
 Checking status...
 
 URL:           https://myblog.com/posts/nextjs-server-actions-guide
-Last notified: 2025-02-13T14:32:00Z
+Last notified: 2026-10-13T14:32:00Z
 Type:          URL_UPDATED
 
 URL:           https://myblog.com/posts/typescript-decorators-explained
-Last notified: 2025-02-13T14:32:01Z
+Last notified: 2026-10-13T14:32:01Z
 Type:          URL_UPDATED
 
 URL:           https://myblog.com/posts/docker-multi-stage-builds
-Last notified: 2025-02-13T14:32:02Z
+Last notified: 2026-10-13T14:32:02Z
 Type:          URL_UPDATED
 
-All 3 URLs submitted. Google typically processes these within 24-48 hours.
+All 3 URLs submitted. Google gives no processing-time guarantee; the metadata call only confirms the notification was received.
 ```
 
 ## Guidelines
 
-- The Indexing API has a daily quota of **200 requests per day** by default. Request a quota increase via Google Cloud Console if you need more. The batch endpoint is not available — submit one URL at a time.
-- Add a 1-second delay between requests to avoid rate limiting (429 errors). For large sitemaps, consider splitting across multiple days.
-- The service account email must be added as an **Owner** (not just a user) in Search Console for the target property. This is the most common setup mistake.
-- The API was officially designed for `JobPosting` and `BroadcastEvent` schema types, but works for any URL where the service account has Search Console ownership. Google does not enforce the schema restriction.
-- Submitting a URL does **not guarantee** indexing. Google still evaluates content quality. If pages remain unindexed after submission, the issue is likely content quality or crawlability, not the API.
-- Use `URL_UPDATED` for both new pages and re-indexing existing pages. Use `URL_DELETED` only to request removal.
-- Never store the service account JSON key in version control. Use environment variables or a secrets manager for the file path.
-- If you get a 403 "Permission denied" error, verify: (1) the Indexing API is enabled in Google Cloud, (2) the service account email is an Owner in Search Console, and (3) the URL belongs to the verified property.
-- For sites with 1000+ pages, combine this with sitemap submission in Search Console — the API handles priority pages while the sitemap covers the long tail.
+- Eligibility: Google limits the Indexing API to `JobPosting` and livestream `BroadcastEvent` pages. Using it for other page types is outside the documented use; for those, rely on sitemaps and URL Inspection "Request indexing", and fix content or crawlability if pages stay out of the index.
+- Quota: 200 publish requests per day per project (both update and delete; resets at midnight Pacific), 180 metadata reads per minute, 380 requests per minute overall. More requires a quota request via Google's form.
+- Batch: up to 100 calls per HTTP request to `https://indexing.googleapis.com/batch` (each part up to 1 MB); quota still counts per URL. The one-by-one loop above is simpler and fine within 200 per day.
+- Add a short delay between requests and handle 429 by waiting; split large sitemaps over several days.
+- The service account must be a verified owner of the Search Console property (a plain user is not enough). Most 403 errors come from this, from the Indexing API not being enabled in the project, or from a URL outside the verified property.
+- Submitting does not guarantee indexing; Google still evaluates quality. Crawling can take days to weeks.
+- Never commit the service account JSON key; point to it with an environment variable such as `GOOGLE_APPLICATION_CREDENTIALS` or use a secrets manager.
+- Use `URL_DELETED` only for pages that really are gone (404/410) or set to `noindex`.

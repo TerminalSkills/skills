@@ -4,13 +4,13 @@ description: >-
   Extract text, tables, metadata, and structured data from PDF files. Use when
   a user asks to read a PDF, parse a PDF, extract data from a PDF, summarize a
   PDF document, pull tables from a PDF, or convert PDF content to structured
-  formats like JSON or CSV. Handles single and multi-page documents, scanned
-  PDFs, and PDFs with complex table layouts.
+  formats like JSON or CSV. Handles single and multi-page documents, flags
+  scanned PDFs for OCR, and reads borderless and password-protected PDFs.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with pdfplumber or PyMuPDF (fitz) installed"
+compatibility: "Python 3.10+; pip install pdfplumber (required) and pymupdf (optional, fallback and speed); OCR needs the Tesseract binary plus pytesseract"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: documents
   tags: ["pdf", "document", "extraction", "tables", "parsing"]
 ---
@@ -36,16 +36,16 @@ Determine the file path and what the user wants extracted:
 
 ### Step 2: Choose the extraction method
 
-Write a Python script using one of these libraries (prefer pdfplumber for tables, PyMuPDF for speed):
+Write a Python script using pdfplumber (prefer it for tables) or PyMuPDF (`import pymupdf`; the old `fitz` name is deprecated and only warns). Pass `password=` for encrypted files; pdfplumber raises an empty `PdfminerException` otherwise.
 
 **For text extraction:**
 
 ```python
 import pdfplumber
 
-def extract_text(pdf_path):
+def extract_text(pdf_path, password=None):
     text_by_page = []
-    with pdfplumber.open(pdf_path) as pdf:
+    with pdfplumber.open(pdf_path, password=password) as pdf:
         for i, page in enumerate(pdf.pages):
             text = page.extract_text()
             if text:
@@ -59,14 +59,20 @@ def extract_text(pdf_path):
 import pdfplumber
 import csv
 
-def extract_tables(pdf_path, output_csv=None):
+# Default "lines" strategy needs ruling lines. For borderless tables
+# pass the "text" strategy. It returns empty spacer rows (filtered below) and can
+# take a title line above the table as the first row, so check the headers.
+TEXT_STRATEGY = {"vertical_strategy": "text", "horizontal_strategy": "text"}
+
+def extract_tables(pdf_path, output_csv=None, password=None, text_strategy=False):
     all_tables = []
-    with pdfplumber.open(pdf_path) as pdf:
+    settings = TEXT_STRATEGY if text_strategy else None
+    with pdfplumber.open(pdf_path, password=password) as pdf:
         for i, page in enumerate(pdf.pages):
-            tables = page.extract_tables()
+            tables = page.extract_tables(settings) if settings else page.extract_tables()
             for table in tables:
                 headers = table[0]
-                rows = table[1:]
+                rows = [r for r in table[1:] if any(c for c in r)]
                 all_tables.append({
                     "page": i + 1,
                     "headers": headers,
@@ -100,10 +106,18 @@ Execute the script, then present results in the format the user needs (plain tex
 
 ### Step 4: Handle errors gracefully
 
-If extraction fails, try these fallback approaches:
-1. Switch from pdfplumber to PyMuPDF (fitz)
-2. For scanned PDFs, suggest OCR with pytesseract
-3. For encrypted PDFs, inform the user a password is needed
+If extraction fails or comes back empty, check these cases in order:
+1. **Encrypted:** `pdfplumber.open` raises `PdfminerException` with no message. Ask the user for the password and retry with `password=...`. Never guess passwords.
+2. **Scanned:** a page whose `extract_text()` returns nothing but whose `page.images` is non-empty needs OCR. Tesseract is a system binary, so `pip install pytesseract` alone is not enough. OCR with PyMuPDF, which needs the Tesseract binary and language data:
+   ```python
+   import pymupdf
+   doc = pymupdf.open(pdf_path)
+   page = doc[0]  # keep the page in a variable: the text page holds a weak reference to it
+   tp = page.get_textpage_ocr(language="eng", dpi=300, full=True)
+   text = page.get_text(textpage=tp)
+   ```
+3. **Borderless tables:** the default pdfplumber strategy returns no tables. Retry with `text_strategy=True`.
+4. **Broken parser:** switch from pdfplumber to PyMuPDF (`import pymupdf`), then report which library produced the output.
 
 ## Examples
 
@@ -163,3 +177,5 @@ Conclusion: 7-8 hours of sleep optimizes cognitive performance in adults
 - If a PDF has both text and scanned pages, extract text where available and flag scanned pages for OCR.
 - Never assume table headers. Always use the first row unless the user specifies otherwise.
 - For multi-column layouts (academic papers), extract text in reading order, not left-to-right across columns.
+- PDFs often hold personal or financial data. Process them locally with the libraries above; do not upload the file to an online converter or OCR service without the user's explicit consent.
+- Do not write extracted text or passwords into shared locations or logs. Write outputs next to the source file or where the user asks.

@@ -8,11 +8,12 @@ description: >-
   or Python MCP servers with tools, resources, and prompts following the official
   MCP specification.
 license: Apache-2.0
-compatibility: "Requires Node.js 18+ (TypeScript SDK) or Python 3.10+ (Python SDK)"
+compatibility: "Requires Node.js 20+ (TypeScript SDK v2) or Python 3.11+ (Python SDK v2)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/modelcontextprotocol/typescript-sdk
   tags: ["mcp", "ai-agents", "tools", "integration", "protocol"]
 ---
 
@@ -20,203 +21,184 @@ metadata:
 
 ## Overview
 
-Create Model Context Protocol (MCP) servers that expose tools, resources, and prompts to AI agents like Claude, Cursor, and other MCP-compatible clients. This skill scaffolds complete MCP server projects with proper typing, error handling, input validation, and deployment configuration.
+Create Model Context Protocol (MCP) servers that expose tools, resources, and prompts to AI agents like Claude, Cursor, and other MCP-compatible clients. This skill scaffolds complete MCP server projects with typed inputs, error handling, and client configuration.
+
+Both official SDKs reached a stable v2 in July 2026 (spec revision 2026-07-28): `@modelcontextprotocol/server` for TypeScript and `mcp` 2.x for Python. v2 renamed the main APIs, so code copied from older tutorials (`server.tool()`, `StdioServerTransport`, `FastMCP`) fails on a fresh install.
 
 ## Instructions
 
-When a user asks to build an MCP server, follow these steps:
-
 ### Step 1: Define the server's purpose and capabilities
 
-Determine what the MCP server will expose:
-- **Tools** — Functions the AI can call (e.g., query a database, call an API, run a search)
-- **Resources** — Data the AI can read (e.g., file contents, database records, config)
-- **Prompts** — Reusable prompt templates with parameters
+- **Tools**: functions the model calls (query a database, call an API)
+- **Resources**: read-only data the client attaches as context (files, records, config)
+- **Prompts**: reusable prompt templates with parameters
 
-Ask: What service or data source should the AI agent connect to?
+Ask what service or data source the agent should reach, and which operations must be read-only.
 
 ### Step 2: Scaffold the project
 
-**TypeScript (recommended):**
+**TypeScript (Node.js 20+):**
 
 ```bash
-mkdir my-mcp-server && cd my-mcp-server
+mkdir github-issues-mcp && cd github-issues-mcp
 npm init -y
-npm install @modelcontextprotocol/sdk zod
-npm install -D typescript @types/node
-npx tsc --init --target ES2022 --module NodeNext --moduleResolution NodeNext --outDir dist
+npm pkg set type=module
+npm install @modelcontextprotocol/server zod tsx
+mkdir src
 ```
 
-Create the entry point structure:
-```
-my-mcp-server/
-├── src/
-│   └── index.ts       # Server entry point
-├── package.json
-└── tsconfig.json
-```
+`type=module` is required (the SDK is ESM only). `tsx` runs the TypeScript directly, so there is no build step. If you need a compiled `dist/`, add `typescript` and `@types/node` and build with `tsc`. Zod v4 is imported as `zod/v4`; any Standard Schema library (Valibot, ArkType) also works.
 
-Update `package.json`:
-```json
-{
-  "type": "module",
-  "bin": { "my-mcp-server": "./dist/index.js" },
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
-  }
-}
-```
+The v1 package `@modelcontextprotocol/sdk` still gets security fixes, but new projects should use v2.
 
-**Python:**
+**Python (3.11+):**
 
 ```bash
-mkdir my-mcp-server && cd my-mcp-server
+mkdir github-issues-mcp && cd github-issues-mcp
 python -m venv .venv && source .venv/bin/activate
-pip install mcp[cli]
+pip install "mcp[cli]" httpx
 ```
+
+The `cli` extra provides the `mcp dev` and `mcp run` commands. Add `httpx` yourself if your tools make HTTP calls.
 
 ### Step 3: Implement the server
 
-**TypeScript MCP server template:**
+**TypeScript server (`src/index.ts`):**
 
 ```typescript
-#!/usr/bin/env node
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
+import { McpServer, ResourceTemplate } from '@modelcontextprotocol/server';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
+import * as z from 'zod/v4';
 
-const server = new McpServer({
-  name: 'my-mcp-server',
-  version: '1.0.0',
-});
+function createServer(): McpServer {
+  const server = new McpServer({ name: 'github-issues', version: '1.0.0' });
 
-// Define a tool
-server.tool(
-  'search_issues',
-  'Search GitHub issues by query. Returns title, number, state, and URL.',
-  {
-    query: z.string().describe('Search query for issues'),
-    repo: z.string().describe('Repository in owner/repo format'),
-    state: z.enum(['open', 'closed', 'all']).default('open').describe('Issue state filter'),
-  },
-  async ({ query, repo, state }) => {
-    const response = await fetch(
-      `https://api.github.com/search/issues?q=${encodeURIComponent(query)}+repo:${repo}+state:${state}`
-    );
-    if (!response.ok) {
-      return { content: [{ type: 'text', text: `Error: ${response.statusText}` }], isError: true };
+  server.registerTool(
+    'search_issues',
+    {
+      description: 'Search GitHub issues. Returns number, state, title and URL.',
+      inputSchema: z.object({
+        query: z.string().describe('Search text'),
+        repo: z.string().describe('Repository as owner/name, e.g. vercel/next.js'),
+        state: z.enum(['open', 'closed']).default('open')
+      })
+    },
+    async ({ query, repo, state }) => {
+      const q = encodeURIComponent(`${query} repo:${repo} is:issue state:${state}`);
+      const res = await fetch(`https://api.github.com/search/issues?q=${q}&per_page=10`, {
+        headers: { 'User-Agent': 'github-issues-mcp/1.0', Accept: 'application/vnd.github+json' },
+        signal: AbortSignal.timeout(10_000)
+      });
+      if (!res.ok) {
+        return { content: [{ type: 'text', text: `GitHub API error: HTTP ${res.status}` }], isError: true };
+      }
+      const data = (await res.json()) as { items: { number: number; state: string; title: string; html_url: string }[] };
+      const text = data.items.map(i => `#${i.number} [${i.state}] ${i.title}\n  ${i.html_url}`).join('\n\n');
+      return { content: [{ type: 'text', text: text || 'No issues found.' }] };
     }
-    const data = await response.json();
-    const results = data.items.slice(0, 10).map((issue: any) =>
-      `#${issue.number} [${issue.state}] ${issue.title}\n  ${issue.html_url}`
-    ).join('\n\n');
+  );
 
-    return { content: [{ type: 'text', text: results || 'No issues found.' }] };
-  }
-);
+  server.registerResource(
+    'repo-readme',
+    new ResourceTemplate('github://readme/{owner}/{repo}', { list: undefined }),
+    { title: 'Repository README', mimeType: 'text/markdown' },
+    async (uri, { owner, repo }) => {
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+        headers: { 'User-Agent': 'github-issues-mcp/1.0', Accept: 'application/vnd.github.raw' },
+        signal: AbortSignal.timeout(10_000)
+      });
+      return { contents: [{ uri: uri.href, mimeType: 'text/markdown', text: await res.text() }] };
+    }
+  );
 
-// Define a resource
-server.resource(
-  'repo-readme',
-  'github://readme/{owner}/{repo}',
-  async (uri) => {
-    const [owner, repo] = uri.pathname.split('/').filter(Boolean);
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
-      headers: { Accept: 'application/vnd.github.raw' },
-    });
-    return { contents: [{ uri: uri.href, text: await response.text(), mimeType: 'text/markdown' }] };
-  }
-);
+  return server;
+}
 
-// Start the server
-const transport = new StdioServerTransport();
-await server.connect(transport);
+void serveStdio(createServer);
+console.error('github-issues MCP server running on stdio');
 ```
 
-**Python MCP server template:**
+Notes: `registerTool(name, config, handler)` replaces `server.tool()`, `registerResource` replaces `server.resource()`, and `serveStdio(factory)` replaces `new StdioServerTransport()` plus `server.connect()`. The `inputSchema` must be a schema object (`z.object(...)`), not a bare shape. Logging goes to stderr: one `console.log` corrupts the stdout protocol stream.
+
+**Python server (`server.py`):**
 
 ```python
-from mcp.server.fastmcp import FastMCP
 import httpx
+from mcp.server import MCPServer
 
-mcp = FastMCP("my-mcp-server")
+mcp = MCPServer("github-issues")
+
 
 @mcp.tool()
 async def search_issues(query: str, repo: str, state: str = "open") -> str:
-    """Search GitHub issues by query. Returns title, number, state, and URL."""
-    async with httpx.AsyncClient() as client:
+    """Search GitHub issues. Returns number, state, title and URL."""
+    async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(
             "https://api.github.com/search/issues",
-            params={"q": f"{query} repo:{repo} state:{state}"},
+            params={"q": f"{query} repo:{repo} is:issue state:{state}", "per_page": 10},
+            headers={"User-Agent": "github-issues-mcp/1.0"},
         )
         resp.raise_for_status()
-        items = resp.json()["items"][:10]
-        return "\n\n".join(
-            f"#{i['number']} [{i['state']}] {i['title']}\n  {i['html_url']}"
-            for i in items
-        ) or "No issues found."
+    items = resp.json()["items"]
+    return "\n\n".join(
+        f"#{i['number']} [{i['state']}] {i['title']}\n  {i['html_url']}" for i in items
+    ) or "No issues found."
+
 
 @mcp.resource("github://readme/{owner}/{repo}")
 async def repo_readme(owner: str, repo: str) -> str:
-    """Fetch the README for a GitHub repository."""
-    async with httpx.AsyncClient() as client:
+    """README of a GitHub repository."""
+    async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(
             f"https://api.github.com/repos/{owner}/{repo}/readme",
-            headers={"Accept": "application/vnd.github.raw"},
+            headers={"Accept": "application/vnd.github.raw", "User-Agent": "github-issues-mcp/1.0"},
         )
         return resp.text
+
 
 if __name__ == "__main__":
     mcp.run()
 ```
 
+`MCPServer` (import `from mcp.server import MCPServer`) is the v2 name of `FastMCP`; the old `mcp.server.fastmcp` module is gone. The tool schema comes from the type hints and docstring. Plain `mcp.run()` serves stdio; `mcp.run(transport="streamable-http", host="127.0.0.1", port=8000)` serves HTTP (transport options are arguments of `run()`, not of the constructor).
+
 ### Step 4: Add client configuration
 
-Generate the MCP client config for the user:
+**Claude Code:**
+
+```bash
+claude mcp add github-issues -- npx tsx /home/dev/github-issues-mcp/src/index.ts
+```
 
 **Claude Desktop (`claude_desktop_config.json`):**
+
 ```json
 {
   "mcpServers": {
-    "my-mcp-server": {
-      "command": "node",
-      "args": ["/absolute/path/to/dist/index.js"],
-      "env": {
-        "GITHUB_TOKEN": "your-token-here"
-      }
+    "github-issues": {
+      "command": "npx",
+      "args": ["tsx", "/home/dev/github-issues-mcp/src/index.ts"],
+      "env": { "GITHUB_TOKEN": "set-in-your-own-config" }
     }
   }
 }
 ```
 
-**For Python servers:**
-```json
-{
-  "mcpServers": {
-    "my-mcp-server": {
-      "command": "python",
-      "args": ["/absolute/path/to/server.py"]
-    }
-  }
-}
-```
+For Python, use `"command": "/home/dev/github-issues-mcp/.venv/bin/python"` with `"args": ["/home/dev/github-issues-mcp/server.py"]`. Always use absolute paths: hosts do not launch the server from your project directory.
 
 ### Step 5: Test the server
 
 ```bash
-# TypeScript — build and test
-npm run build
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node dist/index.js
+# TypeScript
+npx @modelcontextprotocol/inspector npx tsx src/index.ts
 
-# Python — test with MCP inspector
+# Python
 mcp dev server.py
 ```
 
-Verify:
-- All tools appear in `tools/list` response
-- Tool inputs are validated (try invalid params)
-- Error responses are graceful, not stack traces
+In the Inspector, click Connect, open the Tools tab, and call `search_issues`. Do not test by piping raw JSON into stdin: v2 servers negotiate the protocol first, so a bare `tools/list` line gets no useful answer. For automated tests, use the SDK `Client` (Python: `from mcp import Client`, which accepts the server object for in-memory tests).
+
+Verify that all tools are listed, invalid arguments are rejected before the handler runs, and errors are readable messages, not stack traces.
 
 ## Examples
 
@@ -225,60 +207,58 @@ Verify:
 **User request:** "Build an MCP server so Claude can query my Postgres database"
 
 **Actions taken:**
-1. Scaffolded TypeScript MCP project with `pg` driver
-2. Created tools: `run_query` (read-only SQL), `list_tables`, `describe_table`
-3. Added connection pooling and query timeout (30s)
-4. Restricted to SELECT queries only (safety)
+1. Scaffolded a TypeScript project with `@modelcontextprotocol/server` and the `pg` driver
+2. Registered tools `run_query`, `list_tables`, `describe_table`
+3. Connected with a read-only database role (`mcp_reader`) and a 30 s `statement_timeout`
+4. Rejected anything but SELECT as a second line of defence
 
-**Key tool implementation:**
 ```typescript
-server.tool(
+server.registerTool(
   'run_query',
-  'Execute a read-only SQL query against the database. Only SELECT statements allowed.',
-  { sql: z.string().describe('SQL SELECT query to execute') },
+  {
+    description: 'Run a read-only SQL SELECT against the analytics database.',
+    inputSchema: z.object({ sql: z.string().describe('A single SELECT statement') })
+  },
   async ({ sql }) => {
-    if (!/^\s*SELECT\b/i.test(sql)) {
-      return { content: [{ type: 'text', text: 'Error: Only SELECT queries are allowed.' }], isError: true };
+    if (!/^\s*SELECT\b/i.test(sql) || sql.includes(';')) {
+      return { content: [{ type: 'text', text: 'Only a single SELECT statement is allowed.' }], isError: true };
     }
-    const result = await pool.query({ text: sql, timeout: 30000 });
-    const formatted = result.rows.map(r => JSON.stringify(r)).join('\n');
-    return { content: [{ type: 'text', text: `${result.rowCount} rows:\n${formatted}` }] };
+    const result = await pool.query({ text: sql, query_timeout: 30000 });
+    const rows = result.rows.slice(0, 200).map(r => JSON.stringify(r)).join('\n');
+    return { content: [{ type: 'text', text: `${result.rowCount} rows (first 200):\n${rows}` }] };
   }
 );
 ```
 
-**Result:** 3 tools created, tested with MCP inspector, config generated for Claude Desktop.
+**Result:** three tools listed in the Inspector, a `DROP TABLE users` attempt returns the error message, and `claude mcp add analytics-db -- ...` registers it for Claude Code. The regex check is only a guard; the read-only role is what actually protects the data.
 
 ### Example 2: MCP server wrapping a REST API (Jira)
 
 **User request:** "Create an MCP server for Jira so I can manage tickets from Claude"
 
 **Actions taken:**
-1. Created Python FastMCP server with httpx
-2. Implemented tools: `search_tickets`, `create_ticket`, `update_status`, `add_comment`
-3. Added authentication via environment variable `JIRA_API_TOKEN`
-4. Input validation with proper error messages
+1. Created a Python `MCPServer` with httpx
+2. Implemented `search_tickets`, `create_ticket`, `update_status`, `add_comment`
+3. Read `JIRA_BASE_URL`, `JIRA_USER_EMAIL` and `JIRA_API_TOKEN` from environment variables
+4. Typed every argument so the SDK rejects bad input before the function runs
 
-**Tools created:**
-```
-- search_tickets(jql: str, max_results: int = 10) → Search Jira issues using JQL
-- create_ticket(project: str, summary: str, description: str, type: str) → Create a new issue
-- update_status(ticket_key: str, status: str) → Transition issue status
-- add_comment(ticket_key: str, body: str) → Add a comment to an issue
+```python
+@mcp.tool()
+async def search_tickets(jql: str, max_results: int = 10) -> str:
+    """Search Jira issues with JQL, e.g. 'project = PAY AND status = Open'."""
 ```
 
-**Result:** 4 tools, all tested. User can now ask Claude: "Find all open bugs in PROJECT assigned to me" and Claude calls `search_tickets` with the appropriate JQL.
+**Result:** four tools. Asking Claude "Find all open bugs in PAY assigned to me" makes it call `search_tickets` with the right JQL.
 
 ## Guidelines
 
-- Always validate tool inputs with Zod (TypeScript) or type hints (Python). Never trust raw input.
-- Return structured, readable text from tools — the AI will interpret it for the user.
-- Use `isError: true` in tool responses for failures so the AI knows to retry or report the error.
-- Keep tool descriptions clear and specific — the AI uses them to decide when to call each tool.
-- For database tools, enforce read-only access by default. Only allow writes if explicitly requested.
-- Store API keys and credentials in environment variables, never hardcode them.
-- Add timeouts to all external calls (HTTP requests, database queries) to prevent hangs.
-- Limit response sizes — if a query returns 10,000 rows, paginate or truncate.
-- Use stdio transport for local development, SSE/HTTP transport for remote deployment.
-- Test every tool with the MCP inspector (`npx @modelcontextprotocol/inspector`) before shipping.
-- Include a README with setup instructions, required env vars, and example Claude Desktop config.
+- Validate inputs with a schema (Zod in TypeScript, type hints in Python); never trust raw arguments.
+- Return readable text. For failures the model should see and react to, return `isError: true` (TypeScript) or, in Python, raise from an `MCPServer` tool (the model then sees only a generic "Error executing tool ..." line, so catch and re-raise with care, or return a readable string). The low-level Python `Server` turns exceptions into protocol errors instead.
+- Write tool descriptions specific enough that the model can choose between tools.
+- Database tools: use a read-only database role first, query filtering second.
+- Keep credentials in environment variables and out of the repository and tool output.
+- Add timeouts to every external call and cap response sizes (truncate or paginate).
+- stdio is for local servers launched by the host. For a shared remote server use Streamable HTTP (`createMcpHandler` in TypeScript, `run(transport="streamable-http")` in Python); SSE is only a legacy transport. Bind to 127.0.0.1 unless you add authentication.
+- Never write to stdout from a stdio server except through the SDK.
+- Pin the SDK major version in `package.json` or `pyproject.toml`; v1 and v2 APIs are not compatible. Migration guides: ts.sdk.modelcontextprotocol.io/v2/migration/upgrade-to-v2 and py.sdk.modelcontextprotocol.io/migration/.
+- Ship a README with setup steps, required environment variables, and the `claude mcp add` command.

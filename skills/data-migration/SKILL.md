@@ -1,8 +1,9 @@
 ---
 name: data-migration
 description: >-
-  When the user needs to migrate data between databases, transform schemas,
-  or consolidate data sources. Use when the user mentions "data migration,"
+  Plans and scripts data migrations between SQL databases: schema mapping, type
+  conversion, batched and resumable loading, validation and cutover. Use when the
+  user mentions "data migration,"
   "database migration," "migrate from MySQL to PostgreSQL," "schema migration,"
   "ETL pipeline," "data transfer," "database consolidation," "legacy migration,"
   or "move data between databases." Covers schema analysis, mapping, transformation,
@@ -12,7 +13,7 @@ license: Apache-2.0
 compatibility: "Any SQL database (PostgreSQL, MySQL, SQLite, MSSQL)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["migration", "database", "etl", "data-pipeline", "schema"]
 ---
@@ -49,7 +50,7 @@ Common cross-database type conversions:
 |-------|-----------|-------|
 | TINYINT(1) | BOOLEAN | Map 0/1 to false/true |
 | ENUM('a','b') | VARCHAR + CHECK | Or create custom TYPE |
-| DATETIME | TIMESTAMPTZ | Add timezone info |
+| DATETIME | TIMESTAMPTZ | DATETIME stores no time zone: decide which zone the values were written in, then convert. MySQL converts TIMESTAMP itself, not DATETIME. DATETIME ranges 1000-9999; TIMESTAMP only 1970-2038 |
 | INT AUTO_INCREMENT | SERIAL | Reset sequence after migration |
 | DOUBLE | DOUBLE PRECISION | Direct mapping |
 | BLOB | BYTEA | Binary data |
@@ -134,5 +135,11 @@ Three strategies by downtime tolerance:
 - **Validate before cutover** — automated validation catches what manual spot-checks miss
 - **Plan rollback** — if target validation fails, have a documented path back to source
 - **Log extensively** — rows processed, rows skipped, transformation errors, timing
-- **Reset sequences** — after migration, set serial/auto-increment above max migrated ID
+- **Reset sequences** — after migration, set serial/auto-increment above max migrated ID. In PostgreSQL, for each table with a `serial` column (tested on PostgreSQL 16):
+
+  ```sql
+  SELECT setval(pg_get_serial_sequence('orders', 'id'), coalesce(max(id), 0) + 1, false) FROM orders;
+  ```
+
+  The `false` makes the next `nextval` return exactly that value, so an empty table also resets to 1. Passing `true` together with `max(id) + 1` would skip one number.
 - **Test with production volume** — a script that works on 1000 rows may OOM on 5M

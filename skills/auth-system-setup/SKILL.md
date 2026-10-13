@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Any backend framework (Node.js, Python, Go, etc.)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["authentication", "authorization", "oauth", "rbac", "security"]
 ---
@@ -56,6 +56,34 @@ For each OAuth provider:
 5. Issue application tokens (access + refresh)
 
 Always use PKCE for public clients. Always validate the state parameter.
+
+RFC 9700 (the OAuth 2.0 Security Best Current Practice) requires PKCE for public clients and recommends it for confidential ones. Send `code_challenge_method=S256`. GitHub's OAuth documentation lists `code_challenge` as strongly recommended. Keep the `code_verifier` and `state` server-side, or in an httpOnly cookie with `SameSite=Lax`. The provider redirects back to your callback cross-site, and browsers do not send `SameSite=Strict` cookies on that navigation, so a Strict cookie breaks the callback.
+
+```javascript
+import crypto from 'node:crypto';
+
+// Generate per-login values before redirecting to the provider
+export function createPkcePair() {
+  const codeVerifier = crypto.randomBytes(32).toString('base64url'); // 43 characters (RFC 7636 allows 43-128)
+  const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+  const state = crypto.randomBytes(16).toString('base64url');
+  return { codeVerifier, codeChallenge, state };
+}
+
+// Authorization URL for Google (accounts.google.com/o/oauth2/v2/auth)
+const { codeVerifier, codeChallenge, state } = createPkcePair();
+// Store codeVerifier and state server-side (or in the SameSite=Lax cookie) for the callback
+const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+url.search = new URLSearchParams({
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  redirect_uri: 'https://app.terminalskills.io/auth/callback', // must match the registered callback
+  response_type: 'code',
+  scope: 'openid email profile',
+  state,
+  code_challenge: codeChallenge,
+  code_challenge_method: 'S256',
+}).toString();
+```
 
 ### 4. Implement RBAC
 
@@ -119,8 +147,8 @@ Create tests for:
 
 - **Never store plain-text passwords** — use bcrypt with cost factor 12+ or argon2id
 - **Always use PKCE** for OAuth flows, even with confidential clients
-- **Rotate refresh tokens** on every use — detect reuse to identify token theft
-- **Set short access token TTL** — 15 minutes is the standard
+- **Rotate refresh tokens** on every use — detect reuse to identify token theft (RFC 9700 §4.14 describes the same rotation)
+- **Set short access token TTL** — 15 minutes is a common default, not a standard; pick the value that fits your session length
 - **Cache permissions** — reload on role change, not on every request
 - **Log auth events** — login, logout, failed attempts, role changes (for audit trail)
 - **Rate limit auth endpoints** — prevent brute force on login and token refresh

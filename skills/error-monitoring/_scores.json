@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:69cba8a7caf3b778a497bf6c93d9eb26ab02a1f66c806c4c61a3bd74ef4fab32",
-  "scoredAt": "2026-05-13T08:49:20.106Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c3be0abd8d24c2bc590dbd1d0598be91d70751ca7e5596a19329f89c9709a6d7",
+  "scoredAt": "2026-10-13T11:59:35.916Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill provides high-level steps but lacks concrete code or runnable procedures, making it less actionable."
+        "category": "completeness",
+        "detail": "Skill covers common error scenarios but lacks guidance for malformed API responses, rate limiting failures, and handling missing CSV fields."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Curl and bash examples assume Unix-like environment; Windows users without WSL would need PowerShell equivalents."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 90,
-    "multiplier": 2.57,
+    "multiplier": 1.58,
+    "baselineAvg": 53,
+    "treatmentAvg": 84,
     "scenarios": [
       {
-        "name": "Audit a Sentry JSON export of 3,200 events from the last 14 days",
-        "baseline": 30,
-        "treatment": 92,
-        "rationale": "Baseline lists top errors by count but skips priority labels, percentages, duplicate-group merging, and resolved-but-recurring sections that the rubric requires."
+        "name": "sentry-critical-triage",
+        "baseline": 50,
+        "treatment": 78,
+        "rationale": "Response B explicitly commits to P1/P2/P3 prioritization, trend analysis (increasing/stable/decreasing), duplicate detection, and severity keyword flagging—all core rubric items—while Response A omits the P1/P2/P3 system, trend tracking, and duplicate merging; neither explicitly mentions root-cause grouping by file/line/function, but Response B's structured output plan better matches the rubric's requirements."
       },
       {
-        "name": "Flag noisiest alerts and recommend which to silence vs investigate",
-        "baseline": 40,
-        "treatment": 88,
-        "rationale": "Baseline conflates severity with volume and misses the keyword-based escalation (payment/auth/password/delete/drop) and dedupe-before-rule-changes guidance the skill enforces."
+        "name": "csv-duplicate-detection",
+        "baseline": 58,
+        "treatment": 87,
+        "rationale": "Response B explicitly names and commits to all three rubric requirements (normalize with specific examples of variable types to strip, cluster by stack trace + normalized message, produce consolidation report with specific merge groups). Response A vaguely promises clustering and summary but doesn't clearly articulate the normalization strategy, stack trace origin approach, or specific merge recommendations required by the rubric."
+      },
+      {
+        "name": "self-healing-vs-persistent",
+        "baseline": 52,
+        "treatment": 87,
+        "rationale": "Response B directly addresses all rubric elements (occurrence gaps >7d, resolved-but-recurring patterns, trend direction, user reach, ranking criteria) with specific operational thresholds and actionable deprioritization cutoffs; Response A mentions gaps and recurrence vaguely but omits trend analysis and user-reach metrics, offering only generic promises without the detailed ranking framework the rubric requires."
       }
     ]
   }

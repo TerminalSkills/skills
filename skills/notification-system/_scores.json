@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:774d47abd6f6277a0d500b2f26a66a92e160d1fec2ad3cd03cfe6f6a65702ec0",
-  "scoredAt": "2026-05-13T09:41:57.819Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:35aab2a7de1c6ad6f4ac60c020f67581051281aa10f172b55f78d1b195dd1b8c",
+  "scoredAt": "2026-10-13T13:02:53.780Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Examples use Node.js-specific tools (Express, BullMQ, Socket.io) and React, but compatibility declares Python 3.9+ support without Python examples or language-agnostic implementation guidance."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 32,
+    "multiplier": 1.82,
+    "baselineAvg": 50,
     "treatmentAvg": 91,
-    "multiplier": 2.84,
     "scenarios": [
       {
-        "name": "Order confirmation router with retry logic",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment implements the documented ChannelAdapter interface, the three-tier email retry schedule (1min/5min/30min), a dead letter queue, List-Unsubscribe headers, and in-app DB+WebSocket delivery, while the baseline uses a generic BullMQ retry without per-channel windows, DLQ, or unsubscribe handling."
+        "name": "multi-channel-preference-system",
+        "baseline": 55,
+        "treatment": 92,
+        "rationale": "Response A implements all rubric requirements: explicit router with adapters, full category system with enforced non-disableable rules for security/transactional types (via canDisable flag and updatePreference validation), and per-type per-channel preferences. Response B implements the infrastructure (channels, preferences, services) but critically fails the non-disableable enforcement—it allows users to fully unsubscribe from security and transactional notifications, violating the core requirement that these types must always send regardless of user preferences."
       },
       {
-        "name": "Per-user preferences with security overrides",
-        "baseline": 28,
+        "name": "gmail-compliant-email-campaigns",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Response A correctly implements all three rubric requirements: RFC 8058-compliant headers (List-Unsubscribe-Post: One-Click), a POST endpoint that unsubscribes without login/confirmation, and separate promotional/transactional queuing with different sender domains. Response B fails critical requirements: implements only a GET endpoint (not POST, which RFC 8058 requires), uses incorrect header syntax (One-Click-Unsubscribe instead of One-Click), and has no separate queue/routing for transactional emails—though it provides good NestJS structure and MongoDB schemas."
+      },
+      {
+        "name": "retry-delivery-tracking",
+        "baseline": 55,
         "treatment": 92,
-        "rationale": "Treatment matches the documented schema with composite unique (user_id, notification_type, channel), encodes the Security/Transactional/Activity/Social/Marketing category matrix with non-disableable enforcement, and exposes REST CRUD, while the baseline uses a flat per-user toggle table with no per-type granularity or security override."
+        "rationale": "Response A implements the exact backoff delays specified (email: 1/5/30 min, push: 30s/2min), includes all required state transitions (queued/sent/delivered/read/failed) with proper timestamps, and provides a robust separate DLQ queue. Response B uses generic exponential backoff starting at 5s/2s (not matching spec), lacks 'delivered' and 'read' states (storing only queued/sent/failed/dead-lettered), and treats DLQ as a status flag rather than a separate queue system."
       }
     ]
   }

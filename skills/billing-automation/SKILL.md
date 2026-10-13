@@ -1,7 +1,7 @@
 ---
 name: billing-automation
 description: >-
-  Automate invoice generation, billing workflows, payment tracking, and revenue
+  Automates invoice generation, billing workflows, payment tracking, and revenue
   recognition for SaaS and service businesses. Use when building billing
   pipelines, generating invoice PDFs, usage-based invoicing, subscription
   management, payment reminders, or financial reporting. Trigger words: invoice,
@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.9+; PDF generation library required"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: business
   tags: ["billing", "invoicing", "payments", "automation", "finance"]
 ---
@@ -77,19 +77,34 @@ Gather required information and render professional documents:
 - **Payment terms**: Net 30/60, accepted methods, bank details
 
 ```python
-def calculate_invoice(items, tax_rate=0, discount=0):
-    subtotal = sum(item['quantity'] * item['unit_price'] for item in items)
-    discount_amount = subtotal * (discount / 100)
-    taxable_amount = subtotal - discount_amount
-    tax_amount = taxable_amount * (tax_rate / 100)
+from decimal import Decimal, ROUND_HALF_UP
+
+CENT = Decimal("0.01")
+
+def _money(value):
+    return value.quantize(CENT, rounding=ROUND_HALF_UP)
+
+def calculate_invoice(items, tax_rate="0", discount="0"):
+    """items: [{"quantity": 12, "unit_price": "29.00"}]; tax_rate and discount are percentages."""
+    subtotal = sum(Decimal(str(i["quantity"])) * Decimal(i["unit_price"]) for i in items)
+    discount_amount = _money(subtotal * Decimal(discount) / 100)
+    taxable_amount = subtotal - discount_amount          # tax is charged after the discount
+    tax_amount = _money(taxable_amount * Decimal(tax_rate) / 100)
     total = taxable_amount + tax_amount
     return {
-        "subtotal": round(subtotal, 2),
-        "discount": round(discount_amount, 2),
-        "tax": round(tax_amount, 2),
-        "total": round(total, 2)
+        "subtotal": _money(subtotal),
+        "discount": discount_amount,
+        "tax": tax_amount,
+        "total": _money(total),
     }
+
+# calculate_invoice([{"quantity": 1, "unit_price": "3500.00"},
+#                    {"quantity": 1, "unit_price": "1200.00"},
+#                    {"quantity": 12, "unit_price": "29.00"}], tax_rate="20", discount="10")
+# -> subtotal 5048.00, discount 504.80, tax 908.64, total 5451.84
 ```
+
+Use `Decimal`, not `float`: `round()` on floats uses banker's rounding and binary floats drift (`0.1 + 0.2` is not `0.3`). In JavaScript, keep amounts in integer cents or use a decimal library.
 
 For PDF rendering, use reportlab (Python) or PDFKit (Node.js) with a clean layout: header with company info, invoice metadata, bill-to section, line items table, totals, and payment terms.
 
@@ -112,6 +127,8 @@ Payment failed:
   Day 14: Suspend service, send "account suspended" email
   Day 30: Cancel subscription, final notice
 ```
+
+If you bill through Stripe, let Stripe run the retries where you can. Stripe Smart Retries picks retry times with its own model, and a custom retry schedule allows up to three retries, each a set number of days after the previous attempt. Your own schedule in code then covers only the emails, suspension and cancellation steps. Each failed attempt fires `invoice.payment_failed`, so use that event to drive the escalation stages.
 
 ## Examples
 
@@ -162,7 +179,7 @@ Invoice #INV-2025-002 | Currency: EUR
 
 **User prompt:** "Implement a dunning workflow for failed subscription payments using Stripe."
 
-The agent generates a dunning service with webhook handlers for `invoice.payment_failed`, configurable retry schedules, email templates for each escalation stage, and automatic subscription status management.
+The agent generates a dunning service with webhook handlers for `invoice.payment_failed`, email templates for each escalation stage, and automatic subscription status management. Retry timing comes from Stripe's Smart Retries or a custom schedule of at most three retries, so the service does not retry on its own timer in parallel with Stripe.
 
 ## Guidelines
 
@@ -174,6 +191,6 @@ The agent generates a dunning service with webhook handlers for `invoice.payment
 - Calculate tax on the post-discount amount, not the subtotal
 - Format currency with two decimal places and correct symbol
 - Default payment terms to Net 30 unless specified otherwise
-- Never delete invoices — void them with a credit note instead
+- Never delete invoices — void them with a credit note instead (Stripe allows deleting only draft invoices; finalized ones are voided)
 - Implement webhook handlers for payment processor events rather than polling
 - Test with edge cases: zero usage, credits, currency rounding, proration

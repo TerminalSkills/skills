@@ -6,10 +6,10 @@ description: >-
   agreement, generate a non-disclosure document, make an NDA for a meeting, or
   prepare a mutual NDA for a partnership. Supports unilateral and mutual NDAs.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with reportlab or python-docx for document generation"
+compatibility: "Requires Python 3.9+ with python-docx (tested with 1.2.0) for DOCX output"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["nda", "legal", "confidentiality", "agreement", "business"]
   use-cases:
@@ -54,8 +54,11 @@ Every NDA should include these core sections:
 5. **Term and Duration**: Effective date, confidentiality period, survival clauses
 6. **Return or Destruction**: What happens to materials when the NDA expires
 7. **Remedies**: Injunctive relief, damages for breach
-8. **General Provisions**: Governing law, jurisdiction, amendments, entire agreement, severability
-9. **Signature Block**: Lines for both parties with name, title, date
+8. **Compelled Disclosure and Protected Reporting**: Receiving party may disclose what a court or authority legally requires (after prompt notice to the other side, where lawful); nothing bars reporting violations of law to a government agency
+9. **General Provisions**: Governing law, jurisdiction, amendments, entire agreement, severability
+10. **Signature Block**: Lines for both parties with name, title, date
+
+For any NDA with an employee, contractor or consultant in the United States, include the whistleblower immunity notice from the Defend Trade Secrets Act (18 U.S.C. 1833(b)): an individual is not liable under trade secret law for disclosing a trade secret in confidence to a government official or an attorney solely to report or investigate a suspected violation of law, or in a court filing made under seal. Without this notice (or a cross-reference to a policy that contains it) the employer cannot recover exemplary damages or attorney fees under the DTSA against that person.
 
 ### Step 3: Generate the document
 
@@ -64,9 +67,14 @@ Create the NDA as a DOCX file (editable) or PDF:
 ```python
 from docx import Document
 from docx.shared import Pt, Inches
+import os
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 def generate_nda(data, output_path="nda.docx"):
+    # Keep writes inside the current directory: reject any path component.
+    output_path = os.path.basename(output_path)
+    if not output_path.endswith(".docx"):
+        raise ValueError("output_path must be a .docx filename")
     doc = Document()
 
     # Title
@@ -106,7 +114,7 @@ def generate_nda(data, output_path="nda.docx"):
 After generating:
 1. Display a summary of key terms
 2. List all sections included
-3. Remind the user to have a lawyer review before signing
+3. Remind the user to have a lawyer review before signing; enforceability of duration, non-solicitation and scope varies by state and country
 
 ## Examples
 
@@ -175,7 +183,8 @@ Sections included:
   6. Term and Survival
   7. Return of Company Property
   8. Remedies and Enforcement
-  9. Signature Block
+  9. Protected Reporting Notice (DTSA 18 U.S.C. 1833(b))
+  10. Signature Block
 ```
 
 ### Example 3: Meeting NDA
@@ -209,7 +218,9 @@ Fill in the bracketed fields before the meeting.
 - Default confidentiality duration to 2 years for business partnerships and 3 years post-termination for employment NDAs.
 - Generate DOCX format by default so the user can edit the document. Offer PDF as an alternative.
 - Use clear, plain language where possible while maintaining legal precision.
-- Include standard exclusions in every NDA: publicly available information, independently developed information, information received from third parties, and information disclosed by court order.
+- Include the standard exclusions in every NDA: information that is or becomes public without breach, was already known to the recipient, was independently developed, or was lawfully received from a third party. Disclosure required by a court or authority is a separate compelled-disclosure clause, not an exclusion.
+- Keep an NDA about confidentiality only. Do not smuggle in a non-compete; non-competes are heavily restricted in some states (California voids most of them), so put any restrictive covenant in a separate, lawyer-reviewed agreement.
+- Trade secrets need protection for as long as they stay secret, so an expiring term is a poor fit for them: use a fixed term for ordinary information and "for as long as it remains a trade secret" for source code and similar.
 - For mutual NDAs, ensure obligations are symmetric and apply equally to both parties.
 - Bracketed placeholders like [Company Name] should be used for any information the user has not provided, making it easy to fill in later.
-- Install python-docx with `pip install python-docx` if not available.
+- Install with `pip install python-docx` (the import name is `docx`); `Document.save()` writes a `.docx` Word opens directly. For PDF, convert the DOCX with LibreOffice via a non-shell argument list (`subprocess.run(["soffice", "--headless", "--convert-to", "pdf", path], check=True)`) so a filename with spaces or special characters cannot be interpreted by a shell.

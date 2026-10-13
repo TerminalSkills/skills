@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Supports npm (package.json), yarn (yarn.lock), pnpm (pnpm-lock.yaml), pip (requirements.txt), and Go (go.mod)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["dependencies", "npm", "security", "upgrades", "semver"]
 ---
@@ -29,6 +29,17 @@ This skill analyzes your project's dependency tree to find outdated packages, kn
 - Note version constraints (^, ~, exact, ranges)
 
 ### 2. Check Each Package
+
+Gather facts with the ecosystem tools rather than from memory:
+
+```bash
+npm outdated && npm audit --omit=dev       # npm (pnpm: pnpm outdated / pnpm audit)
+yarn upgrade-interactive && yarn npm audit # Yarn 2+
+pip list --outdated && pip-audit -r requirements.txt   # pip-audit is installed separately
+go list -u -m all && govulncheck ./...     # Go
+```
+
+Do not run `npm audit fix --force`: it can apply major upgrades unreviewed.
 
 For each dependency:
 - **Latest version**: What's available on the registry
@@ -79,13 +90,15 @@ CRITICAL (2 packages):
     Fix: npm install lodash@4.17.21 (patch, no code changes)
 
   node-fetch 2.6.1 → 2.6.13
-    CVE-2022-0235 (Information Exposure, MEDIUM)
-    Fix: npm install node-fetch@2.6.13 (patch, no code changes)
+    CVE-2022-0235 (Exposure of sensitive headers on redirect, HIGH)
+    Fix: npm install node-fetch@2.6.13 (fixed in 2.6.7; patch, no code changes)
 
 MAJOR (1 package):
-  express 4.18.2 → 5.0.0
-    Breaking: req.host now returns host without port
+  express 4.18.2 → 5.x
+    Breaking: req.host now keeps the port number (Express 4 stripped it)
     Breaking: app.del() removed, use app.delete()
+    Breaking: req.query is read-only; async handler errors now reach error middleware
+    Tip: run npx @expressjs/codemod upgrade for the mechanical changes
     Affected files: src/server.ts:45 (uses req.host), src/routes/legacy.ts:12 (uses app.del)
     Migration effort: Low — 2 files, 2 line changes
 
@@ -100,7 +113,7 @@ STALE (1 package):
 Upgrade Order:
   Step 1: npm install lodash@4.17.21 node-fetch@2.6.13
   Step 2: npm update
-  Step 3: npm install express@5.0.0 (apply 2 code changes first)
+  Step 3: npm install express@5 (apply 2 code changes first)
   Step 4: Replace request with undici (separate PR recommended)
 ```
 
@@ -114,13 +127,13 @@ Dependency Audit — 23 packages
 
 CRITICAL:
   django==3.2.18 → 3.2.25
-    CVE-2024-24680 (DoS via intcomma, MEDIUM)
+    CVE-2024-24680 (DoS via intcomma template filter, fixed in 3.2.24)
     Fix: pip install django==3.2.25 (patch within same minor)
 
 MAJOR:
-  django==3.2.25 → 5.0.6 (if full upgrade desired)
-    Breaking: DEFAULT_AUTO_FIELD must be set explicitly
-    Breaking: url() removed, use path()
+  django==3.2.25 → 5.2.x LTS (3.2 is end-of-life: no further security fixes)
+    Breaking: django.conf.urls.url() removed in 4.0, use path()/re_path()
+    Upgrade through 4.2 LTS first, fixing deprecation warnings at each stop
     Affected: 8 files in urls/, settings.py
 ```
 

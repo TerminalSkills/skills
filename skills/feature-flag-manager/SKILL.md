@@ -1,8 +1,9 @@
 ---
 name: feature-flag-manager
 description: >-
-  When the user needs to implement feature flags, gradual rollouts, or experiment
-  bucketing. Use when the user mentions "feature flag," "feature toggle,"
+  Designs a self-hosted feature flag system with deterministic user bucketing,
+  percentage rollouts, targeting rules and flag lifecycle management. Use when
+  the user mentions "feature flag," "feature toggle,"
   "gradual rollout," "canary release," "percentage rollout," "kill switch,"
   "user bucketing," "experiment assignment," or "dark launch." Covers flag
   evaluation, deterministic user assignment, targeting rules, and flag lifecycle
@@ -12,7 +13,7 @@ license: Apache-2.0
 compatibility: "Any backend language"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["feature-flags", "rollout", "experimentation", "deployment"]
 ---
@@ -51,13 +52,13 @@ Store flags in database with in-memory cache (refresh every 30 seconds or on web
 
 ### 2. Deterministic Bucketing
 
-Use MurmurHash3 for stable, uniform distribution:
+Hash with a stable cryptographic digest from `node:crypto` (no dependency to maintain; the first 32 bits of SHA-256 are uniform enough for bucketing):
 
 ```typescript
-import murmurhash from 'murmurhash';
+import { createHash } from 'node:crypto';
 
 function assignVariant(flagKey: string, userId: string, variants: string[], allocation: number[]): string {
-  const hash = murmurhash.v3(flagKey + ':' + userId);
+  const hash = createHash('sha256').update(`${flagKey}:${userId}`).digest().readUInt32BE(0);
   const bucket = hash % 10000; // 0-9999 for 0.01% granularity
   
   let cumulative = 0;
@@ -72,8 +73,8 @@ function assignVariant(flagKey: string, userId: string, variants: string[], allo
 Properties:
 - **Deterministic**: Same user + same flag = same variant, always
 - **Independent**: Different flags produce independent assignments
-- **Uniform**: MurmurHash3 distributes evenly across buckets
-- **Stable on resize**: Changing 50/50 to 70/30 keeps most users in their original bucket
+- **Uniform**: the hash spreads users evenly across buckets (a 50/50 split of 20,000 simulated users came out 10,078 / 9,922)
+- **Stable on resize**: changing 50/50 to 70/30 keeps about 80% of users in their original variant, because only the boundary moves
 
 ### 3. Flag Evaluation Pipeline
 

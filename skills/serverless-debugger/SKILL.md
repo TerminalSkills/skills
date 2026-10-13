@@ -6,10 +6,10 @@ description: >-
   "analyze CloudWatch logs", "optimize Lambda performance", "reduce init duration",
   or "troubleshoot function timeout". Correlates logs across invocations and generates fixes.
 license: Apache-2.0
-compatibility: "AWS Lambda, Vercel Functions, Cloudflare Workers, Google Cloud Functions"
+compatibility: "AWS Lambda, Vercel Functions, Cloudflare Workers, Google Cloud Run functions"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["serverless", "lambda", "debugging", "cold-start", "cloudwatch"]
 ---
@@ -43,10 +43,11 @@ When given invocation metrics or asked to analyze cold starts:
    - Large bundle size (>5MB is concerning, >10MB is critical)
    - Too many dependencies loaded at init
    - Heavy top-level initialization (DB connections, SDK clients)
-   - Low memory allocation (Lambda CPU scales with memory)
-5. **Recommend fixes** in priority order:
+   - Low memory allocation (Lambda CPU scales with memory; 1,769 MB is one full vCPU)
+5. **Check what the init costs**: since August 1, 2025, the init phase of on-demand ZIP functions on managed runtimes is included in Billed Duration, so slow cold starts cost money as well as latency. Provisioned Concurrency and custom runtimes were already billed this way.
+6. **Recommend fixes** in priority order:
    - Tree-shake and bundle with esbuild/rollup (biggest impact)
-   - Migrate AWS SDK v2 → v3 (modular imports)
+   - Migrate AWS SDK for JavaScript v2 → v3 (modular imports). v2 reached end of support on September 8, 2025 and gets no more updates.
    - Lazy-load heavy dependencies (only import when needed)
    - Increase memory allocation (more CPU = faster init)
    - Provisioned concurrency for latency-critical functions
@@ -60,11 +61,29 @@ When given invocation metrics or asked to analyze cold starts:
 4. Check for connection pool exhaustion (DB, HTTP clients)
 5. Recommend appropriate timeout values based on P99 execution time + buffer
 
+Platform limits to check first:
+- **Lambda**: memory 128–10,240 MB in 1 MB steps; CPU is proportional to memory.
+- **Vercel Functions** (fluid compute, on by default): default max duration 300 s. Hobby is capped at 300 s; Pro and Enterprise can go to 800 s. Up to 1,800 s is in beta for supported runtimes. Set it with `export const maxDuration = 800;` in a Next.js route, or with `functions` in `vercel.json` for other frameworks.
+- **Cloudflare Workers**: the limit is CPU time, not wall-clock time. Free allows 10 ms of CPU per request. Paid defaults to 30 s and can be raised to 5 min.
+
+For a Vercel function outside Next.js, raise the limit per path in `vercel.json`:
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "app/api/checkout/**/*.ts": {
+      "maxDuration": 60
+    }
+  }
+}
+```
+
 ### Configuration Generation
 
 Generate platform-specific configs:
 - **AWS SAM/CloudFormation**: template.yaml with memory, timeout, provisioned concurrency
-- **Serverless Framework**: serverless.yml with esbuild plugin config
+- **Serverless Framework**: serverless.yml with `build.esbuild` settings (v4). Projects on v3 with the `serverless-esbuild` plugin put the same settings under `custom.esbuild`.
 - **CDK**: TypeScript constructs with optimized settings
 - **Vercel**: vercel.json with function configuration
 
@@ -110,8 +129,8 @@ Issues Found:
 2. Stripe SDK loaded at top level with full module
    Fix: Lazy import inside handler: `const stripe = await import('stripe')`
 
-3. 512MB memory = 0.33 vCPU — init is CPU-bound
-   Fix: Increase to 1024MB = 0.66 vCPU (init ~2x faster)
+3. 512MB memory ≈ 0.29 vCPU (1,769 MB = 1 vCPU) — init is CPU-bound
+   Fix: Increase to 1024MB ≈ 0.58 vCPU (init gets faster, but less than 2x)
 
 Projected After Fixes:
   Bundle: 18.4MB → 2.1MB
@@ -119,17 +138,18 @@ Projected After Fixes:
   Init P95: 4,900ms → ~380ms
   Monthly cost delta: +$3.20 (more memory but fewer retries)
 
-serverless.yml changes:
-  payment-handler:
-    handler: src/payment.handler
-    memorySize: 1024
-    timeout: 15
-    architecture: arm64
-    provisionedConcurrency: 2
-    bundling:
+serverless.yml changes (Serverless Framework v4):
+  functions:
+    payment-handler:
+      handler: src/payment.handler
+      memorySize: 1024
+      timeout: 15
+      architecture: arm64
+      provisionedConcurrency: 2
+  build:
+    esbuild:
+      bundle: true
       minify: true
-      sourcemap: true
-      externalModules: []
 ```
 
 ## Guidelines
@@ -141,3 +161,5 @@ serverless.yml changes:
 - For Node.js: recommend esbuild for bundling, it's the fastest and handles tree-shaking well
 - Never recommend `webpack` for Lambda — it's overkill; esbuild or rollup are better choices
 - If the user's function connects to a database, check for connection pooling issues (Lambda creates new connections on cold start)
+- Read the platform's limit before blaming the code: a Vercel function that stops at 300 s hit the default max duration, and a Workers request that fails at a few milliseconds of CPU hit the CPU budget, not a network timeout
+- Do not paste production logs, tokens or customer payloads into shared tickets; redact request bodies first

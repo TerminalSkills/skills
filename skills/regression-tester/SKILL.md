@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Works with any test framework (Jest, Vitest, pytest, Go test). Requires git for diff analysis."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["regression-testing", "refactoring", "testing", "code-quality"]
 ---
@@ -43,7 +43,10 @@ This skill creates a safety net around refactoring work. It analyzes what change
 1. Run existing tests: `npm test` / `pytest` / `go test ./...`
 2. If tests pass, check coverage of the refactored code:
    ```bash
-   npx jest --coverage --collectCoverageFrom='src/refactored-module/**'
+   npx jest --coverage --collectCoverageFrom='src/refactored-module/**'   # Jest
+   npx vitest run --coverage                                              # Vitest (needs @vitest/coverage-v8)
+   pytest --cov=billing --cov-branch                                      # pytest-cov
+   go test -coverprofile=cover.out ./... && go tool cover -func=cover.out # Go
    ```
 3. Identify untested code paths in the refactored area:
    - Uncovered branches (if/else, switch cases, error handling)
@@ -77,12 +80,13 @@ describe('[ModuleName] regression', () => {
 
 ### Step 4: Verify Against Old Implementation
 
-1. Stash or commit current changes
-2. Checkout the pre-refactor code: `git stash && git checkout main`
-3. Run the new regression tests against the OLD code — they should all pass
-4. Return to refactored code: `git checkout - && git stash pop`
-5. Run the regression tests again — they should still all pass
-6. If any test fails on the refactored code but passed on the old code → regression found
+1. Write the regression tests as new files; they are untracked, so they survive branch switches
+2. Check out the pre-refactor code in a separate worktree so your working tree is untouched:
+   `git worktree add ../app-baseline main` (use the merge base if `main` has moved: `git merge-base main HEAD`)
+3. Copy the new test files into that worktree, install dependencies there, and run them — against the OLD code they should all pass (a failure means the test encodes a wrong assumption, fix the test)
+4. Run the same tests in your refactored working tree — they should still all pass
+5. If any test fails on the refactored code but passed on the old code → regression found
+6. Clean up: `git worktree remove ../app-baseline`
 
 ### Step 5: Report
 
@@ -138,9 +142,9 @@ Generated 18 regression tests covering:
 Results against old code (moment.js): 18/18 passed
 Results against new code (dayjs):     17/18 passed
 
-❌ Regression: startOfWeek('2024-01-01') returns Sunday with dayjs
-   but returned Monday with moment (locale-dependent).
-   Fix: Add dayjs.extend(weekOfYear) and set locale explicitly.
+❌ Regression: startOfWeek('2024-01-03') returns Sunday 2023-12-31 with dayjs
+   but returned Monday 2024-01-01 with moment (the app had set moment.locale('en-gb')).
+   Fix: set the dayjs locale explicitly (dayjs.locale('en-gb')) or use the isoWeek plugin.
 ```
 
 ### Example 2: Extracted Service Layer
@@ -179,4 +183,5 @@ No regressions detected. Refactoring is safe.
 - Include edge cases that the original code may not have tested
 - For database-touching code, use transactions that roll back after each test
 - If the refactoring changes performance characteristics, add benchmark comparisons
+- Dependencies must match too: run `npm ci` / `pip install -r requirements.txt` in the baseline worktree, or the old code may fail for the wrong reason
 - Keep regression tests permanent — they protect against future changes too

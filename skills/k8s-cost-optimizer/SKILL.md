@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Requires kubectl access to target cluster and metrics-server installed"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["kubernetes", "cost-optimization", "resource-management", "finops"]
 ---
@@ -26,7 +26,7 @@ This skill audits Kubernetes clusters for resource inefficiency by comparing req
 
 ### Step 1: Verify Cluster Access and Metrics Availability
 
-Run `kubectl cluster-info` and `kubectl top nodes` to confirm connectivity and that metrics-server is running. If metrics-server is unavailable, inform the user and suggest installing it first.
+Run `kubectl cluster-info` and `kubectl top nodes` to confirm connectivity and that metrics-server is running. If metrics-server is unavailable, inform the user and suggest installing it first (see the kubernetes-sigs/metrics-server install manifest or Helm chart). All steps here are read-only; only `get` and `top` are needed.
 
 ### Step 2: Collect Resource Data
 
@@ -46,9 +46,11 @@ kubectl get pods --all-namespaces -o json | jq '[.items[] | {
   }]
 }]'
 
-# Get actual usage
-kubectl top pods --all-namespaces --no-headers
+# Get actual usage right now (a single point-in-time sample from metrics-server)
+kubectl top pods --all-namespaces --containers --no-headers
 ```
+
+`kubectl top` has no history, so it cannot give a p99. For a real baseline, query Prometheus over 7-14 days (`container_cpu_usage_seconds_total` rate and `container_memory_working_set_bytes` per container), or read recommendations from the Vertical Pod Autoscaler running with `updateMode: "Off"` (Goldilocks creates these VPAs per namespace and shows them in a dashboard). OpenCost gives allocation-based cost per namespace and workload.
 
 ### Step 3: Calculate Efficiency Ratios
 
@@ -57,23 +59,21 @@ For each deployment, compute:
 - **Waste** = 100 - efficiency
 - **Monthly cost estimate** = (requested_cpu × node_cost_per_cpu) + (requested_mem × node_cost_per_gi)
 
-Use these reference prices if the user doesn't specify:
-- On-demand: ~$0.0425/vCPU-hour, ~$0.0057/GiB-hour (AWS us-east-1 m5 family)
-- Convert to monthly: multiply hourly by 730
+Derive unit prices from the user's real node price. If none is given, assume a rough split: half of the node's hourly price to CPU, half to memory. Example: m5.large (2 vCPU, 8 GiB) at about $0.096/hour on-demand in AWS us-east-1 gives ~$0.024/vCPU-hour and ~$0.006/GiB-hour. Convert to monthly by multiplying hourly by 730, and say these are estimates.
 
 ### Step 4: Identify Zombie Workloads
 
 Flag deployments where:
 - CPU usage is < 1m (1 millicore) for 7+ days
-- Pod restart count is 0 and replicas are running
+- Pods are Running with no restarts but receive no traffic (check Service endpoints, ingress or request metrics)
 - Namespace matches staging/dev/preview patterns
 
 ### Step 5: Generate Right-Sizing Recommendations
 
 For each overprovisioned workload:
-1. Take the p99 usage over available history (ideally 14 days)
+1. Take the p99 usage from Prometheus or the VPA recommendation (ideally 14 days, including peaks)
 2. Add a configurable headroom buffer (default: 30%)
-3. Set requests = p99 + buffer, limits = requests × 1.5
+3. Set requests = p99 + buffer. Memory: set the limit equal to the request (memory is not compressible, exceeding it means OOMKill). CPU: prefer no limit, or a generous one, because tight CPU limits cause throttling
 4. Output as kustomize patches or plain YAML diffs
 
 ### Step 6: Produce Summary Report
@@ -144,6 +144,7 @@ Total zombie cost: $98/month
 - **Safety buffer is critical** — default 30% headroom prevents OOMKills after right-sizing
 - **Prioritize by savings** — show the biggest wins first so users focus effort where it matters
 - **Account for traffic patterns** — warn if usage data covers less than 7 days or misses peak periods
+- **VPA and HPA conflict** — do not let VPA in auto mode and an HPA scale on the same CPU/memory metric
 - **Consider HPA** — if a deployment has a HorizontalPodAutoscaler, note that right-sizing requests affects scaling thresholds
 - **Staging vs production** — be more aggressive with staging recommendations, more conservative with production
 - **Cost estimates are approximate** — note the instance type assumptions and suggest the user verify with their actual pricing

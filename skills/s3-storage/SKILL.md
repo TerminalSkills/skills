@@ -14,7 +14,7 @@ license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.9+. Requires AWS SDK v3 or compatible S3 client library."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["s3", "object-storage", "minio", "cloud-storage"]
 ---
@@ -53,6 +53,19 @@ import boto3
 s3 = boto3.client('s3', endpoint_url='http://localhost:9000',
     aws_access_key_id=os.environ['ACCESS_KEY'], aws_secret_access_key=os.environ['SECRET_KEY'])
 ```
+
+**Checksum default (AWS SDK for JavaScript v3):** current SDK releases compute a CRC32 checksum on every upload by default (`requestChecksumCalculation` defaults to `WHEN_SUPPORTED`). AWS S3 accepts it, but some S3-compatible services reject or mishandle it. If PutObject or multipart uploads fail on MinIO or another compatible endpoint with checksum errors, set both options to `WHEN_REQUIRED`:
+
+```javascript
+const s3 = new S3Client({
+  region: 'us-east-1', endpoint: 'http://localhost:9000', forcePathStyle: true,
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED',
+  credentials: { accessKeyId: process.env.MINIO_ACCESS_KEY, secretAccessKey: process.env.MINIO_SECRET_KEY },
+});
+```
+
+Cloudflare R2 takes `region: 'auto'` (the SDK requires a value; R2 ignores it) and the endpoint `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
 
 ### 2. File Operations
 
@@ -110,6 +123,8 @@ const downloadUrl = await getSignedUrl(s3, new GetObjectCommand({
 }), { expiresIn: 900 });
 ```
 
+The signed `ContentType` is part of the signature: the browser's PUT must send the same `Content-Type` header, or S3 returns `SignatureDoesNotMatch`.
+
 ### 4. Multipart Upload (large files)
 
 ```javascript
@@ -118,12 +133,15 @@ import { Upload } from '@aws-sdk/lib-storage';
 const upload = new Upload({
   client: s3,
   params: { Bucket: 'my-app-uploads', Key: 'large-file.zip', Body: stream },
-  partSize: 10 * 1024 * 1024, // 10MB
-  leavePartsOnError: false,
+  partSize: 10 * 1024 * 1024, // must be at least 5 MB
+  queueSize: 4,               // parts uploaded in parallel (default 4)
+  leavePartsOnError: false,   // false: abort the multipart upload if a part fails
 });
 upload.on('httpUploadProgress', (p) => console.log(`${p.loaded}/${p.total}`));
 await upload.done();
 ```
+
+`Upload` splits the stream into parts and completes the multipart upload for you. Set `leavePartsOnError: true` only if you plan to clean up orphaned parts yourself.
 
 ### 5. Lifecycle Policies
 
@@ -196,5 +214,5 @@ await s3.send(new PutBucketCorsCommand({
 - Use `ContentDisposition: 'attachment; filename="name.pdf"'` for downloadable files
 - Always handle `NoSuchKey` errors gracefully on downloads
 - Use bucket versioning for critical data, not ephemeral files
-- R2 has no egress fees — consider it for CDN-heavy workloads
-- MinIO is fully S3-compatible — use it for local development and testing
+- Test against the real endpoint before relying on a compatible service: operations such as checksums, lifecycle and CORS can differ from AWS
+- MinIO is S3-compatible — use it for local development and testing, not as an assumed drop-in for every feature

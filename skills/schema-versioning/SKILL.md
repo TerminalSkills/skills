@@ -8,10 +8,10 @@ description: >-
   change, rollback, database versioning, ALTER TABLE, Prisma migrate, Knex
   migrations, Flyway, Liquibase.
 license: Apache-2.0
-compatibility: "PostgreSQL 14+, MySQL 8+, or SQLite 3.35+. Node.js 18+ or Python 3.10+."
+compatibility: "PostgreSQL 14+, MySQL 8+, or SQLite 3.35+. Node.js 20+ or Python 3.10+."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["database", "migrations", "schema", "rollback"]
 ---
@@ -27,18 +27,34 @@ This skill helps you establish a reliable database schema versioning workflow: g
 Set up the migration directory structure and configuration:
 
 ```bash
-# For Knex.js
+# For Knex.js (creates knexfile.js; migrations are written by hand)
+npm install knex pg
 npx knex init
-npx knex migrate:make initial_schema
+npx knex migrate:make initial_schema -x ts   # -x ts for TypeScript migrations
 
-# For Prisma
+# For Prisma (creates prisma/schema.prisma and prisma.config.ts, which reads DATABASE_URL)
 npx prisma init
-npx prisma migrate dev --name initial_schema
+npx prisma migrate dev --name initial_schema   # dev only; diffs the schema, applies via a shadow DB
+npx prisma migrate deploy                      # CI/production: applies pending migrations, never generates
 
 # For Alembic (Python)
+pip install alembic
 alembic init migrations
 alembic revision --autogenerate -m "initial_schema"
+alembic upgrade head        # roll back one step with: alembic downgrade -1
 ```
+
+Knex does not read `DATABASE_URL` by itself; point the knexfile at it:
+```javascript
+// knexfile.js
+module.exports = {
+  client: "pg",
+  connection: process.env.DATABASE_URL,
+  migrations: { directory: "./migrations" },
+};
+```
+
+Prisma Migrate has no down migrations: roll back by writing a new forward migration, or mark a failed one with `npx prisma migrate resolve --rolled-back 20250217_add_orders_table` after fixing the database by hand. Check state with `npx prisma migrate status`.
 
 Create a shadow database for testing migrations before applying to production:
 
@@ -84,7 +100,7 @@ Always test against a shadow database before production:
 # Apply all pending migrations to shadow database
 DATABASE_URL="postgres://localhost:5433/app_shadow" npx knex migrate:latest
 
-# Verify the migration is reversible
+# Verify the migration is reversible (rollback undoes the whole last batch)
 DATABASE_URL="postgres://localhost:5433/app_shadow" npx knex migrate:rollback
 
 # Re-apply to confirm idempotency
@@ -92,7 +108,7 @@ DATABASE_URL="postgres://localhost:5433/app_shadow" npx knex migrate:latest
 ```
 
 ### 4. Implement rollback procedures
-Create a rollback script that handles both schema and data rollbacks:
+Knex rolls back by batch (`migrate:rollback`, or `--all`) or one file at a time (`migrate:down`). `migrate:rollback` has no `--count` flag, so loop over `migrate:down` to undo N migrations:
 
 ```bash
 #!/bin/bash
@@ -107,8 +123,10 @@ echo "Rolling back $ROLLBACK_COUNT migration(s) on $ENVIRONMENT..."
 # Capture current state for audit
 npx knex migrate:currentVersion --env "$ENVIRONMENT" > /tmp/pre_rollback_version.txt
 
-# Execute rollback
-npx knex migrate:rollback --count "$ROLLBACK_COUNT" --env "$ENVIRONMENT"
+# Execute rollback, one migration per call
+for _ in $(seq "$ROLLBACK_COUNT"); do
+  npx knex migrate:down --env "$ENVIRONMENT"
+done
 
 # Verify post-rollback state
 npx knex migrate:currentVersion --env "$ENVIRONMENT" > /tmp/post_rollback_version.txt
@@ -173,6 +191,7 @@ migration-check:
 - **Every migration must have a working `down` function** — untested rollbacks fail when you need them most.
 - **Never modify a migration that has been applied** to any shared environment — create a new migration instead.
 - **Use transactions** for DDL when your database supports it (PostgreSQL does, MySQL does not for most DDL).
+- **Take a backup or snapshot before production migrations** — a `down` function cannot restore dropped data.
 - **Test the full sequence**: migrate up, roll back, migrate up again — this catches hidden state dependencies.
 - **Keep migrations small** — one logical change per file. A 500-line migration is a red flag.
 - **Add indexes in separate migrations** from table creation to avoid long locks on large tables.

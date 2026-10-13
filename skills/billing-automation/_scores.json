@@ -1,24 +1,34 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:2e26f244fc2294fc563e1c34ea33145f1b48c032a4b2aa6ad250162589946585",
-  "scoredAt": "2026-05-13T14:40:30.794Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.2.0",
+  "skillHash": "sha256:cb6848a137916c39e8cc1c2508242998c0f73667b710cebf269a845f3542eb18",
+  "scoredAt": "2026-10-13T11:47:33.216Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
-      "clarity": "PASS",
+      "clarity": "WEAK",
       "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
+        "category": "clarity",
+        "detail": "PDF generation section uses vague language ('clean layout') without showing specific implementation patterns or structural details."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Dunning workflow and PDF rendering lack concrete code examples; procedural steps alone are insufficient for full implementation guidance."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill is limited to Node.js or Python environments, not fully cross-platform."
+        "detail": "Dunning workflow example is Stripe-specific; lacks guidance for other payment processors or platform-agnostic implementation patterns."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 0,
-    "treatmentAvg": 50,
+    "multiplier": 1.26,
+    "baselineAvg": 70,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "tiered-usage-invoice-generation",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully implements the required calculateTieredPricing function with correct tiers and fields, while Response B defines a different function and does not meet the rubric."
+        "name": "tiered-usage-invoice",
+        "baseline": 45,
+        "treatment": 78,
+        "rationale": "Response A correctly calculates the three tiers ($295 total) and provides working code, but fails to produce structured line items with quantities/unit-prices/amounts and does not use or mention Decimal/arbitrary-precision arithmetic. Response B implements all three rubric requirements: correct calculations, structured line items as objects with the required properties, and explicit acknowledgment that Decimal should be used for production (even though the code example uses floating-point as a starting point)."
+      },
+      {
+        "name": "professional-invoice-pdf",
+        "baseline": 95,
+        "treatment": 97,
+        "rationale": "Both responses fully satisfy the rubric: sender details (Design & Code Inc.), recipient details (Acme Corp), all line items with correct unit prices and amounts, tax calculation on post-discount subtotal ($1,054.50 on $7,030.00), and properly formatted final total ($8,084.50). Response A provides working code in two languages (Python ReportLab, Node.js PDFKit) that directly generates PDF files, showing greater technical depth and addressing \"generate the invoice\" more literally. Response B provides immediately usable HTML/CSS that users can save and print to PDF without installing dependencies, offering superior practical accessibility. Both are correct and complete; A edges ahead for providing production-ready code solutions."
       },
       {
         "name": "stripe-dunning-workflow",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses lack content to evaluate against the rubric."
+        "baseline": 70,
+        "treatment": 90,
+        "rationale": "Response A covers all rubric requirements and explicitly addresses Stripe Smart Retries configuration with clear architectural guidance about avoiding parallel retry logic; Response B implements the core dunning workflow correctly but omits any discussion of Stripe Smart Retries integration, leaving the critical 'does not implement custom retry logic in parallel' requirement unaddressed."
       }
     ]
   }
