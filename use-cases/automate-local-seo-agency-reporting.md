@@ -43,18 +43,13 @@ Sign up at [app.seog.ai](https://app.seog.ai) and issue a token in **Settings �
 access**. Every call runs as that account — there is no anonymous mode — and paid tools
 spend the account's credits.
 
-In Claude Code, the plugin installs the skill and the server together:
-
-```
-/plugin marketplace add TerminalSkills/skills
-/plugin install seog@terminal-skills
-```
-
-Claude Code prompts for the token and stores it in your OS keychain. In any other MCP
-client, install the skill and register the server yourself:
+Connect the SEOG MCP server one of two ways. In **claude.ai (web/desktop)**, add it as a
+connector — **Settings → Connectors → Add custom connector** → `https://api.seog.ai/mcp` —
+and sign in; no token to copy. In a **CLI (Claude Code, Codex, Cursor, …)**, register the
+server with your token:
 
 ```bash
-npx terminal-skills install seog
+npx terminal-skills install seog   # optional: the skill instructions on their own
 claude mcp add --transport http seog https://api.seog.ai/mcp \
   --header "Authorization: Bearer $SEOG_MCP_TOKEN"
 ```

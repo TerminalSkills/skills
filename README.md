@@ -40,24 +40,42 @@ curl -sL https://raw.githubusercontent.com/terminal-skills/skills/main/skills/pd
 
 Replace `pdf-analyzer` with the skill name you want to install.
 
-### Claude Code plugins
+## Connect via MCP
 
-Some skills ship as a plugin that bundles the skill **and** its MCP server, so one
-install wires up everything (Claude Code prompts for any credentials and stores them in
-your OS keychain):
+Two of these skills are backed by a hosted **MCP server** — so your agent can call them
+as live tools, not just read instructions:
 
+| Server | URL | What it adds |
+|--------|-----|--------------|
+| Terminal Skills | `https://api.terminalskills.io/api/mcp` | Skill routing across the whole catalog — `search_skills`, `get_skill`, `plan_task`. The agent finds and loads the right skill for a task on its own. |
+| SEOG | `https://api.seog.ai/mcp` | Local SEO against your own [seog.ai](https://seog.ai) account — ~90 tools: GBP management, map-pack + geo-grid rank tracking, review replies, competitors, AI visibility, website/Search Console audits, Google posts, PDF reports. |
+
+There are **two ways to connect** either server — no plugin install required:
+
+**1. As a connector (claude.ai web/desktop — OAuth, one click, no key to copy)**
+
+In Claude: **Settings → Connectors → Add custom connector**, paste the server URL, and
+sign in with your account. Claude discovers the tools and handles auth for you.
+
+**2. As an MCP server in a CLI (Claude Code, Codex, Cursor, …) with a token**
+
+Create a token on your account page, then add the server to your MCP config:
+
+```jsonc
+{
+  "mcpServers": {
+    "terminal-skills": {
+      "type": "http",
+      "url": "https://api.terminalskills.io/api/mcp",
+      "headers": { "Authorization": "Bearer YOUR_TOKEN" }
+    }
+  }
+}
 ```
-/plugin marketplace add TerminalSkills/skills
-/plugin install <plugin>@terminal-skills
-```
 
-| Plugin | What it adds |
-|--------|--------------|
-| `terminal-skills` | Skill routing across the whole catalog (`plan_task`, `search_skills`, `get_skill`) |
-| `seog` | Local SEO against your own [seog.ai](https://seog.ai) account — 90 tools: GBP management, map-pack + geo-grid rank tracking, review replies, competitors, AI visibility, website/Search Console audits, Google posts, PDF reports |
-
-Both plugins work as plain skills too — `npx terminal-skills install seog` installs the
-instructions, and you register the MCP server yourself.
+For SEOG, use `https://api.seog.ai/mcp` and a token from [seog.ai](https://seog.ai). The
+underlying skill ([seog](skills/seog/)) still installs on its own with
+`npx terminal-skills install seog` if you only want the instructions.
 
 ## Skills Catalog
 
