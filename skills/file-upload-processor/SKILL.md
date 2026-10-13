@@ -6,12 +6,12 @@ description: >-
   "multipart upload," "presigned URL," "S3 upload," "file validation," "upload
   to cloud storage," or "accept user files." Handles upload endpoints, file
   validation (type, size, magic bytes), cloud storage integration, and upload
-  status tracking. For image/video processing after upload, see media-transcoder.
+  status tracking. For bucket setup and presigned URLs in depth, see s3-storage.
 license: Apache-2.0
 compatibility: "Node.js 18+, Python 3.9+"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["file-upload", "cloud-storage", "s3", "validation"]
 ---
@@ -20,7 +20,7 @@ metadata:
 
 ## Overview
 
-Builds secure file upload endpoints for web applications. Handles multipart form uploads, presigned URL generation for large files, file type validation via magic bytes (not just extensions), size limits, cloud storage integration (S3, GCS, R2), and upload status tracking. Produces production-ready code with streaming (no temp files on disk for small files).
+Builds secure file upload endpoints for web applications. Handles multipart form uploads, presigned URL generation for large files, file type validation via magic bytes (not just extensions), size limits, cloud storage integration (S3, GCS, R2), and upload status tracking. Buffering matters: multer's memory storage holds each whole file in RAM, so use it only for small files; larger files go to disk or straight to storage.
 
 ## Instructions
 
@@ -42,7 +42,6 @@ const MAGIC_BYTES = {
   'image/png': [0x89, 0x50, 0x4E, 0x47],
   'image/webp': [0x52, 0x49, 0x46, 0x46], // + "WEBP" at offset 8
   'application/pdf': [0x25, 0x50, 0x44, 0x46],
-  'video/mp4': null, // Check for "ftyp" at offset 4
   'video/webm': [0x1A, 0x45, 0xDF, 0xA3],
 };
 
@@ -53,9 +52,25 @@ function detectFileType(buffer: Buffer): string | null {
 }
 ```
 
+MP4 has no signature at offset 0. Check that bytes 4–7 spell `ftyp` (`0x66 0x74 0x79 0x70`). WebP needs `RIFF` at offset 0 and `WEBP` at offset 8.
+
 Additional validation:
-- Check file size BEFORE reading the full body (Content-Length header)
-- Set hard limits on multer/busboy to abort oversized uploads
+- Reject early when the `Content-Length` header is above the limit. Chunked requests have no such header, so the parser limit below is still required.
+- Set hard limits in the parser. In multer, `limits.fileSize` defaults to `Infinity`, so set it explicitly:
+
+```javascript
+const upload = multer({
+  storage: multer.memoryStorage(), // small files only, see Guidelines
+  limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 10 },
+  fileFilter: (req, file, cb) =>
+    cb(null, ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'].includes(file.mimetype)),
+});
+
+// Route handler: map multer errors to 413 / 400 instead of a 500
+// if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') -> 413
+```
+
+- `file.mimetype` comes from the client. Check magic bytes on the buffer after upload.
 - Scan for double extensions: `image.jpg.exe`
 - Reject files with null bytes in filename
 
@@ -73,7 +88,9 @@ class StorageService {
 }
 ```
 
-Key naming convention: `{type}/{userId}/{fileId}/{filename}`
+To stream a request body to S3 without holding it in memory, pipe the parser into `Upload` from `@aws-sdk/lib-storage`. It splits the stream into parts (5 MiB minimum, except the last) and uploads them concurrently. An S3 multipart upload allows at most 10,000 parts.
+
+Key naming convention: `{type}/{userId}/{fileId}{ext}` — a server-generated `fileId` plus the validated extension, never the client-supplied filename (which the guidelines warn against: it enables path tricks and collisions). Keep presigned-URL lifetimes short — 300 s for uploads, 60–300 s for downloads — so a leaked URL expires quickly.
 
 ### 4. Upload Status Tracking
 
@@ -112,7 +129,7 @@ DELETE /api/files/:id             — Soft delete file
 
 **Prompt**: "Create a file upload endpoint for my Express app. Accept images and PDFs, store in S3."
 
-**Output**: Upload route with multer streaming, magic-byte validation, S3 upload, database record creation, and error handling. Returns file ID for status polling.
+**Output**: Upload route with multer (memory storage, 10 MB `fileSize` limit), magic-byte validation on the buffer, S3 `PutObject`, database record creation, and error handling that returns 413 for oversized files. Returns file ID for status polling. Files above 10 MB go through the presigned path in Example 2.
 
 ### Example 2: Presigned Upload for Large Videos
 
@@ -122,7 +139,7 @@ DELETE /api/files/:id             — Soft delete file
 
 ## Guidelines
 
-- **Stream, don't buffer** — never load entire files into memory
+- **Stream, don't buffer** — never load entire files into memory. multer's `memoryStorage()` buffers every file in RAM ("can cause your application to run out of memory"), so use `diskStorage()` or the `Upload` pipeline above for anything large
 - **Validate magic bytes** — file extensions lie, magic bytes don't
 - **Set upload limits at every layer** — nginx, reverse proxy, and application
 - **Generate unique storage keys** — include user ID and file ID, never use original filename as key

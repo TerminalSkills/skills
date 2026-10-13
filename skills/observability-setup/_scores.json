@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:65419ba73fbcc26d114fdcb8cccd71c033e528d5c9492c9d1f282b41f4774f2c",
-  "scoredAt": "2026-05-13T09:42:49.042Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:5c5574c5b456c12e10eb4993eeeb7b231be6d7a83004a40a6f26136d510fa581",
+  "scoredAt": "2026-10-13T12:58:28.729Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover error scenarios or edge cases, focusing only on happy path."
+        "detail": "Error recovery and troubleshooting paths are missing; skill covers happy path and safeguards but lacks guidance for collector failures, missing metrics, or incomplete traces."
       }
     ]
   },
@@ -27,24 +27,28 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 88,
-    "multiplier": 1.96,
+    "multiplier": 1.52,
+    "baselineAvg": 61,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "Express API OpenTelemetry instrumentation",
-        "baseline": 48,
-        "treatment": 90,
-        "rationale": "Treatment installs @opentelemetry/sdk-node plus auto-instrumentations-node and the OTLP HTTP trace/metric exporters, creates src/instrumentation.ts loaded via `node --require` before app imports, wires OTLPTraceExporter and PeriodicExportingMetricReader to OTEL_EXPORTER_OTLP_ENDPOINT, and adds a pino mixin that injects trace_id/span_id from getActiveSpan — all directly from the skill; baseline reaches for older opentelemetry/node packages and skips the --require ordering and pino trace correlation."
+        "name": "node-custom-spans-with-tracing",
+        "baseline": 38,
+        "treatment": 92,
+        "rationale": "B covers all four rubric requirements: explicitly uses --require flag in package.json, uses tracer.startActiveSpan() with order.id and payment.amount_cents attributes, implements span.recordException() and span.setStatus() with proper error codes, and includes a pino mixin injecting trace_id and span_id. A provides solid OT setup and error handling but uses startSpan() instead of startActiveSpan() and completely omits the pino mixin requirement."
       },
       {
-        "name": "Docker Compose LGTM stack with collector",
-        "baseline": 42,
-        "treatment": 86,
-        "rationale": "Treatment delivers compose services for otel-collector (otel/opentelemetry-collector-contrib with ports 4317/4318), tempo, loki, mimir, and grafana with the anonymous Admin role, and supplies a collector config with otlp receivers, memory_limiter + batch processors, and otlphttp/tempo, prometheusremotewrite to mimir, and loki exporters wired through pipelines; baseline produces a generic Prometheus+Grafana+Jaeger compose that omits Tempo/Mimir/Loki and the memory_limiter processor."
+        "name": "collector-multi-signal-routing",
+        "baseline": 80,
+        "treatment": 98,
+        "rationale": "Both include memory_limiter first in all three pipelines and correct images, but Response B meets all rubric requirements while Response A omits the validation command and uses a generic `loki` exporter instead of the specified `otlphttp/loki` for logs."
+      },
+      {
+        "name": "grafana-trace-log-correlation",
+        "baseline": 65,
+        "treatment": 88,
+        "rationale": "Response B directly implements the rubric's requirements: it configures the actual Grafana 'Trace to Logs' feature with the exact filter pattern '{service_name=\"$service\"} | trace_id=\"$traceId\"', explicitly requires both trace_id and span_id in logs with code examples, and demonstrates clear bidirectionality. Response A uses a custom URL template workaround instead of the standard Tempo trace-to-logs feature, omits the span_id requirement, and doesn't match the rubric's filter syntax specification."
       }
-    ],
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6"
+    ]
   }
 }

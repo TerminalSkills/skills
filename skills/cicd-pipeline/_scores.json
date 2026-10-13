@@ -1,15 +1,15 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:15b1d01f3e62ab10ec6b25f1c31888c622968f116d852c8a4a38acd6218117ae",
-  "scoredAt": "2026-05-13T15:24:16.656Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.2.0",
+  "skillHash": "sha256:723a16704517d1ec0825a3ada0469c9c077e555d27e846ce061de428d1f5b23c",
+  "scoredAt": "2026-10-13T11:49:15.350Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly handle error scenarios or edge cases such as unsupported languages or missing CI configuration."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains verbose explanatory sections that could be trimmed for brevity."
+        "detail": "Skill covers primary pipeline generation but lacks error handling, retry strategies, timeout configuration, and advanced deployment patterns like blue-green or canary deployments."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.83,
-    "baselineAvg": 30,
-    "treatmentAvg": 85,
+    "multiplier": 3.36,
+    "baselineAvg": 28,
+    "treatmentAvg": 94,
     "scenarios": [
       {
-        "name": "go-microservice-docker-deploy",
-        "baseline": 60,
-        "treatment": 75,
-        "rationale": "Both miss the required lint stage, but B satisfies the extends/anchors requirement while A does not."
+        "name": "nodejs-gitlab-ci-pipeline",
+        "baseline": 25,
+        "treatment": 100,
+        "rationale": "Response A describes the pipeline conceptually without providing actual code; Response B delivers a complete, working .gitlab-ci.yml that explicitly meets all four rubric requirements: extends (.node-job base template), cache with package-lock.json key, rules: if for conditional builds, and artifacts blocks for both test and build outputs."
       },
       {
-        "name": "node-monorepo-path-filtering",
-        "baseline": 0,
-        "treatment": 95,
-        "rationale": "Response A fully satisfies the rubric with detailed configuration, while Response B is empty."
+        "name": "circleci-monorepo-path-filtering",
+        "baseline": 10,
+        "treatment": 85,
+        "rationale": "Response A completely bypasses the rubric requirements by using a custom bash script for change detection instead of the path-filtering orb, dynamic config, continue_config.yml, and pipeline parameters. Response B correctly implements all four mandatory elements: enables dynamic config via UI, uses the circleci/path-filtering orb with explicit path-to-parameter mappings, defines per-package jobs in continue_config.yml, and uses when conditions with pipeline parameters—though it could be more explicit about parameter definition and the config handoff flow."
+      },
+      {
+        "name": "gitlab-ci-docker-ssh-deploy",
+        "baseline": 48,
+        "treatment": 96,
+        "rationale": "Response B meets all four rubric requirements: uses docker:29-dind, configures SSH_KNOWN_HOSTS variable for secure host key verification, restricts deployment with rules: if $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH, and pushes to CI_REGISTRY_IMAGE; Response A fails three of these (uses generic docker versions, dynamically generates known_hosts instead of using the variable, and uses deprecated 'only' syntax instead of rules)."
       }
     ]
   }

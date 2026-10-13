@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fdc70b91aaef62260d769aeebea43aee8d99ec52b8761e9269843fcbd05abd5d",
-  "scoredAt": "2026-05-13T10:04:58.765Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:029d1e32b55ea3a8e43c85f9e19319addc51450c9e5cf656fa0bfc1089d8198f",
+  "scoredAt": "2026-10-13T16:04:02.645Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks error handling and edge case coverage in code examples."
+        "detail": "The skill does not cover error handling for many operations and lacks examples for replication, access policies, and event notifications."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 94,
-    "multiplier": 1.96,
+    "multiplier": 2.35,
+    "baselineAvg": 37,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "presigned PUT URL for avatar + bucket CORS",
+        "name": "create-versioned-bucket-with-lifecycle",
         "baseline": 50,
-        "treatment": 92,
-        "rationale": "Baseline often reaches for aws-sdk v2 conventions and sets CORS via the console, while treatment uses the v3 PutObjectCommand + getSignedUrl(expiresIn) and PutBucketCorsCommand with ExposeHeaders: ETag exactly as documented."
+        "treatment": 60,
+        "rationale": "Both responses use the required PutBucketVersioningCommand and PutBucketLifecycleConfigurationCommand, but each also includes an additional command (CreateBucketCommand in A, create-bucket in B) and B adds an extra lifecycle rule, so A is closer to the rubric."
       },
       {
-        "name": "MinIO local + Cloudflare R2 prod via one S3 client",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline either splits SDKs or forgets forcePathStyle for MinIO and guesses the R2 endpoint; treatment uses one @aws-sdk/client-s3 S3Client with forcePathStyle:true for MinIO and region:'auto' plus the correct r2.cloudflarestorage.com endpoint."
+        "name": "generate-presigned-upload-url-with-cors",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "B meets all rubric requirements while A misses MaxAgeSeconds and uses a different signing method."
+      },
+      {
+        "name": "multipart-upload-large-file-with-progress",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use @aws-sdk/lib-storage and thus fails to meet the requirements."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6cafaf4cc0ca081623f582ee2e31403f8e75e4871fec68076172013bb08f98b0",
-  "scoredAt": "2026-05-13T09:19:05.133Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:123842fd42fa0ee5742cb72231a0601a82105120c5314cf9dd7009e6a206c0e9",
+  "scoredAt": "2026-10-13T12:09:08.010Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as missing kubectl, missing jq, or missing resource requests."
+        "detail": "Missing error handling for RBAC permission failures, kubectl access issues, timeout scenarios, and malformed metric responses."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 89,
-    "multiplier": 1.85,
+    "multiplier": 2.47,
+    "baselineAvg": 30,
+    "treatmentAvg": 74,
     "scenarios": [
       {
-        "name": "Audit api-services namespace for waste",
-        "baseline": 52,
-        "treatment": 91,
-        "rationale": "Baseline ran kubectl top but did not compute efficiency = actual/requested, skipped the headroom buffer for new requests, and did not sort recommendations by estimated monthly savings; treatment combined kubectl get pods + kubectl top, computed the ratio, applied the 30% buffer with limits = requests x 1.5, and ranked by savings."
+        "name": "production-waste-analysis",
+        "baseline": 40,
+        "treatment": 72,
+        "rationale": "Both lack actual data to compute efficiency ratios or waste estimates, but B demonstrates deep understanding of K8s optimization (p99 baseline vs point-in-time, VPA, Prometheus queries) and explicitly flags data limitations per the rubric; A questions whether K8s exists in the repo despite the user's clear statement of $50k/month K8s costs, missing the assumption and offering less actionable guidance toward satisfying the rubric."
       },
       {
-        "name": "Find zombie deployments cluster-wide",
-        "baseline": 44,
-        "treatment": 87,
-        "rationale": "Baseline listed deployments with low CPU but did not combine the multi-day near-zero check with restart-count and staging/dev namespace patterns from the rubric; treatment filtered on CPU < 1m, restart count 0, and ns matching staging/dev/preview before emitting kubectl delete commands."
+        "name": "staging-zombie-cleanup",
+        "baseline": 18,
+        "treatment": 73,
+        "rationale": "Response A declines to help and asks for clarification instead of providing methodology; Response B delivers actionable kubectl commands to find zero-CPU deployments, check metadata, and delete—covering CPU detection, deletion commands, and team coordination warning—but omits estimated monthly waste calculation and explicit 7-day data-span verification in its workflow."
+      },
+      {
+        "name": "oomkill-prevention-sizing",
+        "baseline": 32,
+        "treatment": 76,
+        "rationale": "Response A asks diagnostic questions appropriately but provides an interim YAML example that violates the rubric (limit ≠ request: 2Gi vs 1Gi), omits risk level, lacks CPU, and skips kustomize patch format. Response B delivers a formula-driven right-sizing method with correct limit=request, explicit 30% buffer rationale, proper RFC 6902 JSON patches, and a concrete example—but both miss CPU recommendations and Response B lacks explicit risk assignment."
       }
     ]
   }

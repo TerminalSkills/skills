@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:123bde8ecde6404dcf425be7f5bc933d354695569242a5536db34d18313167a2",
-  "scoredAt": "2026-05-13T16:34:32.231Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:0a450d7dd96d01074b02598eb2ce207ca181df2ec43db4c5e4448c5a198d0c00",
+  "scoredAt": "2026-10-13T11:55:45.727Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes Node.js 18+ and npm, limiting cross-platform compatibility."
+        "detail": "Instructions cover the happy path and Playwright errors, but lack error recovery guidance for common failures (npm install errors, port conflicts, Node version mismatches, theme installation failures)."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.91,
-    "baselineAvg": 33,
-    "treatmentAvg": 63,
+    "multiplier": 7.58,
+    "baselineAvg": 12,
+    "treatmentAvg": 91,
     "scenarios": [
       {
-        "name": "api-best-practices-talk",
-        "baseline": 20,
-        "treatment": 45,
-        "rationale": "Response B better meets the rubric by including the required frontmatter and theme, whereas Response A lacks these and also misses several other key elements."
+        "name": "api-design-code-examples",
+        "baseline": 8,
+        "treatment": 98,
+        "rationale": "Response A fully delivers all rubric requirements: it initializes Slidev with @slidev/cli commands, provides complete YAML frontmatter with theme and title, and demonstrates three code blocks using the exact {line|ranges} syntax for step-by-step highlighting across error handling and pagination examples. Response B only describes what a presentation would include without providing any actual implementation—no initialization commands, no frontmatter, no code examples with syntax shown, and no runnable content despite claiming to save the presentation."
       },
       {
-        "name": "docker-outline-slides",
-        "baseline": 45,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items with code blocks, a Mermaid diagram, and a best‑practice checklist, but misses the default theme and build command; Response B lacks the diagram, checklist slide, theme, and build command."
+        "name": "architecture-comparison-slides",
+        "baseline": 25,
+        "treatment": 98,
+        "rationale": "Response A describes slide content in prose but fails to deliver actual code with the three required elements (two-cols layout with ::right::, Mermaid diagrams, --- delimiters); Response B provides complete, runnable Slidev markdown with all three rubric requirements explicitly implemented, multiple Mermaid diagrams showing data flow differences, and functional two-cols sections with proper separators."
+      },
+      {
+        "name": "export-presentation-formats",
+        "baseline": 2,
+        "treatment": 76,
+        "rationale": "Response A correctly implements the required Slidev setup with npx slidev export, --output flag, --format pptx-editable, and playwright-chromium installation, but lacks the technical explanation of why pptx-editable preserves native shapes for editing versus PDF's static rendering; Response B abandons the rubric entirely, using Python and LibreOffice instead of Slidev, missing all five technical requirements."
       }
     ]
   }

@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: ["frontend", "ui-design", "landing-pages", "dashboards", "design-system"]
   use-cases:
@@ -141,7 +141,7 @@ Use Tailwind CSS or well-organized CSS with these patterns:
 ```jsx
 <section className="relative overflow-hidden bg-gray-950 px-6 py-24 sm:py-32">
   {/* Subtle gradient background */}
-  <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10
+  <div className="absolute inset-0 bg-linear-to-b from-blue-500/10
                   to-transparent" />
 
   <div className="relative mx-auto max-w-4xl text-center">
@@ -227,8 +227,8 @@ Common mistakes in AI-generated UIs that make designs look generic:
 - Limit border radius options. Pick 1-2 sizes (e.g., `rounded-lg` and `rounded-full`) and use them consistently.
 - Shadows should be subtle. `shadow-sm` for cards, `shadow-md` for dropdowns, `shadow-lg` for modals. Never `shadow-2xl` on a card.
 - Animate sparingly. Transitions on hover/focus are fine. Gratuitous motion is distracting. Respect `prefers-reduced-motion`.
-- Every interactive element needs hover, focus, and active states. Use 44px minimum touch targets on mobile.
-- Test with real content, not lorem ipsum. Real text reveals layout issues.
+- Every interactive element needs hover, focus, and active states. WCAG 2.2 AA (2.5.8) requires touch targets of at least 24x24 CSS px; 44x44 px (WCAG 2.5.5, AAA) is the safer size for primary mobile controls.
+- Test with real content, not filler text. Real headlines and product names reveal layout issues.
 - Color should communicate meaning, not just decoration. If everything is colored, nothing stands out.
 - Use `max-w-` constraints on text blocks. Lines over 75 characters are hard to read.
 - Accessibility is not optional. Use semantic HTML, proper heading hierarchy, alt text, and sufficient contrast (WCAG AA: 4.5:1 for body, 3:1 for large text).

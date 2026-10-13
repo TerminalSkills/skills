@@ -8,10 +8,11 @@ description: >-
   configuration, Grafana LGTM stack deployment, dashboard provisioning, and
   alert rules.
 license: Apache-2.0
-compatibility: "Node.js 18+, Python 3.9+, Go 1.21+. Grafana LGTM stack via Docker."
+compatibility: "Node.js 18.19+ or 20.6+, Python 3.10+. Grafana LGTM stack via Docker."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: "https://github.com/open-telemetry/opentelemetry-js"
   category: devops
   tags: ["observability", "opentelemetry", "grafana", "tracing", "monitoring"]
 ---
@@ -40,23 +41,27 @@ This skill helps AI agents implement the three pillars of observability — trac
    import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
    import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 
+   // Endpoint and service name come from OTEL_EXPORTER_OTLP_ENDPOINT and OTEL_SERVICE_NAME;
+   // the exporters append /v1/traces and /v1/metrics themselves.
    const sdk = new NodeSDK({
-     serviceName: process.env.OTEL_SERVICE_NAME || 'my-service',
-     traceExporter: new OTLPTraceExporter({ url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT + '/v1/traces' }),
+     traceExporter: new OTLPTraceExporter(),
      metricReader: new PeriodicExportingMetricReader({
-       exporter: new OTLPMetricExporter({ url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT + '/v1/metrics' }),
+       exporter: new OTLPMetricExporter(),
        exportIntervalMillis: 15000,
      }),
      instrumentations: [getNodeAutoInstrumentations()],
    });
    sdk.start();
+   process.on('SIGTERM', () => sdk.shutdown().finally(() => process.exit(0)));
    ```
+   (`@opentelemetry/sdk-metrics` is installed as a dependency of the SDK; add it explicitly if your package manager is strict.)
 
-3. Add to start script: `node --require ./src/instrumentation.ts src/index.ts`
+3. Load it before the app. Plain Node cannot `--require` a `.ts` file, so use the compiled file or a TypeScript runner:
+   `node --require ./dist/instrumentation.js dist/index.js` or `npx tsx --import ./src/instrumentation.ts src/index.ts`. ESM apps additionally need `--experimental-loader=@opentelemetry/instrumentation/hook.mjs`. Set `OTEL_SEMCONV_STABILITY_OPT_IN=http` to get the stable `http.server.request.duration` metric used in the queries below.
 
 4. Add custom spans for business-critical operations:
    ```ts
-   import { trace } from '@opentelemetry/api';
+   import { trace, SpanStatusCode } from '@opentelemetry/api';
    const tracer = trace.getTracer('payment-service');
    
    async function processPayment(order) {
@@ -80,8 +85,8 @@ This skill helps AI agents implement the three pillars of observability — trac
 
 ### OpenTelemetry Instrumentation (Python)
 
-1. Install: `pip install opentelemetry-distro opentelemetry-exporter-otlp`
-2. Run: `opentelemetry-instrument --service_name notification-service python app.py`
+1. Install: `pip install opentelemetry-distro opentelemetry-exporter-otlp`, then `opentelemetry-bootstrap -a install` to add instrumentation for the libraries you already use.
+2. Run: `opentelemetry-instrument --service_name notification-service python app.py` (endpoint from `OTEL_EXPORTER_OTLP_ENDPOINT`; set `OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true` to export logs too).
 3. For structured logs with trace context:
    ```python
    import structlog
@@ -102,7 +107,7 @@ This skill helps AI agents implement the three pillars of observability — trac
 
 Every log line must include `trace_id` and `span_id`. Use JSON format:
 ```json
-{"level":"error","msg":"payment failed","trace_id":"abc123...","span_id":"def456...","service":"payment-service","error":"timeout","timestamp":"2025-01-15T10:30:00Z"}
+{"level":"error","msg":"payment failed","trace_id":"abc123...","span_id":"def456...","service":"payment-service","error":"timeout","timestamp":"2026-10-13T10:30:00Z"}
 ```
 
 For Node.js, use pino with a custom mixin:
@@ -136,15 +141,17 @@ processors:
     timeout: 5s
     send_batch_size: 1000
   memory_limiter:
+    check_interval: 1s
     limit_mib: 512
+    spike_limit_mib: 128
 
 exporters:
   otlphttp/tempo:
     endpoint: http://tempo:4318
   prometheusremotewrite:
     endpoint: http://mimir:9009/api/v1/push
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
+  otlphttp/loki:                       # the old `loki` exporter was removed from contrib
+    endpoint: http://loki:3100/otlp
 
 service:
   pipelines:
@@ -162,6 +169,8 @@ service:
       exporters: [loki]
 ```
 
+Put `memory_limiter` first in each pipeline, and use the `otel/opentelemetry-collector-contrib` image (the core image lacks `prometheusremotewrite`). Validate with `otelcol-contrib validate --config=otel-collector-config.yaml`.
+
 ### Grafana Dashboard Provisioning
 
 Create dashboards as JSON files in `grafana/dashboards/`. Key panels:
@@ -169,7 +178,7 @@ Create dashboards as JSON files in `grafana/dashboards/`. Key panels:
 **Service Overview Dashboard:**
 - Request rate: `sum(rate(http_server_request_duration_seconds_count[5m])) by (service_name)`
 - P95 latency: `histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le, service_name))`
-- Error rate: `sum(rate(http_server_request_duration_seconds_count{http_status_code=~"5.."}[5m])) / sum(rate(http_server_request_duration_seconds_count[5m]))`
+- Error rate: `sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[5m])) / sum(rate(http_server_request_duration_seconds_count[5m]))`
 
 **Alert Rules:**
 - Error rate > 5 % for 5 min → P2
@@ -178,7 +187,7 @@ Create dashboards as JSON files in `grafana/dashboards/`. Key panels:
 
 ### Signal Correlation in Grafana
 
-1. Loki data source: add derived field with regex `trace_id=(\w+)` linking to Tempo.
+1. Loki data source: add a derived field linking to Tempo, with matcher regex `"trace_id":"(\w+)"` for JSON logs (`trace_id=(\w+)` for logfmt). Logs ingested over OTLP carry the trace ID as structured metadata instead.
 2. Tempo data source: enable "Trace to logs" linking to Loki with filter `{service_name="$service"} | trace_id="$traceId"`.
 3. Metrics → Logs: use exemplars in Mimir to link metric data points to trace IDs.
 
@@ -188,38 +197,17 @@ Create dashboards as JSON files in `grafana/dashboards/`. Key panels:
 
 **Input:** "Add observability to my Express API."
 
-**Output:** Create `src/instrumentation.ts` with the Node SDK config above, add the `--require` flag to the start script, set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` and `OTEL_SERVICE_NAME=api-gateway` in `.env`.
+**Output:** Create `src/instrumentation.ts` with the Node SDK config above, add the `--require` flag to the start script, set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` and `OTEL_SERVICE_NAME=api-gateway` in the environment. A successful run shows `api-gateway` in Grafana Explore under the Tempo data source within seconds.
 
-### Example 2 — Docker Compose for LGTM stack
+### Example 2 — Local backend for development
 
-**Input:** "Give me a docker-compose for the observability backend."
+**Input:** "Give me an observability backend I can run on my laptop."
 
-**Output:**
-```yaml
-services:
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.96.0
-    volumes: ["./otel-collector-config.yaml:/etc/otelcol/config.yaml"]
-    ports: ["4317:4317", "4318:4318"]
-  tempo:
-    image: grafana/tempo:2.4.0
-    command: ["-config.file=/etc/tempo.yaml"]
-    volumes: ["./tempo.yaml:/etc/tempo.yaml"]
-  loki:
-    image: grafana/loki:3.0.0
-    ports: ["3100:3100"]
-  mimir:
-    image: grafana/mimir:2.11.0
-    command: ["-config.file=/etc/mimir.yaml"]
-    volumes: ["./mimir.yaml:/etc/mimir.yaml"]
-  grafana:
-    image: grafana/grafana:10.4.0
-    ports: ["3000:3000"]
-    volumes: ["./grafana/provisioning:/etc/grafana/provisioning", "./grafana/dashboards:/var/lib/grafana/dashboards"]
-    environment:
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+**Output:** Grafana's all-in-one development image bundles the collector, Prometheus, Tempo, Loki, Pyroscope and Grafana (not for production):
+```bash
+docker run --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 grafana/otel-lgtm
 ```
+Open http://localhost:3000 (login admin/admin), send telemetry to `http://localhost:4318`, and find traces in Explore with the Tempo data source. For production use the separate Tempo, Loki and Mimir (or Prometheus) deployments behind your own collector config above, with pinned image tags from each project's releases page.
 
 ## Guidelines
 

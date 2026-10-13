@@ -8,10 +8,11 @@ description: >-
   Trigger words: doppler, secrets manager, env vars, secret injection, doppler run,
   doppler setup, service token, secret rotation.
 license: Apache-2.0
-compatibility: "Requires Doppler CLI installed (brew, apt, yum, scoop, or shell installer)"
+compatibility: "Requires Doppler CLI installed (brew, apt, scoop, or winget)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/DopplerHQ/cli
   category: devops
   tags: ["doppler", "secrets", "environment-variables", "devops", "security"]
 ---
@@ -29,10 +30,14 @@ Manage application secrets and environment variables through the Doppler CLI. Co
 ```bash
 # macOS
 brew install dopplerhq/cli/doppler
-# Debian/Ubuntu — see https://docs.doppler.com/docs/install-cli for full apt setup
 # Windows
 winget install doppler.doppler
+# or: scoop bucket add doppler https://github.com/DopplerHQ/scoop-doppler.git && scoop install doppler
+# Debian 11+/Ubuntu 22.04+: add Doppler's signed apt repository (keyring + signed-by),
+# then `sudo apt-get install doppler` — steps at https://docs.doppler.com/docs/install-cli
 ```
+
+Check the install with `doppler --version`. Update later with `doppler update`.
 
 Authenticate and verify:
 
@@ -99,9 +104,8 @@ doppler secrets get DATABASE_URL REDIS_URL API_KEY --json
 doppler secrets set API_KEY="sk-live-abc123def456"
 doppler secrets set DB_HOST="db.prod.internal" DB_PORT="5432"
 cat tls-cert.pem | doppler secrets set TLS_CERT              # from file/stdin
-doppler secrets set PORT="8080" --type integer
-doppler secrets set STRIPE_KEY="sk_live_..." --visibility restricted
-doppler secrets delete DEPRECATED_KEY
+doppler secrets set STRIPE_KEY="sk_live_51HG4xK2e" --visibility restricted   # masked | unmasked | restricted
+doppler secrets delete DEPRECATED_KEY --yes   # --yes skips the confirmation
 ```
 
 ### 6. Download and upload secrets in bulk
@@ -138,6 +142,8 @@ Limit file reads for extra security:
 doppler run --mount .env --mount-max-reads 1 -- php artisan config:cache
 ```
 
+Other useful `doppler run` flags: `--only-secrets API_KEY,DATABASE_URL` (inject just those), `--preserve-env` (let existing environment values win; use with care), `--watch` (beta: restart on secret change), and `--fallback ./doppler-fallback.json` (encrypted copy used if the API is unreachable).
+
 ### 8. Use secret templates
 
 Create a template file (e.g., `config.tmpl`):
@@ -150,7 +156,7 @@ log_file: {{.}}
 {{end}}
 ```
 
-Substitute and output:
+Templates use Go `text/template` syntax (`tojson` is available for multiline or JSON values). Substitute and output:
 
 ```bash
 doppler secrets substitute config.tmpl --output config.yaml
@@ -168,12 +174,12 @@ kubectl apply -f <(doppler secrets substitute k8s-secret.yaml.tmpl)
 doppler configs tokens create ci-deploy -p payments-api -c prd --max-age 24h --plain
 ```
 
-Use in CI via env var or inline flag:
+The token is read-only by default; add `--access read/write` only if the pipeline must write secrets. Use in CI via env var or inline flag:
 
 ```bash
-export DOPPLER_TOKEN="dp.st.prd.xxxx"
+export DOPPLER_TOKEN="$DOPPLER_SERVICE_TOKEN"   # stored in the CI secret store
 doppler run -- ./deploy.sh
-doppler run --token="dp.st.prd.xxxx" -- ./deploy.sh
+doppler run --token="$DOPPLER_SERVICE_TOKEN" -- ./deploy.sh
 ```
 
 ### 10. Name transformers
@@ -186,7 +192,7 @@ doppler run --name-transformer tf-var -- terraform apply    # API_KEY → TF_VAR
 doppler run --name-transformer lower-snake -- python app.py # API_KEY → api_key
 ```
 
-Available transformers: `camel`, `upper-camel`, `lower-snake`, `tf-var`, `dotnet-env`, `lower-kebab`.
+Available transformers for `doppler run`: `camel`, `upper-camel`, `lower-snake`, `tf-var`, `dotnet-env`, `lower-kebab` (`download` also accepts `dotnet`).
 
 ### 11. Docker and Kubernetes integration
 
@@ -261,6 +267,7 @@ doppler login && doppler setup && doppler run -- node server.js
 
 ## Guidelines
 
+- `doppler secrets download --no-file --format=env > .env` writes plaintext secrets to disk; delete the file afterwards and keep it out of git.
 - Always use `doppler run` to inject secrets rather than downloading to plain-text files. The `--mount` flag with named pipes is the most secure file-based option.
 - Use `doppler setup` in project directories so subsequent commands inherit the project/config context automatically.
 - Create service tokens with `--max-age` for CI/CD pipelines instead of using personal auth tokens.

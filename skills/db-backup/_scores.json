@@ -1,63 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:35957123d8c8ad083aefc99d792768cfb8af949c6512d59b70789181185f04e2",
-  "scoredAt": "2026-05-13T16:26:06.957Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:ac76f6118ca23a9747919b5e401733a395d88578988e63f5f9399ec9c178f71e",
+  "scoredAt": "2026-10-13T11:54:01.252Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
-      "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "PASS"
+      "conciseness": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
+      "examples": "WEAK"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling for backup failures or network interruptions."
+        "detail": "Edge cases and error handling for backup failures are minimally covered; disaster recovery procedures lack comprehensive failure scenario guidance."
       },
       {
         "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The instructions contain verbose sections that could be trimmed for brevity."
+        "category": "actionability",
+        "detail": "Example 2 lacks concrete output and actual content; disaster recovery runbook section is procedural but not fully detailed with a template or complete walkthrough."
       },
       {
         "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is limited to Linux/macOS and does not support Windows environments."
+        "category": "examples",
+        "detail": "Only one fully complete example provided; Example 2 is described aspirationally rather than shown with actual content, making the expected output unclear."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "missingEncryption",
-        "detail": "Backup uploads to S3 lack server-side encryption specification, exposing data at rest."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "multiplier": 2.11,
-    "baselineAvg": 38,
-    "treatmentAvg": 80,
+    "multiplier": 1.98,
+    "baselineAvg": 43,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "postgresql-automated-backup-with-pitr",
-        "baseline": 30,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items (pg_dump, WAL config, verification, and mentions rotation) while Response B lacks pg_dump, row‑count verification, and rotation policy."
+        "name": "postgres-backup-strategy",
+        "baseline": 72,
+        "treatment": 85,
+        "rationale": "Both assess RPO/RTO well, but Response A fully delivers on the rubric's automated verification requirement with explicit row count comparisons (via pg_stat_user_tables), while Response B's primary verify script checks table count rather than per-table row counts, and lacks the direct production vs. restored row count comparison the rubric requires."
       },
       {
-        "name": "mysql-disaster-recovery-runbook",
-        "baseline": 45,
-        "treatment": 80,
-        "rationale": "Response A covers most rubric items but lacks a stakeholder communication template, while Response B omits the mysqldump command, verification query, and communication template."
+        "name": "mongodb-disaster-recovery-runbook",
+        "baseline": 22,
+        "treatment": 75,
+        "rationale": "Response B provides an executable, detailed runbook with exact `mongorestore --oplogReplay` commands and comprehensive multi-step verification procedures (data completeness, dbCheck, application-level validation). Response A describes what a runbook would contain but fails to deliver the actual content, commands, or verification steps. However, Response B omits explicit documentation of `mongodump --oplog` for the backup creation phase, focusing instead on archive-based restore, which is a material gap against the rubric's first requirement."
+      },
+      {
+        "name": "mysql-redis-rotation-policy",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response A meets all three rubric requirements: explains GFS policy clearly (7 daily, 4 weekly, 12 monthly), uses mysql_config_editor for secure credentials, and includes redis-cli --rdb for snapshot backups. Response B explains GFS retention but critically fails two rubric requirements: it passes MySQL credentials insecurely via command-line args instead of mysql_config_editor, and uses redis-cli BGSAVE instead of the required redis-cli --rdb approach."
       }
     ]
   }

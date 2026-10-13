@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0020f1382e9e120e44392f6ac5d1123bdfec135ffad75ac491121c1b83e3d146",
-  "scoredAt": "2026-05-13T10:08:25.655Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:25f3d25039a588a3a2710a9d13c056148ce783812ce77c3a21560d758b7f17ed",
+  "scoredAt": "2026-10-13T16:10:43.083Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,36 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover all error scenarios and edge cases."
+        "detail": "The instructions do not cover all error scenarios and edge cases."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Bash commands used for npm install without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 87,
-    "multiplier": 1.93,
+    "multiplier": 2.24,
+    "baselineAvg": 37,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Add a /deploy slash command with an interactive confirmation button",
-        "baseline": 50,
+        "name": "slash-command-modal",
+        "baseline": 55,
         "treatment": 90,
-        "rationale": "Treatment uses @slack/bolt with app.command('/deploy') awaiting ack() within 3 seconds, then responds with Block Kit blocks plus a text fallback and uses app.action for the button — all patterns explicitly documented; baseline writes a raw Express handler with webhooks and JSON payloads, missing the ack-then-respond pattern."
+        "rationale": "Response A covers almost all rubric items, only missing a respond() call, while Response B omits block usage and respond(), falling short of the rubric."
       },
       {
-        "name": "Run a local Slack bot without exposing a public URL",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment selects Socket Mode with SLACK_APP_TOKEN (xapp-), instantiates new App({ token, signingSecret, socketMode: true, appToken }), and notes app_mention/message.im event subscriptions per the skill; baseline defaults to ngrok + HTTP request URL and never mentions Socket Mode."
+        "name": "mention-button-action",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "B fully satisfies the rubric while A lacks content."
+      },
+      {
+        "name": "python-longtask-rate-limit",
+        "baseline": 55,
+        "treatment": 60,
+        "rationale": "Both responses miss one rubric requirement; B uses respond() but lacks a try/except, while A includes a try/except but uses chat_postMessage instead of respond()."
       }
     ]
   }

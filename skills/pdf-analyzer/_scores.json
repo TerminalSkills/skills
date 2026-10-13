@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3c871f83fda6d2ff0600cfa0e85cae784939268942a558026fc7a5ad1afb57a7",
-  "scoredAt": "2026-05-13T09:48:58.243Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5a37b8ed30d5cbb5b29a2bb52a287b2febe7bbf0b7fdeaeb8391106c7867983f",
+  "scoredAt": "2026-10-13T13:02:46.319Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 63,
-    "treatmentAvg": 95,
-    "multiplier": 1.51,
+    "multiplier": 7,
+    "baselineAvg": 10,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "invoice-line-items-csv",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "Baseline uses extract_tables and csv.writer but conflates header and data rows; treatment splits headers from rows and writes a clean CSV with a header row, exactly as the skill's extract_tables helper does."
+        "name": "extract-financial-tables",
+        "baseline": 8,
+        "treatment": 78,
+        "rationale": "Response A demonstrates all four rubric requirements with concrete code using pdfplumber.open(), extract_tables() with the exact text_strategy config, empty row filtering, and CSV writing with headers; however, it has a logical flaw where it uses only the first table's headers for all tables, which would corrupt data if tables have different structures. Response B completely fails the rubric, providing no code, no mention of pdfplumber or text_strategy, and only a vague promise to use 'a PDF extraction tool'."
       },
       {
-        "name": "paper-metadata-and-text",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline switches to PyPDF2 instead of the skill-recommended pdfplumber; treatment reads pdf.metadata, iterates pdf.pages, and prints text keyed by 1-based page numbers per the skill."
+        "name": "ocr-scanned-invoice",
+        "baseline": 15,
+        "treatment": 45,
+        "rationale": "Response A mentions PyMuPDF and OCR but misses the specific method signatures (page.images check, get_textpage_ocr with exact parameters, get_text(textpage=tp) pattern); Response B is entirely non-technical, mentioning no PyMuPDF, no OCR approach, and none of the rubric-required methods or properties."
+      },
+      {
+        "name": "unlock-and-extract-contract",
+        "baseline": 8,
+        "treatment": 88,
+        "rationale": "Response A directly implements all rubric requirements with pdfplumber.open(password=...) and page.extract_text(), providing runnable code that extracts parties, dates, and obligations; Response B ignores the rubric entirely, suggesting the Read tool instead of pdfplumber and offering workarounds like pdfunlock that contradict the specified method."
       }
     ]
   }

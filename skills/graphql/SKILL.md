@@ -9,10 +9,11 @@ description: >-
   Apollo Server, Apollo Client, schema design, resolvers, subscriptions,
   federation, and production patterns.
 license: Apache-2.0
-compatibility: 'Node.js 18+ (Apollo Server/Client) or Python 3.9+ (Strawberry, Ariadne)'
+compatibility: 'Node.js 20+ (Apollo Server 5 / Apollo Client 4) or Python 3.9+ (Strawberry, Ariadne)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
+  repository: https://github.com/graphql/graphql-js
   category: development
   tags:
     - graphql
@@ -34,19 +35,24 @@ Design, build, and consume GraphQL APIs. This skill covers schema-first and code
 
 **Server (Apollo Server):**
 ```bash
-npm install @apollo/server graphql
-npm install @apollo/server express cors  # With Express
-npm install dataloader                    # For N+1 prevention
+npm install @apollo/server graphql@16     # Apollo Server 5 needs graphql 16.11+ (not 17)
+npm install express cors @as-integrations/express4   # Express 5: @as-integrations/express5
+npm install dataloader graphql-subscriptions         # N+1 batching, PubSub
+npm install graphql-ws ws @graphql-tools/schema      # subscriptions over WebSocket
 ```
+
+Apollo Server 5 no longer ships `@apollo/server/express4`; `expressMiddleware` now comes from the separate `@as-integrations/express4` package. Without Express, `startStandaloneServer` from `@apollo/server/standalone` is enough.
 
 **Client (Apollo Client):**
 ```bash
-npm install @apollo/client graphql
+npm install @apollo/client graphql rxjs
 ```
+
+Apollo Client 4 imports React hooks from `@apollo/client/react` and no longer builds an HTTP link from the `uri` option.
 
 **Type generation:**
 ```bash
-npm install -D @graphql-codegen/cli @graphql-codegen/typescript @graphql-codegen/typescript-resolvers
+npm install -D @graphql-codegen/cli @graphql-codegen/typescript @graphql-codegen/typescript-resolvers   # then: npx graphql-codegen init
 ```
 
 ### Step 2: Schema Design
@@ -145,16 +151,19 @@ export const resolvers = {
 
 ```javascript
 import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
+import { expressMiddleware } from '@as-integrations/express4';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WebSocketServer } from 'ws';
-import { useServer } from 'graphql-ws/lib/use/ws';
+import { useServer } from 'graphql-ws/use/ws';
+import { createServer } from 'http';
+import { PubSub } from 'graphql-subscriptions';
 import express from 'express';
 import cors from 'cors';
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
-const httpServer = require('http').createServer(app);
+const httpServer = createServer(app);
+export const pubsub = new PubSub();
 const wsServer = new WebSocketServer({ server: httpServer, path: '/graphql' });
 useServer({ schema }, wsServer);
 
@@ -168,6 +177,12 @@ app.use('/graphql', cors(), express.json(), expressMiddleware(server, {
 }));
 httpServer.listen(4000);
 ```
+
+Subscription resolver (publish from `createPost` with `pubsub.publish('POST_CREATED', { postCreated: post })`):
+```javascript
+Subscription: { postCreated: { subscribe: () => pubsub.asyncIterableIterator(['POST_CREATED']) } },
+```
+Also add `ApolloServerPluginDrainHttpServer({ httpServer })` (from `@apollo/server/plugin/drainHttpServer`) to the server's `plugins` for clean shutdown.
 
 ### Step 5: DataLoader (N+1 Problem)
 
@@ -190,9 +205,14 @@ export function createDataSources() {
 ### Step 6: Apollo Client (React)
 
 ```jsx
-import { ApolloClient, InMemoryCache, gql, useQuery, useMutation } from '@apollo/client';
+import { ApolloClient, HttpLink, InMemoryCache, gql } from '@apollo/client';
+import { ApolloProvider, useQuery } from '@apollo/client/react';
 
-const client = new ApolloClient({ uri: '/graphql', cache: new InMemoryCache() });
+const client = new ApolloClient({
+  link: new HttpLink({ uri: '/graphql' }),
+  cache: new InMemoryCache(),
+});
+// Wrap the app in <ApolloProvider client={client}>
 
 const GET_FEED = gql`
   query GetFeed($cursor: String) {
@@ -231,6 +251,7 @@ const server = new ApolloServer({
   validationRules: [depthLimit(7)], // Prevent deeply nested abuse queries
 });
 
+// Introspection is off by default when NODE_ENV=production; enable it explicitly only if needed.
 // Use @cacheControl directive for response caching
 // type Query { user(id: ID!): User @cacheControl(maxAge: 60) }
 ```
@@ -254,7 +275,7 @@ The agent will:
 1. Add a `Subscription { postCreated: Post! }` type to the schema
 2. Set up WebSocket server alongside the HTTP server using `graphql-ws`
 3. Implement a `PubSub` instance and publish events in the `createPost` mutation resolver
-4. On the client, use `useSubscription` from Apollo Client with a `POST_CREATED` subscription query
+4. On the client, use `useSubscription` from Apollo Client with a `POST_CREATED` subscription query (imported from `@apollo/client/react`, with a `GraphQLWsLink` from `@apollo/client/link/subscriptions` and the `graphql-ws` `createClient`)
 5. Update the Apollo Client cache when new posts arrive via the subscription callback
 
 ## Guidelines

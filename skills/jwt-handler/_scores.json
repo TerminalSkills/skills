@@ -1,41 +1,63 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3eade7358efc670d07380ecec0c1690ca93627b456293edae0e832769a1a3f6f",
-  "scoredAt": "2026-05-13T09:18:51.180Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2a40778c1d2c77c8fade05ae70c0a92f5c6948809642cffe859be037655b1687",
+  "scoredAt": "2026-10-13T12:09:36.961Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
-      "examples": "PASS"
+      "crossPlatform": "WEAK",
+      "examples": "WEAK"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Missing coverage of logout handling, token revocation endpoints, operational key rotation contingencies, CORS handling, and comprehensive edge cases like token blacklisting strategies."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Examples and key generation guidance are locked to Node.js/jsonwebtoken; no demonstrations for Python, Go, Java, or other platforms advertised as compatible."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "examples",
+        "detail": "Only two examples provided, one of which is a debugging scenario; missing runnable code for token validation middleware implementation and key rotation procedures."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 91,
-    "multiplier": 1.82,
+    "multiplier": 1.15,
+    "baselineAvg": 75,
+    "treatmentAvg": 86,
     "scenarios": [
       {
-        "name": "Token service with refresh rotation for Express",
-        "baseline": 52,
-        "treatment": 92,
-        "rationale": "Baseline used HS256 with a shared secret and stored refresh tokens in plaintext with no family tracking; treatment used RS256 with 15-min access tokens, SHA-256 hashed refresh tokens, family IDs, and revoked the whole family on reuse detection per the skill's rotation pattern."
+        "name": "jwt-validation-middleware",
+        "baseline": 62,
+        "treatment": 88,
+        "rationale": "Response B directly implements the rubric's required error codes (token_missing, token_expired, token_invalid) and maps TokenExpiredError/JsonWebTokenError exactly as specified; Response A uses different codes (MISSING_TOKEN, TOKEN_EXPIRED, MALFORMED_TOKEN, etc.) and doesn't collapse JsonWebTokenError variants to token_invalid, failing the core error-mapping requirement despite offering more granular error handling."
       },
       {
-        "name": "Debug an expired JWT",
-        "baseline": 48,
-        "treatment": 90,
-        "rationale": "Baseline decoded the token and noted expiration but did not flag the missing iat/iss/aud claims the skill specifically calls out; treatment decoded header + payload, identified expiration by comparing exp to now, and recommended adding iat for audit logging plus iss/aud for multi-service setups."
+        "name": "refresh-token-rotation",
+        "baseline": 92,
+        "treatment": 87,
+        "rationale": "Both fully implement all four rubric requirements (revoke-before-issue, family ID assignment/reuse, token hashing, replay detection with family revocation). Response B edges ahead with additional security layers (generation tracking, out-of-order detection), cleaner status enum pattern, forensic data capture (userAgent/IP), explicit test scenarios, and NestJS alignment with the project's backend stack; Response A excels in completeness with full client-side integration and Express patterns, but the framework choice is less aligned with the project context."
+      },
+      {
+        "name": "jwt-expiration-debug",
+        "baseline": 70,
+        "treatment": 82,
+        "rationale": "Both responses correctly decode the JWT and identify the expired token; Response A fully addresses the refresh-token recommendation with concrete implementation details and correctly identifies the lifetime as 1 hour (longer than best-practice 15 minutes), while Response B calculates the same 1-hour lifetime but undermines the recommendation by suggesting 24h+ TTLs (worse practice) and provides less actionable guidance on refresh implementation."
       }
     ]
   }

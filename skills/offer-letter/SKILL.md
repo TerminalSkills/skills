@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["hiring", "offer-letter", "hr", "employment", "compensation"]
   use-cases:
@@ -168,6 +168,19 @@ Remind the user to have legal/HR review the letter before sending.
 - At-will employment
 - 5-day acceptance window
 
+**Output (compensation and equity excerpt):**
+```markdown
+## Compensation
+
+- **Base salary:** $190,000 per year, paid semi-monthly (1st and 15th)
+- **Equity:** 10,000 stock options under the Company's equity incentive plan,
+  exercise price $4.15 per share. Vesting starts on the start date, March 3,
+  2027: 2,500 options vest on the one-year cliff (March 3, 2028), and the
+  remaining 7,500 vest in equal monthly installments over the following 36 months.
+```
+
+Take the plan name, share count and exercise price from the board-approved grant, not from this example. For US option grants the exercise price must be at least the current 409A fair market value (see Guidelines).
+
 ### Example 2: Executive offer with signing bonus
 
 **User request:** "Draft an offer for our new VP of Engineering with a $50K signing bonus and accelerated vesting."
@@ -200,6 +213,7 @@ Remind the user to have legal/HR review the letter before sending.
 - Set a reasonable acceptance deadline (typically 3-7 business days).
 - Use warm, welcoming language. The offer letter is a key part of the candidate experience.
 - For equity, specify: number of shares, strike price (if known), vesting schedule, and cliff period.
+- For US stock options, the exercise price must be at least the fair market value on the grant date, as set by the latest 409A valuation of a private company. A lower price can make the option subject to Section 409A taxes for the employee, so check it with counsel before promising a number.
 - For signing bonuses, always include clawback terms and payment timeline.
 - Never include confidential company information like cap table details or specific revenue numbers.
 - Include clear next steps so the candidate knows exactly what to do.

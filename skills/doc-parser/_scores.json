@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:173e439c8f0e230fcdeb5e896360c100894b40e1f9ab5e0e12652fb1ec2b3fc6",
-  "scoredAt": "2026-05-13T16:41:00.986Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:136dff3502b9378d225f72a2542051a2ac4f6c3da3ab5cada76083455c3a8244",
+  "scoredAt": "2026-10-13T11:55:37.429Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 80,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,17 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly handle error scenarios such as installation failures or parsing errors, limiting robustness."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains verbose explanatory text that could be trimmed for brevity."
+        "detail": "Error scenarios and edge cases like corrupted files, network failures during model downloads, and handling conversion failures are mentioned but lack actionable recovery steps."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill specifies compatibility with Python 3.10+ and lists specific agents, indicating minor platform assumptions."
+        "detail": "Installation and CLI commands assume Unix/Linux shell environment; Windows users must adapt venv activation and path separators; no platform-specific guidance for LibreOffice or CLI usage."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 10,
-    "baselineAvg": 0,
-    "treatmentAvg": 100,
+    "multiplier": 6.6,
+    "baselineAvg": 7,
+    "treatmentAvg": 66,
     "scenarios": [
       {
-        "name": "extract-tables-to-csv",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully follows the rubric with docling code, while Response B uses camelot and omits all required docling steps."
+        "name": "extract-academic-tables",
+        "baseline": 8,
+        "treatment": 82,
+        "rationale": "Response A delivers a complete, working implementation using DocumentConverter, accessing doc.tables, calling export_to_dataframe(), and saving CSV files with descriptive names while reporting table count (missing only section headings detection); Response B merely asks for the file path without implementing any of the required methods or functionality."
       },
       {
-        "name": "convert-multi-column-report-to-markdown",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not use DocumentConverter or the required methods."
+        "name": "extract-images-from-scans",
+        "baseline": 5,
+        "treatment": 95,
+        "rationale": "Response A completely ignores the rubric and suggests generic CLI tools (pdfimages, pdftoppm, convert) instead of the required PdfPipelineOptions API with doc.pictures iteration and get_image().save(). Response B directly implements every rubric requirement: configures PdfPipelineOptions with generate_picture_images=True, iterates through doc.pictures, uses get_image(doc).save() to extract images, and prints figure count with page numbers and captions."
+      },
+      {
+        "name": "convert-report-to-markdown",
+        "baseline": 8,
+        "treatment": 22,
+        "rationale": "Both responses ask for the missing file and fail to meet the rubric's core requirement of calling markdown export functions or showing output, but Response B provides more technical specificity (names Docling, describes linearization of two-column layout, outlines extraction steps) while Response A remains generic; neither includes page count or detected layout structure since no file exists to process."
       }
     ]
   }

@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6e1e7910a9fc04a67f2e86c21a1fbb471ef42a85bf7920adc533d037b7a4b799",
-  "scoredAt": "2026-05-13T10:00:10.383Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:18833068b9e4d751693cc2680d9304ec0416310d3bf0ed823e16b4cf76f60b2d",
+  "scoredAt": "2026-10-13T13:02:26.961Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Examples are Express/TypeScript-specific despite claiming compatibility with Python 3.9+ and Go 1.21+; Python and Go developers would need to translate the TypeScript implementation to their frameworks."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 34,
-    "treatmentAvg": 93,
-    "multiplier": 2.74,
+    "multiplier": 1.66,
+    "baselineAvg": 58,
+    "treatmentAvg": 96,
     "scenarios": [
       {
-        "name": "Layered Express rate limit with Redis sliding window",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Treatment implements the sorted-set sliding window with a Redis multi pipeline (zremrangebyscore, zadd, zcard, expire), composite keys per category, and the full X-RateLimit-Limit/Remaining/Reset plus Retry-After headers on 429; baseline drops in express-rate-limit with a fixed-window store and partially covers headers, missing the per-category keyGenerator and the exact algorithm."
+        "name": "multi-tier-endpoint-limits",
+        "baseline": 45,
+        "treatment": 98,
+        "rationale": "Response A meets all rubric requirements: defines three tiers with correct configs, sets X-RateLimit-Limit/Remaining/Reset headers on all responses, and uses IP-based keys for auth/public and user ID-based for data. Response B fails two critical requirements: it sets RFC standard RateLimit-* headers (not X-RateLimit-*) due to standardHeaders/legacyHeaders config, and the auth endpoint keys on username/email instead of IP-based."
       },
       {
-        "name": "Credential-stuffing detection",
-        "baseline": 28,
-        "treatment": 90,
-        "rationale": "Treatment tracks unique usernames per IP using a Redis HyperLogLog and blocks the IP when the count exceeds 20 in a 5-minute window, with structured logging of request metadata for incident response; baseline counts failed attempts per IP fail2ban-style and does not distinguish unique usernames, missing the abuse pattern the rubric targets."
+        "name": "credential-stuffing-detection",
+        "baseline": 48,
+        "treatment": 96,
+        "rationale": "Response A fully satisfies the rubric by using Redis SET for cardinality counting, enforcing the 10-username/5-min threshold, and returning 429 with Retry-After. Response B implements a clean NestJS solution with threshold and 429 responses but critically fails the rubric's explicit requirement to use a Redis data structure—it uses in-memory Map/Set instead and only mentions Redis as a future upgrade."
+      },
+      {
+        "name": "redis-fallback-in-memory",
+        "baseline": 82,
+        "treatment": 94,
+        "rationale": "Both meet the rubric's three requirements (try-catch with fallback, logging, strict enforcement). Response A uses sliding-window counters in both Redis (ZSET) and memory, providing more accurate rate limiting with distributed consistency via server time, plus active health checks and memory cleanup. Response B uses simpler fixed-window counters (INCR + PEXPIRE) that allow boundary-window request slips, lacks in-memory cleanup, and has no recovery health checks, though it is more readable and includes useful operational endpoints."
       }
     ]
   }

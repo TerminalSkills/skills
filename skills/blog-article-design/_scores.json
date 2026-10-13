@@ -1,35 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6600505aad5322b5ef7ed3774813e9d610f613e077cda552be94a4a7ead5a039",
-  "scoredAt": "2026-05-13T14:50:04.296Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:6d81ac55c8469b2e471bac15bd22624024c70065be10e12aa75b9fb434a5ec16",
+  "scoredAt": "2026-10-13T11:46:40.041Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Covers happy path and some edge cases (interrupted ordered lists, responsive behavior) but lacks guidance on error scenarios like extremely long code blocks, missing or oversized images, deeply nested blockquotes, or fallback styles when Tailwind features unavailable."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Design principles are framework-agnostic and Tailwind classes are portable, but both code examples are React-specific (JSX syntax, markdownComponents pattern), requiring translation for Vue, Svelte, vanilla JavaScript, or non-Tailwind CSS frameworks."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2,
-    "baselineAvg": 20,
-    "treatmentAvg": 40,
+    "multiplier": 2.94,
+    "baselineAvg": 32,
+    "treatmentAvg": 94,
     "scenarios": [
       {
-        "name": "dark-theme-container-classes",
-        "baseline": 20,
-        "treatment": 40,
-        "rationale": "Response B correctly lists the required container classes, whereas Response A uses different classes and omits the specified ones."
+        "name": "style-output-block-with-hierarchy",
+        "baseline": 25,
+        "treatment": 100,
+        "rationale": "Response A implements the exact rubric requirements with the specified container classes (my-6, rounded-xl, border-white/10, bg-zinc-900, overflow-x-auto), correct title styling (text-zinc-50 font-semibold), correct section headers (text-zinc-100 font-medium for ALL CAPS lines), and correct dollar amount highlighting (text-emerald-400). Response B provides three alternative formats, but none implement the rubric: the ASCII and JSON versions are unstyled plain text, and the HTML example uses wrong colors (slate-950, green-400, amber-300) instead of the specified zinc and emerald palette, plus missing container classes."
+      },
+      {
+        "name": "light-theme-article-typography",
+        "baseline": 28,
+        "treatment": 87,
+        "rationale": "Response B matches the rubric exactly for body paragraphs (text-base leading-7 text-gray-600), H2 (text-2xl font-semibold tracking-tight text-gray-900), and H3 (text-xl font-semibold tracking-tight text-gray-900), while Response A uses text-gray-700 with leading-relaxed, font-bold instead of font-semibold, and wrong badge specifications; Response B's only deviation is using concrete emerald colors instead of semantic accent/20 classes."
+      },
+      {
+        "name": "responsive-code-blocks-mobile",
+        "baseline": 42,
+        "treatment": 95,
+        "rationale": "Response B directly implements the rubric requirements using exact Tailwind classes (whitespace-pre-wrap break-words, font-mono, px-5 py-4, overflow-x-auto, rounded-xl, border, bg-zinc-900, my-6) in correct placement; Response A uses custom CSS instead of Tailwind, omitting all specified classes and missing the exact styling requirements."
       }
     ]
   }

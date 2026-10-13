@@ -9,9 +9,10 @@ license: Apache-2.0
 compatibility: "Requires gh CLI installed and authenticated"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["github", "pull-requests", "issues", "ci-cd", "git"]
+  repository: https://github.com/cli/cli
   use-cases:
     - "Create and manage GitHub issues and pull requests from the terminal"
     - "Monitor CI/CD pipeline status and troubleshoot failures"
@@ -37,19 +38,23 @@ Run `gh --version` to confirm the CLI is installed. If not installed, instruct t
 # macOS
 brew install gh
 
-# Linux
-sudo apt install gh  # or snap install gh
+# Windows
+winget install --id GitHub.cli
 
-# Then authenticate
+# Linux: the distro package can be old; Debian/Ubuntu users should add the
+# official apt repository from https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+# (Fedora: sudo dnf install gh)
+
+# Then authenticate (browser or device flow)
 gh auth login
 ```
 
-Check authentication status with `gh auth status`.
+Check authentication status with `gh auth status`. In scripts and CI, `gh` reads a token from the `GH_TOKEN` (or `GITHUB_TOKEN`) environment variable instead of `gh auth login`; never print or commit it.
 
 ### Step 2: Determine the repository context
 
 - If inside a git repo, `gh` auto-detects the remote. Confirm with `gh repo view --json nameWithOwner -q .nameWithOwner`.
-- If the user specifies a repo (e.g., `owner/repo`), use the `-R owner/repo` flag on all commands.
+- If the user specifies a repo (e.g., `cli/cli`), use the `-R cli/cli` flag on all commands.
 - If neither, ask the user which repository to target.
 
 ### Step 3: Execute the requested action
@@ -61,16 +66,16 @@ Check authentication status with `gh auth status`.
 gh issue list
 
 # Create an issue
-gh issue create --title "Bug: login fails" --body "Steps to reproduce..."
+gh issue create --title "Bug: login fails" --body-file bug-report.md
 
 # View issue details
 gh issue view 42
 
 # Close an issue
-gh issue close 42 --comment "Fixed in #55"
+gh issue close 42 --comment "Fixed in #55"  # closes the issue; confirm with the user first
 
 # Search issues across repos
-gh search issues "memory leak" --repo owner/repo --state open
+gh search issues "memory leak" --repo cli/cli --state open
 ```
 
 **Pull Requests:**
@@ -79,16 +84,20 @@ gh search issues "memory leak" --repo owner/repo --state open
 # List open PRs
 gh pr list
 
-# Create a PR from the current branch
-gh pr create --title "Add caching layer" --body "## Summary\n- Added Redis caching"
+# Create a PR from the current branch (multi-line bodies: use a file, since "\n" is not expanded)
+gh pr create --title "Add caching layer" --body-file pr-body.md   # or --fill to use the commit message, --draft for a draft
 
-# View PR details including checks
+# View PR details, then the status of its checks
 gh pr view 123
+gh pr checks 123 --watch
+
+# Read the conversation
+gh pr view 123 --comments
 
 # Review a PR (approve, comment, request changes)
 gh pr review 123 --approve --body "Looks good"
 
-# Merge a PR
+# Merge a PR (--auto waits for required checks and reviews, then merges)
 gh pr merge 123 --squash --delete-branch
 
 # Check out a PR locally
@@ -131,13 +140,13 @@ gh release download v1.2.0
 
 ```bash
 # Get repo stats
-gh api repos/owner/repo --jq '.stargazers_count, .forks_count'
+gh api repos/cli/cli --jq '.stargazers_count, .forks_count'
 
-# List PR review comments
-gh api repos/owner/repo/pulls/123/comments
+# List PR review comments (--paginate follows every page)
+gh api repos/cli/cli/pulls/123/comments --paginate
 
 # Search code across GitHub
-gh search code "TODO FIXME" --repo owner/repo --filename "*.ts"
+gh search code "TODO FIXME" --repo cli/cli --extension go
 ```
 
 ### Step 4: Format and present results
@@ -172,10 +181,10 @@ Login should succeed or show a retry option.
 ## Environment
 - Browser: Chrome 120
 - OS: macOS 14.2" \
-  --label "bug,priority:high"
+  --label "bug"
 ```
 
-**Output:** "Created issue #87: Bug: Login times out after 30 seconds on slow connections — https://github.com/owner/repo/issues/87"
+**Output:** the command prints the new issue's URL, for example `https://github.com/acme-shop/web-store/issues/87`; report it back with the number and title. Labels must already exist in the repository, otherwise `gh` fails with a "could not add label" error; check with `gh label list`.
 
 ### Example 2: Check why CI is failing
 
@@ -188,7 +197,7 @@ Login should succeed or show a retry option.
 gh pr view --json number,headRefName,statusCheckRollup
 
 # List runs for the current branch
-gh run list --branch feature/my-branch --limit 5
+gh run list --branch feature/login-timeout --limit 5
 
 # View the failed run logs
 gh run view 789012 --log-failed
@@ -203,7 +212,7 @@ gh run view 789012 --log-failed
 **Actions:**
 
 ```bash
-gh search issues "dark mode" --repo owner/repo --limit 10
+gh search issues "dark mode" --repo acme-shop/web-store --limit 10
 gh issue list --search "dark mode" --state all
 ```
 
@@ -213,6 +222,8 @@ gh issue list --search "dark mode" --state all
 
 - Always check `gh auth status` before running commands if there is any doubt about authentication.
 - When creating PRs, use the `--body` flag with a structured description including Summary and Test Plan sections.
+- `gh search issues` returns issues only; add `--include-prs` to include pull requests.
+- Newer `gh` releases (2.x, latest 2.102) add flags regularly; run `gh <command> --help` when a flag is rejected, and `gh version` to see what is installed.
 - For destructive operations (closing issues, merging PRs, deleting branches), confirm with the user first.
 - Use `--json` and `--jq` flags to extract specific fields when raw output is too verbose.
 - When searching, start broad and narrow down. Use `--state`, `--label`, `--author` filters.

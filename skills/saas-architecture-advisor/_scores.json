@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b718ffef38d07abcd553b80932de214957843e2232504174f8f7f5e8b2a10bd4",
-  "scoredAt": "2026-05-13T10:05:04.957Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:acdd7d6759762a26736d26d37d0a202216c2dd5396268ec9d2b7be125d26ac17",
+  "scoredAt": "2026-10-13T16:06:35.083Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not explicitly cover error handling or edge cases such as missing tenant identifiers or database connection failures."
+        "detail": "The instructions lack explicit error handling and edge case coverage, such as missing tenant context or tenant count thresholds."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 94,
-    "multiplier": 1.62,
+    "multiplier": 1.34,
+    "baselineAvg": 67,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "early-stage shared DB + RLS recommendation",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Baseline mentions RLS in passing but rarely gives the exact current_setting('app.tenant_id') policy + SET LOCAL middleware pattern or the repository abstraction for later migration that treatment supplies."
+        "name": "convert-single-tenant-to-multi-tenant",
+        "baseline": 75,
+        "treatment": 85,
+        "rationale": "Response A is more detailed, covering migration steps, tenant routing, and some cross‑cutting concerns, while Response B is less detailed and omits many required elements."
       },
       {
-        "name": "HIPAA database-per-tenant with budget + registry routing",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Both pick DB-per-tenant for HIPAA, but treatment also costs the architecture against the $5k budget and prescribes the tenant registry DB plus per-tenant KMS keys and audit logs that the baseline only mentions in generic terms."
+        "name": "hipaa-compliant-healthcare-saas",
+        "baseline": 30,
+        "treatment": 95,
+        "rationale": "Response B fully meets all rubric criteria, while Response A does not recommend database-per-tenant and lacks a detailed cost calculation within the budget."
+      },
+      {
+        "name": "high-traffic-multi-tenant-routing-and-caching",
+        "baseline": 95,
+        "treatment": 90,
+        "rationale": "Both responses cover all rubric items, but Response A provides more concrete deployment artifacts and configuration examples, giving it a slight edge."
       }
     ]
   }

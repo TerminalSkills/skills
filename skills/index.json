@@ -929,7 +929,7 @@
     {
       "name": "billing-automation",
       "slug": "billing-automation",
-      "description": "Automate invoice generation, billing workflows, payment tracking, and revenue recognition for SaaS and service businesses. Use when building billing pipelines, generating invoice PDFs, usage-based invoicing, subscription management, payment reminders, or financial reporting. Trigger words: invoice, billing, payment, subscription, usage billing, revenue recognition, accounts receivable, dunning, proration, Stripe billing, generate invoice, create bill.",
+      "description": "Automates invoice generation, billing workflows, payment tracking, and revenue recognition for SaaS and service businesses. Use when building billing pipelines, generating invoice PDFs, usage-based invoicing, subscription management, payment reminders, or financial reporting. Trigger words: invoice, billing, payment, subscription, usage billing, revenue recognition, accounts receivable, dunning, proration, Stripe billing, generate invoice, create bill.",
       "category": "business",
       "tags": [
         "billing",
@@ -2346,7 +2346,7 @@
     {
       "name": "data-migration",
       "slug": "data-migration",
-      "description": "When the user needs to migrate data between databases, transform schemas, or consolidate data sources. Use when the user mentions \"data migration,\" \"database migration,\" \"migrate from MySQL to PostgreSQL,\" \"schema migration,\" \"ETL pipeline,\" \"data transfer,\" \"database consolidation,\" \"legacy migration,\" or \"move data between databases.\" Covers schema analysis, mapping, transformation, batch processing, validation, and cutover planning. For query optimization during migration, see sql-optimizer.",
+      "description": "Plans and scripts data migrations between SQL databases: schema mapping, type conversion, batched and resumable loading, validation and cutover. Use when the user mentions \"data migration,\" \"database migration,\" \"migrate from MySQL to PostgreSQL,\" \"schema migration,\" \"ETL pipeline,\" \"data transfer,\" \"database consolidation,\" \"legacy migration,\" or \"move data between databases.\" Covers schema analysis, mapping, transformation, batch processing, validation, and cutover planning. For query optimization during migration, see sql-optimizer.",
       "category": "development",
       "tags": [
         "migration",
@@ -2403,7 +2403,7 @@
     {
       "name": "db-backup",
       "slug": "db-backup",
-      "description": "Set up automated database backup, restore, and disaster recovery procedures for PostgreSQL, MySQL, MongoDB, and Redis. Use when you need to implement backup schedules, point-in-time recovery, cross-region replication, backup verification, or disaster recovery runbooks. Trigger words: database backup, pg_dump, mysqldump, mongodump, disaster recovery, point-in-time recovery, WAL archiving, backup rotation, restore database, RTO, RPO, backup verification.",
+      "description": "Sets up automated database backup, restore, and disaster recovery procedures for PostgreSQL, MySQL, MongoDB, and Redis. Use when you need to implement backup schedules, point-in-time recovery, cross-region replication, backup verification, or disaster recovery runbooks. Trigger words: database backup, pg_dump, mysqldump, mongodump, disaster recovery, point-in-time recovery, WAL archiving, backup rotation, restore database, RTO, RPO, backup verification.",
       "category": "devops",
       "tags": [
         "database",
@@ -2599,7 +2599,7 @@
     {
       "name": "doc-parser",
       "slug": "doc-parser",
-      "description": "Parse complex documents with IBM docling. Use when a user asks to parse a document with tables, extract figures from a document, handle multi-column layouts, convert a complex PDF to structured data, extract content from academic papers, or process documents with mixed layouts. Handles tables, figures, headers, footers, and multi-column text.",
+      "description": "Parse complex documents with IBM's open-source Docling library, which turns PDFs and Office files into structured Markdown or JSON. Use when a user asks to parse a document with tables, extract figures from a document, handle multi-column layouts, convert a complex PDF to structured data, extract content from academic papers, or process documents with mixed layouts. Handles tables, figures, headers, footers, and multi-column text.",
       "category": "documents",
       "tags": [
         "parsing",
@@ -3151,7 +3151,7 @@
     {
       "name": "feature-flag-manager",
       "slug": "feature-flag-manager",
-      "description": "When the user needs to implement feature flags, gradual rollouts, or experiment bucketing. Use when the user mentions \"feature flag,\" \"feature toggle,\" \"gradual rollout,\" \"canary release,\" \"percentage rollout,\" \"kill switch,\" \"user bucketing,\" \"experiment assignment,\" or \"dark launch.\" Covers flag evaluation, deterministic user assignment, targeting rules, and flag lifecycle management. For experiment design, see ab-test-setup. For event tracking, see analytics-tracking.",
+      "description": "Designs a self-hosted feature flag system with deterministic user bucketing, percentage rollouts, targeting rules and flag lifecycle management. Use when the user mentions \"feature flag,\" \"feature toggle,\" \"gradual rollout,\" \"canary release,\" \"percentage rollout,\" \"kill switch,\" \"user bucketing,\" \"experiment assignment,\" or \"dark launch.\" Covers flag evaluation, deterministic user assignment, targeting rules, and flag lifecycle management. For experiment design, see ab-test-setup. For event tracking, see analytics-tracking.",
       "category": "development",
       "tags": [
         "feature-flags",
@@ -3249,7 +3249,7 @@
     {
       "name": "file-upload-processor",
       "slug": "file-upload-processor",
-      "description": "When the user needs to build file upload functionality for a web application. Use when the user mentions \"file upload,\" \"image upload,\" \"upload endpoint,\" \"multipart upload,\" \"presigned URL,\" \"S3 upload,\" \"file validation,\" \"upload to cloud storage,\" or \"accept user files.\" Handles upload endpoints, file validation (type, size, magic bytes), cloud storage integration, and upload status tracking. For image/video processing after upload, see media-transcoder.",
+      "description": "When the user needs to build file upload functionality for a web application. Use when the user mentions \"file upload,\" \"image upload,\" \"upload endpoint,\" \"multipart upload,\" \"presigned URL,\" \"S3 upload,\" \"file validation,\" \"upload to cloud storage,\" or \"accept user files.\" Handles upload endpoints, file validation (type, size, magic bytes), cloud storage integration, and upload status tracking. For bucket setup and presigned URLs in depth, see s3-storage.",
       "category": "development",
       "tags": [
         "file-upload",
@@ -4518,6 +4518,19 @@
       "description": "Jest is a comprehensive JavaScript testing framework built by Meta, designed for zero-configuration testing of JavaScript and TypeScript applications. It provides a complete ecosystem for unit testing, integration testing, and snapshot testing with built-in code coverage, mocking capabilities, and parallel test execution. Jest works seamlessly with React, Node.js, Angular, Vue, and virtually any JavaScript project, making it the most widely adopted testing framework in the ecosystem.",
       "category": "development",
       "tags": []
+    },
+    {
+      "name": "jev",
+      "slug": "jev",
+      "description": "Calls Jev, TypeSafe AI's \"System One\" model, which returns typed decisions (a choice, a score, or a yes/no probability) with calibrated probabilities instead of generated text. Use when a user asks to classify or route tickets, messages or documents, score leads or urgency, gate an agent action on a yes/no check, add a confidence threshold before acting, or get fast structured decisions through the TypeSafe API, LiteLLM or the Vercel AI Gateway.",
+      "category": "data-ai",
+      "tags": [
+        "jev",
+        "typesafe-ai",
+        "ai-agents",
+        "classification",
+        "routing"
+      ]
     },
     {
       "name": "jira",
@@ -6862,7 +6875,7 @@
     {
       "name": "pdf-analyzer",
       "slug": "pdf-analyzer",
-      "description": "Extract text, tables, metadata, and structured data from PDF files. Use when a user asks to read a PDF, parse a PDF, extract data from a PDF, summarize a PDF document, pull tables from a PDF, or convert PDF content to structured formats like JSON or CSV. Handles single and multi-page documents, scanned PDFs, and PDFs with complex table layouts.",
+      "description": "Extract text, tables, metadata, and structured data from PDF files. Use when a user asks to read a PDF, parse a PDF, extract data from a PDF, summarize a PDF document, pull tables from a PDF, or convert PDF content to structured formats like JSON or CSV. Handles single and multi-page documents, flags scanned PDFs for OCR, and reads borderless and password-protected PDFs.",
       "category": "documents",
       "tags": [
         "pdf",
@@ -8237,7 +8250,7 @@
     {
       "name": "search-engine-setup",
       "slug": "search-engine-setup",
-      "description": "Set up and optimize search engines for applications. Use when someone asks to \"add search to my app\", \"set up Elasticsearch\", \"configure Algolia\", \"fix search relevance\", \"add autocomplete\", \"fuzzy search\", or \"faceted filtering\". Covers index design, data sync, search API, autocomplete, relevance tuning, and query analysis.",
+      "description": "Sets up and optimizes search engines for applications. Use when someone asks to \"add search to my app\", \"set up Elasticsearch\", \"configure Algolia\", \"fix search relevance\", \"add autocomplete\", \"fuzzy search\", or \"faceted filtering\". Covers index design, data sync, search API, autocomplete, relevance tuning, and query analysis.",
       "category": "development",
       "tags": [
         "search",
@@ -8249,7 +8262,7 @@
     {
       "name": "security-audit",
       "slug": "security-audit",
-      "description": "Scan code for security vulnerabilities, misconfigurations, and exposed secrets. Use when a user asks to audit security, find vulnerabilities, check for OWASP issues, scan for secrets, review dependencies for CVEs, detect SQL injection, find XSS vulnerabilities, or harden an application. Covers OWASP Top 10, dependency auditing, secrets detection, and generates fix recommendations with severity ratings.",
+      "description": "Scan code for security vulnerabilities, misconfigurations, and exposed secrets. Use when a user asks to audit security, find vulnerabilities, check for OWASP issues, scan for secrets, review dependencies for CVEs, detect SQL injection, find XSS vulnerabilities, or harden an application. Covers the OWASP Top 10 (2025), dependency auditing, secrets detection, and generates fix recommendations with severity ratings.",
       "category": "development",
       "tags": [
         "security",
@@ -8880,7 +8893,7 @@
     {
       "name": "stripe-testing",
       "slug": "stripe-testing",
-      "description": "Test and debug Stripe payment integrations. Use when someone needs to verify webhook handling, simulate payment flows, debug failed charges, validate subscription lifecycle, or troubleshoot Stripe API errors. Trigger words: stripe, payment testing, webhook debugging, charge failed, subscription error, payment intent, checkout session.",
+      "description": "Test and debug Stripe payment integrations from the terminal with the Stripe CLI. Use when someone needs to verify webhook handling, simulate payment flows, debug failed charges, validate subscription lifecycle with test clocks, or troubleshoot Stripe API errors. Trigger words: stripe, payment testing, webhook debugging, stripe listen, stripe trigger, charge failed, subscription error, payment intent, checkout session, test clock.",
       "category": "development",
       "tags": [
         "stripe",
@@ -10065,11 +10078,11 @@
     {
       "name": "vertex-media-generation",
       "slug": "vertex-media-generation",
-      "description": "Generate images with Imagen and videos with Veo using the Vercel AI SDK Google Vertex provider. Use when the user wants to generate images, edit images (inpainting, outpainting, background swap), generate videos, or build media generation pipelines with @ai-sdk/google-vertex. Covers Imagen 4.0/3.0 and Veo 3.1/3.0/2.0 models.",
+      "description": "Generates images with Gemini image models and videos with Veo through the Vercel AI SDK Google Vertex provider. Use when the user wants to generate or edit images, generate videos, migrate off discontinued Imagen models, or build media pipelines with @ai-sdk/google-vertex. Covers Gemini image models and Veo 3.1.",
       "category": "data-ai",
       "tags": [
         "vertex-ai",
-        "imagen",
+        "gemini-image",
         "veo",
         "image-generation",
         "video-generation"
@@ -10276,13 +10289,10 @@
       "category": "automation",
       "tags": [
         "scraping",
-        "web",
-        "html",
         "data-extraction",
         "beautifulsoup",
         "etl",
-        "bright-data",
-        "pipeline"
+        "bright-data"
       ]
     },
     {
@@ -10344,6 +10354,18 @@
       "description": "Secure webhook endpoints. Use when a user asks to verify webhook signatures, prevent replay attacks, handle webhook retries, or implement secure webhook receivers for Stripe, GitHub, Slack, or any provider.",
       "category": "devops",
       "tags": []
+    },
+    {
+      "name": "webmcp",
+      "slug": "webmcp",
+      "description": "Exposes a web page's functionality to AI agents as callable tools with WebMCP, a draft browser API (document.modelContext) from the W3C Web Machine Learning Community Group. Use when a user asks to \"make my web app agent-ready\", \"let AI agents add items or search on my site\", \"register tools in the browser\", \"use document.modelContext.registerTool\", or \"test WebMCP in Chrome\".",
+      "category": "development",
+      "tags": [
+        "webmcp",
+        "mcp",
+        "ai-agents",
+        "browser-api"
+      ]
     },
     {
       "name": "websocket-builder",
@@ -10703,5 +10725,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-13T11:19:31.543Z"
+  "updatedAt": "2026-10-13T16:16:04.399Z"
 }

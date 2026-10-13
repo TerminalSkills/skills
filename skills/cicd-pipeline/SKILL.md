@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Any project with Git version control"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: devops
   tags: ["cicd", "gitlab-ci", "circleci", "pipeline", "deployment"]
 ---
@@ -54,7 +54,7 @@ Default to **GitLab CI** if the repo is on GitLab. Use **CircleCI** if specified
 
 ### Step 3: Generate the pipeline configuration
 
-**GitLab CI — Node.js example:**
+**GitLab CI: Node.js example:**
 
 ```yaml
 # .gitlab-ci.yml
@@ -65,99 +65,109 @@ stages:
   - deploy
 
 variables:
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
 
-.node-cache:
+.node-job:
+  image: node:${NODE_VERSION}
   cache:
-    key: ${CI_COMMIT_REF_SLUG}
+    key:
+      files:
+        - package-lock.json
     paths:
-      - node_modules/
+      - .npm/
+  before_script:
+    - npm ci
 
 lint:
+  extends: .node-job
   stage: lint
-  extends: .node-cache
-  image: node:${NODE_VERSION}
   script:
-    - npm ci
     - npm run lint
 
 test:
+  extends: .node-job
   stage: test
-  extends: .node-cache
-  image: node:${NODE_VERSION}
   script:
-    - npm ci
     - npm test -- --coverage
-  coverage: '/All files.*\|.*\s+([\d\.]+)/'
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   artifacts:
+    when: always
     reports:
       coverage_report:
         coverage_format: cobertura
         path: coverage/cobertura-coverage.xml
 
 build:
+  extends: .node-job
   stage: build
-  extends: .node-cache
-  image: node:${NODE_VERSION}
   script:
-    - npm ci
     - npm run build
   artifacts:
     paths:
       - dist/
-  only:
-    - main
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 ```
 
-**GitLab CI — Docker build and deploy:**
+Use `rules:` for conditions. `only`/`except` are deprecated GitLab keywords. Without a `workflow:rules` block, a push with an open merge request can start two pipelines (branch and MR); add `workflow:` rules if you see duplicates. The Cobertura file is produced by Jest's `coverageReporters: ['text', 'cobertura']`.
+
+**GitLab CI: Docker build and deploy:**
 
 ```yaml
 build-image:
   stage: build
-  image: docker:24
+  image: docker:29-cli
   services:
-    - docker:24-dind
+    - docker:29-dind
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-  only:
-    - main
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 deploy:
   stage: deploy
-  image: alpine:latest
+  image: alpine:3.22
   before_script:
     - apk add --no-cache openssh-client
-    - eval $(ssh-agent -s)
+    - eval "$(ssh-agent -s)"
     - echo "$SSH_PRIVATE_KEY" | ssh-add -
+    - mkdir -p ~/.ssh && echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
   script:
-    - ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA && docker-compose up -d"
-  when: manual
-  only:
-    - main
+    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA && IMAGE_TAG=$CI_COMMIT_SHA docker compose up -d"
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
 ```
 
-**CircleCI — Node.js example:**
+`SSH_KNOWN_HOSTS` holds the output of `ssh-keyscan` taken once and checked by a human; do not disable host key checking with `StrictHostKeyChecking=no`. The server must have logged in to the registry too, or use a deploy token.
+
+**CircleCI: Node.js example:**
 
 ```yaml
 # .circleci/config.yml
 version: 2.1
 
 orbs:
-  node: circleci/node@5
+  node: circleci/node@7
 
 jobs:
   lint-and-test:
     docker:
-      - image: cimg/node:20.11
+      - image: cimg/node:22.23
     steps:
       - checkout
       - node/install-packages
       - run: npm run lint
-      - run: npm test -- --coverage
+      - run: npm test -- --coverage --reporters=default --reporters=jest-junit
+        environment:
+          JEST_JUNIT_OUTPUT_DIR: test-results
       - store_test_results:
           path: test-results
       - store_artifacts:
@@ -165,7 +175,7 @@ jobs:
 
   build:
     docker:
-      - image: cimg/node:20.11
+      - image: cimg/node:22.23
     steps:
       - checkout
       - node/install-packages
@@ -176,11 +186,12 @@ jobs:
 
   deploy:
     docker:
-      - image: cimg/node:20.11
+      - image: cimg/node:22.23
     steps:
+      - checkout
       - attach_workspace:
           at: .
-      - run: npx vercel deploy --prod --token $VERCEL_TOKEN
+      - run: npx vercel deploy --prod --prebuilt --token "$VERCEL_TOKEN"
 
 workflows:
   build-and-deploy:
@@ -195,6 +206,10 @@ workflows:
               only: main
 ```
 
+`jest-junit` must be a dev dependency for the test report step. `cimg/node` tags are `major.minor` (for example `22.23`); the `circleci/node` orb's `install-packages` caches dependencies by lockfile automatically. Node 20 reached end of life in April 2026, so new pipelines should start on 22 or 24.
+
+**CircleCI monorepo path filtering** needs dynamic configuration: set `setup: true` in `.circleci/config.yml`, use the `circleci/path-filtering@3` orb to map changed paths to pipeline parameters (`mapping: "packages/api/.* run-api true"`), and put the per-package workflows in `.circleci/continue_config.yml` with `when: << pipeline.parameters.run-api >>`. Dynamic config must be enabled in the project settings.
+
 ## Examples
 
 ### Example 1: GitLab CI for a Django API with Docker deployment
@@ -202,7 +217,7 @@ workflows:
 **User request:** "Create a GitLab CI pipeline for my Django app with Docker deployment"
 
 **Actions taken:**
-1. Detected: Django 4.2, Poetry, Pytest, PostgreSQL dependency
+1. Detected: Django 5.2, Poetry, Pytest, PostgreSQL dependency
 2. Created `.gitlab-ci.yml` with lint, test (with Postgres service), build, deploy stages
 3. Added Postgres service container for integration tests
 4. Configured Docker image build and push to GitLab Container Registry
@@ -244,9 +259,10 @@ Estimated run time: ~4 minutes (parallel jobs)
 - Enable dependency caching to speed up runs. GitLab uses `cache:` blocks; CircleCI uses orbs or `save_cache`/`restore_cache`.
 - Use service containers for database tests (Postgres, Redis, etc.) rather than installing them in the job.
 - Separate CI (runs on every push/MR) from CD (runs only on main/tags).
-- Store secrets in CI/CD variables, never in pipeline files.
-- Use `only`/`rules` in GitLab CI or `filters` in CircleCI to control when jobs run.
+- Store secrets in CI/CD variables, never in pipeline files. In GitLab, mark them Masked and Protected; protected variables are only exposed to protected branches and tags.
+- Pin image tags to a major version (`node:22`, `docker:29-cli`), not `latest`.
+- Use `rules:` in GitLab CI (not the deprecated `only`/`except`) or `filters` in CircleCI to control when jobs run.
 - For monorepos, use path-based triggers to only run relevant pipelines.
-- GitLab CI supports `extends` and YAML anchors for DRY configs — use them for shared job configurations.
+- GitLab CI supports `extends`, `include` and YAML anchors for DRY configs — use them for shared job configurations.
 - CircleCI orbs encapsulate common patterns (Node, Python, Docker) — prefer orbs over manual setup.
 - Add `when: manual` in GitLab CI or approval jobs in CircleCI for production deploys to prevent accidental releases.

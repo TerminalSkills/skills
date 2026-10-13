@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "skillHash": "sha256:8c816c70aa355f45382c29d9b9066b5acd3da28a8d434682cabe1f2f941119cb",
+  "scoredAt": "2026-10-13T11:48:25.692Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
+  "quality": {
+    "score": 93,
+    "dimensions": {
+      "clarity": "PASS",
+      "completeness": "PASS",
+      "conciseness": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
+      "examples": "PASS"
+    },
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is limited to Chrome 149+ and Edge 150 with no documented fallback strategy for Safari, Firefox, and older browser versions."
+      }
+    ]
+  },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
+  "impact": {
+    "multiplier": 4.7,
+    "baselineAvg": 20,
+    "treatmentAvg": 94,
+    "scenarios": [
+      {
+        "name": "notes-app-searchable",
+        "baseline": 8,
+        "treatment": 95,
+        "rationale": "Response A directly implements all rubric requirements: registers two search tools with proper inputSchema (keyword and tag parameters), marks both with readOnlyHint: true, and returns structured note objects with id and content fields—plus provides working, tested code. Response B asks clarifying questions instead and provides no implementation, failing every rubric requirement."
+      },
+      {
+        "name": "ecommerce-cart-safety",
+        "baseline": 40,
+        "treatment": 88,
+        "rationale": "Response B directly implements all three rubric requirements: registers add_to_cart with inputSchema containing sku and quantity, validates input in the execute function, and marks payment tools with consequentialHint: true. Response A provides good security architecture but doesn't deliver the specific tool registration pattern or use consequentialHint, instead asking clarifying questions rather than providing the required implementation."
+      },
+      {
+        "name": "cross-origin-product-search",
+        "baseline": 12,
+        "treatment": 98,
+        "rationale": "Response A correctly implements WebMCP's browser-based API with document.modelContext feature detection, exposedTo parameter for the partner origin, readOnlyHint annotation, and structured SKU/name/price output; Response B implements a traditional MCP server architecture instead, lacks all browser-API requirements (no feature detection, no exposedTo, no readOnlyHint), and contradicts the 'in their own browser without API calls' requirement by requiring backend server setup."
+      }
+    ]
+  }
+}

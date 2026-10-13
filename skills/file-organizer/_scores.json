@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:35efaf7af21be5c474f9401cc9b40c5c780ca9469dadfc8618f46a16c24da1a2",
-  "scoredAt": "2026-05-13T08:52:46.648Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:954d2fd3bda36485bebcd931d61b11cece99e1e72e89ef6e849004011d86f119",
+  "scoredAt": "2026-10-13T12:02:47.434Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -11,19 +11,19 @@
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The code does not handle errors such as missing source directories, permission issues, or filename collisions, limiting robustness."
+        "detail": "Python functions lack exception handling for permission errors, locked files, and race conditions (file deleted between glob and operation)."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The bash script assumes a Unix-like environment and may not run on Windows without a compatible shell."
+        "detail": "The bash script uses `mv -n` which is a GNU coreutils extension; not guaranteed on all BSD/macOS systems without GNU tools, not disclosed in compatibility statement."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 1.48,
+    "baselineAvg": 48,
+    "treatmentAvg": 71,
     "scenarios": [
       {
-        "name": "Clean up a Downloads folder with 500+ mixed files",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment uses the documented TYPE_MAP-driven bash script with a dry-run preview pass, lowercases the extension, and routes unknowns to Other/; baseline used a flat case statement, no dry-run, and skipped the Other bucket."
+        "name": "sort-downloads-by-type",
+        "baseline": 38,
+        "treatment": 92,
+        "rationale": "Response B follows the rubric precisely: dry-run preview first (Step 1), mv -n flag used, proper subdirectories created; Response A omits the dry-run entirely, doesn't use mv -n flag, and misses two critical rubric requirements."
       },
       {
-        "name": "Find duplicate files and report wasted space",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment uses the documented hashlib.md5 + defaultdict pattern that groups paths by hash and computes wasted = size * (len(paths)-1), and follows the guideline to stage duplicates instead of deleting; baseline used fdupes or deleted directly without the staging guardrail."
+        "name": "rename-photos-with-date-sequence",
+        "baseline": 45,
+        "treatment": 90,
+        "rationale": "Response B meets all four rubric requirements: pattern-based renaming with date/sequence, st_mtime extraction, dry_run=True preview mode fully implemented, and collision detection. Response A extracts st_mtime and uses patterns but lacks dry_run functionality (only suggests manual code edits) and has zero collision detection, failing on the two most critical rubric items."
+      },
+      {
+        "name": "find-and-report-duplicate-files",
+        "baseline": 60,
+        "treatment": 30,
+        "rationale": "Response A only describes what a script would do if approved, without providing actual implementation or results; Response B delivers immediate analysis, working code showing duplicate detection and wasted space calculation, but uses MD5 instead of SHA256 and critically fails to automate the _duplicates/ staging folder requirement."
       }
     ]
   }

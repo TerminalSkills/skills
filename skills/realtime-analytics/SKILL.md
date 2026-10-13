@@ -7,10 +7,11 @@ description: >-
   Covers event schema design, ingestion services with batching, ClickHouse
   table optimization, aggregation queries, and dashboard wiring.
 license: Apache-2.0
-compatibility: "Node.js 18+, ClickHouse 23.8+, Docker recommended"
+compatibility: "Node.js 20+ (@clickhouse/client), ClickHouse 23.8+, Docker recommended"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/ClickHouse/ClickHouse
   category: data-ai
   tags: ["analytics", "real-time", "clickhouse", "event-tracking"]
 ---
@@ -47,7 +48,7 @@ This skill enables AI agents to build self-hosted, real-time analytics systems. 
 3. Buffer events in memory. Flush when either condition is met:
    - Buffer reaches 1,000 events
    - 2 seconds have elapsed since last flush
-4. Use ClickHouse's `INSERT ... FORMAT JSONEachRow` for batch inserts.
+4. Use ClickHouse's `INSERT ... FORMAT JSONEachRow` for batch inserts (`npm install @clickhouse/client`). ISO-8601 timestamps such as `2026-10-13T09:15:02.481Z` are rejected by default; pass `clickhouse_settings: { date_time_input_format: 'best_effort' }` or convert to `YYYY-MM-DD hh:mm:ss.mmm` first. ClickHouse recommends 10,000-100,000 rows per insert; 1,000 is the floor, so raise `FLUSH_SIZE` at high volume or enable `async_insert=1` (keep `wait_for_async_insert=1`) and let the server batch.
 5. On flush failure, retry 3 times with exponential backoff, then write to a dead-letter file.
 6. Expose `GET /health` returning: `{ "buffer_size": N, "last_flush": "ISO timestamp", "status": "ok" }`.
 
@@ -57,7 +58,7 @@ Write queries as named `.sql` files. Common dashboard panels:
 
 **Active users (last N minutes):**
 ```sql
-SELECT count(DISTINCT session_id) AS active_users
+SELECT uniq(session_id) AS active_users  -- approximate and fast; uniqExact() for exact counts
 FROM events
 WHERE timestamp > now() - INTERVAL 5 MINUTE;
 ```
@@ -151,6 +152,12 @@ Properties JSON per event:
 
 **Output:**
 ```js
+import { createClient } from '@clickhouse/client';
+
+const clickhouse = createClient({
+  url: process.env.CLICKHOUSE_URL ?? 'http://localhost:8123',
+  password: process.env.CLICKHOUSE_PASSWORD ?? '',
+});
 const FLUSH_INTERVAL_MS = 2000;
 const FLUSH_SIZE = 1000;
 let buffer = [];
@@ -164,14 +171,21 @@ setInterval(async () => {
   if (buffer.length > 0) await flush();
 }, FLUSH_INTERVAL_MS);
 
-async function flush() {
+async function flush(attempt = 1) {
   const batch = buffer.splice(0, buffer.length);
-  const rows = batch.map(e => JSON.stringify(e)).join('\n');
-  await clickhouse.insert({
-    table: 'events',
-    values: batch,
-    format: 'JSONEachRow',
-  });
+  try {
+    await clickhouse.insert({
+      table: 'events',
+      values: batch,
+      format: 'JSONEachRow',
+      clickhouse_settings: { date_time_input_format: 'best_effort' },
+    });
+  } catch (err) {
+    if (attempt >= 3) throw err; // caller writes the batch to the dead-letter file
+    await new Promise(r => setTimeout(r, 2 ** attempt * 250));
+    buffer.unshift(...batch);
+    return flush(attempt + 1);
+  }
 }
 ```
 
@@ -181,4 +195,5 @@ async function flush() {
 - **Do not use Kafka unless asked.** For under 50K events/second, direct HTTP ingestion with in-memory buffering is simpler and sufficient.
 - **Always add TTL.** Unbounded analytical tables grow fast. Default to 90 days; let the user override.
 - **Test with realistic volume.** Generate synthetic events to validate the pipeline handles expected throughput before going live.
+- **Cardinality matters in ORDER BY.** Put low-cardinality columns first and `timestamp` last; the table's sort key decides how much data each query reads.
 - **Avoid SELECT *.** Always specify columns in aggregation queries to minimize I/O.

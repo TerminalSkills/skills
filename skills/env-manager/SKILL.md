@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "Works with .env files, Docker, CI/CD platforms. Optional: Doppler CLI, AWS SSM, Vault"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["environment-variables", "secrets", "configuration", "devops", "security"]
 ---
@@ -26,16 +26,17 @@ This skill helps manage environment variables and secrets across multiple enviro
 
 ### Auditing Environment Variables
 
-1. **Find all env var references in code:**
+1. **Find all env var references in code.** Match both dot access and bracket access, and both `process.env` and `process.env["NAME"]`:
    ```bash
-   grep -rn "process\.env\." src/ --include="*.ts" --include="*.js" | \
-     sed 's/.*process\.env\.\([A-Z_]*\).*/\1/' | sort -u
+   grep -rhoE "process\.env(\.[A-Za-z_][A-Za-z0-9_]*|\[[\"'][A-Za-z_][A-Za-z0-9_]*[\"']\])" src/ \
+     --include="*.ts" --include="*.js" | grep -oE "[A-Za-z_][A-Za-z0-9_]*" | grep -vE "^(process|env)$" | sort -u
    ```
-   For Python:
+   For Python, which covers `os.environ["X"]`, `os.environ.get("X")` and `os.getenv("X")`:
    ```bash
-   grep -rn "os\.environ\|os\.getenv" src/ --include="*.py" | \
-     sed 's/.*os\.\(environ\["\|getenv("\)\([A-Z_]*\).*/\2/' | sort -u
+   grep -rhoE "os\.(environ(\.get)?|getenv)[\[(][\"'][A-Z_][A-Z0-9_]*[\"']" src/ --include="*.py" | \
+     grep -oE "[A-Z][A-Z0-9_]*" | sort -u
    ```
+   Both commands miss names built at runtime (`process.env[key]`); check those by reading the code.
 
 2. **Compare against what's defined:**
    ```bash
@@ -90,11 +91,16 @@ This skill helps manage environment variables and secrets across multiple enviro
    - **Shared config** (feature flags, API URLs) → copy and adjust for the new env
    - **Secrets** (API keys, passwords) → generate new ones, never copy from another env
    - **Infrastructure** (database URLs, Redis URLs) → get from the new env's infra
-3. Validate the new environment:
+3. Validate the new environment against the list of required variables. Node 20.6+ loads a file with `--env-file` and needs no dependency:
    ```bash
-   # Check app starts without missing var errors
-   node -e "require('dotenv').config(); console.log('Loaded', Object.keys(process.env).length, 'vars')"
+   node --env-file=.env -e "
+     const required = ['DATABASE_URL', 'STRIPE_SECRET_KEY', 'APP_BASE_URL'];
+     const missing = required.filter(k => !process.env[k]);
+     if (missing.length) { console.error('missing: ' + missing.join(', ')); process.exit(1); }
+     console.log('all ' + required.length + ' required variables are set');
+   "
    ```
+   Run this in CI before the deploy step. A schema validator such as envalid or zod gives the same check inside the app at startup.
 
 ## Examples
 

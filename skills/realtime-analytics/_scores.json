@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9cf29f74de633b2e58bb9c2c1b37464a8971dc8576c93c0bf6f4fbb557f9b84e",
-  "scoredAt": "2026-05-13T10:01:02.735Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a6cf1ddc6c4a00912d2014b3fd21fbdeea0ec95ffb7107927a541b9468422ecf",
+  "scoredAt": "2026-10-13T13:07:42.578Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 77,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "actionability": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover all error scenarios, such as invalid JSON payloads or timestamp format validation."
+        "detail": "Missing error scenarios (ClickHouse unavailability, event loss on service restart), edge cases (schema evolution, connection pooling), and operational aspects (monitoring, authentication, scaling)."
       },
       {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to ClickHouse, limiting compatibility with other analytical databases."
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Dashboard API and Docker Compose setup guidance lack concrete code examples; schema and ingestion service are fully runnable, but dashboard wiring and containerization require significant additional implementation."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
+    "multiplier": 2.82,
+    "baselineAvg": 34,
     "treatmentAvg": 96,
-    "multiplier": 2.91,
     "scenarios": [
       {
-        "name": "ClickHouse events table for product analytics",
-        "baseline": 30,
-        "treatment": 97,
-        "rationale": "Baseline omits LowCardinality, DateTime64(3), monthly partitioning, ORDER BY (event_name, timestamp), and TTL; treatment uses every documented base field and MergeTree optimization."
-      },
-      {
-        "name": "Node.js ingestion service with buffer + health",
+        "name": "saas-events-schema",
         "baseline": 35,
         "treatment": 95,
-        "rationale": "Baseline does a per-request insert with no batching, no validation, and no /health endpoint; treatment buffers to 1000/2s, validates event_name and timestamp, uses INSERT FORMAT JSONEachRow, retries with backoff to a dead-letter file, and exposes the documented health payload."
+        "rationale": "Response B explicitly satisfies all 5 rubric requirements (MergeTree, LowCardinality on low-cardinality strings, all base fields with correct types/names, TTL 180 days, ORDER BY event_name primary), while Response A omits LowCardinality entirely, uses wrong field names (event_type vs event_name), DateTime instead of DateTime64(3), missing device_type, and puts event_date before event_name in ORDER BY—critical misses despite more elaborate content."
+      },
+      {
+        "name": "ingestion-service-with-buffers",
+        "baseline": 35,
+        "treatment": 96,
+        "rationale": "Response A comprehensively covers all rubric requirements: validates event_name/timestamp, accepts JSON arrays, implements 3 retries with proper exponential backoff (500ms→1s), writes dead-letter files, and includes last_flush in health. Response B fails on critical requirements: no input validation, no array support, retries only once with fixed delay (not exponential), no dead-letter file, and health endpoint omits last_flush timestamp."
+      },
+      {
+        "name": "dashboard-queries-time-range",
+        "baseline": 32,
+        "treatment": 98,
+        "rationale": "Response A fully implements the rubric: uses uniq() for active users, count(DISTINCT) for top features, countIf() for funnels, all time ranges with query parameters, and 5-second caching. Response B uses PostgreSQL with COUNT(DISTINCT) and SUM(CASE) instead of the required uniq() and countIf() functions (ClickHouse-specific), and sets cache TTLs to 1-60 minutes instead of 3-5 seconds, failing three critical rubric requirements."
       }
     ]
   }

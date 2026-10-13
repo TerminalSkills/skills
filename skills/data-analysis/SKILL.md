@@ -6,10 +6,11 @@ description: >-
   generate statistics, create charts from CSV or Excel data, summarize
   data, or answer questions about tabular data.
 license: Apache-2.0
-compatibility: "Requires Python 3.8+ with pandas, matplotlib, and seaborn"
+compatibility: "Requires Python 3.11+ (pandas 3.x) with pandas, matplotlib, seaborn; openpyxl for Excel files"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/pandas-dev/pandas
   category: data-ai
   tags: ["data-analysis", "pandas", "visualization", "statistics", "csv"]
   use-cases:
@@ -31,11 +32,13 @@ When a user asks you to analyze data, follow this process:
 
 ### Step 1: Verify dependencies
 
-Ensure required Python packages are available:
+Ensure required Python packages are available (pandas 3.x needs Python 3.11+; on older pandas 2.x use `'ME'` only from 2.2 on):
 
 ```bash
 python3 -c "import pandas; import matplotlib; import seaborn; print('All packages available')" 2>/dev/null || \
   pip install pandas matplotlib seaborn openpyxl
+  # For reproducible, supply-chain-safe installs, pin exact versions in requirements.txt
+  # (e.g. pandas==3.0.6) and install with `pip install -r requirements.txt`.
 ```
 
 ### Step 2: Load and inspect the data
@@ -70,8 +73,8 @@ Report the dataset structure to the user before proceeding:
 # Numeric summary
 print(df.describe())
 
-# Categorical summary
-for col in df.select_dtypes(include='object').columns:
+# Categorical summary (pandas 3 stores text as the "str" dtype, so "object" alone misses it)
+for col in df.select_dtypes(include=['object', 'string']).columns:
     print(f"\n{col} - unique values: {df[col].nunique()}")
     print(df[col].value_counts().head(10))
 
@@ -98,7 +101,8 @@ summary = df.groupby('category').agg(
 
 ```python
 df['date'] = pd.to_datetime(df['date'])
-monthly = df.resample('M', on='date').agg({'revenue': 'sum', 'orders': 'count'})
+# 'ME' = month end; the old 'M' alias raises an error in pandas 3
+monthly = df.resample('ME', on='date').agg({'revenue': 'sum', 'orders': 'count'})
 ```
 
 **Outlier detection:**
@@ -204,6 +208,7 @@ Summarize the analysis with:
 - Always inspect the data before analyzing. Report shape, types, and quality to the user.
 - Handle missing values explicitly: report them, then decide whether to drop or fill.
 - Use appropriate chart types: line for trends, bar for categories, scatter for correlations, heatmap for matrices.
+- In scripts and CI run with a non-interactive backend (`matplotlib.use("Agg")` before importing pyplot) so `savefig` works without a display.
 - Save all charts as PNG files with descriptive filenames and 150 DPI for readability.
 - Present numbers with context: "Revenue is $1.2M" is less useful than "Revenue is $1.2M, up 15% from last quarter."
 - For large datasets (100K+ rows), work with samples or aggregations to avoid slow operations.

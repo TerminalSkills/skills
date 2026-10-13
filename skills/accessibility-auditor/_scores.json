@@ -1,47 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a48b0ad5f8310c56435314d4bcb18daf75fca60ceeb4025b54d6fb03f9f01937",
-  "scoredAt": "2026-05-13T11:35:52.105Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:de8e64e2f996e039487b4e791077e3d07c44205b1537d85af7886a4f7f68dc18",
+  "scoredAt": "2026-10-13T11:44:31.990Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
-      "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "actionability": "WEAK",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Skill references automated tools (axe-core, Lighthouse, pa11y) but provides no concrete procedures for invoking them or interpreting their output formats."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "Code examples and fixes use React/JSX syntax (htmlFor, className, JSX handlers); skill claims framework-agnostic but provides no Vue, Svelte, or vanilla JS demonstrations."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 4.06,
-    "baselineAvg": 18,
-    "treatmentAvg": 73,
+    "multiplier": 1.35,
+    "baselineAvg": 62,
+    "treatmentAvg": 84,
     "scenarios": [
       {
-        "name": "audit-image-gallery-alt-contrast",
-        "baseline": 20,
-        "treatment": 55,
-        "rationale": "Response A gives concrete violations and fixes, though missing some details, whereas Response B only offers general guidance without identifying specific issues."
+        "name": "form-validation-audit",
+        "baseline": 72,
+        "treatment": 88,
+        "rationale": "Both responses cover label associations, error message linking, and color-only error indication well. Response B explicitly addresses autocomplete attributes on standard fields (name, email)—a rubric requirement Response A entirely omits. Response B also adds WCAG standard citations and specific contrast ratio guidance, providing more comprehensive coverage of the rubric's four explicit requirements."
       },
       {
-        "name": "audit-landing-page-keyboard",
-        "baseline": 15,
-        "treatment": 75,
-        "rationale": "Response B provides specific WCAG criteria, severity, location, and fixes for issues, while Response A only offers generic testing guidance without concrete findings."
+        "name": "modal-keyboard-accessibility",
+        "baseline": 65,
+        "treatment": 73,
+        "rationale": "Both appropriately request code first and cover Escape handling + Tab cycling + focus restoration, but Response B is more comprehensive (5 checks vs 4, includes WCAG references and promises exact fixes); both omit explicit mention of verifying visible focus indicators on all interactive elements, which the rubric requires."
       },
       {
-        "name": "audit-login-form-labeling",
-        "baseline": 20,
-        "treatment": 90,
-        "rationale": "Response A identifies violations with WCAG criteria, severity, location, fixes, and affected users, while Response B merely provides a correct example without identifying or detailing any violations."
+        "name": "contrast-and-pointer-targets",
+        "baseline": 48,
+        "treatment": 92,
+        "rationale": "Response A provides accurate contrast calculation (7.46:1, verified against WCAG formula), correctly cites WCAG 2.5.8 for the 24×24px minimum, and offers four specific remediation approaches; Response B miscalculates contrast as ~5.3:1 (should be ~7.46:1), incorrectly attributes a 44×44 requirement to WCAG 2.1 AA (which has no explicit target-size rule at AA level), and confuses standard versions, though practical fix recommendations remain partially sound."
       }
     ]
   }

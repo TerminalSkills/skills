@@ -10,7 +10,7 @@ license: Apache-2.0
 compatibility: "Works with any load test output; cost estimates default to AWS pricing"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: devops
   tags: ["capacity-planning", "scaling", "infrastructure", "cost-estimation"]
 ---
@@ -58,20 +58,22 @@ Adjust for:
 - Cache hit rates improve with more traffic (warm cache)
 - Connection overhead per pod
 
+**Connection budget check (do this before raising any pool size):** total database connections = pods × pool size per pod. The total must stay under the database's `max_connections`, and on RDS that limit depends on instance memory. If the scaled total does not fit, add a pooler such as Amazon RDS Proxy or PgBouncer, or lower the per-pod pool, instead of raising the pool further.
+
 ### Step 4: Estimate Costs
 
-Use these AWS reference prices (us-east-1, on-demand):
+Do not reuse remembered instance prices. Price each change with the AWS Pricing Calculator for the target region, and state the source of every figure in the plan.
 
-| Resource | Spec | Monthly Cost |
-|---|---|---|
-| EKS pod (500m/1Gi) | ~0.25 vCPU equiv | ~$35/mo |
-| RDS db.r5.large | 2 vCPU, 16 GiB | $274/mo |
-| RDS db.r5.xlarge | 4 vCPU, 32 GiB | $548/mo |
-| ElastiCache r6g.large | 2 vCPU, 13 GiB | $172/mo |
-| RDS Read Replica | Same as primary instance | Same cost |
-| ALB | Base + LCU | ~$25-50/mo |
+| Resource | How to price it |
+|---|---|
+| Pod capacity | Price the node instance type that hosts the pods, then divide by pods per node. A pod's share of a shared node is not a fixed price. |
+| RDS instance | Varies by engine, class, Multi-AZ and region. Look up the exact class. |
+| RDS read replica | Billed as its own instance of the same class (plus storage for it) |
+| ElastiCache node | Varies by node type and region. Look up the exact type. |
+| Application Load Balancer | $0.0225/hour (about $16.20/month at 720 h) plus per-LCU charges |
+| Network Load Balancer | $0.0225/hour (about $16.20/month at 720 h) plus per-NLCU charges |
 
-Note: actual costs vary by region, reserved instances, and savings plans.
+Costs vary by region, reserved instances and savings plans. The figures in the examples below are illustrative, not current list prices.
 
 ### Step 5: Produce Scaling Plan
 
@@ -94,7 +96,7 @@ We break at 400 RPS with 3 pods and RDS db.r5.large. Need to handle 1200 RPS for
 
 **Agent output:**
 ```
-Capacity Plan: 400 → 1,200 RPS
+Capacity Plan: 400 → 1,200 RPS  (illustrative prices)
 ───────────────────────────────
 
 Step  Change                           Cost Delta   Addresses
@@ -106,6 +108,8 @@ Step  Change                           Cost Delta   Addresses
 
 Total additional cost: $2,421/month
 Implementation order: 1 → 2 → 3 → 4 → 5 (each step unblocks the next)
+Connection check for step 1: 10 pods × pool 80 = 800 connections. Confirm this fits
+  max_connections for the target instance class, or put RDS Proxy in front first.
 
 Verification: Re-run load test after each step. Expected milestones:
   After step 1-2: Breaking point moves to ~700 RPS
@@ -146,4 +150,5 @@ Tradeoff: Less headroom than full scaling. If traffic exceeds 2.2x, latency degr
 - **Cost transparency** — always show per-item cost changes and total monthly impact
 - **Safety margins** — recommend 30% headroom over target for unexpected spikes
 - **Distinguish read vs write scaling** — reads scale with replicas/cache; writes require vertical scaling or sharding
-- **Consider the free wins first** — configuration changes (pool sizes, caching, compression) often provide significant gains at zero cost
+- **Consider the free wins first** — configuration changes (pool sizes, caching, compression) often provide significant gains at zero cost, but only after the connection budget check above passes
+- **Re-test, don't extrapolate forever** — linear scaling predicts the next breaking point only until a new bottleneck appears; schedule a new load test after each step rather than trusting the projected milestones

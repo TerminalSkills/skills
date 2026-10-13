@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:88f32172a4fab4a0cb503dae957b1f02260ba7b03c13b97310ac5e18c5e8bb0c",
-  "scoredAt": "2026-05-13T10:02:59.548Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9971e38e0ef6261e51cdccabea1d6aa9409787d2d0610dd0bb4ab14070e5b34b",
+  "scoredAt": "2026-10-13T16:15:57.005Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 1.22,
+    "baselineAvg": 55,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Express CRUD with JWT, Zod, paginated list",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline skipped helmet/cors and Zod and used a non-standard response shape; treatment hit every rubric item — helmet/cors/JSON parsing, Zod safeParse middleware, {data, meta} pagination envelope, and a {error:{code,message}} global handler."
+        "name": "express-books-api",
+        "baseline": 35,
+        "treatment": 45,
+        "rationale": "Response A covers more of the rubric (JWT, Zod, pagination placeholder, error handling) but still lacks full route definitions; Response B is less complete and does not meet the required error format."
       },
       {
-        "name": "FastAPI blog API with auto OpenAPI docs",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline used loose str fields and ad-hoc error returns with no versioned prefix; treatment used EmailStr/Field validators, mounted versioned routers via include_router with tags, configured docs_url, and raised HTTPException(409) for duplicates."
+        "name": "fastapi-movies-api",
+        "baseline": 80,
+        "treatment": 55,
+        "rationale": "Response A covers more rubric items, including models, router, dependency injection, and 404 handling, while Response B lacks endpoint implementation and 409 handling."
+      },
+      {
+        "name": "express-middleware-enhancements",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key elements such as the exact CORS syntax, proper route prefix, and the global error handler."
       }
     ]
   }

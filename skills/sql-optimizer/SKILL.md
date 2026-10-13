@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Works with PostgreSQL, MySQL, and SQLite"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["sql", "optimization", "database", "performance", "queries"]
 ---
@@ -47,20 +47,38 @@ ORDER BY reltuples DESC;
 -- PostgreSQL: Check existing indexes
 SELECT indexname, indexdef
 FROM pg_indexes
-WHERE tablename = 'target_table';
+WHERE tablename = 'orders';
 ```
 
 ### Step 2: Analyze the execution plan
 
 ```sql
--- PostgreSQL
-EXPLAIN ANALYZE
-SELECT ...your query here...;
+-- PostgreSQL (runs the statement, see the warning below)
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT id, total FROM orders WHERE status = 'pending';
 
--- MySQL
+-- MySQL 8.0.18+ (runs the statement)
+EXPLAIN ANALYZE
+SELECT id, total FROM orders WHERE status = 'pending';
+
+-- MySQL, plan only (does not run the query)
 EXPLAIN FORMAT=JSON
-SELECT ...your query here...;
+SELECT id, total FROM orders WHERE status = 'pending';
+
+-- SQLite, plan only
+EXPLAIN QUERY PLAN
+SELECT id, total FROM orders WHERE status = 'pending';
 ```
+
+**Warning:** `EXPLAIN ANALYZE` executes the statement, so an `INSERT`, `UPDATE` or `DELETE` really changes data. Wrap it in a transaction and roll back:
+
+```sql
+BEGIN;
+EXPLAIN ANALYZE DELETE FROM orders WHERE status = 'cancelled' AND created_at < '2024-01-01';
+ROLLBACK;
+```
+
+SQLite prints one row per plan step, for example `SEARCH orders USING COVERING INDEX idx_orders_customer_status (customer_id=? AND status=?)`. A covering index means the table row is never read.
 
 Look for these red flags in the plan:
 - **Seq Scan** on large tables (missing index)
@@ -110,7 +128,7 @@ WHERE o.date > '2024-01-01';
 **Anti-pattern: Functions on indexed columns**
 
 ```sql
--- Before (cannot use index on created_at)
+-- Before (MySQL: YEAR() blocks index use on created_at; PostgreSQL and SQLite have no YEAR())
 SELECT * FROM users WHERE YEAR(created_at) = 2024;
 
 -- After (uses index on created_at)
@@ -189,7 +207,7 @@ ORDER BY total_spent DESC;
 
 **Problems identified:**
 1. Implicit join syntax (old-style comma join)
-2. `YEAR()` function prevents index use on `created_at`
+2. `YEAR()` (MySQL syntax) prevents index use on `created_at`
 3. No index on `(customer_id, status, created_at)`
 4. GROUP BY on non-indexed columns
 
@@ -214,7 +232,7 @@ CREATE INDEX idx_orders_customer_status_date
 ON orders (customer_id, status, created_at);
 ```
 
-**Expected result:** ~45s down to ~0.5s with the index.
+**Expected result:** Compare `EXPLAIN ANALYZE` before and after. The plan should change from a scan of `orders` to an index search; the actual time depends on data size and cache state, so measure it on your database.
 
 ### Example 2: Fix N+1 in an ORM
 
@@ -243,6 +261,6 @@ for order in orders:
 - For PostgreSQL, use `EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)` for the most useful plan output.
 - Do not blindly add indexes to every column in a WHERE clause. Analyze query patterns first.
 - When rewriting queries, verify that the optimized version returns the same results as the original.
-- For MySQL, be aware of the optimizer's single-index-per-table limitation in older versions. Use composite indexes.
+- For MySQL, check the chosen index with `EXPLAIN ANALYZE` (8.0.18+) instead of assuming a composite index is used.
 - If a query cannot be optimized further, suggest materialized views or caching as alternatives.
 - Always present the original and optimized queries side by side for easy comparison.

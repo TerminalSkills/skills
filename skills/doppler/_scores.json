@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:c556a6b1ba6389feeecabcc2c68517720fe83a8427aa1bfdf822bd1497dcf626",
-  "scoredAt": "2026-05-13T16:46:15.977Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:a021232ebb38cdd645f1cb4bdc9b8c1ffb5e87b84bce64577fcb46b5ab129f96",
+  "scoredAt": "2026-10-13T11:57:42.398Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases."
+        "detail": "Skill lacks guidance for error scenarios including authentication failures, non-existent secrets, invalid file formats during import, service token expiration/rotation, and network failures beyond the fallback option; troubleshooting steps are minimal."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.33,
-    "baselineAvg": 15,
-    "treatmentAvg": 35,
+    "multiplier": 2.09,
+    "baselineAvg": 43,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "setup-go-microservice-with-doppler",
-        "baseline": 30,
-        "treatment": 70,
-        "rationale": "Response B includes the required commands and CI export note, though the max‑age value is incorrect, whereas Response A omits the setup, upload flags, token options, and CI export entirely."
+        "name": "docker-container-secrets-injection",
+        "baseline": 48,
+        "treatment": 88,
+        "rationale": "Response A directly matches all rubric requirements: uses the exact `doppler secrets download --no-file --format docker` command and clearly demonstrates process substitution syntax (`--env-file <(...)`), with explicit explanation of the no-file mechanism. Response B uses the wrong command (`doppler secrets export` instead of `download`), doesn't clearly demonstrate the process substitution syntax, acknowledges its docker-compose approach doesn't work, and drifts into alternative approaches that don't address the specific rubric requirement."
       },
       {
-        "name": "docker-compose-with-doppler-secrets",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses omit the required --no-file and --format docker flags and do not demonstrate the named pipe or env-file syntax specified in the rubric."
+        "name": "kubernetes-deployment-with-templates",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response A covers all four rubric requirements: uses Go template syntax {{.VARIABLE}}, demonstrates doppler secrets substitute command, pipes to kubectl with process substitution <(...), and includes conditional template examples {{with .VAR}}. Response B uses incorrect shell/envsubst syntax (${VARIABLE}) instead of Go templates, relies on doppler run + envsubst instead of doppler secrets substitute, and includes no conditional template examples."
+      },
+      {
+        "name": "github-actions-service-token",
+        "baseline": 62,
+        "treatment": 87,
+        "rationale": "Response B directly matches the rubric's specific command requirement (`doppler configs tokens create`), clearly explains read vs read/write access with concrete guidance, and shows both injection methods; Response A uses `doppler tokens create` (wrong syntax per rubric), vaguely mentions read-only access without explaining when to use each, but offers more comprehensive security practices overall."
       }
     ]
   }

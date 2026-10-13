@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:fdbd0da3dc9588c85b108e46ece4291c9e7ee2f2ded7ecc5153bbbec259ff849",
-  "scoredAt": "2026-05-13T09:37:11.662Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4325607696b12b035675c3654b8ef04ef6013a9ad909ff2382c6339043280738",
+  "scoredAt": "2026-10-13T12:08:44.722Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
+      "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "PASS",
+      "actionability": "WEAK",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "Skill covers happy path and basic edge cases but lacks error handling (e.g., failed installations, lock file conflicts), rollback procedures, peer dependency conflict resolution, and mixed package manager scenarios."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "actionability",
+        "detail": "Instructions for resolving conflicts and applying updates rely on abstract procedures (\"recommend and apply fixes\") rather than concrete step-by-step commands or automation scripts for detecting and syncing versions."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 89,
-    "multiplier": 1.85,
+    "multiplier": 1.66,
+    "baselineAvg": 35,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "Audit pnpm + Turborepo monorepo for version mismatches",
+        "name": "sync-typescript-versions",
         "baseline": 50,
-        "treatment": 88,
-        "rationale": "Treatment first detects monorepo type from pnpm-workspace.yaml/turbo.json, produces a per-package comparison table, and recommends workspace:* for internal deps; baseline lists versions ad hoc without the structured detection workflow."
+        "treatment": 62,
+        "rationale": "Both responses fail the rubric's core requirement: creating an actual version mismatch table. Response A is more concise and honest about its limitations (can only access validator), but provides minimal justification for the target version. Response B is more comprehensive, explaining breaking changes, providing multiple tool options, and including verification steps, but also lacks the critical table and specific package.json file paths that the rubric explicitly requires."
       },
       {
-        "name": "Add shared date-fns and align versions",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Treatment centralizes date-fns through packages/utils, removes direct deps from apps, and flags v2 to v3 breaking changes (named exports, dd/yy tokens), while baseline only bumps versions without consolidation or migration notes."
+        "name": "configure-turborepo-caching",
+        "baseline": 5,
+        "treatment": 88,
+        "rationale": "Response A declines to answer and asks clarifying questions about project structure, failing to provide any turbo.json configuration, task definitions, or caching explanation. Response B delivers a complete turbo.json with tasks containing dependsOn with ^ prefix, outputs definitions, explanations of which tasks cache (build/test yes, lint no), and verification via --affected flag, fully addressing all rubric requirements."
+      },
+      {
+        "name": "detect-circular-dependencies",
+        "baseline": 50,
+        "treatment": 25,
+        "rationale": "Response A provides multiple actionable approaches (npm scripts, bash commands, grep patterns) and explains what architectural patterns to look for, though it stops short of actually producing the dependency graph or identifying specific circular dependencies; Response B correctly identifies the polyrepo architecture but incorrectly claims access restrictions and defers all analysis work rather than attempting to solve it."
       }
     ]
   }

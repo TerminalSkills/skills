@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:834e8e8e4198bbde5ad54e8f63d8204a86254a40acbea56d7b6f26ccd579b0e6",
-  "scoredAt": "2026-05-13T10:05:39.998Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3ea55547944b5676838bf08f3a4d8456207615a85fc40f7edceabdb53691bb3f",
+  "scoredAt": "2026-10-13T16:08:41.421Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases, focusing only on happy paths."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 96,
-    "multiplier": 2.53,
+    "multiplier": 2.24,
+    "baselineAvg": 37,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Reversible Knex migration with backfill",
-        "baseline": 50,
-        "treatment": 95,
-        "rationale": "Treatment produces a timestamped file with up/down functions, batched backfill keyed on last_login_at > NOW() - INTERVAL '90 days', and a working dropColumn rollback; baseline writes only up() with no down() and no timestamp prefix."
+        "name": "initialize-knex-migration-infrastructure",
+        "baseline": 60,
+        "treatment": 80,
+        "rationale": "Response A includes the required commands (install, init, migrate:make with -x ts) and the correct knexfile.js, while Response B omits the migrate:make command and the -x ts flag, making it less complete."
       },
       {
-        "name": "CI workflow: migrate up, rollback, migrate up",
-        "baseline": 25,
-        "treatment": 96,
-        "rationale": "Treatment defines a Postgres services container and runs migrate:latest, migrate:rollback --all, then migrate:latest again to confirm clean state; baseline runs migrate:latest once with no rollback step and no Postgres service."
+        "name": "generate-email-verified-migration-with-backfill",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the Knex migration requirements, while Response A is a Ruby migration and does not meet the rubric."
+      },
+      {
+        "name": "github-actions-migration-ci",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response B is closer to the rubric, using a DATABASE_URL variable (though with a wrong password), whereas Response A omits the required DATABASE_URL entirely."
       }
     ]
   }

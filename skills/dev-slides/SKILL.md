@@ -6,10 +6,11 @@ description: >-
   Use when a user asks to create a presentation, build slides, make a
   tech talk, create a slide deck, or prepare a developer presentation.
 license: Apache-2.0
-compatibility: "Requires Node.js 18+ and npm"
+compatibility: "Requires Node.js 22.12+ and npm; playwright-chromium for PDF/PNG/PPTX export"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: https://github.com/slidevjs/slidev
   category: development
   tags: ["slides", "presentations", "slidev", "vue", "developer-tools"]
   use-cases:
@@ -31,18 +32,19 @@ When a user asks you to create a presentation or slide deck, follow this process
 
 ### Step 1: Set up the Slidev project
 
-Check if Slidev is available, and scaffold a project if needed:
+Slidev needs Node.js 22.12 or newer. The npm package is `@slidev/cli` (there is no package called `slidev`), so install it into a project instead of relying on a bare `npx slidev`:
 
 ```bash
-# Check if slidev is installed
-npx slidev --version 2>/dev/null || echo "Will use npx to run slidev"
+# Scaffold a project with prompts (creates slides.md, package.json, scripts)
+npm init slidev@latest
 
-# Create a new slidev project directory
-mkdir -p slides-project && cd slides-project
-
-# Initialize with a slides.md file
-touch slides.md
+# Or add it to an existing folder
+mkdir api-design-talk && cd api-design-talk
+npm init -y
+npm i -D @slidev/cli @slidev/theme-seriph
 ```
+
+Inside the project, `npx slidev` and the `dev` / `build` / `export` scripts all work.
 
 ### Step 2: Gather the presentation requirements
 
@@ -93,23 +95,19 @@ Subtitle or tagline
 
 ## API Example
 
-\`\`\`typescript {2-4|6-8} {lines:true}
+\`\`\`typescript {2-3|4-5}{lines:true}
 async function fetchUsers() {
   const response = await fetch('/api/users');
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const data = await response.json();
   return data;
-
-  // With error handling
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
 }
 \`\`\`
 
 ---
 ```
 
-The `{2-4|6-8}` syntax enables click-through line highlighting.
+The `{2-3|4-5}` part highlights lines step by step on each click (use `all` or `none` as stages too); the second brace group `{lines:true}` turns on line numbers for this block.
 
 **Mermaid diagrams:**
 
@@ -129,14 +127,14 @@ graph LR
 ---
 ```
 
-**Two-column layouts:**
+**Two-column layouts** need `layout: two-cols` in the slide's frontmatter; `::right::` starts the right column (use `two-cols-header` for a full-width heading row):
 
 ```markdown
 ---
+layout: two-cols
+---
 
 ## Comparison
-
-::left::
 
 ### Before
 - Manual deploys
@@ -173,37 +171,44 @@ Mention that we achieved this after the migration in Q3.
 
 ### Step 4: Add theme and configuration
 
-Configure the frontmatter for styling:
+The first slide's frontmatter (headmatter) configures the whole deck. Themes are npm packages (`@slidev/theme-seriph`, `@slidev/theme-default`, community themes such as `slidev-theme-*`); Slidev offers to install a missing one on first run.
 
 ```yaml
 ---
-theme: seriph          # or: default, apple-basic, dracula, etc.
-background: /cover.jpg # optional cover image
+theme: seriph
+title: REST API Design
+author: Dana Whitfield
 class: text-center
-highlighter: shiki
-lineNumbers: true
+lineNumbers: true        # line numbers in every code block
+transition: slide-left
 drawings:
   persist: false
-transition: slide-left
-css: unocss
+exportFilename: rest-api-design
 ---
 ```
+
+Syntax highlighting (Shiki) and UnoCSS are built in, so the old `highlighter: shiki` and `css: unocss` keys are not needed.
 
 ### Step 5: Preview and export
 
 ```bash
-# Start the dev server with live preview
+# Dev server with live reload (default port 3030)
 npx slidev slides.md --open
 
-# Export to PDF
-npx slidev export slides.md --output presentation.pdf
-
-# Export to PNG images
-npx slidev export slides.md --format png --output slides-images/
-
-# Build as static SPA
+# Build as a static SPA into dist/ (add --download to offer a PDF)
 npx slidev build slides.md
 ```
+
+PDF, PPTX and PNG export use Playwright, which is not bundled. Install it once, then export:
+
+```bash
+npm i -D playwright-chromium
+npx slidev export slides.md --output rest-api-design                    # PDF
+npx slidev export slides.md --format png --output rest-api-design-png   # one PNG per slide
+npx slidev export slides.md --format pptx-editable                      # PowerPoint with native shapes
+```
+
+Add `--with-clicks` to get one page per click step and `--range 1,4-6` to export only some slides. Without Playwright the export command fails with an error from `importPlaywright`. The built-in browser exporter (the Export entry in the dev server's menu, or `/export`) works in Chromium without the CLI.
 
 ## Examples
 
@@ -259,7 +264,7 @@ Each slide uses appropriate Slidev features: code blocks for examples, Mermaid f
 - Add Mermaid diagrams for architecture, flows, and relationships instead of describing them in text.
 - Use speaker notes for context you want to say but not display.
 - Prefer the `seriph` or `default` theme for professional presentations.
-- For live demos, use Slidev's Monaco editor integration for editable code blocks.
+- For live demos, use Slidev's Monaco editor: mark a block ```` ```ts {monaco} ```` to make it editable, or ```` {monaco-run} ```` to run it in the browser.
 - Always structure slides with a clear narrative: problem, solution, details, summary.
-- Export to PDF before sharing to ensure consistent rendering.
+- Export to PDF before sharing to ensure consistent rendering; interactive features (Monaco, click animations) are not preserved in PDF/PPTX, so host the `slidev build` output when they matter. Plain `pptx` exports slides as images; use `pptx-editable` if the recipient must edit text.
 - Keep total slide count reasonable: 1-2 minutes per slide is typical pacing.

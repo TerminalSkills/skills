@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Tailwind CSS 3+, React or any component framework"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: design
   tags: ["blog-design", "typography", "article-layout", "content-design", "tailwind"]
   agents: [claude-code, openai-codex, gemini-cli, cursor]
@@ -19,7 +19,7 @@ metadata:
 
 ## Overview
 
-Professional design system for blog posts, articles, and long-form content pages. Based on patterns from Stripe, Vercel, Tailwind, and Linear documentation. Provides specific typography scales, spacing rules, code block styling, and visual hierarchy guidelines optimized for readability on both dark and light themes.
+Professional design system for blog posts, articles, and long-form content pages. Provides specific typography scales, spacing rules, code block styling, and visual hierarchy guidelines optimized for readability on both dark and light themes. The `accent` color used below is a theme token you define in your Tailwind config (the examples use `emerald-400`, which you can substitute).
 
 ## Instructions
 
@@ -93,7 +93,7 @@ Two distinct code block types:
 ```
 Container: my-6 rounded-xl border border-white/10 bg-zinc-900 overflow-hidden
 Header:    flex items-center gap-2 px-4 py-2.5 border-b border-white/5 bg-zinc-900/80
-Lang label: text-xs font-mono text-zinc-500
+Lang label: text-xs font-mono text-zinc-400
 Code area: px-5 py-4 overflow-x-auto
 Pre:       text-sm leading-relaxed whitespace-pre-wrap break-words
 ```
@@ -261,4 +261,4 @@ export default function ArticlePage({ article }) {
 - **Links must be visually distinct.** Use both color and underline — color alone fails for colorblind users. The `underline-offset-2` with partial-opacity decoration is clean.
 - **Suppress the H1 in markdown rendering** when the page title is already displayed above the article body. Duplicate titles look broken.
 - **Test with real content.** Placeholder text hides spacing issues that only appear with actual paragraphs, lists, and code blocks.
-- **Dark theme contrast:** body text at `zinc-300` (#d4d4d8) on `#09090b` background gives ~11:1 contrast ratio. Headings at `zinc-50` (#fafafa) give ~18:1. Both well above WCAG AA.
+- **Dark theme contrast:** body text at `zinc-300` (#d4d4d8) on `#09090b` background gives about 13.5:1 contrast ratio. Headings at `zinc-50` (#fafafa) give about 19:1. Muted `zinc-400` (#a1a1aa) gives about 7.8:1. All above WCAG AA's 4.5:1 for body text. `zinc-500` (about 4.1:1) falls short of 4.5:1 for small text, so use `zinc-400` for small labels such as the code-block language tag.

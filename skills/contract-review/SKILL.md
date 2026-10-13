@@ -7,10 +7,10 @@ description: >-
   evaluate a service agreement, or audit employment contract terms. Supports
   employment contracts, NDAs, service agreements, and vendor contracts.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+ with pdfplumber or PyMuPDF for PDF contracts"
+compatibility: "Requires Python 3.9+ with pdfplumber (or PyMuPDF) for PDFs and python-docx for DOCX"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: documents
   tags: ["contract", "legal", "review", "risk-analysis", "compliance"]
   use-cases:
@@ -56,8 +56,15 @@ from docx import Document
 
 def load_docx(docx_path):
     doc = Document(docx_path)
-    return "\n\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+    parts = [p.text for p in doc.paragraphs if p.text.strip()]
+    # Fee schedules, SLAs and signature blocks often live in tables
+    for table in doc.tables:
+        for row in table.rows:
+            parts.append(" | ".join(cell.text.strip() for cell in row.cells))
+    return "\n\n".join(parts)
 ```
+
+Legacy `.doc` files are not supported by python-docx: convert them to DOCX or PDF first. If `extract_text()` returns nothing, the PDF is a scan and needs OCR (Tesseract) before review; tell the user the OCR text may contain errors in numbers and dates.
 
 ### Step 2: Identify the contract type
 
@@ -124,8 +131,8 @@ Produce a structured report with:
 CONTRACT REVIEW REPORT
 ======================
 Type: Employment Contract
-Parties: Jane Doe (Employee) <-> Acme Corp (Employer)
-Term: Indefinite, starting March 1, 2025
+Parties: Maria Alvarez (Employee) <-> Brightwave Logistics LLC (Employer)
+Term: Indefinite, starting March 1, 2027
 
 RISK ANALYSIS:
 -------------------------------------------------
@@ -163,7 +170,7 @@ OVERALL RISK: HIGH - Address non-compete and IP clauses before signing
 CONTRACT REVIEW REPORT
 ======================
 Type: SaaS Service Agreement
-Parties: Your Company <-> CloudTool Inc.
+Parties: Fernhill Design Studio (Customer) <-> Cloudlane Software Inc. (Vendor)
 Term: 12 months, auto-renews
 
 RISK ANALYSIS:
@@ -190,5 +197,6 @@ TOP RECOMMENDATIONS:
 - When clauses are ambiguous, flag them as risks rather than assuming favorable interpretation.
 - For multi-party contracts, analyze obligations and risks from the perspective of the user's party.
 - If the contract references external documents (exhibits, schedules, addenda), note which ones are missing from the review.
+- Enforceability depends on jurisdiction and governing law (for example, non-competes are void or heavily restricted in some US states and countries). State which law the contract names and flag that local counsel must confirm enforceability rather than asserting it.
 - Compare terms against standard market practices for the contract type when assessing reasonableness.
 - Keep the report concise. Use tables for clause analysis and bullet points for recommendations.

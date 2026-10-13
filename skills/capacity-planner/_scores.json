@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5fbfecb865887c9d9d801a02a6c27e5c612a9bbe1301d4e04ba422ed811d134a",
-  "scoredAt": "2026-05-13T15:08:23.686Z",
-  "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "version": "1.1.0",
+  "skillHash": "sha256:1646b5c29822b5a626ae54fa1678c7b0ae403133bb1e1745ac17accfae69fb63",
+  "scoredAt": "2026-10-13T11:47:22.430Z",
+  "backend": "claude-code",
+  "model": "claude-haiku-4-5-20251001",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
-      "crossPlatform": "PASS",
+      "actionability": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover scenarios where required data is missing or incomplete."
+        "detail": "Missing guidance for simultaneous multi-layered bottlenecks, non-linear or spiky traffic patterns, cost-constrained scenarios, and handling overprovisioned infrastructure."
       },
       {
         "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks runnable code or scripts, relying solely on textual guidance."
+        "category": "crossPlatform",
+        "detail": "Examples and pricing guidance are AWS-specific (RDS, ElastiCache, ALB/NLB, RDS Proxy), limiting applicability to other platforms despite the compatibility note claiming universal load test support."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.45,
-    "baselineAvg": 33,
-    "treatmentAvg": 48,
+    "multiplier": 1.53,
+    "baselineAvg": 51,
+    "treatmentAvg": 78,
     "scenarios": [
       {
-        "name": "db-connection-bottleneck-scaling",
-        "baseline": 65,
-        "treatment": 95,
-        "rationale": "Response B fully meets all rubric items, while Response A omits cost estimates and explicit cost deltas."
+        "name": "bottleneck-from-error-patterns",
+        "baseline": 42,
+        "treatment": 72,
+        "rationale": "Response A correctly identifies the primary bottleneck from error patterns (connection pool exhaustion from sudden 5xx spikes), shows implementation order with specific current→target values (5→8-10 pods, r5.large→r5.xlarge), but fails to apply the 1.3 pod and 1.2 connection safety factors explicitly in formulas or reference a skill's error-to-bottleneck table. Response B takes a diagnostic-first approach that doesn't identify the bottleneck from the provided error pattern and omits all safety factor calculations and specific target values, falling short on multiple rubric requirements."
       },
       {
-        "name": "cost-optimized-3x-traffic",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "No content provided for either response, so cannot assess rubric coverage."
+        "name": "pool-constraint-forces-architecture-change",
+        "baseline": 55,
+        "treatment": 83,
+        "rationale": "Response A directly follows the rubric: applies 5x scaling formula (25 pods), calculates total connections (1,500), identifies the overload, and recommends RDS Proxy as a specific constraint-resolution strategy with exact multiplexing numbers (1,500→100-150); Response B provides superior implementation detail (YAML, CLI, monitoring) but fails on core rubric items—proposes 2x pod scaling instead of 5x, and prioritizes database upgrade as the primary solution rather than one of the three specified constraint-resolution strategies (RDS Proxy, PgBouncer, reduced pool size)."
+      },
+      {
+        "name": "cost-optimized-capacity-with-free-wins",
+        "baseline": 55,
+        "treatment": 78,
+        "rationale": "A covers all four rubric requirements: two zero-cost changes with reasoning, capacity gain estimates, per-item monthly costs for paid options ($80–120 pods, ~$650 DB upgrade, ~$12 Redis), and a total cost implication. B has superior technical depth and context awareness (code examples, specific indexes, NestJS setup) but critically fails to provide per-item monthly costs and a total cost projection—two explicit rubric requirements—instead using vague language like '~2x cost' without absolute figures."
       }
     ]
   }

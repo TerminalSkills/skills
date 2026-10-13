@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["hiring", "job-posting", "recruitment", "hr", "writing"]
   use-cases:
@@ -182,7 +182,7 @@ role where your work directly affects revenue and customer trust...
 **Common fixes:**
 1. Replace "rockstar developer" with "skilled engineer"
 2. Change "must have CS degree" to "degree in CS or equivalent experience"
-3. Reduce required qualifications list (research shows women apply when meeting 100% of requirements vs men at 60%)
+3. Reduce the required qualifications list to what the role truly needs; long lists deter qualified candidates from applying
 4. Add explicit diversity statement
 5. Highlight mentorship, collaboration, and growth over individual heroics
 6. Remove unnecessary years-of-experience requirements

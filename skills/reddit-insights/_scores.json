@@ -1,15 +1,15 @@
 {
-  "version": "1.2.0",
-  "skillHash": "sha256:26180da3dc09b868c2174c467c3b5c313a3f29468991ffd65ddd9073e7ffe56c",
-  "scoredAt": "2026-05-13T10:01:29.775Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.3.0",
+  "skillHash": "sha256:c07c680d2f337a47a909ca575f9262675fedec8b901708e7c0daa241994bf107",
+  "scoredAt": "2026-10-13T15:57:56.090Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing explicit handling for cases like no results or missing fields."
+        "detail": "The skill does not fully address all potential error scenarios, such as network failures or missing environment variables."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The instructions contain verbose explanations that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill assumes a Python environment, limiting use to agents that can execute Python code."
+        "detail": "The skill assumes a Python environment with PRAW, limiting its applicability to agents that can execute Python code."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 33,
-    "treatmentAvg": 90,
-    "multiplier": 2.73,
+    "multiplier": 1.31,
+    "baselineAvg": 32,
+    "treatmentAvg": 42,
     "scenarios": [
       {
-        "name": "Validate SaaS idea for agency PM tool",
-        "baseline": 35,
-        "treatment": 92,
-        "rationale": "Baseline reaches for PRAW/auth and lacks the documented public JSON endpoints, pain-phrase keyword list, User-Agent header, and upvote-weighted ranking; treatment hits every rubric element."
+        "name": "validate-startup-idea-pain-points",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response A is closer to the rubric, using PRAW, extracting pain points, and producing a markdown report, whereas Response B lacks the required search parameters, sentiment analysis, and structured report sections."
       },
       {
-        "name": "Arc browser sentiment by feature area",
-        "baseline": 30,
-        "treatment": 88,
-        "rationale": "Baseline relies on a defunct third-party API with no feature-area breakdown or comment fetching, while treatment uses the documented /search.json plus permalink.json pattern, 1s rate-limiting, and per-feature sentiment buckets."
+        "name": "analyze-product-sentiment",
+        "baseline": 0,
+        "treatment": 30,
+        "rationale": "Response B attempts to provide a script but fails to meet many rubric requirements, whereas Response A simply states it cannot provide the information."
+      },
+      {
+        "name": "discover-underserved-niches",
+        "baseline": 65,
+        "treatment": 45,
+        "rationale": "Response B covers more rubric items, including data collection, grouping, ranking, and partial gap analysis, whereas Response A is largely incomplete."
       }
     ]
   }

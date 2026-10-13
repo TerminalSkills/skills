@@ -7,10 +7,10 @@ description: >-
   to create a report, generate a data report, build a dashboard report, write a
   weekly report, create a status update, or produce a team progress report.
 license: Apache-2.0
-compatibility: "Python 3.8+ with pandas, matplotlib, jinja2 for data reports; no deps for status reports"
+compatibility: "Python 3 with pandas, matplotlib, jinja2 for data reports; WeasyPrint and the Pango system library for PDF output; no deps for status reports"
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "1.2.0"
   category: data-ai
   tags: ["reports", "visualization", "status-updates", "charts", "productivity"]
 ---
@@ -32,8 +32,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import seaborn as sns
-from datetime import datetime
 import base64
 from io import BytesIO
 
@@ -64,7 +62,24 @@ plt.close()
 
 #### Step 3: Build HTML report with Jinja2
 
-Use a template with metric cards, chart sections, and data tables. Embed charts as base64 so the report is a single self-contained file. Convert to PDF with weasyprint or Chrome headless if needed.
+Use a template with metric cards, chart sections, and data tables. Embed charts as base64 so the report is a single self-contained file.
+
+```python
+from jinja2 import Environment, BaseLoader
+from weasyprint import HTML
+
+template = Environment(loader=BaseLoader()).from_string("""
+<html><body>
+<h1>Monthly Revenue</h1>
+<div class="card">Total revenue: {{ "%.2f"|format(total_revenue) }}</div>
+<img src="data:image/png;base64,{{ chart_b64 }}" style="width:100%">
+</body></html>
+""")
+html = template.render(total_revenue=metrics["total_revenue"], chart_b64=chart_b64)
+with open("revenue_report.html", "w") as f:
+    f.write(html)
+HTML(string=html).write_pdf("revenue_report.pdf")  # WeasyPrint 70.x; needs Pango installed
+```
 
 ### Status Reports (Weekly/Team Updates)
 
@@ -171,7 +186,7 @@ The agent loads three data sources, computes cross-functional metrics, generates
 - Include data source, generation date, and reporting period on every data report
 - Show both value and trend (vs prior period) for metric cards
 - Use consistent color schemes across all charts in a report
-- For PDF output, use weasyprint or Chrome headless
+- For PDF output, use WeasyPrint (needs the Pango system library) or headless Chrome
 - Validate data before generating — flag missing or malformed data
 - For status reports, always include blockers even if none ("No blockers this week")
 - Status labels should be honest — marking "on track" when at risk erodes trust

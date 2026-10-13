@@ -10,10 +10,11 @@ description: >-
   configmap, secret, hpa, pvc, statefulset, daemonset, cronjob, operator,
   kustomize, argocd, flux, gitops, node pool, taint, toleration, affinity.
 license: Apache-2.0
-compatibility: "kubectl 1.28+, Helm 3.12+. Requires access to a Kubernetes cluster (local or cloud-managed)."
+compatibility: "kubectl 1.30+, Helm 3.18+ or Helm 4. Requires access to a Kubernetes cluster (local or cloud-managed)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: "https://github.com/helm/helm"
   category: devops
   tags: ["kubernetes", "helm", "containers", "orchestration"]
 ---
@@ -48,7 +49,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: registry.example.com/api:1.2.3
+          image: ghcr.io/northwind-labs/api:1.2.3
           ports: [{ containerPort: 8080, name: http }]
           env:
             - name: DATABASE_URL
@@ -67,9 +68,10 @@ spec:
             preStop:
               exec: { command: ["/bin/sh", "-c", "sleep 10"] }
       terminationGracePeriodSeconds: 30
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
 ```
 
-**StatefulSet (databases):**
+**StatefulSet (databases):** needs a headless Service (`clusterIP: None`) named in `serviceName`.
 ```yaml
 apiVersion: apps/v1
 kind: StatefulSet
@@ -81,11 +83,12 @@ spec:
   selector:
     matchLabels: { app: redis }
   template:
+    metadata:
+      labels: { app: redis }
     spec:
       containers:
         - name: redis
           image: redis:7-alpine
-          ports: [{ containerPort: 6379 }]
           volumeMounts: [{ name: data, mountPath: /data }]
   volumeClaimTemplates:
     - metadata: { name: data }
@@ -112,13 +115,15 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: backup
-              image: registry.example.com/db-backup:latest
+              image: ghcr.io/northwind-labs/db-backup:2.4.0
               envFrom: [{ secretRef: { name: backup-credentials } }]
 ```
 
 ### 2. Networking
 
-**Service + Ingress:**
+The Kubernetes project retired ingress-nginx (best-effort maintenance ended March 2026) and recommends Gateway API for new clusters. The Ingress API itself still works with other controllers (Traefik, HAProxy, cloud load balancers). Gateway API example first, classic Ingress after it.
+
+**Service + HTTPRoute (Gateway API):**
 ```yaml
 apiVersion: v1
 kind: Service
@@ -129,6 +134,21 @@ spec:
   selector: { app: api-server }
   ports: [{ port: 80, targetPort: http }]
 ---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api-route
+spec:
+  parentRefs: [{ name: public-gateway, namespace: gateway-system }]
+  hostnames: ["api.northwind-labs.dev"]
+  rules:
+    - matches: [{ path: { type: PathPrefix, value: / } }]
+      backendRefs: [{ name: api-server, port: 80 }]
+```
+The Gateway (with its `gatewayClassName` and TLS listener) comes from your chosen implementation; install its CRDs and controller first.
+
+**Ingress (classic):**
+```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -136,10 +156,10 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  ingressClassName: nginx
-  tls: [{ hosts: [api.example.com], secretName: api-tls }]
+  ingressClassName: traefik
+  tls: [{ hosts: [api.northwind-labs.dev], secretName: api-tls }]
   rules:
-    - host: api.example.com
+    - host: api.northwind-labs.dev
       http:
         paths:
           - path: /
@@ -185,12 +205,12 @@ charts/api-server/
 ```yaml
 replicaCount: 2
 image:
-  repository: registry.example.com/api
-  tag: latest
+  repository: ghcr.io/northwind-labs/api
+  tag: "1.2.3"
 service: { type: ClusterIP, port: 80 }
 ingress:
   enabled: false
-  className: nginx
+  className: traefik
 resources:
   requests: { cpu: 250m, memory: 256Mi }
   limits: { cpu: 500m, memory: 512Mi }
@@ -202,18 +222,22 @@ autoscaling:
 
 **Commands:**
 ```bash
-helm upgrade --install api-server ./charts/api-server -n app --create-namespace -f values-prod.yaml --set image.tag=1.2.3
-helm diff upgrade api-server ./charts/api-server -f values-prod.yaml
+helm lint ./charts/api-server
+helm upgrade --install api-server ./charts/api-server -n app --create-namespace -f values-prod.yaml --set image.tag=1.2.3 --wait --timeout 5m
+helm plugin install https://github.com/databus23/helm-diff   # once; diff is a plugin
+helm diff upgrade api-server ./charts/api-server -n app -f values-prod.yaml
 helm rollback api-server 1 -n app
 helm template api-server ./charts/api-server -f values-prod.yaml  # debug
 ```
 
+Helm 4 (released November 2025) keeps these commands. Differences to know: new releases default to server-side apply (`--server-side`), `--atomic` is renamed `--rollback-on-failure`, `--wait` takes a strategy (`watcher`, `hookOnly`, `legacy`), and post-renderers must be plugins. Helm 3 stays supported alongside it.
+
 ### 5. Debugging
 
 ```bash
-kubectl describe pod <name> -n <ns>        # Check events
-kubectl logs <pod> -n <ns> --previous       # Crashed container logs
-kubectl exec -it <pod> -n <ns> -- /bin/sh   # Shell into pod
+kubectl describe pod api-server-7d9f8b6c4-xk2pq -n app        # Check events
+kubectl logs api-server-7d9f8b6c4-xk2pq -n app --previous     # Crashed container logs
+kubectl exec -it api-server-7d9f8b6c4-xk2pq -n app -- /bin/sh # Shell into pod (use `kubectl debug` for distroless images)
 kubectl port-forward svc/api-server 8080:80 -n app
 kubectl top pods -n app
 ```
@@ -233,8 +257,9 @@ metadata:
   name: api-server
   namespace: argocd
 spec:
+  project: default
   source:
-    repoURL: https://github.com/company/k8s-manifests
+    repoURL: https://github.com/northwind-labs/k8s-manifests
     targetRevision: main
     path: overlays/production
   destination:
@@ -251,13 +276,13 @@ spec:
 
 **Input:** "Deploy: Node.js API (3 replicas), React frontend, PostgreSQL, Redis, background worker. Include ingress, TLS, autoscaling, persistent storage."
 
-**Output:** Namespace with quotas, API Deployment with HPA (3-20 on CPU/memory) and probes, frontend Deployment with nginx ConfigMap, PostgreSQL StatefulSet (50Gi PVC), Redis Deployment, Worker Deployment with KEDA scaling, Ingress with cert-manager TLS and path routing, Secrets via external-secrets-operator.
+**Output:** Namespace with quotas, API Deployment with HPA (3-20 on CPU/memory) and probes, frontend Deployment with nginx ConfigMap, PostgreSQL StatefulSet (50Gi PVC), Redis Deployment, Worker Deployment with KEDA scaling, Ingress or HTTPRoute with cert-manager TLS and path routing, Secrets via external-secrets-operator.
 
 ### Example 2: Helm Chart for Multi-Tenant SaaS
 
 **Input:** "Helm chart deploying per-tenant isolation: own namespace, database schema, subdomain. Single `helm install` per tenant."
 
-**Output:** Chart with parameterized namespace, tenant-specific env vars, PostgreSQL schema init job, Ingress with `{{ .Values.tenant.slug }}.app.example.com`, NetworkPolicy isolation, resource quotas by plan (starter/pro/enterprise).
+**Output:** Chart with parameterized namespace, tenant-specific env vars, PostgreSQL schema init job, route host `{{ .Values.tenant.slug }}.northwind-labs.dev`, NetworkPolicy isolation, resource quotas by plan (starter/pro/enterprise).
 
 ## Guidelines
 
@@ -266,8 +291,8 @@ spec:
 - Configure both readiness and liveness probes
 - Pin image tags — never use `latest` in production
 - Use Helm for parameterized deployments, Kustomize for environment overlays
-- Use `helm diff` before every upgrade
-- Prefer `ClusterIP` + Ingress over `LoadBalancer` services
+- Use `helm diff` (plugin) before every upgrade, and `kubectl apply --dry-run=server` for raw manifests
+- Prefer `ClusterIP` + Gateway API/Ingress over one `LoadBalancer` per service
 - Use PodDisruptionBudgets for production workloads
 - Never run containers as root; drop all capabilities; use read-only root filesystem
 - Use NetworkPolicies to restrict pod-to-pod traffic
