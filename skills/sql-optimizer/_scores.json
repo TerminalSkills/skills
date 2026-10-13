@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:09494206654da11cb5517b188c6f3e5e6a4120cb773d20b49ef57c1956c4fb7b",
-  "scoredAt": "2026-05-13T10:10:39.641Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e707f6832c852e2052d2b9e321237c64779f95db4deb07aebab013a4bf37b907",
+  "scoredAt": "2026-10-13T16:17:23.120Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as empty result sets or null values."
+        "detail": "The instructions do not cover error handling or edge cases such as missing indexes or queries that fail."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 79,
-    "treatmentAvg": 92,
-    "multiplier": 1.16,
+    "multiplier": 1.13,
+    "baselineAvg": 55,
+    "treatmentAvg": 62,
     "scenarios": [
       {
-        "name": "Rewrite slow YEAR()-filtered Postgres query and add index",
-        "baseline": 70,
-        "treatment": 92,
-        "rationale": "Baseline rewrites the predicate and drops SELECT * but orders the composite index range-before-equality, against the skill's guideline; treatment applies equality-then-range and cites the relevant anti-patterns explicitly."
+        "name": "optimize-slow-select",
+        "baseline": 100,
+        "treatment": 0,
+        "rationale": "Response A fully satisfies the rubric with an optimized SELECT, index creation, and explanation, while Response B merely requests more information and does not provide the required optimization."
       },
       {
-        "name": "Fix Django N+1 with 200+ queries on order-customer listing",
-        "baseline": 88,
-        "treatment": 92,
-        "rationale": "Both diagnose N+1 and apply select_related correctly, but treatment mirrors the skill's exact code pattern and adds the raw-SQL JOIN equivalence as a verification step."
+        "name": "eliminate-n-plus-one",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully addresses the rubric with a JOIN-based solution, index suggestion, and explanation of reduced round-trips, while Response A is missing."
+      },
+      {
+        "name": "replace-offset-pagination",
+        "baseline": 65,
+        "treatment": 85,
+        "rationale": "Response B correctly uses the primary key, replaces OFFSET with a WHERE clause, creates an index, and implies elimination of full scans, while Response A uses a non‑primary key and omits explicit mention of full table scan elimination."
       }
     ]
   }
