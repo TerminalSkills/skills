@@ -35,18 +35,17 @@ export SUPERMEMORY_API_KEY="your-key"
 export ANTHROPIC_API_KEY="your-key"
 ```
 
-Create a memory space (namespace) for your user:
+Supermemory scopes everything by a namespace (a user or project id); there is nothing to create, you just pass it as the first argument of every call:
 
 ```python
-import supermemory
-memory_client = supermemory.Supermemory(api_key=os.environ["SUPERMEMORY_API_KEY"])
-space = memory_client.spaces.create(name="personal-assistant")
-SPACE_ID = space.id
+from supermemory import Supermemory
+memory_client = Supermemory()  # reads SUPERMEMORY_API_KEY from the environment
+SPACE_ID = "personal-assistant"  # the namespace
 ```
 
 ### Step 2: Memory Retrieval and Storage
 
-Build two functions: `retrieve_relevant_memories(query, space_id)` searches Supermemory semantically and returns the top 8 matching facts. `extract_and_store_facts(user_msg, assistant_reply, space_id)` uses claude-haiku-4-5 to extract memorable facts (preferences, decisions, project details) from each conversation turn and stores them, capped at 5 facts per turn.
+Build two functions: `retrieve_relevant_memories(query, space_id)` calls `memory_client.search(space_id, query=query, limit=8)` and returns the top 8 matching facts (`r.memory or r.chunk` for each item in `results`). `extract_and_store_facts(user_msg, assistant_reply, space_id)` uses claude-haiku-4-5 to extract memorable facts (preferences, decisions, project details) from each conversation turn and stores each with `memory_client.add(space_id, content=fact, id=...)`, capped at 5 facts per turn.
 
 ### Step 3: Conversation Loop with Memory
 
@@ -54,11 +53,11 @@ Each turn: retrieve relevant memories, inject them into the system prompt as "th
 
 ### Step 4: User Profile Maintenance
 
-Periodically consolidate scattered facts into a coherent user profile. Fetch the top 50 memories, ask claude-haiku-4-5 to consolidate and deduplicate, then store the summary with `priority: high` metadata so it surfaces first in future retrievals.
+Periodically consolidate scattered facts into a coherent user profile. Supermemory already maintains a profile: read `memory_client.profile(space_id).profile` (`static` and `dynamic` lists of `{id, memory}`), or list the top 50 with `memory_client.list(space_id, "memories", limit=50)`. Ask claude-haiku-4-5 to consolidate and deduplicate, then store the summary under a stable `id` such as `profile_summary` with `metadata={"priority": "high"}`.
 
 ### Step 5: Memory Pruning
 
-Implement a pruning function that removes memories older than 90 days (except profile summaries). This prevents the memory store from growing unbounded and keeps context fresh.
+Implement a pruning function that removes memories older than 90 days (except profile summaries) with `memory_client.memories.forget(space_id, ids=[...])` (`forgetMatching` with `dryRun` previews a natural-language forget first). This prevents the memory store from growing unbounded and keeps context fresh.
 
 ### Step 6: MCP Server for Claude Desktop
 

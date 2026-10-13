@@ -87,30 +87,30 @@ def build_system_prompt(personality: dict, memories: list[str]) -> str:
 ### Step 2: Long-Term Memory with Supermemory
 
 ```python
-import httpx
+import asyncio
+from supermemory import Supermemory
 
-SUPERMEMORY_URL = "http://localhost:8080"
+sm = Supermemory()  # reads SUPERMEMORY_API_KEY from the environment
 
 class CompanionMemory:
     def __init__(self, user_id: str):
-        self.user_id = user_id
+        self.user_id = user_id  # used as the Supermemory namespace
 
     async def remember(self, content: str, category: str = "general"):
         """Store a new memory."""
-        async with httpx.AsyncClient() as c:
-            await c.post(f"{SUPERMEMORY_URL}/memories", json={
-                "user_id": self.user_id,
-                "content": content,
-                "metadata": {"category": category, "timestamp": time.time()}
-            })
+        await asyncio.to_thread(
+            sm.add, self.user_id,
+            content=content,
+            id=f"fact_{int(time.time() * 1000)}",
+            metadata={"category": category},
+        )
 
     async def recall(self, query: str, limit: int = 10) -> list[str]:
         """Retrieve relevant memories."""
-        async with httpx.AsyncClient() as c:
-            r = await c.post(f"{SUPERMEMORY_URL}/search", json={
-                "user_id": self.user_id, "query": query, "limit": limit
-            })
-            return [m["content"] for m in r.json()["results"]]
+        found = await asyncio.to_thread(
+            sm.search, self.user_id, query=query, limit=limit
+        )
+        return [r.memory or r.chunk or "" for r in found.results]
 
     async def extract_and_store(self, conversation: str):
         """AI extracts memorable facts from conversation."""

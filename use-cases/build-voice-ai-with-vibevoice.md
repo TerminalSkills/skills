@@ -79,7 +79,7 @@ import anthropic
 client = anthropic.Anthropic()
 
 # Patient context from memory
-patient_context = memory.get_context(patient_id="P-1234")
+patient_context = memory.profile("P-1234").profile
 
 response = client.messages.create(
     model="claude-sonnet-4-20250514",
@@ -186,19 +186,20 @@ tts_config = {
 Every interaction is stored so the system remembers patient preferences:
 
 ```python
-from supermemory import Memory
+from supermemory import Supermemory
 
-memory = Memory(api_key="your_key")
+memory = Supermemory()  # reads SUPERMEMORY_API_KEY from the environment
 
-# Store this interaction
+# Store this interaction (one namespace per patient)
 memory.add(
+    "P-1234",
     content=f"Patient requested Lisinopril refill. Submitted to Walgreens Oak St. Ready by tomorrow.",
+    id="call_2026-03-29_1430",
+    date="2026-03-29T14:30:00Z",
     metadata={
-        "patient_id": "P-1234",
         "type": "medication_refill",
         "medication": "Lisinopril",
-        "timestamp": "2026-03-29T14:30:00Z"
-    }
+    },
 )
 
 # Future sessions can retrieve:
@@ -215,7 +216,7 @@ import schedule
 
 def morning_reminder(patient_id: str):
     patient = get_patient(patient_id)
-    context = memory.get_context(patient_id)
+    context = memory.profile(patient_id).profile
 
     reminder_text = generate_reminder(patient, context)
     # "Good morning, Margaret. Don't forget to take your Lisinopril
