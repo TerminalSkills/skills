@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags:
     - feedback
@@ -64,6 +64,14 @@ For high-volume feedback (1000+/month), automate classification:
 
 ```python
 # feedback_classifier.py — LLM-based batch classification
+# pip install openai   (reads OPENAI_API_KEY from the environment)
+import json
+import os
+
+from openai import OpenAI
+
+client = OpenAI()
+CLASSIFIER_MODEL = os.environ["CLASSIFIER_MODEL"]  # any chat model your account offers
 
 CLASSIFICATION_PROMPT = """Classify this user feedback:
 
@@ -80,20 +88,22 @@ Return JSON:
 def classify_feedback(text: str) -> dict:
     """Classify a single feedback item into structured categories."""
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=CLASSIFIER_MODEL,
         messages=[{"role": "user", "content": CLASSIFICATION_PROMPT.format(text=text)}],
         response_format={"type": "json_object"}
     )
     return json.loads(response.choices[0].message.content)
 ```
 
+Before trusting the labels, hand-label about 200 items and measure agreement with the model. Re-check the prompt whenever a category's agreement is low.
+
 ### Sentiment analysis
 
-**NPS (Net Promoter Score)**: "How likely to recommend? (0-10)". Detractors 0-6, Passives 7-8, Promoters 9-10. NPS = %Promoters - %Detractors. Benchmarks: SaaS +30 good/+50 excellent. The follow-up "Why?" is where insights live.
+**NPS (Net Promoter Score)**: "How likely to recommend? (0-10)". Detractors 0-6, Passives 7-8, Promoters 9-10. NPS = %Promoters - %Detractors. Benchmarks differ by source and segment, so compare against your own previous quarters. The follow-up "Why?" is where insights live.
 
-**CSAT**: "How satisfied with [interaction]?" (1-5). Measured after specific touchpoints. Target: >80%.
+**CSAT**: "How satisfied with [interaction]?" (1-5). Measured after specific touchpoints. Report it as the share of top-two-box answers (4 or 5). Set the target from your own baseline.
 
-**CES (Customer Effort Score)**: "How easy was it to [task]?" (1-7). Best predictor of churn for specific interactions. Users scoring 1-3 are 4x more likely to churn.
+**CES (Customer Effort Score)**: "How easy was it to [task]?" (1-7). Use it to find friction in a specific task. Check its link to churn on your own data before relying on it as a churn signal.
 
 ### Theme extraction
 
@@ -170,7 +180,7 @@ We have 45 feature requests from the past quarter across support tickets, sales 
 ## Guidelines
 
 - Always close the feedback loop — tell users when their requested feature ships
-- Use CES (Customer Effort Score) for specific interaction feedback; it's the best churn predictor
+- Use CES (Customer Effort Score) for specific interaction feedback to find friction, and confirm any churn link on your own data
 - Never rely on a single feedback channel; aggregate from proactive, reactive, and behavioral sources
 - Weight feedback by user segment value, not just raw frequency
 - Cross-reference qualitative themes with quantitative behavioral data to validate patterns
