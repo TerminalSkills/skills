@@ -9,8 +9,9 @@ license: Apache-2.0
 compatibility: 'linux, macos, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
+  repository: https://github.com/grafana/grafana
   tags:
     - visualization
     - dashboarding
@@ -21,26 +22,27 @@ metadata:
 
 # Grafana
 
-Grafana turns your data into dashboards. It connects to time-series databases, SQL databases, log stores, and cloud services, then lets you build panels that visualize metrics, logs, and traces in a single pane of glass. With alerting built in and dashboard-as-code workflows, it scales from a developer's local setup to a company-wide observability platform.
+## Overview
 
-This skill covers Docker deployment, configuring data sources, building panels, setting up alerts, and managing dashboards as code with JSON.
+Grafana is an open-source platform for dashboards, alerting and exploring metrics, logs and traces. It queries data sources (Prometheus, PostgreSQL, ClickHouse, Loki, Elasticsearch and dozens more) at view time and renders the results as panels. Everything can be kept as code: data sources, dashboards, alert rules and contact points are provisioned from YAML and JSON files on startup. The current release line is 13.x; this skill uses the open-source `grafana/grafana` image.
 
-## Docker Setup
+## Instructions
 
-The simplest way to run Grafana is the official Docker image. This starts Grafana with persistent storage so your dashboards survive restarts.
+### Run Grafana with Docker
 
 ```yaml
-# docker-compose.yml — Grafana with persistent storage and default admin credentials
-version: "3.8"
-
 services:
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.2.4   # pin a version; check hub.docker.com/r/grafana/grafana
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}   # set in .env, not in git
+      GF_PLUGINS_PREINSTALL: grafana-clickhouse-datasource
+      PG_PASSWORD: ${PG_PASSWORD}
+      CH_PASSWORD: ${CH_PASSWORD}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
     volumes:
       - grafana-data:/var/lib/grafana
       - ./provisioning:/etc/grafana/provisioning
@@ -50,28 +52,23 @@ volumes:
 ```
 
 ```bash
-# CLI — start Grafana
+echo "GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 18)" >> .env   # also set PG_PASSWORD, CH_PASSWORD, SLACK_WEBHOOK_URL
 docker compose up -d
 ```
 
-Open `http://localhost:3000` and log in with admin/admin. Grafana will prompt you to change the password on first login.
+Open `http://localhost:3000`. `GF_PLUGINS_PREINSTALL` installs plugins at startup (comma-separated, `name@version` to pin). The old `grafana-cli` and `grafana-server` binaries were removed in Grafana 13; use `grafana cli plugins install <id>` and `grafana server`.
 
-## Data Sources
+### Provision data sources
 
-Data sources are connections to the backends that hold your data. Grafana queries them when rendering panels. You can add them through the UI or provision them with YAML files.
-
-### Provisioning Data Sources
-
-Place YAML files in `provisioning/datasources/` and Grafana loads them automatically on startup. This is the foundation of infrastructure-as-code for Grafana.
+Files in `provisioning/datasources/` load at startup. Give each source a fixed `uid`: dashboards and alert rules refer to it, and an auto-generated uid breaks them when you rebuild.
 
 ```yaml
-# provisioning/datasources/datasources.yml — data source provisioning
-# Configures Prometheus, PostgreSQL, and ClickHouse connections
-
+# provisioning/datasources/datasources.yml
 apiVersion: 1
 
 datasources:
   - name: Prometheus
+    uid: prometheus
     type: prometheus
     access: proxy
     url: http://prometheus:9090
@@ -79,88 +76,46 @@ datasources:
     editable: false
 
   - name: PostgreSQL
+    uid: postgres
     type: postgres
     access: proxy
     url: postgres:5432
-    database: app_production
     user: grafana_reader
     secureJsonData:
       password: "${PG_PASSWORD}"
     jsonData:
-      sslmode: disable
+      database: app_production
+      sslmode: require
       maxOpenConns: 10
       postgresVersion: 1500
 
   - name: ClickHouse
+    uid: clickhouse
     type: grafana-clickhouse-datasource
-    access: proxy
     jsonData:
       host: clickhouse
       port: 9000
-      defaultDatabase: default
       protocol: native
+      defaultDatabase: default
+      username: grafana_reader
     secureJsonData:
-      password: ""
+      password: "${CH_PASSWORD}"
 ```
 
-### Installing Data Source Plugins
+`${VAR}` is expanded from Grafana's environment. Use read-only database users.
 
-Some data sources like ClickHouse require installing a plugin first:
+### Build panels
 
-```bash
-# CLI — install the ClickHouse data source plugin
-docker exec -it grafana grafana-cli plugins install grafana-clickhouse-datasource
-docker compose restart grafana
-```
-
-## Building Panels
-
-Panels are the building blocks of dashboards. Each panel runs a query against a data source and renders the result as a graph, table, stat, gauge, or other visualization.
-
-### Time Series Panel with Prometheus
-
-A common first panel is a time-series graph showing request rate:
+#### Time Series Panel with Prometheus
 
 ```
 # Prometheus query — HTTP request rate per second by status code
 sum by (status_code) (rate(http_requests_total[5m]))
 ```
 
-### Table Panel with ClickHouse
+#### Template Variables
 
-For tabular data, use a ClickHouse query that returns named columns:
-
-```sql
--- ClickHouse query — top 10 features by usage this week
--- Used in a Grafana Table panel
-SELECT
-    event_name AS feature,
-    count() AS total_events,
-    uniq(user_id) AS unique_users
-FROM events
-WHERE created_at >= toStartOfWeek(now())
-GROUP BY event_name
-ORDER BY total_events DESC
-LIMIT 10
-```
-
-### Stat Panel with PostgreSQL
-
-Stat panels show a single number. They work well for KPIs:
-
-```sql
--- PostgreSQL query — monthly recurring revenue
--- Used in a Grafana Stat panel with unit set to currency (USD)
-SELECT sum(amount) AS mrr
-FROM subscriptions
-WHERE status = 'active'
-  AND period_start <= now()
-  AND period_end >= now()
-```
-
-### Template Variables
-
-Variables make dashboards interactive. Define a variable from a query, and users can filter panels with a dropdown:
+A query variable gives users a dropdown:
 
 ```sql
 -- ClickHouse query — variable definition for event names
@@ -168,70 +123,66 @@ Variables make dashboards interactive. Define a variable from a query, and users
 SELECT DISTINCT event_name FROM events ORDER BY event_name
 ```
 
-Then reference it in panel queries with `$event_name`:
+Reference it with `$event_name` and bound the time range with `$__timeFilter`:
 
 ```sql
--- ClickHouse query — filtered event count using template variable
-SELECT
-    toStartOfHour(created_at) AS time,
-    count() AS events
+SELECT toStartOfHour(created_at) AS time, count() AS events
 FROM events
-WHERE event_name = '$event_name'
-    AND $__timeFilter(created_at)
-GROUP BY time
-ORDER BY time
+WHERE event_name = '$event_name' AND $__timeFilter(created_at)
+GROUP BY time ORDER BY time
 ```
 
-## Alerts
+### Provision alert rules and contact points
 
-Grafana Alerting evaluates rules on a schedule and fires notifications through contact points like Slack, PagerDuty, or email.
-
-### Provisioning Alert Rules
+Alert rules are a pipeline of refIds: a query (A), a reduce step (B) turns the series into a number, and a threshold (C) is the condition.
 
 ```yaml
-# provisioning/alerting/rules.yml — alert rule provisioning
-# Fires when error rate exceeds 5% for 5 minutes
-
 apiVersion: 1
 
 groups:
   - orgId: 1
     name: production-alerts
     folder: Production
-    interval: 60s
+    interval: 1m
     rules:
       - uid: high-error-rate
         title: High Error Rate
         condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
         data:
           - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
             datasourceUid: prometheus
             model:
-              expr: sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+              refId: A
+              expr: sum(rate(http_requests_total{status_code=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))
+              instant: false
+              intervalMs: 1000
+              maxDataPoints: 43200
           - refId: B
-            datasourceUid: prometheus
+            datasourceUid: __expr__
             model:
-              expr: sum(rate(http_requests_total[5m]))
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
           - refId: C
             datasourceUid: __expr__
             model:
-              type: math
-              expression: $A / $B
+              refId: C
+              type: threshold
+              expression: B
               conditions:
-                - evaluator:
-                    type: gt
-                    params: [0.05]
-        for: 5m
+                - evaluator: { type: gt, params: [0.05] }
         labels:
           severity: critical
         annotations:
           summary: "Error rate is above 5%"
 ```
 
-### Contact Points
-
 ```yaml
-# provisioning/alerting/contactpoints.yml — Slack notification channel
 apiVersion: 1
 
 contactPoints:
@@ -242,41 +193,45 @@ contactPoints:
         type: slack
         settings:
           url: "${SLACK_WEBHOOK_URL}"
-          channel: "#engineering-alerts"
-          title: '{{ .CommonLabels.alertname }}'
-          text: '{{ .CommonAnnotations.summary }}'
+          recipient: "#engineering-alerts"
+          title: '{{ template "default.title" . }}'
+          text: '{{ template "default.message" . }}'
 ```
 
-## Dashboard as Code
-
-Grafana dashboards are JSON documents. You can export them from the UI, version control them, and provision them automatically. This is essential for reproducible infrastructure.
-
-### Provisioning Dashboards
-
-Tell Grafana where to find dashboard JSON files:
+A contact point does nothing until a notification policy routes alerts to it. Provision one in `provisioning/alerting/policies.yml`:
 
 ```yaml
-# provisioning/dashboards/dashboards.yml — dashboard provisioning config
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: slack-engineering
+    group_by: [alertname]
+```
+
+Provisioned alert resources cannot be edited in the UI; change the file and restart, or reload through the Admin API.
+
+### Dashboards as code
+
+```yaml
 apiVersion: 1
 
 providers:
   - name: default
     orgId: 1
     type: file
-    disableDeletion: false
+    disableDeletion: true
     updateIntervalSeconds: 30
+    allowUiUpdates: false
     options:
       path: /etc/grafana/provisioning/dashboards/json
       foldersFromFilesStructure: true
 ```
 
-### Dashboard JSON
-
-A minimal dashboard with one panel:
+A minimal dashboard file (`provisioning/dashboards/json/overview.json`):
 
 ```json
 {
-  "__comment": "provisioning/dashboards/json/overview.json — application overview dashboard",
   "uid": "app-overview",
   "title": "Application Overview",
   "timezone": "utc",
@@ -290,47 +245,55 @@ A minimal dashboard with one panel:
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
-        {
-          "expr": "sum(rate(http_requests_total[5m]))",
-          "legendFormat": "requests/s"
-        }
+        { "refId": "A", "expr": "sum(rate(http_requests_total[5m]))", "legendFormat": "requests/s" }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": { "lineWidth": 2, "fillOpacity": 10 }
-        }
-      }
-    },
-    {
-      "id": 2,
-      "type": "stat",
-      "title": "Active Users (24h)",
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
-      "targets": [
-        {
-          "rawSql": "SELECT uniq(user_id) AS value FROM events WHERE created_at >= now() - INTERVAL 1 DAY"
-        }
-      ]
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "lineWidth": 2, "fillOpacity": 10 } } }
     }
   ],
-  "templating": {
-    "list": []
-  },
-  "schemaVersion": 39
+  "templating": { "list": [] }
 }
 ```
 
-### Exporting Dashboards
-
-To capture a dashboard you built in the UI as code, use the Grafana HTTP API:
+Export a dashboard built in the UI with a service account token (API keys no longer exist):
 
 ```bash
-# CLI — export a dashboard JSON by UID for version control
-curl -s -H "Authorization: Bearer $GRAFANA_API_KEY" \
-  'http://localhost:3000/api/dashboards/uid/app-overview' \
-  | jq '.dashboard' > dashboards/app-overview.json
+curl -s -H "Authorization: Bearer $GRAFANA_SA_TOKEN" \
+  'http://localhost:3000/api/dashboards/uid/app-overview' | jq '.dashboard | del(.id)' > provisioning/dashboards/json/overview.json
 ```
 
-This workflow lets you iterate in the UI, export to JSON, commit to git, and deploy via provisioning — giving you the best of both visual editing and infrastructure-as-code.
+Create the token under Administration, Users and access, Service accounts. Data source APIs that use numeric ids are disabled by default in Grafana 13; use uids.
+
+## Examples
+
+### Example 1: Stand up Grafana with Prometheus and an error-rate alert
+
+Request: "Give me Grafana wired to our Prometheus that pages #engineering-alerts when 5xx errors pass 5%."
+
+Put the compose file, `datasources.yml`, `rules.yml`, `contactpoints.yml` and `policies.yml` from above under `provisioning/`, then:
+
+```bash
+docker compose up -d && docker compose logs grafana | grep -i provisioning
+```
+
+Result: Grafana starts on 127.0.0.1:3000, the Prometheus data source is read-only in the UI, and the rule "High Error Rate" appears under Alerting, Alert rules, in folder Production.
+
+### Example 2: Move a UI-built dashboard into git
+
+Request: "I built the checkout dashboard in the UI, put it under version control."
+
+```bash
+curl -s -H "Authorization: Bearer $GRAFANA_SA_TOKEN" \
+  'http://localhost:3000/api/dashboards/uid/checkout-kpis' | jq '.dashboard | del(.id)' > provisioning/dashboards/json/checkout-kpis.json
+git add provisioning/dashboards/json/checkout-kpis.json && git commit -m "Add checkout dashboard"
+```
+
+Result: the JSON file is loaded by the file provider within `updateIntervalSeconds` and the dashboard keeps its uid, so existing links still work.
+
+## Guidelines
+
+- Pin the image tag; `latest` upgrades on pull, and Grafana 13 migrates dashboards and folders to unified storage on first start. Back up the database before a major upgrade.
+- Never commit admin passwords, webhook URLs or database passwords; pass them as environment variables and reference `${VAR}` in provisioning files.
+- Always set explicit `uid` values on data sources and alert rules; panels and rules refer to them.
+- Provisioned dashboards cannot be saved from the UI unless `allowUiUpdates: true`; commit exported JSON.
+- Bind to 127.0.0.1 or put Grafana behind a TLS reverse proxy.
+- Image rendering needs the separate renderer service in Grafana 13 (the plugin is no longer supported).
