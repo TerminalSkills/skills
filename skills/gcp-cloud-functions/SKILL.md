@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, terraform'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - gcp
@@ -19,15 +19,19 @@ metadata:
 
 # GCP Cloud Functions
 
-Google Cloud Functions is a serverless execution environment for building event-driven applications. Write single-purpose functions that respond to HTTP requests, Pub/Sub messages, Cloud Storage events, or Firestore changes — no infrastructure to manage.
+## Overview
 
-## Core Concepts
+Google Cloud Functions, renamed **Cloud Run functions** in August 2024 (the `gcloud functions` commands and Functions Framework are unchanged), is a serverless execution environment for building event-driven applications. Write single-purpose functions that respond to HTTP requests, Pub/Sub messages, Cloud Storage events, or Firestore changes — no infrastructure to manage.
+
+### Core Concepts
 
 - **HTTP Function** — triggered by HTTP requests, returns a response
 - **Event Function** — triggered by cloud events (Pub/Sub, Storage, Firestore)
-- **Gen 2** — latest version, built on Cloud Run, longer timeouts, concurrency
+- **Gen 2** — the current generation (shown as "Cloud Run functions" in the docs), built on Cloud Run, longer timeouts, concurrency; 1st gen is legacy
 - **Trigger** — the event source that invokes the function
 - **Runtime** — language environment (Node.js, Python, Go, Java, etc.)
+
+## Instructions
 
 ## HTTP Functions
 
@@ -59,7 +63,7 @@ functions.http('handleWebhook', (req, res) => {
 # Deploy an HTTP function (Gen 2)
 gcloud functions deploy handle-webhook \
   --gen2 \
-  --runtime nodejs20 \
+  --runtime nodejs22 \
   --region us-central1 \
   --source . \
   --entry-point handleWebhook \
@@ -95,7 +99,7 @@ def process_message(cloud_event):
 # Deploy Pub/Sub triggered function
 gcloud functions deploy process-order \
   --gen2 \
-  --runtime python312 \
+  --runtime python313 \
   --region us-central1 \
   --source . \
   --entry-point process_message \
@@ -110,7 +114,7 @@ gcloud functions deploy process-order \
 ```python
 # main.py — process uploaded files
 import functions_framework
-from google.cloud import storage, vision
+from google.cloud import storage
 
 @functions_framework.cloud_event
 def process_upload(cloud_event):
@@ -139,7 +143,7 @@ def process_upload(cloud_event):
 # Deploy Storage triggered function
 gcloud functions deploy process-upload \
   --gen2 \
-  --runtime python312 \
+  --runtime python313 \
   --region us-central1 \
   --source . \
   --entry-point process_upload \
@@ -151,38 +155,43 @@ gcloud functions deploy process-upload \
 
 ## Firestore Triggered Functions
 
-```javascript
-// index.js — react to Firestore document changes
-const functions = require('@google-cloud/functions-framework');
-const { Firestore } = require('@google-cloud/firestore');
+Firestore events arrive as a protobuf payload (`cloud_event.data` is bytes), so decode them with `DocumentEventData` from the `google-events` package. `requirements.txt`: `functions-framework`, `google-events`, `google-cloud-firestore`.
 
-functions.cloudEvent('onUserCreated', async (cloudEvent) => {
-  const data = cloudEvent.data;
-  const newValue = data.value.fields;
+```python
+# main.py — react to Firestore document creation
+import functions_framework
+from google.cloud import firestore
+from google.events.cloud import firestore as firestore_events
 
-  const email = newValue.email.stringValue;
-  const name = newValue.name.stringValue;
+@functions_framework.cloud_event
+def on_user_created(cloud_event):
+    payload = firestore_events.DocumentEventData()
+    payload._pb.ParseFromString(cloud_event.data)
 
-  console.log(`New user created: ${name} (${email})`);
+    fields = payload.value.fields
+    email = fields["email"].string_value
+    name = fields["name"].string_value
+    user_id = payload.value.name.split("/")[-1]
+    print(f"New user created: {name} ({email})")
 
-  // Send welcome email, create default settings, etc.
-  const db = new Firestore();
-  await db.collection('user-settings').doc(data.value.name.split('/').pop()).set({
-    theme: 'light',
-    notifications: true,
-    createdAt: Firestore.FieldValue.serverTimestamp()
-  });
-});
+    # Send welcome email, create default settings, etc.
+    db = firestore.Client()
+    db.collection("user-settings").document(user_id).set({
+        "theme": "light",
+        "notifications": True,
+        "created_at": firestore.SERVER_TIMESTAMP,
+    })
 ```
 
 ```bash
 # Deploy Firestore triggered function
 gcloud functions deploy on-user-created \
   --gen2 \
-  --runtime nodejs20 \
+  --runtime python313 \
   --region us-central1 \
   --source . \
-  --entry-point onUserCreated \
+  --entry-point on_user_created \
+  --trigger-location us-central1 \
   --trigger-event-filters="type=google.cloud.firestore.document.v1.created" \
   --trigger-event-filters="database=(default)" \
   --trigger-event-filters-path-pattern="document=users/{userId}" \
@@ -225,8 +234,17 @@ curl -X POST http://localhost:8080 \
   -d '{"event":"order.created","data":{"id":"12345"}}'
 ```
 
-## Best Practices
+## Examples
 
+**Webhook receiver.** User: "Deploy my Stripe-style webhook handler so it is public." Run the `gcloud functions deploy handle-webhook --gen2 --runtime nodejs22 ... --trigger-http --allow-unauthenticated` command above; the output ends with a `url: https://handle-webhook-xxxxx-uc.a.run.app` that answers the curl test from Local Development with `{"status":"processed","orderId":"12345"}`.
+
+**Process uploads.** User: "Run code whenever a photo lands in my uploads bucket." Deploy `process-upload` with the Storage finalize filter above; uploading `receipt.jpg` makes `gcloud functions logs read process-upload --gen2 --region us-central1` show `Processing image: gs://my-uploads-bucket/receipt.jpg`.
+
+## Guidelines
+
+- Pick a supported runtime (docs list nodejs22/nodejs24, python313/python314; nodejs20 and older are on the deprecation path, check https://cloud.google.com/functions/docs/runtime-support)
+- Firestore event payloads arrive as protobuf, not JSON; decode them with `DocumentEventData` (`google-events` for Python, `protobufjs` plus the `data.proto` file for Node.js)
+- `--trigger-location` for Firestore (and Storage, when the bucket is in another location) must match the database or bucket location; replace `us-central1` with yours
 - Use Gen 2 for all new functions (better performance, concurrency support)
 - Set memory and timeout based on actual needs — don't over-provision
 - Use Secret Manager for credentials, not environment variables
