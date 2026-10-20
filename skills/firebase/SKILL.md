@@ -2,10 +2,10 @@
 name: firebase
 description: Expert guidance for Firebase, Google's platform for building and scaling web and mobile applications. Helps developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Node.js 20+ for firebase-tools; Node.js 22+ for firebase-admin 14. Cloud Functions need the Blaze (pay-as-you-go) plan."
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: development
   tags:
   - baas
@@ -17,40 +17,39 @@ metadata:
 
 # Firebase — Google's Backend-as-a-Service
 
-
 ## Overview
 
-
 Firebase, Google's platform for building and scaling web and mobile applications. Helps developers set up authentication, Firestore/Realtime Database, Cloud Functions, hosting, storage, and analytics using Firebase's SDK and CLI.
-
 
 ## Instructions
 
 ### Project Setup
 
 ```bash
-# Install Firebase CLI
+# Install Firebase CLI (15.x, Node.js 20+)
 npm install -g firebase-tools
 
 # Login and initialize
 firebase login
 firebase init
 # Select: Firestore, Functions, Hosting, Storage, Emulators
+# (also offered: App Hosting for Next.js/Angular, Data Connect, AI Logic)
 
 # Start local development with emulators
 firebase emulators:start
 ```
 
-For agent-driven Firebase work, install Google's official Firebase agent skills bundle — keeps patterns current with Firebase product changes:
+For agent-driven Firebase work, Google publishes an official Firebase agent skills bundle (also available as a Gemini CLI extension and Claude/Codex plugins):
 
 ```bash
-npx -y skills add firebase/agent-skills -y
+npx skills add firebase/skills
 ```
 
-Set the active project for the CLI before running commands:
+Set the active project for the CLI before running commands (`firebase use --add` is the interactive variant; `--alias` names an environment):
 
 ```bash
-npx -y firebase-tools@latest use --add <PROJECT_ID>
+firebase use bakery-orders-prod
+firebase use --alias staging bakery-orders-staging
 ```
 
 ### Authentication
@@ -152,18 +151,6 @@ function onPostsChange(callback: (posts: any[]) => void) {
     callback(posts);
   });
 }
-
-// Batch writes (atomic)
-async function publishMultiplePosts(postIds: string[]) {
-  const batch = writeBatch(db);
-  for (const id of postIds) {
-    batch.update(doc(db, "posts", id), {
-      published: true,
-      publishedAt: serverTimestamp(),
-    });
-  }
-  await batch.commit();
-}
 ```
 
 ### Security Rules
@@ -185,7 +172,8 @@ service cloud.firestore {
                   || request.auth.uid == resource.data.authorId;
       allow create: if request.auth != null
                     && request.resource.data.authorId == request.auth.uid;
-      allow update: if request.auth.uid == resource.data.authorId;
+      allow update: if request.auth.uid == resource.data.authorId
+                    && request.resource.data.likes == resource.data.likes; // likes change only via the callable
       allow delete: if request.auth.uid == resource.data.authorId;
     }
   }
@@ -199,13 +187,13 @@ service cloud.firestore {
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { initializeApp } from "firebase-admin/app";
 
 initializeApp();
 const db = getFirestore();
 
-// Trigger on new post creation
+// Trigger on new post creation (pass { region } as the first argument to choose the function region)
 export const onPostCreated = onDocumentCreated("posts/{postId}", async (event) => {
   const post = event.data?.data();
   if (!post) return;
@@ -215,8 +203,7 @@ export const onPostCreated = onDocumentCreated("posts/{postId}", async (event) =
     postCount: FieldValue.increment(1),
   });
 
-  // Send notification
-  await sendNotification(post.authorId, `Your post "${post.title}" was created!`);
+  console.log(`Post ${event.params.postId} created by ${post.authorId}`);
 });
 
 // Callable function (client calls directly)
@@ -227,13 +214,13 @@ export const likePost = onCall(async (request) => {
   const postRef = db.doc(`posts/${postId}`);
 
   await db.runTransaction(async (tx) => {
-    const post = await tx.get(postRef);
+    const likeRef = db.doc(`posts/${postId}/likes/${request.auth!.uid}`);
+    const [post, like] = await Promise.all([tx.get(postRef), tx.get(likeRef)]);
     if (!post.exists) throw new HttpsError("not-found", "Post not found");
+    if (like.exists) return; // one like per user
 
-    tx.update(postRef, { likes: (post.data()!.likes || 0) + 1 });
-    tx.set(db.doc(`posts/${postId}/likes/${request.auth!.uid}`), {
-      createdAt: new Date(),
-    });
+    tx.update(postRef, { likes: FieldValue.increment(1) });
+    tx.set(likeRef, { createdAt: FieldValue.serverTimestamp() });
   });
 
   return { success: true };
@@ -258,16 +245,11 @@ export const dailyCleanup = onSchedule("every day 03:00", async () => {
 ### Storage
 
 ```typescript
-// Upload and manage files
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-const storage = getStorage();
-
-async function uploadImage(file: File, path: string): Promise<string> {
-  const storageRef = ref(storage, `images/${path}/${file.name}`);
-  const snapshot = await uploadBytes(storageRef, file, {
+async function uploadImage(file: File, folder: string): Promise<string> {
+  const snapshot = await uploadBytes(ref(getStorage(), `images/${folder}/${file.name}`), file, {
     contentType: file.type,
-    customMetadata: { uploadedBy: "user-123" },
   });
   return getDownloadURL(snapshot.ref);
 }
@@ -276,43 +258,41 @@ async function uploadImage(file: File, path: string): Promise<string> {
 ## Installation
 
 ```bash
-npm install firebase              # Client SDK
-npm install firebase-admin         # Server/Cloud Functions SDK
-npm install -g firebase-tools      # CLI
+npm install firebase                    # Client SDK (v13; its breaking changes are in the AI Logic API only)
+npm install firebase-admin firebase-functions   # Server SDK (v14, needs Node 22+) and Functions SDK
+npm install -g firebase-tools           # CLI
 ```
-
 
 ## Examples
 
-
-### Example 1: Setting up Firebase with a custom configuration
-
-**User request:**
-
-```
-I just installed Firebase. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
-```
-
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
-
-### Example 2: Extending Firebase with custom functionality
+### Example 1: Publishing flow with security rules and emulators
 
 **User request:**
 
 ```
-I want to add a custom authentication to Firebase. How do I build one?
+Add a posts collection where only the author can edit, and let me test it without touching production.
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Firebase's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
+The agent adds the `posts` match block from the rules above to `firestore.rules`, runs `firebase emulators:start --only firestore,auth`, writes a client test that signs in two emulator users, and confirms the second user's `updateDoc` is rejected with `permission-denied` before running `firebase deploy --only firestore:rules`.
 
+### Example 2: Callable function to like a post
+
+**User request:**
+
+```
+Make liking a post safe: one like per user, no client-side counter writes.
+```
+
+The agent deploys the `likePost` callable with `firebase deploy --only functions:likePost`, calls it from the client with `httpsCallable(getFunctions(), "likePost")({ postId })`, and relies on the `update` rule above, which rejects client writes that change `likes`. The result is `{ success: true }` and the counter moves only through the transaction.
 
 ## Guidelines
 
 1. **Security rules first** — Write rules before deploying; default is deny-all, which is correct
 2. **Use emulators in development** — `firebase emulators:start` runs everything locally; never test against production
-3. **Composite indexes** — Firestore requires indexes for compound queries; the emulator/CLI suggests them automatically
-4. **Batch writes for atomicity** — Use `writeBatch()` when updating multiple documents that should succeed or fail together
+3. **Composite indexes** — Firestore requires indexes for compound queries; a query that lacks one fails with an error containing a console link to create it; keep indexes in `firestore.indexes.json` and deploy with `firebase deploy --only firestore:indexes`
+4. **Batch writes for atomicity** — Use `writeBatch(db)` (commit with `batch.commit()`) when updating multiple documents that should succeed or fail together
 5. **Real-time listeners** — Use `onSnapshot` for live updates instead of polling; Firestore pushes changes to clients
 6. **Cloud Functions v2** — Use v2 functions (firebase-functions/v2); better performance and more configuration options
 7. **Structure data for queries** — Firestore is not SQL; denormalize data and duplicate fields you need to filter/sort by
-8. **Monitor usage** — Firestore charges per read/write; use the Firebase console to track and optimize usage
+8. **Plan limits** — Cloud Functions require the Blaze plan (check the pricing page for Storage buckets); set a budget alert
+9. **Monitor usage** — Firestore charges per read/write; use the Firebase console to track and optimize usage
