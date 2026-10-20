@@ -6,33 +6,37 @@ description: >-
   with Lens, write KQL queries, set up data views, create visualizations,
   or configure Kibana spaces and role-based access.
 license: Apache-2.0
-compatibility: "Kibana 8.10+, Elasticsearch 8+"
+compatibility: "Kibana 8.19+ or 9.x, Elasticsearch of the same version (docker or self-managed)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: "https://github.com/elastic/kibana"
   category: devops
-  tags: ["kibana", "elasticsearch", "dashboards", "visualization", "kql", "elk"]
+  tags: ["kibana", "elasticsearch", "dashboards", "visualization", "kql"]
 ---
 
 # Kibana
 
 ## Overview
 
-Set up and use Kibana to visualize Elasticsearch data through dashboards, Lens visualizations, and Discover queries. Covers deployment, data views, KQL querying, dashboard creation, and Kibana Spaces for multi-team access.
+Set up and use Kibana to visualize Elasticsearch data through dashboards, Lens visualizations, and Discover queries. Covers deployment, data views, KQL and ES|QL querying, dashboard export/import, alerting rules, and Kibana Spaces for multi-team access. Examples target Kibana 9.5 (current at the time of writing); the REST calls below also work on 8.19.
 
 ## Instructions
 
 ### Task A: Deploy Kibana
 
+Kibana must run the same version as Elasticsearch. Kibana refuses to start as the `elastic` superuser, so give it the built-in `kibana_system` user and set that user's password once after Elasticsearch is up (the `ELASTIC_PASSWORD` variable only sets `elastic`). For a quick local setup, the compose file below turns off HTTP TLS; in production keep it on and point `ELASTICSEARCH_HOSTS` at `https://` with the CA configured (or use the enrollment-token flow from the official Docker guide).
+
 ```yaml
-# docker-compose.yml — Kibana with Elasticsearch
+# docker-compose.yml — local Kibana with Elasticsearch (TLS off, development only)
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.5
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=true
-      - ELASTIC_PASSWORD=changeme
+      - xpack.security.http.ssl.enabled=false
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
     ports:
       - "9200:9200"
@@ -40,13 +44,13 @@ services:
       - es_data:/usr/share/elasticsearch/data
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.12.0
+    image: docker.elastic.co/kibana/kibana:9.5.5
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=changeme
+      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
       - SERVER_NAME=kibana
-      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=min-32-char-encryption-key-here!!
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
     ports:
       - "5601:5601"
     depends_on:
@@ -56,6 +60,17 @@ volumes:
   es_data:
 ```
 
+```bash
+# Put the three secrets in .env first (KIBANA_ENCRYPTION_KEY must be 32+ characters), then:
+docker compose up -d elasticsearch
+curl -X POST "http://localhost:9200/_security/user/kibana_system/_password" \
+  -u "elastic:$ELASTIC_PASSWORD" -H "Content-Type: application/json" \
+  -d "{\"password\": \"$KIBANA_SYSTEM_PASSWORD\"}"
+docker compose up -d kibana   # then open http://localhost:5601 and log in as elastic
+```
+
+`xpack.encryptedSavedObjects.encryptionKey` is required for alerting rules and connectors; also set `xpack.security.encryptionKey` and `xpack.reporting.encryptionKey` (32+ characters each) so sessions and reports survive restarts.
+
 ### Task B: Create Data Views and KQL Queries
 
 ```bash
@@ -63,7 +78,7 @@ volumes:
 curl -X POST "http://localhost:5601/api/data_views/data_view" \
   -H "kbn-xsrf: true" \
   -H "Content-Type: application/json" \
-  -u elastic:changeme \
+  -u "elastic:$ELASTIC_PASSWORD" \
   -d '{
     "data_view": {
       "title": "logs-*",
@@ -108,9 +123,8 @@ kubernetes.labels.app: "api-gateway" and kubernetes.pod.name: pod-*
 curl -X POST "http://localhost:5601/api/saved_objects/_export" \
   -H "kbn-xsrf: true" \
   -H "Content-Type: application/json" \
-  -u elastic:changeme \
+  -u "elastic:$ELASTIC_PASSWORD" \
   -d '{
-    "type": ["dashboard"],
     "objects": [{ "type": "dashboard", "id": "my-dashboard-id" }],
     "includeReferencesDeep": true
   }' -o dashboard-export.ndjson
@@ -120,7 +134,7 @@ curl -X POST "http://localhost:5601/api/saved_objects/_export" \
 # Import a dashboard from exported NDJSON
 curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" \
   -H "kbn-xsrf: true" \
-  -u elastic:changeme \
+  -u "elastic:$ELASTIC_PASSWORD" \
   -F file=@dashboard-export.ndjson
 ```
 
@@ -129,12 +143,12 @@ curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" \
 curl -X POST "http://localhost:5601/api/spaces/space" \
   -H "kbn-xsrf: true" \
   -H "Content-Type: application/json" \
-  -u elastic:changeme \
+  -u "elastic:$ELASTIC_PASSWORD" \
   -d '{
     "id": "payments-team",
     "name": "Payments Team",
     "description": "Dashboards and views for the payments team",
-    "disabledFeatures": ["canvas", "maps", "ml"],
+    "disabledFeatures": ["canvas", "maps_v2", "ml"],
     "color": "#2196F3"
   }'
 ```
@@ -180,11 +194,11 @@ Common Lens visualization configurations to create in the Kibana UI:
 ### Task E: Alerting Rules
 
 ```bash
-# Create a Kibana alerting rule — Log threshold
+# Create an Elasticsearch query rule (the "id" of each action is an existing connector id; list them with GET /api/actions/connectors)
 curl -X POST "http://localhost:5601/api/alerting/rule" \
   -H "kbn-xsrf: true" \
   -H "Content-Type: application/json" \
-  -u elastic:changeme \
+  -u "elastic:$ELASTIC_PASSWORD" \
   -d '{
     "name": "High Error Rate - Payment Service",
     "rule_type_id": ".es-query",
@@ -199,14 +213,16 @@ curl -X POST "http://localhost:5601/api/alerting/rule" \
       "esQuery": "{\"query\":{\"bool\":{\"must\":[{\"match\":{\"level\":\"error\"}},{\"match\":{\"service.name\":\"payment-service\"}}]}}}",
       "index": ["logs-*"],
       "timeField": "@timestamp",
-      "size": 100
+      "size": 100,
+      "excludeHitsFromPreviousRun": true
     },
     "actions": [
       {
         "group": "query matched",
-        "id": "slack-connector-id",
+        "id": "slack-payments-alerts",
+        "frequency": { "summary": false, "notify_when": "onActionGroupChange", "throttle": null },
         "params": {
-          "message": "🚨 Payment service error count exceeded 50 in 5 minutes. Check Kibana for details."
+          "message": "Payment service error count exceeded 50 in 5 minutes. Check Kibana for details."
         }
       }
     ]
@@ -219,7 +235,7 @@ curl -X POST "http://localhost:5601/api/alerting/rule" \
 # Create a read-only role for a team
 curl -X PUT "http://localhost:9200/_security/role/payments_viewer" \
   -H "Content-Type: application/json" \
-  -u elastic:changeme \
+  -u "elastic:$ELASTIC_PASSWORD" \
   -d '{
     "indices": [
       {
@@ -231,18 +247,47 @@ curl -X PUT "http://localhost:9200/_security/role/payments_viewer" \
     "applications": [
       {
         "application": "kibana-.kibana",
-        "privileges": ["feature_discover.read", "feature_dashboard.read"],
+        "privileges": ["feature_discover_v2.read", "feature_dashboard_v2.read", "feature_visualize_v2.read"],
         "resources": ["space:payments-team"]
       }
     ]
   }'
 ```
 
-## Best Practices
+Kibana 8.x/9.x deprecated the V1 `feature_discover`, `feature_dashboard` and `feature_visualize` privileges; use the `_v2` names (the V2 privileges change how saved queries are managed). Role changes show up in Stack Management > Roles, which is the quickest way to confirm the privilege names on your version.
+
+## Examples
+
+### Example 1: "Show me payment errors from the last hour, then turn them into a chart"
+
+In Discover, pick the `Application Logs` data view, set the time picker to Last 1 hour and enter `level: "error" and service.name: "payment-service"`. In 9.x you can also switch Discover to ES|QL mode:
+
+```text
+FROM logs-* | WHERE level == "error" AND service.name == "payment-service" | STATS errors = COUNT(*) BY BUCKET(@timestamp, 5 minutes)
+```
+
+Result: a table of five-minute buckets with an error count; use the chart toggle above the table or "Save to dashboard" to keep it.
+
+### Example 2: "Move the payments dashboard from staging to production"
+
+```bash
+curl -X POST "http://staging-kibana:5601/api/saved_objects/_export" -H "kbn-xsrf: true" \
+  -H "Content-Type: application/json" -u "elastic:$ELASTIC_PASSWORD" \
+  -d '{"objects":[{"type":"dashboard","id":"payments-overview"}],"includeReferencesDeep":true}' -o payments-overview.ndjson
+curl -X POST "http://prod-kibana:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" \
+  -u "elastic:$PROD_ELASTIC_PASSWORD" -F file=@payments-overview.ndjson
+```
+
+Result: the import answers `{"success":true,"successCount":N,...}`; if it lists `missing_references`, create the data view with the same id on production first.
+
+## Guidelines
 
 - Use Kibana Spaces to isolate dashboards and data views per team
 - Create runtime fields in data views instead of modifying Elasticsearch mappings for ad-hoc analysis
-- Use KQL over Lucene query syntax — it handles nested fields and autocompletion better
+- Prefer KQL over Lucene syntax for Discover and dashboard filters; use ES|QL when you need aggregations and transformations in Discover
+- Kibana 9.5 made the Dashboards and Visualizations APIs generally available with breaking request/response changes, and moved saved-object tag routes to `/api/tags` (the old `/api/saved_objects_tagging` routes are deprecated); the saved-objects export/import above still works, but check the 9.5 breaking-changes page before scripting against the new APIs
+- Never use the `elastic` superuser for dashboards-as-code or alert connectors in production; create an API key or a dedicated role
+- `kbn-xsrf` is required on every non-GET Kibana API call; a 400 "Request must contain a kbn-xsrf header" means it is missing
 - Export dashboards as NDJSON for version control and environment promotion
 - Set refresh intervals on dashboards (30s-60s) to balance real-time visibility with cluster load
-- Use document-level security in roles to restrict which logs each team can see
+- Use document-level security in roles to restrict which logs each team can see (document-level security needs a Platinum or Enterprise licence)
