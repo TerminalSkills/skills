@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: "Python 3.10+, FFmpeg"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: content
   tags: [video-generation, tiktok, youtube-shorts, content-creation, ai-video]
   use-cases:
@@ -23,22 +23,23 @@ metadata:
 
 ## Overview
 
-Automate creation of short-form videos (TikTok, YouTube Shorts, Instagram Reels) using AI for every step: topic research, script writing, text-to-speech narration, stock footage matching, subtitle generation, and final assembly. Inspired by [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) (53k+ stars).
+Automate creation of short-form videos (TikTok, YouTube Shorts, Instagram Reels) using AI for every step: topic research, script writing, text-to-speech narration, stock footage matching, subtitle generation, and final assembly. Inspired by [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) (130k+ stars).
 
 ## Instructions
 
 ### Step 1: Set Up the Environment
 
 ```bash
-pip install anthropic openai requests moviepy pydub whisperx srt
+pip install anthropic openai requests whisperx srt schedule
 sudo apt install ffmpeg  # Linux — or: brew install ffmpeg (macOS)
 ```
 
-**API keys needed:** Anthropic or OpenAI (scripts), ElevenLabs or OpenAI TTS (voice), Pexels (free stock footage).
+**API keys needed** (read from environment variables): `ANTHROPIC_API_KEY` (scripts), `ELEVENLABS_API_KEY` plus `ELEVENLABS_VOICE_ID` (a voice ID from your ElevenLabs voice library) or `OPENAI_API_KEY` for OpenAI TTS, and `PEXELS_API_KEY` (free stock footage). WhisperX downloads speech models on first run and works best with a GPU; on CPU pass `compute_type="int8"`.
 
 ### Step 2: AI Script Writing
 
 ```python
+import os
 import anthropic
 
 def generate_script(topic, duration_seconds=45):
@@ -57,7 +58,7 @@ def generate_script(topic, duration_seconds=45):
     - No emojis or hashtags — this is a voiceover script
     """
     response = client.messages.create(
-        model="claude-sonnet-4-20250514", max_tokens=500,
+        model=os.environ.get("SCRIPT_MODEL", "claude-sonnet-5-5"), max_tokens=500,
         messages=[{"role": "user", "content": prompt}]
     )
     return response.content[0].text
@@ -70,21 +71,25 @@ import requests, os
 
 def generate_voice_elevenlabs(text, output_path='narration.mp3'):
     """Generate voiceover using ElevenLabs."""
-    url = "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM"
+    voice_id = os.environ["ELEVENLABS_VOICE_ID"]
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128"
     headers = {"xi-api-key": os.environ["ELEVENLABS_API_KEY"], "Content-Type": "application/json"}
-    data = {"text": text, "model_id": "eleven_turbo_v2_5",
+    data = {"text": text, "model_id": "eleven_flash_v2_5",
             "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
     response = requests.post(url, json=data, headers=headers)
+    response.raise_for_status()
     with open(output_path, 'wb') as f:
         f.write(response.content)
     return output_path
 
 def generate_voice_openai(text, output_path='narration.mp3'):
-    """Generate voiceover using OpenAI TTS (cheaper alternative)."""
+    """Generate voiceover using OpenAI TTS (cheaper alternative). tts-1-hd is deprecated (removal announced for 2027-01-06), so use gpt-4o-mini-tts."""
     from openai import OpenAI
     client = OpenAI()
-    response = client.audio.speech.create(model="tts-1-hd", voice="onyx", input=text)
-    response.stream_to_file(output_path)
+    with client.audio.speech.with_streaming_response.create(
+        model="gpt-4o-mini-tts", voice="onyx", input=text
+    ) as response:
+        response.stream_to_file(output_path)
     return output_path
 ```
 
@@ -101,7 +106,7 @@ def search_pexels_videos(query, count=5):
     results = []
     for v in videos:
         files = sorted(v['video_files'], key=lambda x: x.get('height', 0), reverse=True)
-        hd = next((f for f in files if f.get('height', 0) >= 720), files[0])
+        hd = next((f for f in files if f.get('height', 0) >= 720), files[0])  # prefers >=720p
         results.append({'id': v['id'], 'url': hd['link'], 'duration': v['duration']})
     return results
 ```
@@ -113,11 +118,11 @@ def generate_subtitles(audio_path, output_srt='subtitles.srt'):
     """Generate word-level subtitles using WhisperX."""
     import whisperx, srt
     from datetime import timedelta
-    model = whisperx.load_model("base", device="cpu")
+    model = whisperx.load_model("base", device="cpu", compute_type="int8")
     audio = whisperx.load_audio(audio_path)
     result = model.transcribe(audio)
-    align_model, metadata = whisperx.load_align_model(language_code="en")
-    aligned = whisperx.align(result["segments"], align_model, metadata, audio)
+    align_model, metadata = whisperx.load_align_model(language_code=result["language"], device="cpu")
+    aligned = whisperx.align(result["segments"], align_model, metadata, audio, "cpu")
     subs = []
     words = [w for seg in aligned["segments"] for w in seg.get("words", [])]
     for i in range(0, len(words), 4):
@@ -162,19 +167,27 @@ def assemble_video(clips, narration, subtitles, output='final.mp4'):
 ### Step 7: Full Pipeline
 
 ```python
+def download_clips(videos, output_dir):
+    """Download the Pexels clips returned by search_pexels_videos."""
+    clips = []
+    for i, v in enumerate(videos):
+        path = f'{output_dir}/clip_{i}.mp4'
+        with requests.get(v['url'], stream=True, timeout=60) as resp:
+            resp.raise_for_status()
+            with open(path, 'wb') as f:
+                for chunk in resp.iter_content(1 << 16):
+                    f.write(chunk)
+        clips.append(path)
+    return clips
+
 def generate_video(topic, output_dir='./output'):
     """Complete pipeline: topic -> finished video."""
     import os
     os.makedirs(output_dir, exist_ok=True)
     script = generate_script(topic)
     narration = generate_voice_elevenlabs(script, f'{output_dir}/narration.mp3')
-    keywords = topic.split()[:3]
-    videos = search_pexels_videos(' '.join(keywords), count=3)
-    clips = []
-    for i, v in enumerate(videos):
-        path = f'{output_dir}/clip_{i}.mp4'
-        requests.get(v['url'], stream=True)  # download clip
-        clips.append(path)
+    videos = search_pexels_videos(' '.join(topic.split()[:3]), count=3)
+    clips = download_clips(videos, output_dir)
     subs = generate_subtitles(narration, f'{output_dir}/subs.srt')
     return assemble_video(clips, narration, subs, f'{output_dir}/final.mp4')
 ```
@@ -197,7 +210,6 @@ for topic in topics:
     output = generate_video(topic, output_dir=f'./output/{topic[:30]}')
     print(f"Video ready: {output}")
 # Each video: ~45 seconds, portrait 1080x1920, with subtitles and narration
-# Total cost: ~$0.25 (5 x $0.05 per video) using ElevenLabs + Claude Sonnet
 ```
 
 ### Example 2: Daily Finance Shorts for YouTube
@@ -205,10 +217,11 @@ for topic in topics:
 A finance channel automates daily Shorts upload with trending money topics:
 
 ```python
-import schedule
+import os, schedule
 
 def daily_finance_video():
-    topic = "3 passive income ideas that actually work in 2025"
+    os.makedirs('./daily', exist_ok=True)
+    topic = "3 passive income ideas that actually work in 2026"
     script = generate_script(topic, duration_seconds=55)
     # Script output:
     # HOOK: "You're losing money every single day you don't know about these."
@@ -218,16 +231,17 @@ def daily_finance_video():
     # CTA: "Follow for more money tips that nobody tells you about."
     narration = generate_voice_openai(script, './daily/narration.mp3')
     videos = search_pexels_videos("money finance investing", count=4)
-    # Downloads 4 portrait clips of money/charts/lifestyle footage
-    # Assembles with bold white subtitles, outputs 55-second Short
-    final = assemble_video(['./daily/clip_0.mp4', './daily/clip_1.mp4'],
-                           narration, './daily/subs.srt', './daily/final.mp4')
+    clips = download_clips(videos, './daily')  # 4 portrait clips of money/charts footage
+    subs = generate_subtitles(narration, './daily/subs.srt')
+    # Assembles with bold white subtitles, outputs a ~55-second Short
+    final = assemble_video(clips, narration, subs, './daily/final.mp4')
 
 schedule.every().day.at("08:00").do(daily_finance_video)
 ```
 
 ## Guidelines
 
+- **Pexels terms** — read the current Pexels licence and API rate limits before automating downloads at volume
 - **Respect copyright** — only use royalty-free stock footage (Pexels, Pixabay) or your own content
 - **Disclose AI usage** — YouTube and TikTok require disclosure of AI-generated content
 - **Review before publishing** — always watch the final video; AI scripts can contain inaccuracies
@@ -237,7 +251,7 @@ schedule.every().day.at("08:00").do(daily_finance_video)
 
 ## References
 
-- [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) — original inspiration (53k stars)
+- [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) — original inspiration (130k+ stars)
 - [Pexels API](https://www.pexels.com/api/) — free stock video
 - [ElevenLabs](https://elevenlabs.io/) — realistic text-to-speech
 - [WhisperX](https://github.com/m-bain/whisperX) — word-level subtitle alignment
