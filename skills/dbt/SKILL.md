@@ -8,7 +8,8 @@ license: Apache-2.0
 compatibility: 'macos, linux, windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
+  repository: https://github.com/dbt-labs/dbt-core
   category: data-ai
   tags:
     - dbt
@@ -20,17 +21,25 @@ metadata:
 
 # dbt
 
-dbt lets analytics engineers transform data by writing SQL SELECT statements. It handles materialization (tables, views, incremental), testing, documentation, and lineage tracking.
+## Overview
 
-## Installation
+dbt lets analytics engineers transform data by writing SQL SELECT statements. It handles materialization (tables, views, incremental), testing, documentation, and lineage tracking. This skill was checked against dbt Core 1.12.6 (run with the DuckDB adapter, 1.11.0) and the dbt v2 install docs, October 2026.
+
+## Instructions
+
+### Installation
+
+dbt now comes in two lines. **dbt v1** (Core 1.12, Python adapters) is what the project below targets. **dbt v2** is a Rust rewrite that `pip install dbt` now installs by default (also Homebrew, winget); it validates strictly at parse time (misspelled configs and unused config paths become errors), and its listed adapters are BigQuery, Databricks, Redshift, Snowflake, ClickHouse, Spark and DuckDB, with no Postgres. For Postgres, or any project that still has deprecation warnings, stay on v1:
 
 ```bash
-# Install dbt with PostgreSQL adapter
+# dbt v1: use a virtualenv; the adapter package pulls in dbt-core
+python3 -m venv .venv && source .venv/bin/activate
 pip install dbt-postgres
 
 # Or with other adapters
 pip install dbt-bigquery
 pip install dbt-snowflake
+dbt --version
 
 # Initialize a new project
 dbt init my_project
@@ -90,7 +99,7 @@ my_project:
       threads: 4
     prod:
       type: postgres
-      host: prod-db.example.com
+      host: prod-db.brewline.dev
       port: 5432
       user: dbt_prod
       password: "{{ env_var('DBT_PROD_PASSWORD') }}"
@@ -189,18 +198,19 @@ models:
     description: Cleaned user data
     columns:
       - name: user_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: email
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
 
   - name: stg_orders
     columns:
       - name: order_id
-        tests: [unique, not_null]
+        data_tests: [unique, not_null]
       - name: status
-        tests:
+        data_tests:
           - accepted_values:
-              values: ['pending', 'completed', 'cancelled', 'refunded']
+              arguments:   # dbt 1.10+: generic-test arguments nest under `arguments`
+                values: ['pending', 'completed', 'cancelled', 'refunded']
 ```
 
 ## CLI Commands
@@ -223,7 +233,7 @@ dbt docs serve --port 8081
 # Check source freshness
 dbt source freshness
 
-# Full build (run + test + snapshot)
+# Full build (seeds, models, snapshots and tests in DAG order)
 dbt build
 
 # Run against production
@@ -240,3 +250,21 @@ dbt run --target prod
 
 -- Usage in a model: SELECT {{ cents_to_dollars('amount_cents') }} AS amount
 ```
+
+## Examples
+
+### Example 1: "Add a daily revenue table to our dbt project"
+
+Create `models/staging/stg_orders.sql` and `models/marts/fct_revenue.sql` as above, declare the `raw.orders` source in `_staging.yml`, then run `dbt build --select +fct_revenue`. Result: `stg_orders` is created as a view, its `unique`, `not_null` and `accepted_values` tests pass, and `fct_revenue` is created as an incremental table; a second run only processes rows newer than `max(order_date)`.
+
+### Example 2: "Why does dbt print a deprecation warning about test arguments?"
+
+Since dbt 1.10, `values:` written directly under `accepted_values` raises `MissingArgumentsPropertyInGenericTestDeprecation`. Move the arguments under `arguments:` (also use `data_tests:`, the current key name; `tests:` still parses on 1.12 without a warning); run `dbt parse --no-partial-parse --show-all-deprecations` to list every remaining one. Fix them all before trying dbt v2, which rejects deprecated syntax.
+
+## Guidelines
+
+- Pin the dbt version per project (requirements file) so a `pip install` does not jump from v1 to v2 behavior.
+- Keep credentials out of `profiles.yml`: use `env_var()` as above.
+- The incremental example filters with `>` on the latest date, which skips late-arriving rows for that day; use a lookback window or a `unique_key` merge for late data.
+- Run `dbt build`, not `dbt run`, in CI so failing tests block downstream models.
+- Not a loader: dbt transforms data already in the warehouse; use another tool to ingest it.
