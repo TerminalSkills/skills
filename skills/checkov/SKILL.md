@@ -1,11 +1,12 @@
 ---
 name: checkov
-description: Expert guidance for Checkov, the static analysis tool for infrastructure-as-code that scans Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, and ARM templates for security misconfigurations and compliance violations. Helps developers integrate Checkov into CI/CD pipelines and write custom policies.
+description: Checkov is an open-source static analysis tool that scans infrastructure-as-code (Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, ARM, Bicep and more) for security misconfigurations and compliance violations. Use it to scan Terraform or Kubernetes manifests before deploy, add a security gate to CI/CD with SARIF output, suppress findings with justification, or write custom policies in Python or YAML.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: Python 3.9+ (pip, pipx or Homebrew), or Docker
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  repository: https://github.com/bridgecrewio/checkov
+  version: 1.1.0
   category: devops
   tags:
   - iac-security
@@ -17,203 +18,163 @@ metadata:
 
 # Checkov — Infrastructure as Code Security Scanner
 
-
 ## Overview
 
-
-Checkov, the static analysis tool for infrastructure-as-code that scans Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, and ARM templates for security misconfigurations and compliance violations. Helps developers integrate Checkov into CI/CD pipelines and write custom policies.
-
+Checkov (by Prisma Cloud / Bridgecrew, current release 3.3.x) parses IaC files and Terraform plans and evaluates them against 1,000+ built-in policies, with ids like `CKV_AWS_18` or `CKV_K8S_14`. It needs no cloud account and no API key; results stay local unless you pass a Prisma/Bridgecrew key. Exit code is 1 when any check fails, which is what makes it a CI gate.
 
 ## Instructions
 
-### Scanning
+### Install and scan
 
 ```bash
-# Install
-pip install checkov
+brew install checkov                 # or: pipx install checkov  /  pip install checkov
+docker run --rm -v "$(pwd)":/tf bridgecrew/checkov -d /tf   # no local Python needed
 
-# Scan Terraform files
-checkov -d ./terraform/
-
-# Scan Kubernetes manifests
+checkov -d ./terraform/                                  # scan a directory (all frameworks auto-detected)
 checkov -d ./k8s/ --framework kubernetes
-
-# Scan Dockerfiles
 checkov -f Dockerfile --framework dockerfile
-
-# Scan with specific checks
-checkov -d . --check CKV_AWS_18,CKV_AWS_21   # Only specific checks
-
-# Skip specific checks
-checkov -d . --skip-check CKV_AWS_18          # Skip S3 logging check
-
-# Output formats
-checkov -d . -o json                           # JSON for CI/CD
-checkov -d . -o sarif                          # SARIF for GitHub Security tab
-checkov -d . -o junitxml                       # JUnit for test reports
+checkov -d . --check CKV_AWS_18,CKV_AWS_21               # run only these
+checkov -d . --skip-check CKV_AWS_18                     # run everything except
+checkov -d . --compact --quiet                           # only failures, no code snippets
+checkov -d . -o json                                     # also: sarif, junitxml, github_failed_only, cli
+checkov -d . -o cli -o sarif --output-file-path console,results.sarif
+checkov -d . --soft-fail                                 # report but always exit 0
+checkov -d . --config-file .checkov.yaml                 # persist flags; --create-config writes one
 ```
 
-### What Checkov Catches
+To evaluate plan values and module inputs, scan the plan JSON: `terraform show -json tfplan > tfplan.json && checkov -f tfplan.json`. Use `--var-file` for variable files and `--download-external-modules true` to resolve remote modules.
+
+### What Checkov catches
 
 ```hcl
-# Terraform — Checkov flags these misconfigurations:
-
-# ❌ CKV_AWS_18: S3 bucket without access logging
-resource "aws_s3_bucket" "data" {
-  bucket = "my-data-bucket"
-  # Missing: logging { target_bucket = "..." }
+# CKV_AWS_18: S3 bucket without access logging (CKV2_AWS_6 and CKV_AWS_145 cover public access block / KMS)
+resource "aws_s3_bucket" "invoices" {
+  bucket = "northwind-invoices-prod"
 }
 
-# ❌ CKV_AWS_145: RDS without encryption
-resource "aws_db_instance" "main" {
+# CKV_AWS_16: RDS instance without storage encryption
+resource "aws_db_instance" "billing" {
   engine         = "postgres"
   instance_class = "db.t3.medium"
-  # Missing: storage_encrypted = true
+  # fix: storage_encrypted = true
 }
 
-# ❌ CKV_AWS_24: Security group with 0.0.0.0/0 on SSH
-resource "aws_security_group_rule" "ssh" {
-  type        = "ingress"
-  from_port   = 22
-  to_port     = 22
-  cidr_blocks = ["0.0.0.0/0"]    # Open SSH to the world
+# CKV_AWS_24: security group allows SSH from 0.0.0.0/0
+resource "aws_security_group" "bastion" {
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
-# ❌ CKV_AWS_79: EC2 without metadata service v2
+# CKV_AWS_79: EC2 allows IMDSv1
 resource "aws_instance" "web" {
-  ami           = "ami-12345"
+  ami           = "ami-0c55b159cbfafe1f0"
   instance_type = "t3.micro"
-  # Missing: metadata_options { http_tokens = "required" }
+  # fix: metadata_options { http_tokens = "required" }
 }
 ```
 
-```yaml
-# Kubernetes — Checkov flags these:
+Common Kubernetes ids: `CKV_K8S_8` liveness probe, `CKV_K8S_9` readiness probe, `CKV_K8S_10`/`11` CPU request/limit, `CKV_K8S_12`/`13` memory request/limit, `CKV_K8S_14` image tag not `latest`, `CKV_K8S_16` privileged container, `CKV_K8S_20` allowPrivilegeEscalation, `CKV_K8S_23` root containers, `CKV_K8S_28` NET_RAW capability, `CKV_K8S_37` capabilities not dropped, `CKV_K8S_40` high UID. List everything with `checkov --list`.
 
-# ❌ CKV_K8S_1: Container running as root
-# ❌ CKV_K8S_8: No liveness probe
-# ❌ CKV_K8S_9: No readiness probe
-# ❌ CKV_K8S_12: No memory limit
-# ❌ CKV_K8S_13: No memory request
-# ❌ CKV_K8S_20: Privileged container
-# ❌ CKV_K8S_28: No CPU limit
-# ❌ CKV_K8S_37: No capabilities drop
-apiVersion: apps/v1
-kind: Deployment
-spec:
-  template:
-    spec:
-      containers:
-        - name: app
-          image: myapp:latest      # ❌ CKV_K8S_14: Using 'latest' tag
-          # Missing: all security context, probes, and resource limits
+### Suppress a finding with a reason
+
+```hcl
+resource "aws_s3_bucket" "audit_logs" {
+  #checkov:skip=CKV_AWS_18:Access logging is handled by the organisation CloudTrail
+  bucket = "northwind-audit-logs"
+}
 ```
 
-### Custom Policies
+### Custom policies
 
 ```python
-# custom_checks/s3_naming.py — Custom Checkov policy in Python
+# custom_checks/s3_naming.py
 from checkov.terraform.checks.resource.base_resource_check import BaseResourceCheck
 from checkov.common.models.enums import CheckResult, CheckCategories
 
 class S3BucketNamingConvention(BaseResourceCheck):
     def __init__(self):
-        name = "S3 bucket name must start with company prefix"
-        id = "CKV_CUSTOM_1"
-        supported_resources = ["aws_s3_bucket"]
-        categories = [CheckCategories.CONVENTION]
-        super().__init__(name=name, id=id, categories=categories,
-                         supported_resources=supported_resources)
+        super().__init__(
+            name="S3 bucket name must start with the company prefix",
+            id="CKV_NORTHWIND_1",
+            categories=[CheckCategories.CONVENTION],
+            supported_resources=["aws_s3_bucket"],
+        )
 
     def scan_resource_conf(self, conf):
-        bucket_name = conf.get("bucket", [""])[0]
-        if bucket_name.startswith("mycompany-"):
-            return CheckResult.PASSED
-        return CheckResult.FAILED
+        name = conf.get("bucket", [""])[0]
+        return CheckResult.PASSED if isinstance(name, str) and name.startswith("northwind-") else CheckResult.FAILED
 
 check = S3BucketNamingConvention()
 ```
 
 ```yaml
-# custom_checks/require_tags.yaml — Custom policy in YAML (simpler)
+# custom_checks/require_team_tag.yaml
 metadata:
-  id: "CKV_CUSTOM_2"
-  name: "All resources must have 'team' and 'environment' tags"
+  id: "CKV2_NORTHWIND_2"
+  name: "Resources must carry a 'team' tag"
   category: "CONVENTION"
 definition:
   cond_type: "attribute"
-  resource_types:
-    - "aws_instance"
-    - "aws_s3_bucket"
-    - "aws_rds_cluster"
+  resource_types: ["aws_instance", "aws_s3_bucket", "aws_rds_cluster"]
   attribute: "tags.team"
   operator: "exists"
 ```
 
-### CI/CD Integration
+Load them with `checkov -d . --external-checks-dir custom_checks`. The directory needs an empty `__init__.py` for the Python check to be picked up (the YAML policy loads without it). Custom ids should not collide with built-in `CKV_` ids.
+
+### CI/CD (GitHub Actions)
 
 ```yaml
-# .github/workflows/security.yml
-- name: Checkov IaC Scan
-  uses: bridgecrewio/checkov-action@v12
-  with:
-    directory: terraform/
-    framework: terraform
-    output_format: sarif
-    output_file_path: checkov.sarif
-    soft_fail: false                    # Fail the pipeline on findings
-    skip_check: CKV_AWS_18             # Skip known exceptions
-
-- name: Upload SARIF
-  uses: github/codeql-action/upload-sarif@v3
-  with:
-    sarif_file: checkov.sarif
+permissions:
+  contents: read
+  security-events: write
+steps:
+  - uses: actions/checkout@v4
+  - name: Checkov IaC scan
+    uses: bridgecrewio/checkov-action@v12
+    with:
+      directory: terraform/
+      framework: terraform
+      output_format: cli,sarif
+      output_file_path: console,results.sarif
+      baseline: .checkov.baseline
+  - uses: github/codeql-action/upload-sarif@v3
+    if: always()
+    with:
+      sarif_file: results.sarif
 ```
 
-## Installation
-
-```bash
-pip install checkov
-
-# Or via Docker
-docker run -v $(pwd):/tf bridgecrew/checkov -d /tf
-
-# Or via Homebrew
-brew install checkov
-```
-
+The action fails the job on findings; set `soft_fail: true` while rolling out. Inputs mirror the CLI (`check`, `skip_check`, `config_file`, `soft_fail_on`, `hard_fail_on`).
 
 ## Examples
 
+### Example 1: "Add a security gate to our Terraform repo without blocking everyone on day one"
 
-### Example 1: Setting up Checkov for a microservices project
-
-**User request:**
-
-```
-I have a Node.js API and a React frontend running in Docker. Set up Checkov for monitoring/deployment.
-```
-
-The agent creates the necessary configuration files based on patterns like `# Install`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
-
-### Example 2: Troubleshooting what checkov catches issues
-
-**User request:**
-
-```
-Checkov is showing errors in our what checkov catches. Here are the logs: [error output]
+```bash
+checkov -d infra/ --create-baseline          # writes infra/.checkov.baseline with today's failures
+git add infra/.checkov.baseline
+checkov -d infra/ --baseline infra/.checkov.baseline --compact --quiet
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Checkov issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+Result: the baseline run exits 0 on existing debt and fails only when a pull request introduces a new failed check, with output such as `Check: CKV_AWS_16: "Ensure all data stored in the RDS is securely encrypted at rest"  FAILED for resource: aws_db_instance.billing`.
 
+### Example 2: "Checkov flags our Deployment, what do I fix?"
+
+```bash
+checkov -f k8s/orders-api.yaml --framework kubernetes --compact --quiet
+```
+
+Typical failures are `CKV_K8S_14` (image `orders-api:latest`), `CKV_K8S_13` (no memory limit) and `CKV_K8S_20` (privilege escalation). Pin the image tag, add `resources.limits.memory`, and set `securityContext.allowPrivilegeEscalation: false`, then rerun. A bare Deployment also trips probes, CPU/memory requests, read-only filesystem and other checks (about 20 in total), so work through the list or gate on the ones you adopt with `--check`.
 
 ## Guidelines
 
-1. **Scan in CI/CD** — Run Checkov on every PR; catch misconfigurations before they reach production
-2. **Start permissive, tighten gradually** — Begin with `--soft-fail` to see findings without blocking; gradually enable hard-fail as you fix issues
-3. **Skip with justification** — When skipping checks, add inline comments explaining why: `#checkov:skip=CKV_AWS_18:Logging handled by org-level trail`
-4. **Custom policies for your org** — Write policies for naming conventions, tagging requirements, and organizational standards
-5. **SARIF for GitHub** — Output SARIF and upload to GitHub Security tab; findings appear inline on pull requests
-6. **Baseline file** — Use `--baseline` to establish a baseline of existing findings; only flag new issues in PRs
-7. **Multiple frameworks** — Scan Terraform, Kubernetes, Dockerfiles, and Helm charts in the same pipeline
-8. **Bridgecrew platform** — Use the Bridgecrew platform for centralized policy management and drift detection across teams
+- Scan on every pull request; Checkov also scans Helm chart directories (`--framework helm`, needs the `helm` binary).
+- Start with `--soft-fail` or a baseline, then tighten; never leave a blanket `--skip-check` without a recorded reason.
+- Put justification in inline `#checkov:skip=ID:reason` comments so reviewers see it.
+- Pin the action and Docker image versions you use; the policy set changes between releases, so new failures can appear after an upgrade.
+- Checkov is static: it does not see live cloud state or drift. Pair it with runtime scanning for that.
+- Without an API key, results are not uploaded; do not paste `--bc-api-key` into command lines, use the `BC_API_KEY` environment variable.
