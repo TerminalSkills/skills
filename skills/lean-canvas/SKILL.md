@@ -1,11 +1,11 @@
 ---
 name: lean-canvas
-description: 'Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. Also covers related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.'
+description: 'Maps a startup business model on one page with the Lean Canvas, the framework Ash Maurya adapted from Osterwalder''s Business Model Canvas. Use when a founder or product team asks for a lean canvas, a one-page business model, the riskiest assumptions in a business, or a business model canvas or SWOT analysis. Covers the nine Lean Canvas boxes, the nine Business Model Canvas building blocks, and SWOT.'
 license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
   - lean-canvas
@@ -21,7 +21,7 @@ metadata:
 ## Overview
 
 
-Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. This skill also covers related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.
+Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. This skill also covers related frameworks: Business Model Canvas and SWOT analysis.
 
 
 ## Instructions
@@ -57,7 +57,7 @@ Early adopter: Freelance consultants who just crossed $100K revenue
 Single clear, compelling message that states why you're different
 and worth paying attention to.
 
-Format: "[End result] for [target customer] without [pain/cost]"
+A common shape (a convention, not Maurya's wording): "[End result] for [target customer] without [pain/cost]". Maurya's current definition on leanstack.com: the single, clear message that turns a visitor into a customer.
 
 "Bookkeeping on autopilot for solo founders — without spreadsheets,
 data entry, or a $500/month bookkeeper."
@@ -167,7 +167,7 @@ More comprehensive than Lean Canvas — better for established products.
 ### External
 **Opportunities**: What trends favor you?
 - AI making automation accessible to small businesses
-- Growing freelance economy (60M in the US)
+- Growing freelance economy (cite a current, sourced figure, e.g. from Upwork's Freelance Forward research)
 - Competitors stuck on legacy architecture
 
 **Threats**: What obstacles do you face?
@@ -194,7 +194,32 @@ More comprehensive than Lean Canvas — better for established products.
 We're launching a project management tool for remote design teams. Help me create a lean canvas.
 ```
 
-The agent applies the Lean Canvas framework, asking clarifying questions about target audience, market positioning, and business model. It produces a structured deliverable with specific, actionable recommendations tailored to the design-tools market, including competitive positioning and key metrics to track.
+**Result (abbreviated canvas, first pass):**
+
+```
+PROBLEM              CUSTOMER SEGMENTS       UNIQUE VALUE PROPOSITION
+1. Design reviews    Design leads at         Shared review boards that
+   drift across        remote teams of 8-30    end feedback-by-email
+   email threads     EARLY ADOPTERS:           for distributed design teams
+   Alt: email, Figma   agencies with 3+
+   comments            concurrent client
+2. Handoffs lose     projects
+   context              
+   Alt: spreadsheets   KEY METRICS           UNFAIR ADVANTAGE
+3. No view of open   Reviews closed/week     Nothing yet (say so)
+   approvals            Activated teams
+   Alt: status calls   (3 reviews in 14d)
+
+SOLUTION             CHANNELS                REVENUE STREAMS
+- Review board per   Design community        $25 per seat/month
+  project             newsletters,           Agency plan: custom
+- Approval state      Figma plugin listing
+  on each frame       Referrals from         COST STRUCTURE
+- Notification        agency owners          Hosting, one engineer,
+  digest                                     $1,500/month content
+```
+
+Riskiest assumption: the per-seat price. Test willingness to pay with five paid pilots before building the agency plan.
 
 ### Example 2: Reviewing and improving an existing lean canvas
 
@@ -204,7 +229,26 @@ The agent applies the Lean Canvas framework, asking clarifying questions about t
 Here's our lean canvas for a developer documentation tool. Review it and identify the riskiest assumptions.
 ```
 
-The agent analyzes the existing work against lean canvas best practices, identifies missing elements, weak assumptions, and areas that need validation. It provides specific suggestions with reasoning, not generic advice, referencing the frameworks and patterns from the instructions above.
+**Result (review notes):**
+
+```
+RISKIEST ASSUMPTIONS (least evidence first)
+1. Revenue: "$49/month per team" has no tested price.
+   Test: show the price on a landing page and count sign-up intents for 2 weeks.
+2. Problem: "Docs go stale because engineers forget to update them"
+   has no interview evidence. Test: ask 10 engineering leads when their
+   last docs fix happened and what triggered it.
+3. Channel: "SEO for API tutorials" depends on keyword volume you have
+   not checked. Test: pull search volume for 20 queries before writing content.
+
+MISSING
+- Existing alternatives for problem 2 (Notion, Docusaurus, plain Markdown in the repo)
+- Early adopter segment: the canvas says "all developers"; name one team type
+
+KEEP AS IS
+- Unfair advantage left as "nothing yet" (honest)
+- Key metric: activation = first docs page published from a git push
+```
 
 
 ## Guidelines
