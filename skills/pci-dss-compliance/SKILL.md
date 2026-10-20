@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: "Language-agnostic. Code examples in Python and Node.js."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["pci-dss", "payment", "compliance", "security", "ecommerce"]
   use-cases:
@@ -22,14 +22,21 @@ metadata:
 
 ## Overview
 
-PCI DSS (Payment Card Industry Data Security Standard) v4.0 applies to any organization that stores, processes, or transmits cardholder data (CHD). Maintained by the PCI Security Standards Council, it has 12 requirements across 6 goals. Non-compliance can result in fines of $5,000–$100,000/month and loss of card processing privileges.
+PCI DSS (Payment Card Industry Data Security Standard) v4.0.1 applies to any organization that stores, processes, or transmits cardholder data (CHD). It is maintained by the PCI Security Standards Council and has 12 requirements across 6 goals. v4.0 was retired on 31 December 2024, so v4.0.1 is the version to assess against. Penalties are set by card brands and acquirers, not by the Council; non-compliance can lead to fines and loss of card processing.
+
+## Instructions
+
+1. Identify every system that stores, processes, or transmits cardholder data, and draw the CDE boundary.
+2. Remove data and systems from the CDE where you can (hosted payment pages, tokenization).
+3. Choose the SAQ from your payment flow, then confirm eligibility with your acquirer.
+4. Implement the controls for that SAQ, keep the evidence, and schedule scans and tests.
 
 ## Key Terms
 
 - **CHD (Cardholder Data):** PAN, cardholder name, expiration date, service code
 - **SAD (Sensitive Authentication Data):** Full magnetic stripe, CVV/CVC, PIN — NEVER store SAD post-authorization
 - **CDE (Cardholder Data Environment):** Systems that store, process, or transmit CHD
-- **PAN (Primary Account Number):** The 16-digit card number
+- **PAN (Primary Account Number):** The card number (13-19 digits, usually 16)
 
 ## Scoping: Minimize the CDE
 
@@ -38,13 +45,13 @@ The most effective compliance strategy is **reducing scope** — minimize the nu
 ### Use Stripe/Braintree to Avoid CDE Entirely
 
 ```javascript
-// ✅ PCI DSS scope: SAQ A (minimal)
+// ✅ Likely SAQ A (confirm with your acquirer)
 // Card data never touches your server — handled by Stripe.js
 
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe('pk_live_...');
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 function PaymentForm() {
   const stripe = useStripe();
@@ -72,9 +79,10 @@ function PaymentForm() {
 
 ```python
 # ✅ Server-side: receives only token/payment method ID — not card data
+import os
 import stripe
 
-stripe.api_key = "sk_live_..."
+stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
 
 def charge_customer(payment_method_id: str, amount_cents: int, currency: str = "usd"):
     """Process payment using token. CDE never touches card data."""
@@ -92,16 +100,16 @@ def charge_customer(payment_method_id: str, amount_cents: int, currency: str = "
 
 | SAQ Type | Who Uses It | Scope |
 |----------|-------------|-------|
-| **SAQ A** | Card-not-present merchants using fully outsourced payment pages (Stripe Checkout, PayPal hosted) | Minimal — ~22 requirements |
-| **SAQ A-EP** | E-commerce with JS-based payment forms (Stripe Elements, Braintree.js) | Medium — ~191 requirements |
+| **SAQ A** | Card-not-present merchants using fully outsourced payment pages (Stripe Checkout, PayPal hosted) | Smallest; card data never enters your systems |
+| **SAQ A-EP** | E-commerce where your page scripts can affect the payment form (custom JavaScript, Stripe.js v2 on your own form) | Adds script-integrity controls (6.4.3, 11.6.1) |
 | **SAQ B** | Merchants using standalone terminals, no electronic storage | Hardware terminals |
 | **SAQ B-IP** | Merchants using IP-connected terminals | IP terminals |
-| **SAQ C** | Merchants with payment app connected to internet | ~139 requirements |
-| **SAQ D** | All other merchants and service providers | All 12 requirements |
+| **SAQ C** | Merchants with payment app connected to internet | Payment application connected to the internet |
+| **SAQ D** | All other merchants and service providers | Full assessment of all 12 requirements |
 
-**Rule of thumb:** If you use Stripe Checkout (hosted page), you qualify for SAQ A. If you use Stripe Elements (custom form with Stripe.js), you qualify for SAQ A-EP.
+**Rule of thumb:** Stripe Checkout (hosted page) or a Payment Element rendered in an iframe, with no custom payment-affecting scripts on your page, usually means SAQ A. Custom JavaScript on the payment page, Stripe.js v2 on your own form, or card fields rendered inline in your DOM points to SAQ A-EP. Stripe's security guide does not name SAQs, so confirm the choice with your acquirer or QSA.
 
-## PCI DSS v4.0 — 12 Requirements
+## PCI DSS v4.0.1 — 12 Requirements
 
 ### Req 1: Network Security Controls
 ```nginx
@@ -114,9 +122,7 @@ location /api/payments {
 ```
 
 ### Req 2: Secure Configurations
-- Change all default passwords before deployment
-- Remove unnecessary services, protocols, daemons
-- Document all system components and their purpose
+- Change default passwords, remove unneeded services, and document every system component
 
 ### Req 3: Protect Stored Account Data
 ```python
@@ -138,25 +144,32 @@ def mask_pan(pan: str) -> str:
 
 ### Req 4: Protect Cardholder Data in Transit
 ```python
+import os
 import ssl
 import requests
+from requests.adapters import HTTPAdapter
 
-# Always use TLS 1.2+ for any connection involving CHD
+class TLS12Adapter(HTTPAdapter):
+    """Refuse anything older than TLS 1.2 for connections involving CHD."""
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = ssl.create_default_context()
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+        kwargs["ssl_context"] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
 session = requests.Session()
-session.mount('https://', requests.adapters.HTTPAdapter())
+session.mount('https://', TLS12Adapter())
 
 # Verify SSL certificates — never disable in production
 response = session.get(
     'https://api.stripe.com/v1/charges',
     verify=True,  # Never set to False in production
-    headers={'Authorization': f'Bearer {stripe_key}'}
+    headers={'Authorization': f'Bearer {os.environ["STRIPE_SECRET_KEY"]}'}
 )
 ```
 
 ### Req 5: Protect Systems from Malicious Software
-- Deploy antivirus/EDR on all systems
-- Keep antivirus definitions current
-- Run periodic scans on all systems
+- Deploy and maintain anti-malware/EDR on all systems in scope
 
 ### Req 6: Develop and Maintain Secure Systems
 
@@ -196,23 +209,25 @@ def require_payment_access(func):
 ```
 
 ### Req 8: Identify Users and Authenticate Access
-- Unique user IDs (no shared accounts)
-- MFA required for all CDE access
-- Passwords: minimum 12 characters, complexity required
-- Session lockout after 15 minutes of inactivity
+- Unique user IDs, MFA for all CDE access, passwords of at least 12 characters
+- Re-authenticate a session after 15 minutes of inactivity
 
 ### Req 9: Restrict Physical Access
-- Visitor log for data center
-- Badge access control
-- Secure destruction of media containing CHD
+- Visitor logs, badge access, and secure destruction of media containing CHD
 
 ### Req 10: Log and Monitor All Access
 ```python
 # Log all access to cardholder data
+import json
+import logging
+from datetime import datetime, timezone
+
+audit_logger = logging.getLogger("chd_audit")
+
 def log_chd_access(user_id, action, last4, amount=None):
     """Compliance log for Req 10 — never log full PAN."""
     entry = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "user_id": user_id,
         "action": action,          # "view" | "charge" | "refund"
         "card_last4": last4,       # ✅ Only last 4 digits
@@ -226,48 +241,58 @@ def log_chd_access(user_id, action, last4, amount=None):
 
 ### Req 11: Test Security Systems
 ```bash
-# Quarterly vulnerability scanning (approved scanning vendor required)
-# Annual penetration testing
+# Quarterly external scans must be run by an Approved Scanning Vendor (ASV).
+# Quarterly internal scans by qualified staff; annual penetration test.
 
-# Internal scan with nmap
+# Internal scan with nmap (only ranges you own and have authorized)
 nmap -sV --script vuln -oX vuln-scan-$(date +%Y%m%d).xml 10.0.1.0/24
 
-# Run OWASP ZAP against payment pages
-docker run -t owasp/zap2docker-stable zap-baseline.py \
-  -t https://yoursite.com/checkout \
+# Passive baseline scan of a staging checkout with OWASP ZAP.
+# owasp/zap2docker-stable is retired; use the GHCR image.
+docker run --rm -t -v "$PWD":/zap/wrk:rw ghcr.io/zaproxy/zaproxy:stable \
+  zap-baseline.py -t https://staging.shop.northwind-labs.io/checkout \
   -r zap-report-$(date +%Y%m%d).html
 ```
 
 ### Req 12: Support Information Security with Policies
-- Written information security policy
-- Annual risk assessment
-- Incident response plan
-- Employee security training
-
-## Tokenization Architecture
-
-```
-Customer → Stripe.js → Stripe Servers → Token returned to your app
-                ↓
-         Card data never
-         touches your server
-                ↓
-Your Server → Receives token only → Stores token in DB
-                ↓
-Payment needed → Send token to Stripe API → Stripe processes → Result
-```
+- Written security policy, annual risk assessment, incident response plan (with a card data breach procedure), and staff training
 
 ## Compliance Checklist
 
 - [ ] SAQ type selected and validated
 - [ ] CDE scoped and documented with network diagram
-- [ ] Payment processor BAA/agreement signed
-- [ ] No SAD stored post-authorization (no CVV, no full stripe)
+- [ ] Payment processor agreement signed, with its PCI DSS responsibility matrix (Req 12.8, 12.9)
+- [ ] No SAD stored post-authorization (no CVV, no full magnetic stripe)
 - [ ] PANs masked or tokenized in storage
 - [ ] Card data never appears in logs
 - [ ] TLS 1.2+ enforced on all connections
 - [ ] MFA enabled for all CDE access
 - [ ] Quarterly vulnerability scans scheduled
 - [ ] Annual penetration test planned
-- [ ] Incident response plan includes card data breach procedure
 - [ ] Log retention: 12 months minimum
+
+## Examples
+
+### Which SAQ for a hosted checkout
+
+> We use Stripe Checkout on our site, and our servers never see card numbers. Which SAQ do we fill in?
+
+Likely SAQ A, because card data is entered on Stripe's hosted page and never reaches your systems. Confirm with your acquirer, then complete the SAQ A questionnaire and attest annually. If you later add custom JavaScript to the checkout page, re-check for SAQ A-EP.
+
+### Find PANs in application logs before a release
+
+> Check our Node logs in ./logs for card numbers before we ship.
+
+```bash
+grep -rEn '[0-9]{13,19}' logs/ | head -50
+```
+
+Result: a list of `file:line` hits. Each hit must be reviewed by hand, because order IDs and timestamps also match. Keep only candidates that pass the Luhn check in Req 6. Any real PAN found means the logging code is wrong: fix it, purge the logs, and treat it as a security incident under Req 12.
+
+## Guidelines
+
+- Keep scope small: the cheapest control is never having card data in your systems.
+- Never store SAD (CVV/CVC, full track data, PIN) after authorization, even encrypted.
+- Use the current standard in your paperwork: v4.0.1, not v4.0.
+- These notes are engineering guidance, not an assessment. Your acquirer or a QSA decides SAQ eligibility and compliance status.
+- Read the PCI SSC "SAQ Instructions and Guidelines" document before filling in any SAQ.
