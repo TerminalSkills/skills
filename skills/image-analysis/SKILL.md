@@ -9,10 +9,10 @@ description: >-
   design use", "describe this reference image", or "why does this image look
   wrong". Produces CSS variables, a Tailwind theme block or a written brief.
 license: Apache-2.0
-compatibility: "Python 3.10+ with Pillow (run on Pillow 12.3). The optional element finder also needs NumPy and SciPy. Reads PNG, JPEG, WebP, GIF, BMP and TIFF."
+compatibility: "Python 3.11+ with Pillow (run on Pillow 13.0; Pillow 13 dropped Python 3.10). The optional element finder also needs NumPy and SciPy. Reads PNG, JPEG, WebP, GIF, BMP and TIFF."
 metadata:
   author: terminal-skills
-  version: "2.0.0"
+  version: "2.1.0"
   category: design
   tags: ["image-analysis", "color-palette", "design-tokens", "screenshots", "pillow"]
 ---
