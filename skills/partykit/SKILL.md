@@ -1,196 +1,161 @@
 ---
 name: partykit
 description: >-
-  Build multiplayer and collaborative apps with PartyKit. Use when a user asks
-  to build real-time collaboration features, create multiplayer experiences,
-  add live cursors, build collaborative editing, create real-time voting or
-  polls, sync state across clients, or build WebSocket servers on the edge.
-  Covers PartyServer definition, client connections, state management,
-  hibernation, and deployment to Cloudflare.
+  PartyKit and its successor PartyServer are libraries for building real-time
+  multiplayer and collaborative apps on Cloudflare Durable Objects: each room
+  is a server instance that handles WebSocket connections, broadcasts and
+  storage. Use this skill when a user asks for live cursors, chat rooms,
+  collaborative editing, real-time polls or any WebSocket sync, or needs to
+  migrate off the hosted PartyKit platform, which shuts down on 23 October 2026.
 license: Apache-2.0
-compatibility: 'Node.js 18+ (deploys to Cloudflare Workers)'
+compatibility: 'Node.js 22+ (wrangler and create-cloudflare require it), a Cloudflare account (the free Workers plan includes SQLite-backed Durable Objects)'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/cloudflare/partykit
   tags:
     - partykit
     - realtime
     - multiplayer
-    - collaboration
     - websocket
-    - edge
+    - cloudflare
 ---
 
-# PartyKit
+# PartyKit and PartyServer
 
 ## Overview
 
-PartyKit is a platform for building real-time, multiplayer, and collaborative applications. Each "party" is an isolated room running on Cloudflare's edge network — close to users for low latency. Unlike Socket.IO (which needs a persistent server), PartyKit runs serverless with automatic hibernation — you pay for active connections, not idle servers. Use it for collaborative editing, live cursors, multiplayer games, real-time polls, and any feature where multiple clients need synchronized state.
+PartyKit started as a hosted platform (`*.partykit.dev`, `npx partykit deploy`). It is now run by Cloudflare, which maintains its successor **PartyServer** (`partyserver` on npm, repo cloudflare/partykit): a `Server` class on top of Cloudflare Durable Objects with rooms, connection lifecycle hooks, broadcasting and hibernation, deployed with `wrangler` to your own Cloudflare account.
+
+**The hosted PartyKit platform is being shut down:** no new projects since 9 October 2026, deploys stop on 16 October, and the platform and its room data are deleted on 23 October 2026. `npx partykit deploy` to your own Cloudflare account also stops working that day. New projects must use PartyServer; existing ones should migrate (see below). The `partykit` CLI package was last published in May 2025.
+
+Related packages: `partysocket` (client, with reconnect and buffering), `y-partyserver` (Yjs collaborative editing), `hono-party` (Hono middleware), `partywhen` (scheduled tasks).
 
 ## Instructions
 
-### Step 1: Setup
+1. Create a Worker project and install:
 
 ```bash
-# Create new project
-npm create partykit@latest my-party
-cd my-party
-
-# Or add to existing project
-npm install partykit partysocket
-
-# Start development server
-npx partykit dev
-# Server running at http://127.0.0.1:1999
+npm create cloudflare@latest chat-rooms
+cd chat-rooms
+npm install partyserver partysocket
 ```
 
-### Step 2: Define a Party Server
+2. Write the server. One class per kind of room; the room name comes from the URL.
 
 ```typescript
-// party/index.ts — A PartyKit server (one instance per room)
-import type * as Party from 'partykit/server'
+// src/server.ts
+import { routePartykitRequest, Server } from "partyserver";
+import type { Connection, ConnectionContext } from "partyserver";
 
-export default class ChatRoom implements Party.Server {
-  // Shared state for this room
-  messages: Array<{ author: string; text: string; timestamp: number }> = []
+type Env = { ChatRoom: DurableObjectNamespace<ChatRoom> };
 
-  constructor(readonly room: Party.Room) {}
+export class ChatRoom extends Server<Env> {
+  static options = { hibernate: true };
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    /** Called when a client connects to this room. */
-    // Send existing messages to the new connection
-    conn.send(JSON.stringify({ type: 'history', messages: this.messages }))
+  async onStart() {
+    // runs on first start and after waking from hibernation
+    this.messages = (await this.ctx.storage.get<string[]>("messages")) ?? [];
+  }
+  messages: string[] = [];
 
-    // Notify others
-    this.room.broadcast(
-      JSON.stringify({ type: 'user-joined', connectionId: conn.id }),
-      [conn.id]    // exclude the new connection
-    )
+  onConnect(conn: Connection, _ctx: ConnectionContext) {
+    conn.send(JSON.stringify({ type: "history", messages: this.messages }));
   }
 
-  onMessage(message: string, sender: Party.Connection) {
-    /** Called when a client sends a message. */
-    const data = JSON.parse(message)
-
-    if (data.type === 'chat') {
-      const chatMessage = {
-        author: data.author,
-        text: data.text,
-        timestamp: Date.now(),
-      }
-      this.messages.push(chatMessage)
-
-      // Broadcast to all connections in this room
-      this.room.broadcast(JSON.stringify({ type: 'new-message', message: chatMessage }))
-    }
+  async onMessage(sender: Connection, message: string) {
+    this.messages = [...this.messages.slice(-99), message];
+    await this.ctx.storage.put("messages", this.messages);
+    this.broadcast(JSON.stringify({ type: "message", text: message }), [sender.id]);
   }
+}
 
-  onClose(conn: Party.Connection) {
-    this.room.broadcast(JSON.stringify({ type: 'user-left', connectionId: conn.id }))
-  }
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return (await routePartykitRequest(request, env)) || new Response("Not Found", { status: 404 });
+  },
+} satisfies ExportedHandler<Env>;
+```
+
+Note the argument order: `onMessage(connection, message)` (PartyKit's old API had `message, sender`). Use `this.name` for the room name, `this.ctx.storage` for storage, `this.env` for bindings.
+
+3. Configure `wrangler.jsonc`. Unlike PartyKit, wrangler does not create Durable Object bindings or migrations for you; add a new migration entry whenever you add, rename or remove a class.
+
+```jsonc
+{
+  "name": "chat-rooms",
+  "main": "src/server.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": { "bindings": [{ "name": "ChatRoom", "class_name": "ChatRoom" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ChatRoom"] }]
 }
 ```
 
-### Step 3: Client Connection
+`routePartykitRequest` serves `/parties/:server/:room`, where `:server` is the kebab-cased binding name (`ChatRoom` becomes `chat-room`). Binding named `Main` is the default party for older clients.
+
+4. Connect from the browser or React:
 
 ```typescript
-// hooks/useParty.ts — React hook for PartyKit connection
-import usePartySocket from 'partysocket/react'
+import usePartySocket from "partysocket/react";
 
-export function useChatRoom(roomId: string, userName: string) {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-
-  const socket = usePartySocket({
-    host: process.env.NEXT_PUBLIC_PARTYKIT_HOST!,
-    room: roomId,
-    onMessage(event) {
-      const data = JSON.parse(event.data)
-
-      if (data.type === 'history') {
-        setMessages(data.messages)
-      } else if (data.type === 'new-message') {
-        setMessages(prev => [...prev, data.message])
-      }
-    },
-  })
-
-  const sendMessage = (text: string) => {
-    socket.send(JSON.stringify({ type: 'chat', author: userName, text }))
-  }
-
-  return { messages, sendMessage, readyState: socket.readyState }
-}
+const socket = usePartySocket({
+  host: import.meta.env.VITE_PARTY_HOST, // e.g. chat-rooms.northwind.workers.dev, or localhost:8787 in dev
+  party: "chat-room",
+  room: "support-team",
+  onMessage(event) {
+    const data = JSON.parse(event.data);
+    if (data.type === "history") setMessages(data.messages);
+    else setMessages((prev) => [...prev, data.text]);
+  },
+});
+socket.send("Deploy finished");
 ```
 
-### Step 4: Live Cursors
-
-```typescript
-// party/cursors.ts — Real-time cursor sharing (like Figma)
-import type * as Party from 'partykit/server'
-
-type Cursor = { x: number; y: number; name: string; color: string }
-
-export default class CursorRoom implements Party.Server {
-  cursors = new Map<string, Cursor>()
-
-  constructor(readonly room: Party.Room) {}
-
-  onMessage(message: string, sender: Party.Connection) {
-    const cursor: Cursor = JSON.parse(message)
-    this.cursors.set(sender.id, cursor)
-
-    // Broadcast cursor position to everyone else
-    this.room.broadcast(
-      JSON.stringify({ id: sender.id, ...cursor }),
-      [sender.id]
-    )
-  }
-
-  onClose(conn: Party.Connection) {
-    this.cursors.delete(conn.id)
-    this.room.broadcast(JSON.stringify({ id: conn.id, gone: true }))
-  }
-}
-```
-
-### Step 5: Deploy
-
-```bash
-# Deploy to Cloudflare's edge network
-npx partykit deploy
-
-# Custom domain
-npx partykit deploy --domain my-party.example.com
-
-# Environment variables
-npx partykit env add OPENAI_API_KEY
-```
+5. Run and deploy: `npx wrangler dev` (default `http://localhost:8787`), `npx wrangler login`, `npx wrangler deploy`. Secrets: `npx wrangler secret put OPENAI_API_KEY`; plain settings go in `vars`.
+6. Gate connections in the Worker, not in the room: pass `onBeforeConnect(request, { party, name })` to `routePartykitRequest` and return a `Response` (401 or 403) to refuse, or nothing to allow.
+7. Other hooks: `onClose`, `onError`, `onRequest` (HTTP to the room), `onAlarm` (set with `this.ctx.storage.setAlarm`), `getConnectionTags`, `this.getConnections(tag)`. Per-connection state up to 2 KB: `conn.setState(...)`.
 
 ## Examples
 
-### Example 1: Add collaborative editing to a document app
-**User prompt:** "Add real-time collaboration to our note-taking app — multiple users editing the same document with live cursors."
+### Live cursors in a shared canvas
 
-The agent will:
-1. Create a PartyKit server that manages document state and cursor positions.
-2. Use CRDT (Yjs) for conflict-free concurrent editing.
-3. Add cursor presence showing each editor's position and name.
-4. Deploy to Cloudflare's edge for global low-latency access.
+```typescript
+export class CursorRoom extends Server {
+  static options = { hibernate: true };
 
-### Example 2: Build a live polling/voting feature
-**User prompt:** "Add real-time polls to our presentation tool. Audience votes on their phones, results update live on the presenter's screen."
+  onMessage(sender: Connection, message: string) {
+    // clients send {"x":412,"y":96,"name":"Priya"} on pointer move
+    this.broadcast(JSON.stringify({ id: sender.id, ...JSON.parse(message) }), [sender.id]);
+  }
 
-The agent will:
-1. Create a party room per poll with vote state.
-2. Audience connects via phone, casts votes.
-3. Presenter view receives real-time vote count updates.
-4. Results animate as votes come in.
+  onClose(conn: Connection) {
+    this.broadcast(JSON.stringify({ id: conn.id, gone: true }));
+  }
+}
+```
+
+Result: each browser tab sees the other tabs' cursors move in real time and vanish when a tab closes. Cursor positions are never stored, so nothing is kept in memory across hibernation.
+
+### Migrate a PartyKit project before 23 October 2026
+
+User: "Our app uses partykit.dev and `npx partykit deploy`. Move it."
+
+1. `npm install partyserver && npm install -D wrangler`, then remove `partykit`.
+2. Change `class Chat implements Party.Server` to `class Chat extends Server` from `partyserver`; drop the constructor; `this.room.id` becomes `this.name`, `this.room.storage` becomes `this.ctx.storage`, `this.room.broadcast` becomes `this.broadcast`; swap `onMessage(message, sender)` to `onMessage(sender, message)`.
+3. Replace `partykit.json` with `wrangler.jsonc` (binding named `Main` keeps old clients working) and move static `onBeforeConnect` into `routePartykitRequest` options.
+4. Room storage does not move automatically. Exporting needs an `onRequest` on the old server (returning `this.room.storage.list()` behind a secret) and a redeploy, and deploys on the hosted platform were switched off on 16 October. If you still need the data, ask on the PartyKit Discord now; the migration guide has the export and import endpoints and a copy script.
+5. Point clients' `host` at `chat-rooms.<subdomain>.workers.dev`, run `npx wrangler deploy`.
+
+Result: the same rooms run on your own Cloudflare account and `partysocket` clients work after a host change. The migration guide at docs.partykit.io/guides/migrate-to-partyserver has the full table of renamed APIs.
 
 ## Guidelines
 
-- Each room is an isolated instance — state is not shared between rooms. Use room IDs to partition data (one room per document, per game session, per chat channel).
-- PartyKit hibernates rooms with no active connections — you're not paying for idle rooms. State persists in the room object while connections exist.
-- For persistent state (survive room hibernation), use PartyKit's built-in storage (`this.room.storage`) or an external database.
-- Use `partysocket` (not raw WebSocket) on the client — it handles reconnection, buffering, and the PartyKit protocol.
-- PartyKit deploys to Cloudflare's edge network — rooms run closest to the first connecting user, then all subsequent users connect to that location.
+- Each room is its own Durable Object: state is not shared between rooms, so pick room names that match the unit of collaboration (one per document, game, channel).
+- With hibernation (`static options = { hibernate: true }`), the class instance is thrown away between messages and `onStart` runs again. Anything that must survive goes in `this.ctx.storage`, not in class fields. Do not define `webSocketMessage`, `webSocketClose` or `webSocketError` yourself.
+- Use `partysocket` rather than a bare WebSocket on the client; it reconnects and buffers sends.
+- Do not trust client messages: validate the JSON, and authenticate in `onBeforeConnect` (a token in the query string is the usual route).
+- A room runs in one location (near its first connection); very large audiences need `partysub` or sharded rooms.
+- Yjs documents: use `y-partyserver`. The old `y-partykit` package belongs to the retired platform.
+- Cloudflare bills Durable Object requests and duration directly; hibernation lowers cost when rooms are idle.
