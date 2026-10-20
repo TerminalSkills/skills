@@ -6,10 +6,11 @@ description: >-
   to a TCP port, map open ports behind an ICMP-blocking host, or simulate
   packet patterns for network troubleshooting on systems they control.
 license: Apache-2.0
-compatibility: 'hping3 3.0.0-alpha-2, Linux'
+compatibility: 'hping3 3.a2 (Debian/Ubuntu package 3.a2.ds2), Linux, root or CAP_NET_RAW'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/antirez/hping
   category: devops
   tags:
     - hping3
@@ -23,7 +24,9 @@ metadata:
 
 ## Overview
 
-hping3 is a command-line TCP/IP packet crafter. Unlike `ping` (ICMP only), hping3 can send TCP, UDP, and raw IP packets with any flag combination, arbitrary payloads, spoofed sources, and fragmentation — useful for firewall auditing, ACL testing, reachability probes where ICMP is filtered, and low-level network experiments on your own infrastructure. It is interactive and scriptable.
+hping3 is a command-line TCP/IP packet crafter. Unlike `ping` (ICMP only), hping3 can send TCP, UDP, and raw IP packets with any flag combination, arbitrary payloads, spoofed sources, and fragmentation — useful for firewall auditing, ACL testing, reachability probes where ICMP is filtered, and low-level network experiments on your own infrastructure. It is scriptable from the shell.
+
+Install from your distribution (`sudo apt install hping3` on Debian and Ubuntu). The upstream repository has had no commits since 2014; distributions carry patches.
 
 ## Instructions
 
@@ -31,7 +34,7 @@ hping3 is a command-line TCP/IP packet crafter. Unlike `ping` (ICMP only), hping
 
 ```bash
 # TCP SYN ping to port 443 — works even when ICMP is dropped
-sudo hping3 -S -p 443 -c 3 example.com
+sudo hping3 -S -p 443 -c 3 www.shopfront.dev
 # -S: SYN flag
 # -p: destination port
 # -c: packet count
@@ -40,16 +43,19 @@ sudo hping3 -S -p 443 -c 3 example.com
 sudo hping3 -A -p 80 -c 3 target.local
 
 # UDP probe
-sudo hping3 --udp -p 53 -c 3 ns.example.com
+sudo hping3 --udp -p 53 -c 3 ns1.shopfront.dev
 
-# Traceroute using TCP SYNs (ICMP-agnostic)
-sudo hping3 --traceroute -V -S -p 443 example.com
+# Traceroute using TCP SYN probes (hops still answer with ICMP time-exceeded)
+sudo hping3 --traceroute -V -S -p 443 www.shopfront.dev
 ```
 
 ### Step 2: Port Scan a Host that Blocks ICMP
 
 ```bash
-# Sweep a port range with SYN packets
+# Built-in scan mode: ranges, lists, 'known' (ports in /etc/services) or 'all'
+sudo hping3 --scan 1-1024 -S target.local
+
+# Or sweep with incrementing destination port
 sudo hping3 -S -p ++80 -c 50 target.local
 # ++80: increment destination port starting at 80
 # Watch replies: SA=open, RA=closed, nothing=filtered
@@ -72,7 +78,7 @@ sudo hping3 -S -s 53 -p 80 --keep -c 3 target.local
 sudo hping3 -S -p 80 -f -c 3 target.local
 # -f: fragment the packet
 
-# Verify whether the firewall lets through packets with the evil bit / reserved flags
+# Send SYNs carrying the TCP timestamp option (also estimates remote uptime)
 sudo hping3 -S -p 80 --tcp-timestamp -c 3 target.local
 ```
 
@@ -80,11 +86,11 @@ sudo hping3 -S -p 80 --tcp-timestamp -c 3 target.local
 
 ```bash
 # Per-packet RTT for a specific service (better than ping for SLA checks)
-sudo hping3 -S -p 443 -c 20 -i u200000 api.example.com
+sudo hping3 -S -p 443 -c 20 -i u200000 api.shopfront.dev
 # -i u200000: one packet every 200ms
 
 # Summary at the end:
-# --- api.example.com hping statistic ---
+# --- api.shopfront.dev hping statistic ---
 # 20 packets transmitted, 20 packets received, 0% packet loss
 # round-trip min/avg/max = 12.3/14.1/18.7 ms
 ```
@@ -100,8 +106,9 @@ sudo hping3 -S -p 80 -d 200 -E payload.bin target.local
 # Listen mode — capture packets with a signature
 sudo hping3 --listen 'HTTP' -I eth0
 
-# Tcl scripting (hping3 embeds a Tcl interpreter)
-sudo hping3 exec myscript.htcl
+# Use the exit code in scripts: it is the TCP flags byte of the last reply
+# (18 = SYN+ACK, port open; 20 = RST+ACK, closed; see --tcpexitcode in the man page)
+sudo hping3 -S -p 443 -c 1 --tcpexitcode target.local
 ```
 
 ## Examples
@@ -109,38 +116,38 @@ sudo hping3 exec myscript.htcl
 ### Example 1: Validate a New Firewall Rule
 
 ```bash
-# The ops team just allowed TCP/5432 from the app tier to db.example.internal.
+# The ops team just allowed TCP/5432 from the app tier to db.shopfront.internal.
 # Verify the rule without installing a real Postgres client on the test host.
 
 # From an in-scope app host
-sudo hping3 -S -p 5432 -c 5 db.example.internal
+sudo hping3 -S -p 5432 -c 5 db.shopfront.internal
 # Expected: SA flags (SYN+ACK) → port reachable and listening
 # If RA (RST+ACK) → reachable but no listener
 # If nothing → firewall is still dropping
 
 # Negative control: prove TCP/6379 is still blocked
-sudo hping3 -S -p 6379 -c 5 db.example.internal
+sudo hping3 -S -p 6379 -c 5 db.shopfront.internal
 # Expected: no response (100% loss) — rule is tight
 ```
 
 ### Example 2: Troubleshoot Asymmetric Latency
 
 ```bash
-# App team reports "intermittent 500ms latency to api.example.com"
+# App team reports "intermittent 500ms latency to api.shopfront.dev"
 # ping shows steady 30ms but that's ICMP. Measure the real TCP path:
 
-sudo hping3 -S -p 443 -c 200 -i u100000 api.example.com \
+sudo hping3 -S -p 443 -c 200 -i u100000 api.shopfront.dev \
   | tee /tmp/hping-api.log
 
 # Look for outliers
-awk '/rtt/ {print $NF}' /tmp/hping-api.log | sort -n | tail -20
-# 31.2 ms
-# 32.0 ms
-# 498.6 ms   <-- confirmed outlier
-# 502.1 ms
+grep -o 'rtt=[0-9.]*' /tmp/hping-api.log | cut -d= -f2 | sort -n | tail -4
+# 31.2
+# 32.0
+# 498.6   <-- confirmed outlier
+# 502.1
 
 # Traceroute via TCP to locate the slow hop
-sudo hping3 --traceroute -V -S -p 443 api.example.com
+sudo hping3 --traceroute -V -S -p 443 api.shopfront.dev
 ```
 
 ## Guidelines
@@ -151,5 +158,6 @@ sudo hping3 --traceroute -V -S -p 443 api.example.com
 - Do not use source spoofing (`-a` / `--spoof`) across the public internet. Upstream filters drop it and it's illegal on networks you don't own.
 - Flood mode (`--flood`) and high rates (`-i u1`) are denial-of-service tools. Do not use them on shared infrastructure — ever. They are here for lab/stress testing on your own gear only.
 - For TCP RTT to a specific service, hping3 is more reliable than `ping` because it hits the actual listener.
+- Replies from the target depend on its firewall; run hping3 only against hosts in your own scope (for a local smoke test use `127.0.0.1`).
 - Modern replacements worth knowing: `nping` (Nmap's packet crafter — actively maintained) and `scapy` (programmable in Python). Reach for them when `hping3` falls short.
 - Always pair packet crafting with a packet capture (`tshark`, `tcpdump`) on at least one end — it's how you confirm what actually hit the wire.
