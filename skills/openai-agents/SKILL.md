@@ -1,189 +1,127 @@
 ---
 name: openai-agents
 description: >-
-  You are an expert in the OpenAI Agents SDK (formerly Swarm), the official
-  framework for building multi-agent systems. You help developers create
-  agents with tool calling, guardrails, agent handoffs, streaming, tracing,
-  and MCP integration — building production-grade AI agents that coordinate,
-  delegate tasks, and execute tools with built-in safety controls.
+  The OpenAI Agents SDK is a Python framework (openai-agents) for building agents that call tools,
+  hand work to other agents, run guardrails and stream results, with built-in tracing and MCP support.
+  Use when building a multi-agent workflow with OpenAI models, adding function tools, handoffs, input
+  guardrails or sessions, or when the user mentions openai-agents, Runner.run, or the Agents SDK
+  (the successor to Swarm).
 license: Apache-2.0
-compatibility: ''
+compatibility: "Python 3.10+, OPENAI_API_KEY"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
-  tags:
-    - openai
-    - agents
-    - tools
-    - guardrails
-    - handoff
-    - multi-agent
-    - python
+  version: "1.1.0"
+  category: data-ai
+  tags: ["openai", "agents", "tools", "guardrails", "multi-agent"]
+  repository: "https://github.com/openai/openai-agents-python"
 ---
 
-# OpenAI Agents SDK — Build Production AI Agents
+# OpenAI Agents SDK
 
-You are an expert in the OpenAI Agents SDK (formerly Swarm), the official framework for building multi-agent systems. You help developers create agents with tool calling, guardrails, agent handoffs, streaming, tracing, and MCP integration — building production-grade AI agents that coordinate, delegate tasks, and execute tools with built-in safety controls.
+## Overview
 
-## Core Capabilities
+The OpenAI Agents SDK (`pip install openai-agents`, import name `agents`; version 0.24.0 checked, Python 3.10+) is the production successor to the experimental Swarm project. Its small set of primitives: `Agent` (instructions plus tools), handoffs and agents-as-tools for delegation, guardrails for validating input and output, sessions for memory, and built-in tracing. It uses the Responses API by default for OpenAI models. A JavaScript version exists as `@openai/agents`; this skill covers the Python SDK.
 
-### Agent Definition
+## Instructions
+
+1. Install and set the key: `pip install openai-agents`, `export OPENAI_API_KEY=...`.
+2. Create agents with `Agent(name=..., instructions=..., tools=[...], model=...)`. Run with `Runner.run_sync(agent, text)` in scripts, `await Runner.run(agent, text)` in async code; read `result.final_output`.
+3. Tools: decorate a function with `@function_tool`. The schema comes from type hints and the docstring (Google-style `Args:` descriptions). Hosted tools such as `WebSearchTool` can go in the same `tools` list.
+4. Handoffs: `handoffs=[billing_agent]` takes `Agent` objects (or `handoff(...)` wrappers), not name strings, so define the specialists first. A handoff transfers the conversation; use `agent.as_tool(...)` instead when the main agent should keep control and just call another agent.
+5. Typed output: `output_type=SomePydanticModel` makes `final_output` a validated object.
+6. Input guardrails: decorate `async def check(ctx, agent, input) -> GuardrailFunctionOutput` with `@input_guardrail` and pass `input_guardrails=[check]`. When `tripwire_triggered=True` the run raises `InputGuardrailTripwireTriggered`; catch it. Output guardrails work the same with `@output_guardrail`.
+7. Streaming: `result = Runner.run_streamed(agent, input=...)` (not awaited), then `async for event in result.stream_events()`. Event types are `raw_response_event` (tokens; check `isinstance(event.data, ResponseTextDeltaEvent)` from `openai.types.responses`), `run_item_stream_event` (`event.name` such as `tool_called`, `tool_output`, `message_output_created`) and `agent_updated_stream_event` (after a handoff).
+8. MCP: `MCPServerStdio(params={"command": "npx", "args": [...]})` as an async context manager, then `Agent(mcp_servers=[server])`. Also available: `MCPServerStreamableHttp(params={"url": ..., "headers": ...})` and `HostedMCPTool` (the Responses API connects to the server itself). `cache_tools_list=True` is safe only if the tool list rarely changes.
+9. Tracing is on by default and uploads to the OpenAI dashboard; disable with `OPENAI_AGENTS_DISABLE_TRACING=1` or `set_tracing_disabled(True)` when data must not leave your environment.
+
+## Examples
+
+### Example 1: Triage agent with a billing specialist
+
+**User request:** "Route refund questions to a billing agent that can look up orders."
 
 ```python
-# agents/customer_support.py — Multi-agent customer support system
-from agents import Agent, Runner, function_tool, GuardrailFunctionOutput, InputGuardrail
-from pydantic import BaseModel
-
-class OrderInfo(BaseModel):
-    order_id: str
-    status: str
-    total: float
-    items: list[str]
+import asyncio
+from agents import Agent, Runner, function_tool
 
 @function_tool
-async def lookup_order(order_id: str) -> OrderInfo:
-    """Look up an order by ID.
+def lookup_order(order_id: str) -> str:
+    """Look up an order.
 
     Args:
-        order_id: The order identifier (e.g., ORD-12345)
+        order_id: The order identifier, for example ORD-12345
     """
-    order = await db.orders.find_by_id(order_id)
-    return OrderInfo(
-        order_id=order.id,
-        status=order.status,
-        total=order.total,
-        items=[item.name for item in order.items],
-    )
+    return "ORD-12345: delivered 2026-10-02, total $48.00, status damaged-on-arrival"
 
-@function_tool
-async def initiate_refund(order_id: str, reason: str) -> str:
-    """Initiate a refund for an order.
-
-    Args:
-        order_id: The order to refund
-        reason: Reason for the refund
-    """
-    result = await payments.refund(order_id, reason)
-    return f"Refund initiated: ${result.amount}. Reference: {result.reference_id}"
-
-@function_tool
-async def escalate_to_human(summary: str) -> str:
-    """Escalate to a human agent when the issue is too complex.
-
-    Args:
-        summary: Brief summary of the issue for the human agent
-    """
-    ticket = await support.create_ticket(summary, priority="high")
-    return f"Escalated to human agent. Ticket: {ticket.id}"
-
-# Triage agent — routes to the right specialist
-triage_agent = Agent(
-    name="Triage",
-    instructions="""You are a customer support triage agent.
-    Determine the customer's issue and hand off to the appropriate specialist:
-    - Order issues → Order Specialist
-    - Billing/refund → Billing Specialist
-    - Technical problems → escalate to human""",
-    handoffs=["order_specialist", "billing_specialist"],
-    tools=[escalate_to_human],
-)
-
-# Specialist agents
-order_specialist = Agent(
-    name="Order Specialist",
-    instructions="You handle order-related inquiries. Look up orders, provide status updates, and help with modifications.",
-    tools=[lookup_order],
-    handoffs=["billing_specialist"],       # Can hand off to billing if needed
-)
-
-billing_specialist = Agent(
+billing = Agent(
     name="Billing Specialist",
-    instructions="You handle billing and refund requests. Verify orders before processing refunds. Maximum refund without approval: $500.",
-    tools=[lookup_order, initiate_refund],
+    instructions="Handle refunds. Always look up the order first.",
+    tools=[lookup_order],
 )
-```
-
-### Guardrails
-
-```python
-# Input guardrail — runs before the agent processes the message
-class ContentCheck(BaseModel):
-    is_appropriate: bool
-    reasoning: str
-
-async def content_guardrail(ctx, agent, input) -> GuardrailFunctionOutput:
-    """Check if user input is appropriate before processing."""
-    result = await Runner.run(
-        Agent(
-            name="Content Checker",
-            instructions="Check if the input is a legitimate customer support request. Flag inappropriate content.",
-            output_type=ContentCheck,
-        ),
-        input,
-        context=ctx,
-    )
-    return GuardrailFunctionOutput(
-        output_info=result.final_output,
-        tripwire_triggered=not result.final_output.is_appropriate,
-    )
-
-triage_agent = Agent(
+triage = Agent(
     name="Triage",
-    instructions="...",
-    input_guardrails=[InputGuardrail(guardrail_function=content_guardrail)],
-    handoffs=["order_specialist", "billing_specialist"],
+    instructions="Send billing and refund questions to the Billing Specialist.",
+    handoffs=[billing],
 )
+
+async def main():
+    result = await Runner.run(triage, "Refund order ORD-12345, it arrived damaged")
+    print(result.final_output)
+
+asyncio.run(main())
 ```
 
-### Running Agents
+**Result:** the trace shows Triage handing off to Billing Specialist, one `lookup_order` call, then a reply about the refund.
+
+### Example 2: Block off-topic input with a guardrail
+
+**User request:** "Reject messages that are not support requests before the main agent runs."
 
 ```python
-from agents import Runner
+# The `await`/`async for` lines in Examples 2 and 3 must run inside an `async def` (as in Example 1) or a notebook.
+from pydantic import BaseModel
+from agents import (Agent, Runner, GuardrailFunctionOutput, RunContextWrapper,
+                    input_guardrail, InputGuardrailTripwireTriggered)
 
-# Single turn
-result = await Runner.run(
-    triage_agent,
-    "I want a refund for order ORD-12345, the product arrived damaged",
-)
-print(result.final_output)
-# Agent flow: Triage → Billing Specialist → lookup_order → initiate_refund
+class Check(BaseModel):
+    is_support_request: bool
 
-# Streaming
-async for event in Runner.run_streamed(triage_agent, user_message):
-    if event.type == "raw_response_event":
-        if hasattr(event.data, "delta"):
-            print(event.data.delta, end="")
+checker = Agent(name="Checker", instructions="Is this a customer support request?", output_type=Check)
+
+@input_guardrail
+async def only_support(ctx: RunContextWrapper[None], agent: Agent, user_input) -> GuardrailFunctionOutput:
+    res = await Runner.run(checker, user_input, context=ctx.context)
+    return GuardrailFunctionOutput(output_info=res.final_output,
+                                   tripwire_triggered=not res.final_output.is_support_request)
+
+support = Agent(name="Support", instructions="Help with orders.", input_guardrails=[only_support])
+
+try:
+    await Runner.run(support, "Write me a poem about cats")
+except InputGuardrailTripwireTriggered:
+    print("Sorry, I can only help with orders.")
+```
+
+**Result:** the poem request raises the tripwire exception before the Support agent produces output.
+
+### Example 3: Stream tokens and handoffs
+
+```python
+from agents import Runner   # triage is the agent from Example 1
+from openai.types.responses import ResponseTextDeltaEvent
+result = Runner.run_streamed(triage, input="Where is order ORD-12345?")
+async for event in result.stream_events():
+    if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
+        print(event.data.delta, end="", flush=True)
     elif event.type == "agent_updated_stream_event":
-        print(f"\n[Handed off to: {event.new_agent.name}]")
-    elif event.type == "tool_call_event":
-        print(f"\n[Calling tool: {event.tool_name}]")
-
-# With MCP servers
-from agents.mcp import MCPServerStdio
-
-async with MCPServerStdio(command="npx", args=["-y", "@modelcontextprotocol/server-filesystem", "/data"]) as mcp:
-    agent = Agent(
-        name="File Assistant",
-        instructions="Help users manage files",
-        mcp_servers=[mcp],
-    )
-    result = await Runner.run(agent, "List all Python files in /data")
+        print(f"\n[now: {event.new_agent.name}]")
 ```
 
-## Installation
+## Guidelines
 
-```bash
-pip install openai-agents
-```
-
-## Best Practices
-
-1. **Triage + specialists** — Use a triage agent for routing; specialist agents for domain-specific tasks
-2. **Guardrails** — Add input/output guardrails for content filtering, PII detection, policy enforcement
-3. **Handoffs** — Use handoffs for agent delegation; cheaper than one mega-agent with all tools
-4. **Structured output** — Use `output_type` with Pydantic models for typed, validated agent responses
-5. **Tool design** — Make tools focused (one action each); clear docstrings help the agent use them correctly
-6. **Tracing** — Enable tracing for debugging agent decisions, tool calls, and handoff chains
-7. **MCP integration** — Connect MCP servers for file access, database queries, API calls without custom tools
-8. **Streaming** — Use `run_streamed` for real-time output; show tool calls and handoffs to users for transparency
+- `handoffs` must hold agent objects; strings fail. Avoid circular definitions by creating the specialist first or by appending to `agent.handoffs` afterwards.
+- Keep consuming `stream_events()` to the end; the run only finishes then.
+- Input guardrails run only on the first agent in a chain, output guardrails only on the last; put checks that must always apply on the tool itself.
+- Tracing sends prompts and tool data to OpenAI by default; turn it off for sensitive workloads.
+- Give MCP servers only to agents that need them, connect only to trusted servers, and keep tokens in headers read from environment variables.
+- Cap runaway loops with `max_turns` on `Runner.run`.
