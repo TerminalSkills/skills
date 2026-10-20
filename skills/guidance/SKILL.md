@@ -1,144 +1,153 @@
 ---
 name: guidance
 description: >-
-  You are an expert in Guidance, Microsoft's library for controlling LLM
-  output with constrained generation. You help developers write programs that
-  interleave text generation with control flow (loops, conditionals, regex
-  constraints, JSON schemas, function calls) — ensuring LLM output always
-  matches the expected format by constraining the token generation process
-  itself, not just prompting.
+  Guidance is Microsoft's open-source Python library for controlling LLM output with constrained generation: you interleave text, control flow, regex, select() choices and JSON schemas, and the model can only emit tokens that fit. Use when a user needs guaranteed-valid JSON, classification into fixed labels, regex-shaped fields or a custom grammar from a local model (Transformers, llama.cpp), or asks for "guidance", "constrained decoding" or "structured output" without retry loops.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Python 3.10+; pip install guidance; full constraint support needs a local backend (Transformers, llama.cpp, ONNX Runtime GenAI)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: "1.1.0"
+  repository: "https://github.com/guidance-ai/guidance"
+  category: data-ai
   tags:
     - llm
     - constrained-generation
     - grammar
     - structured-output
-    - microsoft
+    - json-schema
 ---
 
 # Guidance — Constrained LLM Generation
 
-You are an expert in Guidance, Microsoft's library for controlling LLM output with constrained generation. You help developers write programs that interleave text generation with control flow (loops, conditionals, regex constraints, JSON schemas, function calls) — ensuring LLM output always matches the expected format by constraining the token generation process itself, not just prompting.
+## Overview
 
-## Core Capabilities
+Guidance (`guidance-ai/guidance`, version 0.3.x) constrains the token sampling itself, so output always matches a regex, a fixed list of options, a JSON schema or a context-free grammar. Model objects are immutable: `lm += ...` returns a new model with the text and any named captures. Backends: `Transformers`, `LlamaCpp`, `OnnxRuntimeGenAI`, `OpenAI`, Azure helpers (`create_azure_openai_model`, `create_azure_aifoundry_model`) and `Mock` for tests. Constraints are fully enforced only where the backend gives token-level control, i.e. local models; hosted APIs restrict what can be expressed.
 
-### Constrained Generation
+## Instructions
 
-```python
-import guidance
-from guidance import models, gen, select, regex, one_or_more, zero_or_more
+### Install
 
-# Load model (local or API)
-lm = models.OpenAI("gpt-4o")
-# Or local: models.Transformers("meta-llama/Llama-3.1-8B-Instruct")
-
-# Simple constrained generation
-lm += f"""
-Classify this review sentiment.
-Review: "The product arrived damaged but customer service was great"
-
-Sentiment: {select(["positive", "negative", "mixed", "neutral"], name="sentiment")}
-Confidence: {gen(regex=r"0\.\d{2}", name="confidence")}
-"""
-print(lm["sentiment"])     # "mixed" — constrained to exactly these options
-print(lm["confidence"])    # "0.82" — matches regex pattern exactly
-
-# Structured extraction with loops
-lm += f"""Extract all people mentioned:
-Text: "Alice met Bob at the cafe. Charlie joined them later."
-
-People:
-{one_or_more(f'''
-- Name: {gen(regex=r"[A-Z][a-z]+", name="names", list_append=True)}
-''')}
-"""
-print(lm["names"])         # ["Alice", "Bob", "Charlie"]
+```bash
+pip install guidance          # backend packages (transformers, torch, llama-cpp-python) are installed separately
 ```
 
-### JSON Generation
+### Chat models: roles, capture, regex, select
 
 ```python
-# Guaranteed valid JSON output
-from guidance import json as gen_json
+from guidance import system, user, assistant, gen, select
+from guidance.models import Transformers
+
+base = Transformers("microsoft/Phi-4-mini-instruct")   # downloads the model on first use
+
+lm = base
+with system():
+    lm += "You classify product reviews."
+with user():
+    lm += 'Review: "The product arrived damaged but customer service was great"'
+with assistant():
+    lm += select(["positive", "negative", "mixed", "neutral"], name="sentiment")
+
+print(lm["sentiment"])       # one of the four labels, nothing else is possible
+```
+
+`gen(regex=r"0\.\d{2}", name="confidence")` constrains a free-text field to a pattern; `gen(max_tokens=100, stop="\n")` bounds length. Read captures with `lm["name"]`.
+
+### Guaranteed JSON from a Pydantic model or schema
+
+```python
+import json
 from pydantic import BaseModel
+from guidance import json as gen_json
 
 class ProductReview(BaseModel):
     product_name: str
-    rating: int                           # Constrained to int
+    rating: int
     pros: list[str]
     cons: list[str]
     recommendation: bool
 
-lm += f"""Analyze this review and extract structured data:
-Review: "The XPS 15 has an amazing display and battery life, but runs hot under load. Would buy again."
+lm = base
+with user():
+    lm += "Extract data: The XPS 15 has an amazing display and battery life, but runs hot. Would buy again."
+with assistant():
+    lm += gen_json(name="review", schema=ProductReview)
 
-{gen_json(schema=ProductReview, name="review")}
-"""
-
-review = lm["review"]
-# {"product_name": "XPS 15", "rating": 4, "pros": ["amazing display", "battery life"],
-#  "cons": ["runs hot under load"], "recommendation": true}
-# GUARANTEED valid JSON matching the Pydantic schema
+review = ProductReview.model_validate_json(lm["review"])
 ```
 
-### Control Flow
+`schema` accepts a Pydantic class or a JSON-schema dict. Use `model_config = dict(extra="forbid")` on the Pydantic class for strict objects.
+
+### Control flow and lists
+
+Python `if`/`for` run between generations; f-strings can embed grammar pieces. `one_or_more` and `zero_or_more` (from `guidance`) add repetition to a grammar:
 
 ```python
-# Branching based on LLM output
-lm += f"""
-Task: {user_input}
+lm = base
+with user():
+    lm += "Classify this message: 'Please restart the staging database'"
+with assistant():
+    lm += f"Type: {select(['question', 'command', 'chitchat'], name='kind')}"
 
-First, determine the task type: {select(["question", "command", "chitchat"], name="task_type")}
-"""
-
-if lm["task_type"] == "question":
-    lm += f"""
-Answer the question with evidence:
-Answer: {gen(max_tokens=200, name="answer")}
-Sources: {gen(regex=r"https?://\S+", name="source")}
-"""
-elif lm["task_type"] == "command":
-    lm += f"""
-Generate the command:
-```bash
-{gen(stop="```", name="command")}
-```
-Explanation: {gen(max_tokens=100, name="explanation")}
-"""
-else:
-    lm += f"Response: {gen(max_tokens=50, name="response")}"
-
-# Multi-step reasoning
-lm += f"""
-Problem: {math_problem}
-
-Let me solve this step by step:
-{one_or_more(f'''
-Step {gen(regex=r"\d+", name="step_num")}: {gen(stop="\n", name="steps", list_append=True)}
-''')}
-
-Final answer: {gen(regex=r"-?\d+\.?\d*", name="answer")}
-"""
+if lm["kind"] == "command":
+    with user():
+        lm += "Write the shell command only."
+    with assistant():
+        lm += gen(name="command", stop="\n", max_tokens=80)
 ```
 
-## Installation
+### Reusable grammar functions and offline testing
 
-```bash
-pip install guidance
+Mark functions with `@guidance` (add `stateless=True` to compose them into a grammar). Debug constraints without a model:
+
+```python
+from guidance import gen, select
+from guidance.models import Mock
+
+grammar = "Sentiment: " + select(["positive", "negative", "mixed"], name="sentiment") + "\nScore: " + gen(regex=r"0\.\d{2}", name="score")
+assert grammar.match("Sentiment: mixed\nScore: 0.82") is not None
+assert grammar.match("Sentiment: great\nScore: 0.82") is None
+
+lm = Mock(b"<s>Sentiment: mixed\nScore: 0.82") + grammar
+print(lm["sentiment"], lm["score"])     # mixed 0.82
 ```
 
-## Best Practices
+## Examples
 
-1. **Select for classification** — Use `select()` instead of free-form text; LLM can only output valid options
-2. **Regex for format** — Use `regex=` for dates, numbers, IDs; output always matches the pattern
-3. **JSON schema** — Use `gen_json(schema=...)` for structured data; impossible to generate invalid JSON
-4. **Local models** — Guidance works best with local models (full token control); API models use prompt-based constraints
-5. **Control flow** — Mix Python logic with generation; branch on LLM output, loop for extraction
-6. **Named captures** — Use `name=` parameter to capture generated values; access with `lm["name"]`
-7. **Stop tokens** — Use `stop=` to control generation boundaries; prevent runaway output
-8. **List extraction** — Use `one_or_more()` with `list_append=True` for extracting variable-length lists
+### "Tag support tickets with a priority and a due-date format"
+
+```python
+lm = base
+with user():
+    lm += "Ticket: 'Checkout page returns 500 for all EU customers since 14:00'"
+with assistant():
+    lm += "Priority: " + select(["P1", "P2", "P3"], name="priority")
+    lm += "\nDue: " + gen(regex=r"20\d{2}-\d{2}-\d{2}", name="due")
+```
+
+Result: `lm["priority"]` is `P1`, `P2` or `P3`, and `lm["due"]` always looks like `2026-10-21`; no parsing or retry is needed.
+
+### "Extract an invoice into typed JSON"
+
+```python
+class Invoice(BaseModel):
+    vendor: str
+    total_eur: float
+    paid: bool
+
+with user():
+    lm += "Invoice text: Hetzner Online GmbH, total 41.65 EUR, status: paid"
+with assistant():
+    lm += gen_json(name="invoice", schema=Invoice)
+```
+
+Result: `{"vendor": "Hetzner Online GmbH", "total_eur": 41.65, "paid": true}`, valid against `Invoice` by construction (content correctness still depends on the model).
+
+## Guidelines
+
+- Valid format does not mean correct content: constraints guarantee syntax, not facts. Validate semantics separately.
+- Use `select()` for classification and `regex=` for IDs, dates and numbers; always give `gen()` a `max_tokens` or `stop` when the field is free text.
+- Prefer a local backend for hard guarantees; with `models.OpenAI` only the constraints the API can honor are available, so test your grammar before relying on it.
+- Use the chat roles (`system()`, `user()`, `assistant()`) with instruct models so the chat template is applied correctly; raw f-string prompts suit base models.
+- Models are immutable: assign the result (`lm = lm + ...` or `lm += ...`) and start each independent request from the base model object.
+- Test grammars offline with `grammar.match(...)` and `Mock`, which needs no GPU or API key.
+- Overly tight constraints (a regex the model finds very unlikely) can produce odd text; loosen them or improve the prompt.
