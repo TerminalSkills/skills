@@ -9,10 +9,10 @@ description: >-
   pass/fail image check in CI. Handles different sizes and scales, lossy
   formats, areas to ignore and rendering noise.
 license: Apache-2.0
-compatibility: "Python 3.12+ with Pillow, NumPy and scikit-image (run on Pillow 12.3, NumPy 2.5, scikit-image 0.26, SciPy 1.18). Optional: Node.js for the pixelmatch 7.2 command line (run on Node 24)."
+compatibility: "Python 3.12+ with Pillow, NumPy and scikit-image (run on Pillow 13.0, NumPy 2.5, scikit-image 0.26, SciPy 1.18). Optional: Node.js for the pixelmatch 8.0 command line (run on Node 24)."
 metadata:
   author: terminal-skills
-  version: "2.0.0"
+  version: "2.1.0"
   category: design
   tags: ["image-diff", "visual-regression", "ssim", "screenshots", "testing"]
 ---
