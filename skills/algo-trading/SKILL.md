@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "No special requirements"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags:
     - trading
@@ -53,19 +53,31 @@ def fetch_crypto_ohlcv(symbol: str, timeframe: str, since: str) -> list:
     return ohlcv
 
 def fetch_stock_data(ticker: str, period: str = '2y', interval: str = '1d'):
-    """Fetch stock OHLCV from Yahoo Finance."""
-    return yf.download(ticker, period=period, interval=interval)
+    """Fetch stock OHLCV from Yahoo Finance (auto-adjusted prices)."""
+    df = yf.download(ticker, period=period, interval=interval, auto_adjust=True)
+    # yfinance 1.x returns MultiIndex columns (Price, Ticker) even for one ticker;
+    # flatten and lowercase them so calculate_signals() finds df['close']
+    df.columns = [c.lower() for c in df.columns.get_level_values(0)]  # 'Close' -> 'close'
+    return df
 ```
 
-For real-time data, use WebSocket feeds (ccxt.pro):
+For real-time data, use WebSocket feeds. CCXT Pro ships with the `ccxt` package as `ccxt.pro`:
 
 ```python
-async def stream_orderbook(symbol: str = 'BTC/USDT'):
+import asyncio
+import ccxt.pro as ccxtpro
+
+async def stream_orderbook(symbol: str = 'BTC/USDT', updates: int = 100):
     exchange = ccxtpro.binance()
-    while True:
-        ob = await exchange.watch_order_book(symbol)
-        spread = (ob['asks'][0][0] - ob['bids'][0][0]) / ob['bids'][0][0] * 100
-        print(f"{symbol} Spread: {spread:.4f}%")
+    try:
+        for _ in range(updates):
+            ob = await exchange.watch_order_book(symbol)
+            spread = (ob['asks'][0][0] - ob['bids'][0][0]) / ob['bids'][0][0] * 100
+            print(f"{symbol} Spread: {spread:.4f}%")
+    finally:
+        await exchange.close()  # always close the WebSocket connection
+
+asyncio.run(stream_orderbook())
 ```
 
 ### Strategy development
@@ -104,6 +116,9 @@ A backtest must model real conditions — fees, slippage, and stop-losses:
 ```python
 # backtester.py — Vectorized backtester with realistic assumptions
 
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
 class BacktestConfig:
     commission: float = 0.001     # 0.1% per trade
     slippage: float = 0.0005      # 0.05% estimated
@@ -155,7 +170,9 @@ def place_order(exchange, symbol, side, amount, order_type='limit', price=None):
     return exchange.create_order(symbol, order_type, side, amount, price)
 ```
 
-Always paper trade first: Alpaca (built-in), Binance Testnet, Interactive Brokers (TWS). Run 1 month or 100 trades minimum before live capital.
+Always paper trade first. Alpaca's `TradingClient` defaults to `paper=True` (alpaca-py); for ccxt exchanges call `exchange.set_sandbox_mode(True)`, which points Binance at its testnet endpoints (spot `testnet.binance.vision`, USD-M futures `testnet.binancefuture.com`). Interactive Brokers paper trading runs through TWS or IB Gateway on a paper login. Run 1 month or 100 trades minimum before live capital.
+
+API keys come from environment variables, never from source files. Use trade-only keys with withdrawals disabled and an IP allowlist where the exchange supports it.
 
 ## Examples
 
@@ -165,17 +182,23 @@ Always paper trade first: Alpaca (built-in), Binance Testnet, Interactive Broker
 Build a momentum trading strategy for BTC/USDT on Binance. Use EMA crossover (12/26) with volume confirmation and RSI filter. Backtest on 2 years of hourly data with realistic fees (0.1% taker), calculate Sharpe ratio and max drawdown, and compare against buy-and-hold. Include stop-loss at 2% and take-profit at 6%.
 ```
 
+The result is a `backtester.py` plus a report table: total return, Sharpe, max drawdown and buy-and-hold return side by side. The report must state the fee and slippage assumptions used. If the strategy does not beat buy-and-hold on risk-adjusted terms, the skill's guidance is to drop it rather than tune it on the same data.
+
 ### Create a pairs trading system
 
 ```prompt
 Build a statistical arbitrage system that trades correlated stock pairs. Use cointegration testing to find pairs from the S&P 500, implement a z-score mean reversion strategy, and backtest with transaction costs. Include the pair selection process, entry/exit rules, and risk management.
 ```
 
+The result is a pair-selection script that lists the cointegrated pairs with their p-values and hedge ratios, a z-score backtest with entry at |z| > 2 and exit at |z| < 0.5, and a per-pair and portfolio P&L after transaction costs. Pairs chosen on the full sample and then backtested on the same data are a look-ahead error; the pair selection must use a formation window that ends before the test window starts.
+
 ### Set up a live trading bot with risk management
 
 ```prompt
 Deploy a live trading bot on Alpaca for US stocks. It should run a simple momentum strategy on a universe of 20 liquid ETFs, execute via limit orders, enforce position size limits (max 10% per holding), and stop trading if daily loss exceeds 2%. Include monitoring, logging, and alerting via Telegram.
 ```
+
+The result is a bot that runs as a service, writes every order and risk check to a log, sends a Telegram message on each fill and on the daily-loss stop, and refuses new orders once the 2% limit trips until the next session.
 
 ## Guidelines
 
@@ -186,3 +209,5 @@ Deploy a live trading bot on Alpaca for US stocks. It should run a simple moment
 - Check spread width before market orders — never market-order into thin books
 - Compare every strategy against buy-and-hold; if it underperforms, it's not worth the complexity
 - Log every order, signal, and risk check for post-mortem analysis
+- Keep API keys in environment variables and out of the repository; a trading key should never have withdrawal permission
+- Treat backtest results as hypotheses: a strategy tuned on one data window must be re-tested on a later, untouched window
