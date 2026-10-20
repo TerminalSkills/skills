@@ -1,12 +1,19 @@
 ---
 name: liveblocks
-description: Expert guidance for Liveblocks, the platform for adding real-time collaboration features to web applications. Helps developers implement live cursors, presence indicators, collaborative editing, comments, and notifications using Liveblocks' React hooks and APIs.
+description: >-
+  Liveblocks is a hosted platform for adding real-time collaboration to web
+  apps: live cursors, presence, shared storage, comments, notifications and
+  collaborative text editors. Use this skill when a user wants multiplayer
+  features in a React or Next.js app, asks how to use Liveblocks hooks
+  (useOthers, useStorage, useMutation, useThreads), set up the LiveblocksProvider
+  and RoomProvider, or write the server auth endpoint with @liveblocks/node.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "React 18 or 19; Node.js server for the auth endpoint; Liveblocks account with public and secret keys"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: development
+  repository: https://github.com/liveblocks/liveblocks
   tags:
   - real-time
   - collaboration
@@ -17,320 +24,184 @@ metadata:
 
 # Liveblocks — Real-Time Collaboration SDK
 
-
 ## Overview
 
+Liveblocks runs the WebSocket servers, storage and permissions for collaborative features. A **room** is a shared space; inside it you get **Presence** (per-user, ephemeral: cursor, selection), **Storage** (persistent conflict-free data built from `LiveObject`, `LiveList`, `LiveMap`), **Comments** (threads, composer, UI components), **Notifications**, and editor bindings (`@liveblocks/react-tiptap`, `react-lexical`, `react-blocknote`, `@liveblocks/yjs`). Current packages are 3.x (3.24 in October 2026); keep every `@liveblocks/*` package on the same version.
 
-Liveblocks, the platform for adding real-time collaboration features to web applications. Helps developers implement live cursors, presence indicators, collaborative editing, comments, and notifications using Liveblocks' React hooks and APIs.
-
+In 3.x you import hooks directly from `@liveblocks/react/suspense` (Suspense hooks: data is always defined) or `@liveblocks/react` (regular hooks: data is `null` while loading). Types are declared once, globally, in `liveblocks.config.ts`. `createRoomContext` still exists but is the non-standard route.
 
 ## Instructions
 
-### Room Setup and Presence
-
-Configure a collaborative room with user presence tracking:
-
-```typescript
-// src/liveblocks.config.ts — Liveblocks type configuration
-import { createClient } from "@liveblocks/client";
-import { createRoomContext, createLiveblocksContext } from "@liveblocks/react";
-
-const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY!,
-  // Or use auth endpoint for production (recommended)
-  // authEndpoint: "/api/liveblocks-auth",
-});
-
-// Define types for your collaborative data
-type Presence = {
-  cursor: { x: number; y: number } | null;  // User's cursor position
-  selectedId: string | null;                  // Currently selected element
-  name: string;                               // Display name
-  color: string;                              // Avatar/cursor color
-};
-
-type Storage = {
-  shapes: LiveList<Shape>;                    // Shared canvas shapes
-  document: LiveObject<DocumentState>;        // Shared document state
-};
-
-type UserMeta = {
-  id: string;
-  info: { name: string; avatar: string; color: string };
-};
-
-export const {
-  RoomProvider,
-  useMyPresence,
-  useOthers,
-  useStorage,
-  useMutation,
-  useSelf,
-} = createRoomContext<Presence, Storage, UserMeta>(client);
-```
-
-### Live Cursors
-
-Show other users' cursor positions in real time:
-
-```tsx
-// src/components/LiveCursors.tsx — Display cursors of all connected users
-import { useOthers, useMyPresence } from "../liveblocks.config";
-import { useCallback, useEffect } from "react";
-
-export function LiveCursors() {
-  const others = useOthers();
-  const [myPresence, updateMyPresence] = useMyPresence();
-
-  // Track cursor movement and broadcast to other users
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      updateMyPresence({
-        cursor: { x: e.clientX, y: e.clientY },
-      });
-    },
-    [updateMyPresence]
-  );
-
-  const handlePointerLeave = useCallback(() => {
-    updateMyPresence({ cursor: null });
-  }, [updateMyPresence]);
-
-  return (
-    <div
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      style={{ position: "relative", width: "100%", height: "100vh" }}
-    >
-      {/* Render other users' cursors */}
-      {others.map(({ connectionId, presence, info }) => {
-        if (!presence.cursor) return null;
-        return (
-          <Cursor
-            key={connectionId}
-            x={presence.cursor.x}
-            y={presence.cursor.y}
-            name={info?.name ?? "Anonymous"}
-            color={info?.color ?? "#000"}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-function Cursor({ x, y, name, color }: { x: number; y: number; name: string; color: string }) {
-  return (
-    <div style={{ position: "absolute", left: x, top: y, pointerEvents: "none" }}>
-      {/* SVG cursor icon */}
-      <svg width="24" height="24" viewBox="0 0 24 24" fill={color}>
-        <path d="M5 3l14 8-6 2-2 6z" />
-      </svg>
-      {/* Name label */}
-      <span style={{
-        backgroundColor: color,
-        color: "white",
-        padding: "2px 8px",
-        borderRadius: "4px",
-        fontSize: "12px",
-        whiteSpace: "nowrap",
-      }}>
-        {name}
-      </span>
-    </div>
-  );
-}
-```
-
-### Collaborative Storage
-
-Shared data structures that sync across all users:
-
-```tsx
-// src/components/CollaborativeCanvas.tsx — Shared canvas with conflict-free updates
-import { useStorage, useMutation } from "../liveblocks.config";
-import { LiveList, LiveObject } from "@liveblocks/client";
-
-type Shape = {
-  id: string;
-  type: "rectangle" | "circle" | "text";
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fill: string;
-};
-
-export function CollaborativeCanvas() {
-  // useStorage reads from the shared room storage (synced via CRDT)
-  const shapes = useStorage((root) => root.shapes);
-
-  // useMutation creates a function that can modify shared storage
-  // Mutations are atomic and conflict-free — two users can edit simultaneously
-  const addShape = useMutation(({ storage }, shape: Shape) => {
-    const shapes = storage.get("shapes");
-    shapes.push(new LiveObject(shape));
-  }, []);
-
-  const moveShape = useMutation(({ storage }, id: string, x: number, y: number) => {
-    const shapes = storage.get("shapes");
-    const shape = shapes.find((s) => s.get("id") === id);
-    if (shape) {
-      shape.set("x", x);    // Only the changed field syncs — bandwidth efficient
-      shape.set("y", y);
-    }
-  }, []);
-
-  const deleteShape = useMutation(({ storage }, id: string) => {
-    const shapes = storage.get("shapes");
-    const index = shapes.findIndex((s) => s.get("id") === id);
-    if (index !== -1) shapes.delete(index);
-  }, []);
-
-  return (
-    <canvas>
-      {shapes?.map((shape) => (
-        <CanvasShape
-          key={shape.id}
-          shape={shape}
-          onMove={(x, y) => moveShape(shape.id, x, y)}
-          onDelete={() => deleteShape(shape.id)}
-        />
-      ))}
-    </canvas>
-  );
-}
-```
-
-### Comments and Threads
-
-Add comment threads to any part of your application:
-
-```tsx
-// src/components/Comments.tsx — Inline comments on document elements
-import { useThreads, useCreateThread, useCreateComment } from "@liveblocks/react/suspense";
-
-export function CommentsSidebar({ elementId }: { elementId: string }) {
-  // Fetch all comment threads for this room
-  const { threads } = useThreads();
-  const createThread = useCreateThread();
-  const createComment = useCreateComment();
-
-  // Filter threads attached to the selected element
-  const elementThreads = threads.filter(
-    (thread) => thread.metadata.elementId === elementId
-  );
-
-  const handleNewThread = (body: string) => {
-    createThread({
-      body: { version: 1, content: [{ type: "paragraph", children: [{ text: body }] }] },
-      metadata: { elementId, resolved: false },
-    });
-  };
-
-  return (
-    <div className="comments-sidebar">
-      <h3>Comments</h3>
-      {elementThreads.map((thread) => (
-        <ThreadView
-          key={thread.id}
-          thread={thread}
-          onReply={(body) => createComment({ threadId: thread.id, body })}
-        />
-      ))}
-      <NewThreadForm onSubmit={handleNewThread} />
-    </div>
-  );
-}
-```
-
-### Authentication Endpoint
-
-Secure room access with token-based auth:
-
-```typescript
-// app/api/liveblocks-auth/route.ts — Next.js auth endpoint
-import { Liveblocks } from "@liveblocks/node";
-import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
-
-const liveblocks = new Liveblocks({
-  secret: process.env.LIVEBLOCKS_SECRET_KEY!,
-});
-
-export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // Prepare Liveblocks session with user identity
-  const liveblocksSession = liveblocks.prepareSession(session.user.id, {
-    userInfo: {
-      name: session.user.name,
-      avatar: session.user.image,
-      color: generateColor(session.user.id),  // Deterministic color from user ID
-    },
-  });
-
-  // Grant access to specific rooms based on your authorization logic
-  const { room } = await request.json();
-  const hasAccess = await checkRoomAccess(session.user.id, room);
-
-  if (hasAccess) {
-    liveblocksSession.allow(room, liveblocksSession.FULL_ACCESS);
-  }
-
-  const { status, body } = await liveblocksSession.authorize();
-  return new NextResponse(body, { status });
-}
-```
-
-## Installation
+1. Install and generate the config file:
 
 ```bash
-# Core packages
 npm install @liveblocks/client @liveblocks/react
-
-# For Next.js with comments and notifications
-npm install @liveblocks/node @liveblocks/react-ui
-
-# Yjs integration for text editing
-npm install @liveblocks/yjs yjs
+npm install @liveblocks/react-ui    # Thread, Composer, notifications UI
+npm install @liveblocks/node        # server-side auth, REST API
+npx create-liveblocks-app@latest --init --framework react
 ```
 
+2. Declare your types by augmenting the global `Liveblocks` interface (keys: `Presence`, `Storage`, `UserMeta`, `RoomEvent`, `ThreadMetadata`, `RoomInfo`):
+
+```typescript
+// liveblocks.config.ts
+import type { LiveList, LiveObject } from "@liveblocks/client";
+
+type Shape = { id: string; x: number; y: number; width: number; height: number; fill: string };
+
+declare global {
+  interface Liveblocks {
+    Presence: { cursor: { x: number; y: number } | null; selectedId: string | null };
+    Storage: { shapes: LiveList<LiveObject<Shape>> };
+    UserMeta: { id: string; info: { name: string; avatar: string; color: string } };
+    ThreadMetadata: { elementId: string; resolved: boolean };
+  }
+}
+export {};
+```
+
+3. Wrap the app in `LiveblocksProvider` (client config: `publicApiKey` for prototypes, `authEndpoint` for production), then `RoomProvider` (room `id`, `initialPresence`, `initialStorage`), then `ClientSideSuspense` (renders the fallback on the server, since Suspense hooks throw there):
+
+```tsx
+// app/Room.tsx
+"use client";
+import { ReactNode } from "react";
+import { LiveList } from "@liveblocks/client";
+import { ClientSideSuspense, LiveblocksProvider, RoomProvider } from "@liveblocks/react/suspense";
+
+export function Room({ roomId, children }: { roomId: string; children: ReactNode }) {
+  return (
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth" throttle={50}>
+      <RoomProvider id={roomId} initialPresence={{ cursor: null, selectedId: null }}
+                    initialStorage={{ shapes: new LiveList([]) }}>
+        <ClientSideSuspense fallback={<div>Loading…</div>}>{children}</ClientSideSuspense>
+      </RoomProvider>
+    </LiveblocksProvider>
+  );
+}
+```
+
+`initialStorage` only applies the first time a room is created; later changes to it have no effect. `throttle` (16 to 1000 ms, default 100) controls how often updates are sent.
+
+4. Presence hooks: `useOthers`, `useSelf`, `useMyPresence`, `useUpdateMyPresence` (merges a partial object and re-renders less than `useMyPresence`). Storage hooks: `useStorage(selector)` reads immutable snapshots, `useMutation(({ storage, self, others, setMyPresence }, ...args) => ...)` writes. Pass selectors to avoid re-rendering on unrelated changes.
+5. Comments: `useThreads`, `useCreateThread`, `useCreateComment` from `@liveblocks/react/suspense`, ready-made `Thread` and `Composer` from `@liveblocks/react-ui`, and `import "@liveblocks/react-ui/styles.css"` once in the root layout. `resolveUsers` / `resolveMentionSuggestions` on `LiveblocksProvider` turn user IDs into names and avatars.
+6. Auth on the server: `Liveblocks.identifyUser` (ID token, recommended for most apps; permissions come from room accesses and groups) or `prepareSession` (access token, you list the rooms per request). Never cache the auth endpoint's response. The secret key (`sk_...`) stays on the server.
 
 ## Examples
 
+### Live cursors
 
-### Example 1: Setting up Liveblocks with a custom configuration
+```tsx
+// components/LiveCursors.tsx
+"use client";
+import { useOthers, useUpdateMyPresence } from "@liveblocks/react/suspense";
 
-**User request:**
+export function LiveCursors({ children }: { children: React.ReactNode }) {
+  const others = useOthers();
+  const updateMyPresence = useUpdateMyPresence();
 
+  return (
+    <div
+      style={{ position: "relative", height: "100vh" }}
+      onPointerMove={(e) => {
+        const box = e.currentTarget.getBoundingClientRect();
+        updateMyPresence({ cursor: { x: e.clientX - box.left, y: e.clientY - box.top } });
+      }}
+      onPointerLeave={() => updateMyPresence({ cursor: null })}
+    >
+      {children}
+      {others.map(({ connectionId, presence, info }) =>
+        presence.cursor ? (
+          <div key={connectionId} style={{ position: "absolute", left: presence.cursor.x,
+               top: presence.cursor.y, pointerEvents: "none", color: info.color }}>
+            ▲ {info.name}
+          </div>
+        ) : null,
+      )}
+    </div>
+  );
+}
 ```
-I just installed Liveblocks. Help me configure it for my TypeScript + React workflow with my preferred keybindings.
+
+Result: with the app open in two tabs signed in as different users, each tab shows the other user's name following the pointer, and it disappears when the pointer leaves.
+
+### Shared canvas shapes with mutations
+
+```tsx
+import { LiveObject } from "@liveblocks/client";
+import { useMutation, useStorage } from "@liveblocks/react/suspense";
+
+export function useShapes() {
+  const shapes = useStorage((root) => root.shapes); // readonly plain objects
+
+  const addShape = useMutation(({ storage }, shape: Shape) => {
+    storage.get("shapes").push(new LiveObject(shape));
+  }, []);
+
+  const moveShape = useMutation(({ storage }, id: string, x: number, y: number) => {
+    const shape = storage.get("shapes").find((s) => s.get("id") === id);
+    shape?.update({ x, y }); // only changed fields sync
+  }, []);
+
+  return { shapes, addShape, moveShape };
+}
 ```
 
-The agent creates the configuration file with TypeScript-aware settings, configures relevant plugins/extensions for React development, sets up keyboard shortcuts matching the user's preferences, and verifies the setup works correctly.
+Result: two users dragging different shapes both succeed; concurrent edits to the same field resolve last-write-wins.
 
-### Example 2: Extending Liveblocks with custom functionality
+### Comment threads
 
-**User request:**
+```tsx
+import { useThreads } from "@liveblocks/react/suspense";
+import { Composer, Thread } from "@liveblocks/react-ui";
 
+export function ElementComments({ elementId }: { elementId: string }) {
+  const { threads } = useThreads({ query: { metadata: { elementId } } });
+  return (
+    <aside>
+      {threads.map((t) => <Thread key={t.id} thread={t} />)}
+      <Composer metadata={{ elementId, resolved: false }} />
+    </aside>
+  );
+}
 ```
-I want to add a custom live cursors to Liveblocks. How do I build one?
+
+Result: a sidebar listing the threads for one canvas element, with a composer that creates a new thread tagged with that element.
+
+### Auth endpoint (Next.js route handler)
+
+```typescript
+// app/api/liveblocks-auth/route.ts
+import { Liveblocks } from "@liveblocks/node";
+import { getSession } from "@/lib/auth";
+
+const liveblocks = new Liveblocks({ secret: process.env.LIVEBLOCKS_SECRET_KEY! });
+
+export async function POST(request: Request) {
+  const session = await getSession();
+  if (!session?.user) return new Response("Unauthorized", { status: 401 });
+
+  const { room } = await request.json();
+  if (!(await canAccessRoom(session.user.id, room))) return new Response("Forbidden", { status: 403 });
+
+  const lb = liveblocks.prepareSession(session.user.id, {
+    userInfo: { name: session.user.name, avatar: session.user.image, color: colorFor(session.user.id) },
+  });
+  lb.allow(room, lb.FULL_ACCESS);
+  const { body, status } = await lb.authorize();
+  return new Response(body, { status });
+}
 ```
 
-The agent scaffolds the extension/plugin project, implements the core functionality following Liveblocks's API patterns, adds configuration options, and provides testing instructions to verify it works end-to-end.
-
+Result: the browser client posts `{ room }` to this route and receives a token; denied users get 403 and cannot join.
 
 ## Guidelines
 
-1. **Use auth endpoint in production** — Public API keys are fine for dev; production needs proper authentication
-2. **Type your presence and storage** — TypeScript generics prevent runtime errors in collaborative data
-3. **Granular mutations** — Update individual fields, not entire objects; Liveblocks only syncs what changed
-4. **Throttle presence updates** — Cursor movement fires constantly; throttle to 50-100ms intervals
-5. **Handle offline gracefully** — Liveblocks queues changes offline; show a connection status indicator
-6. **Room naming convention** — Use predictable patterns like `project:{projectId}:document:{docId}`
-7. **Clean up storage** — Delete rooms when projects are archived; storage persists indefinitely
-8. **Test with multiple tabs** — Open your app in 2-3 tabs during development to verify real-time sync
+- Use `authEndpoint` in production. A `publicApiKey` lets anyone with the key join any room.
+- `useOthers()` without a selector re-renders on every presence change; use `useOthersMapped` or a selector for cursors and avatar stacks.
+- Mutate inside `useMutation`, not by editing the object from `useStorage`: those snapshots are read-only.
+- Storage values must be JSON-serialisable, and a `LiveList` of `LiveObject` is better than a plain array in a `LiveObject` when items are edited independently.
+- Presence resets when a user disconnects; put anything that must persist in Storage.
+- Use `useErrorListener` to catch failed optimistic writes such as `CREATE_THREAD_ERROR`; set `preventUnsavedChanges` on the provider for editors.
+- Room IDs should encode the tenant, for example `acme:project-42:doc-7`; rooms and storage persist until deleted through the REST API (`liveblocks.deleteRoom`).
+- Upgrading from 2.x: run `npx liveblocks@latest upgrade`; 3.0 needs TypeScript 5+, changed mention callbacks to `MentionData` objects and removed deprecated hooks like `useBatch` and `useStorageStatus`.
