@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, terraform, cloud-sql-proxy, psql, mysql-client'
 metadata:
   author: google-cloud
-  version: 1.0.0
+  version: 1.1.0
   category: devops
   tags:
     - gcp
@@ -53,9 +53,12 @@ gcloud services vpc-peerings connect \
 
 ### Creating a PostgreSQL Instance with HA
 
+Editions matter: PostgreSQL 16 and later default to **Enterprise Plus**, which takes `--tier=db-perf-optimized-N-4`-style tiers and rejects `db-custom-*`. This guide pins `--edition=ENTERPRISE` so the `db-custom-<vCPUs>-<MB>` tiers work; for Enterprise Plus pass `--edition=ENTERPRISE_PLUS --tier=db-perf-optimized-N-4` instead (not available in every region).
+
 ```bash
 gcloud sql instances create orders-db \
-  --database-version=POSTGRES_15 \
+  --database-version=POSTGRES_17 \
+  --edition=ENTERPRISE \
   --tier=db-custom-2-7680 \
   --region=us-central1 \
   --availability-type=REGIONAL \
@@ -82,7 +85,8 @@ gcloud sql users create app_user --instance=orders-db --password="$(openssl rand
 
 ```bash
 gcloud sql instances create analytics-db \
-  --database-version=MYSQL_8_0 \
+  --database-version=MYSQL_8_4 \
+  --edition=ENTERPRISE \
   --tier=db-n1-standard-2 \
   --region=us-central1 \
   --storage-type=SSD \
@@ -120,10 +124,13 @@ gcloud sql instances promote-replica orders-db-eu
 ```bash
 # Get the connection name
 gcloud sql instances describe orders-db --format="value(connectionName)"
-# Returns: my-project:us-central1:orders-db
+# Returns: shop-prod-4821:us-central1:orders-db
 
-# Run the proxy locally
-./cloud-sql-proxy --port 5432 my-project:us-central1:orders-db
+# Install the proxy v2 (current release 2.26): brew install cloud-sql-proxy, or use the
+# container image gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.26.2. If you download a
+# binary instead, verify its checksum against the release page before running it.
+# Run the proxy locally (use --private-ip for private-IP-only instances, from inside the VPC)
+cloud-sql-proxy --port 5432 shop-prod-4821:us-central1:orders-db
 
 # In another terminal:
 psql "host=127.0.0.1 port=5432 user=app_user dbname=orders"
@@ -139,19 +146,19 @@ metadata:
 spec:
   template:
     spec:
-      serviceAccountName: api-sa  # bound to a GSA with roles/cloudsql.client
+      serviceAccountName: api-sa  # bound to the GSA app-sa, with roles/cloudsql.client and roles/cloudsql.instanceUser
       containers:
         - name: api
-          image: gcr.io/my-project/api:latest
+          image: gcr.io/shop-prod-4821/api:latest
           env:
             - name: DATABASE_URL
-              value: "postgresql://app_user@127.0.0.1:5432/orders"
+              value: "postgresql://app-sa%40shop-prod-4821.iam@127.0.0.1:5432/orders"
         - name: cloud-sql-proxy
-          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.0
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.26.2
           args:
             - "--auto-iam-authn"
             - "--private-ip"
-            - "my-project:us-central1:orders-db"
+            - "shop-prod-4821:us-central1:orders-db"
           securityContext:
             runAsNonRoot: true
 ```
@@ -160,16 +167,16 @@ spec:
 
 ```bash
 # Add a service account as a Postgres database user
-gcloud sql users create app-sa@my-project.iam \
+gcloud sql users create app-sa@shop-prod-4821.iam \
   --instance=orders-db \
   --type=cloud_iam_service_account
 ```
 
 ```sql
 -- Grant database privileges (run as postgres superuser)
-GRANT CONNECT ON DATABASE orders TO "app-sa@my-project.iam";
-GRANT USAGE ON SCHEMA public TO "app-sa@my-project.iam";
-GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO "app-sa@my-project.iam";
+GRANT CONNECT ON DATABASE orders TO "app-sa@shop-prod-4821.iam";
+GRANT USAGE ON SCHEMA public TO "app-sa@shop-prod-4821.iam";
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO "app-sa@shop-prod-4821.iam";
 ```
 
 The application uses no static password — the proxy fetches a short-lived OAuth token from the metadata server and passes it as the database password.
@@ -192,11 +199,12 @@ gcloud sql instances clone orders-db orders-db-recovery \
 ```hcl
 resource "google_sql_database_instance" "orders" {
   name             = "orders-db"
-  database_version = "POSTGRES_15"
+  database_version = "POSTGRES_17"
   region           = "us-central1"
   deletion_protection = true
 
   settings {
+    edition           = "ENTERPRISE"
     tier              = "db-custom-2-7680"
     availability_type = "REGIONAL"
 
@@ -227,6 +235,7 @@ resource "google_sql_user" "app_sa" {
   type     = "CLOUD_IAM_SERVICE_ACCOUNT"
 }
 ```
+
 ## Examples
 
 ### Example 1 — Migrate a self-hosted Postgres to Cloud SQL
@@ -240,6 +249,7 @@ User reports high read latency from European users. Create a read replica in `eu
 ## Guidelines
 
 - Use **private IP only** in production — never expose Cloud SQL on a public IP
+- Set the edition explicitly (`--edition`); a new PostgreSQL 16+ instance silently defaults to Enterprise Plus pricing and tiers
 - Always set `availability-type=REGIONAL` for production workloads
 - Enable PITR (`--enable-point-in-time-recovery`) — it's cheap insurance against accidental writes
 - Prefer **IAM database authentication** over passwords — works for service accounts and human users
