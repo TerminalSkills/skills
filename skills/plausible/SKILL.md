@@ -1,287 +1,216 @@
 ---
 name: plausible
 category: data-ai
-version: 1.0.0
+version: 1.1.0
 description: >-
-  Privacy-first web analytics with Plausible — lightweight script tag, no cookies,
-  GDPR-compliant by default. Self-host with Docker or use Plausible Cloud.
-  Covers script installation, custom event goals, pageview filtering, the Stats
-  API for programmatic access, and Google Search Console integration. Use when
-  tasks involve adding website analytics without cookie banners, replacing Google
-  Analytics with a privacy-friendly alternative, or querying traffic data via API.
+  Plausible is a privacy-first, cookie-free web analytics service that you can
+  self-host (Community Edition) or use as Plausible Cloud. Covers the tracking
+  snippet, custom event goals, the Next.js integration, a first-party proxy,
+  self-hosting with Docker Compose and the Stats API v2. Use when the user wants
+  website analytics without cookie banners, a Google Analytics replacement, or
+  traffic data pulled through an API.
 author: terminal-skills
 tags: [plausible, analytics, privacy, web-analytics, gdpr, self-hosted]
 license: Apache-2.0
 compatibility: 'platform: linux, platform: macos, platform: windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: data-ai
   tags: [plausible, analytics, privacy, web-analytics, gdpr]
+  repository: https://github.com/plausible/analytics
 ---
 
 # Plausible Analytics
 
-Privacy-first, cookie-free web analytics. Lightweight script (<1KB), no personal data collection, GDPR/CCPA/PECR compliant out of the box.
+## Overview
 
-## Self-Hosting with Docker Compose
+Plausible is an open-source, cookie-free web analytics tool. It collects no personal data, so most sites need no consent banner. It runs as a hosted service (Plausible Cloud, plausible.io) or as the self-hosted Community Edition (CE, backed by ClickHouse and PostgreSQL).
 
-```yaml
-# docker-compose.yml — Plausible Community Edition self-hosted stack.
-# Runs Plausible with PostgreSQL for user data and ClickHouse for analytics.
-version: '3.8'
+Two things changed since older tutorials. The tracking snippet is now a per-site script `pa-XXXXX.js` initialised with `plausible.init()`; the old `data-domain` scripts with extension filenames such as `script.hash.outbound-links.js` are legacy. The Stats API is `POST /api/v2/query`; the `GET /api/v1/stats/*` endpoints in old guides belong to the previous generation. On Cloud, custom properties, revenue tracking and the Stats API need the Business plan; CE includes them.
 
-services:
-  plausible:
-    image: ghcr.io/plausible/community-edition:v2
-    command: sh -c "sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
-    ports:
-      - '8000:8000'
-    environment:
-      BASE_URL: https://analytics.example.com
-      SECRET_KEY_BASE: '<generate-with-openssl-rand-base64-48>'
-      DATABASE_URL: postgres://plausible:plausible@db:5432/plausible
-      CLICKHOUSE_DATABASE_URL: http://clickhouse:8123/plausible_events
-    depends_on:
-      - db
-      - clickhouse
+## Instructions
 
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: plausible
-      POSTGRES_USER: plausible
-      POSTGRES_PASSWORD: plausible
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+### 1. Install the snippet
 
-  clickhouse:
-    image: clickhouse/clickhouse-server:24.3-alpine
-    volumes:
-      - clickhouse-data:/var/lib/clickhouse
-    ulimits:
-      nofile:
-        soft: 262144
-        hard: 262144
-
-volumes:
-  postgres-data:
-  clickhouse-data:
-```
-
-```bash
-# deploy.sh — Generate a secret key and start Plausible.
-SECRET=$(openssl rand -base64 48)
-echo "SECRET_KEY_BASE=$SECRET" >> .env
-docker compose up -d
-echo "Plausible is running at http://localhost:8000"
-echo "Create your admin account at http://localhost:8000/register"
-```
-
-## Script Tag Installation
+Add the site in Plausible, then copy the snippet from Site settings, General, Tracking, Site installation. The `pa-` id is unique to your site, so never invent one. On CE the script is served from your own `BASE_URL`.
 
 ```html
-<!-- index.html — Add the Plausible tracking script to your site.
-     No cookies, no personal data, under 1KB gzipped. -->
-<head>
-  <!-- Basic pageview tracking -->
-  <script defer data-domain="example.com"
-    src="https://analytics.example.com/js/script.js"></script>
-
-  <!-- With custom event tracking enabled -->
-  <script defer data-domain="example.com"
-    src="https://analytics.example.com/js/script.tagged-events.js"></script>
-
-  <!-- With hash-based routing (SPAs) -->
-  <script defer data-domain="example.com"
-    src="https://analytics.example.com/js/script.hash.js"></script>
-
-  <!-- Multiple extensions combined -->
-  <script defer data-domain="example.com"
-    src="https://analytics.example.com/js/script.hash.tagged-events.outbound-links.js"></script>
-</head>
+<!-- index.html, inside <head> -->
+<script async src="https://plausible.io/js/pa-Xq3mB7vLk2.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
 ```
 
-## Custom Event Goals
+Outbound links, file downloads and form submissions are switched on in the site settings (Default tracking) and need no snippet change. Options that live in the snippet go to `plausible.init({...})`: `hashBasedRouting`, `customProperties`, `endpoint`, `captureOnLocalhost` (off by default, so nothing is recorded on localhost), `autoCapturePageviews`, `transformRequest`.
+
+For bundled apps use the npm package `@plausible-analytics/tracker` (the old `plausible-tracker` is archived). It works only in the browser, so call it from client code:
+
+```bash
+npm install @plausible-analytics/tracker
+```
 
 ```javascript
-// analytics.js — Track custom events for conversion goals in Plausible.
-// Events appear in Goals section of the Plausible dashboard.
+// src/analytics.js
+import { init, track } from '@plausible-analytics/tracker'
 
-// Basic event
-function trackSignup() {
-  plausible('Signup')
-}
-
-// Event with custom properties (requires Business plan or self-hosted)
-function trackPurchase(plan, amount) {
-  plausible('Purchase', {
-    props: {
-      plan: plan,
-      amount: amount,
-    },
-  })
-}
-
-// Revenue tracking
-function trackRevenue(amount, currency) {
-  plausible('Purchase', {
-    revenue: { amount: amount, currency: currency },
-    props: { plan: 'pro' },
-  })
-}
-
-// Track form submissions
-document.getElementById('contact-form').addEventListener('submit', function () {
-  plausible('Contact Form Submission', {
-    props: { source: document.referrer || 'direct' },
-  })
-})
-
-// Track 404 pages (add script.file-downloads.js extension)
-// Plausible auto-tracks file downloads and outbound links with extensions
+init({ domain: 'bluefinbikes.com' })   // SPA pageviews are captured automatically
+track('Signup', { props: { tier: 'startup' } })
 ```
 
-## Next.js Integration
+### 2. Custom events and goals
 
-```typescript
-// app/layout.tsx — Add Plausible to a Next.js App Router site.
-// Uses next-plausible for automatic route change tracking in SPAs.
+An event shows in the dashboard only after you create a goal with the same name (Site settings, Goals, Add goal, Custom event).
+
+Without JavaScript, add a CSS class to the element; a space in the name is written `+`:
+
+```html
+<button class="plausible-event-name=Newsletter+Signup">Subscribe</button>
+```
+
+From JavaScript, with the snippet installed:
+
+```javascript
+plausible('Purchase', {
+  props: { plan: 'pro' },                          // custom properties
+  revenue: { amount: 49.0, currency: 'USD' },      // needs a revenue goal
+})
+```
+
+Never put personal data (emails, names, user ids) into properties; individual values cannot be deleted later.
+
+### 3. Next.js
+
+`next-plausible` 4.x takes the script URL from the dashboard (earlier versions took `domain`):
+
+```tsx
+// app/layout.tsx
 import PlausibleProvider from 'next-plausible'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <PlausibleProvider
-          domain="example.com"
-          customDomain="https://analytics.example.com"
-          selfHosted={true}
-          taggedEvents={true}
-        />
-      </head>
-      <body>{children}</body>
+      <body>
+        <PlausibleProvider src="https://plausible.io/js/pa-Xq3mB7vLk2.js">
+          {children}
+        </PlausibleProvider>
+      </body>
     </html>
   )
 }
 ```
 
-```typescript
-// components/pricing-button.tsx — Track custom events in React components.
-// Uses the usePlausible hook for type-safe event tracking.
+```tsx
+// components/pricing-button.tsx
 'use client'
 import { usePlausible } from 'next-plausible'
 
-type PlausibleEvents = {
-  'Plan Selected': { plan: string; price: number }
-  'CTA Clicked': { location: string }
-}
+type Events = { 'Plan Selected': { plan: string; price: number } }
 
 export function PricingButton({ plan, price }: { plan: string; price: number }) {
-  const plausible = usePlausible<PlausibleEvents>()
-
-  return (
-    <button
-      onClick={() => plausible('Plan Selected', { props: { plan, price } })}
-    >
-      Choose {plan}
-    </button>
-  )
+  const plausible = usePlausible<Events>()
+  return <button onClick={() => plausible('Plan Selected', { props: { plan, price } })}>Choose {plan}</button>
 }
 ```
 
-## Stats API
+The provider renders the script only in production builds. To proxy through your own domain, wrap the config in `next.config.js`: `module.exports = withPlausibleProxy({ src: 'https://plausible.io/js/pa-Xq3mB7vLk2.js' })({})` (imported from `next-plausible`; works with `next start`, not with a static export).
+
+### 4. Stats API v2
+
+Create a Stats API key in account settings, API Keys. A key is scoped to one team and limited to 600 requests per hour. Send a JSON query; `site_id` is the domain as added in Plausible, and the host is plausible.io or your CE `BASE_URL`.
 
 ```python
-# plausible_api.py — Query the Plausible Stats API for traffic data.
-# Returns aggregate stats, timeseries, and breakdowns.
+# plausible_api.py
+import os
 import requests
-from datetime import date
 
-PLAUSIBLE_HOST = 'https://analytics.example.com'
-API_KEY = 'your-api-key'
-SITE_ID = 'example.com'
+HOST = os.environ.get('PLAUSIBLE_HOST', 'https://plausible.io')
+SITE_ID = 'bluefinbikes.com'
+HEADERS = {'Authorization': f"Bearer {os.environ['PLAUSIBLE_API_KEY']}"}
 
-headers = {'Authorization': f'Bearer {API_KEY}'}
-
-def get_realtime_visitors() -> int:
-    """Get current number of visitors on the site."""
-    r = requests.get(
-        f'{PLAUSIBLE_HOST}/api/v1/stats/realtime/visitors',
-        headers=headers,
-        params={'site_id': SITE_ID}
-    )
-    return r.json()
-
-def get_aggregate(period: str = '30d', metrics: str = 'visitors,pageviews,bounce_rate,visit_duration') -> dict:
-    """Get aggregate stats for a time period."""
-    r = requests.get(
-        f'{PLAUSIBLE_HOST}/api/v1/stats/aggregate',
-        headers=headers,
-        params={
-            'site_id': SITE_ID,
-            'period': period,
-            'metrics': metrics,
-        }
-    )
+def query(**body):
+    r = requests.post(f'{HOST}/api/v2/query', headers=HEADERS,
+                      json={'site_id': SITE_ID, **body}, timeout=30)
+    r.raise_for_status()
     return r.json()['results']
 
-def get_top_pages(period: str = '30d', limit: int = 10) -> list:
-    """Get top pages by visitors."""
-    r = requests.get(
-        f'{PLAUSIBLE_HOST}/api/v1/stats/breakdown',
-        headers=headers,
-        params={
-            'site_id': SITE_ID,
-            'period': period,
-            'property': 'event:page',
-            'limit': limit,
-            'metrics': 'visitors,pageviews',
-        }
-    )
-    return r.json()['results']
+# aggregate: one row, metrics in the order requested
+totals = query(metrics=['visitors', 'pageviews', 'bounce_rate', 'visit_duration'], date_range='30d')
 
-def get_traffic_sources(period: str = '30d') -> list:
-    """Get breakdown of traffic sources."""
-    r = requests.get(
-        f'{PLAUSIBLE_HOST}/api/v1/stats/breakdown',
-        headers=headers,
-        params={
-            'site_id': SITE_ID,
-            'period': period,
-            'property': 'visit:source',
-            'metrics': 'visitors,bounce_rate',
-        }
-    )
-    return r.json()['results']
+# breakdown: add dimensions; each row has "dimensions" and "metrics"
+top_pages = query(metrics=['visitors', 'pageviews'], dimensions=['event:page'],
+                  date_range='30d', order_by=[['visitors', 'desc']],
+                  pagination={'limit': 10})
+
+# filters are [operator, dimension, values]
+sources = query(metrics=['visitors'], dimensions=['visit:source'], date_range='7d',
+                filters=[['is', 'visit:country_name', ['Germany']]])
 ```
 
-## Proxy Script Through Your Domain
+A result row looks like `{"metrics": [1420, 3310], "dimensions": ["/pricing"]}`. Dimensions such as `time:day` give a timeseries. The metric `percentage` requires non-empty dimensions, and `time_on_page` requires an `event:page` dimension or filter.
+
+### 5. Proxy through your domain
+
+Ad blockers drop some requests to plausible.io. Serve the script and the event endpoint from your own domain. Nginx fragment (use the `pa-` URL from your snippet):
 
 ```nginx
-# nginx.conf — Proxy Plausible script through your domain.
-# Avoids ad blockers and keeps all traffic first-party.
-server {
-    listen 443 ssl;
-    server_name example.com;
+# inside the server block for bluefinbikes.com
+resolver 9.9.9.9;   # needed because proxy_pass uses variables
+set $plausible_script_url https://plausible.io/js/pa-Xq3mB7vLk2.js;
+set $plausible_event_url  https://plausible.io/api/event;
 
-    # Proxy the Plausible script
-    location = /js/script.js {
-        proxy_pass https://analytics.example.com/js/script.js;
-        proxy_set_header Host analytics.example.com;
-        proxy_ssl_server_name on;
-
-        # Cache the script for 6 hours
-        proxy_cache_valid 200 6h;
-        proxy_cache_valid 404 1m;
-    }
-
-    # Proxy the event endpoint
-    location = /api/event {
-        proxy_pass https://analytics.example.com/api/event;
-        proxy_set_header Host analytics.example.com;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_ssl_server_name on;
-    }
+location = /js/script.js {
+    proxy_pass $plausible_script_url;
+    proxy_set_header Host plausible.io;
+}
+location = /api/event {
+    proxy_pass $plausible_event_url;
+    proxy_set_header Host plausible.io;
+    proxy_http_version 1.1;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 ```
+
+Then change the snippet to `src="/js/script.js"` and `plausible.init({ endpoint: "/api/event" })`.
+
+### 6. Self-hosting (Community Edition v3)
+
+Use the official repository, which ships the matching PostgreSQL, ClickHouse and config files, instead of a hand-written compose file. Needs 2 GB of RAM and a CPU with SSE 4.2 or NEON. Check the latest tag at github.com/plausible/community-edition (v3.2.1 when this was written).
+
+```bash
+git clone -b v3.2.1 --single-branch https://github.com/plausible/community-edition plausible-ce
+cd plausible-ce
+echo "BASE_URL=https://plausible.bluefinbikes.com" >> .env
+echo "SECRET_KEY_BASE=$(openssl rand -base64 48)" >> .env
+echo "HTTP_PORT=80" >> .env
+echo "HTTPS_PORT=443" >> .env
+cat > compose.override.yml <<'EOF'
+services:
+  plausible:
+    ports:
+      - 80:80
+      - 443:443
+EOF
+docker compose up -d
+```
+
+With both ports set, Plausible obtains a Let's Encrypt certificate for the `BASE_URL` host, whose DNS record must already point at the server. Behind your own reverse proxy choose other ports. To try it locally use `BASE_URL=http://localhost:8000`, `HTTP_PORT=80` and the override port mapping `8000:80`. Open `BASE_URL` and register the first user, then set `DISABLE_REGISTRATION=true`. To upgrade, check out the next tag, read its release notes, then `docker compose pull && docker compose up -d`.
+
+## Examples
+
+**"Add privacy-friendly analytics to my Astro site, no cookie banner."** Add the site in Plausible Cloud, paste the two-part snippet from Site installation into the layout's `<head>`, deploy, and open the live site once. The dashboard shows the visit within a minute. If not, check for an ad blocker, and remember that localhost is ignored by default.
+
+**"Count newsletter signups as a goal."** Add `class="plausible-event-name=Newsletter+Signup"` to the button and create a custom event goal named `Newsletter Signup`. After a click on the live site the Goals panel shows unique and total conversions.
+
+**"Give me last week's top 10 pages as JSON."** Run the `top_pages` query above with `date_range='7d'`. The result is a list of rows like `{"metrics": [212, 340], "dimensions": ["/pricing"]}`, ordered by visitors.
+
+## Guidelines
+
+- Copy the snippet from the dashboard; do not guess the `pa-` id, and do not write `data-domain` scripts for new installs (the legacy form still works on old sites).
+- Events with no matching goal are stored but not shown in Goals; goal names are case-sensitive.
+- Keep the Stats API key in an environment variable or secret store, never in browser code; it can read every site of its team.
+- A proxy must forward the visitor IP in `X-Forwarded-For`; otherwise the bot filter silently drops events while the API still answers 202.
+- Plausible deliberately has no per-user tracking or session replay. For identified-user funnels use a product analytics tool.
+- When self-hosting, back up both the PostgreSQL and ClickHouse volumes.
