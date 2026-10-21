@@ -4,7 +4,7 @@ description: >-
   Real-time face swap and video deepfake using a single source image. Use when: building
   face-swap applications, real-time video effects, virtual try-on features, AI video
   effects pipelines.
-license: AGPL-3.0
+license: Apache-2.0
 compatibility: "Python 3.11-3.14, ffmpeg, GPU recommended (CUDA, CoreML, DirectML or OpenVINO)"
 metadata:
   author: terminal-skills

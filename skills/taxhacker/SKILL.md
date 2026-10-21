@@ -4,7 +4,7 @@ description: >-
   Self-hosted AI accounting tool that analyzes receipts, invoices, and bank transactions
   using LLMs. Use when: automating personal/business bookkeeping, categorizing expenses
   with AI, preparing tax documents, building self-hosted financial tools.
-license: MIT
+license: Apache-2.0
 compatibility: "Docker with Compose (or Node.js 26+ and PostgreSQL 17 for local development)"
 metadata:
   author: terminal-skills

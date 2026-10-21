@@ -4,7 +4,7 @@ description: >-
   iMCP is a macOS menu bar app that exposes Messages, Contacts, Calendar, Reminders, Location, Maps, Weather, Phone, Voicemail and Shortcuts to AI clients through a local MCP server.
   Use when: connecting Claude Desktop, Claude Code or Cursor to Apple data, querying contacts/reminders
   from an AI assistant, integrating macOS apps with AI agents.
-license: MIT
+license: Apache-2.0
 compatibility: "macOS 15.3+, Claude Desktop or any MCP client"
 metadata:
   author: terminal-skills
