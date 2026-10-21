@@ -3071,7 +3071,7 @@
     {
       "name": "faker",
       "slug": "faker",
-      "description": "When the user wants to generate realistic fake data for testing, seeding databases, or prototyping. Also use when the user mentions \"faker,\" \"fake data,\" \"test data generation,\" \"seed data,\" \"mock data,\" \"random names,\" or \"realistic test data.\" For API mocking, see mockoon or wiremock.",
+      "description": "Generates realistic, repeatable test data with @faker-js/faker: typed factories, seeded output, locale-aware names and addresses, related records and database seed scripts. Use when the user asks for \"fake data\", \"faker\", \"seed data\", \"mock data\", \"test data factory\", \"random but reproducible test data\" or needs to fill a dev database or fixtures without copying production data.",
       "category": "development",
       "tags": []
     },
@@ -6691,7 +6691,7 @@
     {
       "name": "pact",
       "slug": "pact",
-      "description": "When the user wants to implement consumer-driven contract testing between microservices using Pact. Also use when the user mentions \"pact,\" \"contract testing,\" \"consumer-driven contracts,\" \"CDC testing,\" \"provider verification,\" or \"Pact Broker.\" For API mocking, see mockoon or wiremock.",
+      "description": "Sets up consumer-driven contract testing with Pact JS: a consumer test that writes a pact file, a provider verification that replays it, and a Pact Broker or PactFlow with can-i-deploy in CI. Use when the user mentions \"pact\", \"contract testing\", \"consumer-driven contracts\", \"provider verification\", \"can-i-deploy\", \"Pact Broker\" or wants to stop two services breaking each other without end-to-end tests.",
       "category": "development",
       "tags": []
     },
@@ -10725,5 +10725,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-13T17:04:50.267Z"
+  "updatedAt": "2026-10-21T23:44:24.618Z"
 }
