@@ -42,6 +42,7 @@ locust -f locustfile.py            # web UI on http://localhost:8089
 
 ```python
 # locustfile.py: users browse the catalog and add to cart
+import os
 from locust import HttpUser, task, between
 
 class ShopUser(HttpUser):
@@ -50,7 +51,7 @@ class ShopUser(HttpUser):
 
     def on_start(self):
         # runs once per simulated user
-        resp = self.client.post("/login", json={"username": "load-user-01", "password": "s3cret"})
+        resp = self.client.post("/login", json={"username": os.environ["LOAD_USER"], "password": os.environ["LOAD_USER_PASSWORD"]})
         self.client.headers["Authorization"] = f"Bearer {resp.json()['token']}"
 
     @task(3)
