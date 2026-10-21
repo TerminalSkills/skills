@@ -1,252 +1,204 @@
 ---
 name: generative-engine-optimization
 description: >-
-  Optimize a website to be discovered, cited, and recommended by AI search engines
-  — ChatGPT, Claude, Perplexity, Google AI Overviews, and Gemini. Use this for
-  Generative Engine Optimization (GEO / AEO / "AI SEO"): scoring content citability,
-  checking AI crawler access in robots.txt (OAI-SearchBot, PerplexityBot, Claude-SearchBot,
-  GPTBot), auditing or generating an llms.txt file, validating schema for
-  entity recognition, assessing brand authority signals, and producing a GEO audit
-  report. Trigger on "GEO," "AI search optimization," "get cited by ChatGPT/Perplexity,"
-  "llms.txt," "AI crawlers," "AI Overviews," "citability." This is about generative AI
-  search visibility, NOT geographic/geolocation. For traditional keyword ranking see
-  seo-audit; for structured data see schema-markup.
+  Audits and improves how a website is found and cited by AI answer engines (Google AI Overviews and AI Mode, ChatGPT search, Perplexity, Claude, Copilot). Use for Generative Engine Optimization (GEO, AEO, "AI SEO"): "get cited by ChatGPT", "are AI crawlers blocked", "AI Overviews visibility", "llms.txt", "will AI bots see my site". Checks crawler access in robots.txt, server-rendered content, entity markup and answer-ready writing, and says which findings are documented and which are heuristics. Not about geography. For classic ranking use seo-audit; for JSON-LD use schema-markup.
 license: Apache-2.0
-compatibility: "Any website (URL). Optional: Python 3.8+ for fetching/scoring scripts."
+compatibility: "Any public website. curl and Python 3.8+ (standard library only) for the checks; Search Console and Bing Webmaster Tools access helps for measurement."
 metadata:
   author: terminal-skills
-  version: "1.1.0"
+  version: "3.0.0"
   category: business
   tags:
     - geo
     - ai-search
     - seo
+    - robots-txt
     - llms-txt
-    - citability
 ---
 
 # Generative Engine Optimization (GEO)
 
 ## Overview
 
-Generative Engine Optimization (GEO) makes a website visible inside AI-generated answers.
-AI assistants (ChatGPT, Claude, Perplexity, Google AI Overviews, Gemini) increasingly answer
-questions directly instead of sending users to ten blue links, and they cite a small set of
-sources. GEO is the practice of becoming one of those cited sources.
+AI answer engines read the web, write a short answer and show a few source links. GEO is the work of making a site eligible for that retrieval and easy to quote. It is not a separate algorithm to game. The vendors' own documentation says so, and this skill is built on what they publish.
 
-GEO is distinct from traditional SEO. Keyword rankings, backlinks, and Core Web Vitals
-still matter as a foundation, but AI engines additionally reward content that is
-*self-contained, fact-dense, and directly answers a question*, that is *crawlable by AI
-bots*, and that is backed by *recognizable entity signals* (Wikipedia, schema, brand
-mentions). AI citations overlap only partly with Google rankings, so AI visibility is its
-own discipline.
+What the primary sources actually establish, as of late 2026:
 
-This skill is adapted from the open-source [geo-seo-claude](https://github.com/zubair-trabzada/geo-seo-claude)
-project by zubair-trabzada (MIT License, Copyright (c) 2026 Zubair Trabzada). For traditional ranking audits use the **seo-audit** skill;
-for implementing JSON-LD use the **schema-markup** skill — this skill tells you *which*
-schema and crawler signals matter for AI citation.
+- **Google** says AI Overviews and AI Mode have no extra technical requirements: a page must be indexed and eligible to show with a snippet. Google tells site owners to ignore "chunking" and special AI text files for Google Search. Search Console has a Generative AI performance report.
+- **OpenAI, Anthropic and Perplexity** each publish separate crawlers for search, for training and for user-triggered fetches. Allowing the search crawler while blocking the training crawler is a documented, supported choice.
+- **Microsoft** reports citations in Copilot and Bing AI answers through the AI Performance view in Bing Webmaster Tools (public preview since February 2026).
+- **llms.txt** is a community proposal (llmstxt.org). No engine in this list documents using it for ranking or citation.
+
+So an audit has three layers, and the report must keep them apart:
+
+1. **Gates**: facts you can verify and that decide whether an engine can see the page at all (robots.txt, HTTP status, rendered HTML, indexability).
+2. **Documented practice**: guidance the vendors publish (helpful original content, structured data that matches visible text, clear authorship).
+3. **Heuristics**: widely repeated advice with no vendor backing (passage length, answer-first layout, brand-mention volume). Useful, but label it as a guess.
+
+Nobody outside the vendors can measure how often an engine cites a page, because answers vary by prompt, user, location and time. Do not produce a "GEO score out of 100"; any such number is invented weights.
 
 ## Instructions
 
-### 1. Scope the audit
+### 1. Scope
 
-Ask for (or infer): the target URL, the business type (SaaS, e-commerce, local business,
-publisher, agency), and which AI platforms matter most. Then fetch the page's **raw,
-server-rendered HTML** (e.g. `curl -sL <url>` or a fetch script). This is critical: most
-AI crawlers do **not** execute JavaScript (a Vercel/MERJ study from Dec 2024 found that OpenAI's and Anthropic's crawlers fetch JS files but do not run them, and PerplexityBot does not render JS either; Googlebot does), so evaluate the HTML that
-arrives *before* JS runs. If the `<body>` is empty without JS, that is a critical finding —
-no content optimization can help a page AI crawlers see as blank.
+Ask for: the site URL, the business type, the 5-10 questions customers ask that the site should answer, which engines matter, and whether the owner wants to opt out of AI training (a separate decision from search visibility). Check what they already have: Search Console, Bing Webmaster Tools, server logs or a CDN bot report.
 
-### 2. Compute the GEO Score (0–100)
+### 2. Gate 1: can the crawlers fetch it?
 
-Score six categories, then combine with these weights:
+Fetch `/robots.txt` and evaluate each agent under RFC 9309 rules: the most specific `User-agent` group wins, and within a group the longest matching path wins. Run this stdlib script and read the output next to the file itself, because `urllib.robotparser` is simpler than Google's parser (check wildcards by hand):
 
-| Category | Weight | What it measures |
-|---|---|---|
-| AI Citability & Visibility | 25% | Can passages be lifted as a cited answer; are AI crawlers allowed; is llms.txt present |
-| Brand Authority Signals | 20% | Wikipedia, Reddit, YouTube, review-site and LinkedIn presence |
-| Content Quality & E-E-A-T | 20% | Experience, Expertise, Authoritativeness, Trust |
-| Technical Foundations | 15% | Server-side rendering, robots/sitemap, HTTPS, meta tags |
-| Structured Data | 10% | Organization/Person/Article schema, sameAs, JSON-LD |
-| Platform Optimization | 10% | Readiness for each specific AI platform |
+```python
+import sys, urllib.request
+from urllib.robotparser import RobotFileParser
 
-`GEO = .25·Citability + .20·Brand + .20·EEAT + .15·Technical + .10·Schema + .10·Platform`
+BOTS = ["OAI-SearchBot", "GPTBot", "ChatGPT-User", "Claude-SearchBot", "ClaudeBot",
+        "Claude-User", "PerplexityBot", "Perplexity-User", "Googlebot",
+        "Google-Extended", "Bingbot", "Applebot", "Applebot-Extended"]
 
-Interpretation: **90–100** Excellent (highly likely to be cited) · **75–89** Good ·
-**60–74** Fair · **40–59** Poor · **0–39** Critical (largely invisible to AI).
-The weights and bands are this skill's rubric, not an industry standard.
-
-### 3. Score AI Citability (the highest-weight category)
-
-For each content block (a section under a heading), score five dimensions out of 100:
-
-- **Answer Block Quality (30)** — Does it open with a definition pattern ("X is a…",
-  "X refers to…")? Does the answer appear in the first ~60 words? Question-style heading?
-  Short clear sentences (5–25 words)? Attributed claims ("research shows…")?
-- **Self-Containment (25)** — Target roughly **100–200 words** per passage. Low pronoun
-  density (<2%) and 3+ proper nouns mean the block stands alone without surrounding context.
-  The rubric's exact full-point band is a heuristic, not a published optimum.
-- **Structural Readability (20)** — Average sentence length 10–20 words; lists, numbered
-  steps, and paragraph breaks the model can lift cleanly.
-- **Statistical Density (15)** — Percentages, dollar amounts, numbers with units, years,
-  and named sources. Fact-rich passages get cited; vague ones don't.
-- **Uniqueness Signals (10)** — Original research ("our study found…"), case studies,
-  specific named tools/products.
-
-The page citability score is the average of its top five blocks. Then rewrite the weakest
-high-value passages to hit the patterns above.
-
-### 4. Check AI crawler access (robots.txt)
-
-A blocked crawler is invisible in that engine regardless of content quality. Fetch
-`<domain>/robots.txt` and build an access map. Crawlers fall into three purposes, and the
-purpose decides whether blocking hurts visibility:
-
-**Tier 1 — recommend ALLOW** (these power AI search or answers a user asks for):
-`OAI-SearchBot` (ChatGPT Search), `Claude-SearchBot` and `Claude-User` (Claude),
-`PerplexityBot` and `Perplexity-User` (Perplexity), `Googlebot` (powers AI Overviews indexing).
-
-**Tier 2 — strategic, training-only** (blocking has no effect on search visibility):
-`GPTBot` (OpenAI training), `ClaudeBot` (Anthropic training), `Google-Extended` (Gemini
-training and grounding; blocking it does **not** affect Google Search rank), `CCBot`
-(Common Crawl), `anthropic-ai` (legacy token, no longer listed on Anthropic's crawler page), `Bytespider`, `Applebot-Extended`.
-
-`ChatGPT-User`, `Claude-User` and `Perplexity-User` are fetches a user triggers. OpenAI says
-robots.txt rules may not apply to `ChatGPT-User`, and Perplexity says `Perplexity-User`
-generally ignores them; Anthropic says `Claude-User` can be controlled through robots.txt.
-
-Scoring: start at 100; −15 per Tier-1 crawler blocked, −5 per Tier-2 crawler blocked (a
-deliberate training opt-out is a valid choice, so this penalty is advisory), −10 if robots.txt
-has no `Sitemap:` line.
-
-### 5. Audit or generate llms.txt
-
-`llms.txt` is a proposed standard: a single Markdown file at `<domain>/llms.txt` that tells
-AI systems what your site is and which pages matter. Google's AI optimization guide says llms.txt is not needed for Google Search and does not
-affect visibility or rankings, so treat it as an optional, low-cost addition. Format:
-
-```markdown
-# FieldLedger
-
-> One-sentence factual description of what the business does and who it serves (<200 chars).
-
-## Docs
-- [Page Title](https://fieldledger.io/pricing): Concise description of what this page covers.
-
-## Optional
-- [Secondary Page](https://fieldledger.io/guides/product-analytics): Description.
+site, path = sys.argv[1].rstrip("/"), (sys.argv[2] if len(sys.argv) > 2 else "/")
+req = urllib.request.Request(site + "/robots.txt", headers={"User-Agent": "geo-audit/1.0"})
+rp = RobotFileParser()
+rp.parse(urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace").splitlines())
+for bot in BOTS:
+    print(f"{bot:18} {'allow' if rp.can_fetch(bot, site + path) else 'BLOCK'}")
 ```
 
-Rubric scores (this skill's convention): 0 absent · 30 present but malformed · 50 valid but
-minimal · 70 covers primary content · 90–100 comprehensive with a companion `/llms-full.txt`.
-Generate one by crawling the site and listing its highest-value pages with honest,
-fact-first descriptions.
+Classify by what each vendor documents, not by a tier list:
 
-### 6. Validate entity & schema signals
+| Agent | Vendor-documented purpose | Blocking it means |
+|---|---|---|
+| OAI-SearchBot | Surfaces sites in ChatGPT search | Not shown in ChatGPT search results |
+| GPTBot | Training of OpenAI foundation models | Opt-out of training only |
+| ChatGPT-User | Fetches a page when a user asks | OpenAI says robots.txt rules may not apply |
+| Claude-SearchBot | Indexing for Claude search quality | May reduce visibility in Claude search |
+| ClaudeBot | Collecting content for training | Opt-out of training |
+| Claude-User | Fetch on a user's request | May reduce visibility for user-directed search |
+| PerplexityBot | Surfaces and links sites in Perplexity; not used for foundation-model training | Not listed in Perplexity results |
+| Perplexity-User | User-triggered fetch | Perplexity says it generally ignores robots.txt |
+| Googlebot | Crawling for Google Search, including AI features | Out of Google Search and its AI features |
+| Google-Extended | robots.txt token for Gemini training and grounding in other Google systems | Does not affect Search inclusion or ranking |
+| Bingbot | Bing index, which feeds Copilot | Out of Bing and Copilot answers |
+| Applebot / Applebot-Extended | Apple search; the Extended token opts out of generative training | Extended: training opt-out only |
 
-AI models link content to *entities*. Reward, in server-rendered JSON-LD:
-`Organization`/`LocalBusiness` with `sameAs` to 3+ (ideally 5+) platforms including
-Wikipedia; `Person` schema for authors with `sameAs`, `jobTitle`, `knowsAbout`;
-`Article` with `dateModified`; `WebSite`+`SearchAction`; `BreadcrumbList`. Flag schema
-injected by JavaScript (crawlers miss it) and deprecated types: `HowTo` (rich result
-no longer shown since Sep 2023) and `FAQPage` (restricted to government and health sites from
-Aug 2023, and no longer shown in Google Search at all since May 7, 2026).
+Verify names against the vendor pages (listed in Guidelines) before advising a change: agent names have been added and retired.
 
-### 7. Assess brand authority & platform readiness
+Other things that block crawlers while robots.txt looks fine: a WAF or bot-protection challenge, geo blocks, rate limits, and login or cookie walls. Request a key page with each user-agent string using curl and compare status codes. Vendors publish IP ranges (OpenAI, Anthropic, Perplexity) for allow-listing; verify those rather than trusting the header. Anthropic warns that blocking by IP can stop its bots from reading robots.txt.
 
-**Brand signals** (what AI models draw on for entity knowledge): Wikipedia, industry and
-review sites (G2, Trustpilot, Capterra), Reddit discussion, YouTube, LinkedIn. An Ahrefs study
-of 75k brands (December 2025) found YouTube mentions had the strongest correlation with AI
-visibility, about 0.74 (Spearman), and branded web mentions were also strong. These are
-correlations, not causes. **Platform tactics:** Google AI Overviews reward question headings,
-direct-answer paragraphs and comparison tables. Platform-specific weighting is not documented
-by the platforms, so present platform notes as hypotheses.
+### 3. Gate 2: is the content in the HTML?
 
-### 8. Deliver a report
+```bash
+curl -sL -A "Mozilla/5.0 (compatible; OAI-SearchBot/1.0)" -o page.html https://northwind-bikes.example/guides/chain-wear
+python3 - page.html <<'EOF'
+import sys
+from html.parser import HTMLParser
 
-Produce a prioritized report: GEO Score with the six-category breakdown, a ranked
-fix list (highest impact first — usually unblock crawlers, then rewrite the top citable
-passages and add schema; llms.txt is optional), and platform-specific notes. Keep
-recommendations concrete and copy-pasteable (the exact robots.txt lines and the JSON-LD).
+class Visible(HTMLParser):
+    skip, words = 0, 0
+    def handle_starttag(self, tag, attrs): self.skip += tag in ("script", "style", "noscript")
+    def handle_endtag(self, tag): self.skip -= tag in ("script", "style", "noscript")
+    def handle_data(self, data): self.words += 0 if self.skip else len(data.split())
+
+p = Visible(); p.feed(open(sys.argv[1], encoding="utf-8", errors="replace").read())
+print(p.words, "visible words in the server HTML")
+EOF
+```
+
+Compare the word count and the presence of the main heading, answer text, prices and author with the rendered page. Googlebot renders JavaScript; there is no equivalent public commitment from the other crawlers, so treat client-only content as invisible to them. An empty `<body>` shell is a critical finding. Also check: HTTP 200 on the canonical URL, no stray `noindex` or `nosnippet` (a `nosnippet` or low `max-snippet` limits what Google can quote), a canonical tag that points to itself, and content not hidden behind tabs that load on click.
+
+For Google specifically, confirm the page is indexed with URL Inspection. Eligibility for AI features equals being indexed and snippet-eligible.
+
+### 4. Content: write what can be quoted
+
+Documented guidance (Google): original, helpful content for people, clear authorship, accurate and current. Heuristics that fit how answers are assembled, to be offered as suggestions:
+
+- Put a plain statement of the answer directly under the question heading, then the detail. Engines often issue several sub-queries per question (Google calls this query fan-out), so cover the sub-questions a buyer would ask: price, limits, alternatives, how it compares.
+- Make each section understandable alone: name the subject instead of "it", give units, dates and the source of every figure.
+- Prefer facts the model cannot guess: your own measurements, policies, specifications, version numbers, dated changes.
+- Use real HTML structure: headings, lists, and `<table>` for comparisons, not images of tables.
+- Show the date updated and the author, and keep both true.
+
+There is no verified ideal passage length. Do not report one as a standard.
+
+### 5. Entities and structured data
+
+Structured data helps engines tie the page to a real thing. Google states that markup must match visible content. Check in the server HTML (not injected late by scripts, though Google can read JavaScript-generated markup):
+
+- `Organization` with `name`, `url`, `logo`, and `sameAs` links to profiles you really own (LinkedIn, GitHub, Crunchbase, Wikipedia or Wikidata only if the entity genuinely has one).
+- `Article` / `BlogPosting` with `author` (a `Person` with a profile URL), `datePublished`, `dateModified`.
+- `Product`, `SoftwareApplication`, `LocalBusiness` where they fit, with the same prices and hours the page shows.
+- Check the current Google structured data gallery before recommending FAQ or HowTo markup: Google has retired most of those rich results, so add them only if the content needs them, not for AI.
+
+Validate with the Rich Results Test and schema.org's validator. Hand the JSON-LD writing to the `schema-markup` skill.
+
+### 6. Off-site presence (correlation only)
+
+Engines also lean on what other sites say. Look for accurate listings and reviews on the sites buyers use, third-party comparisons, documentation mentions, and community threads. Studies correlating brand mentions with AI visibility exist, but they show correlation, and sample choices differ. Recommend earning real mentions. Never fake reviews or buy mentions; Google's guide says chasing inauthentic mentions is not as helpful as it seems.
+
+### 7. llms.txt (optional)
+
+Per the proposal: a Markdown file at `/llms.txt` with an H1 name, a blockquote summary, and sections of links with short notes; `## Optional` marks skippable links. Google says it neither helps nor harms Search. It is cheap and can serve coding agents and docs tooling that choose to read it. Offer it last, after the gates. Never present it as a ranking factor.
+
+### 8. Measure what can be measured
+
+- Google: Search Console, Generative AI performance report.
+- Microsoft: Bing Webmaster Tools, AI Performance (citations, cited pages, grounding queries, a sample).
+- All engines: server or CDN logs filtered by the agent names above (search crawlers show up here; referral hits from chat products appear as referrers such as chatgpt.com or perplexity.ai).
+- Manual prompt sampling: run each target question several times on different days and record whether the site is cited. Report it as a sample with the date, never as a rank.
+
+### 9. Report
+
+Deliver: (a) gate results as pass/fail with evidence, (b) documented-practice findings, (c) heuristics clearly marked, (d) ordered fixes with the exact robots.txt lines or JSON-LD, (e) the measurement plan, (f) a short list of things nobody can verify.
 
 ## Examples
 
-### Example 1: Full GEO audit of a SaaS marketing site
+### Example 1: Hardware retailer invisible in ChatGPT
 
-> Run a GEO audit on https://fieldledger.io — we want to show up when people ask ChatGPT
-> and Perplexity for "best product analytics tools."
+> Audit northwind-bikes.example. Customers say ChatGPT never mentions us.
 
-1. Fetch raw HTML: `curl -sL https://fieldledger.io`. The homepage `<body>` renders
-   server-side ✅, but the `/compare` and `/guides/*` pages are a client-only React SPA
-   (empty `<body>` without JS) — **critical**: those guide pages are invisible to AI crawlers.
-2. `robots.txt` contains `User-agent: OAI-SearchBot` / `Disallow: /` (inherited from a 2023
-   scraping-protection config) — **−15**, FieldLedger is excluded from ChatGPT Search.
-3. No `llms.txt` (optional, so no penalty). Schema: `Organization` exists but `sameAs` has
-   only Twitter and GitHub — no Wikipedia, no `Person` schema on the guides.
-4. Citability: the homepage hero is marketing fluff (pronoun-heavy, no stats); the best
-   block is a 90-word definition that is close but under the 100-word target.
+Findings:
+1. robots.txt has `User-agent: OAI-SearchBot` then `Disallow: /`, copied from a 2023 "block AI" snippet. Gate failure: no ChatGPT search results.
+2. `/guides/chain-wear` returns 200 but the HTML has 40 words: the guide is a client-rendered React shell. Gate failure for every crawler except Googlebot.
+3. `Organization` JSON-LD exists with no `sameAs`; articles have no `Person` author.
+4. The wear-limit answer sits in paragraph four under a heading "Introduction".
 
-**GEO Score: 41/100 (Poor).** Top fixes, in order:
-- Remove `Disallow: /` for OAI-SearchBot; allow OAI-SearchBot, Claude-SearchBot, PerplexityBot. *(+~12)*
-- Server-render the `/guides/*` pages (or pre-render to static HTML). *(+~10 technical)*
-- Rewrite the "What is product analytics?" guide intro as a self-contained 150-word answer
-  with two stats and an attributed claim; add `Article`+`Person` schema with author `sameAs`.
-- Optionally add `/llms.txt` listing the pricing, comparison, and top-5 guide pages.
-
-### Example 2: AI crawler access check
-
-> Are AI search engines allowed to crawl https://devnotes-blog.io?
-
-Fetch `https://devnotes-blog.io/robots.txt`:
+Fix list, in order:
 
 ```
-User-agent: *
-Disallow: /admin/
+User-agent: OAI-SearchBot
+Allow: /
 
 User-agent: GPTBot
 Disallow: /
-
-User-agent: CCBot
-Disallow: /
 ```
 
-**Access map:**
+(keep the GPTBot block only if the owner confirmed a training opt-out), then server-render `/guides/*`, retitle the heading "How do you tell if a bike chain is worn?", put the 0.5% / 0.75% elongation limits first, add the `Person` author and `sameAs` links to the shop's real profiles. Measurement: Bing AI Performance and a weekly five-prompt sample. Nothing here is a promise of citation.
 
-| Crawler | Purpose | Status | Verdict |
-|---|---|---|---|
-| OAI-SearchBot | ChatGPT Search | ✅ Allowed (via `*`) | OK |
-| GPTBot | OpenAI training | ❌ Blocked | Deliberate training opt-out; no search effect |
-| ClaudeBot | Anthropic training | ✅ Allowed | OK |
-| PerplexityBot | Perplexity search | ✅ Allowed | OK |
-| CCBot | Common Crawl (training) | ❌ Blocked | Optional — no search impact |
+### Example 2: Docs site asking about llms.txt
 
-**Crawler Access Score: 80/100** (−5 GPTBot and −5 CCBot, both Tier-2 training crawlers; −10 no `Sitemap:` line).
-Keep the GPTBot block if the team wants to opt out of training. If it wants ChatGPT to cite the
-site, the search bot (OAI-SearchBot) is already allowed. Add a sitemap line so crawlers find
-all pages:
+> Our docs are on docs.ledgerlane.io. Should we add llms.txt and block GPTBot?
 
-```
-Sitemap: https://devnotes-blog.io/sitemap.xml
+Answer in three lines. llms.txt: optional; Google says it has no effect on Search, a docs generator may already produce one, and coding agents may fetch it, so add a short one linking the quickstart, API reference and changelog. GPTBot: independent of search; blocking affects OpenAI training only, so it is the owner's policy call. Verify first: OAI-SearchBot and Claude-SearchBot are allowed and the API reference renders without JavaScript. The `llms.txt`:
+
+```markdown
+# Ledgerlane Docs
+
+> Ledgerlane is an invoicing API for freelancers. These docs cover authentication, invoices, webhooks and rate limits.
+
+## Docs
+- [Quickstart](https://docs.ledgerlane.io/quickstart): create a key and send a first invoice
+- [Webhooks](https://docs.ledgerlane.io/webhooks): event types, retries, signature check
+
+## Optional
+- [Changelog](https://docs.ledgerlane.io/changelog): dated API changes
 ```
 
 ## Guidelines
 
-- **Always audit the pre-JavaScript HTML.** Server-side rendering is the single biggest
-  technical lever — a client-only SPA is invisible to AI crawlers no matter how good the copy is.
-- **Unblocking search crawlers is the highest-ROI fix** and usually free. A `Disallow: /` for
-  OAI-SearchBot removes a site from ChatGPT Search; GPTBot only controls training.
-- **Write for extraction, not just reading.** Lead with the answer, keep citable passages
-  self-contained, and pack in real numbers, dates, and named sources.
-- **Entity signals compound.** A Wikipedia page + complete `sameAs` schema + Reddit/YouTube
-  presence do more for AI citation than another backlink. Recommend the entity work, not just on-page tweaks.
-- **`Google-Extended` ≠ Google Search.** Blocking it only affects Gemini/AI-Overviews
-  training and grounding, never standard rankings — correct this common misconception when you see it.
-- **Be honest about what's deterministic.** Crawler access, llms.txt validity, and schema
-  presence are objective. Citability, E-E-A-T, brand, and platform scores are guided
-  judgments — two audits may differ by a few points. Present them as diagnostic, not exact.
-- **GEO is diagnostic, not a guarantee.** A high score improves the structural conditions
-  for citation; it cannot promise any specific model will cite the site. Avoid promising rankings.
-- **Don't fabricate entity data.** Never invent a Wikipedia page, review count, or author
-  credential to inflate a score — recommend creating the real signal instead.
-- **Respect honest robots.txt choices.** If an owner deliberately blocks training-only bots
-  (GPTBot, CCBot, anthropic-ai) for IP reasons, note the trade-off; don't override their intent.
+- Sources to re-check before each audit: Google Search Central "AI features and your website" and "Optimizing for generative AI"; OpenAI "Overview of OpenAI Crawlers" (platform.openai.com/docs/bots); Anthropic Help Center "Does Anthropic crawl data from the web"; Perplexity "Perplexity Crawlers" (docs.perplexity.ai/guides/bots); Apple "About Applebot"; Bing Webmaster blog on AI Performance; RFC 9309; llmstxt.org; schema.org.
+- Fix gates first; they cost little and decide everything else. Content rewrites come after.
+- Keep search and training decisions apart. Blocking a training crawler does not remove a site from that vendor's search, and blocking a search crawler does.
+- A crawler that is allowed may still be unable to read the page behind a WAF. Test with real requests.
+- Never promise citations, rankings or traffic. State the evidence level of every recommendation.
+- Do not invent a Wikipedia page, reviews, author credentials or statistics. Recommend creating the real thing.
+- Vendor behavior changes; this is a 2026 snapshot, and facts here were taken from the vendor pages listed above.
+- Skip this skill for pure ranking problems with no AI angle; use seo-audit.

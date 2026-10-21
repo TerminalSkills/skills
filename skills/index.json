@@ -3616,7 +3616,7 @@
     {
       "name": "generative-engine-optimization",
       "slug": "generative-engine-optimization",
-      "description": "Optimize a website to be discovered, cited, and recommended by AI search engines — ChatGPT, Claude, Perplexity, Google AI Overviews, and Gemini. Use this for Generative Engine Optimization (GEO / AEO / \"AI SEO\"): scoring content citability, checking AI crawler access in robots.txt (OAI-SearchBot, PerplexityBot, Claude-SearchBot, GPTBot), auditing or generating an llms.txt file, validating schema for entity recognition, assessing brand authority signals, and producing a GEO audit report. Trigger on \"GEO,\" \"AI search optimization,\" \"get cited by ChatGPT/Perplexity,\" \"llms.txt,\" \"AI crawlers,\" \"AI Overviews,\" \"citability.\" This is about generative AI search visibility, NOT geographic/geolocation. For traditional keyword ranking see seo-audit; for structured data see schema-markup.",
+      "description": "Audits and improves how a website is found and cited by AI answer engines (Google AI Overviews and AI Mode, ChatGPT search, Perplexity, Claude, Copilot). Use for Generative Engine Optimization (GEO, AEO, \"AI SEO\"): \"get cited by ChatGPT\", \"are AI crawlers blocked\", \"AI Overviews visibility\", \"llms.txt\", \"will AI bots see my site\". Checks crawler access in robots.txt, server-rendered content, entity markup and answer-ready writing, and says which findings are documented and which are heuristics. Not about geography. For classic ranking use seo-audit; for JSON-LD use schema-markup.",
       "category": "business",
       "tags": []
     },
@@ -10810,5 +10810,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-21T23:01:43.054Z"
+  "updatedAt": "2026-10-21T23:11:41.893Z"
 }

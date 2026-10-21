@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:af85a49de3bba2b722f14c2b0e91d1000c246a36321c925959d59f1d4c2a9c70",
-  "scoredAt": "2026-10-20T19:34:04.003Z",
+  "version": "3.0.0",
+  "skillHash": "sha256:e4d0961225a9625731b3676eb097c3b2eeb82e75ff384647836b305b45bb9590",
+  "scoredAt": "2026-10-21T23:11:36.254Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 4.71,
-    "baselineAvg": 17,
-    "treatmentAvg": 80,
+    "multiplier": 4.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 47,
     "scenarios": [
       {
-        "name": "full-geo-audit",
+        "name": "audit-robots-for-ai-crawlers",
         "baseline": 0,
-        "treatment": 75,
-        "rationale": "Response B covers most rubric items but omits raw HTML fetch and a full prioritized fix list, whereas Response A provides no content."
+        "treatment": 60,
+        "rationale": "Response B lists status for each bot but omits block lines and suggested changes, whereas Response A offers no audit at all."
       },
       {
-        "name": "ai-crawler-access-check",
-        "baseline": 50,
-        "treatment": 65,
-        "rationale": "Response A includes a table of blocked bots and parsing logic, whereas Response B only provides a script without a table or score."
+        "name": "check-server-rendered-content",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A gives a detailed script that can compute word count and heading presence, while Response B cannot provide any analysis."
       },
       {
-        "name": "llms-txt-generation",
+        "name": "validate-structured-data",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "A fully meets rubric, B does not."
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required missing fields, value confirmations, and corrected JSON-LD snippet; B only offers a script without actual results."
       }
     ]
   }
