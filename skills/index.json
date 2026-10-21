@@ -5049,14 +5049,14 @@
     {
       "name": "liepin-jobs",
       "slug": "liepin-jobs",
-      "description": "Search jobs on Liepin (猎聘), apply to positions, view and edit resumes. Zero-dependency Python CLI wrapping Liepin's official MCP Server. Trigger words: jobs, liepin, resume, 找工作, 搜职位, 投简历, 猎聘, 求职, 招聘, 简历.",
+      "description": "Connects an AI coding agent to Liepin's (猎聘) official MCP server so it can search jobs, read and edit the user's resume, and submit applications after explicit approval. Covers adding the server to Claude Code, Codex, Gemini CLI and Cursor with tokens kept in environment variables. Use when the user says \"find jobs on Liepin\", \"搜职位\", \"猎聘\", \"改简历\", \"投简历\", \"求职\", or wants a resume reviewed against live Chinese job listings.",
       "category": "productivity",
       "tags": [
-        "jobs",
         "liepin",
+        "jobs",
         "resume",
         "mcp",
-        "chinese"
+        "recruitment"
       ]
     },
     {
@@ -10810,5 +10810,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-21T23:11:41.893Z"
+  "updatedAt": "2026-10-21T23:44:57.893Z"
 }

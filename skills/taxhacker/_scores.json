@@ -1,34 +1,24 @@
 {
   "version": "1.1.0",
-  "skillHash": "sha256:97a23cdf40965f1726dc5941b4aea8f9db91e2001963a729bef108b701dbe261",
-  "scoredAt": "2026-10-20T20:21:20.628Z",
+  "skillHash": "sha256:6cbb9128fd426dbee93396d3bb42dbe30cccdb8f41588e629e183020e3685b8e",
+  "scoredAt": "2026-10-21T23:19:43.664Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The file contains verbose explanations that could be trimmed."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes Docker and specific environment, limiting platform flexibility."
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on the happy path."
       }
     ]
   },
@@ -37,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.86,
-    "baselineAvg": 50,
+    "multiplier": 1.98,
+    "baselineAvg": 47,
     "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "deploy-with-docker-compose-0-8-5",
-        "baseline": 50,
-        "treatment": 80,
-        "rationale": "Response B covers the required image tag change, port mapping, and compose command, while Response A uses the wrong port and omits the 7331 mapping and the note about no v prefix."
+        "name": "deploy-with-docker",
+        "baseline": 30,
+        "treatment": 90,
+        "rationale": "Response A covers all required steps (download, pin image, bind port, run compose) but omits the note about no 'v' prefix; Response B fails to download the correct tag, uses wrong port mapping, and misses the prefix note."
       },
       {
-        "name": "configure-openai-provider",
-        "baseline": 50,
+        "name": "configure-ai-provider",
+        "baseline": 55,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A omits the required variable name and docker-compose reference."
+        "rationale": "Response B fully satisfies the rubric, while Response A omits key variables and UI instructions."
       },
       {
-        "name": "import-bank-statement-csv",
-        "baseline": 50,
-        "treatment": 100,
-        "rationale": "Response A fully covers the required points, while Response B omits the /import/csv endpoint, web UI reference, and AI categorization."
+        "name": "import-bank-statement",
+        "baseline": 55,
+        "treatment": 90,
+        "rationale": "Response B fully covers the required steps (endpoint, mapping, filtering, export) while Response A omits the /import/csv endpoint and the name/currency mapping."
       }
     ]
   }

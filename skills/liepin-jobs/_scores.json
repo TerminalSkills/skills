@@ -1,24 +1,29 @@
 {
-  "version": "0.2.0",
-  "skillHash": "sha256:132eff782e04ab8bc65c08adbf37cf475cc96ceacc926b6e9df9f94b9cadd4a1",
-  "scoredAt": "2026-10-20T19:51:30.322Z",
+  "version": "1.0.0",
+  "skillHash": "sha256:7afe4682792d2c8bebd1cc207b4b421453e632a44da70735bd7fbe2316006cd2",
+  "scoredAt": "2026-10-21T23:40:59.423Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "PASS",
+      "completeness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios, such as network failures or malformed responses."
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text that may be considered verbose beyond what is necessary for execution."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill is tailored to specific agents (Claude Code, Codex CLI, Gemini CLI, Cursor) and may not work with other AI agents."
       }
     ]
   },
@@ -27,27 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.61,
-    "baselineAvg": 23,
-    "treatmentAvg": 60,
+    "multiplier": 4.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 43,
     "scenarios": [
       {
-        "name": "search-jobs-with-filters",
+        "name": "add-liepin-server",
         "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B includes the required command line but does not show JSON output, whereas Response A does not contain the command line at all."
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B contains no content to evaluate."
       },
       {
-        "name": "update-basic-resume",
+        "name": "search-jobs-liepin",
         "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response A includes the required command lines (though with minor formatting differences) but omits the server confirmation, whereas Response B fails to provide any commands."
+        "treatment": 0,
+        "rationale": "Both responses fail to provide a job results table; Response B offers more detail on how to call the search tool, so it is marginally better."
       },
       {
-        "name": "apply-job-with-confirmation",
-        "baseline": 70,
-        "treatment": 80,
-        "rationale": "Both responses provide the required search and apply commands, but neither includes an explicit confirmation prompt; Response A offers more detail and a review comment, making it slightly better."
+        "name": "edit-resume-and-apply",
+        "baseline": 10,
+        "treatment": 30,
+        "rationale": "Response A is closer to the rubric, requesting job ID and outlining steps, whereas Response B only asks for input."
       }
     ]
   }

@@ -1,53 +1,47 @@
 {
   "version": "1.1.0",
-  "skillHash": "sha256:e2a49d2d0d00248104e7b44707e0a8590996fedbfc31ddc91ffc1b4dee3f9ee5",
-  "scoredAt": "2026-10-20T19:43:27.427Z",
+  "skillHash": "sha256:fe7dc91f991ae05142f15091463e7b17bad939c4f5db333ebeddc2238ad101c7",
+  "scoredAt": "2026-10-21T23:39:54.713Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The skill is macOS-only, limiting cross-platform compatibility."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 5.3,
-    "baselineAvg": 0,
-    "treatmentAvg": 53,
+    "multiplier": 8.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "meeting-prep-workflow",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response A outlines the process and gives example data but lacks the actual required information, whereas Response B refuses to provide any answer."
-      },
-      {
-        "name": "daily-planning",
-        "baseline": 0,
-        "treatment": 10,
-        "rationale": "Response A offers actionable steps to retrieve the required data, whereas Response B merely states it cannot access the information."
-      },
-      {
-        "name": "navigation-assist",
+        "name": "meeting-prep-with-sarah-chen",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B fails to provide any of the required details."
+        "rationale": "Response B fully meets the rubric while Response A does not."
+      },
+      {
+        "name": "daily-planning-with-reminders",
+        "baseline": 15,
+        "treatment": 65,
+        "rationale": "Response A covers calendar and reminders queries and gives a schedule, but omits weather; Response B fails to use iMCP or weather and offers no real query."
+      },
+      {
+        "name": "coffee-locating-and-directions",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not provide any relevant information."
       }
     ]
   }
