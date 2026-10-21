@@ -22,7 +22,7 @@ metadata:
 
 ## Overview
 
-Build systems where multiple AI agents independently analyze a problem, then converge on predictions through voting, debate, or weighted aggregation. Inspired by biological swarms and ensemble methods — the collective intelligence of diverse agents consistently outperforms any single agent.
+Build systems where multiple AI agents independently analyze a problem, then converge on predictions through voting, debate, or weighted aggregation. The idea comes from ensemble methods: independent answers that err in different directions can cancel out. With LLMs the gain is not guaranteed. Results across studies are mixed, and sampling one strong model several times and taking the majority answer (self-consistency) often does as well as a swarm at the same cost. Measure on your own questions before relying on it.
 
 ### Core Patterns
 
@@ -206,10 +206,10 @@ def specialist_swarm(question: str) -> str:
 ## Guidelines
 
 1. **Diversity is key** — Agents with identical prompts add noise, not intelligence. Give each a distinct perspective
-2. **Odd number of agents** — Avoids ties in voting (5, 7, or 9 agents work best)
+2. **Odd number of agents** — Avoids ties in a plain majority vote; with confidence weighting, ties are rare anyway
 3. **Confidence calibration** — Ask agents to self-report confidence; use it for weighting
 4. **Cost control** — Parallel calls are fast but expensive. Use cheaper models for screening, expensive for synthesis
-5. **Sweet spot is 5-7 agents** — Beyond 9, gains plateau due to diminishing returns
+5. **No universal agent count** — Each agent adds cost and latency, and extra agents that share a model mostly repeat each other. Start with 3–5, then add agents only while accuracy on a set of questions with known answers keeps improving
 6. **Different models beat different prompts** — Agents backed by the same model make correlated mistakes; mix model families where you can. Some newer models ignore or reject a custom `temperature`
 7. **Use swarms for high-stakes decisions** — For simple tasks, a single agent is faster and cheaper
 8. **Self-reported confidence is not a probability** — Treat the share as a rough signal and compare against known outcomes before trusting it
