@@ -1,31 +1,60 @@
 ---
 name: tailwindcss
 description: >-
-  You are an expert in Tailwind CSS v4, the utility-first CSS framework. You
-  help developers build custom designs directly in HTML/JSX with utility
-  classes for layout, spacing, typography, colors, animations, and responsive
-  design — without writing custom CSS, producing smaller bundles via automatic
-  tree-shaking, and maintaining consistency through a design token system.
+  Tailwind CSS is a utility-first CSS framework: you style pages with small
+  classes in the markup and ship only the CSS you use. Covers Tailwind v4
+  (CSS-first config with @theme, @import "tailwindcss", Vite and PostCSS
+  plugins), responsive layouts, dark mode, custom animations, and the v3 to
+  v4 renames. Use when someone asks to "style with Tailwind", "set up Tailwind
+  v4", "upgrade Tailwind to v4", "add dark mode", or "fix Tailwind classes
+  that stopped working".
 license: Apache-2.0
-compatibility: ''
+compatibility: "Tailwind CSS 4.x; Node.js 20+ for the CLI and upgrade tool. Browsers: Safari 16.4+, Chrome 111+, Firefox 128+."
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: Frontend Development
-  tags:
-    - css
-    - utility-first
-    - styling
-    - responsive
-    - design-system
-    - performance
+  version: "1.1.0"
+  category: development
+  repository: https://github.com/tailwindlabs/tailwindcss
+  tags: ["tailwindcss", "css", "utility-first", "responsive", "dark-mode"]
 ---
-
 # Tailwind CSS — Utility-First CSS Framework
 
-You are an expert in Tailwind CSS v4, the utility-first CSS framework. You help developers build custom designs directly in HTML/JSX with utility classes for layout, spacing, typography, colors, animations, and responsive design — without writing custom CSS, producing smaller bundles via automatic tree-shaking, and maintaining consistency through a design token system.
+## Overview
 
-## Core Capabilities
+Tailwind CSS builds designs from single-purpose utility classes (`flex`, `p-4`, `text-sm`) written directly in HTML or JSX. The compiler scans your source files, generates only the classes it finds, and reads design tokens (colors, fonts, radii, breakpoints) from CSS variables declared in `@theme`. Since v4 there is no `tailwind.config.js` by default and no `content` list: configuration lives in your CSS file and class detection is automatic.
+
+## Instructions
+
+### Install (v4)
+
+```bash
+# Vite (recommended for Vite, SvelteKit, Astro, etc.)
+npm install tailwindcss @tailwindcss/vite
+# PostCSS (Next.js and others)
+npm install tailwindcss @tailwindcss/postcss
+# Standalone build with no bundler
+npm install tailwindcss @tailwindcss/cli
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({ plugins: [tailwindcss()] });
+```
+
+```js
+// postcss.config.mjs — PostCSS users (no postcss-import or autoprefixer needed)
+export default { plugins: { "@tailwindcss/postcss": {} } };
+```
+
+```css
+/* src/app.css — replaces the three v3 @tailwind directives */
+@import "tailwindcss";
+```
+
+For the CLI: `npx @tailwindcss/cli -i src/app.css -o dist/app.css --watch`. To move a v3 project, run `npx @tailwindcss/upgrade` on a new branch and review the diff.
 
 ### Layout and Responsive
 
@@ -36,7 +65,7 @@ function ProductGrid({ products }: { products: Product[] }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4">
       {products.map((product) => (
         <div key={product.id}
-          className="group bg-white rounded-2xl shadow-sm border border-gray-100
+          className="group bg-white rounded-2xl shadow-xs border border-gray-100
                      hover:shadow-lg hover:border-gray-200 transition-all duration-300
                      overflow-hidden">
           {/* Image with aspect ratio */}
@@ -79,16 +108,24 @@ function ProductGrid({ products }: { products: Product[] }) {
   --color-brand-600: #2563eb;
   --color-brand-700: #1d4ed8;
 
-  --font-family-sans: "Inter", system-ui, sans-serif;
-  --font-family-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
 }
 ```
 
+Theme variable names decide which utilities exist: `--color-brand-500` gives `bg-brand-500` and `text-brand-500`, `--font-sans` sets `font-sans`, `--breakpoint-3xl` adds a `3xl:` variant. The v3 names `--font-family-*` are not recognized.
+
+By default `dark:` follows `prefers-color-scheme`. To switch with a class (for a theme toggle), override the variant once in your CSS:
+
+```css
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
 ```tsx
-// Dark mode — just add dark: prefix
+// Dark mode — add the dark: prefix
 function DashboardCard({ title, value, trend }: CardProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
@@ -123,10 +160,16 @@ function LoadingPulse() {
 }
 ```
 
-**tailwindcss-animate plugin** (powers shadcn/ui dialog/dropdown animations):
+**Enter/exit animations**: `tailwindcss-animate` is a v3 JavaScript plugin. For v4 use its CSS-only replacement `tw-animate-css` (the one current shadcn/ui setups use):
 
 ```bash
-npm install tailwindcss-animate
+npm install -D tw-animate-css
+```
+
+```css
+/* src/app.css */
+@import "tailwindcss";
+@import "tw-animate-css";
 ```
 
 ```tsx
@@ -173,26 +216,56 @@ npm install tailwindcss-animate
 
 ```tsx
 // Skeleton loading with shimmer
-<div className="h-4 w-48 rounded bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
+<div className="h-4 w-48 rounded bg-linear-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
 ```
 
-## Installation
+## Examples
+
+### Example 1: Set up Tailwind v4 in a Vite React app
+
+**User prompt:** "Add Tailwind to my Vite React project and give me a brand blue and Inter font."
 
 ```bash
 npm install tailwindcss @tailwindcss/vite
-# Add to vite.config.ts: plugins: [tailwindcss()]
-# Import in CSS: @import "tailwindcss";
 ```
 
-## Best Practices
+Add `tailwindcss()` to `plugins` in `vite.config.ts`, then put this in `src/index.css` (imported from `main.tsx`):
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-brand-500: #3b82f6;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+```
+
+`<button className="bg-brand-500 font-sans text-white px-4 py-2 rounded-lg">Save</button>` now renders blue with Inter. No config file and no `content` globs are needed.
+
+### Example 2: Fix a v3 project that looks different after upgrading
+
+**User prompt:** "After moving to Tailwind 4 my shadows are bigger, focus rings are thin and borders turned black."
+
+After `npx @tailwindcss/upgrade` most renames are applied; check the rest by hand:
+
+- `shadow-sm` -> `shadow-xs`, `shadow` -> `shadow-sm`, same for `rounded`, `blur`, `drop-shadow`
+- `ring` is now 1px and `currentColor`: use `ring-3 ring-blue-500` for the old look
+- `outline-none` -> `outline-hidden`; `bg-gradient-to-r` -> `bg-linear-to-r`
+- default border color is `currentColor`: write `border border-gray-200`
+- `flex-shrink-0` -> `shrink-0`; `bg-opacity-50` -> `bg-black/50`
+
+## Guidelines
 
 1. **Utility-first** — Build designs with utilities; extract components (React/Vue) not CSS classes
 2. **Responsive prefixes** — `sm:`, `md:`, `lg:`, `xl:`, `2xl:` — mobile-first breakpoints
 3. **Dark mode** — `dark:` prefix for dark variants; toggle via class or system preference
 4. **Group/peer** — `group-hover:` for parent-triggered styles; `peer-invalid:` for sibling-based
 5. **Arbitrary values** — `w-[137px]`, `text-[#1a2b3c]`, `grid-cols-[1fr_2fr]` for one-off values
-6. **@theme** — Define design tokens in CSS; Tailwind v4 reads tokens directly, no JS config
-7. **Tree-shaking** — Only classes you use ship to production; typical CSS < 10KB gzipped
+6. **@theme** — Define design tokens in CSS; v4 reads them directly. Use `@config "./tailwind.config.js"` only to load a legacy JS config
+7. **Class detection** — Tailwind scans source files for complete class names, so only used classes ship. Never build names dynamically (`` `bg-${color}-500` ``); write the full string or map values to complete class names
 8. **cn() helper** — Use `clsx` + `tailwind-merge` for conditional classes: `cn("base", condition && "extra")`
 9. **Animations** — Use CSS animations for simple effects (fade, slide, spin). Prefer `duration-300` for most transitions. Use `motion-reduce:animate-none` for reduced motion.
-10. **tailwindcss-animate** — Install for entrance/exit animations (`animate-in`, `animate-out`). Use `fill-mode-backwards` to prevent flash during delays.
+10. **tw-animate-css** — Import it for entrance/exit animations (`animate-in`, `animate-out`). Use `fill-mode-backwards` to prevent a flash during delays.
+11. **Custom utilities** — v4 replaces `@layer utilities { .x {} }` with `@utility x { ... }`; plain `@layer` classes no longer get variants like `hover:`.
+12. **Important modifier** — put `!` at the end: `bg-red-500!`.
+13. **Old browsers** — v4 needs Safari 16.4+, Chrome 111+, Firefox 128+; stay on v3.4 if you must support older ones.

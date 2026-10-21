@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:10b203cee3bf7ba6f67b83b4565b2b7d8f903caa1f388375ab8740740e37601d",
-  "scoredAt": "2026-05-13T10:12:50.242Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:fdb6f03223cf6215171ea846562e0ceec1acb0882f73eb100f350f81667dec03",
+  "scoredAt": "2026-10-20T20:15:22.057Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
-      "clarity": "WEAK",
+      "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "The skill file lacks explicit instructions for the agent, making it ambiguous how to use the provided code."
+        "category": "completeness",
+        "detail": "The skill does not cover all error scenarios and edge cases, such as missing environment variables or invalid IDs."
       },
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as failed webhook verification or usage reporting failures."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Node.js and Stripe's Node SDK, limiting its applicability to other AI agents or languages."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
+    "multiplier": 1.82,
     "baselineAvg": 55,
-    "treatmentAvg": 92,
-    "multiplier": 1.67,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Bill SaaS users $29/mo plus tiered API usage",
-        "baseline": 55,
-        "treatment": 93,
-        "rationale": "Treatment creates a metered price with billing_scheme tiered and tiers_mode graduated plus a checkout.session with both prices, then reports usage via stripe.subscriptionItems.createUsageRecord with action increment as documented, while baseline manually invoices at month end."
+        "name": "subscription-setup-with-free-trial-and-metered-usage",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric items with detailed code, while Response B omits the meter setup, event_name, and webhook handling."
       },
       {
-        "name": "Let paying customers cancel and update card themselves",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment opens a stripe.billingPortal.sessions.create session with the stored stripeCustomerId and a return_url, while baseline builds bespoke endpoints to call subscriptions.update and paymentMethods.attach."
+        "name": "migrate-legacy-usage-record-to-meter-events",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric items with detailed code, while Response B is incomplete and does not address all required steps."
+      },
+      {
+        "name": "enable-customer-portal-for-plan-management",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses fully cover the rubric requirements, including session creation with customer ID and return_url, and explaining all portal features."
       }
     ]
   }

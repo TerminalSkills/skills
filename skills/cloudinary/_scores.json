@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8e443936c77c08065babde49c147a54fd3c173c57dc2ce4829b2c0f794d470e5",
-  "scoredAt": "2026-05-13T15:38:27.199Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:6025bcbbbb403e073bb1a5b8678f368746906bb9a6d848a0990b00159652843a",
+  "scoredAt": "2026-10-20T19:06:52.827Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for uploads and transformations."
+        "detail": "Instructions do not cover error handling or edge cases such as failed uploads or invalid credentials."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a TypeScript/Next.js environment, limiting use on other platforms."
+        "detail": "Skill relies on Node SDK and Next.js, limiting applicability to other platforms."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.86,
-    "baselineAvg": 35,
-    "treatmentAvg": 100,
+    "multiplier": 9,
+    "baselineAvg": 0,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "upload-product-image-with-transformations",
-        "baseline": 60,
-        "treatment": 100,
-        "rationale": "Response B satisfies all rubric requirements, while Response A fails to use process.env variables for configuration."
+        "name": "responsive-srcset",
+        "baseline": 0,
+        "treatment": 70,
+        "rationale": "Response A lacks any Cloudinary logic or srcset generation, while Response B provides a Cloudinary-based function and srcset string but omits the required dpr='auto' parameter."
       },
       {
-        "name": "generate-responsive-srcset-for-cloudinary-image",
-        "baseline": 10,
+        "name": "signed-upload-endpoint",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully implements the required getImageUrl and getSrcSet functions with correct parameters, while Response A lacks these functions and does not meet the rubric."
+        "rationale": "Response B fully meets the rubric by using Cloudinary's signing method and returning the required fields, while Response A describes an S3 solution unrelated to Cloudinary."
+      },
+      {
+        "name": "nextjs-image-component",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B does not use CldImage and thus fails."
       }
     ]
   }

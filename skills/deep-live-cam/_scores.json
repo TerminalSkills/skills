@@ -1,68 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f36ae0702214baee9e0ca451b408f582b4750647771992502f55a7704595b16d",
-  "scoredAt": "2026-05-13T16:27:15.613Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:ecceb8278b28c973756141c76a30aba7c8df032c2485ae1b109cca793be07e32",
+  "scoredAt": "2026-10-21T23:16:41.479Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as missing source/target files or GPU unavailability."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes GPU acceleration and specific execution providers, limiting compatibility with non-GPU or non-CUDA environments."
+        "detail": "The instructions do not cover error handling or edge cases such as missing dependencies or unsupported hardware."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Model file downloaded via wget without checksum verification."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "commitVerification",
-        "detail": "Code cloned from GitHub without commit hash verification."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "packageIntegrity",
-        "detail": "Packages installed via pip without specifying exact versions or verifying integrity."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
     "multiplier": 10,
-    "baselineAvg": 0,
+    "baselineAvg": 7,
     "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "cli-video-gfpgan-swap",
+        "name": "swap-video-with-gpu",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric with a complete CLI command and output description, while Response A is incomplete and does not provide the required command."
+        "rationale": "Response B includes the exact CLI command with all required flags and states frame‑rate preservation, while Response A does not provide the required command."
       },
       {
         "name": "real-time-webcam-mouth-mask",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B provides no content."
+        "rationale": "Response B includes the required command and explanation, while Response A is empty."
+      },
+      {
+        "name": "programmatic-face-swap-python",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is incomplete."
       }
     ]
   }

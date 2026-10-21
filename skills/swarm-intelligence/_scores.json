@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b8818e3273cf5c8ab59e74c4ba34dc9d22f3c4e760883f6e7e32a6daed639a40",
-  "scoredAt": "2026-05-13T10:16:51.848Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:18beb1db70384d6a2e98db8ca0f06ec9257820bfcfef74c0c82a4f9d5fddebe9",
+  "scoredAt": "2026-10-21T23:18:49.363Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases, limiting robustness."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains verbose explanations that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Python environment with LangGraph, limiting cross-platform compatibility."
+        "detail": "The implementation relies on specific libraries (LangGraph, LangChain) and assumes Python 3.10+, limiting cross-platform applicability."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
+    "multiplier": 6.33,
+    "baselineAvg": 15,
     "treatmentAvg": 95,
-    "multiplier": 3.39,
     "scenarios": [
       {
-        "name": "Build 5-agent prediction swarm with confidence-weighted voting",
-        "baseline": 25,
+        "name": "prediction-swarm-forecast",
+        "baseline": 5,
         "treatment": 95,
-        "rationale": "Treatment uses LangGraph StateGraph with distinct personas fanning into a confidence-weighted aggregator returning structured JSON; baseline runs identical agents and uses raw majority vote."
+        "rationale": "Response B fully satisfies the rubric, while Response A does not use LangGraph or structured Vote outputs."
       },
       {
-        "name": "3-round debate swarm with cross-round visibility and synthesis",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Treatment threads previous-round positions into each agent's next prompt and adds a final synthesis LLM call across Bull/Bear/Quant; baseline omits the third agent, cross-round context, and synthesis."
+        "name": "debate-swarm-ethics",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks structured output, SWARM_MODEL usage, and proper final consensus generation."
+      },
+      {
+        "name": "specialist-swarm-business",
+        "baseline": 20,
+        "treatment": 90,
+        "rationale": "Response B fully meets the rubric with LangGraph nodes, ChatOpenAI usage, and SWARM_MODEL reference, while Response A lacks LangGraph and SWARM_MODEL usage."
       }
     ]
   }

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:250da3719ee3e489fc7a9b96d0945802cb0c59d3d5bf060bff6d6fdfab2eca95",
-  "scoredAt": "2026-05-13T09:22:21.331Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f447d0ac58dbacd8eb239c9713b9807eafa67ad5965a8cb71f1645440a564a26",
+  "scoredAt": "2026-10-20T19:49:51.290Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
+        "detail": "The skill only covers the happy path and does not address error scenarios or edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 91,
-    "multiplier": 2.12,
+    "multiplier": 1.09,
+    "baselineAvg": 90,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Create lean canvas for new AI code review tool",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Treatment uses the explicit 9-box structure with existing alternatives, early adopter, the [End result] for [target customer] without [pain/cost] UVP format, and identifies the riskiest assumption with a concrete test; baseline lists generic blocks without these skill-specific patterns."
+        "name": "create-lean-canvas",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, including a clear riskiest assumption, while Response A omits the riskiest assumption requirement."
       },
       {
-        "name": "Review existing canvas and find riskiest assumptions",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Treatment applies the 'riskiest assumption first' discipline, flags fake Unfair Advantage, recommends weekly cadence and one-canvas-per-segment, and proposes pricing/interview experiments grounded in the skill's guidelines; baseline gives generic CRO advice."
+        "name": "create-business-model-canvas",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses list all nine Business Model Canvas building blocks with sufficient detail."
+      },
+      {
+        "name": "generate-swot-analysis",
+        "baseline": 90,
+        "treatment": 95,
+        "rationale": "Both responses cover all SWOT categories with bullets, but Response A offers more actionable cross‑mapping and detailed action items, giving it a higher score."
       }
     ]
   }

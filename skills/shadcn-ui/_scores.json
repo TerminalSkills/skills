@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5b84cb4c166fd3e27c0039eb055533733ff52778dad3893dfe5de20a5d152fbd",
-  "scoredAt": "2026-05-13T10:07:20.510Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4c910420af359f9a542daffbc2ab42c3b497986ac653146623ac3945034cef9e",
+  "scoredAt": "2026-10-20T20:13:24.774Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Missing error handling and edge case coverage in the skill instructions."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 8.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Create a validated user signup dialog using shadcn/ui",
-        "baseline": 55,
-        "treatment": 90,
-        "rationale": "Treatment uses the documented Form + FormField + zodResolver pattern with shadcn add commands and components/ui imports; baseline writes a generic React form without the shadcn copy-paste pattern."
+        "name": "setup-vite-base-ui-dialog-dryrun",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the init and add commands but omits the components.json creation, the --diff flag, and the description of the output, whereas Response A lacks all required elements."
       },
       {
-        "name": "Add a Cmd+K command palette to a Next.js app",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Treatment uses the documented CommandDialog/CommandInput/CommandList components installed via shadcn add and the keydown listener pattern; baseline likely hand-rolls a modal or uses cmdk directly without the shadcn wrapper."
+        "name": "react-hook-form-field-validation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B omits required imports, components, and structure."
+      },
+      {
+        "name": "sonner-toast-in-nextjs",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets every rubric requirement, while Response B omits the required shadcn command, toast positioning, and auto‑dismiss details."
       }
     ]
   }

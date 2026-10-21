@@ -11,7 +11,7 @@ license: Apache-2.0
 compatibility: "AdonisJS 7: Node.js 24+, npm 11+. TypeScript."
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
   category: development
   tags: ["nodejs", "framework", "orm", "auth", "full-stack"]
   repository: https://github.com/adonisjs/core
@@ -197,7 +197,7 @@ const token = await User.accessTokens.create(user)
 return { token: token.value!.release() }       // "oat_…", sent as Authorization: Bearer
 ```
 
-Protect routes with `.use(middleware.auth())` or `middleware.auth({ guards: ['api'] })`. Tokens are opaque and stored hashed in `auth_access_tokens`. Social login: `npm install @adonisjs/ally && node ace configure @adonisjs/ally --providers=github` (Ally 6 is the AdonisJS 7 line and is now npm's `latest`; on an older AdonisJS 6 app pin `@adonisjs/ally@5`), then `ally.use('github').redirect()` and `await ally.use('github').user()` in the callback.
+Protect routes with `.use(middleware.auth())` or `middleware.auth({ guards: ['api'] })`. Tokens are opaque and stored hashed in `auth_access_tokens`. Social login: `node ace add @adonisjs/ally --providers=github` (Ally 6.3 is the AdonisJS 7 line and npm's `latest`; an AdonisJS 6 app stays on `@adonisjs/ally@5`). It writes `config/ally.ts` with a default callback URL of `${APP_URL}/oauth/github/callback` and placeholder `GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET` values for `.env`. Redirect with `ally.use('github').redirect()`; in the callback `await ally.use('github').user()` throws a self-handled exception (flash message and redirect for HTML, JSON error otherwise) on denied access or a state mismatch, so a plain `user()` call is safe. Check `emailVerificationState` before trusting `user.email` to find or link an account. **Upgrade to Ally 6.3.1 (5.1.2 on AdonisJS 6) or later:** earlier versions accepted a callback without a `state` parameter when the state cookie was also missing, which let an attacker sign a victim in to the attacker's account or link the attacker's provider account to the victim's. The fixed versions count a missing state cookie as a mismatch.
 
 ### Upgrading from v6
 

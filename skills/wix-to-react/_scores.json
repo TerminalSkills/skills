@@ -1,58 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d548b04ea67ae9ae5b4c314f51d8ff600446e10e22a4931d6a722581383a0d80",
-  "scoredAt": "2026-06-11T19:27:41.076Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:679f8de3422d37f4e5fd5e90e81d4591e905575221d6d9e5339b3c689d1b401d",
+  "scoredAt": "2026-10-20T18:55:18.037Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly address error handling or edge cases such as network failures or missing assets."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The instructions assume a Node.js environment with Playwright and Next.js, limiting portability to other platforms."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.19,
-    "baselineAvg": 32,
-    "treatmentAvg": 70,
+    "multiplier": 5.92,
+    "baselineAvg": 13,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "full-migration-team-page",
-        "baseline": 50,
-        "treatment": 70,
-        "rationale": "Response A covers more of the required steps (curl, extraction script, scaffolding, static pages) than Response B, which focuses on CSV export and dynamic routing but omits curl, extraction, Tailwind, SEO, and redirects."
+        "name": "full-migration-static-dynamic-pages",
+        "baseline": 35,
+        "treatment": 55,
+        "rationale": "Response B includes the Playwright extraction, Tailwind config, and correct Next.js scaffolding, while Response A lacks these and misses many rubric items; B still omits dynamic routing, metadata, and redirects, but covers more required elements."
       },
       {
         "name": "headless-wix-store",
         "baseline": 0,
-        "treatment": 65,
-        "rationale": "Response A covers most of the required steps but omits the stores module, checkout redirect, and static marketing pages; Response B provides no content."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A is absent."
       },
       {
-        "name": "extract-assets-tokens",
-        "baseline": 45,
+        "name": "headless-wix-blog",
+        "baseline": 5,
         "treatment": 75,
-        "rationale": "Response A is closer to the rubric, covering most required steps and using the correct Wix asset domain, while Response B omits key elements like the _assets.txt file and proper token extraction."
+        "rationale": "Response B covers most rubric items, while Response A misses all key requirements."
       }
     ]
   }

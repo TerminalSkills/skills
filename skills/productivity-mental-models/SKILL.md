@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: "Any AI agent"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: [productivity, mental-models, decision-making, focus, time-management]
   use-cases:
@@ -60,29 +60,29 @@ Akrasia isn't laziness. It's a failure of the system around you. Your environmen
 4. **Set a timer** — External structure helps. 60 or 90 minutes. When it rings, take a break.
 5. **If interrupted, write down where you are** — "I was in the middle of implementing the validation logic for the email field." This reduces restart cost.
 
-**Team application:** "Focus Fridays" — no meetings, no Slack, just deep work. One company reported 35% more code shipped per week after implementing this.
+**Team application:** "Focus Fridays" — no meetings, no Slack, just deep work. Measure the effect on your own team (for example, tickets closed per week before and after) rather than relying on published figures.
 
 ### Model 3: Cognitive Switching Penalty
 
-**Definition:** Every time you switch between tasks, your brain needs ~23 minutes to fully re-engage with the new context (University of California, Irvine research).
+**Definition:** Each interruption pulls attention away from the task. Gloria Mark's field studies at UC Irvine found that people took an average of about 23 minutes (23 min 15 s) to get back to the interrupted work. That is a recovery time per interruption, not a fixed cost of every switch, and the study covered interruptions rather than deliberate task changes.
 
-**The math is devastating:**
+**Illustrative arithmetic (upper bound, assumes no overlap between recoveries):**
 ```
 Developer's day: 8 hours = 480 minutes
-Switches between tasks: 8 times (Slack ping, meeting, different ticket...)
-Switching cost: 8 × 23 minutes = 184 minutes LOST
-Actual productive time: 480 - 184 = 296 minutes (4.9 hours)
-That's 38% of the day wasted on switching.
+Interruptions: 8 times (Slack ping, meeting, different ticket...)
+Recovery at ~23 minutes each: 8 × 23 = 184 minutes
+Upper-bound time lost: 184 minutes (about 38% of the day)
 ```
+Treat this as a rough upper bound. Real loss depends on the interruption and on whether the work is resumed the same day.
 
 **Reducing switching costs:**
 1. **Batch similar work** — Do all code reviews at 2 PM, not scattered throughout the day
 2. **Protect focus blocks** — 3-hour minimum blocks for complex work. One meeting in the middle destroys it.
 3. **Async by default** — Slack messages don't need instant replies. Check at 10 AM, 1 PM, 4 PM.
 4. **Meeting-free mornings** — Complex work in the morning, collaborative work in the afternoon
-5. **Two-pizza calendar** — If your calendar has more than 2 meetings per day, something is wrong
+5. **Meeting limit** — If your calendar has more than 2 meetings per day, consider which ones can move to async updates
 
-**For managers:** Every time you ping a developer with "quick question," you cost the team 23 minutes. Batch your questions. Send them all at once. Let them respond when they're at a natural stopping point.
+**For managers:** Every time you ping a developer with "quick question," you may cost them minutes of recovery time (Mark's average is about 23). Batch your questions. Send them all at once. Let them respond when they're at a natural stopping point.
 
 ### Model 4: Most Important Tasks (MITs)
 
@@ -134,8 +134,8 @@ Why doesn't it address their use case?
   → Because we use a generic demo script instead of customizing per industry
 
 ROOT CAUSE: Generic demo script. Not "sales are bad."
-FIX: Create 5 industry-specific demo templates. Expected impact: cut sales
-cycle back to 14-21 days, increase conversion by 30-40%.
+FIX: Create 5 industry-specific demo templates. Illustrative target (not a
+measured result): cut sales cycle back to 14-21 days.
 ```
 
 **Rules for effective 5-Fold Why:**
@@ -209,7 +209,7 @@ Productivity Diagnosis: Busy but Unproductive
   MORNING BLOCK (8:00-11:30) — Deep Work:
     - Phone in another room, Slack closed, email closed
     - MIT #1 (90 min), break (15 min), MIT #2 (90 min)
-    - This is where 80% of your real output happens
+    - This is where most of the day's real output should happen
 
   MIDDAY (11:30-13:00) — Communication:
     - Process email (batch, not trickle)
@@ -264,8 +264,8 @@ Productivity Diagnosis: Busy but Unproductive
     3. Rule: if a story has an unresolved external dependency, it doesn't enter the sprint
     4. Track "blocked time" as a metric — make the problem visible
 
-  Expected result: 70-80% sprint completion (from current ~50%)
-  within 3 sprints of implementing this change.
+  Illustrative target, not a measured result: raise sprint completion
+  from the team's current baseline over about 3 sprints. Track it.
 ```
 
 ## Guidelines

@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f2d48ffe4d41104b6f086e09e7e6d3cdc16007ad16466dba2b1867900c99db68",
-  "scoredAt": "2026-05-13T10:02:30.588Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:1866eca3d91f612f286a170bfd77dca61ea3ac51215450394ebca9547659e479",
+  "scoredAt": "2026-10-20T20:12:27.290Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 100,
     "dimensions": {
-      "clarity": "WEAK",
-      "completeness": "WEAK",
+      "clarity": "PASS",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "clarity",
-        "detail": "Instructions are not fully explicit, lacking context for some steps."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Examples cover only happy paths, missing error handling and edge cases."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to Replicate, not platform-agnostic."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 88,
-    "multiplier": 2.32,
+    "multiplier": 8.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Non-blocking SDXL with webhook",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment correctly uses replicate.predictions.create with webhook and webhook_events_filter=['completed'] to avoid polling; baseline polls in a loop instead."
+        "name": "generate-product-shots",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not provide any code or functionality."
       },
       {
-        "name": "Package and deploy a custom HF model",
-        "baseline": 40,
-        "treatment": 85,
-        "rationale": "Treatment uses Cog with cog.yaml, a BasePredictor subclass, and cog push r8.im/<user>/<model>; baseline suggests generic Docker/HF Spaces without Cog."
+        "name": "stream-language-model",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required streaming code but uses the wrong max_tokens value and slightly misformats the print statement, whereas Response A does not meet any of the rubric requirements."
+      },
+      {
+        "name": "fine-tune-flux-model",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use Replicate APIs and thus fails to meet the requirements."
       }
     ]
   }

@@ -1,39 +1,53 @@
 ---
 name: weave
 description: >-
-  You are an expert in Weave, the lightweight toolkit by Weights & Biases for
-  tracking and evaluating AI applications. You help developers trace LLM
-  calls, evaluate outputs, compare model versions, track experiments, and
-  debug AI pipelines — with automatic logging via decorators and a visual
-  dashboard for exploring traces, costs, and quality metrics.
+  Weave is Weights & Biases' toolkit for tracing and evaluating LLM applications and AI agents. Use when a user wants to trace OpenAI or Anthropic calls, log agent runs, score outputs with evaluations, compare prompt or model versions, or debug an AI pipeline from a dashboard.
 license: Apache-2.0
-compatibility: ''
+compatibility: "Python 3.10+, a Weights & Biases account and WANDB_API_KEY"
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: 1.1.0
+  repository: https://github.com/wandb/weave
+  category: data-ai
   tags:
     - observability
     - evaluation
     - tracing
     - llm
     - weights-biases
-    - wandb
 ---
 
 # Weave — AI Application Tracking by Weights & Biases
 
-You are an expert in Weave, the lightweight toolkit by Weights & Biases for tracking and evaluating AI applications. You help developers trace LLM calls, evaluate outputs, compare model versions, track experiments, and debug AI pipelines — with automatic logging via decorators and a visual dashboard for exploring traces, costs, and quality metrics.
+## Overview
 
-## Core Capabilities
+Weave traces LLM calls and functions, runs evaluations, and versions models and prompts, with a dashboard in your W&B account for traces, cost, latency and scores. Current releases (0.53.x, Python 3.10+) also trace whole agents: with the OpenAI Agents SDK, Claude Agent SDK or Google ADK, `weave.init()` alone is enough and runs appear on the **Agents** page. Plain `@weave.op` functions and auto-patched LLM clients appear on the **Traces** page; the two kinds of trace are shown separately.
+
+## Instructions
+
+Install and authenticate first (see Installation below), then initialise with `weave.init("<team>/<project>")`; a bare project name uses your default W&B entity. Use the sections below for tracing, evaluations and model versioning.
+
+### Tracing agents
+
+```bash
+pip install weave openai-agents
+```
+
+```python
+import weave
+weave.init("acme-ml/support-agent")   # then run the agent as usual; traces land on the Agents page
+```
+
+For a custom agent loop use `weave.start_conversation(agent_name=...)`, `weave.start_turn(...)` and `weave.start_llm(...)` as context managers (the older `start_session` is deprecated).
 
 ### Automatic Tracing
 
 ```python
+import json
 import weave
 import openai
 
-weave.init("my-ai-project")               # Initialize with project name
+weave.init("acme-ml/support-agent")      # team/project; created on first use
 
 client = openai.OpenAI()
 
@@ -55,9 +69,14 @@ def extract_entities(text: str) -> list[str]:
     return json.loads(response.choices[0].message.content)
 
 @weave.op()
+def retrieve_documents(query: str) -> list[str]:
+    """Stand-in retriever; replace with your vector search."""
+    return ["Python is a programming language created by Guido van Rossum."]
+
+@weave.op()
 def rag_pipeline(query: str) -> str:
     """Full RAG pipeline — each step traced as child span."""
-    docs = retrieve_documents(query)       # Traced if decorated
+    docs = retrieve_documents(query)       # traced as a child call because it is an op
     context = "\n".join(docs)
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -98,7 +117,8 @@ evaluation = weave.Evaluation(
     scorers=[relevance_scorer, length_scorer],
 )
 
-results = await evaluation.evaluate(rag_pipeline)
+import asyncio
+results = asyncio.run(evaluation.evaluate(rag_pipeline))  # or await it inside async code
 # Results visible in Weave dashboard with per-example scores
 # Compare across model versions, prompts, parameters
 ```
@@ -132,7 +152,7 @@ agent_v2 = SupportAgent(model_name="gpt-4o-mini", system_prompt="Be detailed and
 
 # Evaluate both versions
 for agent in [agent_v1, agent_v2]:
-    await evaluation.evaluate(agent)
+    asyncio.run(evaluation.evaluate(agent))
 # Dashboard shows side-by-side comparison: quality, cost, latency
 ```
 
@@ -140,10 +160,16 @@ for agent in [agent_v1, agent_v2]:
 
 ```bash
 pip install weave
-# Uses your W&B account — set WANDB_API_KEY
+export WANDB_API_KEY=...   # key from https://wandb.ai/authorize, or run `wandb login`
 ```
 
-## Best Practices
+## Examples
+
+**Trace a RAG function.** User: "Log every call to my answer_question function with its OpenAI usage." Add `weave.init("acme-ml/support-agent")` at startup and `@weave.op()` on the function; each call shows inputs, output, token counts, latency and cost as a trace with child spans on the Traces page.
+
+**Compare two prompts.** User: "Which of my two system prompts answers better?" Wrap each in a `weave.Model` subclass (`agent_v1`, `agent_v2` above), run the same `weave.Evaluation` on both, and open the Evaluations comparison view to see scores side by side.
+
+## Guidelines
 
 1. **@weave.op() decorator** — Add to any function to trace it; creates hierarchical spans for nested calls
 2. **Auto-instrumentation** — OpenAI, Anthropic, LangChain calls traced automatically after `weave.init()`

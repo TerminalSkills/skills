@@ -1,7 +1,7 @@
 ---
 name: whisper
 description: >-
-  Transcribe audio to text with OpenAI Whisper. Use when a user asks to
+  Transcribe audio to text with OpenAI Whisper, an open-source speech recognition model that runs locally or through hosted APIs. Use when a user asks to
   transcribe audio files, generate subtitles (SRT/VTT), transcribe podcasts,
   convert speech to text, translate audio to English, build transcription
   pipelines, do speaker diarization, transcribe meetings, process voice memos,
@@ -9,10 +9,11 @@ description: >-
   applications. Covers OpenAI Whisper (local), Whisper API, faster-whisper,
   whisper.cpp, and production deployment patterns.
 license: Apache-2.0
-compatibility: 'Python 3.9+ (whisper/faster-whisper), C++ (whisper.cpp), or OpenAI API'
+compatibility: 'Python 3.9+ (openai-whisper, faster-whisper), 3.10+ for pyannote.audio 4; C++ toolchain and CMake (whisper.cpp); ffmpeg; or the OpenAI API'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/openai/whisper
   category: content
   tags:
     - whisper
@@ -26,7 +27,7 @@ metadata:
 
 ## Overview
 
-Transcribe audio with OpenAI's Whisper — the state-of-the-art speech recognition model. This skill covers local Whisper (Python), faster-whisper (CTranslate2, 4x faster), whisper.cpp (CPU-optimized C++), and the OpenAI Whisper API. Includes subtitle generation (SRT/VTT/JSON), multi-language transcription, translation to English, speaker diarization, word-level timestamps, and production pipeline patterns for podcasts, meetings, and video subtitles.
+Transcribe audio with OpenAI's Whisper, an open-source multilingual speech recognition model. This skill covers local Whisper (`openai-whisper` 20250625), faster-whisper 1.2.1 (CTranslate2, up to 4x faster), whisper.cpp (C++, CPU-friendly) and the OpenAI API, where `whisper-1` is the Whisper model and newer `gpt-transcribe` models are the default recommendation for plain transcripts. Includes subtitle generation (SRT/VTT/JSON), multi-language transcription, translation to English, speaker diarization, word-level timestamps, and production pipeline patterns for podcasts, meetings, and video subtitles.
 
 ## Instructions
 
@@ -35,8 +36,10 @@ Transcribe audio with OpenAI's Whisper — the state-of-the-art speech recogniti
 **Option A — OpenAI Whisper (original Python):**
 ```bash
 pip install openai-whisper
-# Models: tiny (39M), base (74M), small (244M), medium (769M), large-v3 (1.5G)
+# Models: tiny (39M), base (74M), small (244M), medium (769M), large-v3 (1.5G), turbo (809M)
+# CLI: whisper episode.mp3 --model turbo --output_format srt
 ```
+Needs `ffmpeg` on the PATH. The default `turbo` model is not trained for translation: use `medium` or `large` for `--task translate`.
 
 **Option B — faster-whisper (recommended for local, 4x faster):**
 ```bash
@@ -46,16 +49,17 @@ pip install faster-whisper
 
 **Option C — whisper.cpp (best for CPU, minimal dependencies):**
 ```bash
-git clone https://github.com/ggerganov/whisper.cpp
-cd whisper.cpp && make
-# Download model
-bash models/download-ggml-model.sh base.en
+git clone https://github.com/ggml-org/whisper.cpp
+cd whisper.cpp
+sh ./models/download-ggml-model.sh base.en
+cmake -B build && cmake --build build -j --config Release
 ```
+The CLI is `./build/bin/whisper-cli` (the old `./main` and `make` flow are gone) and reads 16-bit WAV only.
 
 **Option D — OpenAI API (no local GPU needed):**
 ```bash
 pip install openai
-export OPENAI_API_KEY="sk-..."
+export OPENAI_API_KEY="..."   # from your OpenAI dashboard
 ```
 
 ### Step 2: Basic Transcription
@@ -67,7 +71,8 @@ from faster_whisper import WhisperModel
 model = WhisperModel("base", device="cpu", compute_type="int8")
 # GPU: model = WhisperModel("large-v3", device="cuda", compute_type="float16")
 
-segments, info = model.transcribe("episode.mp3", beam_size=5)
+segments, info = model.transcribe("episode.mp3", beam_size=5, vad_filter=True)  # vad_filter skips silence
+# GPU alternatives: "turbo", "distil-large-v3"; transcribe() returns a generator, consume it once
 print(f"Language: {info.language} (prob: {info.language_probability:.2f})")
 
 for segment in segments:
@@ -78,7 +83,7 @@ for segment in segments:
 ```python
 import whisper
 
-model = whisper.load_model("base")  # tiny, base, small, medium, large-v3
+model = whisper.load_model("base")  # tiny, base, small, medium, large-v3, turbo
 result = model.transcribe("episode.mp3")
 
 print(result["text"])
@@ -88,11 +93,13 @@ for segment in result["segments"]:
 
 **whisper.cpp (CLI):**
 ```bash
-./main -m models/ggml-base.en.bin -f episode.wav -otxt -osrt -ovtt
+ffmpeg -i episode.mp3 -ar 16000 -ac 1 -c:a pcm_s16le episode.wav
+./build/bin/whisper-cli -m models/ggml-base.en.bin -f episode.wav -otxt -osrt -ovtt
 # Outputs: episode.txt, episode.srt, episode.vtt
 ```
 
 **OpenAI API:**
+Per OpenAI's docs, use `gpt-transcribe` for ordinary transcripts and keep `whisper-1` for word timestamps, SRT/VTT output and translation to English. Files are limited to 25 MB.
 ```python
 from openai import OpenAI
 client = OpenAI()
@@ -108,6 +115,7 @@ with open("episode.mp3", "rb") as f:
 print(transcript.text)
 for segment in transcript.segments:
     print(f"[{segment.start:.1f}s] {segment.text}")
+# response_format="srt" or "vtt" returns subtitle text directly
 ```
 
 ### Step 3: Subtitle Generation (SRT/VTT)
@@ -118,6 +126,7 @@ from faster_whisper import WhisperModel
 
 model = WhisperModel("small", device="cpu", compute_type="int8")
 segments, info = model.transcribe("episode.mp3", beam_size=5)
+segments = list(segments)  # generator: materialize so the VTT block below can reuse it
 
 def format_timestamp(seconds):
     h = int(seconds // 3600)
@@ -170,7 +179,7 @@ for seg in segments:
     print(seg.text)  # English translation
 ```
 
-**Supported languages:** 99 languages including en, zh, de, es, ru, ko, fr, ja, pt, tr, pl, nl, ar, sv, it, hi, and many more.
+**Supported languages:** about 100 languages including en, zh, de, es, ru, ko, fr, ja, pt, tr, pl, nl, ar, sv, it, hi, and many more.
 
 ### Step 5: Speaker Diarization
 
@@ -179,7 +188,6 @@ Combine Whisper with pyannote-audio for "who said what":
 ```python
 from faster_whisper import WhisperModel
 from pyannote.audio import Pipeline
-import torch
 
 # Transcribe
 model = WhisperModel("small", device="cpu", compute_type="int8")
@@ -187,17 +195,19 @@ segments, info = model.transcribe("meeting.wav", beam_size=5)
 whisper_segments = list(segments)
 
 # Diarize (requires HuggingFace token with pyannote access)
-diarization = Pipeline.from_pretrained(
-    "pyannote/speaker-diarization-3.1",
-    use_auth_token="hf_YOUR_TOKEN"
+import os
+pipeline = Pipeline.from_pretrained(
+    "pyannote/speaker-diarization-community-1",   # pyannote.audio 4.x; 3.1 is the legacy pipeline
+    token=os.environ["HF_TOKEN"],
 )
-diarization_result = diarization("meeting.wav")
+output = pipeline("meeting.wav")
+diarization_result = output.speaker_diarization
 
 # Merge: assign speaker to each whisper segment
 def get_speaker(start, end, diarization_result):
     """Find the dominant speaker during a time range."""
     speakers = {}
-    for turn, _, speaker in diarization_result.itertracks(yield_label=True):
+    for turn, speaker in diarization_result:
         overlap_start = max(start, turn.start)
         overlap_end = min(end, turn.end)
         if overlap_start < overlap_end:
@@ -212,43 +222,29 @@ for seg in whisper_segments:
 
 ### Step 6: Batch Processing & Pipelines
 
-**Transcribe all episodes in a directory:**
+**Transcribe all episodes in a directory (text and SRT in one pass):**
 ```python
-import os
 from pathlib import Path
 from faster_whisper import WhisperModel
 
+def ts(t):
+    h, rem = divmod(int(t), 3600)
+    m, sec = divmod(rem, 60)
+    return f"{h:02d}:{m:02d}:{sec:02d},{int((t % 1) * 1000):03d}"
+
 model = WhisperModel("small", device="cpu", compute_type="int8")
-episodes_dir = Path("episodes")
 output_dir = Path("transcripts")
 output_dir.mkdir(exist_ok=True)
 
-for audio_file in sorted(episodes_dir.glob("*.mp3")):
-    print(f"Transcribing: {audio_file.name}")
+for audio_file in sorted(Path("episodes").glob("*.mp3")):
     segments, info = model.transcribe(str(audio_file), beam_size=5)
-    
-    # Plain text
-    txt_path = output_dir / f"{audio_file.stem}.txt"
-    with open(txt_path, "w") as f:
-        for seg in segments:
-            f.write(seg.text.strip() + "\n")
-    
-    # SRT
-    srt_path = output_dir / f"{audio_file.stem}.srt"
-    segments2, _ = model.transcribe(str(audio_file), beam_size=5)  # Re-iterate
-    with open(srt_path, "w") as f:
-        for i, seg in enumerate(segments2, 1):
-            h, m = divmod(int(seg.start), 3600)
-            m, s = divmod(m, 60)
-            ms = int((seg.start % 1) * 1000)
-            start_ts = f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
-            h2, m2 = divmod(int(seg.end), 3600)
-            m2, s2 = divmod(m2, 60)
-            ms2 = int((seg.end % 1) * 1000)
-            end_ts = f"{h2:02d}:{m2:02d}:{s2:02d},{ms2:03d}"
-            f.write(f"{i}\n{start_ts} --> {end_ts}\n{seg.text.strip()}\n\n")
-    
-    print(f"  → {txt_path}, {srt_path}")
+    segments = list(segments)          # generator: materialize before reusing
+    (output_dir / f"{audio_file.stem}.txt").write_text(
+        "\n".join(s.text.strip() for s in segments) + "\n")
+    with open(output_dir / f"{audio_file.stem}.srt", "w") as f:
+        for i, seg in enumerate(segments, 1):
+            f.write(f"{i}\n{ts(seg.start)} --> {ts(seg.end)}\n{seg.text.strip()}\n\n")
+    print(f"{audio_file.name}: {info.language}, {len(segments)} segments")
 ```
 
 ### Step 7: Model Selection Guide
@@ -260,12 +256,13 @@ for audio_file in sorted(episodes_dir.glob("*.mp3")):
 | small | 244M | ~2GB | Moderate | Good | Podcasts, clear audio |
 | medium | 769M | ~5GB | Slow | Very good | Noisy audio, accents |
 | large-v3 | 1.5G | ~10GB | Very slow | Best | Production quality |
+| turbo | 809M | ~6GB | Fast (~8x large) | Near large-v3 | Transcription only, not translation |
 
 **Recommendations:**
 - CPU-only, speed matters: `tiny` or `base` with faster-whisper
 - CPU-only, accuracy matters: `small` with faster-whisper
 - GPU available: `large-v3` with faster-whisper (`float16`)
-- No local compute: OpenAI API (`whisper-1`)
+- No local compute: OpenAI API (`gpt-transcribe`, or `whisper-1` for SRT/VTT and word timestamps); `gpt-4o-transcribe-diarize` returns speaker labels directly
 
 ## Examples
 
@@ -284,7 +281,7 @@ The agent will:
 **User prompt:** "I have a 45-minute German interview recording at meeting.wav with two speakers. Transcribe it in English and label who said what."
 
 The agent will:
-1. Install faster-whisper and pyannote-audio (`pip install faster-whisper pyannote.audio`).
+1. Install faster-whisper and pyannote-audio (`pip install faster-whisper pyannote.audio`; version 4 needs Python 3.10+).
 2. Transcribe `meeting.wav` with `task="translate"` to get English text from the German audio.
 3. Run pyannote speaker diarization to identify speaker segments (requires a HuggingFace token with pyannote model access).
 4. Merge Whisper segments with diarization results by matching time ranges to assign speaker labels.
@@ -294,6 +291,8 @@ The agent will:
 
 - Use faster-whisper over the original OpenAI Whisper for local transcription; it is 4x faster and uses less memory through INT8 quantization via CTranslate2.
 - Select model size based on your hardware: `tiny`/`base` for CPU speed, `small` for CPU accuracy, `large-v3` for GPU production quality.
-- Always convert audio to WAV or ensure ffmpeg is installed when working with MP3/M4A inputs; Whisper relies on ffmpeg for non-WAV format decoding.
+- Install ffmpeg for MP3/M4A inputs with Whisper; whisper.cpp's CLI only reads 16 kHz 16-bit WAV, so convert first.
+- GPU faster-whisper needs CUDA 12 with cuBLAS and cuDNN 9; older stacks need an older `ctranslate2`.
+- `transcribe()` in faster-whisper is lazy: nothing runs until you iterate, and a second pass needs `list(segments)`.
 - For speaker diarization, the pyannote pipeline requires a HuggingFace access token with accepted model terms; set this up before attempting multi-speaker transcription.
 - When generating SRT files, use `beam_size=5` for more accurate segment boundaries; the default greedy decoding can produce poorly timed subtitle breaks.

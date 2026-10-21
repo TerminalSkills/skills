@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:94f96e54e54ba60a1616092808ffb70bbfdf9c8729c12e8da1ae7a2d71eeb387",
-  "scoredAt": "2026-06-11T09:20:56.482Z",
+  "version": "3.0.0",
+  "skillHash": "sha256:e4d0961225a9625731b3676eb097c3b2eeb82e75ff384647836b305b45bb9590",
+  "scoredAt": "2026-10-21T23:11:36.254Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 9.3,
+    "multiplier": 4.7,
     "baselineAvg": 0,
-    "treatmentAvg": 93,
+    "treatmentAvg": 47,
     "scenarios": [
       {
-        "name": "full-geo-audit",
+        "name": "audit-robots-for-ai-crawlers",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B lists status for each bot but omits block lines and suggested changes, whereas Response A offers no audit at all."
+      },
+      {
+        "name": "check-server-rendered-content",
         "baseline": 0,
         "treatment": 80,
-        "rationale": "Response B covers most rubric items but omits the required llms.txt mention, whereas Response A fails entirely."
+        "rationale": "Response A gives a detailed script that can compute word count and heading presence, while Response B cannot provide any analysis."
       },
       {
-        "name": "ai-crawler-access-check",
+        "name": "validate-structured-data",
         "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with a detailed table, score calculation, and specific robots.txt recommendations, while Response B fails to provide any of the required content."
-      },
-      {
-        "name": "generate-llms-txt",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully meets the rubric with header, description, and Docs section, while Response A lacks all required elements."
+        "treatment": 0,
+        "rationale": "Both responses fail to provide the required missing fields, value confirmations, and corrected JSON-LD snippet; B only offers a script without actual results."
       }
     ]
   }

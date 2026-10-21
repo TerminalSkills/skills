@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:33518200fd687a189bb9a81a0d18f173a3df70239df6c1753b683ecc3dd7bd15",
-  "scoredAt": "2026-05-13T09:46:17.714Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:dcf808f7dbf57175937497600ec629de6bb000206938e9126bde7b8cf0f89e43",
+  "scoredAt": "2026-10-20T20:00:33.040Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions provide basic error handling but do not cover all edge cases such as CI environments or spinner configuration options."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is specific to Node.js and does not support other runtime environments, limiting cross-platform applicability."
+        "detail": "The skill is Node.js specific and may not work with non-Node environments."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 84,
-    "multiplier": 1.53,
+    "multiplier": 1.51,
+    "baselineAvg": 63,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Add a multi-step deploy spinner to a Node CLI",
-        "baseline": 60,
-        "treatment": 86,
-        "rationale": "Treatment reuses a single ora() instance across steps with spinner.start/succeed transitions per the multi-step pattern, and reaches for spinner.text mid-run; baseline creates separate spinners per step and misses the documented .succeed/.fail/.warn/.info icon API."
+        "name": "basic-spinner",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses correctly create an ora spinner, start it, await an async function, and call succeed() or fail() as required, with no other ora methods used."
       },
       {
-        "name": "Build a polished image-processing progress indicator with custom finish symbol",
-        "baseline": 50,
-        "treatment": 82,
-        "rationale": "Treatment uses stopAndPersist({symbol, text}) with chalk-styled output and updates spinner.text per file as the skill shows, plus picks a documented spinner type ('dots'/'line'/'arc'/'bouncingBar'); baseline writes raw stdout or invents a non-existent ora finish API."
+        "name": "multi-step-deploy",
+        "baseline": 45,
+        "treatment": 85,
+        "rationale": "Response A meets most rubric requirements, including using ora.start(), succeed(), and stopAndPersist(), while Response B lacks the final stopAndPersist() call and custom symbol."
+      },
+      {
+        "name": "silent-json-output",
+        "baseline": 45,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A omits the required isSilent option and does not start a silent spinner when --json is passed."
       }
     ]
   }

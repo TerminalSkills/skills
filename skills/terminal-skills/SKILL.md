@@ -12,9 +12,10 @@ license: Apache-2.0
 compatibility: "Requires Node.js 18+ and npm/npx (for the CLI). REST and MCP access work without any local install."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
   tags: ["meta", "discovery", "cli", "skills", "registry"]
+  repository: https://github.com/TerminalSkills/skills
 ---
 
 # Terminal Skills
@@ -41,9 +42,9 @@ The `terminal-skills` npm package ships an installer that auto-detects the activ
 
 ```bash
 # One-off via npx (no install)
-npx terminal-skills search <query>
-npx terminal-skills info <skill-name>
-npx terminal-skills install <skill-name>
+npx terminal-skills search pdf
+npx terminal-skills info coolify
+npx terminal-skills install coolify
 
 # Or install globally
 npm install -g terminal-skills
@@ -53,34 +54,36 @@ Available commands:
 
 | Command | Purpose |
 |---------|---------|
-| `terminal-skills search <query>` | Full-text search across name, description, tags |
+| `terminal-skills search pdf` | Full-text search across name, description, tags |
 | `terminal-skills list [-c <category>]` | List all skills, optionally filtered by category |
-| `terminal-skills info <skill-name>` | Show frontmatter + description before installing |
-| `terminal-skills install <skill-name> [-a <agent>] [-g]` | Install for the current agent (auto-detected) or a specified one. `-g` installs globally to `~/.<agent>/skills/` |
+| `terminal-skills info coolify` | Show description, version, category and tags before installing |
+| `terminal-skills install coolify [-a <agent>] [-g]` | Install for the current agent (auto-detected) or a specified one. `-g` installs globally (home directory) instead of into the project |
 | `terminal-skills agents` | Detect which agents are installed in the current project |
 
 **Install paths the CLI writes to:**
 
-- Claude Code → `.claude/skills/<name>/SKILL.md`
-- OpenAI Codex → `.codex/skills/<name>/SKILL.md`
-- Gemini CLI → `.gemini/skills/<name>/SKILL.md`
-- Cursor → `.cursor/rules/<name>.mdc`
+- Claude Code → `.claude/skills/<name>/SKILL.md` (global: `~/.claude/skills/`)
+- OpenAI Codex → `.codex/skills/<name>/SKILL.md` (global: `~/.codex/skills/`). Published CLI 1.0.2 writes here, but Codex itself loads skills from `.agents/skills/`, so move or copy the folder there after installing
+- Gemini CLI → `.gemini/skills/<name>/SKILL.md` (global: `~/.gemini/skills/`)
+- Cursor → `.cursor/rules/<name>.mdc` (global: `~/.cursor/rules/`)
 
 After install, restart the agent or reload its skills so the new SKILL.md is picked up.
 
 ### B. REST API (when scripting against the catalog)
 
-Public, no-auth endpoints under `https://terminalskills.io/api/v1/`:
+Public, no-auth endpoints under `https://api.terminalskills.io/api/v1/` (the website host `terminalskills.io` no longer serves `/api`; list calls are rate limited, `limit` max 100, default 24):
 
 ```
-GET /api/v1/skills?q=<query>&category=<slug>&page=1&limit=20
-GET /api/v1/skills/<slug>            → single skill including bodyMarkdown
-GET /api/v1/categories               → list of category slugs and counts
-GET /api/v1/use-cases                → problem-first guides referencing skills
-GET /api/v1/openapi.json             → full OpenAPI 3.1 spec
+GET /api/v1/skills?q=accessibility&category=development&page=1&limit=20
+GET /api/v1/skills/{slug}            → single skill including bodyMarkdown
+                                       (send `Accept: text/markdown` to get just the SKILL.md body)
+GET /api/v1/categories               → category ids and counts
+GET /api/v1/use-cases?skill={slug}   → problem-first guides (also ?category=)
+GET /api/v1/stats                    → catalog totals
+GET /api/v1/openapi.json             → OpenAPI spec
 ```
 
-Use these when integrating discovery into another tool, building a custom installer, or fetching the raw `bodyMarkdown` for an agent that doesn't speak the CLI.
+List responses are wrapped as `{ "success": true, "data": [...], "pagination": { total, page, limit, hasMore } }` (single-skill responses have only `success` and `data`). Use these when integrating discovery into another tool, building a custom installer, or fetching the raw `bodyMarkdown` for an agent that doesn't speak the CLI.
 
 ### C. MCP server (when the agent supports MCP)
 
@@ -91,13 +94,13 @@ Connect any MCP-compatible agent to the remote endpoint:
   "mcpServers": {
     "terminal-skills": {
       "type": "url",
-      "url": "https://terminalskills.io/api/mcp"
+      "url": "https://api.terminalskills.io/api/mcp"
     }
   }
 }
 ```
 
-Exposes three tools: `search_skills`, `get_skill`, and `list_categories`. Lets the agent browse the catalog without leaving the conversation.
+Exposes `search_skills`, `get_skill` and `list_categories` (free, no key) plus `plan_task`, which matches a whole multi-step task to skills and needs a free API key (`Authorization: Bearer tsk_...`). Claude.ai can also add the same URL as a custom connector (OAuth sign-in). The agent can browse the catalog without leaving the conversation.
 
 ### Decision flow
 
@@ -113,7 +116,7 @@ Every skill belongs to exactly one of: `automation`, `business`, `content`, `dat
 
 ### Before installing
 
-Always run `info` first if the skill name isn't already familiar. It prints the description, license, compatibility line, version, and tags so you can confirm fit before writing files.
+Always run `info` first if the skill name isn't already familiar. It prints the description, slug, version, category and tags so you can confirm fit before writing files.
 
 ## Examples
 
@@ -121,55 +124,59 @@ Always run `info` first if the skill name isn't already familiar. It prints the 
 
 User: "Help me ship this Next.js app to Coolify."
 
-```bash
+```console
 # 1. Confirm a relevant skill exists
 $ npx terminal-skills search coolify
-✓ coolify — Deploy and manage applications, databases, and services on
-  Coolify. Tags: coolify, paas, deployment, self-hosting, docker
+  3 results for "coolify"
+
+  coolify (devops)
+  Deploy and manage applications, databases, and services on Coolify. ...
+  #coolify #paas #deployment #self-hosting #docker
 
 # 2. Inspect before installing
 $ npx terminal-skills info coolify
-name: coolify
-license: Apache-2.0
-compatibility: Requires Coolify CLI (coolify) or curl for API access...
-category: devops
-version: 1.0.0
+  coolify
+
+  Deploy and manage applications, databases, and services on Coolify. ...
+
+  Slug         coolify
+  Version      1.0.0
+  Category     devops
 
 # 3. Install for the current project (auto-detects Claude Code)
 $ npx terminal-skills install coolify
-✓ Detected Claude Code (.claude/)
-✓ Installed coolify → .claude/skills/coolify/SKILL.md
-  Restart your agent to load the new skill.
+  Detected agent: Claude Code
+✔ Skill installed successfully
+
+  Path:  .claude/skills/coolify/SKILL.md
 ```
 
 Then resume the user's task with the skill loaded.
 
 ### Example 2: Search via REST when offline-installing into a custom agent
 
-User: "List every skill tagged `accessibility` and pull the SKILL.md body for the top result."
+User: "Find WCAG-related skills and pull the SKILL.md body for the accessibility auditor."
 
 ```bash
 # 1. Search
-$ curl 'https://terminalskills.io/api/v1/skills?q=accessibility&limit=5' | jq '.skills[] | {slug,name,tags}'
-{
-  "slug": "accessibility-auditor",
-  "name": "Accessibility Auditor",
-  "tags": ["a11y", "wcag", "audit", "lighthouse"]
-}
+$ curl -s 'https://api.terminalskills.io/api/v1/skills?q=wcag&limit=5' | jq -c '.data[] | {slug,tags}'
+{"slug":"form-cro","tags":["forms","conversion","accessibility","lead-generation","wcag"]}
+{"slug":"accessibility-auditor","tags":["accessibility","wcag","a11y","compliance","screen-reader"]}
+{"slug":"contrast-check","tags":["accessibility","wcag","color-contrast","design-tokens","a11y"]}
 
 # 2. Fetch the full skill including body
-$ curl 'https://terminalskills.io/api/v1/skills/accessibility-auditor' | jq -r '.bodyMarkdown' > SKILL.md
+$ curl -s -H 'Accept: text/markdown' 'https://api.terminalskills.io/api/v1/skills/accessibility-auditor' > SKILL.md
 
 # 3. Place it where your custom agent expects skills
-$ mv SKILL.md path/to/agent/skills/accessibility-auditor.md
+$ mkdir -p ./my-agent/skills && mv SKILL.md ./my-agent/skills/accessibility-auditor.md
 ```
 
 This avoids a CLI dependency and works the same in CI, scripts, or non-Node environments.
 
 ## Guidelines
 
-- **Search first, install second.** Run `search` or hit `/api/v1/skills?q=` before installing — installing the wrong skill clutters the agent's context.
-- **Use `info` before `install`** to surface compatibility requirements (e.g. CLIs the skill expects, environment variables, OS constraints).
+- **Search first, install second.** Run `search` or call `search_skills` / `/api/v1/skills?q=` before installing — installing the wrong skill clutters the agent's context.
+- **Use `info` before `install`** to read the description and confirm the skill fits (`info` prints name, description, slug, version, category, author and tags).
 - **Prefer per-project install** over `--global` unless the user explicitly wants a skill available across every project. Per-project keeps `.claude/`, `.codex/`, etc. self-contained.
 - **Restart or reload the agent** after installing so the new SKILL.md is loaded. Some agents pick up changes only on cold start.
 - **Don't shadow built-in behavior.** If a skill name collides with a directory you already have, either rename or skip — don't silently overwrite.

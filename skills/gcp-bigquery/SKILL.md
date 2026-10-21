@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: 'gcloud-cli, bq-cli, python'
 metadata:
   author: terminal-skills
-  version: 1.1.0
+  version: 1.2.0
   category: devops
   tags:
     - gcp
@@ -53,12 +53,10 @@ bq mk --table \
 ```
 
 ```sql
--- Create table with SQL DDL
 CREATE TABLE `my_project.analytics.page_views` (
   session_id STRING NOT NULL,
   user_id STRING,
   page_url STRING,
-  referrer STRING,
   duration_ms INT64,
   created_at TIMESTAMP NOT NULL
 )
@@ -79,14 +77,6 @@ bq load --source_format=CSV --autodetect \
 ```
 
 ```bash
-# Load from Cloud Storage (JSON)
-bq load --source_format=NEWLINE_DELIMITED_JSON \
-  --autodetect \
-  analytics.events \
-  gs://my-data-bucket/events/2024-01-*.json
-```
-
-```bash
 # Load Parquet from GCS (most efficient format)
 bq load --source_format=PARQUET \
   analytics.events \
@@ -94,6 +84,8 @@ bq load --source_format=PARQUET \
 ```
 
 ### Streaming Data
+
+`insert_rows_json` uses the older `tabledata.insertAll` streaming API. For new high-volume pipelines Google recommends the BigQuery Storage Write API (`google-cloud-bigquery-storage`); the call below is fine for low volume and quick scripts.
 
 ```python
 # Stream rows into BigQuery in real-time
@@ -108,14 +100,14 @@ rows = [
         "user_id": "u-123",
         "event_type": "purchase",
         "payload": '{"amount": 49.99, "currency": "USD"}',
-        "created_at": "2024-01-15T10:30:00Z"
+        "created_at": "2026-10-15T10:30:00Z"
     },
     {
         "event_id": "evt-002",
         "user_id": "u-456",
         "event_type": "page_view",
         "payload": '{"url": "/products/widget"}',
-        "created_at": "2024-01-15T10:30:01Z"
+        "created_at": "2026-10-15T10:30:01Z"
     }
 ]
 
@@ -143,23 +135,6 @@ ORDER BY event_count DESC
 LIMIT 100;
 ```
 
-```sql
--- Window functions for user journey analysis
-SELECT
-  user_id,
-  event_type,
-  created_at,
-  LAG(event_type) OVER (PARTITION BY user_id ORDER BY created_at) as prev_event,
-  TIMESTAMP_DIFF(
-    created_at,
-    LAG(created_at) OVER (PARTITION BY user_id ORDER BY created_at),
-    SECOND
-  ) as seconds_since_last
-FROM `analytics.events`
-WHERE DATE(created_at) = '2024-01-15'
-ORDER BY user_id, created_at;
-```
-
 ```bash
 # Run query from CLI
 bq query --use_legacy_sql=false \
@@ -170,6 +145,7 @@ bq query --use_legacy_sql=false \
 
 ```sql
 -- Create a materialized view for fast dashboard queries
+-- (materialized views allow APPROX_COUNT_DISTINCT but not COUNT(DISTINCT ...))
 CREATE MATERIALIZED VIEW `analytics.daily_metrics`
 OPTIONS (enable_refresh = true, refresh_interval_minutes = 30)
 AS
@@ -177,7 +153,7 @@ SELECT
   DATE(created_at) as date,
   event_type,
   COUNT(*) as event_count,
-  COUNT(DISTINCT user_id) as unique_users
+  APPROX_COUNT_DISTINCT(user_id) as unique_users
 FROM `analytics.events`
 GROUP BY date, event_type;
 ```
@@ -202,17 +178,17 @@ GROUP BY user_id, churned;
 ```
 
 ```sql
--- Predict churn for current users
+-- Predict churn for current users (churned is a 0/1 INT64 label)
 SELECT
   user_id,
   predicted_churned,
-  predicted_churned_probs[OFFSET(1)].prob as churn_probability
+  (SELECT p.prob FROM UNNEST(predicted_churned_probs) AS p WHERE p.label = 1) as churn_probability
 FROM ML.PREDICT(
   MODEL `analytics.churn_model`,
   (SELECT user_id, total_events, active_days, days_since_last
    FROM `analytics.current_user_stats`)
 )
-WHERE predicted_churned_probs[OFFSET(1)].prob > 0.7
+WHERE (SELECT p.prob FROM UNNEST(predicted_churned_probs) AS p WHERE p.label = 1) > 0.7
 ORDER BY churn_probability DESC;
 ```
 
@@ -227,7 +203,7 @@ SELECT
   AI.GENERATE(
     ('Write a one-line product tagline for: ', name, ' — ', description),
     connection_id => 'us.gemini-conn',
-    endpoint => 'gemini-2.5-flash'
+    endpoint => 'gemini-3.5-flash'
   ).result AS tagline
 FROM `analytics.products`
 LIMIT 100;
@@ -240,20 +216,9 @@ SELECT
   AI.GENERATE_BOOL(
     ('Is this review positive? ', review_text),
     connection_id => 'us.gemini-conn',
-    endpoint => 'gemini-2.5-flash'
+    endpoint => 'gemini-3.5-flash'
   ).result AS is_positive
 FROM `analytics.product_reviews`;
-```
-
-```sql
--- Numeric extraction (e.g., extract price from free-form text)
-SELECT
-  listing_id, raw_text,
-  AI.GENERATE_DOUBLE(
-    ('Extract the price in USD from: ', raw_text),
-    connection_id => 'us.gemini-conn'
-  ).result AS price_usd
-FROM `analytics.scraped_listings`;
 ```
 
 ```sql
@@ -267,34 +232,29 @@ SELECT * FROM AI.FORECAST(
 ```
 
 ```sql
--- Semantic similarity / search
+-- Semantic similarity: AI.SIMILARITY returns a FLOAT64 cosine similarity (not a struct),
+-- computed with an embedding model, not Gemini
 SELECT
   product_id, name,
-  AI.SIMILARITY(
-    name,
-    'wireless noise-cancelling headphones',
-    connection_id => 'us.gemini-conn'
-  ).score AS similarity
+  AI.SIMILARITY(name, 'wireless noise-cancelling headphones', model => 'embeddinggemma-300m') AS similarity
 FROM `analytics.products`
 ORDER BY similarity DESC
 LIMIT 20;
 ```
 
-Set up the connection once with `bq mk --connection --location=US --connection_type=CLOUD_RESOURCE gemini-conn` and grant the connection's service account `roles/aiplatform.user`.
+`AI.GENERATE*` take the model as `endpoint` and `connection_id` is optional: without it the query runs with the caller's end-user credentials, so the person running it needs the Vertex AI User role (`roles/aiplatform.user`). To use a connection instead, create it once with `bq mk --connection --location=US --connection_type=CLOUD_RESOURCE gemini-conn` and grant its service account the same role. Each row is a separate model call and is billed, so test with `LIMIT`. The result of `AI.GENERATE_BOOL`, `_DOUBLE` and `AI.GENERATE` is a STRUCT: `.result` is NULL when a request fails, and `.status` holds the error.
 
 ### Scheduled Queries
 
 ```bash
-# Create a scheduled query
+# Create a scheduled query (DML needs no destination_table_name_template or write_disposition)
 bq mk --transfer_config \
   --data_source=scheduled_query \
   --target_dataset=analytics \
   --display_name="Daily aggregation" \
   --schedule="every 24 hours" \
   --params='{
-    "query": "INSERT INTO analytics.daily_summary SELECT DATE(created_at), COUNT(*) FROM analytics.events WHERE DATE(created_at) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) GROUP BY 1",
-    "destination_table_name_template": "",
-    "write_disposition": "WRITE_APPEND"
+    "query": "INSERT INTO analytics.daily_summary SELECT DATE(created_at), COUNT(*) FROM analytics.events WHERE DATE(created_at) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) GROUP BY 1"
   }'
 ```
 
@@ -313,13 +273,17 @@ bq query --maximum_bytes_billed=1000000000 --use_legacy_sql=false \
 ```
 ## Examples
 
-### Example 1 — Build a partitioned events table with PII-safe streaming
+### Example 1: Partitioned events table with a dashboard view
 
-User has Kafka events landing in GCS as JSON and wants them queryable with sub-second latency. Create a partitioned/clustered table on `created_at` and `user_id`, set up a Pub/Sub-to-BigQuery streaming pipeline using `client.insert_rows_json`, add a 365-day partition expiration, and create a materialized view for the daily dashboard query. Set `maximum_bytes_billed` on the analyst service account to cap surprise costs.
+Request: "Our app events land in BigQuery; make dashboards cheap and fast."
 
-### Example 2 — Add semantic search to a product catalog without an ML pipeline
+Create `analytics.events` partitioned by `created_at` and clustered by `user_id, event_type` (see Datasets and Tables), set `partition_expiration_days = 365`, and create the `analytics.daily_metrics` materialized view. Check the cost first with `bq query --dry_run`, which prints how many bytes the query would process. Give the analysts' service account queries with `--maximum_bytes_billed=1000000000` so a mistake fails instead of billing for a full scan.
 
-User wants to add "find similar products" without building a vector store. Use `AI.SIMILARITY` directly in SQL against the product `name` column — no embeddings to manage, no separate index. Set up the cloud-resource connection once, grant `roles/aiplatform.user`, then queries become single SQL statements. For higher scale, persist embeddings into a column with `AI.GENERATE_EMBEDDING` and use BigQuery's vector index.
+### Example 2: "Find similar products" without a vector store
+
+Request: "Rank our catalog by similarity to 'wireless noise-cancelling headphones'."
+
+Run the `AI.SIMILARITY` query above with `model => 'embeddinggemma-300m'`. Each row gets a `similarity` score between -1 and 1, and the top 20 are returned in one statement. For a large catalog, store embeddings in a column with `AI.GENERATE_EMBEDDING` and add a vector index instead of embedding every row on every query.
 
 ## Guidelines
 
@@ -331,4 +295,4 @@ User wants to add "find similar products" without building a vector store. Use `
 - Set `maximum_bytes_billed` to prevent runaway query costs
 - Use Parquet or Avro for bulk loading (faster and cheaper than CSV/JSON)
 - Expire old partitions automatically with `partition_expiration_days`
-- Prefer `AI.GENERATE_*` functions over building separate ML pipelines for per-row inference
+- Prefer `AI.GENERATE_*` functions over building separate ML pipelines for per-row inference, but cap rows with `LIMIT` while testing: each row is a billed model call

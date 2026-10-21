@@ -6,12 +6,13 @@ description: >-
   SaaS apps to QuickBooks, automating financial data pipelines, syncing
   transactions, or building accounting integrations for small business clients.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.9+"
+compatibility: "Python 3.10+ (examples), Node.js 18+ with the intuit-oauth package"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: ["quickbooks", "qbo", "accounting", "invoices", "oauth2"]
+  repository: https://github.com/intuit/oauth-pythonclient
   use-cases:
     - "Sync customer invoices from your app to QuickBooks Online automatically"
     - "Pull P&L and balance sheet reports for financial dashboards"
@@ -24,471 +25,275 @@ metadata:
 
 ## Overview
 
-Connect your application to QuickBooks Online (QBO) via the Intuit Developer API. This skill covers OAuth2 setup, CRUD operations for core accounting entities (invoices, bills, payments, customers, vendors, accounts), and report generation (P&L, balance sheet, cash flow). Works with both sandbox and production QBO companies.
+Connect an application to QuickBooks Online (QBO) through the Intuit Developer REST API (v3). This skill covers OAuth 2.0, customers, vendors, invoices, payments, bills, expenses and reports, against the sandbox or production.
+
+Facts that changed and that older code gets wrong (Intuit documentation and release notes):
+
+- **Minor versions:** versions 1-74 were retired on 1 August 2025; requests with a lower or missing `minorversion` are served as 75. Send `minorversion=75` (or newer) explicitly.
+- **Tokens:** access tokens last 60 minutes. The refresh-token value changes about every 24 hours (on the next refresh after that), and the previous value expires, so save the new `refresh_token` from every refresh response. A refresh token unused for 100 days expires, and all of them have a hard five-year limit; an expired or old one returns `invalid_grant` and the customer must reauthorize.
+- **Limits:** 500 requests per minute per realm, 10 per second per realm and app, batch requests throttled per realm (recommended 30 operations per batch), queries return at most 1,000 entities, requests over 120 seconds fail, throttled calls return 429 (wait 60 seconds).
 
 ## Instructions
 
-### Step 1: Set up OAuth2
+### Step 1: OAuth 2.0
 
-Register your app at [developer.intuit.com](https://developer.intuit.com). QBO uses OAuth2 with refresh tokens (expire after 100 days).
+Register the app at developer.intuit.com. Use the scope `com.intuit.quickbooks.accounting` (add `openid` only if you need sign-in; add the payments scope only for QuickBooks Payments). The authorization page is `https://appcenter.intuit.com/connect/oauth2`; the token endpoint is `https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer`. Intuit also publishes official clients (`pip install intuit-oauth`, `npm install intuit-oauth`).
 
 ```python
-# qbo_auth.py — OAuth2 token management for QuickBooks Online
+# qbo_auth.py
+import base64, json, os, secrets, time
+from urllib.parse import urlencode
 import requests
-import base64
-import json
-import os
-from datetime import datetime, timedelta
 
-QBO_CLIENT_ID = os.environ["QBO_CLIENT_ID"]
-QBO_CLIENT_SECRET = os.environ["QBO_CLIENT_SECRET"]
-QBO_REDIRECT_URI = os.environ["QBO_REDIRECT_URI"]
-QBO_ENVIRONMENT = os.environ.get("QBO_ENVIRONMENT", "sandbox")  # "sandbox" or "production"
-
-TOKEN_FILE = ".qbo_tokens.json"
-
+CLIENT_ID = os.environ["QBO_CLIENT_ID"]
+CLIENT_SECRET = os.environ["QBO_CLIENT_SECRET"]
+REDIRECT_URI = os.environ["QBO_REDIRECT_URI"]
+ENVIRONMENT = os.environ.get("QBO_ENVIRONMENT", "sandbox")  # sandbox | production
+TOKEN_FILE = os.environ.get("QBO_TOKEN_FILE", ".qbo_tokens.json")  # keep out of git, chmod 600
+MINOR_VERSION = "75"
+TOKEN_URL = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
 BASE_URL = {
     "sandbox": "https://sandbox-quickbooks.api.intuit.com",
     "production": "https://quickbooks.api.intuit.com",
-}[QBO_ENVIRONMENT]
+}[ENVIRONMENT]
 
-def get_auth_url() -> str:
-    """Generate the OAuth2 authorization URL."""
-    import secrets
-    state = secrets.token_urlsafe(16)
-    params = {
-        "client_id": QBO_CLIENT_ID,
-        "scope": "com.intuit.quickbooks.accounting",
-        "redirect_uri": QBO_REDIRECT_URI,
-        "response_type": "code",
-        "state": state,
-    }
-    query = "&".join(f"{k}={v}" for k, v in params.items())
-    return f"https://appcenter.intuit.com/connect/oauth2?{query}"
+def auth_url(state: str) -> str:
+    return "https://appcenter.intuit.com/connect/oauth2?" + urlencode({
+        "client_id": CLIENT_ID, "scope": "com.intuit.quickbooks.accounting",
+        "redirect_uri": REDIRECT_URI, "response_type": "code", "state": state,
+    })
 
-def exchange_code_for_tokens(code: str, realm_id: str) -> dict:
-    """Exchange authorization code for tokens. realm_id is the QBO company ID."""
-    credentials = base64.b64encode(
-        f"{QBO_CLIENT_ID}:{QBO_CLIENT_SECRET}".encode()
-    ).decode()
+def _token_request(data: dict) -> dict:
+    basic = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
+    r = requests.post(TOKEN_URL, data=data, timeout=30, headers={
+        "Authorization": f"Basic {basic}", "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"})
+    r.raise_for_status()
+    return r.json()
 
-    response = requests.post(
-        "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
-        headers={
-            "Authorization": f"Basic {credentials}",
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data={
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": QBO_REDIRECT_URI,
-        },
-    )
-    tokens = response.json()
-    tokens["realm_id"] = realm_id
-    tokens["expires_at"] = (
-        datetime.utcnow() + timedelta(seconds=tokens["expires_in"])
-    ).isoformat()
-    tokens["refresh_token_expires_at"] = (
-        datetime.utcnow() + timedelta(days=100)
-    ).isoformat()
-    save_tokens(tokens)
+def _save(tokens: dict) -> dict:
+    tokens["expires_at"] = time.time() + tokens["expires_in"]
+    fd = os.open(TOKEN_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f:
+        json.dump(tokens, f)
     return tokens
 
-def refresh_access_token() -> dict:
-    """Refresh the access token (expires after 1 hour)."""
-    tokens = load_tokens()
-    credentials = base64.b64encode(
-        f"{QBO_CLIENT_ID}:{QBO_CLIENT_SECRET}".encode()
-    ).decode()
-
-    response = requests.post(
-        "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
-        headers={
-            "Authorization": f"Basic {credentials}",
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data={
-            "grant_type": "refresh_token",
-            "refresh_token": tokens["refresh_token"],
-        },
-    )
-    new_tokens = response.json()
-    new_tokens["realm_id"] = tokens["realm_id"]
-    new_tokens["expires_at"] = (
-        datetime.utcnow() + timedelta(seconds=new_tokens["expires_in"])
-    ).isoformat()
-    new_tokens["refresh_token_expires_at"] = tokens["refresh_token_expires_at"]
-    save_tokens(new_tokens)
-    return new_tokens
+def exchange_code(code: str, realm_id: str) -> dict:
+    tokens = _token_request({"grant_type": "authorization_code", "code": code,
+                             "redirect_uri": REDIRECT_URI})
+    tokens["realm_id"] = realm_id
+    return _save(tokens)
 
 def get_valid_token() -> tuple[str, str]:
-    """Return (access_token, realm_id), refreshing if needed."""
-    tokens = load_tokens()
-    expires_at = datetime.fromisoformat(tokens["expires_at"])
-    if datetime.utcnow() >= expires_at - timedelta(minutes=5):
-        tokens = refresh_access_token()
-    return tokens["access_token"], tokens["realm_id"]
-
-def save_tokens(tokens: dict):
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(tokens, f)
-
-def load_tokens() -> dict:
     with open(TOKEN_FILE) as f:
-        return json.load(f)
+        tokens = json.load(f)
+    if time.time() >= tokens["expires_at"] - 300:
+        new = _token_request({"grant_type": "refresh_token",
+                              "refresh_token": tokens["refresh_token"]})
+        new["realm_id"] = tokens["realm_id"]
+        tokens = _save(new)  # the response carries the NEW refresh token: keep it
+    return tokens["access_token"], tokens["realm_id"]
 ```
 
-### Step 2: Create an API client
+With several workers, serialize refreshes (a lock or a single token service); a worker that refreshes with an already-replaced token gets `invalid_grant`. On `invalid_grant`, send the customer through the authorization flow again.
+
+### Step 2: API client
 
 ```python
-# qbo_client.py — QBO API client using the v3 REST API
+# qbo_client.py
 import requests
-from qbo_auth import get_valid_token, BASE_URL
+from qbo_auth import get_valid_token, BASE_URL, MINOR_VERSION
 
 class QBOClient:
     def __init__(self):
         self.token, self.realm_id = get_valid_token()
         self.base = f"{BASE_URL}/v3/company/{self.realm_id}"
+        self.headers = {"Authorization": f"Bearer {self.token}",
+                        "Accept": "application/json", "Content-Type": "application/json"}
 
-    def _headers(self):
-        return {
-            "Authorization": f"Bearer {self.token}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        }
+    def _send(self, method, path, **kw):
+        params = {**kw.pop("params", {}), "minorversion": MINOR_VERSION}
+        r = requests.request(method, f"{self.base}/{path}", headers=self.headers,
+                             params=params, timeout=120, **kw)
+        r.raise_for_status()  # 429: wait 60 s and retry; 400 bodies list Fault.Error[].Detail
+        return r.json()
 
     def query(self, sql: str) -> list:
-        """Run a QBO query (SQL-like syntax)."""
-        response = requests.get(
-            f"{self.base}/query",
-            headers=self._headers(),
-            params={"query": sql, "minorversion": "65"},
-        )
-        response.raise_for_status()
-        data = response.json()
-        # The response key varies by entity: QueryResponse.Invoice, .Customer, etc.
-        query_response = data.get("QueryResponse", {})
-        for key, value in query_response.items():
-            if isinstance(value, list):
-                return value
-        return []
+        resp = self._send("GET", "query", params={"query": sql}).get("QueryResponse", {})
+        return next((v for v in resp.values() if isinstance(v, list)), [])
 
     def create(self, entity: str, payload: dict) -> dict:
-        """Create a QBO entity."""
-        response = requests.post(
-            f"{self.base}/{entity}?minorversion=65",
-            headers=self._headers(),
-            json=payload,
-        )
-        response.raise_for_status()
-        return response.json()
+        return self._send("POST", entity, json=payload)
 
     def update(self, entity: str, payload: dict) -> dict:
-        """Update a QBO entity (requires Id and SyncToken in payload)."""
-        response = requests.post(
-            f"{self.base}/{entity}?operation=update&minorversion=65",
-            headers=self._headers(),
-            json=payload,
-        )
-        response.raise_for_status()
-        return response.json()
+        """Needs Id and SyncToken (read the entity first). Add "sparse": true to send only changed fields."""
+        return self._send("POST", entity, json=payload)
 
-    def get_report(self, report_name: str, params: dict = None) -> dict:
-        """Fetch a financial report."""
-        response = requests.get(
-            f"{self.base}/reports/{report_name}",
-            headers=self._headers(),
-            params={**(params or {}), "minorversion": "65"},
-        )
-        response.raise_for_status()
-        return response.json()
+    def report(self, name: str, params: dict) -> dict:
+        return self._send("GET", f"reports/{name}", params=params)
+
+def q(value: str) -> str:
+    """Escape a value for a query string literal (apostrophes: O'Brien -> O\\'Brien)."""
+    return value.replace("\\", "\\\\").replace("'", "\\'")
 ```
 
-### Step 3: Manage customers and vendors
+Paginate with `STARTPOSITION n MAXRESULTS 1000` (positions start at 1). A full update without `sparse` blanks the fields you leave out; a stale `SyncToken` is rejected with a stale-object error, so refetch and retry.
+
+### Step 3: Customers and vendors
 
 ```python
-# entities.py — Customers and vendors
-from qbo_client import QBOClient
+# entities.py
+from qbo_client import QBOClient, q
 
 client = QBOClient()
 
-def upsert_customer(display_name: str, email: str = None, phone: str = None,
-                    company_name: str = None) -> dict:
-    """Find or create a customer in QBO."""
-    # Try to find existing customer
-    results = client.query(
-        f"SELECT * FROM Customer WHERE DisplayName = '{display_name}'"
-    )
-    if results:
-        return results[0]
-
+def upsert_customer(display_name: str, email: str | None = None) -> dict:
+    found = client.query(f"SELECT * FROM Customer WHERE DisplayName = '{q(display_name)}'")
+    if found:
+        return found[0]
     payload = {"DisplayName": display_name}
     if email:
         payload["PrimaryEmailAddr"] = {"Address": email}
-    if phone:
-        payload["PrimaryPhone"] = {"FreeFormNumber": phone}
-    if company_name:
-        payload["CompanyName"] = company_name
+    return client.create("customer", payload)["Customer"]
 
-    result = client.create("customer", payload)
-    return result["Customer"]
-
-def upsert_vendor(display_name: str, email: str = None, phone: str = None) -> dict:
-    """Find or create a vendor in QBO."""
-    results = client.query(
-        f"SELECT * FROM Vendor WHERE DisplayName = '{display_name}'"
-    )
-    if results:
-        return results[0]
-
-    payload = {"DisplayName": display_name}
-    if email:
-        payload["PrimaryEmailAddr"] = {"Address": email}
-
-    result = client.create("vendor", payload)
-    return result["Vendor"]
+def upsert_vendor(display_name: str) -> dict:
+    found = client.query(f"SELECT * FROM Vendor WHERE DisplayName = '{q(display_name)}'")
+    return found[0] if found else client.create("vendor", {"DisplayName": display_name})["Vendor"]
 ```
 
-### Step 4: Create and manage invoices
+### Step 4: Invoices and payments
+
+Look up IDs per company instead of hard-coding them: `SELECT Id, Name FROM Item WHERE Name = 'Services'`, `SELECT Id, Name FROM Account WHERE AccountType = 'Bank'`.
 
 ```python
-# invoices.py — Invoice operations
-from qbo_client import QBOClient
+# invoices.py
+from datetime import date, timedelta
+from qbo_client import QBOClient, q
 from entities import upsert_customer
-from datetime import datetime, timedelta
 
 client = QBOClient()
 
-def create_invoice(customer_name: str, line_items: list,
-                   due_days: int = 30, currency: str = "USD") -> dict:
-    """
-    Create an invoice in QBO.
+def item_id(name: str) -> str:
+    return client.query(f"SELECT Id FROM Item WHERE Name = '{q(name)}'")[0]["Id"]
 
-    line_items format:
-      [{"description": "...", "amount": 1500.0, "income_account_id": "79"}]
-    """
+def create_invoice(customer_name: str, lines: list[dict], due_days: int = 30) -> dict:
     customer = upsert_customer(customer_name)
-    today = datetime.utcnow()
-    due_date = today + timedelta(days=due_days)
-
-    lines = []
-    for item in line_items:
-        lines.append({
-            "Amount": item["amount"],
-            "DetailType": "SalesItemLineDetail",
-            "Description": item.get("description", ""),
-            "SalesItemLineDetail": {
-                "ItemRef": {"value": "1", "name": "Services"},  # Adjust to your chart
-                "UnitPrice": item["amount"],
-                "Qty": 1,
-            },
-        })
-
+    today = date.today()
     payload = {
         "CustomerRef": {"value": customer["Id"]},
-        "DueDate": due_date.strftime("%Y-%m-%d"),
-        "TxnDate": today.strftime("%Y-%m-%d"),
-        "CurrencyRef": {"value": currency},
-        "Line": lines,
-    }
-
-    result = client.create("invoice", payload)
-    invoice = result["Invoice"]
-    print(f"Created Invoice #{invoice['DocNumber']} — ${invoice['TotalAmt']}")
-    return invoice
-
-def list_unpaid_invoices() -> list:
-    """Return all open (unpaid) invoices."""
-    return client.query(
-        "SELECT * FROM Invoice WHERE Balance > '0' MAXRESULTS 1000"
-    )
-
-def record_payment(invoice_id: str, amount: float, account_id: str = "35") -> dict:
-    """Record a payment against an invoice. account_id = Checking account."""
-    payload = {
-        "TotalAmt": amount,
-        "CustomerRef": {},  # Will be resolved from invoice
+        "TxnDate": today.isoformat(),
+        "DueDate": (today + timedelta(days=due_days)).isoformat(),
         "Line": [{
-            "Amount": amount,
-            "LinkedTxn": [{"TxnId": invoice_id, "TxnType": "Invoice"}],
-        }],
-        "DepositToAccountRef": {"value": account_id},
+            "DetailType": "SalesItemLineDetail",
+            "Amount": l["amount"], "Description": l["description"],
+            "SalesItemLineDetail": {"ItemRef": {"value": item_id(l["item"])},
+                                    "UnitPrice": l["amount"], "Qty": 1},
+        } for l in lines],
     }
-    result = client.create("payment", payload)
-    return result["Payment"]
+    return client.create("invoice", payload)["Invoice"]
+
+def record_payment(invoice: dict, amount: float, deposit_account_id: str | None = None) -> dict:
+    payload = {
+        "CustomerRef": invoice["CustomerRef"], "TotalAmt": amount,
+        "Line": [{"Amount": amount, "LinkedTxn": [{"TxnId": invoice["Id"], "TxnType": "Invoice"}]}],
+    }
+    if deposit_account_id:
+        payload["DepositToAccountRef"] = {"value": deposit_account_id}
+    return client.create("payment", payload)["Payment"]
 ```
 
-### Step 5: Manage bills and expenses
+### Step 5: Bills and expenses
 
 ```python
-# expenses.py — Bills and expenses
+# expenses.py
+from datetime import date, timedelta
 from qbo_client import QBOClient
 from entities import upsert_vendor
-from datetime import datetime
 
 client = QBOClient()
 
-def create_bill(vendor_name: str, line_items: list, due_days: int = 30) -> dict:
-    """Create a vendor bill (accounts payable)."""
+def create_bill(vendor_name: str, lines: list[dict], expense_account_id: str, due_days: int = 30) -> dict:
     vendor = upsert_vendor(vendor_name)
-    today = datetime.utcnow()
-
-    lines = [
-        {
-            "Amount": item["amount"],
-            "DetailType": "AccountBasedExpenseLineDetail",
-            "Description": item.get("description", ""),
-            "AccountBasedExpenseLineDetail": {
-                "AccountRef": {"value": item.get("expense_account_id", "7")},
-            },
-        }
-        for item in line_items
-    ]
-
+    today = date.today()
     payload = {
         "VendorRef": {"value": vendor["Id"]},
-        "TxnDate": today.strftime("%Y-%m-%d"),
-        "DueDate": (today.replace(day=today.day + due_days)).strftime("%Y-%m-%d"),
-        "Line": lines,
+        "TxnDate": today.isoformat(),
+        "DueDate": (today + timedelta(days=due_days)).isoformat(),
+        "Line": [{"DetailType": "AccountBasedExpenseLineDetail", "Amount": l["amount"],
+                  "Description": l["description"],
+                  "AccountBasedExpenseLineDetail": {"AccountRef": {"value": expense_account_id}}}
+                 for l in lines],
     }
-
-    result = client.create("bill", payload)
-    return result["Bill"]
+    return client.create("bill", payload)["Bill"]
 
 def create_expense(vendor_name: str, amount: float, description: str,
-                   account_id: str = "7", payment_account_id: str = "35") -> dict:
-    """Record a direct expense (already paid — not a bill)."""
+                   expense_account_id: str, bank_account_id: str) -> dict:
     vendor = upsert_vendor(vendor_name)
-
     payload = {
-        "PaymentType": "Cash",
-        "AccountRef": {"value": payment_account_id},  # Bank/credit card account
+        "PaymentType": "Cash", "AccountRef": {"value": bank_account_id},
         "EntityRef": {"value": vendor["Id"], "type": "Vendor"},
-        "TxnDate": datetime.utcnow().strftime("%Y-%m-%d"),
-        "Line": [{
-            "Amount": amount,
-            "DetailType": "AccountBasedExpenseLineDetail",
-            "Description": description,
-            "AccountBasedExpenseLineDetail": {
-                "AccountRef": {"value": account_id},
-            },
-        }],
+        "TxnDate": date.today().isoformat(),
+        "Line": [{"DetailType": "AccountBasedExpenseLineDetail", "Amount": amount,
+                  "Description": description,
+                  "AccountBasedExpenseLineDetail": {"AccountRef": {"value": expense_account_id}}}],
     }
-
-    result = client.create("purchase", payload)
-    return result["Purchase"]
+    return client.create("purchase", payload)["Purchase"]
 ```
 
-### Step 6: Pull financial reports
+### Step 6: Reports
 
 ```python
-# reports.py — Financial reporting
+# reports.py
 from qbo_client import QBOClient
 
 client = QBOClient()
 
-def get_profit_and_loss(start_date: str, end_date: str) -> dict:
-    """Fetch P&L report. Dates: YYYY-MM-DD."""
-    report = client.get_report("ProfitAndLoss", {
-        "start_date": start_date,
-        "end_date": end_date,
-    })
-    return parse_report(report)
+def profit_and_loss(start: str, end: str) -> dict:
+    return client.report("ProfitAndLoss", {"start_date": start, "end_date": end})
 
-def get_balance_sheet(as_of_date: str) -> dict:
-    """Fetch Balance Sheet as of a given date."""
-    report = client.get_report("BalanceSheet", {"date_macro": "Custom",
-                                                 "end_date": as_of_date})
-    return parse_report(report)
-
-def get_cash_flow(start_date: str, end_date: str) -> dict:
-    """Fetch Cash Flow Statement."""
-    report = client.get_report("CashFlow", {
-        "start_date": start_date,
-        "end_date": end_date,
-    })
-    return parse_report(report)
-
-def parse_report(report: dict) -> dict:
-    """Extract rows from QBO report into a flat summary dict."""
-    summary = {"title": report.get("Header", {}).get("ReportName", "Report"), "rows": []}
+def summary_rows(report: dict) -> list[tuple[str, str]]:
+    out = []
     for row in report.get("Rows", {}).get("Row", []):
-        if "Summary" in row:
-            cells = row["Summary"].get("ColData", [])
-            if cells:
-                summary["rows"].append({
-                    "label": cells[0].get("value", ""),
-                    "value": cells[1].get("value", "") if len(cells) > 1 else "",
-                })
-    return summary
+        cells = row.get("Summary", {}).get("ColData", [])
+        if len(cells) > 1:
+            out.append((cells[0]["value"], cells[1]["value"]))
+    return out
 ```
 
 ## Examples
 
-### Example 1: Full billing pipeline from Stripe to QBO
+### Example 1: "Sync each paid Stripe charge to QuickBooks"
 
 ```python
-# Triggered when Stripe webhook fires for a successful charge
-stripe_event = {
-    "customer_email": "alice@example.com",
-    "amount": 999.00,
-    "description": "Pro Plan — March 2025",
-    "date": "2025-03-01",
-}
-
-customer = upsert_customer(
-    display_name=stripe_event["customer_email"],
-    email=stripe_event["customer_email"],
-)
-
 invoice = create_invoice(
-    customer_name=customer["DisplayName"],
-    line_items=[{
-        "description": stripe_event["description"],
-        "amount": stripe_event["amount"],
-    }],
-    due_days=0,  # Already paid
-)
-
-record_payment(invoice_id=invoice["Id"], amount=stripe_event["amount"])
-print(f"QBO invoice synced: #{invoice['DocNumber']}")
+    "Larkspur Dental Group",
+    [{"description": "Pro plan, March 2026", "amount": 999.00, "item": "Services"}],
+    due_days=0)
+record_payment(invoice, 999.00, deposit_account_id="35")
+print(f"Invoice #{invoice['DocNumber']} synced, total {invoice['TotalAmt']}")
 ```
 
-### Example 2: Monthly P&L snapshot
+Result: `Invoice #1042 synced, total 999.0`; the invoice shows as paid in QBO. Use the ID of your own bank account, found with the Account query in Step 4.
+
+### Example 2: "Give me March's profit and loss"
 
 ```python
-pnl = get_profit_and_loss("2025-03-01", "2025-03-31")
-print(f"\n{pnl['title']}")
-for row in pnl["rows"]:
-    print(f"  {row['label']:<25} {row['value']:>12}")
+for label, value in summary_rows(profit_and_loss("2026-03-01", "2026-03-31")):
+    print(f"{label:<24}{value:>12}")
 ```
 
-**Output:**
 ```
-Profit and Loss
-  Total Income              $22,450.00
-  Gross Profit              $22,450.00
-  Total Expenses             $8,120.00
-  Net Operating Income      $14,330.00
-  Net Income                $14,330.00
+Total Income              22450.00
+Total Expenses             8120.00
+Net Income                14330.00
 ```
 
-## Environment Variables
-
-| Variable | Description |
-|---|---|
-| `QBO_CLIENT_ID` | OAuth2 client ID from Intuit Developer portal |
-| `QBO_CLIENT_SECRET` | OAuth2 client secret |
-| `QBO_REDIRECT_URI` | Callback URL registered in your QBO app |
-| `QBO_ENVIRONMENT` | `sandbox` (default) or `production` |
+Environment variables used above: `QBO_CLIENT_ID`, `QBO_CLIENT_SECRET`, `QBO_REDIRECT_URI` (must match the registered URI exactly), `QBO_ENVIRONMENT` (`sandbox` default or `production`), `QBO_TOKEN_FILE`. Sandbox and production use different keys.
 
 ## Guidelines
 
-- QBO access tokens expire after 1 hour; refresh tokens expire after 100 days. Automate token refresh and alert before the refresh token expires.
-- Use the sandbox environment (`sandbox-quickbooks.api.intuit.com`) for all testing — it includes a sample company with realistic data.
-- QBO query language is SQL-like but limited. Use `MAXRESULTS` and `STARTPOSITION` for pagination (`MAXRESULTS 1000` is the max per page).
-- Entity IDs (accounts, items) vary per QBO company. Query the chart of accounts on first run to map account names to IDs.
-- For production, store tokens in a database and rotate them proactively before the 100-day refresh expiry.
-- Intuit rate limits: 500 requests/minute per app. For bulk imports, batch API calls rather than one-per-record loops.
-- The `minorversion=65` parameter unlocks the latest API features — include it on all requests.
+- Persist the refresh token returned by every refresh. Track failures and give users a way to reauthorize, since the customer can disconnect the app at any time.
+- Test in a sandbox company first, and keep secrets and tokens out of source control and logs.
+- Entity IDs (accounts, items, tax codes) differ per company; look them up by query, never copy IDs between companies.
+- Respect the throttles (500 requests per minute per realm); back off on 429 and use the batch endpoint (about 30 operations per request) for bulk loads.
+- Escape every value you put in a query string, and treat webhook payloads as notifications only: fetch the entity by ID before acting.

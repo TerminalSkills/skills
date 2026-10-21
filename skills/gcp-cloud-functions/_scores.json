@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3af149172f5dc61dff4baac03e64046c428045449ce91f87a63699267f99319e",
-  "scoredAt": "2026-05-13T09:06:14.011Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:d01f3e2b3713516a028c85db23ea6b098388f63e337fe5abc326ae630d12af1d",
+  "scoredAt": "2026-10-20T19:30:52.390Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases, such as deployment failures or runtime errors."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains verbose explanations that could be trimmed for brevity."
+        "detail": "The skill does not cover error handling or edge cases for all function types and deployment scenarios."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 60,
+    "multiplier": 9,
+    "baselineAvg": 10,
     "treatmentAvg": 90,
-    "multiplier": 1.5,
     "scenarios": [
       {
-        "name": "Deploy a Cloud Storage triggered image processor",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment uses gcloud functions deploy --gen2 with --trigger-event-filters for type=google.cloud.storage.object.v1.finalized plus the bucket filter; baseline often falls back to the legacy --trigger-bucket or Gen 1 syntax."
+        "name": "deploy-http-function",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not meet any of them."
       },
       {
-        "name": "Pub/Sub triggered Python function with Secret Manager",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment uses functions_framework.cloud_event with base64 decode plus --gen2 --trigger-topic and --set-secrets injection; baseline often skips the cloud_event framework or wires secrets through env vars."
+        "name": "deploy-pubsub-function",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response A includes most required flags but uses the wrong secret name, while Response B omits several key flags such as --gen2, correct topic, timeout, and --set-secrets."
+      },
+      {
+        "name": "deploy-storage-trigger-function",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required flags exactly as specified, while Response A uses different trigger flags and omits --gen2, failing the rubric."
       }
     ]
   }

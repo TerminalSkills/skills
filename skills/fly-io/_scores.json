@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1ff1903f3f385ad28100b353881d438e6876698a730c1cff8cf36ea074e095a9",
-  "scoredAt": "2026-05-13T08:54:05.976Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:cbf3caa077bbe7c8c7ecd3f56926cdc6359495c079b6f40adc218f850a2cbbfc",
+  "scoredAt": "2026-10-20T17:37:27.667Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, limiting completeness."
+        "detail": "Instructions do not cover error handling scenarios such as command failures or permission errors."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
+    "multiplier": 1.48,
+    "baselineAvg": 63,
     "treatmentAvg": 93,
-    "multiplier": 2.66,
     "scenarios": [
       {
-        "name": "Canary deploy with health-check rollback",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline does a plain fly deploy and improvises rollback; treatment uses --strategy canary, curls the health endpoint within a deadline, promotes with --strategy rolling, and uses fly releases rollback on failure."
+        "name": "deploy-multi-region-web-app",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks the required fly scale count commands and fly-replay header."
       },
       {
-        "name": "Multi-region scale-to-zero SQLite staging",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Baseline picks Postgres and misses scale-to-zero specifics; treatment configures auto_stop_machines/auto_start_machines, provisions volumes per region, and uses LiteFS for multi-region SQLite."
+        "name": "staging-environment-scale-to-zero",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement with explicit commands and configuration, while Response B provides the launch command but omits the detailed fly.toml section and scaling notes."
+      },
+      {
+        "name": "canary-deploy-auto-rollback",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A includes the required canary deploy, health check, and rollback image command, while Response B lacks the explicit canary flag, rollback image command, and mention of secrets."
       }
     ]
   }

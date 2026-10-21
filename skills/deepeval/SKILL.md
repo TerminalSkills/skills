@@ -1,11 +1,13 @@
 ---
 name: deepeval
-description: Expert guidance for DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.
+description: >-
+  DeepEval is an open-source Python framework that unit-tests LLM applications with pytest-style test cases and LLM-as-a-judge metrics. Use when a user asks to evaluate a RAG chatbot, test LLM answers for relevancy, faithfulness or hallucination, write a custom metric, or run LLM quality checks in CI.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Python 3.9+; an API key for the judge model (OPENAI_API_KEY by default) or a local judge"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
+  repository: https://github.com/confident-ai/deepeval
   category: data-ai
   tags:
   - llm-testing
@@ -21,7 +23,7 @@ metadata:
 ## Overview
 
 
-DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.
+DeepEval (4.3.1 as checked, October 2026) runs metrics over `LLMTestCase` objects, either under `deepeval test run` (a pytest wrapper) or through `evaluate()`. Most metrics call a judge LLM: `OPENAI_API_KEY` selects OpenAI by default, and `deepeval set-ollama`, `set-gemini` and similar commands switch the judge. Red teaming moved out into the separate DeepTeam package.
 
 
 ## Instructions
@@ -68,10 +70,13 @@ def test_answer_is_faithful_to_context():
         retrieval_context=[
             "Enterprise Plan: $499/month. Includes unlimited users, priority support, SSO, and custom integrations.",
         ],
+        context=[  # HallucinationMetric reads `context`, FaithfulnessMetric reads `retrieval_context`
+            "Enterprise Plan: $499/month. Includes unlimited users, priority support, SSO, and custom integrations.",
+        ],
     )
 
     faithfulness = FaithfulnessMetric(threshold=0.8)
-    hallucination = HallucinationMetric(threshold=0.5)  # Lower = less hallucination
+    hallucination = HallucinationMetric(threshold=0.5)  # v4: 1.0 = no hallucination; passes when score >= threshold
     assert_test(test_case, [faithfulness, hallucination])
 
 
@@ -82,109 +87,83 @@ def test_response_is_not_toxic():
         actual_output="I'm sorry to hear about your frustration. Let me help resolve your issue. Could you describe what went wrong?",
     )
 
-    toxicity = ToxicityMetric(threshold=0.5)
+    toxicity = ToxicityMetric(threshold=0.5)  # v4: 1.0 = clean; threshold is a minimum score, like every other metric
     assert_test(test_case, [toxicity])
 ```
 
 ### Conversational Testing
 
-Test multi-turn conversations for coherence and context retention:
+A multi-turn case is a list of `Turn(role=..., content=...)` objects (v4 replaced the old list of `LLMTestCase` turns; `ConversationRelevancyMetric` is now `TurnRelevancyMetric`):
 
 ```python
 # tests/test_conversation.py — Multi-turn conversation quality
-from deepeval.test_case import ConversationalTestCase, LLMTestCase
-from deepeval.metrics import ConversationRelevancyMetric, ConversationCompletenessMetric
+from deepeval import assert_test
+from deepeval.test_case import ConversationalTestCase, Turn
+from deepeval.metrics import TurnRelevancyMetric, ConversationCompletenessMetric
 
 def test_multi_turn_conversation():
     """Verify the assistant maintains context across turns."""
     conversation = ConversationalTestCase(
         turns=[
-            LLMTestCase(
-                input="I want to upgrade to the Pro plan",
-                actual_output="I'd be happy to help you upgrade to Pro! Your current plan is Basic. The Pro plan is $29/month with advanced analytics and priority support. Shall I proceed?",
-            ),
-            LLMTestCase(
-                input="Yes, please proceed",
-                actual_output="Done! Your account has been upgraded to Pro ($29/month). The new features are available immediately. Your next billing date is April 1st.",
-            ),
-            LLMTestCase(
-                input="What features did I just get?",
-                actual_output="With your new Pro plan, you now have access to: advanced analytics dashboards, priority email support (< 4hr response), custom integrations via API, and team collaboration tools for up to 10 members.",
-                retrieval_context=[
-                    "Pro Plan Features: Advanced analytics, priority support (4hr SLA), API access, team collaboration (10 seats).",
-                ],
-            ),
+            Turn(role="user", content="I want to upgrade to the Pro plan"),
+            Turn(role="assistant", content="Happy to help. Your current plan is Basic; Pro is $29/month with advanced analytics and priority support. Shall I proceed?"),
+            Turn(role="user", content="Yes, please proceed"),
+            Turn(role="assistant", content="Done, your account is now on Pro ($29/month). The new features are available immediately."),
+            Turn(role="user", content="What features did I just get?"),
+            Turn(role="assistant", content="Advanced analytics dashboards, priority email support (4hr SLA), API access, and team collaboration for up to 10 seats."),
         ],
     )
 
-    relevancy = ConversationRelevancyMetric(threshold=0.7)
-    completeness = ConversationCompletenessMetric(threshold=0.7)
-    assert_test(conversation, [relevancy, completeness])
+    assert_test(conversation, [TurnRelevancyMetric(threshold=0.7), ConversationCompletenessMetric(threshold=0.7)])
 ```
 
 ### Custom Metrics
 
-Define evaluation criteria specific to your domain:
+For a domain criterion judged by an LLM, use `GEval` instead of hand-parsing a score:
 
 ```python
-# metrics/brand_voice.py — Custom metric for brand consistency
+# metrics/brand_voice.py — Brand consistency as a G-Eval metric
+from deepeval.metrics import GEval
+from deepeval.test_case import SingleTurnParams
+
+brand_voice = GEval(
+    name="Brand Voice",
+    criteria=(
+        "Judge whether the actual output follows our voice: friendly but professional, "
+        "uses 'we' not 'I', explains technical terms, and always offers a next step."
+    ),
+    evaluation_params=[SingleTurnParams.INPUT, SingleTurnParams.ACTUAL_OUTPUT],
+    threshold=0.75,
+)
+```
+
+For a rule-based check, subclass `BaseMetric`. In v4 both `measure` and `a_measure` are abstract, so define both (this one ran offline):
+
+```python
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
 
-class BrandVoiceMetric(BaseMetric):
-    """Evaluate if responses match the company's brand voice guidelines.
-
-    Scores how well the output follows the defined tone, vocabulary,
-    and communication style of the brand.
-    """
-
-    def __init__(self, brand_guidelines: str, threshold: float = 0.7):
+class MaxLengthMetric(BaseMetric):
+    def __init__(self, max_words: int = 40, threshold: float = 0.5):
+        self.max_words = max_words
         self.threshold = threshold
-        self.brand_guidelines = brand_guidelines
 
     def measure(self, test_case: LLMTestCase) -> float:
-        # Use an LLM to judge brand voice adherence
-        from deepeval.models import GPTModel
-        judge = GPTModel(model="gpt-4o")
-
-        prompt = f"""Evaluate how well this response follows the brand voice guidelines.
-
-Brand Guidelines:
-{self.brand_guidelines}
-
-User Input: {test_case.input}
-Response: {test_case.actual_output}
-
-Score from 0.0 (completely off-brand) to 1.0 (perfectly on-brand).
-Explain your reasoning, then provide the score on the last line as just a number."""
-
-        result = judge.generate(prompt)
-        # Extract score from last line
-        lines = result.strip().split('\n')
-        self.score = float(lines[-1].strip())
-        self.reason = '\n'.join(lines[:-1])
+        words = len(test_case.actual_output.split())
+        self.score = 1.0 if words <= self.max_words else 0.0
         self.success = self.score >= self.threshold
+        self.reason = f"{words} words"
         return self.score
+
+    async def a_measure(self, test_case: LLMTestCase) -> float:
+        return self.measure(test_case)
 
     def is_successful(self) -> bool:
         return self.success
 
     @property
     def __name__(self):
-        return "Brand Voice"
-
-
-# Usage in tests
-brand_metric = BrandVoiceMetric(
-    brand_guidelines="""
-    - Friendly but professional tone
-    - Use 'we' not 'I'
-    - Avoid jargon; explain technical terms
-    - Maximum 3 sentences per paragraph
-    - Always offer next steps
-    """,
-    threshold=0.75,
-)
+        return "Max Length"
 ```
 
 ### Bulk Evaluation with Datasets
@@ -213,23 +192,24 @@ test_cases = [
     for case in raw_cases
 ]
 
-dataset = EvaluationDataset(test_cases=test_cases)
+dataset = EvaluationDataset()
+for tc in test_cases:
+    dataset.add_test_case(tc)
 
 # Run evaluation — results are displayed in a table and optionally
 # pushed to the DeepEval dashboard (Confident AI)
 results = evaluate(
-    test_cases=dataset,
+    test_cases=dataset.test_cases,
     metrics=[
         AnswerRelevancyMetric(threshold=0.7),
         FaithfulnessMetric(threshold=0.8),
     ],
-    print_results=True,        # Show results table in terminal
 )
 
 # Access individual results programmatically
 for result in results.test_results:
     if not result.success:
-        print(f"FAILED: {result.input[:50]}...")
+        print(f"FAILED: {result.name}: {(result.input or '')[:50]}...")
         for metric_result in result.metrics_data:
             if not metric_result.success:
                 print(f"  {metric_result.name}: {metric_result.score:.2f} (reason: {metric_result.reason})")
@@ -237,41 +217,32 @@ for result in results.test_results:
 
 ### Red Teaming and Safety
 
-Test LLMs against adversarial inputs:
+`deepeval.red_teaming` no longer exists in DeepEval 4.x. Adversarial scans live in the sister package **DeepTeam** (`pip install -U deepteam`, 1.0.x). You pass a callback that wraps your app:
 
 ```python
-# tests/test_safety.py — Adversarial testing for LLM safety
-from deepeval.metrics import (
-    ToxicityMetric,
-    BiasMetric,
+# tests/red_team_support_bot.py
+from deepteam import red_team
+from deepteam.vulnerabilities import Bias
+from deepteam.attacks.single_turn import PromptInjection
+
+async def model_callback(input: str) -> str:
+    return await support_bot.answer(input)   # your own application
+
+risk_assessment = red_team(
+    model_callback=model_callback,
+    vulnerabilities=[Bias(types=["race"])],
+    attacks=[PromptInjection()],
 )
-from deepeval.red_teaming import RedTeamer
-
-# Automated red teaming — generates adversarial prompts
-red_teamer = RedTeamer(
-    target_model="gpt-4o",
-    attacks=[
-        "prompt-injection",       # Attempts to override system prompt
-        "jailbreak",              # Tries to bypass safety guardrails
-        "pii-extraction",         # Attempts to extract personal data
-        "harmful-content",        # Requests for dangerous information
-    ],
-    attack_count=20,              # Generate 20 attack attempts per category
-)
-
-results = red_teamer.scan()
-
-# Check vulnerability scores
-for vulnerability in results.vulnerabilities:
-    print(f"{vulnerability.type}: {vulnerability.score:.2f} "
-          f"({vulnerability.attacks_succeeded}/{vulnerability.attacks_total} succeeded)")
 ```
+
+Run it with `python tests/red_team_support_bot.py`; it needs a judge/attacker model key like DeepEval does. For per-response safety checks inside normal tests, `ToxicityMetric` and `BiasMetric` remain in `deepeval.metrics`.
 
 ## Installation & CLI
 
 ```bash
-# Install DeepEval
+# Install DeepEval (use a virtualenv)
 pip install deepeval
+export OPENAI_API_KEY="sk-..."   # default judge; or: deepeval set-ollama --model llama3.1
 
 # Run tests with pytest (deepeval is a pytest plugin)
 deepeval test run tests/test_chatbot.py
@@ -279,7 +250,7 @@ deepeval test run tests/test_chatbot.py
 # Run with verbose output showing per-metric scores
 deepeval test run tests/ -v
 
-# Login to Confident AI dashboard (optional, for tracking)
+# Login to Confident AI dashboard (optional, for tracking); the key is saved to .env.local
 deepeval login
 ```
 
@@ -305,7 +276,7 @@ The agent creates an evaluation suite with appropriate metrics (faithfulness, re
 We're testing GPT-4o vs Claude on our customer support prompts. Set up a comparison with Deepeval.
 ```
 
-The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report with statistical significance indicators.
+The agent creates a structured experiment with the existing prompt set, configures both model providers, defines scoring criteria specific to customer support (accuracy, tone, completeness), runs the comparison, and generates a summary report.
 
 
 ## Guidelines

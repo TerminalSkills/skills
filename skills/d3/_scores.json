@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7cf375849a430af98e9e77fb878ae7b7a5f93c749316f975383ed630759d8b87",
-  "scoredAt": "2026-05-13T16:15:18.674Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:5d31a96a771e989243dff61b1ccde0f07d377c92c047ca95c777698550f195f1",
+  "scoredAt": "2026-10-20T19:16:44.885Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
-      "actionability": "WEAK",
+      "conciseness": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, focusing only on typical usage scenarios."
+        "detail": "The skill does not cover error handling or edge cases for data processing."
       },
       {
         "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill provides high-level steps without concrete code snippets or runnable examples, limiting immediate execution."
+        "category": "conciseness",
+        "detail": "The documentation contains verbose sections that could be trimmed for brevity."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.22,
-    "baselineAvg": 60,
-    "treatmentAvg": 73,
+    "multiplier": 2.33,
+    "baselineAvg": 27,
+    "treatmentAvg": 63,
     "scenarios": [
       {
-        "name": "responsive-grouped-bar-chart",
-        "baseline": 45,
-        "treatment": 65,
-        "rationale": "Response B better meets the rubric by using .join for bars, a 750 ms transition, and a tooltip, whereas Response A uses .enter().append, a 800 ms transition, and lacks the required join syntax and resize handling."
+        "name": "responsive-line-chart",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Response B meets the 750 ms duration requirement (though it lacks the specified easeCubicInOut), whereas Response A uses a 2000 ms transition and also omits the easing function, making B slightly more compliant."
       },
       {
-        "name": "interactive-force-graph",
-        "baseline": 75,
-        "treatment": 80,
-        "rationale": "Both responses meet most rubric items, but neither implements the required 750 ms transition for node and link updates; Response A includes additional features (resize handling, more detailed tooltip) giving it a slightly higher score."
+        "name": "force-directed-graph",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully implements all rubric items, while Response A is incomplete and lacks key features."
+      },
+      {
+        "name": "choropleth-map",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response A includes a D3 setup with tooltip but omits the required projection, path, and color scale; Response B uses Plotly, not D3, and thus fails the rubric entirely."
       }
     ]
   }

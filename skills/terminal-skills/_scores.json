@@ -1,34 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:43132c0d15c8ffa858738ff9c6c20a60ef20c6ab0d4d57a80ae7b48ec70a036d",
-  "scoredAt": "2026-05-13T10:24:45.424Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:5863ba6f41718998f23dd959ca522e6e4ac48cf89dbd54f082029600bee7c987",
+  "scoredAt": "2026-10-20T20:25:45.657Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 80,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not explicitly cover error handling or edge cases such as missing skills or installation failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains verbose explanations that could be trimmed for brevity."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "The CLI requires Node.js 18+ and specific agent paths, limiting use on non-Node or unsupported agents."
+        "detail": "The instructions lack handling for error scenarios such as missing agent detection or API failures."
       }
     ]
   },
@@ -37,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 15,
-    "treatmentAvg": 95,
-    "multiplier": 6.33,
+    "multiplier": 5,
+    "baselineAvg": 0,
+    "treatmentAvg": 50,
     "scenarios": [
       {
-        "name": "Find, inspect, and install a Coolify skill for Claude Code",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline has no awareness of terminal-skills CLI and resorts to manual GitHub copying; treatment uses search/info/install with auto-detection and the .claude/skills path."
+        "name": "deploy-to-coolify",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not mention any terminal-skills commands or auto‑detection details."
       },
       {
-        "name": "Search REST API for accessibility skills and fetch SKILL.md",
-        "baseline": 15,
-        "treatment": 95,
-        "rationale": "Baseline lacks knowledge of the public /api/v1/skills endpoints; treatment hits /api/v1/skills?q= and /api/v1/skills/<slug> with jq to extract bodyMarkdown."
+        "name": "fetch-wcag-skill-md",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the raw SKILL.md but omits the required search call, whereas Response A provides no relevant content."
+      },
+      {
+        "name": "plan-stripe-vercel",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required MCP registration, plan_task call, skill slugs, and API key note."
       }
     ]
   }

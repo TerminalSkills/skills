@@ -1,209 +1,132 @@
 ---
 name: koyeb
-description: Expert guidance for Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. Helps developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.
+description: >-
+  Koyeb is a serverless cloud platform that runs web services, workers and databases from a Git repository or Docker image, with autoscaling, multi-region deployment and a managed Postgres. Use when a user asks to deploy an app to Koyeb, use the koyeb CLI, set secrets and environment variables, add health checks, a custom domain, or scale a service across regions.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Koyeb account and API token. koyeb CLI 5.x (Linux, macOS, Windows)."
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: devops
-  tags:
-  - paas
-  - serverless
-  - deployment
-  - edge
-  - docker
+  tags: ["paas", "serverless", "deployment", "docker", "cli"]
+  repository: https://github.com/koyeb/koyeb-cli
 ---
 
 # Koyeb — Global Serverless Platform
 
-
 ## Overview
 
+Koyeb deploys an app as a **service** inside an **app** (the app groups services and owns the public `*.koyeb.app` domain). A service is built from a Git repository (buildpack or Dockerfile), a Docker image, or a local directory, and runs as a `web` service (HTTP/TCP port), a `worker` (no port) or a `sandbox`. Deployments are rolling by default, with blue-green and immediate strategies available. Services scale between `--min-scale` and `--max-scale` on autoscaling targets and can run in several regions at once.
 
-Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. Helps developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.
-
+The `koyeb` CLI drives all of it. Flags below were checked against koyeb-cli 5.12.0; run `koyeb services create --help` for the full list. There is no declarative `koyeb.yaml` service file in the CLI; the CLI's declarative option is `koyeb compose <file>` (a `koyeb-compose.yaml`).
 
 ## Instructions
 
-### CLI Deployment
+### Install and sign in
 
 ```bash
-# Install Koyeb CLI
-curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+brew install koyeb/tap/koyeb       # macOS and Linux with Homebrew
+koyeb version
+koyeb login                        # prompts for an API token created in the Koyeb console (stored in ~/.koyeb.yaml)
+koyeb whoami
+```
 
-# Login
-koyeb login
+Without Homebrew, download the archive for your platform from https://github.com/koyeb/koyeb-cli/releases and verify it against `checksums.txt` from the same release before extracting:
 
-# Deploy from a Git repository
-koyeb app create my-api
-koyeb service create my-api/web \
-  --git github.com/myorg/my-api \
-  --git-branch main \
-  --git-build-command "npm ci && npm run build" \
-  --git-run-command "node dist/index.js" \
-  --port 3000:http \
-  --region fra \
-  --instance-type nano \
-  --min-scale 1 \
-  --max-scale 5 \
+```bash
+sha256sum --ignore-missing -c checksums.txt && tar xzf koyeb-cli_5.12.0_linux_amd64.tar.gz
+```
+
+### Deploy from Git
+
+```bash
+koyeb apps create orders-api
+koyeb secrets create database-url --value-from-stdin < database-url.txt
+koyeb services create web --app orders-api \
+  --git github.com/novak-labs/orders-api --git-branch main \
+  --git-buildpack-build-command "npm ci && npm run build" \
+  --git-buildpack-run-command "node dist/index.js" \
+  --ports 3000:http --routes /:3000 \
+  --regions fra \
+  --instance-type nano --min-scale 1 --max-scale 3 \
+  --autoscaling-requests-per-second 100 \
+  --checks 3000:http:/health \
   --env NODE_ENV=production \
-  --env DATABASE_URL=@database-url   # Reference a secret
-
-# Deploy from Docker image
-koyeb service create my-api/web \
-  --docker ghcr.io/myorg/my-api:latest \
-  --port 3000:http \
-  --region fra
-
-# Manage secrets
-koyeb secret create database-url --value "postgres://..."
-koyeb secret list
-
-# Custom domains
-koyeb domain create api.myapp.com --app my-api
+  --env 'DATABASE_URL={{secret.database-url}}' \
+  --wait
 ```
 
-### Service Configuration (koyeb.yaml)
+- A secret is referenced as `{{secret.NAME}}` inside `--env`; quote it so the shell leaves the braces alone.
+- Use `--git-builder docker` with `--git-docker-dockerfile` to build a Dockerfile instead of using a buildpack.
+- `--git-no-deploy-on-push` stops automatic deployments on every push to the branch.
 
-```yaml
-# koyeb.yaml — Declarative service configuration
-name: my-api
-type: web
-
-# Build configuration
-git:
-  repository: github.com/myorg/my-api
-  branch: main
-  build_command: npm ci && npm run build
-  run_command: node dist/index.js
-
-# Or Docker-based
-# docker:
-#   image: ghcr.io/myorg/my-api:latest
-
-# Scaling
-scaling:
-  min: 1
-  max: 10
-  targets:
-    - metric: cpu
-      value: 70              # Scale up at 70% CPU
-    - metric: requests
-      value: 100             # Scale up at 100 req/s per instance
-
-# Instance configuration
-instance_type: small          # nano | small | medium | large | xlarge
-regions:
-  - fra                       # Frankfurt
-  - was                       # Washington DC
-  - sin                       # Singapore
-
-# Networking
-ports:
-  - port: 3000
-    protocol: http
-
-# Health checks
-health_checks:
-  - type: http
-    port: 3000
-    path: /health
-    interval: 30
-    timeout: 10
-    healthy_threshold: 2
-    unhealthy_threshold: 3
-
-# Environment
-env:
-  - key: NODE_ENV
-    value: production
-  - key: DATABASE_URL
-    secret: database-url     # Reference a Koyeb secret
-  - key: REDIS_URL
-    secret: redis-url
-
-# Volumes (persistent storage)
-volumes:
-  - name: data
-    path: /app/data
-    size: 10                  # GB
-```
-
-### Workers and Cron Jobs
+### Deploy a Docker image or a local directory
 
 ```bash
-# Deploy a background worker (no public port)
-koyeb service create my-app/worker \
-  --git github.com/myorg/my-api \
-  --git-branch main \
-  --git-run-command "node dist/worker.js" \
-  --type worker \
-  --env QUEUE_URL=@queue-url
-
-# There's no native cron in Koyeb — use a lightweight scheduler
-# or a cron-to-HTTP service that hits your web endpoint
+koyeb services create web --app orders-api --docker ghcr.io/novak-labs/orders-api:1.4.2 --ports 3000:http --routes /:3000
+koyeb deploy . orders-api/web          # upload the current directory and build it on Koyeb
 ```
 
-### Multi-Region Deployment
+Private registry: create a secret with `koyeb secrets create ghcr-pull --type registry-private --registry-url ghcr.io --registry-username novak-bot --value-from-stdin`, then pass `--docker-private-registry-secret ghcr-pull`.
+
+### Update, scale, observe
 
 ```bash
-# Deploy to multiple regions for global low-latency
-koyeb service update my-api/web \
-  --region fra,was,sin \
-  --min-scale 1 \
-  --max-scale 3
-
-# Koyeb's edge network automatically routes users to the nearest region
-# DNS-based routing: requests from Europe → Frankfurt, US → Washington, Asia → Singapore
+koyeb services update orders-api/web --env LOG_LEVEL=debug --env '!DEBUG'   # '!' deletes a variable
+koyeb services update orders-api/web --regions was      # adds a region; remove one with --regions '!was'
+koyeb services scale orders-api/web --scale fra:2 --scale was:1             # fixed instance counts per region
+koyeb services redeploy orders-api/web --use-cache --wait
+koyeb services logs orders-api/web
+koyeb deployments list
 ```
 
-### Database Integration
+### Workers, domains, databases, volumes
 
 ```bash
-# Koyeb offers managed Postgres (Neon-powered)
-koyeb database create main-db \
-  --engine postgres \
-  --region fra
-
-# Connection string is available as a secret
-# Reference it in service env vars:
-koyeb service update my-api/web \
-  --env DATABASE_URL=@main-db-connection-string
+koyeb services create worker --app orders-api --type worker --docker ghcr.io/novak-labs/orders-api:1.4.2 \
+  --docker-command node --docker-args dist/worker.js --env 'QUEUE_URL={{secret.queue-url}}'
+koyeb domains create api.novak-labs.dev --attach-to orders-api     # then add the CNAME shown by `koyeb domains describe`
+koyeb databases create orders-db --app orders-api --region fra --instance-type free
+koyeb volumes create orders-data --region fra --size 10           # fra or was only, 1-10 GB, preview
+koyeb services update orders-api/web --scale 1 --volumes orders-data:/app/data   # volumes need scale 1 and a non-free, non-eco instance in the same region
 ```
 
+There is no built-in cron scheduler flag in `services create`; run scheduled jobs from an external scheduler that calls an HTTP endpoint, or a worker that sleeps between runs.
 
 ## Examples
 
+### Example 1: Ship a Node API with a secret and a health check
 
-### Example 1: Setting up Koyeb for a microservices project
+Request: "Deploy github.com/novak-labs/orders-api to Koyeb in Frankfurt, keep the database URL secret, and make sure bad deploys don't take traffic."
 
-**User request:**
-
-```
-I have a Node.js API and a React frontend running in Docker. Set up Koyeb for monitoring/deployment.
-```
-
-The agent creates the necessary configuration files based on patterns like `# Install Koyeb CLI`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
-
-### Example 2: Troubleshooting service configuration issues
-
-**User request:**
-
-```
-Koyeb is showing errors in our service configuration. Here are the logs: [error output]
+```bash
+koyeb apps create orders-api
+printf '%s' "$DATABASE_URL" | koyeb secrets create database-url --value-from-stdin
+koyeb services create web --app orders-api --git github.com/novak-labs/orders-api --git-branch main \
+  --ports 3000:http --routes /:3000 --regions fra --checks 3000:http:/health \
+  --env 'DATABASE_URL={{secret.database-url}}' --wait
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Koyeb issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+Result: the CLI waits for the deployment; a rolling deploy only shifts traffic once the `/health` check passes, and the app answers on `https://orders-api-<org>.koyeb.app`.
 
+### Example 2: Move traffic to three regions
+
+Request: "Run the API in Frankfurt, Washington and Singapore and scale on requests."
+
+```bash
+koyeb services update orders-api/web --regions fra --regions was --regions sin \
+  --min-scale 1 --max-scale 4 --autoscaling-requests-per-second 80
+koyeb services get orders-api/web
+```
+
+Result: a new deployment starts instances in the three regions; `koyeb services get` shows the service status.
 
 ## Guidelines
 
-1. **Use Git-based deployment** — Push to deploy; Koyeb handles builds, caching, and zero-downtime rollouts
-2. **Multi-region for latency** — Deploy to regions closest to your users; Koyeb's edge routes traffic automatically
-3. **Secrets for credentials** — Never put database URLs or API keys in env vars directly; use `koyeb secret create`
-4. **Autoscaling with request metrics** — Scale on requests-per-second for web services; CPU-based for compute-heavy workers
-5. **Health checks are critical** — Define HTTP health checks; without them, Koyeb can't do zero-downtime deployments
-6. **Use nano for staging** — Nano instances are cheap; use them for preview/staging environments
-7. **Pin Docker tags** — Don't use `:latest` in production; pin to specific versions for reproducible deployments
-8. **Monitor via dashboard** — Koyeb provides built-in logs, metrics, and deployment history in the web console
+- Put credentials in secrets (`koyeb secrets create`), never in `--env` literals or in shell history; use `--value-from-stdin`.
+- Define an HTTP health check on web services; without one Koyeb only knows the process started.
+- Pin Docker tags (`:1.4.2`), not `:latest`, so redeploys are reproducible.
+- The free instance type is limited to one per organization and is meant for previews, not production; check the instance table at https://www.koyeb.com/docs/reference/instances for current sizes and prices.
+- Scaling to zero (deep sleep) cold-starts the first request; set `--deep-sleep-delay 0` for latency-sensitive services.
+- Regions available today include `fra`, `par`, `sin`, `tyo`, `was` and `sfo`; eco instance types exist only in some of them.
+- Delete test apps (`koyeb apps delete`) so they stop billing.

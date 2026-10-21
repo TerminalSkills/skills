@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:303d8f2d7faaf370da9caad95dc5afe2ce1c859126b4d72efcc8b9e5aca6fe3e",
-  "scoredAt": "2026-05-13T09:59:31.277Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:08d47ea1cfaffa71575d8d15827025aef293d1b41cfc732deb489503f68c2967",
+  "scoredAt": "2026-10-20T20:08:20.705Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,36 +17,43 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not handle HTTP errors, pagination, or rate limiting scenarios."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The implementation is Python-only, limiting compatibility with other AI agent platforms."
+        "detail": "The skill requires Python 3.10+ or Node.js 18+, which is a minor platform assumption."
       }
     ]
   },
   "security": {
-    "verdict": "SAFE",
-    "issues": []
+    "verdict": "SUSPICIOUS",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "missingChecksums",
+        "detail": "The instructions mention installing intuit-oauth via pip without specifying a checksum, which is a medium security concern."
+      }
+    ]
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 89,
-    "multiplier": 2.34,
+    "multiplier": 2.52,
+    "baselineAvg": 33,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Sync Stripe charge to QBO as paid invoice",
-        "baseline": 35,
-        "treatment": 88,
-        "rationale": "Baseline knows OAuth and invoice creation conceptually but misses the upsert-by-query idempotency pattern, the SalesItemLineDetail line structure, and most importantly the LinkedTxn payment-to-invoice linkage; treatment follows the documented upsert_customer -> create('invoice') -> record_payment with LinkedTxn flow precisely."
+        "name": "generate-qbo-profit-loss",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric by calling profit_and_loss, using summary_rows, and listing the top 5 expense categories; Response A does not include any code or calls to the required functions."
       },
       {
-        "name": "Monthly P&L report between two dates",
-        "baseline": 40,
-        "treatment": 90,
-        "rationale": "Baseline knows the /reports/ProfitAndLoss endpoint exists and passes date params, but fails to parse the nested Rows.Row[].Summary.ColData report structure; treatment uses get_report with start_date/end_date and parses the exact ColData rows shape."
+        "name": "create-invoice-and-payment",
+        "baseline": 50,
+        "treatment": 50,
+        "rationale": "Both responses omit the required upsert_customer call, so they only partially satisfy the rubric."
+      },
+      {
+        "name": "refresh-oauth-token",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric by using get_valid_token, handling invalid_grant, and calling auth_url, whereas Response A lacks the required get_valid_token call and auth_url function."
       }
     ]
   }

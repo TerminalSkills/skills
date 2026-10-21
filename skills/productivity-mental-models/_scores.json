@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:15620008914fe86f6ebf52face98d88f3a7fbf9535b13d68066498e423a1e9ee",
-  "scoredAt": "2026-05-13T09:57:26.991Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7b4a4d96f9c90dd4c4c6ce9361a5f5742832acf1369c484f6d445dc6641b2b6f",
+  "scoredAt": "2026-10-20T18:23:02.608Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error scenarios or edge cases for applying mental models."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill file contains extensive explanatory text that could be trimmed for brevity."
+        "detail": "The skill does not cover error scenarios or edge cases for applying mental models."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 48,
-    "treatmentAvg": 86,
-    "multiplier": 1.79,
+    "multiplier": 5.44,
+    "baselineAvg": 18,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Diagnose missed sprint commitments",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment applied 5-Fold Why drilling past symptoms to a root cause (dependency mapping in sprint planning) and explicitly invoked Brooks's Law to reject adding more developers; baseline gave generic agile fixes without root-cause structure."
+        "name": "daily-work-routine",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response A fully meets all rubric items with detailed MITs, a protected 90‑minute deep‑work block, a 5‑minute brain dump, and Akrasia fixes; Response B lacks MITs, a proper deep‑work block, a brain dump, and clear Akrasia interventions."
       },
       {
-        "name": "Solo founder busy but unproductive",
-        "baseline": 50,
-        "treatment": 84,
-        "rationale": "Treatment prescribed MITs set the prior evening, protected morning monoidealism blocks, batched async communication windows, and a shutdown brain-dump — all skill-specific; baseline offered standard time-blocking and Pomodoro advice."
+        "name": "sprint-root-cause-analysis",
+        "baseline": 35,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric with a 5‑fold Why, root cause, concrete fixes, and a Brooks’s Law mitigation, while Response A lacks a root‑cause analysis and specific Brooks mitigation."
+      },
+      {
+        "name": "reduce-context-switching",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric while Response B is empty."
       }
     ]
   }

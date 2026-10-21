@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3445bc87bd5ea04b173ab113dfc54eab615ea3174ccbd2c99b679f907825a119",
-  "scoredAt": "2026-05-13T09:06:28.587Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:572886e0b276deeff658907bb7a80bea79f74b5360f31c194dc8b58ac83c04d1",
+  "scoredAt": "2026-10-20T19:32:23.195Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases such as quota limits or network failures."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
+        "detail": "The instructions lack explicit error handling and edge case scenarios, such as handling failed instance creation or network configuration errors."
       }
     ]
   },
@@ -32,23 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 40,
-    "treatmentAvg": 95,
-    "multiplier": 2.38,
-    "backend": "subagent",
-    "model": "claude-sonnet-4-6",
+    "multiplier": 4.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "HA private Postgres 15 with PITR and IAM auth",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Baseline omitted --no-assign-ip, set the IAM flag via console, and added IAM users in the UI; treatment used the full create command with --no-assign-ip, --enable-point-in-time-recovery, cloudsql.iam_authentication=on, and gcloud sql users create --type=cloud_iam_service_account."
+        "name": "provision-ha-private-iam-postgres",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric while Response A omits several required flags and options."
       },
       {
-        "name": "Passwordless GKE connection via Auth Proxy sidecar",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline used a key Secret and lacked the proxy flags; treatment ran cloud-sql-proxy sidecar with --auto-iam-authn and --private-ip using project:region:instance, bound the KSA via Workload Identity to a GSA with roles/cloudsql.client, and pointed the app at 127.0.0.1:5432."
+        "name": "replica-auth-proxy-gke",
+        "baseline": 30,
+        "treatment": 50,
+        "rationale": "Response B correctly creates the replica with the required tier and region and references the connection name, whereas Response A uses the wrong tier and image; however, both responses lack a complete, correctly specified deployment YAML with the required sidecar image and DATABASE_URL."
+      },
+      {
+        "name": "terraform-cloudsql-iam",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B is empty."
       }
     ]
   }

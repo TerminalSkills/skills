@@ -4,11 +4,12 @@ description: >-
   Real-time face swap and video deepfake using a single source image. Use when: building
   face-swap applications, real-time video effects, virtual try-on features, AI video
   effects pipelines.
-license: AGPL-3.0
-compatibility: "Python 3.10+, CUDA GPU recommended"
+license: Apache-2.0
+compatibility: "Python 3.11-3.14, ffmpeg, GPU recommended (CUDA, CoreML, DirectML or OpenVINO)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
+  repository: "https://github.com/hacksider/Deep-Live-Cam"
   category: data-ai
   tags:
     - deepfake
@@ -30,74 +31,59 @@ Real-time face swap and video deepfake using a single source image. Supports web
 
 ### 1. Install and configure
 
+The README targets Python 3.14 (3.11-3.14 supported; 3.10 no longer works because onnxruntime dropped it), plus git and ffmpeg. Use a virtual environment.
+
 ```bash
-git clone https://github.com/hacksider/Deep-Live-Cam.git
+git clone --depth 1 https://github.com/hacksider/Deep-Live-Cam.git
 cd Deep-Live-Cam
+python3.14 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Download models into the `models/` directory:
+Download the two models into `models/` (from the project's Hugging Face repository, `hacksider/deep-live-cam`): `inswapper_128_fp16.onnx` and `gfpgan-1024.onnx`. Compare each file's SHA256 with the value shown on its Hugging Face file page (`sha256sum models/*.onnx`) before first use. Other models are in the same repository; the first run also fetches roughly 300 MB of supporting models.
 
-```bash
-mkdir -p models
-wget -O models/inswapper_128_fp16.onnx "https://huggingface.co/hacksider/deep-live-cam/resolve/main/inswapper_128_fp16.onnx"
-```
+GPU acceleration is chosen with `--execution-provider`. `requirements.txt` already pins `onnxruntime-gpu` on Linux/Windows and the CoreML-capable `onnxruntime` on Apple Silicon:
 
-For GPU acceleration:
-
-```bash
-pip install onnxruntime-gpu    # NVIDIA CUDA
-pip install onnxruntime-rocm   # AMD ROCm
-pip install onnxruntime-coreml # Apple Silicon
-```
+- NVIDIA: install CUDA Toolkit 12.8 and cuDNN 8.9.7 for CUDA 12, then `pip uninstall onnxruntime onnxruntime-gpu` and `pip install onnxruntime-gpu==1.26.0`; run with `--execution-provider cuda`.
+- Apple Silicon: no extra install; `--execution-provider coreml` (remove the old `onnxruntime-silicon` fork if present, it shadows the real package).
+- Windows DirectML: `pip uninstall onnxruntime onnxruntime-gpu`, `pip install onnxruntime-directml==1.21.0`, then `--execution-provider dml`.
+- Intel: uninstall `onnxruntime` and `onnxruntime-gpu`, then install `onnxruntime-openvino==1.21.0` (newer than 1.21.0 must be paired with a matching `openvino` release; see the README table), then `--execution-provider openvino`.
 
 ### 2. Run face swap
 
-**GUI mode (webcam, real-time):**
+**GUI mode (image, video and live webcam):**
 
 ```bash
 python run.py
 ```
 
-**CLI mode — process a video file:**
+Pick a source face and a target, press Start for image/video, or Live for the webcam (the preview takes 10-30 seconds to appear). To stream, capture the preview window with OBS.
+
+**CLI mode** starts whenever `-s/--source` is given. The README marks the CLI as unmaintained, so check `python run.py --help` on your checkout:
 
 ```bash
-python run.py \
-  --source path/to/source_face.jpg \
-  --target path/to/target_video.mp4 \
-  --output path/to/output.mp4 \
-  --execution-provider cuda
+python run.py -s speaker_headshot.jpg -t conference_talk.mp4 -o outputs/anonymized_talk.mp4 \
+  --keep-fps --execution-provider cuda --frame-processor face_swapper face_enhancer
 ```
 
-**CLI mode — process a single image:**
+### 3. Key features and flags
 
-```bash
-python run.py \
-  --source path/to/source_face.jpg \
-  --target path/to/target_image.jpg \
-  --output path/to/output.jpg
-```
-
-### 3. Key features
-
-- **Mouth Mask** — Retains original mouth for accurate lip movement: `--mouth-mask`
-- **Face Mapping** — Different source faces on multiple people: `--face-mapping`
-- **Quality Enhancement** — GFPGAN or CodeFormer: `--enhancer gfpgan`
+- `--mouth-mask` keeps the original mouth for accurate lip movement.
+- `--map-faces` assigns different source faces to different people; `--many-faces` swaps every face with one source.
+- `--frame-processor face_swapper face_enhancer` adds the GFPGAN enhancer (`face_enhancer_gpen256` and `face_enhancer_gpen512` are alternatives).
+- `--keep-fps`, `--keep-audio`, `--video-encoder {libx264,libx265,libvpx-vp9}`, `--video-quality 0-51` (lower is better), `--det-size {160,320,640}` for detection speed, `--nsfw-filter`.
 
 ## Examples
 
 ### Example 1: Swap a face in a conference recording
 
 ```bash
-python run.py \
-  --source speaker_headshot.jpg \
-  --target conference_talk.mp4 \
-  --output anonymized_talk.mp4 \
-  --execution-provider cuda \
-  --enhancer gfpgan
+python run.py -s speaker_headshot.jpg -t conference_talk.mp4 -o outputs/anonymized_talk.mp4 \
+  --keep-fps --execution-provider cuda --frame-processor face_swapper face_enhancer
 ```
 
-This replaces the speaker's face in a 45-minute conference recording with the source face, using GPU acceleration and GFPGAN enhancement for broadcast-quality output.
+The program extracts frames, swaps and enhances each one on the GPU, and re-encodes the video with the original audio. Expect a long run for a 45-minute file; the output is `outputs/anonymized_talk.mp4`.
 
 ### Example 2: Programmatic face swap with Python
 
@@ -131,7 +117,7 @@ if source_faces and target_faces:
 python run.py --mouth-mask --execution-provider cuda
 ```
 
-Launches the GUI with webcam input. Select a source face image, enable mouth mask for natural lip sync, and start the live face swap at 25-30 FPS on an RTX 3060.
+The GUI opens; choose a source face image, pick the camera, enable mouth mask in the UI if it is not already on, and press Live. Frame rate depends on the GPU.
 
 ## Guidelines
 
@@ -139,7 +125,10 @@ Launches the GUI with webcam input. Select a source face image, enable mouth mas
 - **Label all outputs** as AI-generated/deepfake when sharing publicly
 - **Legal compliance** — Many jurisdictions have laws against non-consensual deepfakes
 - **Lighting matters** — Works best with even, front-facing lighting; degrades at extreme head rotations (>60°)
-- **GPU recommended** — CPU mode works but is very slow; NVIDIA RTX 3060+ with 6GB+ VRAM recommended
+- **GPU recommended** — CPU mode works but is very slow
+- **Model licence** — the README notes InsightFace models are for non-commercial research use; check this before any commercial product
+- **Built-in content filter** — the project refuses nudity and graphic media, and may add watermarks if legally required
+- **Beware lookalike sites** — the README says deeplivecam.net is the only official site; the pre-built "Ultimate" builds are paid
 - **Verify results** — Heavy occlusion (masks, large sunglasses) can cause artifacts
 - **Use batch mode for quality** — Real-time trades resolution for speed; use offline processing for high-res output
 

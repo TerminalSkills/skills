@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1dff89a5dddb113d8f27d78b7198364206da59862da30fcf328ab59f0adfe5e5",
-  "scoredAt": "2026-05-13T09:20:35.895Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0dd1500d654ca2d57143401010e18129a2489a18896b2b6b6887016ccf2f8106",
+  "scoredAt": "2026-10-20T19:48:58.713Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,36 +18,41 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions focus on happy path deployment without covering error handling or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases such as failed deployments or missing tokens."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The document contains repeated lines and filler text that reduce overall conciseness."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "checksumMissing",
-        "detail": "Install script fetched via curl without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 93,
-    "multiplier": 2.45,
+    "multiplier": 8.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "CLI deploy from Git with secret-backed env",
-        "baseline": 40,
-        "treatment": 92,
-        "rationale": "Treatment uses koyeb secret create then references it via --env DATABASE_URL=@database-url and includes the exact --git-build-command / --git-run-command flags from the skill; baseline guesses flag names and inlines the database URL."
+        "name": "deploy-node-api-git",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B satisfies every rubric requirement, while Response A omits the required koyeb apps create and services create commands."
       },
       {
-        "name": "Declarative koyeb.yaml with multi-region autoscaling",
-        "baseline": 35,
-        "treatment": 93,
-        "rationale": "Treatment matches the skill's exact koyeb.yaml schema (scaling.targets with metric/value, health_checks with healthy_threshold/unhealthy_threshold, regions list); baseline invents field names that do not exist in the documented format."
+        "name": "scale-service-multi-region",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes the exact koyeb command with all required flags; Response A does not contain any koyeb command."
+      },
+      {
+        "name": "create-worker-with-volume",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A covers most required koyeb commands but omits the update step, while Response B provides a Kubernetes manifest unrelated to the rubric."
       }
     ]
   }

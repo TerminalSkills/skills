@@ -1,18 +1,19 @@
 ---
 name: elysia
 description: >-
-  Build high-performance APIs with Elysia on Bun. Use when someone asks to
+  Build typed HTTP and WebSocket APIs with Elysia, a TypeScript web framework optimized for Bun that also runs on Node.js. Use when someone asks to
   "create an API with Bun", "build a REST API with Elysia", "set up WebSocket
   server on Bun", "type-safe API with Eden Treaty", "Elysia plugin", or
   "fastest TypeScript HTTP framework". Covers REST routes, WebSocket, validation
   with TypeBox, Eden Treaty type-safe client, plugins, auth guards, and
-  OpenAPI/Swagger generation.
+  OpenAPI documentation.
 license: Apache-2.0
-compatibility: "Bun 1.0+. TypeScript."
+compatibility: "Bun 1.x (recommended) or Node.js with the @elysia/node adapter. TypeScript."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: development
+  repository: https://github.com/elysiajs/elysia
   tags: ["bun", "api", "typescript", "websocket", "elysia"]
 ---
 
@@ -20,15 +21,17 @@ metadata:
 
 ## Overview
 
-Elysia is a Bun-native HTTP framework built for speed and developer experience. End-to-end type safety from server to client via Eden Treaty, schema validation baked in, and performance that rivals Go/Rust frameworks. Think Express but with types, on Bun.
+Elysia is a TypeScript HTTP framework optimized for Bun (current release 1.4). It gives end-to-end type safety from server to client via Eden Treaty, built-in schema validation, and an OpenAPI plugin that documents routes from the same schemas. It also runs on Node.js through an adapter. Think Express, but with types.
+
+Package scopes: the official docs now install plugins from `@elysia/*` (`@elysia/cors`, `@elysia/jwt`, `@elysia/openapi`, `@elysia/eden`, `@elysia/node`). The older `@elysiajs/*` names are still published and carry the same releases, so existing projects keep working. `@elysiajs/swagger` is deprecated; use the OpenAPI plugin.
 
 ## When to Use
 
 - Building REST APIs on Bun (instead of Express/Fastify)
 - Need end-to-end type safety — server defines routes, client auto-infers types
 - WebSocket server with typed messages
-- High-performance API that needs to handle 100K+ req/sec
-- Rapid prototyping with auto-generated OpenAPI/Swagger docs
+- Fast APIs where framework overhead matters
+- Rapid prototyping with auto-generated OpenAPI docs (Scalar UI)
 
 ## Instructions
 
@@ -77,9 +80,9 @@ const app = new Elysia()
   })
 
   // Path params + response schema
-  .get("/users/:id", async ({ params, error }) => {
+  .get("/users/:id", async ({ params, status }) => {
     const user = await findUser(params.id);
-    if (!user) return error(404, { message: "User not found" });
+    if (!user) return status(404, { message: "User not found" });
     return user;
   }, {
     params: t.Object({
@@ -93,16 +96,16 @@ const app = new Elysia()
     return { deleted: true };
   }, {
     params: t.Object({ id: t.String() }),
-    beforeHandle: ({ headers, error }) => {
+    beforeHandle: ({ headers, status }) => {
       if (headers.authorization !== `Bearer ${process.env.ADMIN_TOKEN}`) {
-        return error(401, { message: "Unauthorized" });
+        return status(401, { message: "Unauthorized" });
       }
     },
   })
 
   .listen(3000);
 
-console.log(`🦊 Elysia running at ${app.server?.url}`);
+console.log(`Elysia running at ${app.server?.hostname}:${app.server?.port}`);
 ```
 
 ### WebSocket
@@ -113,6 +116,7 @@ import { Elysia, t } from "elysia";
 
 const app = new Elysia()
   .ws("/chat", {
+    query: t.Object({ room: t.Optional(t.String()) }),
     body: t.Object({
       type: t.Union([t.Literal("message"), t.Literal("ping")]),
       content: t.Optional(t.String()),
@@ -132,7 +136,8 @@ const app = new Elysia()
       }
     },
     close(ws) {
-      ws.unsubscribeAll();
+      // leave every topic this socket joined
+      for (const topic of ws.subscriptions) ws.unsubscribe(topic);
     },
   })
   .listen(3000);
@@ -146,7 +151,7 @@ const app = new Elysia()
  * Eden Treaty creates a fully typed client from your Elysia app type.
  * No codegen, no OpenAPI parsing — just TypeScript inference.
  */
-import { treaty } from "@elysiajs/eden";
+import { treaty } from "@elysia/eden";
 import type { App } from "./src/index";  // Import the app TYPE
 
 const api = treaty<App>("localhost:3000");
@@ -157,12 +162,13 @@ const { data: users } = await api.users.get({ query: { page: 1, limit: 10 } });
 
 const { data: newUser } = await api.users.post({
   name: "Kai",
-  email: "kai@example.com",
+  email: "kai@brightpath.io",
 });
 //    ^? { id: string, name: string, email: string, createdAt: Date }
 
 const { error } = await api.users({ id: "bad-id" }).delete();
-//    ^? { message: string } | null
+// error is null on success; otherwise { status: 401 | 422, value: ... }
+if (error) console.error(error.status, error.value);
 ```
 
 ### Plugins and Middleware
@@ -170,13 +176,13 @@ const { error } = await api.users({ id: "bad-id" }).delete();
 ```typescript
 // src/app.ts — Elysia with plugins
 import { Elysia } from "elysia";
-import { cors } from "@elysiajs/cors";
-import { swagger } from "@elysiajs/swagger";
-import { jwt } from "@elysiajs/jwt";
+import { cors } from "@elysia/cors";
+import { openapi } from "@elysia/openapi";
+import { jwt } from "@elysia/jwt";
 
 const app = new Elysia()
   .use(cors())
-  .use(swagger({
+  .use(openapi({
     documentation: {
       info: { title: "My API", version: "1.0.0" },
     },
@@ -186,8 +192,8 @@ const app = new Elysia()
     secret: process.env.JWT_SECRET!,
     exp: "7d",
   }))
-  // Auth guard as derive
-  .derive(async ({ jwt, headers, error }) => {
+  // resolve runs after validation (derive runs before it)
+  .resolve(async ({ jwt, headers }) => {
     const token = headers.authorization?.replace("Bearer ", "");
     if (!token) return { user: null };
     const payload = await jwt.verify(token);
@@ -195,8 +201,8 @@ const app = new Elysia()
     return { user: payload as { id: string; email: string } };
   })
   // Protected route
-  .get("/me", ({ user, error }) => {
-    if (!user) return error(401, { message: "Not authenticated" });
+  .get("/me", ({ user, status }) => {
+    if (!user) return status(401, { message: "Not authenticated" });
     return user;
   })
   .listen(3000);
@@ -235,9 +241,9 @@ const app = new Elysia()
 
 ### Example 1: Build a CRUD API with auth
 
-**User prompt:** "Create a REST API for a todo app with JWT auth, input validation, and Swagger docs using Elysia on Bun."
+**User prompt:** "Create a REST API for a todo app with JWT auth, input validation, and OpenAPI docs using Elysia on Bun."
 
-The agent will create an Elysia app with JWT plugin, CRUD routes for todos with TypeBox validation, auth guards on mutation routes, and auto-generated Swagger at /swagger.
+The agent will create an Elysia app with JWT plugin, CRUD routes for todos with TypeBox validation, auth guards on mutation routes, and auto-generated OpenAPI docs at /openapi (Scalar UI; raw spec at /openapi/json).
 
 ### Example 2: Real-time chat server
 
@@ -250,8 +256,11 @@ The agent will set up Elysia WebSocket with typed messages, room subscription vi
 - **Use `t.Object()` for all inputs** — runtime validation + compile-time types in one declaration
 - **Export the app type** — `export type App = typeof app` enables Eden Treaty client
 - **Group routes with `new Elysia({ prefix })`** — keeps route files modular
-- **`derive` for auth** — compute user from JWT once, available in all routes
+- **`resolve` (or `derive`) for auth** — compute the user from the JWT once per request; `resolve` runs after validation, `derive` before it
 - **`beforeHandle` for guards** — return an error to short-circuit the request
-- **Bun is required** — Elysia uses Bun-specific APIs; it won't work on Node.js
-- **Performance: Elysia handles 100K+ req/s** — benchmark before adding middleware that might slow it down
-- **Swagger plugin at `/swagger`** — auto-generated from your route schemas, zero config
+- **Return `status(code, body)` instead of the old `error()`** — it is typed against the response schema and Eden narrows on it
+- **Bun is the native runtime; Node.js works through the adapter** — `npm install elysia @elysia/node`, then `new Elysia({ adapter: node() })` with `import { node } from "@elysia/node"`
+- **OpenAPI plugin serves Scalar at `/openapi`** — generated from route schemas; `references: fromTypes()` (from `@elysia/openapi`) also reads TypeScript types, and in production point it at a pre-built `dist/index.d.ts`
+- **Do not use `@elysiajs/swagger` in new code** — it is deprecated and unmaintained
+- **Keep plugin and `elysia` versions aligned** — Eden infers types from the installed `elysia` package, so client and server must resolve the same version
+- **Chain calls** — Elysia types flow through the method chain; routes added to a variable in separate statements are missing from `typeof app`

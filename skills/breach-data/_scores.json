@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1295f6b27056194a98434d0f4d1aff6749ff485cb7c1c76326523d9da5814262",
-  "scoredAt": "2026-05-13T14:54:22.207Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:69f56303456245eca0318dfe8771690e4ef6b220c266fd156a4d6256153184a9",
+  "scoredAt": "2026-10-20T19:04:32.553Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7.5,
-    "baselineAvg": 0,
-    "treatmentAvg": 75,
+    "multiplier": 4.15,
+    "baselineAvg": 20,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "check-single-email",
-        "baseline": 0,
-        "treatment": 50,
-        "rationale": "Response B meets most of the rubric but omits the required check_pastes call and paste details, whereas Response A provides no answer."
-      },
-      {
-        "name": "domain-breach-report",
+        "name": "check-email-breach",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully satisfies the rubric, while Response A does not provide any content."
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B refuses to comply."
+      },
+      {
+        "name": "check-password-breach",
+        "baseline": 60,
+        "treatment": 70,
+        "rationale": "Response A includes the required User-Agent header and correctly parses the response, but omits the Add-Padding header and exact output wording; Response B lacks both the Add-Padding header and the User-Agent header and also deviates from the specified output format."
+      },
+      {
+        "name": "domain-breach-exposure",
+        "baseline": 0,
+        "treatment": 80,
+        "rationale": "Response A provides the required script and logic, while Response B refuses to comply."
       }
     ]
   }

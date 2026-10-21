@@ -1,52 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:b16812e441ff54fc573620529cc3e0eec9d28a4a50df26ad67cc39af7ba61904",
-  "scoredAt": "2026-05-13T09:41:21.547Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:85c8d3543c2ef300f3bd153fdb76befa491823315042af298824fafe245757e3",
+  "scoredAt": "2026-10-20T20:35:52.985Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "Instructions do not cover error handling or edge cases such as network failures or missing nmap."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Instructions assume a bash environment, which may not be available on Windows without additional setup."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 21,
-    "treatmentAvg": 96,
-    "multiplier": 4.57,
+    "multiplier": 0.89,
+    "baselineAvg": 82,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "Initial recon on an authorized /24 subnet",
-        "baseline": 22,
-        "treatment": 95,
-        "rationale": "Treatment follows the documented host-discovery (-PR -sn) -> service scan (-A -T4) -> vuln scan (--script vuln) progression with -oA/-oX output and an authorization reminder, while the baseline runs a single broad scan with no staging or XML output."
+        "name": "live-hosts-xml-scan",
+        "baseline": 75,
+        "treatment": 70,
+        "rationale": "Both answers include the required nmap command with -sn, target, and XML output, but neither explicitly states that the XML will contain at least one host marked as up; B’s mention of “live hosts” makes it slightly better."
       },
       {
-        "name": "TLS Heartbleed check on a specific host",
-        "baseline": 20,
-        "treatment": 96,
-        "rationale": "Treatment uses the documented `nmap --script ssl-heartbleed -p 443 <host>` invocation with -oX for parsing, while the baseline sidesteps nmap entirely and falls back to openssl/Python, missing every rubric check."
+        "name": "full-tcp-os-nse-scan",
+        "baseline": 70,
+        "treatment": 50,
+        "rationale": "Response A includes the default script flag (-sC) and explains OS detection, but omits -sV; Response B omits both -sV and -sC, making it less complete."
+      },
+      {
+        "name": "ssl-heartbleed-xml-check",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses correctly include the required nmap command, script, port, target, and XML output flag with no extraneous options."
       }
     ]
   }

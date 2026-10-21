@@ -8,10 +8,10 @@ description: >-
   Supermemory into Claude Code or another MCP client, or syncing Notion,
   Google Drive or GitHub into a searchable knowledge base.
 license: Apache-2.0
-compatibility: "Node.js 18+ or Python 3.9+; a Supermemory API key from console.supermemory.ai"
+compatibility: "Node.js 18+ or Python 3.10+; a Supermemory API key from console.supermemory.ai"
 metadata:
   author: terminal-skills
-  version: "1.2.0"
+  version: "1.3.0"
   category: data-ai
   tags: ["memory", "ai-agents", "rag", "personalization", "supermemory"]
   repository: https://github.com/supermemoryai/supermemory
@@ -23,7 +23,7 @@ metadata:
 
 Supermemory is a memory and context layer for AI agents. You send it conversations, documents, files or URLs; it extracts facts into a per-namespace memory graph, maintains a profile (static facts and recent context), and answers searches over both memories and document chunks. Everything is scoped by a **namespace** (a user, project or tenant id; v3 and v4 called it a container tag), which is the isolation boundary.
 
-This skill targets the **v5 SDKs** (`supermemory` 5.0.1 on npm, 5.0.0 on PyPI). v5 is namespace-first: the namespace is the first positional argument of every call, and everything else goes in one options object. Snippets written for 4.x (`client.add({ content, containerTag, customId })`, `q`, `filters`, `client.memories.add`, `client.connections.create`) do not compile against v5. The 4.x to 5 mapping is in `node_modules/supermemory/MIGRATION.md`.
+This skill targets the **v5 SDKs** (`supermemory` 5.0.2 on npm, 5.0.0 on PyPI; 5.0.1 and 5.0.2 only add to the API, nothing from 5.0.0 changed). v5 is namespace-first: the namespace is the first positional argument of every call, and everything else goes in one options object. Snippets written for 4.x (`client.add({ content, containerTag, customId })`, `q`, `filters`, `client.memories.add`, `client.connections.create`) do not compile against v5. The 4.x to 5 mapping is in `node_modules/supermemory/MIGRATION.md`.
 
 ## Instructions
 
@@ -61,9 +61,9 @@ await client.add("user_4f8a", {
 });
 ```
 
-Other `add` fields: `supportingContext` (guides extraction, max 1500 characters), `group` (metadata that separates related context inside a namespace), `date` (ISO 8601 date of the source). `content` may also be a URL. Files: `client.documents.uploadFile("user_4f8a", { file: await openAsBlob("handbook.pdf") })` (`openAsBlob` from `node:fs`); several texts at once: `client.documents.batchAdd(namespace, { documents })`. Python uses snake_case keywords: `client.add("user_4f8a", content=..., id=..., task_type="superrag")`.
+Other `add` fields: `supportingContext` (guides extraction, max 1500 characters), `group` (an object of metadata values that separates related context inside a namespace), `date` (ISO 8601 date of the source). `content` may also be a URL. Files: `client.documents.uploadFile("user_4f8a", { file: await openAsBlob("handbook.pdf") })` (`openAsBlob` from `node:fs`); several texts at once: `client.documents.batchAdd(namespace, { documents })`. Python uses snake_case keywords: `client.add("user_4f8a", content=..., id=..., task_type="superrag")`.
 
-Poll `(await client.documents.get("user_4f8a", conv.id)).system.status` until it is `done` (or `failed`) before searching. With the default `dreaming: "dynamic"`, memories may form later than `done`, because related documents are batched.
+Poll `(await client.documents.get("user_4f8a", conv.id)).system` until `status` is `done` (or `failed`) before searching. With the default `dreaming: "dynamic"`, memories may form later than that, because related documents are batched; since 5.0.2 the same object carries `dreamingStatus` (`"dreaming"` or `"done"`), so wait for that too when you need the extracted memories, not just the document chunks.
 
 ### Search and profile
 
@@ -111,7 +111,7 @@ async function reply(userId: string, sessionId: string, message: string) {
 
 ### Correct or remove a memory
 
-There is no `memories.add` or `updateMemory` in v5: change the source by re-adding or updating the document (`client.documents.update(namespace, id, {...})`). Remove recall with `client.memories.forget(namespace, { ids: ["mem_..."] })`, or preview a natural-language forget first: `client.memories.forgetMatching(namespace, { query: "old pricing plans", dryRun: true })`. `client.documents.delete(namespace, { ids: [...] })` permanently deletes documents. Browse with `client.list(namespace, "documents" | "memories", { limit, filter })`.
+There is no `memories.add` or `updateMemory` in v5: change the source by re-adding or updating the document (`client.documents.update(namespace, id, {...})`). Remove recall with `client.memories.forget(namespace, { ids: ["mem_..."] })`, or preview a natural-language forget first: `client.memories.forgetMatching(namespace, { query: "old pricing plans", dryRun: true })`. `client.documents.delete(namespace, { ids: [...] })` permanently deletes documents. Browse with `client.list(namespace, "documents" | "memories", { limit, filter })`; forgotten and expired memories are hidden unless you pass `include: { forgotten: true }` (memories only).
 
 ### Connectors
 
@@ -160,7 +160,7 @@ Result: Notion page chunks appear with a `chunk` field and extracted facts from 
 - Use a stable `id` per conversation or document. Same-`id` updates bill only new tokens; a new id is billed in full.
 - Prefer `dreaming: "dynamic"` in production; `"instant"` costs an extra operation per document and suits tests and setup.
 - Use `taskType: "superrag"` for reference documents you do not need turned into memories.
-- Billing is usage-based USD credits, not the old memory counts: Free includes $5 a month, Pro costs $19 (with $20 included), Max $100 ($130 included), Scale $399 ($600 included); see supermemory.ai/docs/overview/billing; search and profile calls are metered per query and return 402 when the balance is empty.
+- Billing is usage-based USD credits, not the old memory counts: Free includes $5 a month, Pro costs $19 (with $20 included), Max $100 ($130 included), Scale $399 ($600 included); see supermemory.ai/docs/overview/billing; search calls are metered per query (the v5 profile call currently is not) and metered calls return 402 when the balance is empty.
 - Content sent to Supermemory is stored on a third-party service. For sensitive data check the security page, or run it locally with `npx supermemory local` (v5 SDKs need server 0.0.9 or later; it needs a model only for memory extraction).
 - Keep the API key in an environment variable; use scoped keys for anything client-side.
 - Not needed if all you want is a local note file or a plain vector store you already run.

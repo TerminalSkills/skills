@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d543d58d64ac6ddc49f305e372b6bb44f1ae4650001e717cbe201d8e684a56c6",
-  "scoredAt": "2026-05-13T09:49:59.937Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:c79cba0ba3143827ec988b894fb0845c755024ad87c990f02df67ce80c26f018",
+  "scoredAt": "2026-10-20T20:04:31.380Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases, only happy path examples."
+        "detail": "The instructions lack coverage of error handling and edge cases such as connection failures or storage eviction."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 95,
-    "multiplier": 3.17,
+    "multiplier": 5,
+    "baselineAvg": 15,
+    "treatmentAvg": 75,
     "scenarios": [
       {
-        "name": "Browser PGlite with IndexedDB persistence and full-text search",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Baseline rarely produces the @electric-sql/pglite import with dataDir: 'idb://...' plus GIN/to_tsvector/plainto_tsquery/@@ together; treatment matches the documented persistence + FTS recipe exactly."
+        "name": "persistent-browser-notes",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required PGlite IndexedDB setup, table creation, GIN index, insertion, and search; Response B uses localStorage and lacks any PGlite or full-text search logic."
       },
       {
-        "name": "Reactive live query in React with useLiveQuery",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Baseline defaults to react-query or manual state and misses the @electric-sql/pglite/live extension plus useLiveQuery hook; treatment lifts the documented live-extension registration and React hook usage verbatim."
+        "name": "pgvector-embedding-search",
+        "baseline": 40,
+        "treatment": 80,
+        "rationale": "Response A covers almost all rubric items except the table name, while Response B misses several key requirements such as the correct import, PGlite instance, and HNSW index with vector_cosine_ops."
+      },
+      {
+        "name": "react-live-query-updates",
+        "baseline": 5,
+        "treatment": 45,
+        "rationale": "Response B includes the required imports, PGlite instance with live extension, and a useLiveQuery hook, but misses the db.live.query subscription and unsubscribe; Response A lacks all required elements."
       }
     ]
   }

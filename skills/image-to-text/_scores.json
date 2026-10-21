@@ -1,14 +1,14 @@
 {
-  "version": "2.0.0",
-  "skillHash": "sha256:5f4e579a3ac55a4c20dba3a4a63423ea14ee739466d15a3be4486605bac55a02",
-  "scoredAt": "2026-10-01T20:02:42.362Z",
+  "version": "2.1.0",
+  "skillHash": "sha256:c96dfa0c8e521b414bb137355f652b8bef996649c3daf470e1f72fda8dd1ed28",
+  "scoredAt": "2026-10-20T19:39:57.146Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not explicitly handle missing dependencies or network failures, leaving potential error scenarios unaddressed."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The documentation contains extensive explanatory text that may distract from the core instructions, making it verbose."
+        "detail": "The skill file contains extensive narrative and explanations that exceed concise instruction requirements."
       }
     ]
   },
@@ -32,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1,
-    "baselineAvg": 0,
-    "treatmentAvg": 10,
+    "multiplier": 2.3,
+    "baselineAvg": 3,
+    "treatmentAvg": 23,
     "scenarios": [
-      {
-        "name": "ocr-clean-screenshot",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to meet the rubric requirements."
-      },
-      {
-        "name": "receipt-structured-extraction",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to meet any rubric requirements."
-      },
       {
         "name": "table-to-csv",
         "baseline": 0,
-        "treatment": 30,
-        "rationale": "Response A provides a CSV but omits the required vision, OCR, and reconcile steps, whereas Response B offers no CSV at all."
+        "treatment": 50,
+        "rationale": "Response B includes the CSV but omits the reconciliation summary, vision/OCR note, disputed cells, and Route line, whereas Response A provides none of the required content."
+      },
+      {
+        "name": "receipt-total-verification",
+        "baseline": 10,
+        "treatment": 20,
+        "rationale": "Response A gives detailed steps and example JSON but lacks required OCR flags, reconciliation summary, Unverified field, and Route line; Response B is even more incomplete."
+      },
+      {
+        "name": "handwritten-transcription",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses refuse to comply with the rubric and provide no transcription."
       }
     ]
   }

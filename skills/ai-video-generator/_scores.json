@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a9ca958858cf3c407df0aab46273280b3004ea1a45e7fdf31e7c13a92c7a4345",
-  "scoredAt": "2026-05-13T13:47:35.766Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:c7470497bee73f340eda2a7390173657171658040053e0a39dbaf36d0cb992de",
+  "scoredAt": "2026-10-20T18:59:13.001Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Missing error handling for API calls and edge cases."
+        "detail": "The skill does not handle errors or edge cases such as missing API keys or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The documentation contains verbose comments and explanations that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Platform-specific installation commands and dependencies limit cross-platform compatibility."
+        "detail": "The skill is Python-specific and relies on external libraries, limiting its use across different AI agent platforms."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 7.8,
-    "baselineAvg": 8,
-    "treatmentAvg": 78,
+    "multiplier": 2.32,
+    "baselineAvg": 25,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "generate-single-short-video",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response B fully satisfies all rubric requirements, while Response A provides no content."
+        "name": "quick-educational-video",
+        "baseline": 10,
+        "treatment": 80,
+        "rationale": "Response A covers all required function calls except the subtitle filename, while Response B does not invoke any of the specified functions."
       },
       {
-        "name": "batch-5-videos",
-        "baseline": 15,
-        "treatment": 55,
-        "rationale": "Response B is more detailed and closer to the rubric, though it still misses key requirements; Response A lacks most rubric elements."
+        "name": "batch-viral-tiktok-videos",
+        "baseline": 25,
+        "treatment": 35,
+        "rationale": "Response A contains more of the required functions and structure, but still lacks the final invocation, subtitles, and output listing; Response B is even more incomplete."
+      },
+      {
+        "name": "custom-cta-video",
+        "baseline": 40,
+        "treatment": 60,
+        "rationale": "Response B better meets the HOOK‑BODY‑CTA structure and provides more subtitle entries, though neither includes the required assemble_video call."
       }
     ]
   }

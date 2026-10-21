@@ -5,10 +5,10 @@ description: >-
   and solve complex problems. Use when: implementing ensemble AI predictions, building
   consensus-based decision systems, creating multi-agent prediction markets.
 license: Apache-2.0
-compatibility: "Python 3.10+ or Node.js 18+"
+compatibility: "Python 3.10+, an LLM API key (OpenAI shown; any LangChain chat model works)"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: [swarm-intelligence, multi-agent, prediction, ensemble, consensus]
   use-cases:
@@ -22,7 +22,7 @@ metadata:
 
 ## Overview
 
-Build systems where multiple AI agents independently analyze a problem, then converge on predictions through voting, debate, or weighted aggregation. Inspired by biological swarms and ensemble methods — the collective intelligence of diverse agents consistently outperforms any single agent.
+Build systems where multiple AI agents independently analyze a problem, then converge on predictions through voting, debate, or weighted aggregation. The idea comes from ensemble methods: independent answers that err in different directions can cancel out. With LLMs the gain is not guaranteed. Results across studies are mixed, and sampling one strong model several times and taking the majority answer (self-consistency) often does as well as a swarm at the same cost. Measure on your own questions before relying on it.
 
 ### Core Patterns
 
@@ -41,16 +41,26 @@ When a user asks to build a swarm intelligence system, prediction ensemble, or m
 
 ### Prediction Swarm Implementation
 
+Each agent returns a validated `Vote` (structured output), not free text that has to be parsed with `json.loads`. The fan-in edge `add_edge([...], "aggregator")` makes the aggregator wait for every agent.
+
 ```python
 """Prediction swarm: N agents vote independently, aggregator combines."""
-import json, operator
-from typing import Annotated, TypedDict
+import operator, os
+from typing import Annotated, Literal, TypedDict
+from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, START, END
+
+MODEL = os.environ["SWARM_MODEL"]   # a current chat model id that supports structured output (gpt-4o-mini is deprecated, removal 2027-01-14)
+
+class Vote(BaseModel):
+    prediction: Literal["yes", "no"]
+    confidence: float = Field(ge=0, le=1)
+    reasoning: str
 
 class SwarmState(TypedDict):
     question: str
-    predictions: Annotated[list[dict], operator.add]
+    votes: Annotated[list[dict], operator.add]   # reducer merges parallel writes
     final_answer: str
 
 AGENT_PERSONAS = [
@@ -62,48 +72,54 @@ AGENT_PERSONAS = [
 ]
 
 def make_agent_node(persona: dict):
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+    llm = ChatOpenAI(model=MODEL).with_structured_output(Vote)
     def agent_fn(state: SwarmState) -> dict:
-        response = llm.invoke(
+        vote = llm.invoke(
             f"You are the {persona['name']}. {persona['prompt']}\n\n"
-            f"Question: {state['question']}\n\n"
-            f"Respond with JSON: {{\"prediction\": \"...\", \"confidence\": 0.0-1.0, \"reasoning\": \"...\"}}"
+            f"Question (answer yes or no): {state['question']}"
         )
-        prediction = json.loads(response.content)
-        prediction["agent"] = persona["name"]
-        return {"predictions": [prediction]}
+        return {"votes": [{**vote.model_dump(), "agent": persona["name"]}]}
     return agent_fn
 
 def aggregator(state: SwarmState) -> dict:
-    predictions = state["predictions"]
-    votes: dict[str, float] = {}
-    reasoning_parts = []
-    for p in predictions:
-        votes[p["prediction"]] = votes.get(p["prediction"], 0) + p["confidence"]
-        reasoning_parts.append(f"- {p['agent']} ({p['confidence']:.0%}): {p['reasoning']}")
-    winner = max(votes, key=votes.get)
-    avg_conf = sum(p["confidence"] for p in predictions) / len(predictions)
-    return {"final_answer": f"**Prediction:** {winner}\n**Confidence:** {avg_conf:.0%}\n**Breakdown:**\n" + "\n".join(reasoning_parts)}
+    tally: dict[str, float] = {}
+    lines = []
+    for v in state["votes"]:
+        tally[v["prediction"]] = tally.get(v["prediction"], 0) + v["confidence"]
+        lines.append(f"- {v['agent']} ({v['confidence']:.0%} {v['prediction']}): {v['reasoning']}")
+    winner = max(tally, key=tally.get)
+    share = tally[winner] / sum(tally.values())
+    return {"final_answer": f"**Prediction:** {winner}\n**Weighted share:** {share:.0%}\n" + "\n".join(lines)}
 
-# Build the graph
 builder = StateGraph(SwarmState)
 for persona in AGENT_PERSONAS:
     builder.add_node(persona["name"], make_agent_node(persona))
-    builder.add_edge("__start__", persona["name"])
+    builder.add_edge(START, persona["name"])
 builder.add_node("aggregator", aggregator)
-for persona in AGENT_PERSONAS:
-    builder.add_edge(persona["name"], "aggregator")
+builder.add_edge([p["name"] for p in AGENT_PERSONAS], "aggregator")
 builder.add_edge("aggregator", END)
 swarm = builder.compile()
 ```
 
 ### Debate Swarm (Multi-Round Convergence)
 
+Agents see the previous round's positions, including their confidence, and may change their mind.
+
 ```python
 """Debate swarm: agents see each other's reasoning and update positions."""
+from pydantic import BaseModel, Field
+import os
 from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(model="gpt-4o", temperature=0.5)
+MODEL = os.environ["SWARM_MODEL"]   # same variable as above
+
+class Position(BaseModel):
+    position: str = Field(description="One-sentence stance")
+    confidence: float = Field(ge=0, le=1)
+    reasoning: str
+
+llm = ChatOpenAI(model=MODEL)
+debater = llm.with_structured_output(Position)
 DEBATE_AGENTS = [
     {"name": "Bull", "bias": "optimistic"},
     {"name": "Bear", "bias": "pessimistic"},
@@ -111,26 +127,26 @@ DEBATE_AGENTS = [
 ]
 
 def run_debate(question: str, rounds: int = 3) -> dict:
-    history = []
+    history: list[list[dict]] = []
     for round_num in range(1, rounds + 1):
-        round_responses = []
-        for agent in DEBATE_AGENTS:
-            context = ""
-            if history:
-                context = "Previous positions:\n" + "\n".join(
-                    f"- {r['agent']}: {r['position']} (conf: {r['confidence']})" for r in history[-1]
-                )
-            response = llm.invoke(
-                f"You are {agent['name']}, a {agent['bias']} analyst.\n"
-                f"Question: {question}\nRound {round_num}/{rounds}.\n{context}\n\n"
-                f"State your position, confidence (0-1), and reasoning."
+        context = ""
+        if history:
+            context = "Previous round:\n" + "\n".join(
+                f"- {r['agent']} ({r['confidence']:.0%}): {r['position']}" for r in history[-1]
             )
-            round_responses.append({"agent": agent["name"], "position": response.content[:200], "confidence": 0.7, "full": response.content})
-        history.append(round_responses)
+        current = []
+        for agent in DEBATE_AGENTS:   # all agents see the same previous round
+            p = debater.invoke(
+                f"You are {agent['name']}, a {agent['bias']} analyst.\n"
+                f"Question: {question}\nRound {round_num}/{rounds}.\n{context}\n"
+                "Update your stance only if another argument convinced you."
+            )
+            current.append({"agent": agent["name"], **p.model_dump()})
+        history.append(current)
     final = llm.invoke(
         f"Question: {question}\n\nFinal positions after {rounds} rounds:\n"
-        + "\n".join(f"- {r['agent']}: {r['full']}" for r in history[-1])
-        + "\n\nSynthesize a consensus answer."
+        + "\n".join(f"- {r['agent']} ({r['confidence']:.0%}): {r['reasoning']}" for r in history[-1])
+        + "\n\nSynthesize a consensus answer and say where the agents still disagree."
     )
     return {"rounds": history, "consensus": final.content}
 ```
@@ -150,17 +166,16 @@ def run_debate(question: str, rounds: int = 3) -> dict:
 ### Example 1: Market Trend Prediction
 
 ```python
-result = swarm.invoke({"question": "Will AI agents replace 50% of SaaS tools by 2027?"})
+result = swarm.invoke({"question": "Will AI agents replace 50% of SaaS tools by 2027?", "votes": []})
 print(result["final_answer"])
-# Output:
-# **Prediction:** Unlikely within that timeframe
-# **Confidence:** 68%
-# **Breakdown:**
-# - Optimist (85%): AI agents will automate many workflows but full replacement takes longer
-# - Skeptic (40%): Enterprise adoption is slow, regulatory hurdles remain
-# - Analyst (65%): Historical tech adoption curves suggest 2029-2030
-# - Contrarian (70%): The question is wrong — agents will augment, not replace
-# - Pragmatist (55%): Integration complexity means gradual transition
+# Output (illustrative; real text varies by run and model):
+# **Prediction:** no
+# **Weighted share:** 83%
+# - Optimist (55% no): Agents automate many workflows but full replacement takes longer
+# - Skeptic (90% no): Enterprise adoption is slow, regulatory hurdles remain
+# - Analyst (80% no): Historical tech adoption curves suggest 2029-2030
+# - Contrarian (60% yes): Agents will hollow out per-seat SaaS faster than expected
+# - Pragmatist (75% no): Integration complexity means gradual transition
 ```
 
 ### Example 2: Multi-Domain Business Analysis
@@ -191,16 +206,18 @@ def specialist_swarm(question: str) -> str:
 ## Guidelines
 
 1. **Diversity is key** — Agents with identical prompts add noise, not intelligence. Give each a distinct perspective
-2. **Odd number of agents** — Avoids ties in voting (5, 7, or 9 agents work best)
+2. **Odd number of agents** — Avoids ties in a plain majority vote; with confidence weighting, ties are rare anyway
 3. **Confidence calibration** — Ask agents to self-report confidence; use it for weighting
 4. **Cost control** — Parallel calls are fast but expensive. Use cheaper models for screening, expensive for synthesis
-5. **Sweet spot is 5-7 agents** — Beyond 9, gains plateau due to diminishing returns
-6. **Temperature variation** — Use different temperatures per agent (0.3 for analytical, 0.9 for creative)
+5. **No universal agent count** — Each agent adds cost and latency, and extra agents that share a model mostly repeat each other. Start with 3–5, then add agents only while accuracy on a set of questions with known answers keeps improving
+6. **Different models beat different prompts** — Agents backed by the same model make correlated mistakes; mix model families where you can. Some newer models ignore or reject a custom `temperature`
 7. **Use swarms for high-stakes decisions** — For simple tasks, a single agent is faster and cheaper
+8. **Self-reported confidence is not a probability** — Treat the share as a rough signal and compare against known outcomes before trusting it
 
 ## Dependencies
 
 ```bash
-pip install langgraph langchain-openai   # Python
-npm install openai                        # Node.js
+pip install langgraph langchain-openai   # tested: langgraph 1.2, langchain-openai 1.7
+export OPENAI_API_KEY="sk-your-key"   # read from the environment, never hard-code
+export SWARM_MODEL="gpt-6-luna"  # replacement named on the deprecations page; see https://developers.openai.com/api/docs/models
 ```

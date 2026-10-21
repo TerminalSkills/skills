@@ -1,29 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ceefe41e791195cda25442a2d95cc343667e01a5c1f6d8bcb4c0fe1677dc7e33",
-  "scoredAt": "2026-05-13T09:48:07.283Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:834b02c979ccb92b190653289365bca7a9e8528ceb99ce475d9eaebe08274528",
+  "scoredAt": "2026-10-20T20:01:57.088Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 77,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Instructions lack error handling and edge case coverage."
+        "detail": "The instructions do not cover all potential error scenarios and edge cases, such as handling malformed messages or authentication failures."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations and repeated information that could be streamlined."
+      },
+      {
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "Skill is vendor-locked to PartyKit, limiting cross-platform applicability."
+        "detail": "The skill is specific to Cloudflare Durable Objects and Node.js, limiting its applicability to other platforms."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 95,
-    "multiplier": 4.13,
+    "multiplier": 9.8,
+    "baselineAvg": 10,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Live cursors for collaborative note-taking app",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline reaches for raw ws server and native WebSocket on the client; treatment matches the documented Party.Server class with broadcast-exclusion and usePartySocket plus npx partykit deploy."
+        "name": "chat-room-setup",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not address the PartyServer class, routing, or client setup at all."
       },
       {
-        "name": "Real-time audience polling with live tally",
-        "baseline": 20,
+        "name": "live-cursor-room",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not."
+      },
+      {
+        "name": "migrate-partykit-to-partyserver",
+        "baseline": 30,
         "treatment": 95,
-        "rationale": "Baseline relies on socket.io rooms with no PartyKit specifics; treatment uses Party.Server, onConnect state replay, room.broadcast, room-per-poll partitioning and the partykit CLI."
+        "rationale": "Response B covers all rubric items, while Response A omits the key PartyServer migration steps."
       }
     ]
   }

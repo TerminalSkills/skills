@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:585f37eb45ba5a8b1334e5dd62cf9de4644ec1466d90a56413f22d5481eda68a",
-  "scoredAt": "2026-05-13T09:10:23.798Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:112209f734043fe5b64ca5bb34b8e467e5421cb6f9e404769ba4ca5770fc18f2",
+  "scoredAt": "2026-10-20T19:38:22.082Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The skill contains verbose explanatory text beyond necessary code examples."
+        "detail": "The skill does not cover error handling or edge cases such as rate limits and network failures."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 97,
-    "multiplier": 2.16,
+    "multiplier": 7.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "nextjs-streaming-chat",
-        "baseline": 55,
-        "treatment": 96,
-        "rationale": "Treatment uses groq-sdk with the documented llama-3.3-70b-versatile model and proper delta.content streaming; baseline streams via OpenAI SDK base_url with a guessed model id, missing groq-sdk specificity."
+        "name": "streaming-chat-endpoint",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Response B is closer to the rubric, using groq-sdk and a for-await loop, but still lacks the onChunk callback and return string; Response A uses fetch and SSE, missing all rubric requirements."
       },
       {
-        "name": "structured-extraction",
-        "baseline": 35,
-        "treatment": 97,
-        "rationale": "Treatment uses response_format json_object, temperature 0, and the documented llama-3.1-8b-instant fast model for extraction; baseline relies on parsing raw text with the larger Mixtral model and no JSON mode."
+        "name": "structured-entity-extraction",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "A fully satisfies the rubric, B does not use Groq API."
+      },
+      {
+        "name": "audio-transcription-with-timestamps",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required function with the correct API call and parsing, while Response B uses a different endpoint and does not meet the rubric."
       }
     ]
   }

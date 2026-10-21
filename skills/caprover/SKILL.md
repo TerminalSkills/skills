@@ -5,8 +5,9 @@ license: Apache-2.0
 compatibility: No special requirements
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/caprover/caprover
   tags:
   - self-hosted
   - paas
@@ -29,7 +30,7 @@ CapRover, the open-source PaaS that turns any Linux server into a Heroku-like pl
 ### Installation
 
 ```bash
-# Prerequisites: Ubuntu 20.04+, Docker installed, ports 80/443/3000 open
+# Prerequisites: Docker installed (CapRover is tested on Ubuntu 24.04 + Docker 25+), ports 80/443/3000 open
 
 # Install CapRover
 docker run -p 80:80 -p 443:443 -p 3000:3000 \
@@ -68,26 +69,37 @@ EOF
 caprover deploy -a my-api
 ```
 
+`captain-definition` is plain JSON (no comments) and requires `schemaVersion: 2`. Build from a Dockerfile:
+
 ```json
-// captain-definition — Deployment configuration
-// Option A: Dockerfile-based
 {
   "schemaVersion": 2,
   "dockerfilePath": "./Dockerfile"
 }
+```
 
-// Option B: Image-based (pre-built)
+Deploy a pre-built image:
+
+```json
 {
   "schemaVersion": 2,
   "imageName": "ghcr.io/myorg/my-api:v1.2.3"
 }
+```
 
-// Option C: Docker Compose (multi-container)
+Use a built-in template (`node`, `php`, `python-django`, `ruby-rack`; format `LANGUAGE/VERSION`):
+
+```json
 {
   "schemaVersion": 2,
-  "dockerComposeFileLocation": "./docker-compose.yml"
+  "templateId": "node/24"
 }
 ```
+
+The CLI also deploys a prebuilt image directly with `caprover deploy --imageName IMAGE`. There is no
+Docker Compose option in `captain-definition`; run multi-container stacks as separate apps or
+one-click apps. For monorepos, keep one file per app (e.g. `captain-definition-backend`) and set
+its path in the app's Deployment tab; the Docker build context stays the project root.
 
 ### One-Click Apps
 
@@ -133,7 +145,9 @@ async function createApp(appName: string) {
   });
 }
 
-// Update environment variables
+// Update environment variables (the update call is applied as a full app definition:
+// read the current one with GET /user/apps/appDefinitions/ and send back its fields too,
+// otherwise omitted settings such as instanceCount or volumes can be reset)
 async function setEnvVars(appName: string, envVars: { key: string; value: string }[]) {
   return caproverApi("/user/apps/appDefinitions/update", {
     appName,
@@ -185,13 +199,13 @@ Configure volumes for stateful applications:
 Scale beyond a single server:
 
 ```bash
-# On the main server: get join token
-# Dashboard → Cluster → Add Worker Node
+# 1. Dashboard → Cluster: set up a Docker registry (managed by CapRover or a 3rd party)
+#    and set it as the default push registry, then redeploy existing apps
+# 2. Dashboard → Cluster → Nodes: enter the CapRover IP, the new node IP, the root SSH key
+#    and the node type (worker), then "Join Cluster". Plain `docker swarm join` also works.
+# 3. Open between nodes: 2377/tcp, 7946/tcp+udp, 4789/udp (996/tcp only for external registry access)
 
-# On the worker server:
-docker swarm join --token SWMTKN-xxx manager-ip:2377
-
-# CapRover automatically distributes containers across nodes
+# CapRover distributes non-persistent apps across nodes; apps with Persistent Data stay on one node
 # Use placement constraints for specific workloads:
 # Dashboard → App → App Configs → Node Placement
 ```
@@ -200,25 +214,34 @@ docker swarm join --token SWMTKN-xxx manager-ip:2377
 ## Examples
 
 
-### Example 1: Setting up Caprover for a microservices project
+### Example 1: Deploying a Node.js API and React frontend as two apps
 
 **User request:**
 
 ```
-I have a Node.js API and a React frontend running in Docker. Set up Caprover for monitoring/deployment.
+I have a Node.js API in ./api and a React frontend in ./web, each with its own Dockerfile.
+Deploy both to our CapRover server as separate apps.
 ```
 
-The agent creates the necessary configuration files based on patterns like `# Prerequisites: Ubuntu 20.04+, Docker installed, ports 80/4`, sets up the integration with the existing Docker setup, configures appropriate defaults for a Node.js + React stack, and provides verification commands to confirm everything is working.
+The agent creates one `captain-definition` per directory (`{"schemaVersion": 2, "dockerfilePath": "./Dockerfile"}`),
+registers both apps on the dashboard (or via the API's `register` call), runs `caprover deploy -a api-service`
+from `./api` and `caprover deploy -a web-frontend` from `./web`, points the frontend's env var
+(e.g. `REACT_APP_API_URL`) at the API's internal address (`srv-captain--api-service`), and confirms both
+are reachable over HTTPS at their `*.apps.yourdomain.com` subdomains.
 
-### Example 2: Troubleshooting deploy applications issues
+### Example 2: Diagnosing a failed deploy
 
 **User request:**
 
 ```
-Caprover is showing errors in our deploy applications. Here are the logs: [error output]
+caprover deploy just failed on api-service with "Build failed" in the CLI output.
 ```
 
-The agent analyzes the error output, identifies the root cause by cross-referencing with common Caprover issues, applies the fix (updating configuration, adjusting resource limits, or correcting syntax), and verifies the resolution with appropriate health checks.
+The agent asks for the build logs (Dashboard → App → Deployment → "View App Build Logs" — the
+CLI itself has no `logs` subcommand), checks for the usual causes — a missing or misnamed
+`captain-definition`, a Dockerfile that fails outside CI (e.g. relying on local env files),
+or a memory-limited build on a small droplet — fixes the root cause, and redeploys with
+`caprover deploy -a api-service`.
 
 
 ## Guidelines
@@ -230,4 +253,4 @@ The agent analyzes the error output, identifies the root cause by cross-referenc
 5. **Resource limits** — Set memory limits per app in the dashboard to prevent one app from consuming all server resources
 6. **Use one-click apps for infra** — Don't manually configure PostgreSQL or Redis; use the one-click templates
 7. **Automated backups** — CapRover doesn't back up automatically; set up cron jobs for database dumps and volume backups
-8. **Monitor with built-in NetData** — CapRover includes NetData for server monitoring; access at captain URL + port 19999
+8. **Monitoring is opt-in** — CapRover can run NetData (and GoAccess for per-app traffic) from the dashboard's Monitoring section; enable it there rather than installing your own

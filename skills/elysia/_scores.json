@@ -1,57 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:aa21520009f7233d0f66bbed44d398bca2b4ddc2e07ea6fe12f20852d5c4a4dc",
-  "scoredAt": "2026-05-13T08:47:50.105Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e558145236175321b0a3bf706b6da6c2d6cb36e5bcfe7e6585557040f959dc17",
+  "scoredAt": "2026-10-20T19:22:40.811Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "completeness": "PASS",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases beyond basic examples."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The file contains verbose sections and repeated explanations that could be trimmed."
-      },
-      {
-        "severity": "HIGH",
-        "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Bun and Elysia, not portable to other AI agents."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 45,
-    "treatmentAvg": 88,
-    "multiplier": 1.96,
+    "multiplier": 2.68,
+    "baselineAvg": 25,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Type-safe CRUD API with JWT auth, validation, and Swagger",
-        "baseline": 45,
-        "treatment": 89,
-        "rationale": "Treatment used t.Object schemas for body/query/params, the @elysiajs/jwt plugin with .derive for auth context, beforeHandle guards on mutations, @elysiajs/swagger plugin, and exported `type App = typeof app` per the skill; baseline produced an Express-style sketch or omitted the derive/beforeHandle pattern and the App type export."
+        "name": "todo-api-with-jwt-and-openapi",
+        "baseline": 70,
+        "treatment": 0,
+        "rationale": "Response A covers most rubric items but lacks the required beforeHandle guard; Response B is incomplete and cannot satisfy the rubric."
       },
       {
-        "name": "WebSocket chat server with rooms and typed messages",
-        "baseline": 45,
-        "treatment": 87,
-        "rationale": "Treatment used .ws() with a t.Object body schema, ws.subscribe/ws.publish for room pub/sub, t.Union of t.Literal for message types, and ws.unsubscribeAll on close — all documented patterns; baseline reached for Socket.io or raw WebSocket without Elysia's typed message body or built-in pub/sub."
+        "name": "websocket-chat-with-rooms",
+        "baseline": 5,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, while Response A lacks the required WebSocket route, schema definitions, and handling logic."
+      },
+      {
+        "name": "eden-treaty-type-safe-client",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B relies on code generation and does not use treaty<App>."
       }
     ]
   }

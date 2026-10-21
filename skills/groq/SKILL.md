@@ -2,10 +2,11 @@
 name: groq
 description: Expert guidance for Groq, the LLM inference platform that provides the fastest token generation speeds available, powered by custom LPU (Language Processing Unit) hardware. Helps developers integrate Groq's API for real-time AI applications where latency matters — chatbots, code completion, and streaming responses.
 license: Apache-2.0
-compatibility: No special requirements
+compatibility: "Node.js 18+ or Python 3.9+, a GroqCloud API key (GROQ_API_KEY)"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
+  repository: https://github.com/groq/groq-python
   category: data-ai
   tags:
   - llm
@@ -39,7 +40,7 @@ const groq = new Groq({
 // Basic completion — fastest LLM inference available
 async function chat(prompt: string): Promise<string> {
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",     // Fast and capable
+    model: "openai/gpt-oss-120b",     // Fast and capable
     messages: [
       {
         role: "system",
@@ -60,7 +61,7 @@ async function streamChat(
   onChunk: (text: string) => void
 ): Promise<string> {
   const stream = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
     messages: [{ role: "user", content: prompt }],
     stream: true,
   });
@@ -75,13 +76,13 @@ async function streamChat(
 }
 ```
 
-### Structured Output (JSON Mode)
+### Structured Output (JSON Mode and JSON Schema)
 
 ```typescript
 // src/llm/structured.ts — Get structured JSON responses from Groq
 async function extractEntities(text: string) {
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
     messages: [
       {
         role: "system",
@@ -97,10 +98,13 @@ async function extractEntities(text: string) {
   return JSON.parse(completion.choices[0].message.content!);
 }
 
+// Schema-enforced output: response_format { type: "json_schema", json_schema: { name, strict: true, schema } }
+// guarantees the shape on the models that support it (see the Structured Outputs page). JSON mode above only guarantees valid JSON.
+
 // Tool use / Function calling
 async function chatWithTools(prompt: string, tools: any[]) {
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
     messages: [{ role: "user", content: prompt }],
     tools: [
       {
@@ -153,17 +157,18 @@ async function chatWithTools(prompt: string, tools: any[]) {
 import fs from "fs";
 
 async function transcribeAudio(filePath: string) {
-  const transcription = await groq.audio.transcriptions.create({
+  // The SDK types only `text`; verbose_json also returns `segments` and `duration`.
+  const transcription = (await groq.audio.transcriptions.create({
     file: fs.createReadStream(filePath),
     model: "whisper-large-v3-turbo",       // Fastest Whisper model
     language: "en",                         // Optional: specify language
     response_format: "verbose_json",       // Includes timestamps
     temperature: 0,
-  });
+  })) as { text: string; segments?: { start: number; end: number; text: string }[]; duration?: number };
 
   return {
     text: transcription.text,
-    segments: transcription.segments?.map((s: any) => ({
+    segments: transcription.segments?.map((s) => ({
       start: s.start,
       end: s.end,
       text: s.text,
@@ -176,7 +181,7 @@ async function transcribeAudio(filePath: string) {
 async function translateAudio(filePath: string) {
   const translation = await groq.audio.translations.create({
     file: fs.createReadStream(filePath),
-    model: "whisper-large-v3-turbo",
+    model: "whisper-large-v3",            // the turbo model does not support translation
     response_format: "text",
   });
   return translation;
@@ -186,56 +191,41 @@ async function translateAudio(filePath: string) {
 ### Model Selection
 
 ```typescript
-// Available Groq models (as of early 2026)
+// Production models listed at console.groq.com/docs/models (checked October 2026).
+// llama-3.3-70b-versatile and llama-3.1-8b-instant were shut down on 2026-08-16 for free and developer-tier accounts (still listed for Enterprise contracts); Mixtral 8x7B and Gemma 2 9B are gone too; call GET https://api.groq.com/openai/v1/models for the live list.
 const MODELS = {
-  // Llama 3.3 — best balance of speed and quality
-  "llama-3.3-70b-versatile": {
-    contextWindow: 128_000,
-    bestFor: "general-purpose, reasoning, coding",
-    speed: "~350 tok/s",
-  },
-  // Llama 3.1 — larger context, slightly slower
-  "llama-3.1-8b-instant": {
-    contextWindow: 128_000,
-    bestFor: "simple tasks, classification, extraction",
-    speed: "~750 tok/s",
-  },
-  // Mixtral — great for multilingual
-  "mixtral-8x7b-32768": {
-    contextWindow: 32_768,
-    bestFor: "multilingual, creative writing",
-    speed: "~500 tok/s",
-  },
-  // Gemma 2 — compact and efficient
-  "gemma2-9b-it": {
-    contextWindow: 8_192,
-    bestFor: "lightweight tasks, edge deployment comparison",
-    speed: "~600 tok/s",
-  },
+  "openai/gpt-oss-120b":     { contextWindow: 131_072, speed: "~500 tok/s", bestFor: "general chat, coding, tool use, reasoning, built-in browser search and code execution" },
+  "openai/gpt-oss-20b":      { contextWindow: 131_072, speed: "~1000 tok/s", bestFor: "classification, extraction, cheap fast tasks" },
+  "whisper-large-v3-turbo":  { contextWindow: 0, speed: "audio", bestFor: "fast transcription only, no translation ($0.04 per hour)" },
+  "whisper-large-v3":        { contextWindow: 0, speed: "audio", bestFor: "highest-accuracy transcription and translation" },
 };
+// Preview models (qwen/qwen3.8-27b, Orpheus text-to-speech, Prompt Guard) may be discontinued at short notice: do not rely on them in production.
 
-// Choose model based on task
-function selectModel(task: "chat" | "extract" | "code" | "fast"): string {
+function selectModel(task: "chat" | "extract" | "code" | "fast" | "reason"): string {
   switch (task) {
-    case "chat": return "llama-3.3-70b-versatile";
-    case "extract": return "llama-3.1-8b-instant";     // Fast, good enough for extraction
-    case "code": return "llama-3.3-70b-versatile";
-    case "fast": return "llama-3.1-8b-instant";         // Lowest latency
+    case "chat": return "openai/gpt-oss-120b";
+    case "extract": return "openai/gpt-oss-20b";
+    case "code": return "openai/gpt-oss-120b";
+    case "fast": return "openai/gpt-oss-20b";
+    case "reason": return "openai/gpt-oss-120b";
   }
 }
 ```
+
+Model IDs are retired on a schedule: check https://console.groq.com/docs/deprecations and move off any ID listed there before its shutdown date.
 
 ### Python Integration
 
 ```python
 # src/groq_client.py — Groq with Python (OpenAI-compatible)
+import os
 from groq import Groq
 
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
 # Basic completion
 response = client.chat.completions.create(
-    model="llama-3.3-70b-versatile",
+    model="openai/gpt-oss-120b",
     messages=[{"role": "user", "content": "Explain quantum computing in 3 sentences"}],
     temperature=0.7,
     max_tokens=200,
@@ -292,11 +282,12 @@ The agent reviews the current implementation, identifies issues (wrong model sel
 
 ## Guidelines
 
-1. **Use Groq for latency-sensitive tasks** — Chatbots, autocomplete, real-time analysis; Groq's speed is 5-10x faster than cloud GPU providers
-2. **llama-3.1-8b for simple tasks** — Don't use the 70B model for classification or extraction; 8B is faster and cheaper
+1. **Use Groq for latency-sensitive tasks** — Chatbots, autocomplete, real-time analysis; gpt-oss-120b runs at roughly 500 tokens per second
+2. **openai/gpt-oss-20b for simple tasks** — Don't use the 120B model for classification or extraction; 20B is faster and cheaper
 3. **JSON mode for structured output** — Use `response_format: { type: "json_object" }` for reliable structured responses
 4. **Stream everything user-facing** — With Groq's speed, streaming feels instant; still use it for perceived responsiveness
-5. **Whisper for audio** — Groq's Whisper is the fastest transcription API available; process audio files in seconds
-6. **Rate limits vary by model** — Check your rate limits in the Groq dashboard; 8B models have higher request limits
+5. **Whisper for audio** — Groq-hosted Whisper transcribes quickly; uploads are limited to 25 MB on the free tier and 100 MB on the developer tier (translation needs `whisper-large-v3`)
+6. **Rate limits vary by model** — Check your rate limits in the Groq dashboard; smaller models have higher request limits
 7. **OpenAI SDK compatibility** — Switch from OpenAI to Groq by changing the base URL; no code changes needed
-8. **Fallback to other providers** — Groq can have capacity constraints during peak; have a fallback to OpenAI or Anthropic
+8. **Check the model list before shipping** — Llama 3.x, Mixtral and Gemma 2 IDs from older tutorials no longer work on free and developer accounts; query `/openai/v1/models`
+9. **Fallback to other providers** — Groq can have capacity constraints during peak; have a fallback to OpenAI or Anthropic

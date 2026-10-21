@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8098bd8a95eb40978a2498b74355bd1f3c0d5e1c4491d538235db79f73ff0e2b",
-  "scoredAt": "2026-05-13T13:56:44.906Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:90571b903c5bdd612859825e7dbf08a408d9cbc0d1cb4254f3b2e3845132e898",
+  "scoredAt": "2026-10-20T19:02:15.462Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill does not cover all error scenarios and edge cases, such as connection failures and channel errors."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is specific to Node.js and amqplib, not platform-agnostic."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.9,
-    "baselineAvg": 48,
-    "treatmentAvg": 43,
+    "multiplier": 6,
+    "baselineAvg": 15,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "durable-queue-dlx-ttl",
-        "baseline": 55,
-        "treatment": 85,
-        "rationale": "Response B meets all rubric requirements except closing the channel/connection, while Response A misses several key details such as contentType, messageId, timestamp, prefetch count, and uses reject instead of nack."
+        "name": "publish-order-confirmation",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements, while Response B omits the confirm channel, confirms, and backpressure handling."
       },
       {
-        "name": "topic-exchange-subscription",
-        "baseline": 40,
-        "treatment": 0,
-        "rationale": "Response A includes some correct elements but fails to meet key rubric items (exchange name, exclusive queue, binding pattern), whereas Response B provides no content."
+        "name": "consume-with-dead-letter",
+        "baseline": 45,
+        "treatment": 70,
+        "rationale": "Response B correctly implements redelivery‑based nack logic and uses nack, but both miss the required x-message-ttl argument; A uses a header retry scheme and reject instead of nack, making it less compliant."
+      },
+      {
+        "name": "auto-reconnect",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not meet any of the required elements."
       }
     ]
   }

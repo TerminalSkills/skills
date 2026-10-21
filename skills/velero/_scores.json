@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:8933ce45d663da6bf15fa0028bbc113ed826709d54efda0f8fadc31ed1aac394",
-  "scoredAt": "2026-05-13T10:33:38.055Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2ec81f79f10a9b25db06a5e6c805d9d2c15bb83c8d25be1dd1746285f0e1fa8f",
+  "scoredAt": "2026-10-20T20:29:46.959Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
       "examples": "PASS"
@@ -18,12 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The instructions do not cover error handling or edge cases, focusing only on the happy path."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes Linux/macOS and does not support Windows."
+        "detail": "The installation steps assume specific package managers and operating systems, limiting portability."
       }
     ]
   },
@@ -32,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 58,
-    "treatmentAvg": 92,
-    "multiplier": 1.59,
+    "multiplier": 4.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "Migrate production namespace with PVs between EKS clusters",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Baseline covers backup/restore mechanics but misses ReadOnly access mode on destination and fs-backup config for PV data, while treatment uses the skill's exact migration recipe including backup-location ReadOnly and node-agent fs backup."
+        "name": "install-velero-aws",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A misses the required plugin version, --wait flag, and explicit S3-compatible statement."
       },
       {
-        "name": "Daily 2am scheduled backup of production with PV data, 7-day retention",
-        "baseline": 60,
-        "treatment": 92,
-        "rationale": "Baseline hits the cron schedule, TTL, and namespace include but is vague on persistent volume capture, while treatment uses the documented Schedule manifest with defaultVolumesToFsBackup and node-agent setup."
+        "name": "create-nightly-schedule",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not provide the required velero schedule create command or the specified flags."
+      },
+      {
+        "name": "restore-backup-with-namespace-mapping",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A partially meets the rubric but has an incorrect namespace mapping and omits the success statement, while Response B provides no content."
       }
     ]
   }

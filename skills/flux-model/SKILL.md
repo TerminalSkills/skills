@@ -1,15 +1,17 @@
 ---
 name: flux-model
 description: >-
-  FLUX image generation models — Flux Pro, Dev, and Schnell via fal.ai,
-  Replicate, or Black Forest Labs API. Use when generating high-quality or
-  photorealistic images, applying LoRA fine-tuning for custom styles, or
-  building production image generation pipelines.
+  FLUX is Black Forest Labs' family of image generation models (FLUX.2, FLUX 3
+  Image, and the older FLUX.1 Dev, Schnell and Pro), available through the BFL
+  API, fal.ai and Replicate. Use when generating photorealistic or product
+  images, text-heavy graphics, exact brand colors, image editing with
+  references, fast batch generation, or LoRA styles with FLUX.1 Dev or FLUX.2
+  klein. Covers model choice, request code for each provider, and licensing.
 license: Apache-2.0
-compatibility: "Requires Python 3.9+. API key required for chosen provider (fal.ai, Replicate, or BFL)."
+compatibility: "Requires Python 3.9+ and an API key for the chosen provider (BFL_API_KEY, FAL_KEY or REPLICATE_API_TOKEN)."
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: data-ai
   tags: ["flux", "image-generation", "black-forest-labs", "fal-ai", "replicate"]
   use-cases:
@@ -23,277 +25,130 @@ metadata:
 
 ## Overview
 
-FLUX by Black Forest Labs is the leading open-weight image generation architecture. Three model tiers cover different needs:
+FLUX is made by Black Forest Labs (BFL). The original FLUX.1 trio (Pro, Dev, Schnell) has been superseded; BFL's docs now recommend **FLUX.2** for new projects, and **FLUX 3 Image** is the newest line.
 
-| Model | Best For | Speed | Quality |
-|-------|----------|-------|---------|
-| **Flux Pro** | Production, photorealism, commercial | Slow | ⭐⭐⭐⭐⭐ |
-| **Flux Dev** | Open weight, LoRA fine-tuning, research | Medium | ⭐⭐⭐⭐ |
-| **Flux Schnell** | Speed, batch generation, prototyping | Fast | ⭐⭐⭐ |
+| Model | API endpoint (`api.bfl.ai/v1/...`) | Use it for |
+|-------|-----------------------------------|-----------|
+| FLUX 3 Image | `flux-3-image` | Newest image model: text-to-image, editing, up to 10 references, bounding-box layouts |
+| FLUX.2 [max] | `flux-2-max` | Highest quality, grounded web search for real-world facts |
+| FLUX.2 [pro] | `flux-2-pro-preview` (latest) or `flux-2-pro` (pinned snapshot) | Production quality, hex-color control, up to 4MP, multi-reference editing |
+| FLUX.2 [flex] | `flux-2-flex` | Fine-grained control over generation settings |
+| FLUX.2 [klein] | `flux-2-klein-4b`, `flux-2-klein-9b-preview` / `flux-2-klein-9b` | Sub-second, cheap, open weights (4B Apache 2.0, 9B non-commercial) |
+| FLUX.1 [dev] / [schnell] | via fal.ai / Replicate | Legacy; LoRA ecosystem (Dev), 4-step speed (Schnell, Apache 2.0) |
+| FLUX1.1 [pro], Kontext | `flux-pro-1.1`, Kontext endpoints | Legacy; docs steer new work to FLUX.2 |
 
-Access FLUX via three providers: **fal.ai** (recommended, easiest), **Replicate**, or **Black Forest Labs API** directly.
+Use `-preview` endpoints for the latest improvements and the unsuffixed ones when you need reproducible output. Prices are in BFL credits (1 credit = $0.01) and change; check bfl.ai/pricing. FLUX.1 [dev] weights and FLUX.2 [klein] 9B / [dev] are **non-commercial** licensed: commercial use goes through a paid API or license.
 
-## Provider 1: fal.ai (recommended)
+## Instructions
 
-### Setup
+### Provider 1: BFL API (direct, async)
 
-```bash
-pip install fal-client python-dotenv
-export FAL_KEY="your_fal_api_key"
-```
-
-### Generate image with fal.ai
+Create a key in the BFL dashboard (dashboard.bfl.ai) and export `BFL_API_KEY`. Requests are asynchronous: submit, then poll the `polling_url` from the response (required on `api.bfl.ai`; use `api.eu.bfl.ai` or `api.us.bfl.ai` to keep traffic in a region). The old host `api.bfl.ml` and the `get_result?id=` polling URL are legacy.
 
 ```python
-import os
-import base64
-import fal_client
+import os, time, requests
 from pathlib import Path
 
-def flux_fal(
-    prompt: str,
-    model: str = "fal-ai/flux-pro",  # or flux/dev, flux/schnell
-    image_size: str = "landscape_4_3",
-    num_inference_steps: int = 28,
-    guidance_scale: float = 3.5,
-    num_images: int = 1,
-    output_format: str = "jpeg",
-    output_path: str = "output.jpg"
-) -> list[str]:
-    """
-    Generate images using FLUX via fal.ai.
-    image_size options: square_hd, square, portrait_4_3, portrait_16_9,
-                        landscape_4_3, landscape_16_9 (or custom WxH)
-    Returns list of saved file paths.
-    """
-    result = fal_client.subscribe(
-        model,
-        arguments={
-            "prompt": prompt,
-            "image_size": image_size,
-            "num_inference_steps": num_inference_steps,
-            "guidance_scale": guidance_scale,
-            "num_images": num_images,
-            "output_format": output_format,
-            "enable_safety_checker": True
-        }
-    )
+HEADERS = {"x-key": os.environ["BFL_API_KEY"], "accept": "application/json"}
 
-    saved = []
-    for i, image in enumerate(result["images"]):
-        # image["url"] is a CDN URL
-        import requests
-        r = requests.get(image["url"])
-        path = output_path if num_images == 1 else output_path.replace(".", f"_{i}.")
-        Path(path).write_bytes(r.content)
-        print(f"Saved: {path} ({len(r.content) // 1024} KB)")
-        saved.append(path)
-    return saved
+def flux_bfl(prompt: str, endpoint: str = "flux-2-pro-preview", out: str = "output.jpg", **params) -> str:
+    """FLUX.2 takes width/height; FLUX 3 Image takes aspect_ratio (and rejects width, height, seed)."""
+    r = requests.post(f"https://api.bfl.ai/v1/{endpoint}", headers=HEADERS,
+                      json={"prompt": prompt, **params}, timeout=60)
+    r.raise_for_status()
+    polling_url = r.json()["polling_url"]
+    while True:
+        s = requests.get(polling_url, headers=HEADERS, timeout=60).json()
+        if s["status"] == "Ready":
+            break
+        if s["status"] not in ("Pending", "Reasoning", "Generating"):
+            # Error, Request Moderated, Content Moderated, Task not found, No Card Generated
+            raise RuntimeError(f"FLUX request failed: {s}")
+        time.sleep(1)
+    img = requests.get(s["result"]["sample"], timeout=60)   # result URL expires (10 min on FLUX.2, 1 h on FLUX 3), no CORS
+    img.raise_for_status()
+    Path(out).write_bytes(img.content)
+    return out
 
-# Flux Pro - highest quality
-flux_fal(
-    prompt="A hyperrealistic photo of a red sneaker floating in mid-air, studio lighting, white background",
-    model="fal-ai/flux-pro",
-    image_size="square_hd",
-    output_path="sneaker_pro.jpg"
-)
-
-# Flux Schnell - fast generation
-flux_fal(
-    prompt="Minimalist tech startup logo, geometric, dark blue and white",
-    model="fal-ai/flux/schnell",
-    num_inference_steps=4,  # Schnell works great with 4 steps
-    output_path="logo_schnell.jpg"
-)
+flux_bfl("Studio photo of a red running shoe on a white sweep, soft shadow, 85mm lens",
+         endpoint="flux-2-pro-preview", width=1440, height=1440, out="shoe.jpg")
+flux_bfl("Poster with the headline 'Harvest Fair' in #2E7D32 on cream paper, 1950s style",
+         endpoint="flux-3-image", aspect_ratio="3:4", out="poster.jpg")
 ```
 
-### LoRA with fal.ai
+Download results immediately: delivery URLs under `delivery.*.bfl.ai` expire (10 minutes for FLUX.2, 1 hour for FLUX 3 Image) and are not meant to be served to users. Allow `*.bfl.ai` through firewalls. Hex colors in prompts (`#2E7D32`) are matched closely by FLUX.2; JSON-structured prompts work for complex scenes. FLUX.2 [klein] does not rewrite prompts, so write them in detail.
+
+### Provider 2: fal.ai
+
+```bash
+pip install fal-client requests
+export FAL_KEY=...        # key from the fal.ai dashboard
+```
 
 ```python
-def flux_dev_lora(prompt: str, lora_url: str, lora_scale: float = 0.9, output_path: str = "lora_output.jpg"):
-    """Generate using Flux Dev with a LoRA adapter for custom style."""
-    result = fal_client.subscribe(
-        "fal-ai/flux-lora",
-        arguments={
-            "prompt": prompt,
-            "loras": [{"path": lora_url, "scale": lora_scale}],
-            "image_size": "landscape_4_3",
-            "num_inference_steps": 28,
-            "guidance_scale": 3.5,
-            "num_images": 1
-        }
-    )
-    import requests
-    r = requests.get(result["images"][0]["url"])
-    Path(output_path).write_bytes(r.content)
-    print(f"LoRA image saved: {output_path}")
+import fal_client, requests
+from pathlib import Path
 
-flux_dev_lora(
-    prompt="A portrait in TOK style",
-    lora_url="https://huggingface.co/your-org/your-lora/resolve/main/lora.safetensors",
-    lora_scale=1.0
-)
+def flux_fal(prompt, model="fal-ai/flux-2-pro", out="output.jpg", **args):
+    result = fal_client.subscribe(model, arguments={"prompt": prompt, **args})
+    Path(out).write_bytes(requests.get(result["images"][0]["url"], timeout=60).content)
+    return out
+
+flux_fal("Minimalist logo of a lighthouse, navy and white, flat vector",
+         model="fal-ai/flux/schnell", num_inference_steps=4, image_size="square_hd", out="logo.jpg")
+flux_fal("Cinematic coffee cup on a wooden desk, morning window light",
+         model="fal-ai/flux-2-pro", image_size="landscape_16_9", out="coffee.jpg")
 ```
 
-## Provider 2: Replicate
+Endpoint IDs confirmed on fal.ai: `fal-ai/flux-2-pro`, `fal-ai/flux/dev`, `fal-ai/flux/schnell`, `fal-ai/flux-pro/v1.1`, `fal-ai/flux-lora`, `fal-ai/flux-2/klein/4b`. Parameters differ per endpoint: `flux-2-pro` accepts `image_size`, `seed`, `output_format` (jpeg/png), `safety_tolerance` ("1" to "5") and `enable_safety_checker`, but no step count or guidance. Schnell and `flux-lora` accept `num_inference_steps` (defaults 4 and 28), `guidance_scale` (3.5) and `num_images`. `image_size` takes presets (`square_hd`, `portrait_4_3`, `landscape_16_9`, ...) or `{"width": w, "height": h}`. Unknown arguments are rejected, so read the model's schema on its fal.ai page.
 
-### Setup
+### Provider 3: Replicate
 
 ```bash
 pip install replicate
-export REPLICATE_API_TOKEN="your_replicate_token"
+export REPLICATE_API_TOKEN=...
 ```
-
-### Generate via Replicate
 
 ```python
 import replicate
-import requests
 from pathlib import Path
 
-def flux_replicate(
-    prompt: str,
-    model: str = "black-forest-labs/flux-pro",
-    aspect_ratio: str = "1:1",
-    output_format: str = "jpg",
-    output_quality: int = 90,
-    output_path: str = "output.jpg"
-) -> str:
-    """
-    Generate image with FLUX via Replicate.
-    model options:
-      - black-forest-labs/flux-pro
-      - black-forest-labs/flux-dev
-      - black-forest-labs/flux-schnell
-    aspect_ratio: "1:1", "16:9", "9:16", "4:3", "3:4", "2:3", "3:2"
-    """
-    output = replicate.run(
-        model,
-        input={
-            "prompt": prompt,
-            "aspect_ratio": aspect_ratio,
-            "output_format": output_format,
-            "output_quality": output_quality,
-            "safety_tolerance": 2,
-            "prompt_upsampling": True  # Pro only: auto-enhance prompt
-        }
-    )
-    # output is a list of FileOutput objects
-    url = str(output[0])
-    r = requests.get(url)
-    Path(output_path).write_bytes(r.content)
-    print(f"Saved: {output_path}")
-    return output_path
-
-flux_replicate(
-    prompt="Cinematic shot of a coffee cup on a wooden desk, morning light streaming through a window, 8k",
-    model="black-forest-labs/flux-pro",
-    aspect_ratio="16:9",
-    output_path="coffee_hero.jpg"
-)
+out = replicate.run("black-forest-labs/flux-schnell",
+                    input={"prompt": "A lighthouse at dusk, oil painting", "aspect_ratio": "16:9"})
+Path("lighthouse.webp").write_bytes(out[0].read())     # returns FileOutput objects
 ```
 
-### Flux Dev with LoRA on Replicate
+Model slugs: `black-forest-labs/flux-2-pro`, `flux-2-max`, `flux-2-klein-4b`, `flux-dev`, `flux-schnell`, `flux-1.1-pro`. Inputs and default output format vary per model; check each model page. Save outputs right away; Replicate deletes output files after a limited time.
+
+### LoRA styles
+
+LoRAs are trained on open-weight bases: FLUX.1 [dev] (non-commercial weights license) and FLUX.2 [klein] (BFL has a training guide; 4B is Apache 2.0). FLUX Pro endpoints cannot load LoRAs.
 
 ```python
-output = replicate.run(
-    "lucataco/flux-dev-lora:091495765fa5ef2725a175a57b276ec30dc9d39c22436ba424772c35501d6f",
-    input={
-        "prompt": "A photo of TOK person at the beach",
-        "hf_lora": "alvdansen/flux-koda",  # HuggingFace LoRA path
-        "lora_scale": 0.85,
-        "num_inference_steps": 28,
-        "guidance_scale": 3.5
-    }
-)
+flux_fal("Portrait in TOK style, studio light", model="fal-ai/flux-lora", out="lora.jpg",
+         loras=[{"path": "https://huggingface.co/acme-studio/brand-style-lora/resolve/main/lora.safetensors",
+                 "scale": 0.9}], num_inference_steps=28, guidance_scale=3.5)
 ```
 
-## Provider 3: Black Forest Labs API (direct)
+## Examples
 
-### Setup
+### Example 1: Product shots with exact brand color
 
-```bash
-export BFL_API_KEY="your_bfl_api_key"
-```
+**User prompt:** "Generate a hero image of our water bottle in brand green #1B7F5C on a light grey backdrop."
 
-### Generate via BFL API
+Call `flux_bfl("Matte water bottle in #1B7F5C on a light grey seamless backdrop, soft studio light, product photo", endpoint="flux-2-pro-preview", width=1536, height=1024, out="bottle.jpg")`. The script prints nothing until done, then `bottle.jpg` exists. If the green is off, repeat with the hex code attached to the object ("the bottle is #1B7F5C"), and keep the same `seed` when varying only the framing.
 
-```python
-import os
-import time
-import requests
+### Example 2: 200 draft thumbnails quickly and cheaply
 
-BFL_KEY = os.environ["BFL_API_KEY"]
-BFL_HEADERS = {"x-key": BFL_KEY, "Content-Type": "application/json"}
+**User prompt:** "Make 200 rough concept thumbnails for blog posts, speed matters more than polish."
 
-def flux_bfl(
-    prompt: str,
-    model: str = "flux-pro-1.1",  # flux-pro, flux-pro-1.1, flux-dev, flux-schnell
-    width: int = 1024,
-    height: int = 1024,
-    steps: int = None,  # None = default
-    guidance: float = None,
-    output_path: str = "output.jpg"
-) -> str:
-    """Generate image via BFL's native API."""
-    payload = {
-        "prompt": prompt,
-        "width": width,
-        "height": height,
-        "output_format": "jpeg",
-        "safety_tolerance": 2
-    }
-    if steps:
-        payload["steps"] = steps
-    if guidance:
-        payload["guidance"] = guidance
-
-    r = requests.post(f"https://api.bfl.ml/v1/{model}", json=payload, headers=BFL_HEADERS)
-    r.raise_for_status()
-    polling_id = r.json()["id"]
-
-    # Poll for result
-    while True:
-        poll = requests.get("https://api.bfl.ml/v1/get_result", params={"id": polling_id}, headers=BFL_HEADERS)
-        poll.raise_for_status()
-        data = poll.json()
-        if data["status"] == "Ready":
-            image_url = data["result"]["sample"]
-            break
-        elif data["status"] in ("Error", "Content Moderated", "Request Moderated"):
-            raise RuntimeError(f"BFL error: {data['status']}")
-        print(f"Status: {data['status']}...")
-        time.sleep(3)
-
-    img_data = requests.get(image_url).content
-    Path(output_path).write_bytes(img_data)
-    print(f"Saved: {output_path}")
-    return output_path
-
-flux_bfl(
-    prompt="Ultra-detailed macro photo of a mechanical watch movement, studio lighting",
-    model="flux-pro-1.1",
-    width=1440,
-    height=1440,
-    output_path="watch_macro.jpg"
-)
-```
-
-## Parameters reference
-
-| Parameter | Values | Description |
-|-----------|--------|-------------|
-| `num_inference_steps` | 4 (Schnell), 20–50 (Dev/Pro) | More steps = higher quality, slower |
-| `guidance_scale` | 1.5–5.0 | How closely to follow the prompt |
-| `aspect_ratio` / `image_size` | 1:1, 16:9, 9:16, etc. | Output dimensions |
-| LoRA scale | 0.7–1.0 | Strength of LoRA style adapter |
+Loop over the prompts with `flux_fal(p, model="fal-ai/flux/schnell", num_inference_steps=4, image_size="landscape_16_9", out=f"thumb_{i}.jpg")` using a thread pool of 8; Schnell is the fastest tier. Pick the best, then regenerate those few with `flux-2-pro-preview` for final art. Result: 200 JPEG files for a small fraction of the Pro cost.
 
 ## Guidelines
 
-- **Flux Schnell**: Use 4 steps. It's distilled — more steps don't improve quality.
-- **Flux Dev**: Use 20–30 steps. Best for LoRA fine-tuning and customization.
-- **Flux Pro**: Use 28–50 steps. Best for commercial quality and photorealism.
-- For LoRA fine-tuning, use Flux Dev as the base (open weights). Flux Pro is proprietary.
-- fal.ai is the easiest provider with the most complete feature set and lowest latency.
-- BFL API gives direct access to the latest Pro model versions before other providers.
-- Store API keys in environment variables — never hardcode them.
+- **Pick by job**: klein or Schnell for volume, FLUX.2 [pro]/[max] or FLUX 3 for finals, FLUX.1 Dev or klein for LoRA work.
+- **Do not copy FLUX.1 parameters to FLUX.2 endpoints.** FLUX.2 [pro] on the BFL API takes `width`/`height`; steps and guidance are not tuning knobs there. Schnell stays at 4 steps.
+- **Check the license** before shipping: Dev and klein 9B weights are non-commercial; Schnell and klein 4B are Apache 2.0; API outputs are governed by the provider's terms.
+- **Safety filters**: `safety_tolerance` / `enable_safety_checker` control moderation strictness; a moderated request is not fixed by retrying unchanged.
+- **Rate limits and timeouts**: add exponential backoff on HTTP 429 and a maximum polling time.
+- **Keys** only in environment variables; never log request headers.

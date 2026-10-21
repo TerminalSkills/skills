@@ -378,9 +378,15 @@
     {
       "name": "amqplib",
       "slug": "amqplib",
-      "description": "You are an expert in amqplib, the Node.js client for RabbitMQ and AMQP 0-9-1 protocol. You help developers implement reliable message queuing with work queues, pub/sub fanout, topic routing, RPC patterns, dead letter queues, and message acknowledgment — building decoupled microservices that communicate asynchronously through RabbitMQ.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "amqplib is the Node.js client library for RabbitMQ and other AMQP 0-9-1 brokers. Use it to publish and consume messages from JavaScript or TypeScript: work queues, topic exchanges, dead-letter queues, publisher confirms, manual acknowledgments, prefetch limits and automatic reconnection. Use when someone asks to \"connect Node.js to RabbitMQ\", \"send messages to a queue from Node\", \"consume RabbitMQ messages in TypeScript\", \"retry failed jobs with a dead-letter queue\" or \"reconnect amqplib after the broker restarts\". Covers amqplib 2.x.",
+      "category": "development",
+      "tags": [
+        "rabbitmq",
+        "amqp",
+        "messaging",
+        "nodejs",
+        "queues"
+      ]
     },
     {
       "name": "analytics-tracking",
@@ -592,7 +598,7 @@
     {
       "name": "argocd",
       "slug": "argocd",
-      "description": "Argo CD for GitOps continuous delivery on Kubernetes. Use when the user needs to define applications declaratively, sync Kubernetes manifests from Git repositories, manage sync policies, and implement progressive delivery workflows.",
+      "description": "Argo CD is a declarative GitOps continuous delivery tool that keeps Kubernetes clusters in sync with manifests stored in Git. Use when a user asks to install Argo CD, define Application or ApplicationSet resources, configure sync policies and waves, restrict teams with AppProjects, roll back a deployment, or use the argocd CLI.",
       "category": "devops",
       "tags": []
     },
@@ -1113,7 +1119,7 @@
     {
       "name": "breach-data",
       "slug": "breach-data",
-      "description": "Check for data breaches and credential leaks using HaveIBeenPwned API and other sources. Use when: checking if an email or domain is in a known breach, assessing corporate credential exposure, password hygiene audits, or pre-engagement phishing simulation scoping.",
+      "description": "Checks whether email addresses, domains and passwords appear in known data breaches using the Have I Been Pwned (HIBP) API v3 and the Pwned Passwords range API. Use when auditing your own organization's credential exposure, checking a password against breach corpora, reviewing breached accounts on a verified domain, or scoping an authorized phishing simulation.",
       "category": "research",
       "tags": [
         "breach",
@@ -1470,7 +1476,7 @@
     {
       "name": "checkov",
       "slug": "checkov",
-      "description": "Expert guidance for Checkov, the static analysis tool for infrastructure-as-code that scans Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, and ARM templates for security misconfigurations and compliance violations. Helps developers integrate Checkov into CI/CD pipelines and write custom policies.",
+      "description": "Checkov is an open-source static analysis tool that scans infrastructure-as-code (Terraform, CloudFormation, Kubernetes, Helm, Dockerfile, ARM, Bicep and more) for security misconfigurations and compliance violations. Use it to scan Terraform or Kubernetes manifests before deploy, add a security gate to CI/CD with SARIF output, suppress findings with justification, or write custom policies in Python or YAML.",
       "category": "devops",
       "tags": []
     },
@@ -1897,9 +1903,15 @@
     {
       "name": "composio",
       "slug": "composio",
-      "description": "You are an expert in Composio, the platform that gives AI agents access to 250+ external tools and APIs with managed authentication. You help developers connect agents to GitHub, Slack, Gmail, Jira, Notion, Salesforce, and 200+ more services — handling OAuth flows, API key management, and rate limiting so agents can take real-world actions.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "Composio connects AI agents to 1,000+ external apps (GitHub, Slack, Gmail, Notion, Linear and more) and handles OAuth, token storage and per-user connections for them. Use when someone asks to \"give my agent access to Gmail or GitHub\", \"add Composio to my agent\", \"connect users' accounts to an AI agent\", \"use Composio with OpenAI Agents, Claude Agent SDK or LangChain\", or \"fix Composio code that uses composio-core or ComposioToolSet\".",
+      "category": "automation",
+      "tags": [
+        "agent",
+        "tools",
+        "integrations",
+        "oauth",
+        "composio"
+      ]
     },
     {
       "name": "confluence",
@@ -2209,7 +2221,7 @@
     {
       "name": "cursor-ai",
       "slug": "cursor-ai",
-      "description": "Build software with Cursor, the AI-powered code editor. Use when a user asks to configure Cursor rules, set up .cursorrules files, use Composer for multi-file edits, integrate MCP servers, or optimize AI-assisted coding workflows.",
+      "description": "Build software with Cursor, the AI-powered code editor. Use when a user asks to configure Cursor rules, write project rules (.cursor/rules, AGENTS.md), use Agent (formerly Composer) for multi-file edits, integrate MCP servers, or optimize AI-assisted coding workflows.",
       "category": "development",
       "tags": [
         "ai-coding",
@@ -2294,14 +2306,14 @@
     {
       "name": "dalle-api",
       "slug": "dalle-api",
-      "description": "DALL-E 3 API for AI image generation — text-to-image, image editing, and variations via OpenAI. Use when generating images from text prompts, creating product visuals, illustrating content, or editing images with an inpainting mask.",
+      "description": "DALL-E API successor: the OpenAI Images API with the gpt-image models, which replaced DALL-E 2 and DALL-E 3 (shut down 2026-05-12). Covers text-to-image generation, edits with masks and multiple reference images, sizes, quality, output formats, base64 handling and moderation. Use when generating or editing images with OpenAI, migrating old dall-e-3 code, or fixing \"model not found\" errors from dall-e-2/dall-e-3 calls.",
       "category": "data-ai",
       "tags": [
         "dalle",
         "openai",
+        "gpt-image",
         "image-generation",
-        "text-to-image",
-        "ai-art"
+        "image-editing"
       ]
     },
     {
@@ -2430,7 +2442,7 @@
     {
       "name": "deepeval",
       "slug": "deepeval",
-      "description": "Expert guidance for DeepEval, the open-source framework for unit testing LLM applications. Helps developers write test cases, define custom metrics, and integrate LLM quality checks into CI/CD pipelines using a pytest-like interface.",
+      "description": "DeepEval is an open-source Python framework that unit-tests LLM applications with pytest-style test cases and LLM-as-a-judge metrics. Use when a user asks to evaluate a RAG chatbot, test LLM answers for relevancy, faithfulness or hallucination, write a custom metric, or run LLM quality checks in CI.",
       "category": "data-ai",
       "tags": []
     },
@@ -2698,9 +2710,15 @@
     {
       "name": "drizzle-orm",
       "slug": "drizzle-orm",
-      "description": "You are an expert in Drizzle ORM, the lightweight TypeScript ORM that maps directly to SQL. You help developers write type-safe database queries that look like SQL (not a new query language), generate migrations from schema changes, and deploy to serverless environments with zero overhead — supporting Postgres, MySQL, SQLite, Turso, Neon, PlanetScale, and Cloudflare D1.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Drizzle ORM is a lightweight, type-safe TypeScript ORM whose query builder maps directly to SQL, with a companion CLI (drizzle-kit) that generates and applies migrations. Use when a user asks to define a database schema in TypeScript, write typed Postgres, MySQL or SQLite queries, run drizzle-kit generate, migrate or push, or connect Drizzle to Neon, Turso, Cloudflare D1, PGlite or node-postgres.",
+      "category": "development",
+      "tags": [
+        "orm",
+        "typescript",
+        "sql",
+        "postgres",
+        "migrations"
+      ]
     },
     {
       "name": "drizzle-studio",
@@ -2826,7 +2844,7 @@
     {
       "name": "elysia",
       "slug": "elysia",
-      "description": "Build high-performance APIs with Elysia on Bun. Use when someone asks to \"create an API with Bun\", \"build a REST API with Elysia\", \"set up WebSocket server on Bun\", \"type-safe API with Eden Treaty\", \"Elysia plugin\", or \"fastest TypeScript HTTP framework\". Covers REST routes, WebSocket, validation with TypeBox, Eden Treaty type-safe client, plugins, auth guards, and OpenAPI/Swagger generation.",
+      "description": "Build typed HTTP and WebSocket APIs with Elysia, a TypeScript web framework optimized for Bun that also runs on Node.js. Use when someone asks to \"create an API with Bun\", \"build a REST API with Elysia\", \"set up WebSocket server on Bun\", \"type-safe API with Eden Treaty\", \"Elysia plugin\", or \"fastest TypeScript HTTP framework\". Covers REST routes, WebSocket, validation with TypeBox, Eden Treaty type-safe client, plugins, auth guards, and OpenAPI documentation.",
       "category": "development",
       "tags": [
         "bun",
@@ -3078,7 +3096,7 @@
     {
       "name": "fal-ai",
       "slug": "fal-ai",
-      "description": "Deploy and run AI models instantly with fal.ai — image generation, video, audio, and custom models. Use when generating images with Flux/SDXL/LoRA, running ML inference at scale, building AI media features, or accessing state-of-the-art generative models via a simple API.",
+      "description": "Run hosted image, video and audio AI models through the fal.ai API with the JavaScript or Python client. Use when generating images with Flux or LoRA, animating images into video, transcribing audio with Whisper, running inference through a queue with webhooks, or building AI media features.",
       "category": "data-ai",
       "tags": [
         "fal-ai",
@@ -3349,7 +3367,7 @@
     {
       "name": "flux-model",
       "slug": "flux-model",
-      "description": "FLUX image generation models — Flux Pro, Dev, and Schnell via fal.ai, Replicate, or Black Forest Labs API. Use when generating high-quality or photorealistic images, applying LoRA fine-tuning for custom styles, or building production image generation pipelines.",
+      "description": "FLUX is Black Forest Labs' family of image generation models (FLUX.2, FLUX 3 Image, and the older FLUX.1 Dev, Schnell and Pro), available through the BFL API, fal.ai and Replicate. Use when generating photorealistic or product images, text-heavy graphics, exact brand colors, image editing with references, fast batch generation, or LoRA styles with FLUX.1 Dev or FLUX.2 klein. Covers model choice, request code for each provider, and licensing.",
       "category": "data-ai",
       "tags": [
         "flux",
@@ -3454,7 +3472,7 @@
     {
       "name": "function-calling",
       "slug": "function-calling",
-      "description": "Implement function/tool calling with LLMs — define tools, handle calls, and return results in a loop. Use when building AI agents with tools, letting LLMs interact with APIs or databases, creating agentic workflows, or enabling models to take real-world actions.",
+      "description": "Function calling (tool use) lets an LLM request calls to your own functions while your code runs them and returns the results in a loop. Covers the OpenAI Responses API, the Anthropic Messages API, parallel calls, tool_choice, strict schemas and error handling. Use when building AI agents with tools, letting LLMs query APIs or databases, or creating agentic workflows.",
       "category": "data-ai",
       "tags": [
         "function-calling",
@@ -3598,7 +3616,7 @@
     {
       "name": "generative-engine-optimization",
       "slug": "generative-engine-optimization",
-      "description": "Optimize a website to be discovered, cited, and recommended by AI search engines — ChatGPT, Claude, Perplexity, Google AI Overviews, and Gemini. Use this for Generative Engine Optimization (GEO / AEO / \"AI SEO\"): scoring content citability, checking AI crawler access in robots.txt (GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot), auditing or generating an llms.txt file, validating schema for entity recognition, assessing brand authority signals, and producing a GEO audit report. Trigger on \"GEO,\" \"AI search optimization,\" \"get cited by ChatGPT/Perplexity,\" \"llms.txt,\" \"AI crawlers,\" \"AI Overviews,\" \"citability.\" This is about generative AI search visibility, NOT geographic/geolocation. For traditional keyword ranking see seo-audit; for structured data see schema-markup.",
+      "description": "Audits and improves how a website is found and cited by AI answer engines (Google AI Overviews and AI Mode, ChatGPT search, Perplexity, Claude, Copilot). Use for Generative Engine Optimization (GEO, AEO, \"AI SEO\"): \"get cited by ChatGPT\", \"are AI crawlers blocked\", \"AI Overviews visibility\", \"llms.txt\", \"will AI bots see my site\". Checks crawler access in robots.txt, server-rendered content, entity markup and answer-ready writing, and says which findings are documented and which are heuristics. Not about geography. For classic ranking use seo-audit; for JSON-LD use schema-markup.",
       "category": "business",
       "tags": []
     },
@@ -3618,9 +3636,15 @@
     {
       "name": "ghost",
       "slug": "ghost",
-      "description": "You are an expert in Ghost, the open-source publishing platform for blogs, newsletters, and membership sites. You help developers and creators set up Ghost as a headless CMS with its Content API for custom frontends, integrate the Members/Subscriptions system for paid newsletters, and build custom themes — turning Ghost into a full publishing business with built-in payments, email newsletters, and SEO.",
-      "category": "Content Management",
-      "tags": []
+      "description": "Ghost is an open-source Node.js publishing platform for blogs, newsletters and paid membership sites. Use this skill to run Ghost with Docker or ghost-cli, read posts and tags from the Content API for a headless Next.js frontend, manage members through the Admin API, or set up paid newsletters with Stripe. Trigger words: Ghost CMS, Ghost blog, Ghost Content API, headless Ghost, Ghost newsletter, Ghost members.",
+      "category": "content",
+      "tags": [
+        "cms",
+        "blog",
+        "newsletter",
+        "membership",
+        "self-hosted"
+      ]
     },
     {
       "name": "gin",
@@ -3725,9 +3749,15 @@
     {
       "name": "gobuster",
       "slug": "gobuster",
-      "description": "Brute force directories, files, DNS subdomains, and virtual hosts with Gobuster. Use when a user asks to discover hidden endpoints, enumerate subdomains, find backup files, or perform web content discovery during penetration testing.",
+      "description": "Gobuster is a fast command-line brute-forcer that finds hidden directories and files on web servers, DNS subdomains, virtual hosts and open cloud storage buckets from a wordlist. Use when a user asks to discover hidden endpoints, enumerate subdomains, find backup files, run content discovery during an authorized penetration test, or fix a gobuster command that errors on flags such as -d or --status-codes.",
       "category": "devops",
-      "tags": []
+      "tags": [
+        "gobuster",
+        "directory-bruteforce",
+        "subdomain-enumeration",
+        "penetration-testing",
+        "content-discovery"
+      ]
     },
     {
       "name": "godot",
@@ -3897,8 +3927,8 @@
     {
       "name": "guidance",
       "slug": "guidance",
-      "description": "You are an expert in Guidance, Microsoft's library for controlling LLM output with constrained generation. You help developers write programs that interleave text generation with control flow (loops, conditionals, regex constraints, JSON schemas, function calls) — ensuring LLM output always matches the expected format by constraining the token generation process itself, not just prompting.",
-      "category": "AI & Machine Learning",
+      "description": "Guidance is Microsoft's open-source Python library for controlling LLM output with constrained generation: you interleave text, control flow, regex, select() choices and JSON schemas, and the model can only emit tokens that fit. Use when a user needs guaranteed-valid JSON, classification into fixed labels, regex-shaped fields or a custom grammar from a local model (Transformers, llama.cpp), or asks for \"guidance\", \"constrained decoding\" or \"structured output\" without retry loops.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -4120,7 +4150,7 @@
     {
       "name": "htop",
       "slug": "htop",
-      "description": "Monitor system resources with htop and related tools. Use when a user asks to check CPU/memory usage, find resource-hungry processes, monitor server performance, or diagnose system bottlenecks.",
+      "description": "htop is an interactive process viewer for Linux, macOS and BSD that shows CPU, memory and per-process usage live, with filtering, tree view and kill/renice from the keyboard. Use when a user asks to check CPU or memory usage, find resource-hungry processes, monitor server performance, or diagnose system bottlenecks, together with vmstat, iostat, ss and similar tools.",
       "category": "devops",
       "tags": []
     },
@@ -4174,7 +4204,7 @@
     {
       "name": "hyperframes",
       "slug": "hyperframes",
-      "description": "Generate deterministic MP4 videos from HTML, CSS, media, and seekable animations using HeyGen's HyperFrames framework. Use when someone asks to \"render HTML to video\", \"make a video with HyperFrames\", \"create a programmatic video\", \"turn an animation into MP4\", \"build a launch/product video from HTML\", \"render GSAP/Lottie/Three.js to video\", or set up an agent-driven video pipeline. Covers init/preview/render/add/lint/inspect commands, data-* timing attributes, animation adapters, and the component catalog.",
+      "description": "Generate deterministic MP4 videos from HTML, CSS, media, and seekable animations using HeyGen's HyperFrames framework. Use when someone asks to \"render HTML to video\", \"make a video with HyperFrames\", \"create a programmatic video\", \"turn an animation into MP4\", \"build a launch/product video from HTML\", \"render GSAP/Lottie/Three.js to video\", or set up an agent-driven video pipeline. Covers init/preview/render/add/lint/check commands, data-* timing attributes, animation adapters, and the component catalog.",
       "category": "content",
       "tags": [
         "video",
@@ -4291,14 +4321,14 @@
     {
       "name": "imagemagick",
       "slug": "imagemagick",
-      "description": "You are an expert in ImageMagick, the powerful command-line tool for creating, editing, compositing, and converting images. You help developers automate image processing pipelines using ImageMagick's `convert`, `mogrify`, `composite`, and `identify` commands — batch resizing, format conversion, watermarking, thumbnail generation, PDF manipulation, and complex image compositing for web applications, print production, and data visualization.",
-      "category": "Developer Tools",
+      "description": "ImageMagick is a command-line toolkit for converting, resizing, cropping, compositing and inspecting images in over 200 formats. Use it to batch resize photos, convert PNG or SVG to WebP, generate thumbnails, add watermarks, build contact sheets and animated GIFs, or read image metadata with `magick`, `magick mogrify` and `magick identify`.",
+      "category": "design",
       "tags": []
     },
     {
       "name": "imcp",
       "slug": "imcp",
-      "description": "Access macOS native data (Messages, Contacts, Reminders, Calendar) via MCP server with iMCP. Use when: building AI assistants that access Apple data, querying contacts/reminders from Claude Desktop, integrating macOS apps with AI agents.",
+      "description": "iMCP is a macOS menu bar app that exposes Messages, Contacts, Calendar, Reminders, Location, Maps, Weather, Phone, Voicemail and Shortcuts to AI clients through a local MCP server. Use when: connecting Claude Desktop, Claude Code or Cursor to Apple data, querying contacts/reminders from an AI assistant, integrating macOS apps with AI agents.",
       "category": "productivity",
       "tags": [
         "mcp",
@@ -4613,7 +4643,7 @@
     {
       "name": "k6",
       "slug": "k6",
-      "description": "When the user wants to perform load testing, stress testing, or performance testing of APIs and websites using k6. Also use when the user mentions \"k6,\" \"load test,\" \"performance test,\" \"stress test,\" \"spike test,\" \"soak test,\" \"thresholds,\" \"virtual users,\" or \"VUs.\" For browser-based testing, see selenium.",
+      "description": "k6 is Grafana's open-source load testing tool: tests are scripts in JavaScript or TypeScript that simulate virtual users hitting APIs and websites and pass or fail on thresholds. Use when the user asks for a load test, stress test, spike test, soak test, performance test, thresholds, virtual users (VUs) or arrival-rate scenarios with k6, or wants k6 in CI. For browser-driven functional tests, see selenium.",
       "category": "development",
       "tags": []
     },
@@ -4660,7 +4690,7 @@
     {
       "name": "kamal",
       "slug": "kamal",
-      "description": "Deploy web applications to any server with Kamal — zero-downtime Docker deployments without Kubernetes. Use when someone asks to \"deploy to a VPS\", \"deploy without Kubernetes\", \"Kamal deploy\", \"simple Docker deployment\", \"deploy Rails/Node/Python to a server\", \"zero-downtime deployment to bare metal\", or \"replace Heroku with a VPS\". Covers Docker-based deployment, zero downtime with Traefik, multi-server, secrets, and accessory services.",
+      "description": "Deploy web applications to any server with Kamal — zero-downtime Docker deployments without Kubernetes. Use when someone asks to \"deploy to a VPS\", \"deploy without Kubernetes\", \"Kamal deploy\", \"simple Docker deployment\", \"deploy Rails/Node/Python to a server\", \"zero-downtime deployment to bare metal\", or \"replace Heroku with a VPS\". Covers Docker-based deployment, zero downtime with kamal-proxy, multi-server, secrets, and accessory services.",
       "category": "devops",
       "tags": [
         "deployment",
@@ -4694,8 +4724,7 @@
         "elasticsearch",
         "dashboards",
         "visualization",
-        "kql",
-        "elk"
+        "kql"
       ]
     },
     {
@@ -4761,9 +4790,15 @@
     {
       "name": "koyeb",
       "slug": "koyeb",
-      "description": "Expert guidance for Koyeb, the serverless cloud platform for deploying full-stack applications, APIs, and workers globally with automatic scaling, built-in CI/CD, and edge networking. Helps developers deploy applications from Git or Docker with zero-downtime deployments and pay-per-use pricing.",
+      "description": "Koyeb is a serverless cloud platform that runs web services, workers and databases from a Git repository or Docker image, with autoscaling, multi-region deployment and a managed Postgres. Use when a user asks to deploy an app to Koyeb, use the koyeb CLI, set secrets and environment variables, add health checks, a custom domain, or scale a service across regions.",
       "category": "devops",
-      "tags": []
+      "tags": [
+        "paas",
+        "serverless",
+        "deployment",
+        "docker",
+        "cli"
+      ]
     },
     {
       "name": "kubernetes-helm",
@@ -4947,7 +4982,7 @@
     {
       "name": "lean-canvas",
       "slug": "lean-canvas",
-      "description": "Expert guidance for Lean Canvas, the one-page business model framework by Ash Maurya adapted from the Business Model Canvas. Helps founders and product teams map their business model in under 20 minutes, identify the riskiest assumptions, and iterate quickly. Also covers related frameworks: Business Model Canvas, Value Proposition Canvas, and SWOT analysis.",
+      "description": "Maps a startup business model on one page with the Lean Canvas, the framework Ash Maurya adapted from Osterwalder''s Business Model Canvas. Use when a founder or product team asks for a lean canvas, a one-page business model, the riskiest assumptions in a business, or a business model canvas or SWOT analysis. Covers the nine Lean Canvas boxes, the nine Business Model Canvas building blocks, and SWOT.",
       "category": "business",
       "tags": []
     },
@@ -4961,8 +4996,8 @@
     {
       "name": "lemon-squeezy",
       "slug": "lemon-squeezy",
-      "description": "You are an expert in Lemon Squeezy, the all-in-one payments platform that acts as your Merchant of Record. You help developers sell software, subscriptions, and digital products with automatic global tax handling (VAT, sales tax), invoicing, license keys, customer portal, and fraud protection — without needing to register for tax IDs or handle payment compliance yourself.",
-      "category": "Backend Development",
+      "description": "Lemon Squeezy is a payments platform that acts as Merchant of Record for software, subscriptions and digital products, handling VAT and sales tax, invoices, license keys and a customer portal for you. Use this skill to create checkouts with the @lemonsqueezy/lemonsqueezy.js SDK, verify webhook signatures, track subscription status, or validate and activate license keys for a desktop app or CLI.",
+      "category": "development",
       "tags": []
     },
     {
@@ -5014,14 +5049,14 @@
     {
       "name": "liepin-jobs",
       "slug": "liepin-jobs",
-      "description": "Search jobs on Liepin (猎聘), apply to positions, view and edit resumes. Zero-dependency Python CLI wrapping Liepin's official MCP Server. Trigger words: jobs, liepin, resume, 找工作, 搜职位, 投简历, 猎聘, 求职, 招聘, 简历.",
+      "description": "Connects an AI coding agent to Liepin's (猎聘) official MCP server so it can search jobs, read and edit the user's resume, and submit applications after explicit approval. Covers adding the server to Claude Code, Codex, Gemini CLI and Cursor with tokens kept in environment variables. Use when the user says \"find jobs on Liepin\", \"搜职位\", \"猎聘\", \"改简历\", \"投简历\", \"求职\", or wants a resume reviewed against live Chinese job listings.",
       "category": "productivity",
       "tags": [
-        "jobs",
         "liepin",
+        "jobs",
         "resume",
         "mcp",
-        "chinese"
+        "recruitment"
       ]
     },
     {
@@ -5081,7 +5116,7 @@
     {
       "name": "liveblocks",
       "slug": "liveblocks",
-      "description": "Expert guidance for Liveblocks, the platform for adding real-time collaboration features to web applications. Helps developers implement live cursors, presence indicators, collaborative editing, comments, and notifications using Liveblocks' React hooks and APIs.",
+      "description": "Liveblocks is a hosted platform for adding real-time collaboration to web apps: live cursors, presence, shared storage, comments, notifications and collaborative text editors. Use this skill when a user wants multiplayer features in a React or Next.js app, asks how to use Liveblocks hooks (useOthers, useStorage, useMutation, useThreads), set up the LiveblocksProvider and RoomProvider, or write the server auth endpoint with @liveblocks/node.",
       "category": "development",
       "tags": []
     },
@@ -5174,7 +5209,7 @@
     {
       "name": "locust",
       "slug": "locust",
-      "description": "When the user wants to perform load testing using Python with Locust's distributed architecture and real-time web UI. Also use when the user mentions \"locust,\" \"Python load testing,\" \"distributed load test,\" \"locust web UI,\" or \"locustfile.\" For JavaScript-based load testing, see k6 or artillery.",
+      "description": "Load-test web services with Locust, an open-source Python framework where user behavior is written as plain Python code and run from a real-time web UI or headless in CI. Use when the user mentions \"locust\", \"locustfile\", \"Python load testing\", \"distributed load test\", \"locust web UI\", or wants to simulate thousands of concurrent users against an API. For JavaScript-based load testing, see k6 or artillery.",
       "category": "development",
       "tags": []
     },
@@ -5458,9 +5493,15 @@
     {
       "name": "mastra",
       "slug": "mastra",
-      "description": "You are an expert in Mastra, the TypeScript framework for building AI agents, RAG pipelines, and workflows. You help developers create production AI applications with type-safe agent definitions, tool integration, vector-based knowledge retrieval, multi-step workflows with branching and error handling, and integration with 50+ third-party services — designed for TypeScript teams who want agent capabilities without Python dependencies.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "Mastra is a TypeScript framework for building AI agents, tools, workflows, memory and RAG pipelines, with a local Studio for testing. Use when building an agent in TypeScript, adding tools, multi-step workflows with branching, conversation memory or retrieval to a Node.js app, or when the user mentions Mastra, @mastra/core, createWorkflow or mastra dev.",
+      "category": "data-ai",
+      "tags": [
+        "mastra",
+        "ai-agents",
+        "typescript",
+        "workflows",
+        "rag"
+      ]
     },
     {
       "name": "material-ui",
@@ -5663,7 +5704,7 @@
     {
       "name": "mistral-api",
       "slug": "mistral-api",
-      "description": "Mistral AI API — European LLM provider with strong code and reasoning models. Use when you need GDPR-compliant AI inference, code generation with Codestral, multilingual tasks, cost-efficient inference, or a European data-residency option.",
+      "description": "Mistral AI API gives access to Mistral's chat, code, embedding, OCR and speech models from a Paris-based provider, with an optional EU regional endpoint. Use when you need chat completions, streaming, function calling, JSON output, Codestral fill-in-the-middle, embeddings, or EU-region inference.",
       "category": "data-ai",
       "tags": [
         "mistral",
@@ -6136,7 +6177,7 @@
     {
       "name": "nmap-recon",
       "slug": "nmap-recon",
-      "description": "Perform network reconnaissance with Nmap. Use when a user asks to scan networks, discover hosts and services, detect OS versions, find open ports, enumerate service versions, or perform initial reconnaissance for a penetration test.",
+      "description": "Nmap is the standard open-source network scanner for finding live hosts, open ports, service versions and operating systems. Use this skill when a user asks to scan a network or host they are authorized to test, discover hosts, find open ports, enumerate service versions, run NSE scripts, save results as XML, or do initial reconnaissance for a penetration test.",
       "category": "devops",
       "tags": []
     },
@@ -6392,9 +6433,15 @@
     {
       "name": "openai-agents",
       "slug": "openai-agents",
-      "description": "You are an expert in the OpenAI Agents SDK (formerly Swarm), the official framework for building multi-agent systems. You help developers create agents with tool calling, guardrails, agent handoffs, streaming, tracing, and MCP integration — building production-grade AI agents that coordinate, delegate tasks, and execute tools with built-in safety controls.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "The OpenAI Agents SDK is a Python framework (openai-agents) for building agents that call tools, hand work to other agents, run guardrails and stream results, with built-in tracing and MCP support. Use when building a multi-agent workflow with OpenAI models, adding function tools, handoffs, input guardrails or sessions, or when the user mentions openai-agents, Runner.run, or the Agents SDK (the successor to Swarm).",
+      "category": "data-ai",
+      "tags": [
+        "openai",
+        "agents",
+        "tools",
+        "guardrails",
+        "multi-agent"
+      ]
     },
     {
       "name": "openai-codex-cli",
@@ -6790,7 +6837,7 @@
     {
       "name": "partykit",
       "slug": "partykit",
-      "description": "Build multiplayer and collaborative apps with PartyKit. Use when a user asks to build real-time collaboration features, create multiplayer experiences, add live cursors, build collaborative editing, create real-time voting or polls, sync state across clients, or build WebSocket servers on the edge. Covers PartyServer definition, client connections, state management, hibernation, and deployment to Cloudflare.",
+      "description": "PartyKit and its successor PartyServer are libraries for building real-time multiplayer and collaborative apps on Cloudflare Durable Objects: each room is a server instance that handles WebSocket connections, broadcasts and storage. Use this skill when a user asks for live cursors, chat rooms, collaborative editing, real-time polls or any WebSocket sync, or needs to migrate off the hosted PartyKit platform, which shuts down on 23 October 2026.",
       "category": "development",
       "tags": []
     },
@@ -6979,8 +7026,8 @@
     {
       "name": "pglite",
       "slug": "pglite",
-      "description": "You are an expert in PGlite, the lightweight WASM Postgres build that runs in the browser, Node.js, and Deno. You help developers embed a full Postgres instance (with extensions like pgvector, PostGIS) in client-side apps, Electron, React Native, and serverless functions — providing real SQL with JSONB, full-text search, and vector similarity search at ~3MB compressed, without a server.",
-      "category": "Backend Development",
+      "description": "PGlite is Postgres compiled to WebAssembly: a real Postgres 18 database that runs inside the browser, Node.js, Bun or Deno with no server, in-memory or persisted to IndexedDB or a folder. Use when someone asks to \"run Postgres in the browser\", \"embed Postgres in an app\", \"use PGlite\", \"local-first database\", \"Postgres for tests without Docker\", or \"vector search in the browser\". Covers install, persistence, pgvector, live queries, workers, and upgrades between versions.",
+      "category": "development",
       "tags": []
     },
     {
@@ -7087,7 +7134,7 @@
     {
       "name": "plausible",
       "slug": "plausible",
-      "description": "Privacy-first web analytics with Plausible — lightweight script tag, no cookies, GDPR-compliant by default. Self-host with Docker or use Plausible Cloud. Covers script installation, custom event goals, pageview filtering, the Stats API for programmatic access, and Google Search Console integration. Use when tasks involve adding website analytics without cookie banners, replacing Google Analytics with a privacy-friendly alternative, or querying traffic data via API.",
+      "description": "Plausible is a privacy-first, cookie-free web analytics service that you can self-host (Community Edition) or use as Plausible Cloud. Covers the tracking snippet, custom event goals, the Next.js integration, a first-party proxy, self-hosting with Docker Compose and the Stats API v2. Use when the user wants website analytics without cookie banners, a Google Analytics replacement, or traffic data pulled through an API.",
       "category": "data-ai",
       "tags": [
         "plausible",
@@ -7221,15 +7268,14 @@
     {
       "name": "posthog",
       "slug": "posthog",
-      "description": "Open-source product analytics with PostHog — event tracking, funnels, cohorts, session replay, feature flags, and experimentation. Self-host with Docker or use PostHog Cloud. Covers JavaScript SDK for frontend tracking, Python SDK for backend events, autocapture configuration, custom event taxonomies, and funnel/retention analysis. Use when tasks involve adding product analytics, understanding user behavior, debugging UX with session replay, or rolling out features with feature flags.",
+      "description": "PostHog is an open-source product analytics platform: event tracking, funnels, retention, session replay, feature flags and experiments in one tool, on PostHog Cloud or self-hosted. Use when someone asks to \"add product analytics\", \"track events with PostHog\", \"set up session replay\", \"roll out a feature flag\", \"build a funnel\", or \"send backend events to PostHog\". Covers the JavaScript and Python SDKs, privacy masking, server-side flags, and querying data through the API.",
       "category": "data-ai",
       "tags": [
         "posthog",
         "analytics",
         "product-analytics",
         "session-replay",
-        "feature-flags",
-        "funnels"
+        "feature-flags"
       ]
     },
     {
@@ -7676,7 +7722,7 @@
     {
       "name": "raycast",
       "slug": "raycast",
-      "description": "Expert guidance for building Raycast extensions — custom commands, views, and integrations for the Raycast launcher on macOS. Helps developers create productivity extensions using React, TypeScript, and Raycast's API for lists, forms, actions, and preferences.",
+      "description": "Raycast is a keyboard-driven launcher for macOS and Windows that you extend with React and TypeScript commands. Use this skill to build Raycast extensions - list, detail and form views, menu bar commands, preferences, caching - with @raycast/api and @raycast/utils, test them with `npm run dev`, and submit them to the Raycast Store.",
       "category": "development",
       "tags": []
     },
@@ -8401,8 +8447,8 @@
     {
       "name": "shadcn-ui",
       "slug": "shadcn-ui",
-      "description": "You are an expert in shadcn/ui, the collection of reusable React components built with Radix UI and Tailwind CSS. You help developers build beautiful, accessible interfaces by copying components directly into their project (not installed as a dependency) — providing full ownership and customization of every component including buttons, dialogs, forms, tables, command palettes, toasts, and 40+ primitives.",
-      "category": "Frontend Development",
+      "description": "shadcn/ui is a collection of accessible React components (built on Radix UI or Base UI and Tailwind CSS) that you add to your project as source code with a CLI instead of installing as a dependency. Use when the user asks to \"add shadcn\", \"set up shadcn/ui\", \"add a shadcn dialog, form, data table, command palette or toast\", \"customize shadcn components\", or build UI with components/ui in Next.js, Vite, Remix, Astro or React Router.",
+      "category": "design",
       "tags": []
     },
     {
@@ -8732,7 +8778,7 @@
     {
       "name": "square",
       "slug": "square",
-      "description": "Accept payments and manage commerce with Square. Use when a user asks to accept in-person and online payments, process credit cards, manage inventory, handle subscriptions, or build a POS integration.",
+      "description": "Square is a payments and commerce platform with REST APIs and SDKs for online card payments, in-person POS, catalog, inventory, subscriptions, invoices and customers. Use when a user asks to accept in-person and online payments, process credit cards, manage inventory, handle subscriptions, verify Square webhooks, or build a POS integration.",
       "category": "business",
       "tags": []
     },
@@ -8873,9 +8919,15 @@
     {
       "name": "stripe-billing",
       "slug": "stripe-billing",
-      "description": "You are an expert in Stripe Billing, the complete billing platform for SaaS businesses. You help developers implement subscription management, usage-based billing, metered pricing, free trials, proration, invoicing, customer portal, and webhook-driven lifecycle management — building everything from simple monthly plans to complex per-seat + usage hybrid pricing.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Stripe Billing is Stripe's subscription and invoicing product for SaaS: recurring plans, free trials, usage-based pricing with billing meters, proration, the hosted customer portal and webhook-driven lifecycle handling. Use when someone asks to \"add subscriptions with Stripe\", \"bill per API call\", \"set up metered or usage-based billing\", \"add a free trial\", \"let customers manage their plan\", or \"fix createUsageRecord no longer working\".",
+      "category": "development",
+      "tags": [
+        "stripe",
+        "subscriptions",
+        "billing",
+        "metered",
+        "usage-based"
+      ]
     },
     {
       "name": "stripe-connect",
@@ -8999,9 +9051,15 @@
     {
       "name": "svix",
       "slug": "svix",
-      "description": "You are an expert in Svix, the enterprise webhook delivery platform. You help developers send reliable webhooks to customers with automatic retries, signature verification, delivery monitoring, endpoint management, and event type filtering — replacing custom webhook infrastructure with a purpose-built service used by companies like Clerk, Resend, and Liveblocks.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Svix is a webhook sending service (open source and hosted) that signs, delivers and retries webhooks to your customers' endpoints and gives them a portal with delivery logs. Use when adding outgoing webhooks to a product, verifying incoming Svix or Standard Webhooks signatures, managing customer endpoints and event types, or embedding the Svix app portal. Covers the Node SDK (svix).",
+      "category": "development",
+      "tags": [
+        "webhooks",
+        "svix",
+        "delivery",
+        "retries",
+        "signature-verification"
+      ]
     },
     {
       "name": "swarm-intelligence",
@@ -9019,9 +9077,15 @@
     {
       "name": "swc",
       "slug": "swc",
-      "description": "You are an expert in SWC, the Rust-based JavaScript/TypeScript compiler. You help developers replace Babel and Terser with SWC for 20-70x faster compilation, minification, and bundling — used by Next.js, Vite, Parcel, and Deno as their default compiler, handling TypeScript stripping, JSX transformation, polyfill injection, and code minification at native speed.",
-      "category": "Developer Tools",
-      "tags": []
+      "description": "SWC (Speedy Web Compiler) is a Rust-based compiler and minifier for JavaScript and TypeScript, used as a faster replacement for Babel and Terser. Use when a user asks to compile TypeScript or JSX with swc, configure .swcrc, replace babel-jest with @swc/jest, minify code, use the @swc/core API, or understand why Next.js builds with SWC.",
+      "category": "development",
+      "tags": [
+        "compiler",
+        "rust",
+        "typescript",
+        "babel-alternative",
+        "minifier"
+      ]
     },
     {
       "name": "swift-concurrency-expert",
@@ -9157,9 +9221,15 @@
     {
       "name": "tailwindcss",
       "slug": "tailwindcss",
-      "description": "You are an expert in Tailwind CSS v4, the utility-first CSS framework. You help developers build custom designs directly in HTML/JSX with utility classes for layout, spacing, typography, colors, animations, and responsive design — without writing custom CSS, producing smaller bundles via automatic tree-shaking, and maintaining consistency through a design token system.",
-      "category": "Frontend Development",
-      "tags": []
+      "description": "Tailwind CSS is a utility-first CSS framework: you style pages with small classes in the markup and ship only the CSS you use. Covers Tailwind v4 (CSS-first config with @theme, @import \"tailwindcss\", Vite and PostCSS plugins), responsive layouts, dark mode, custom animations, and the v3 to v4 renames. Use when someone asks to \"style with Tailwind\", \"set up Tailwind v4\", \"upgrade Tailwind to v4\", \"add dark mode\", or \"fix Tailwind classes that stopped working\".",
+      "category": "development",
+      "tags": [
+        "tailwindcss",
+        "css",
+        "utility-first",
+        "responsive",
+        "dark-mode"
+      ]
     },
     {
       "name": "tanstack-query",
@@ -9269,7 +9339,6 @@
         "metrics",
         "influxdb",
         "monitoring",
-        "collection-agent",
         "observability"
       ]
     },
@@ -9315,9 +9384,15 @@
     {
       "name": "tensorflow",
       "slug": "tensorflow",
-      "description": "You are an expert in TensorFlow, Google's open-source machine learning framework. You help developers build, train, and deploy neural networks using Keras (TensorFlow's high-level API), custom training loops, TensorFlow Serving for production inference, TFLite for mobile/edge deployment, and TensorFlow.js for browser ML — from prototyping to production-scale distributed training.",
-      "category": "AI & Machine Learning",
-      "tags": []
+      "description": "TensorFlow is Google's open-source machine learning framework for building, training and deploying neural networks with Keras 3. Use when a user asks to train a model with Keras, write a custom training loop, install TensorFlow with GPU support, export a SavedModel for TensorFlow Serving, or convert a model to TFLite for mobile and edge devices.",
+      "category": "data-ai",
+      "tags": [
+        "tensorflow",
+        "keras",
+        "deep-learning",
+        "tflite",
+        "python"
+      ]
     },
     {
       "name": "terminal-skills",
@@ -9667,15 +9742,14 @@
     {
       "name": "turso-drizzle",
       "slug": "turso-drizzle",
-      "description": "Turso + Drizzle ORM — type-safe SQLite at the edge with replication. Use when building edge-compatible applications with type-safe SQL, SQLite in production, multi-region databases, or Cloudflare Workers with a managed DB. Covers Turso setup, Drizzle schema definition, migrations with drizzle-kit, and edge deployment patterns.",
-      "category": "database",
+      "description": "Turso is a hosted SQLite-compatible (libSQL) database and Drizzle ORM is a type-safe TypeScript query builder; together they give typed SQLite in production. Use when setting up Turso with Drizzle, defining a Drizzle SQLite schema, running drizzle-kit migrations against a Turso database, connecting from Cloudflare Workers or other edge runtimes, or reading from an embedded replica.",
+      "category": "development",
       "tags": [
         "turso",
         "drizzle",
         "sqlite",
-        "edge",
-        "orm",
-        "type-safe"
+        "libsql",
+        "edge"
       ]
     },
     {
@@ -10045,7 +10119,7 @@
     {
       "name": "velero",
       "slug": "velero",
-      "description": "Velero for Kubernetes backup and disaster recovery. Use when the user needs to back up cluster resources and persistent volumes, restore workloads, migrate between clusters, or schedule automated backups.",
+      "description": "Velero is an open-source tool that backs up and restores Kubernetes cluster resources and persistent volumes to object storage. Use this skill when a user needs to install Velero, back up namespaces or whole clusters, schedule automated backups, restore workloads after a failure, back up volumes with file system backup or snapshots, or migrate applications between clusters.",
       "category": "devops",
       "tags": []
     },
@@ -10144,9 +10218,15 @@
     {
       "name": "vinxi",
       "slug": "vinxi",
-      "description": "You are an expert in Vinxi, the full-stack JavaScript SDK for building meta-frameworks. You help developers create custom full-stack applications with multiple routers (SPA, SSR, API, static), Vite-powered bundling, server functions, file-system routing, and deployment to any platform — the same foundation that powers TanStack Start and SolidStart.",
-      "category": "Developer Tools",
-      "tags": []
+      "description": "Vinxi is a JavaScript SDK for composing full-stack apps and meta-frameworks from routers (static, http, spa, client) on top of Vite and Nitro. Use when maintaining an app or framework already built on Vinxi, or when a user asks how Vinxi routers, createApp and the vinxi CLI work. Note that SolidStart 2 and current TanStack Start no longer use it.",
+      "category": "development",
+      "tags": [
+        "vinxi",
+        "vite",
+        "meta-framework",
+        "ssr",
+        "full-stack"
+      ]
     },
     {
       "name": "vite",
@@ -10258,8 +10338,8 @@
     {
       "name": "weave",
       "slug": "weave",
-      "description": "You are an expert in Weave, the lightweight toolkit by Weights & Biases for tracking and evaluating AI applications. You help developers trace LLM calls, evaluate outputs, compare model versions, track experiments, and debug AI pipelines — with automatic logging via decorators and a visual dashboard for exploring traces, costs, and quality metrics.",
-      "category": "AI & Machine Learning",
+      "description": "Weave is Weights & Biases' toolkit for tracing and evaluating LLM applications and AI agents. Use when a user wants to trace OpenAI or Anthropic calls, log agent runs, score outputs with evaluations, compare prompt or model versions, or debug an AI pipeline from a dashboard.",
+      "category": "data-ai",
       "tags": []
     },
     {
@@ -10401,7 +10481,7 @@
     {
       "name": "whisper",
       "slug": "whisper",
-      "description": "Transcribe audio to text with OpenAI Whisper. Use when a user asks to transcribe audio files, generate subtitles (SRT/VTT), transcribe podcasts, convert speech to text, translate audio to English, build transcription pipelines, do speaker diarization, transcribe meetings, process voice memos, create searchable audio archives, or integrate speech-to-text into applications. Covers OpenAI Whisper (local), Whisper API, faster-whisper, whisper.cpp, and production deployment patterns.",
+      "description": "Transcribe audio to text with OpenAI Whisper, an open-source speech recognition model that runs locally or through hosted APIs. Use when a user asks to transcribe audio files, generate subtitles (SRT/VTT), transcribe podcasts, convert speech to text, translate audio to English, build transcription pipelines, do speaker diarization, transcribe meetings, process voice memos, create searchable audio archives, or integrate speech-to-text into applications. Covers OpenAI Whisper (local), Whisper API, faster-whisper, whisper.cpp, and production deployment patterns.",
       "category": "content",
       "tags": []
     },
@@ -10676,9 +10756,15 @@
     {
       "name": "zod",
       "slug": "zod",
-      "description": "You are an expert in Zod, the TypeScript-first schema declaration and validation library. You help developers define schemas that validate data at runtime AND infer TypeScript types at compile time — eliminating the need to write types and validators separately. Used for API input validation, form validation, environment variables, config files, and any data boundary.",
-      "category": "Backend Development",
-      "tags": []
+      "description": "Zod is a TypeScript-first schema library that validates data at runtime and infers static types from the same schema. Use when validating API request bodies, form input, environment variables or config files, parsing untrusted JSON, or migrating from Zod 3 to Zod 4. Covers z.object, safeParse, z.infer, coercion, discriminated unions, refinements, JSON Schema output and the v4 API changes.",
+      "category": "development",
+      "tags": [
+        "validation",
+        "schema",
+        "typescript",
+        "type-inference",
+        "parsing"
+      ]
     },
     {
       "name": "zoho",
@@ -10716,7 +10802,6 @@
     "business",
     "content",
     "data-ai",
-    "database",
     "design",
     "development",
     "devops",
@@ -10725,5 +10810,5 @@
     "research",
     "runtime"
   ],
-  "updatedAt": "2026-10-13T17:04:50.267Z"
+  "updatedAt": "2026-10-21T23:44:57.893Z"
 }

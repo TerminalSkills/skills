@@ -10,10 +10,10 @@ description: >-
   dates and codes copied exactly. For engine options see the tesseract skill;
   for scanned PDFs see pdf-ocr.
 license: Apache-2.0
-compatibility: "Python 3.8+ and the Tesseract 5 command line on PATH (run on 5.3.4); the crop helper needs Pillow. The vision route needs an agent whose model accepts images."
+compatibility: "Python 3.8+ and the Tesseract 5 command line on PATH (run on 5.3.4); the crop helper needs Pillow (Pillow 13 requires Python 3.11+). The vision route needs an agent whose model accepts images."
 metadata:
   author: terminal-skills
-  version: "2.0.0"
+  version: "2.1.0"
   category: data-ai
   tags: ["ocr", "text-extraction", "vision-model", "data-extraction", "verification"]
 ---

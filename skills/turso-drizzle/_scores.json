@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:e641b40bdea7ac154dcaf645642e507ad7b2de1f9f90e41395ade75f169c4834",
-  "scoredAt": "2026-05-13T10:28:33.495Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f0bfb12e8a4be889ffe5e3f527d97efaa4d617261dbc209ce5522dc07325028f",
+  "scoredAt": "2026-10-20T20:28:22.636Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Does not cover error handling or edge cases such as missing environment variables or connection failures."
+        "detail": "The skill does not cover error handling or edge cases such as missing environment variables or connection failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
       }
     ]
   },
@@ -27,27 +32,33 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "setup",
-        "detail": "Uses curl|bash from official source without checksum verification."
+        "category": "checksum",
+        "detail": "The curl install script for Turso CLI lacks a checksum verification step."
       }
     ]
   },
   "impact": {
-    "baselineAvg": 24,
-    "treatmentAvg": 95,
-    "multiplier": 3.96,
+    "multiplier": 2.11,
+    "baselineAvg": 27,
+    "treatmentAvg": 57,
     "scenarios": [
       {
-        "name": "Set up Drizzle ORM with Turso for users + posts with timestamps and relations",
-        "baseline": 25,
-        "treatment": 94,
-        "rationale": "Baseline picks the wrong adapter (better-sqlite3) and misses relations and timestamp mode; treatment uses drizzle-orm/libsql with @libsql/client, dialect:'turso' in drizzle.config.ts with authToken, sqliteTable columns with mode:'timestamp' + $defaultFn, and relations() for joins."
+        "name": "setup-turso-migrations",
+        "baseline": 40,
+        "treatment": 75,
+        "rationale": "Response A includes the required drizzle.config.ts, migration commands, and a sqliteTable schema, but omits the db instance export; Response B lacks the config, schema definition, and db instance, making it less complete."
       },
       {
-        "name": "Deploy a Cloudflare Worker that queries Turso with Drizzle",
-        "baseline": 22,
+        "name": "cloudflare-worker-query",
+        "baseline": 10,
         "treatment": 95,
-        "rationale": "Baseline imports the default @libsql/client (native bindings unsupported on Workers) and commits the token to wrangler.toml; treatment uses @libsql/client/http, creates the client per-request in middleware, and sets TURSO_AUTH_TOKEN via wrangler secret put."
+        "rationale": "Response B fulfills all rubric requirements, while Response A lacks key imports, framework usage, and configuration details."
+      },
+      {
+        "name": "embedded-replica-sync",
+        "baseline": 30,
+        "treatment": 0,
+        "rationale": "Response A contains some setup steps but omits the required client creation, sync configuration, drizzle usage, and read/write notes, whereas Response B is empty."
       }
     ]
   }

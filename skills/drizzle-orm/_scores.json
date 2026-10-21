@@ -1,24 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9b07059dcda0cbd362647a2d523dfd60afdf8cdabd8a75dbc6912e0ca91f1c78",
-  "scoredAt": "2026-05-13T08:46:19.790Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:eb926e7c0595a7cbbe2163904052c185797fce8050da836052f83260a5f43651",
+  "scoredAt": "2026-10-20T19:21:36.579Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill does not cover error handling or edge cases such as missing environment variables or migration conflicts."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js or Bun environment, limiting its applicability to other platforms."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 88,
-    "multiplier": 1.76,
+    "multiplier": 6.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Define a users/posts schema with relations and generate a migration",
-        "baseline": 52,
-        "treatment": 90,
-        "rationale": "Treatment uses drizzle-orm/pg-core builders (pgTable, uuid, varchar, timestamp), declares relations() for posts↔users, and runs npx drizzle-kit generate to emit the migration; baseline writes a typeORM/Prisma-style schema or hand-rolled SQL without drizzle-kit generate."
+        "name": "add-comments-table-migration",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not use Drizzle or pgTable at all."
       },
       {
-        "name": "Fetch admins with their published posts using nested includes",
-        "baseline": 48,
-        "treatment": 86,
-        "rationale": "Treatment uses db.query.users.findMany with the with: { posts: ... } relational include filtered by eq(users.role, 'admin'); baseline writes two manual queries or a hand-built JOIN with no awareness of db.query relational API."
+        "name": "author-published-posts-dashboard",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses fail to meet the rubric requirements."
+      },
+      {
+        "name": "upsert-user-and-update-post",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A does not."
       }
     ]
   }

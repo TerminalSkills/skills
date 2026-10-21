@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:6a26e40692a590fb5ea6c34288ce0ab336e6b8bf1082258956be696291202f09",
-  "scoredAt": "2026-05-13T09:48:51.734Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0c2c494a415205b0b5f80892f8804bcceb63462ab237bf96bb759f69f7ca8365",
+  "scoredAt": "2026-10-20T20:03:04.829Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,12 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The guide does not cover all error scenarios and edge cases for payment processing."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The documentation contains some verbose explanations that could be trimmed for brevity."
+        "detail": "The instructions do not cover error scenarios or edge cases."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 96,
-    "multiplier": 2.53,
+    "multiplier": 2.16,
+    "baselineAvg": 43,
+    "treatmentAvg": 93,
     "scenarios": [
       {
-        "name": "saq-selection-stripe",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Baseline incorrectly suggests SAQ A for Stripe Elements; treatment correctly assigns SAQ A-EP, explains why (JS-based payment form means the page can influence card capture), and gives the medium ~191-requirement scope from the skill's SAQ table."
+        "name": "saq-selection-hosted-checkout",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
       },
       {
-        "name": "logging-and-storage-rules",
-        "baseline": 45,
-        "treatment": 96,
-        "rationale": "Baseline mentions tokenization and CVV avoidance but misses log retention and exact masking rules; treatment cites the SAD prohibition, first-6-last-4 masking, structured CHD-access logs with card_last4, and the 12-month / 3-month retention rule from Req 10."
+        "name": "cde-scope-saas-payment-flow",
+        "baseline": 50,
+        "treatment": 80,
+        "rationale": "Response A covers most rubric items but omits explicit mention of tokenization, while Response B fails to exclude Stripe.js from the CDE and lacks the required tokenization detail."
+      },
+      {
+        "name": "compliance-checklist-braintree-hosted-fields",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric with explicit SAQ A‑EP, all required controls, and a detailed checklist; Response B covers most controls but misidentifies the SAQ type and is less explicit in linking each item to a documented checklist."
       }
     ]
   }

@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:829674e32f19e16e7ada8814411237a04c7c5dac1b3cdd26c0de15cfb3b6bf69",
-  "scoredAt": "2026-05-13T09:22:36.352Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:df17d30a999d1c4ce7d47dc4c6914a052275d36ca1623a46f111e378f4f8da35",
+  "scoredAt": "2026-10-20T18:08:26.321Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover all error scenarios and edge cases beyond webhook signature verification."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill file assumes a Node.js environment, limiting applicability to other AI agent platforms."
+        "detail": "The skill is specific to Node.js and cannot be used by agents on other platforms."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 91,
-    "multiplier": 1.82,
+    "multiplier": 7.69,
+    "baselineAvg": 13,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "checkout-with-custom-data",
-        "baseline": 50,
-        "treatment": 90,
-        "rationale": "Treatment uses createCheckout from @lemonsqueezy/lemonsqueezy.js with checkoutData.custom for user_id and productOptions.enabledVariants per skill; baseline reaches for raw REST without the SDK shape."
+        "name": "create-checkout-link-with-custom-data",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B uses a different API approach and omits the required SDK calls and parameters."
       },
       {
-        "name": "webhook-subscription-lifecycle",
-        "baseline": 50,
-        "treatment": 92,
-        "rationale": "Treatment verifies the x-signature HMAC-sha256 and switches on event_name for subscription_created/updated/cancelled per skill; baseline knows webhook signing conceptually but misses Lemon Squeezy's specific header and event names."
+        "name": "verify-webhook-signature-and-process-subscription",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits key details such as the correct header, event field, database update fields, and JSON response format."
+      },
+      {
+        "name": "activate-and-validate-license-key",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet any of the specified requirements."
       }
     ]
   }

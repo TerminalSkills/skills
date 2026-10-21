@@ -1,15 +1,18 @@
 ---
 name: velero
 description: >-
-  Velero for Kubernetes backup and disaster recovery. Use when the user needs
-  to back up cluster resources and persistent volumes, restore workloads,
-  migrate between clusters, or schedule automated backups.
+  Velero is an open-source tool that backs up and restores Kubernetes cluster
+  resources and persistent volumes to object storage. Use this skill when a
+  user needs to install Velero, back up namespaces or whole clusters, schedule
+  automated backups, restore workloads after a failure, back up volumes with
+  file system backup or snapshots, or migrate applications between clusters.
 license: Apache-2.0
-compatibility: 'linux, macos'
+compatibility: "Kubernetes 1.18+, kubectl, an S3-compatible, GCS or Azure bucket; Velero CLI on linux or macOS"
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: devops
+  repository: https://github.com/velero-io/velero
   tags:
     - velero
     - kubernetes
@@ -20,223 +23,109 @@ metadata:
 
 # Velero
 
-Velero backs up and restores Kubernetes cluster resources and persistent volumes for disaster recovery and migration.
+## Overview
 
-## Installation
+Velero (formerly Heptio Ark, now at github.com/velero-io/velero; latest 1.18.x) has two parts: a server running in the cluster (namespace `velero`) and a local `velero` CLI. Backups are stored in a BackupStorageLocation (an object-storage bucket). Volume data is captured one of three ways: CSI or provider snapshots, file system backup (Kopia, run by the node agent; works for almost any volume type, including NFS and emptyDir; restic is deprecated), or the CSI snapshot data mover (`--snapshot-move-data`). Cloud integrations are plugins whose version must match Velero (plugin 1.14.x for Velero 1.18.x).
+
+## Instructions
+
+1. Install the CLI. Prefer a package manager:
 
 ```bash
-# Install Velero CLI
-wget https://github.com/vmware-tanzu/velero/releases/download/v1.13.0/velero-v1.13.0-linux-amd64.tar.gz
-tar -xzf velero-v1.13.0-linux-amd64.tar.gz
-sudo mv velero-v1.13.0-linux-amd64/velero /usr/local/bin/
+brew install velero            # macOS and Linuxbrew
+choco install velero           # Windows
 ```
 
-## AWS Setup
+Or download a release and verify the checksum before extracting:
 
 ```bash
-# Install Velero with AWS provider
+VER=v1.18.4
+curl -sLO https://github.com/velero-io/velero/releases/download/$VER/velero-$VER-linux-amd64.tar.gz
+curl -sLO https://github.com/velero-io/velero/releases/download/$VER/CHECKSUM
+sha256sum -c --ignore-missing CHECKSUM
+tar -xzf velero-$VER-linux-amd64.tar.gz
+sudo install velero-$VER-linux-amd64/velero /usr/local/bin/velero
+velero version --client-only
+```
+
+2. Install the server (the Helm chart is the other supported method). AWS, with credentials taken from environment variables:
+
+```bash
+printf '[default]\naws_access_key_id=%s\naws_secret_access_key=%s\n' \
+  "$VELERO_AWS_ACCESS_KEY_ID" "$VELERO_AWS_SECRET_ACCESS_KEY" > credentials-velero
+
 velero install \
   --provider aws \
-  --plugins velero/velero-plugin-for-aws:v1.9.0 \
-  --bucket my-velero-backups \
-  --backup-location-config region=us-east-1 \
-  --snapshot-location-config region=us-east-1 \
+  --plugins velero/velero-plugin-for-aws:v1.14.4 \
+  --bucket northwind-velero-backups \
+  --backup-location-config region=eu-west-1 \
+  --snapshot-location-config region=eu-west-1 \
   --secret-file ./credentials-velero \
   --use-node-agent \
-  --default-volumes-to-fs-backup
+  --wait
+rm credentials-velero
 ```
 
-```ini
-# credentials-velero — AWS credentials file for Velero
-[default]
-aws_access_key_id=AKIA...
-aws_secret_access_key=...
-```
+GCP: `--provider gcp --plugins velero/velero-plugin-for-gcp:v1.14.4 --bucket NAME --secret-file ./gcp-sa.json`. With IAM roles or workload identity use `--no-secret` instead of a key file. Add `--default-volumes-to-fs-backup` to back up every pod volume with file system backup, or `--use-volume-snapshots=false` if there is no snapshot provider.
 
-## GCP Setup
+3. Back up with `velero backup create NAME` and the filters `--include-namespaces`, `--exclude-namespaces`, `--selector`, `--include-resources` / `--exclude-resources` (format `resource.group`, e.g. `deployments.apps`), `--ttl` (default 720h), `--snapshot-volumes=false`, `--default-volumes-to-fs-backup`, `--snapshot-move-data`, `--wait`. Inspect with `velero backup get`, `describe --details`, `logs`.
+4. Schedule with `velero schedule create NAME --schedule="0 2 * * *"` (cron in UTC; `@every 24h` also works) plus the same filters. `velero backup create --from-schedule NAME` runs one now; `velero restore create --from-schedule NAME` restores the latest good run.
+5. Restore with `velero restore create --from-backup NAME`, optionally `--include-namespaces`, `--include-resources`, `--namespace-mappings old:new`, `--existing-resource-policy update`. Existing objects are skipped unless the policy is `update`. Check `velero restore describe NAME --details`.
+6. Volumes with file system backup: in opt-in mode annotate the pod (template) with `backup.velero.io/backup-volumes: data`; in opt-out mode (`--default-volumes-to-fs-backup`) skip volumes with `backup.velero.io/backup-volumes-excludes`. `hostPath` volumes are not supported (`local` is).
+7. To migrate, install Velero in the destination cluster against the same bucket (or add it as a `--access-mode ReadOnly` location), wait until `velero backup get` lists the source backups, then restore.
+
+## Examples
+
+### Nightly backup of production with 30-day retention
 
 ```bash
-# Install Velero with GCP provider
-velero install \
-  --provider gcp \
-  --plugins velero/velero-plugin-for-gcp:v1.9.0 \
-  --bucket my-velero-backups \
-  --secret-file ./credentials-velero-gcp.json \
-  --use-node-agent
-```
-
-## Backup Operations
-
-```bash
-# Create a full cluster backup
-velero backup create full-backup-$(date +%Y%m%d)
-
-# Backup specific namespace
-velero backup create app-backup \
-  --include-namespaces production,staging \
-  --ttl 720h
-
-# Backup with label selector
-velero backup create team-a-backup \
-  --selector app.kubernetes.io/team=team-a
-
-# Backup specific resources
-velero backup create configs-backup \
-  --include-resources configmaps,secrets \
-  --include-namespaces default
-
-# Exclude resources
-velero backup create partial-backup \
-  --exclude-namespaces kube-system,kube-public \
-  --exclude-resources events
-
-# Check backup status
-velero backup describe full-backup-20240115
-velero backup logs full-backup-20240115
-velero backup get
-```
-
-## Scheduled Backups
-
-```bash
-# Create scheduled backup (daily at 2am UTC)
-velero schedule create daily-backup \
+velero schedule create prod-nightly \
   --schedule="0 2 * * *" \
-  --ttl 168h \
-  --include-namespaces production
-
-# Weekly full backup
-velero schedule create weekly-full \
-  --schedule="0 0 * * 0" \
+  --include-namespaces production,database \
+  --default-volumes-to-fs-backup \
   --ttl 720h
-
-# List and manage schedules
-velero schedule get
-velero schedule describe daily-backup
-velero schedule delete daily-backup
+velero backup create prod-first-run --from-schedule prod-nightly --wait
+velero backup describe prod-first-run --details
 ```
 
-```yaml
-# schedule.yaml — Velero Schedule as manifest
-apiVersion: velero.io/v1
-kind: Schedule
-metadata:
-  name: daily-production
-  namespace: velero
-spec:
-  schedule: "0 2 * * *"
-  template:
-    includedNamespaces:
-      - production
-      - database
-    ttl: 168h0m0s
-    storageLocation: default
-    volumeSnapshotLocations:
-      - default
-    defaultVolumesToFsBackup: true
-  useOwnerReferencesInBackup: false
-```
+Result: `Phase: Completed`, with the pod volume backups listed under "Backup Volumes". The schedule itself produces names like `prod-nightly-20261021020000`.
 
-## Restore Operations
+### Restore one namespace into a side-by-side copy
 
 ```bash
-# Restore entire backup
-velero restore create --from-backup full-backup-20240115
-
-# Restore specific namespace
-velero restore create --from-backup full-backup-20240115 \
-  --include-namespaces production
-
-# Restore to different namespace (namespace mapping)
-velero restore create --from-backup app-backup \
-  --namespace-mappings production:production-restored
-
-# Restore specific resources only
-velero restore create --from-backup full-backup-20240115 \
-  --include-resources deployments,services,configmaps
-
-# Check restore status
-velero restore describe restore-name
-velero restore logs restore-name
-velero restore get
+velero restore create shop-drill \
+  --from-backup prod-nightly-20261021020000 \
+  --include-namespaces production \
+  --namespace-mappings production:production-drill
+velero restore describe shop-drill --details
+kubectl get pods -n production-drill
 ```
 
-## Backup Locations
+Result: the restore reaches `Completed` and the pods start in `production-drill` while production is untouched. A drill like this each quarter proves the backups work.
 
-```yaml
-# backup-location.yaml — Additional backup storage location
-apiVersion: velero.io/v1
-kind: BackupStorageLocation
-metadata:
-  name: secondary
-  namespace: velero
-spec:
-  provider: aws
-  objectStorage:
-    bucket: my-velero-secondary
-    prefix: backups
-  config:
-    region: eu-west-1
-  accessMode: ReadWrite
-```
-
-## Volume Backup Annotations
-
-```yaml
-# deployment-with-backup.yaml — Deployment with volume backup annotations
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: database
-spec:
-  template:
-    metadata:
-      annotations:
-        backup.velero.io/backup-volumes: data
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/postgresql/data
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: postgres-data
-```
-
-## Cluster Migration
+### Migrate to a new cluster
 
 ```bash
-# Source cluster: create backup
-velero backup create migration-backup --include-namespaces production
+# old cluster
+velero backup create migrate-2026-10 --exclude-namespaces kube-system,velero \
+  --default-volumes-to-fs-backup --wait
 
-# Configure destination cluster with same backup location
-velero backup-location create source \
-  --provider aws \
-  --bucket my-velero-backups \
-  --config region=us-east-1 \
-  --access-mode ReadOnly
-
-# Destination cluster: restore
-velero restore create --from-backup migration-backup
+# new cluster (kubectl context switched), same bucket
+velero install --provider aws --plugins velero/velero-plugin-for-aws:v1.14.4 \
+  --bucket northwind-velero-backups --backup-location-config region=eu-west-1 \
+  --secret-file ./credentials-velero --use-node-agent --wait
+velero backup get
+velero restore create --from-backup migrate-2026-10
 ```
 
-## Common Commands
+Result: `migrate-2026-10` shows up in the new cluster's backup list (Velero syncs the bucket contents every minute or so) and the restore recreates namespaces, workloads and volume data.
 
-```bash
-# Status and debugging
-velero get backups
-velero get restores
-velero get schedules
+## Guidelines
 
-# Plugin management
-velero plugin get
-
-# Delete old backups
-velero backup delete old-backup-name
-
-# Uninstall
-velero uninstall
-```
+- Test restores. A backup that was never restored is unproven; check `velero backup describe --details` for `PartiallyFailed`.
+- Snapshot backups need a matching snapshot plugin or CSI setup; for any other volume use file system backup, which needs `--use-node-agent`.
+- File system backup reads live data, so databases may be only crash-consistent; use backup hooks to quiesce them.
+- `velero backup delete NAME --confirm` also removes the backup data from the bucket, and `velero uninstall` removes the CRDs. Neither can be undone.
+- Keep the plugin image tag in the compatible range for your Velero version and read the upgrade notes before a minor upgrade.
+- Backups contain Secrets; restrict bucket access, encrypt the bucket, and delete local credentials files after install.
+- Cluster-scoped resources are included only per your filters; see `--include-cluster-scoped-resources` when you filter by namespace and need CRDs or storage classes.

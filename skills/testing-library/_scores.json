@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:96b0b68772d70670854e168b387526ff22390bce5f4920bc7dc8cb426d2c8eb0",
-  "scoredAt": "2026-05-13T10:25:20.925Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:57c896b2e46b6ee84059fb4cb9cd6bd964fcb80a466935b7cea0a96be06266b2",
+  "scoredAt": "2026-10-20T20:26:50.106Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 100,
     "dimensions": {
@@ -21,21 +21,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 94,
-    "multiplier": 1.71,
+    "multiplier": 3.91,
+    "baselineAvg": 23,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "Test a login form with validation",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment uses userEvent.setup() with user.type/user.click, queries by getByRole(\"button\", {name}) and getByLabelText, and asserts validation via getByRole(\"alert\"); baseline tends to fall back to fireEvent and CSS/testId selectors that the skill explicitly discourages."
+        "name": "login-form-submission",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses fireEvent instead of userEvent and checks a different error message, missing key rubric items."
       },
       {
-        "name": "Test async user profile fetch with loading and error states",
-        "baseline": 55,
-        "treatment": 93,
-        "rationale": "Treatment wraps async assertions in waitFor, queries by getByRole(\"heading\") and getByRole(\"alert\"), and asserts the initial loading text; baseline often uses class-based selectors and ad-hoc timers instead of waitFor."
+        "name": "async-data-fetching",
+        "baseline": 50,
+        "treatment": 70,
+        "rationale": "Response B better meets the rubric, using findByRole for the heading and getByText for loading, though it misses waitFor for the error; Response A uses waitFor for error but fails to use findByRole for the heading and uses the wrong error text."
+      },
+      {
+        "name": "sortable-table",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not use getByRole, within, or aria-sort checks as required."
       }
     ]
   }
