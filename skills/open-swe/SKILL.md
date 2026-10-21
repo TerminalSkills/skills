@@ -7,7 +7,7 @@ description: >-
   or run Open SWE, set up its GitHub App and Slack bot, trigger it with
   @openswe, have it review pull requests, call it from CI with the oswe CLI,
   or customize its model, sandbox and prompts.
-license: MIT
+license: Apache-2.0
 compatibility: "Self-hosted: Python 3.14+, uv, Node.js 22.22.2+, pnpm, Docker (PostgreSQL), a LangSmith API key and a GitHub App"
 metadata:
   author: terminal-skills

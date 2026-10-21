@@ -4,7 +4,7 @@ description: >-
   Build AI agent teams that collaborate on projects using Squad framework. Use when:
   orchestrating multiple specialized agents, building collaborative AI workflows,
   delegating complex tasks across agent teams.
-license: MIT
+license: Apache-2.0
 compatibility: "Node.js 22.5+, npm 10+, Git, GitHub CLI (gh), GitHub Copilot CLI or VS Code with Copilot"
 metadata:
   author: terminal-skills

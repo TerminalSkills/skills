@@ -5,7 +5,7 @@ description: >-
   share context between agents, and manage team workflows. Use when: running multiple
   Claude Code agents simultaneously, building team-based AI development workflows,
   coordinating complex multi-agent coding projects.
-license: MIT
+license: Apache-2.0
 compatibility: "Claude Code, Node.js 18+"
 metadata:
   author: terminal-skills

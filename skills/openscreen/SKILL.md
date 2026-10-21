@@ -4,7 +4,7 @@ description: >-
   Create stunning screen recordings and product demos with OpenScreen — open-source, no
   watermarks, free for commercial use. Use when: recording product demos, creating tutorial
   videos, building marketing content, screen recording with post-processing effects.
-license: MIT
+license: Apache-2.0
 compatibility: "macOS 13+, Windows 10 1903+ (x64), Linux x64 with PipeWire and xdg-desktop-portal"
 metadata:
   author: terminal-skills

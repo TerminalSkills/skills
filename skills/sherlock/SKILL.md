@@ -4,7 +4,7 @@ description: >-
   Search for social media accounts by username across 400+ platforms using Sherlock.
   Use when: OSINT investigations, finding online presence by username, digital
   footprint analysis, brand monitoring across social platforms.
-license: MIT
+license: Apache-2.0
 compatibility: "Python 3.8+"
 metadata:
   author: terminal-skills

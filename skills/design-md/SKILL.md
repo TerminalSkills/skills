@@ -5,7 +5,7 @@ description: >-
   DESIGN.md into your project root and any AI coding agent generates consistent, pixel-perfect
   UI matching that design. Use when: building UI with AI agents, maintaining design consistency
   across AI-generated components, recreating the look of existing websites.
-license: MIT
+license: Apache-2.0
 compatibility: "Any AI coding agent, Google Stitch"
 metadata:
   author: terminal-skills

@@ -2,7 +2,7 @@
 name: lightpanda-browser
 description: >-
   Lightpanda is a headless browser written in Zig for AI agents and scraping: no rendering, a V8 JavaScript engine, a CDP server for Puppeteer and Playwright, a fetch command that dumps pages as Markdown, and a built-in MCP server. Use when building AI web scrapers, giving an agent a lightweight browser, or running headless browsing where Chrome is too heavy.
-license: AGPL-3.0
+license: Apache-2.0
 compatibility: "Linux (glibc) and macOS binaries, Docker image, Windows via WSL2; any language via CDP"
 metadata:
   author: terminal-skills

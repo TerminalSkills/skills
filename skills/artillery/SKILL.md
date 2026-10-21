@@ -1,6 +1,7 @@
 ---
 name: artillery
 description: When the user wants to perform load testing or performance testing using Artillery with YAML-based scenario definitions. Also use when the user mentions "artillery," "YAML load test," "WebSocket testing," "Socket.io load test," "scenario-based load testing," or "artillery run." For JavaScript-based load testing, see k6.
+license: Apache-2.0
 metadata:
   author: terminal-skills
   version: "1.0.0"

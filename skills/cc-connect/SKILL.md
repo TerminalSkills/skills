@@ -4,7 +4,7 @@ description: >-
   Bridge local AI coding agents (Claude Code, Cursor, Gemini CLI, Codex) to messaging
   platforms (Slack, Telegram, Discord). Use when: controlling AI agents from team chat,
   sending coding tasks via Slack/Telegram, building team-accessible AI workflows.
-license: MIT
+license: Apache-2.0
 compatibility: "Node.js 18+ or Python 3.10+"
 metadata:
   author: terminal-skills

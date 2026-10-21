@@ -1,6 +1,7 @@
 ---
 name: testcontainers
 description: When the user wants to run integration tests with real dependencies using Docker containers managed by Testcontainers. Also use when the user mentions "testcontainers," "integration testing with Docker," "database integration tests," "containerized tests," or "test with real database." For API mocking without containers, see mockoon or wiremock.
+license: Apache-2.0
 metadata:
   author: terminal-skills
   version: "1.0.0"

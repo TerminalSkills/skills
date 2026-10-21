@@ -2,7 +2,7 @@
 name: pascal-editor
 description: >-
   Build and extend 3D building editor apps with Pascal Editor, an open-source React Three Fiber and WebGPU editor whose scene is a flat Zustand node store (site, building, level, wall, door, window, slab, zone). Use when building a 3D architectural tool or BIM-like editor, generating floor plans from code or an AI agent, extending Pascal with custom node plugins, or running its MCP server.
-license: MIT
+license: Apache-2.0
 compatibility: "Node.js 22.13+, React 18 or 19, three 0.186, @react-three/fiber 9, @react-three/drei 10"
 metadata:
   author: terminal-skills
