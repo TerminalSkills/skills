@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:1436f3fbcd90c3206f3460080c2d3780f216647b600b7f2ffe6ce6596901b7dc",
-  "scoredAt": "2026-05-13T09:19:52.631Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:a1abaf2c51959ecc42a12be5d081322baabb8b446fbcfc0603b8dff9ca7a7979",
+  "scoredAt": "2026-10-20T19:47:25.301Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases, such as API failures or missing indices."
+        "detail": "The skill does not cover error handling or edge cases for deployment and API interactions."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 90,
-    "multiplier": 2.57,
+    "multiplier": 7.7,
+    "baselineAvg": 10,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "Create a logs-* data view with a runtime field and a read-only payments team space",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment POSTed to /api/data_views/data_view with runtimeFieldMap (hour_of_day painless script), created a space via /api/spaces/space with disabledFeatures, and used a document-level-security role via _security/role with a query restricting service.name; baseline only mentioned doing it in the UI without API payload shapes or runtime fields."
+        "name": "create-data-view-with-runtime-field",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B omits required headers, endpoint, field names, and script details."
       },
       {
-        "name": "Backup a dashboard and set up an alert when payment-service errors exceed 50/5min",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment used /api/saved_objects/_export with includeReferencesDeep and /api/saved_objects/_import?overwrite=true producing NDJSON, plus /api/alerting/rule with rule_type_id '.es-query', timeWindowSize/Unit, thresholdComparator and a slack connector action; baseline suggested Watcher or generic Elasticsearch alerting without the Kibana alerting rule schema."
+        "name": "export-import-dashboard",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A includes the exact Kibana export/import POSTs with required headers, body, and file upload; Response B does not mention Kibana API at all."
+      },
+      {
+        "name": "create-kibana-space",
+        "baseline": 30,
+        "treatment": 30,
+        "rationale": "Both responses miss the required id 'marketing-team' and the exact color '#2196F3'; B includes a color field (though wrong) and thus is marginally better."
       }
     ]
   }

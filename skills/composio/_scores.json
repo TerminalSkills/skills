@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:594679c1d2731da7364b0f3721ba6943c6cabf6655c7885023e2e60bfb8e852c",
-  "scoredAt": "2026-05-13T15:50:17.351Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:49c0eeab710d679cf61f1793d201edc499946ff4c55ea506afe0fe8a1780c546",
+  "scoredAt": "2026-10-20T19:08:00.753Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
-      "examples": "WEAK"
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
+        "detail": "Instructions do not cover error scenarios or edge cases."
       },
       {
         "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "Only one realistic code example is provided, but two or more are required."
+        "category": "conciseness",
+        "detail": "Documentation contains verbose sections that could be trimmed."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5,
-    "baselineAvg": 15,
-    "treatmentAvg": 75,
+    "multiplier": 8.2,
+    "baselineAvg": 5,
+    "treatmentAvg": 82,
     "scenarios": [
       {
-        "name": "github-issue-slack-notify",
+        "name": "create-github-issue-agent",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric, while Response B does not use ComposioToolSet or the required tool calls."
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use Composio or the required agent framework."
       },
       {
-        "name": "setup-github-oauth-and-crewai-agent",
-        "baseline": 30,
+        "name": "migrate-legacy-v1-code",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B fully addresses all rubric points, while Response A does not mention the required dependency replacements or session-based tool usage."
+      },
+      {
+        "name": "reuse-session-id",
+        "baseline": 0,
         "treatment": 50,
-        "rationale": "Response A uses the Composio toolset and gets GitHub tools, covering more rubric items, while Response B omits the required toolset calls and role specification."
+        "rationale": "Response A covers session creation, persistence, and resumption but omits MCP details; Response B is unrelated to composio and fails the rubric entirely."
       }
     ]
   }

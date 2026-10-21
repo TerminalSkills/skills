@@ -1,41 +1,58 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9990d703b475090078e5dfe0a98e81778e760b97bde9abae5add179d80613d89",
-  "scoredAt": "2026-05-13T14:09:55.114Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9fcf24cfcf43d9cffb9a2f365e8619001348e7ba5e7b12b9f337c613a776c8b2",
+  "scoredAt": "2026-10-20T19:03:18.160Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "PASS",
-      "conciseness": "PASS",
+      "completeness": "WEAK",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "completeness",
+        "detail": "The skill does not cover all possible error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanatory text that could be more concise."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.52,
-    "baselineAvg": 33,
-    "treatmentAvg": 83,
+    "multiplier": 1.83,
+    "baselineAvg": 42,
+    "treatmentAvg": 77,
     "scenarios": [
       {
-        "name": "generate-2-bedroom-apartment",
-        "baseline": 20,
-        "treatment": 75,
-        "rationale": "Response A covers most rubric items but fails the 10% window area requirement for some rooms, while Response B lacks key specifications such as ceiling height, wall thickness, door dimensions, and window area details."
+        "name": "validate-residential-floor-plan",
+        "baseline": 45,
+        "treatment": 60,
+        "rationale": "Response A covers more of the required checks (ceiling, walls, doors, glazing ratio logic) than Response B, though both miss a concrete glazing‑ratio calculation and explicit violation listing."
       },
       {
-        "name": "validate-floor-plan",
-        "baseline": 45,
-        "treatment": 90,
-        "rationale": "Response B addresses all rubric items with specific calculations, while Response A misses several key requirements and provides incomplete stair geometry."
+        "name": "calculate-stair-geometry",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully lists the required fields and sufficiency check, while Response B only shows code without actual output values."
+      },
+      {
+        "name": "generate-commercial-office-dimensions",
+        "baseline": 80,
+        "treatment": 70,
+        "rationale": "Both responses list the required dimensions, but Response B’s corridor height and window sill values are closer to the rubric’s specified ranges, giving it a higher score."
       }
     ]
   }

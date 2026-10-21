@@ -1,47 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d1f565fb1e56c7427b35410afcde4af9010fc86627da4f441eb4b4b1968b8595",
-  "scoredAt": "2026-05-13T09:15:53.139Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:e2a49d2d0d00248104e7b44707e0a8590996fedbfc31ddc91ffc1b4dee3f9ee5",
+  "scoredAt": "2026-10-20T19:43:27.427Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
-  },
-  "security": {
-    "verdict": "SUSPICIOUS",
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "checksum",
-        "detail": "Download link provided without checksum verification."
+        "category": "crossPlatform",
+        "detail": "The skill is macOS-only, limiting cross-platform compatibility."
       }
     ]
   },
+  "security": {
+    "verdict": "SAFE",
+    "issues": []
+  },
   "impact": {
-    "baselineAvg": 26,
-    "treatmentAvg": 91,
-    "multiplier": 3.5,
+    "multiplier": 5.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 53,
     "scenarios": [
       {
-        "name": "Meeting prep across Contacts, Calendar, and Messages",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Baseline reaches for AppleScript/osascript and custom MCP code, missing the iMCP bridge; treatment installs the Homebrew cask, configures the imcp mcpServers entry with --mcp, and walks through menu-bar permissions."
+        "name": "meeting-prep-workflow",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A outlines the process and gives example data but lacks the actual required information, whereas Response B refuses to provide any answer."
       },
       {
-        "name": "Morning planning across Reminders, Calendar, and Weather",
-        "baseline": 27,
-        "treatment": 90,
-        "rationale": "Baseline cobbles together reminders-cli, ical exports, and a weather API; treatment activates the iMCP services from the menu bar, grants Calendar/Reminders/Location permissions, and wires the single mcpServers block into Claude Desktop."
+        "name": "daily-planning",
+        "baseline": 0,
+        "treatment": 10,
+        "rationale": "Response A offers actionable steps to retrieve the required data, whereas Response B merely states it cannot access the information."
+      },
+      {
+        "name": "navigation-assist",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to provide any of the required details."
       }
     ]
   }

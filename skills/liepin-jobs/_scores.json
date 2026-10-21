@@ -1,9 +1,9 @@
 {
-  "version": "0.1.0",
-  "skillHash": "sha256:c2e67cec78e33d941ef458df23ea14500fbbe4bdc73a44bc9809a957aceefcdb",
-  "scoredAt": "2026-05-13T09:23:58.557Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "0.2.0",
+  "skillHash": "sha256:132eff782e04ab8bc65c08adbf37cf475cc96ceacc926b6e9df9f94b9cadd4a1",
+  "scoredAt": "2026-10-20T19:51:30.322Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,36 +18,36 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios and edge cases."
+        "detail": "The instructions do not cover all error scenarios, such as network failures or malformed responses."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "curl",
-        "detail": "Script fetched via curl without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 10,
-    "treatmentAvg": 92,
-    "multiplier": 9.2,
+    "multiplier": 2.61,
+    "baselineAvg": 23,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "Search Liepin for AI product manager jobs in Shanghai with a salary band",
-        "baseline": 10,
-        "treatment": 92,
-        "rationale": "Treatment runs python3 liepin_mcp.py search-job --jobName \"AI产品经理\" --address \"上海\" --salary \"30-50k\" after ensuring LIEPIN_GATEWAY_TOKEN and LIEPIN_USER_TOKEN are set; baseline suggests scraping the site or generic job-search tactics and never invokes the MCP CLI."
+        "name": "search-jobs-with-filters",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B includes the required command line but does not show JSON output, whereas Response A does not contain the command line at all."
       },
       {
-        "name": "Review the user's Liepin resume and update the work-experience section",
-        "baseline": 10,
-        "treatment": 92,
-        "rationale": "Treatment calls python3 liepin_mcp.py my-resume --json to inspect, then python3 liepin_mcp.py update-resume --module experience --data '{...}', and warns about the 90-day token expiry and 60 req/min rate limit; baseline cannot interact with Liepin at all."
+        "name": "update-basic-resume",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A includes the required command lines (though with minor formatting differences) but omits the server confirmation, whereas Response B fails to provide any commands."
+      },
+      {
+        "name": "apply-job-with-confirmation",
+        "baseline": 70,
+        "treatment": 80,
+        "rationale": "Both responses provide the required search and apply commands, but neither includes an explicit confirmation prompt; Response A offers more detail and a review comment, making it slightly better."
       }
     ]
   }

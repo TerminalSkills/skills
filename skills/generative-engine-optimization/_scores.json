@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:94f96e54e54ba60a1616092808ffb70bbfdf9c8729c12e8da1ae7a2d71eeb387",
-  "scoredAt": "2026-06-11T09:20:56.482Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:af85a49de3bba2b722f14c2b0e91d1000c246a36321c925959d59f1d4c2a9c70",
+  "scoredAt": "2026-10-20T19:34:04.003Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
@@ -21,27 +21,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 9.3,
-    "baselineAvg": 0,
-    "treatmentAvg": 93,
+    "multiplier": 4.71,
+    "baselineAvg": 17,
+    "treatmentAvg": 80,
     "scenarios": [
       {
         "name": "full-geo-audit",
         "baseline": 0,
-        "treatment": 80,
-        "rationale": "Response B covers most rubric items but omits the required llms.txt mention, whereas Response A fails entirely."
+        "treatment": 75,
+        "rationale": "Response B covers most rubric items but omits raw HTML fetch and a full prioritized fix list, whereas Response A provides no content."
       },
       {
         "name": "ai-crawler-access-check",
-        "baseline": 0,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with a detailed table, score calculation, and specific robots.txt recommendations, while Response B fails to provide any of the required content."
+        "baseline": 50,
+        "treatment": 65,
+        "rationale": "Response A includes a table of blocked bots and parsing logic, whereas Response B only provides a script without a table or score."
       },
       {
-        "name": "generate-llms-txt",
+        "name": "llms-txt-generation",
         "baseline": 0,
         "treatment": 100,
-        "rationale": "Response B fully meets the rubric with header, description, and Docs section, while Response A lacks all required elements."
+        "rationale": "A fully meets rubric, B does not."
       }
     ]
   }

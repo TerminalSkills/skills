@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:3241b719bf2adb0fa707176707749f68e56217eff7796454e1ea78b9f7f249ec",
-  "scoredAt": "2026-05-13T10:16:56.049Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:2becda4560868c58b4bdb34a093cb4bb66c3ce371746260f6f2b06bb8b7a82d1",
+  "scoredAt": "2026-10-20T20:20:33.276Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases."
+        "detail": "The skill does not explicitly cover error handling or edge cases beyond basic usage."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 95,
-    "multiplier": 2.5,
+    "multiplier": 1.89,
+    "baselineAvg": 53,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Replace Babel + Jest with SWC in TS+React monorepo",
-        "baseline": 40,
-        "treatment": 95,
-        "rationale": "Treatment uses tsx parser, react automatic runtime, and @swc/jest while dropping .babelrc; baseline keeps Babel for Jest and omits tsx/JSX config."
+        "name": "compile-ts-library-esm-cjs",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A includes the exact SWC commands with the required flags and the tsc command, while Response B uses different flags and omits the required --strip-leading-paths and --source-maps options."
       },
       {
-        "name": "SWC production minify with console removal and source maps",
-        "baseline": 35,
-        "treatment": 95,
-        "rationale": "Treatment uses SWC's native jsc.minify.compress.drop_console with passes:2 and sourceMaps:true; baseline incorrectly pulls in Babel/Terser plugins for console removal."
+        "name": "setup-jest-with-swc-jest",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements by providing inline SWC options and noting .swcrc usage, while Response A lacks that detail."
+      },
+      {
+        "name": "minify-js-function-with-swc",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "A fully meets the rubric, B misuses the API options and does not specify compress.drop_console."
       }
     ]
   }

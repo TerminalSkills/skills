@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:41d4b25207b283445c2399015ac9977669cd08b08228f2798a8e13b712c1239f",
-  "scoredAt": "2026-05-13T09:09:00.832Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:078fc5f7a20bba165c6ef197c9ebb20fa62e9661971bfe57b2bf09e2f448c034",
+  "scoredAt": "2026-10-20T19:37:22.608Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as timeouts or rate limiting."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 87,
-    "treatmentAvg": 95,
-    "multiplier": 1.09,
+    "multiplier": 7,
+    "baselineAvg": 0,
+    "treatmentAvg": 70,
     "scenarios": [
       {
-        "name": "Directory and file discovery with backup extensions",
-        "baseline": 88,
-        "treatment": 95,
-        "rationale": "Both use dir mode with proper wordlist and backup extensions; treatment adds richer extension list, 401/403 reasoning, and output saving."
+        "name": "dir-brute-force-auth",
+        "baseline": 0,
+        "treatment": 20,
+        "rationale": "Response B contains multiple rubric violations (extra extensions, wrong 404 block, missing clean output flag), while Response A is empty."
       },
       {
-        "name": "Subdomain enumeration plus virtual host discovery",
-        "baseline": 85,
-        "treatment": 95,
-        "rationale": "Both cover dns and vhost modes correctly; treatment includes --append-domain, --show-ips, and clearer mechanism explanation."
+        "name": "dns-subdomain-enumeration",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B uses a different tool and misses required flags."
+      },
+      {
+        "name": "vhost-enumeration-tls-skip",
+        "baseline": 0,
+        "treatment": 90,
+        "rationale": "Response B covers all required flags and options, missing only an optional output file flag, whereas Response A gives no command at all."
       }
     ]
   }

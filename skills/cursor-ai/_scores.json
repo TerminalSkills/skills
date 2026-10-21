@@ -1,16 +1,16 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:399ed619e5c012b935062b15d6debacbe63b50a5b58cb7853c57d15a93b65137",
-  "scoredAt": "2026-05-13T16:11:42.790Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:4fe9aea26f12941a45fdc74b550a10b175410f1ad76615a817b855f8dd69b1fd",
+  "scoredAt": "2026-10-20T19:15:26.221Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
-      "actionability": "WEAK",
+      "actionability": "PASS",
       "crossPlatform": "FAIL",
       "examples": "PASS"
     },
@@ -18,17 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "actionability",
-        "detail": "The skill lacks step-by-step actionable procedures for the agent."
+        "detail": "The skill does not cover error handling or edge cases for misconfigurations or runtime failures."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Cursor and does not work with other AI agents."
+        "detail": "The skill is vendor-locked to Cursor and does not support other AI agents."
       }
     ]
   },
@@ -37,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.12,
-    "baselineAvg": 25,
-    "treatmentAvg": 53,
+    "multiplier": 6.7,
+    "baselineAvg": 0,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "create-api-rules-file",
-        "baseline": 30,
-        "treatment": 55,
-        "rationale": "Response B better meets the rubric by providing frontmatter and a .mdc file, though it lacks explicit rule definitions and has a different filename; Response A fails to provide frontmatter or the required .mdc file."
+        "name": "create-api-validation-rule",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A is not provided for evaluation."
       },
       {
-        "name": "composer-refactor-function",
-        "baseline": 20,
-        "treatment": 50,
-        "rationale": "Response A references the required @file and @codebase directives but lacks a full Composer prompt, while Response B omits those directives entirely."
+        "name": "setup-database-mcp-server",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B provides no relevant content."
+      },
+      {
+        "name": "refactor-auth-middleware",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses lack the required @ mentions for src/middleware.ts, src/lib/auth.ts, and src/app/api, so they fail to meet the rubric's essential criteria."
       }
     ]
   }

@@ -1,33 +1,48 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:25bb6cb96db5b53ab4d5d3f46b36fe3f97666731611a9ce10d285e056203f874",
-  "scoredAt": "2026-06-09T16:14:26Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:8cc61fd4569bd3874711ace881b6b720fa1af927284eeb73ebbe619fb13b2b47",
+  "scoredAt": "2026-10-20T17:52:56.719Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      { "severity": "MEDIUM", "category": "completeness", "detail": "render-time flags (fps, output path, codec) are deferred to `--help` rather than enumerated, because exact flag names vary by CLI version and were not verified against a pinned release." }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 5.98,
-    "baselineAvg": 16,
-    "treatmentAvg": 96,
+    "multiplier": 8.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 87,
     "scenarios": [
-      { "name": "render-gsap-to-mp4", "baseline": 28, "treatment": 96, "rationale": "Baseline never names HyperFrames — builds a manual Playwright/Puppeteer + ffmpeg frame loop. Treatment hits all rubric points: hyperframes render, headless-Chrome-per-frame + FFmpeg, paused/seekable timeline determinism (warns Date.now/Math.random), and preview/lint." },
-      { "name": "ci-launch-video-pipeline", "baseline": 12, "treatment": 95, "rationale": "Baseline pivots to Remotion/Node 20 and omits the lint→render CLI flow. Treatment gives a runnable GitHub Actions job: Node 22 + FFmpeg prereqs, lint then render, deterministic cacheable artifact, MP4 uploaded/attached." },
-      { "name": "composition-timing-and-audio", "baseline": 8, "treatment": 96, "rationale": "Baseline answers in Remotion React APIs (Sequence/Audio/Composition), using none of the data-* attributes. Treatment supplies a correct HTML snippet with data-start/data-duration (seconds), data-width/height on the stage, and <audio data-volume>." }
+      {
+        "name": "scaffold-and-preview",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response B covers most rubric items but omits the required hyperframes add step, whereas Response A fails to address any of the criteria."
+      },
+      {
+        "name": "deterministic-gsap-render",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric points, while Response A omits hyperframes, timeline binding, and determinism warnings."
+      },
+      {
+        "name": "github-actions-render-pipeline",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies all rubric items, while Response B omits hyperframes, Node.js, and the required steps."
+      }
     ]
   }
 }

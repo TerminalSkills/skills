@@ -1,29 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:539193385159d74e3a7aed3e91ebfdaa7bb8984466cc7e3978c02709d436c3fe",
-  "scoredAt": "2026-05-13T09:13:42.984Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:ae3f2bd679d35f5e65904afe010a4f9e6971b0c4308a9004520a88c0a729aed4",
+  "scoredAt": "2026-10-20T17:51:46.274Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not address error handling or edge cases for the monitoring commands."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Some commands used (e.g., iotop, nethogs, iftop) may not be available on macOS, limiting cross-platform compatibility."
+        "detail": "The skill does not cover error handling or edge cases such as missing htop or permission issues."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 65,
-    "treatmentAvg": 90,
-    "multiplier": 1.38,
+    "multiplier": 9.8,
+    "baselineAvg": 5,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Diagnose which process is hammering disk I/O on a Linux server",
-        "baseline": 60,
-        "treatment": 90,
-        "rationale": "Treatment reaches for iotop and iostat -x 1 (skill-documented) plus uptime/load-average interpretation; baseline only suggests top and df."
+        "name": "top-memory-deploy-node-kill",
+        "baseline": 15,
+        "treatment": 95,
+        "rationale": "Response B covers all rubric items, while Response A omits the htop steps and tagging instructions."
       },
       {
-        "name": "Quick all-in-one server health check script",
-        "baseline": 70,
-        "treatment": 90,
-        "rationale": "Treatment mirrors the skill's scripts/server-status.sh layout with ps aux --sort=-%cpu/%mem, free -h, ss -tulnp grep LISTEN; baseline omits the per-process sort and ss listener check."
+        "name": "identify-d-state-processes",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B does not mention htop or the required flags."
+      },
+      {
+        "name": "readonly-nginx-tree-view",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not include the required command or explanations."
       }
     ]
   }

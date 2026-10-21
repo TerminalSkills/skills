@@ -1,41 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:0ace8fa2315078e7b99d788cbf677fd5a64e4759fb24b73bd7806fb19edd0ef1",
-  "scoredAt": "2026-05-13T10:40:57.721Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f6080996226548960431883b19ed8136908f09683b998fb736661f25555f4b23",
+  "scoredAt": "2026-10-20T18:57:39.450Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a TypeScript environment, limiting cross-platform applicability."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "baselineAvg": 78,
-    "treatmentAvg": 94,
-    "multiplier": 1.21,
+    "multiplier": 3.87,
+    "baselineAvg": 15,
+    "treatmentAvg": 58,
     "scenarios": [
       {
-        "name": "env-var-validation-with-coercion",
-        "baseline": 70,
-        "treatment": 95,
-        "rationale": "The treatment uses `z.coerce.number().default(3000)` as the skill recommends for env vars, while the baseline reaches for `.transform(parseInt)` which works but is the older pattern Zod's coerce helpers were designed to replace."
+        "name": "validate-env-with-coercion",
+        "baseline": 5,
+        "treatment": 75,
+        "rationale": "Response B meets almost all rubric items, while Response A lacks zod usage and prettified error handling."
       },
       {
-        "name": "discriminated-union-events",
-        "baseline": 85,
-        "treatment": 92,
-        "rationale": "Both correctly use `z.discriminatedUnion` with `z.literal` discriminators since this is widely documented Zod, but the treatment matches the skill's exact event shapes including the `modifiers` array on keypress."
+        "name": "discriminated-union-request-validation",
+        "baseline": 20,
+        "treatment": 30,
+        "rationale": "Response A better meets the rubric by using a discriminated union and flattenError, while Response B uses a plain union; both miss the required refine, strictObject, and role key."
+      },
+      {
+        "name": "recursive-category-schema-with-json-schema",
+        "baseline": 20,
+        "treatment": 70,
+        "rationale": "Response A covers most rubric items (recursive schema with getter, JSON schema generation, codec) but omits type inference; Response B fails to use a getter, z.codec, and z.infer, making it less compliant."
       }
     ]
   }

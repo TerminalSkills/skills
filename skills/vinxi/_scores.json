@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:855f754145bf6392c45187a0651d9ef9d6afdfcac3d272c2627f39a79faafdb9",
-  "scoredAt": "2026-05-13T10:34:23.517Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:216dafd95398f4075875f0ac5b516adce63d8b141de3652b1cd842ca3c269f47",
+  "scoredAt": "2026-10-20T20:31:28.433Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases."
+        "detail": "Skill does not cover error scenarios or edge cases, only happy path."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 35,
-    "treatmentAvg": 90,
-    "multiplier": 2.57,
+    "multiplier": 3.59,
+    "baselineAvg": 27,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "Multi-router app.config.ts (static + api + client + ssr)",
-        "baseline": 35,
-        "treatment": 90,
-        "rationale": "Treatment uses `createApp` from `vinxi` with a `routers` array containing static, http API (with `base: \"/api\"`), client, and ssr entries each with handler paths; baseline typically falls back to Express/Vite scaffolding because Vinxi is niche."
+        "name": "setup-vinxi-app-with-routers",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not meet the required structure."
       },
       {
-        "name": "Server functions RPC for todos",
-        "baseline": 35,
+        "name": "build-vinxi-app-for-vercel-edge",
+        "baseline": 50,
         "treatment": 90,
-        "rationale": "Treatment puts `\"use server\"` at the top of the feature module, exports plain async functions, and shows client components importing them directly so Vinxi handles serialization; baseline writes a fetch-based API layer instead."
+        "rationale": "Response B fully satisfies the rubric, while Response A lacks the output path and provides multiple commands."
+      },
+      {
+        "name": "add-server-functions-to-vinxi-app",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully covers all rubric items, while Response B omits the required router and directive details."
       }
     ]
   }

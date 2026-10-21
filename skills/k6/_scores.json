@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ca4850576067a25382b36c84638a4e82c2717fdcb5b0162cad3f51234ceac8fd",
-  "scoredAt": "2026-05-13T09:18:58.754Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:aa9500ce789bfe55beb99ff5017450d7600e11ccca1ab6e514846847949eeacb",
+  "scoredAt": "2026-10-20T18:01:40.565Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases for load testing scenarios."
+        "detail": "Skill does not cover error handling or edge cases such as network failures or script errors."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 62,
-    "treatmentAvg": 92,
-    "multiplier": 1.48,
+    "multiplier": 2.31,
+    "baselineAvg": 42,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "Ramped load test for /api/users with pass/fail thresholds",
-        "baseline": 65,
-        "treatment": 93,
-        "rationale": "Baseline wrote a k6 script but used flat VUs and only a single threshold, missing the staged ramp-up/steady/ramp-down and the combined http_req_duration p(95) + http_req_failed rate thresholds plus check() pattern; treatment used the stages array, both threshold types, and check() with status + duration assertions."
+        "name": "spike-test-with-arrival-rate",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A satisfies every rubric requirement, while Response B does not use the required constant-arrival-rate executor and lacks the necessary VU settings."
       },
       {
-        "name": "Track custom login success metrics",
-        "baseline": 58,
+        "name": "ci-load-test-failure",
+        "baseline": 85,
         "treatment": 90,
-        "rationale": "Baseline relied solely on built-in http metrics with no business-level instrumentation; treatment imported Trend, Counter, and Rate from k6/metrics, instantiated them at module scope, and updated each inside the default function as documented."
+        "rationale": "Response B matches the rubric more precisely (uses the required 'path' key and includes all mandatory steps), while Response A uses a slightly different key ('script') but otherwise fulfills the requirements."
+      },
+      {
+        "name": "multi-scenario-load-test",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B uses incorrect function names and omits required sleep, falling short of the rubric."
       }
     ]
   }

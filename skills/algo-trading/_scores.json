@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:88a18be3eee475294a9558de92be4eac03de69b2f021a14f117bf029d4eda2a2",
-  "scoredAt": "2026-05-13T13:54:08.455Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:f422364d83e9aaf03bf4b75e955f7f12250aff2465287bc377e1bf664d6a4531",
+  "scoredAt": "2026-10-20T19:00:40.427Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover all error scenarios and edge cases, such as API failures or network issues."
+        "detail": "The skill does not explicitly cover all error handling scenarios, such as missing API keys or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.63,
-    "baselineAvg": 30,
-    "treatmentAvg": 79,
+    "multiplier": 1,
+    "baselineAvg": 62,
+    "treatmentAvg": 62,
     "scenarios": [
       {
-        "name": "backtest-crypto-ema-crossover",
-        "baseline": 45,
-        "treatment": 65,
-        "rationale": "Response B better meets the rubric, covering EMA, RSI, commission/slippage, metrics, and buy‑and‑hold, whereas Response A uses SMA, lacks RSI, and misapplies commission handling."
+        "name": "backtest-crypto-momentum",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "Response A fully implements all rubric items, while Response B omits the Sharpe ratio, max drawdown, and buy‑and‑hold comparison calculations."
       },
       {
-        "name": "deploy-live-alpaca-momentum-bot",
-        "baseline": 15,
-        "treatment": 92,
-        "rationale": "Response B fully implements limit orders, risk rules, logging, and stop‑trading logic, while Response A is incomplete and lacks these core elements."
+        "name": "pairs-trading-system",
+        "baseline": 60,
+        "treatment": 85,
+        "rationale": "Response B better meets the rubric, correctly implementing the required entry/exit thresholds, realistic transaction costs, and risk management, whereas Response A uses incorrect thresholds and has incomplete code."
+      },
+      {
+        "name": "live-trading-bot-alpaca",
+        "baseline": 55,
+        "treatment": 0,
+        "rationale": "Response B contains more setup details but lacks the core trading logic, while Response A is missing entirely."
       }
     ]
   }

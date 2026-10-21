@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:df8cc2222255af69856b49c8779eb346f347659017fad64ccf491d6f72e579e1",
-  "scoredAt": "2026-05-13T10:22:57.924Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:b0b4e45c84e5bcee7bc66af6d6c1b224bb22e963e3698787a3de8dcda1432a06",
+  "scoredAt": "2026-10-20T18:40:38.248Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for Tailwind CSS usage."
+        "detail": "The skill does not cover error handling or edge cases for installation and configuration."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 28,
-    "treatmentAvg": 95,
-    "multiplier": 3.39,
+    "multiplier": 2.28,
+    "baselineAvg": 43,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Tailwind v4 + Vite setup with brand color tokens and Inter font via @theme",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Baseline produces a v3 setup (tailwind.config.js, @tailwind directives, postcss); treatment installs @tailwindcss/vite, imports via @import \"tailwindcss\", and defines --color-brand-* and --font-family-sans in an @theme block with no JS config."
+        "name": "setup-v4-vite-react-brand",
+        "baseline": 20,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric items, while Response A omits key steps such as the Vite plugin, @theme block, and brand color usage."
       },
       {
-        "name": "Shimmer skeleton plus staggered fade-in-from-bottom list",
-        "baseline": 30,
+        "name": "upgrade-v3-to-v4-fix-shadows",
+        "baseline": 35,
         "treatment": 95,
-        "rationale": "Baseline writes raw CSS keyframes and inline animations; treatment registers --animate-shimmer in @theme with a matching @keyframes block, uses bg-[length:200%_100%] animate-shimmer, and installs tailwindcss-animate to apply animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards with per-item animationDelay."
+        "rationale": "Response B includes all rubric requirements (upgrade command, shadow mapping, ring and border adjustments, and notes on default border color), whereas Response A omits these key points."
+      },
+      {
+        "name": "enable-class-based-dark-mode",
+        "baseline": 75,
+        "treatment": 100,
+        "rationale": "Response B includes the required custom variant, dark: utilities, and root toggling, while Response A lacks the custom variant declaration."
       }
     ]
   }

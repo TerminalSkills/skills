@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a0a7e6c88466708fa7557e186ec386857704c0533f11f1d1b653ca01fff9afcf",
-  "scoredAt": "2026-05-13T15:09:11.157Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:b673ea9fa60c1bbc7a1b8665205e721218fb6454e0791e59962c2113c98ec117",
+  "scoredAt": "2026-10-20T17:10:46.981Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error scenarios or edge cases such as network failures, Docker not installed, or port conflicts."
+        "detail": "The skill does not cover all error scenarios and edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.5,
-    "baselineAvg": 40,
+    "multiplier": 10,
+    "baselineAvg": 0,
     "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "deploy-nodejs-api-with-captain-definition",
-        "baseline": 30,
+        "name": "deploy-multi-apps-with-captain-definition",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies every rubric requirement, while Response B omits key elements such as the captain-definition file, docker run install command, and serversetup step."
+        "rationale": "Response B fully satisfies the rubric, while Response A is empty."
       },
       {
-        "name": "automate-app-creation-with-caprover-api",
-        "baseline": 50,
+        "name": "api-automation-create-scale-ssl",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric with a caproverApi function and all required operations, while Response B omits the required caproverApi function and uses a different approach."
+        "rationale": "Response B matches all rubric requirements with correct endpoints and headers, while Response A uses different endpoints and headers, missing the rubric criteria."
+      },
+      {
+        "name": "add-custom-domain-ssl-via-api",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A uses different endpoints and headers."
       }
     ]
   }

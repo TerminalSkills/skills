@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:61a81afcb6cb36961c970e3e1dfdc7b2b15bd30c754573c190b226ee9ea3b219",
-  "scoredAt": "2026-05-13T16:29:52.594Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:8f13a2217eab564eb381ae9db2c5b4c14a70c1954e97a6479d421f289f36e6a2",
+  "scoredAt": "2026-10-20T17:27:48.532Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy paths."
+        "detail": "The skill does not cover all error scenarios and edge cases, such as handling permission denials or dependency resolution failures."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 2.79,
-    "baselineAvg": 28,
-    "treatmentAvg": 78,
+    "multiplier": 2.28,
+    "baselineAvg": 32,
+    "treatmentAvg": 73,
     "scenarios": [
       {
-        "name": "secure-rest-api-with-kv",
-        "baseline": 35,
-        "treatment": 55,
-        "rationale": "Response A uses Deno.serve and explicit permissions via deno.json, but still lacks kv.atomic and TTL; Response B uses Oak and runtime permission requests, missing Deno.serve and TTL."
+        "name": "secure-http-server-with-unstable-kv",
+        "baseline": 60,
+        "treatment": 30,
+        "rationale": "Response B includes a full server with CRUD and KV usage, while Response A only lists permissions and lacks server code."
       },
       {
-        "name": "cross-platform-cli-compile",
-        "baseline": 20,
+        "name": "cli-tool-with-compile-and-tests",
+        "baseline": 0,
         "treatment": 100,
-        "rationale": "Response A fully satisfies all rubric requirements, while Response B omits @std/cli, proper permissions, coverage, and cross-platform compilation."
+        "rationale": "Response B meets all rubric requirements; Response A is a Go implementation and does not satisfy the Deno-specific criteria."
+      },
+      {
+        "name": "deploy-to-deno-deploy-with-env",
+        "baseline": 35,
+        "treatment": 90,
+        "rationale": "Response B meets all rubric items, while Response A lacks the required default export, deploy commands, and permission flag."
       }
     ]
   }

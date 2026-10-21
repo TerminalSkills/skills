@@ -1,34 +1,34 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:437d44f7da4174ff083e2b991b021daf6b24b7eebf82330474ab56d2ef465841",
-  "scoredAt": "2026-05-13T09:05:52.118Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:dc8b76b1b298eb37cf8f0bcf8691c39cbba695a10f4bdcc40f20e41aa3e9de9d",
+  "scoredAt": "2026-10-20T19:29:58.373Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 70,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "FAIL",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases."
+        "detail": "The skill focuses on happy path scenarios and lacks explicit handling of error cases and edge conditions."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains verbose sections that could be more concise."
+        "detail": "The skill contains extensive explanatory text that could be trimmed for brevity."
       },
       {
-        "severity": "HIGH",
+        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Google Cloud BigQuery."
+        "detail": "The skill assumes availability of gcloud, bq CLI, and Python, limiting portability across all AI agents."
       }
     ]
   },
@@ -37,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 93,
-    "multiplier": 1.86,
+    "multiplier": 2.03,
+    "baselineAvg": 33,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Add per-row sentiment classification on product reviews",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Treatment uses AI.GENERATE_BOOL with connection_id and endpoint => 'gemini-2.5-flash' as a single SQL statement; baseline builds a separate Python+Vertex pipeline because it doesn't know AI.GENERATE_* SQL functions exist."
+        "name": "create-partitioned-clustered-table",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses use SQL CREATE TABLE syntax instead of the required bq mk --table command with the specified options."
       },
       {
-        "name": "Build a cost-safe partitioned/clustered events table",
-        "baseline": 50,
-        "treatment": 93,
-        "rationale": "Treatment combines PARTITION BY DATE(created_at), CLUSTER BY user_id, partition_expiration_days, --maximum_bytes_billed and --dry_run; baseline typically misses partition expiration and the maximum_bytes_billed safety cap."
+        "name": "load-parquet-from-gcs",
+        "baseline": 100,
+        "treatment": 100,
+        "rationale": "Both responses correctly use bq load with --source_format=PARQUET, specify the target table, and provide the GCS URI pattern, meeting all rubric requirements."
+      },
+      {
+        "name": "rank-products-by-similarity",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B does not use AI.SIMILARITY or the specified model."
       }
     ]
   }

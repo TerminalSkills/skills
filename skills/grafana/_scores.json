@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:92917ada58062d0a7aeb256bfbc47c60f3ac73b2594adede11babe9aa1424581",
-  "scoredAt": "2026-05-13T09:09:59.245Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3020f4c2dedcff4482cf7336b378ad2cb4624c7d80f5abc87d8ecdf070c4a062",
+  "scoredAt": "2026-10-20T17:48:15.725Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "The instructions focus mainly on the happy path and do not cover all error scenarios and edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations and comments that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 43,
-    "treatmentAvg": 93,
-    "multiplier": 2.16,
+    "multiplier": 7.69,
+    "baselineAvg": 13,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Provision Grafana with Prometheus datasource and Slack alert at 5% error rate",
-        "baseline": 45,
-        "treatment": 92,
-        "rationale": "Baseline relies on UI flow and omits the provisioning YAML schema; treatment delivers exact apiVersion 1 datasource, math-expression rule with gt 0.05 threshold, and Slack contact point as documented."
+        "name": "run-grafana-with-clickhouse-plugin",
+        "baseline": 30,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric, while Response B deviates by using a custom image, wrong port mapping, missing required env var, and extra services."
       },
       {
-        "name": "Export UI-built dashboard via API and auto-provision via file provider",
-        "baseline": 40,
-        "treatment": 93,
-        "rationale": "Baseline suggests UI export with an approximate API path; treatment uses the exact /api/dashboards/uid/<uid> endpoint, jq pipeline, and the file-provider provisioning config with the documented path."
+        "name": "provision-prometheus-datasource",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements, while Response B omits required fields and uses an incorrect URL."
+      },
+      {
+        "name": "alert-5xx-error-rate",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A does not provide the required Grafana alert rule structure."
       }
     ]
   }

@@ -1,24 +1,34 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:9f6a49018ed3ee9fd1de6cbc6f8ed58f7a4fdddac47a444990533375fb54551d",
-  "scoredAt": "2026-05-13T10:01:53.880Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:9e9e7080991a3febc95f3af049661b6cc03a98c4ba7710684d765c48be3b3ead",
+  "scoredAt": "2026-10-20T20:11:36.285Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 80,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "WEAK",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling or edge cases, focusing only on happy path scenarios."
+        "detail": "The skill does not explicitly cover error handling or edge cases beyond basic examples."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The guide contains extensive explanatory text that may be considered verbose for a concise skill."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "crossPlatform",
+        "detail": "The skill assumes a Node.js and React environment, which is a minor platform assumption."
       }
     ]
   },
@@ -27,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 30,
-    "treatmentAvg": 84,
-    "multiplier": 2.8,
+    "multiplier": 1.7,
+    "baselineAvg": 50,
+    "treatmentAvg": 85,
     "scenarios": [
       {
-        "name": "orders-list-with-sort-and-filter",
-        "baseline": 32,
-        "treatment": 85,
-        "rationale": "Treatment uses `useTable` from `@refinedev/antd` with `sorters.initial`, `filters.permanent`, and `pagination.pageSize`, plus `useSelect` for the status dropdown, and registers `orders` in the `resources` array on `<Refine>`; baseline scaffolds an antd Table manually with useState/useEffect and no Refine resource definition."
+        "name": "create-rest-admin-panel",
+        "baseline": 40,
+        "treatment": 100,
+        "rationale": "B fully satisfies the rubric while A lacks key elements."
       },
       {
-        "name": "custom-rest-data-provider",
-        "baseline": 28,
-        "treatment": 83,
-        "rationale": "Treatment implements the `DataProvider` interface with the documented `getList`/`getOne`/`create`/`update`/`deleteOne`/`getApiUrl` signatures (including the `{data, total}` return shape and `pagination`/`sorters`/`filters` args); baseline writes an ad-hoc fetch wrapper that doesn't conform to Refine's DataProvider contract."
+        "name": "add-auth-and-rbac",
+        "baseline": 30,
+        "treatment": 55,
+        "rationale": "Response B provides a more complete implementation, including a full authProvider, accessControlProvider, and app wiring, whereas Response A is truncated and lacks key components."
+      },
+      {
+        "name": "custom-graphql-data-provider",
+        "baseline": 80,
+        "treatment": 100,
+        "rationale": "Response B fully implements all required CRUD methods, integrates the provider, and uses useList to render a table, while Response A only implements getList and omits the other CRUD methods."
       }
     ]
   }

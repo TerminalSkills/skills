@@ -1,24 +1,24 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:bb7bb11860d0991ddf27b2c67f8be4732f66a4c0f49a999ad2467f9c7d96a3fa",
-  "scoredAt": "2026-05-13T09:16:41.713Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:0ac9239d944763df959526d88804ac869f3953cc207c0862a0428d74678d8368",
+  "scoredAt": "2026-10-20T19:44:39.861Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 83,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "PASS",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill only covers happy path examples and does not address error handling or edge cases."
+        "severity": "HIGH",
+        "category": "crossPlatform",
+        "detail": "The skill is vendor-locked to Node.js, not platform-agnostic."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 7.31,
+    "baselineAvg": 13,
+    "treatmentAvg": 95,
     "scenarios": [
       {
-        "name": "Build a project scaffolder CLI that asks name, template, features, and confirms",
-        "baseline": 60,
+        "name": "multi-step-wizard",
+        "baseline": 30,
         "treatment": 90,
-        "rationale": "Treatment imports input/select/checkbox/confirm from '@inquirer/prompts' (v2 modular API), uses validate returning true-or-string on input, and passes choices as {name, value, description}; baseline uses the legacy inquirer.prompt([{type,...}]) API which the skill explicitly tells you to avoid."
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to use @inquirer/prompts and lacks proper cancel handling."
       },
       {
-        "name": "Add a password prompt and dynamic choices that change based on a prior answer",
-        "baseline": 50,
-        "treatment": 85,
-        "rationale": "Treatment uses password({ message, mask: '*' }) and computes the next checkbox's choices from the prior select() result inside an async wizard function; baseline uses legacy when/when-function callbacks tied to the old inquirer.prompt schema."
+        "name": "npm-package-search",
+        "baseline": 10,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric with the correct search prompt, source function, signal usage, and return format, while Response A uses a different prompt library and does not implement the required source function."
+      },
+      {
+        "name": "prompt-timeout-handling",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully meets the rubric, while Response A does not use the required confirm prompt or error handling."
       }
     ]
   }

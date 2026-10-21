@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:a1c23e5d7b60a2cc677264b896babd14daa672f922749e7bcea358d024044bca",
-  "scoredAt": "2026-05-13T10:16:43.658Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:537a977a9a2e32c82951a0d147579c30231d0bda43ca36bb450dc70096924895",
+  "scoredAt": "2026-10-20T20:18:23.307Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 87,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling for webhook sending or consumer portal operations, missing edge case guidance."
+        "detail": "Instructions do not cover error handling for missing tokens, network failures, or API call errors."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill assumes a Node.js/TypeScript environment, limiting compatibility with other AI agent platforms."
+        "detail": "Skill is limited to Node.js and the svix npm package, not platform-agnostic."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 95,
-    "multiplier": 4.13,
+    "multiplier": 5.88,
+    "baselineAvg": 17,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Register customer and send filtered order webhooks via Svix",
-        "baseline": 20,
-        "treatment": 95,
-        "rationale": "Treatment uses the documented Svix SDK trio application.create + endpoint.create with filterTypes + message.create; baseline reinvents delivery with axios and a custom retry queue."
+        "name": "create-event-and-send",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric with correct API calls and details, while Response A uses generic CLI commands and does not meet the required svix method usage."
       },
       {
-        "name": "Verify Svix signatures and generate self-service portal link",
-        "baseline": 25,
-        "treatment": 95,
-        "rationale": "Treatment uses svix Webhook.verify with the svix-id/timestamp/signature header triple and authentication.appPortalAccess for the portal; baseline rolls custom HMAC and a hand-built dashboard."
+        "name": "verify-incoming-webhook",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A fully meets the rubric, while Response B uses a different middleware and verification method, missing key requirements."
+      },
+      {
+        "name": "generate-portal-link",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully satisfies the rubric, while Response A uses Stripe instead of Svix and misses the required call and options."
       }
     ]
   }

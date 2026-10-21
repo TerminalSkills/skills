@@ -1,47 +1,53 @@
 {
-  "version": "1.2.0",
-  "skillHash": "sha256:19ffa248503f603ae5f443085168b52dcb10ecaef203a4e6851ec785cf3dcb38",
-  "scoredAt": "2026-10-13T11:12:29.320Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.3.0",
+  "skillHash": "sha256:7ae84724e1a583c7582cd181f9e6cfd38b2effd2b66df89bb657167b7b0b7df4",
+  "scoredAt": "2026-10-20T16:58:49.129Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains verbose explanations that may be considered padded."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 1.88,
-    "baselineAvg": 41,
-    "treatmentAvg": 77,
+    "multiplier": 2.64,
+    "baselineAvg": 33,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "hypermedia-posts-crud-setup",
-        "baseline": 12,
-        "treatment": 90,
-        "rationale": "Response A meets nearly every rubric item: hypermedia kit, `make:model post -m`, an auth-middleware group with public index/show resource, the `#generated/controllers` barrel, `@belongsTo`, and `request.validateUsing` with VineJS. Response B uses the removed `--kit=web`, hand-writes routes with lazy imports and no resource split, and only partly meets the model and validator items."
+        "name": "full-stack-blog-hypermedia",
+        "baseline": 30,
+        "treatment": 85,
+        "rationale": "Response A meets almost all rubric items (kit, model, controller, validator, routes, migration, validation, redirect) but omits the serve command; Response B fails the required kit and command usage."
       },
       {
-        "name": "api-kit-token-auth-products",
-        "baseline": 55,
-        "treatment": 62,
-        "rationale": "Both use --kit=api and Authorization: Bearer with auth middleware and .paginate(page, 20), but only B uses a transformer with serialize (and the kit's built-in auth); A returns raw models via products.serialize() and omits the transformer, though A explicitly shows User.accessTokens.create(...).release() while B relies on the kit's login and never shows the token issuance code or the User model composition."
+        "name": "api-token-auth-pagination",
+        "baseline": 10,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies every rubric requirement, while Response B deviates from the specified token guard, model, and API kit setup."
       },
       {
-        "name": "v7-migrations-schema-and-prod-deploy",
-        "baseline": 55,
-        "treatment": 78,
-        "rationale": "B covers nearly all rubric points (new migration, schema.ts regenerated and not hand-edited, model only for hooks/methods, build/cd build/npm ci --omit=dev/node bin/server.js, --force, NODE_ENV=production, .env not copied with APP_KEY), while A misses the schema.ts regeneration point, adds an unneeded model column declaration, treats NODE_ENV only loosely, and is framed around AdonisJS 6 with extra complexity."
+        "name": "github-social-login-ally",
+        "baseline": 60,
+        "treatment": 75,
+        "rationale": "Response B covers more rubric items (correct command, use of ally.use, built‑in state check) but both miss the required User model mixin; Response A includes manual state protection but uses the wrong ally method and also lacks the mixin."
       }
     ]
   }

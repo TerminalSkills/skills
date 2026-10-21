@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:df8ef6773ec8c20df3af94f53d32e7d7223e397a5e5b558ce53c96bb22805a80",
-  "scoredAt": "2026-05-13T09:28:44.779Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:f8d9efe3023c43366fa6674a3ebbb0bd6591c23749d7eac4e4bf16b854995104",
+  "scoredAt": "2026-10-20T18:13:00.133Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 77,
     "dimensions": {
@@ -18,12 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The examples only cover happy paths and do not illustrate error handling or edge cases."
+        "detail": "Instructions do not cover error handling or edge cases such as missing environment variables or invalid input."
       },
       {
         "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is vendor-locked to Mastra, not platform-agnostic."
+        "detail": "Skill is specific to Mastra framework and does not support other AI agent frameworks."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 5,
-    "treatmentAvg": 98,
-    "multiplier": 9.8,
+    "multiplier": 8.8,
+    "baselineAvg": 0,
+    "treatmentAvg": 88,
     "scenarios": [
       {
-        "name": "Customer support agent with tools",
-        "baseline": 5,
-        "treatment": 98,
-        "rationale": "Baseline ignored Mastra entirely and hand-rolled OpenAI tool dispatch; treatment used Agent with openai('gpt-4o') from @mastra/openai, Zod-typed tool parameters, and .generate()/.stream()."
+        "name": "weather-agent-tool",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use Mastra or the specified tool/agent structure."
       },
       {
-        "name": "Onboarding workflow with conditional step",
-        "baseline": 5,
-        "treatment": 98,
-        "rationale": "Baseline wrote a plain async function with no Workflow abstraction; treatment used Workflow + Step with a when() guard reading previous.validate.isNewCustomer and .execute()."
+        "name": "discount-tax-workflow",
+        "baseline": 0,
+        "treatment": 65,
+        "rationale": "Response A partially satisfies the rubric by defining steps, workflow, and branching, but omits Mastra registration, execution, and result verification; Response B fails to use Mastra at all."
+      },
+      {
+        "name": "memory-favorite-color",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B does not use Mastra, Memory, or the required memory passing pattern."
       }
     ]
   }

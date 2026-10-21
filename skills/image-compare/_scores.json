@@ -1,47 +1,53 @@
 {
-  "version": "2.0.0",
-  "skillHash": "sha256:e7dd3d6c4c5a8c4162138375649e79d081960e131bcc0cad65202a514244c4a4",
-  "scoredAt": "2026-10-01T20:01:05.242Z",
+  "version": "2.1.0",
+  "skillHash": "sha256:e7f2717d0bf77fdaee3f4d033a51cb80b8a48b1a5a75a4272f7e561cadbcac7d",
+  "scoredAt": "2026-10-20T17:54:47.028Z",
   "backend": "ollama",
   "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 100,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "PASS",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": []
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill file contains extensive explanatory text beyond what is necessary for usage, making it verbose."
+      }
+    ]
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 0,
-    "baselineAvg": 0,
-    "treatmentAvg": 0,
+    "multiplier": 8.3,
+    "baselineAvg": 7,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "exact-match-png",
-        "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses fail to provide the required JSON object with the specified keys and values."
+        "name": "compare-identical-pngs",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response A references a script that likely outputs the required JSON and diff image, whereas Response B only prints a simple text result and does not meet the rubric."
       },
       {
-        "name": "jpeg-tolerance",
+        "name": "compare-jpeg-png-with-tolerance",
         "baseline": 0,
-        "treatment": 0,
-        "rationale": "Both responses lack the required invocation and JSON details."
+        "treatment": 100,
+        "rationale": "Response A fully satisfies the rubric with JSON output, tolerance, changed_pixels, changed_percent, ssim, diff_image, and writes a diff image; Response B only outputs a pixel count and lacks JSON, diff image, and ssim."
       },
       {
-        "name": "resize-ignore",
+        "name": "compare-design-export-2x",
         "baseline": 0,
-        "treatment": 0,
-        "rationale": "Response A fails to meet the tolerance requirement, while Response B's compliance is unclear."
+        "treatment": 100,
+        "rationale": "Response B outputs the required JSON with all fields and writes a diff image, while Response A only produces a diff image and prints a metric, not JSON."
       }
     ]
   }

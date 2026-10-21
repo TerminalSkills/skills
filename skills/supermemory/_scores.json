@@ -1,39 +1,24 @@
 {
-  "version": "1.2.0",
-  "skillHash": "sha256:f793a946ce0ed0df200f52c439a4c32f79fb5ddcbe81fad4bc78ee57bd237fd9",
-  "scoredAt": "2026-10-13T11:14:02.838Z",
-  "backend": "claude-code",
-  "model": "claude-sonnet-5-5",
+  "version": "1.3.0",
+  "skillHash": "sha256:177fcca0f14d147d287bb9eb27c7815bd6cb3144cc77df128cb4cf5b49b2c60e",
+  "scoredAt": "2026-10-20T20:16:21.529Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 73,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "WEAK",
+      "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
-      "examples": "WEAK"
+      "crossPlatform": "PASS",
+      "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Error handling is only mentioned by listing error class names; there are no try/catch examples, retry guidance, or handling for failed ingestion, 402 balance errors, or empty search results beyond brief prose."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "conciseness",
-        "detail": "The Instructions section is dense with long option lists, version-migration notes, and plan/pricing details that could be moved to references and make the skill harder to scan."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Examples and the chat loop are tied to the Anthropic SDK and Claude-specific setup (Claude Code plugin, claude.ai connectors, claude-sonnet model id), with only a brief Cursor MCP config for other agents."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "examples",
-        "detail": "The two examples are mostly prose descriptions that point back to earlier snippets rather than standalone runnable demonstrations with concrete inputs and outputs, and Python usage is shown only as one-line fragments."
+        "detail": "The instructions mention error types but do not provide guidance on handling errors or edge cases."
       }
     ]
   },
@@ -42,27 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 5.17,
-    "baselineAvg": 18,
-    "treatmentAvg": 93,
+    "multiplier": 8.3,
+    "baselineAvg": 0,
+    "treatmentAvg": 83,
     "scenarios": [
       {
-        "name": "support-bot-memory-loop",
-        "baseline": 8,
-        "treatment": 95,
-        "rationale": "Response B follows the rubric: it passes customerId as the first positional argument to profile, search and add, runs a separate search, injects the static, dynamic and search results into the system prompt, and saves with a stable per-session id. Response A uses the v4-style containerTag option, sends a query (`q`) to profile, and omits the stable id on add."
+        "name": "ingest-conversation-with-dreaming-instant",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response A never uses client.add or dreaming, while Response B includes client.add with dreaming: 'instant' and a stable id but lacks an explicit wait loop for dreamingStatus to become 'done'."
       },
       {
-        "name": "ingest-runbook-and-wait",
-        "baseline": 25,
-        "treatment": 92,
-        "rationale": "Response B uses the rubric's SDK calls (client.add with taskType superrag and a stable id, documents.uploadFile, polling documents.get system.status for done/failed, and the async-queued explanation), while Response A uses raw curl, omits taskType superrag, and admits it doesn't know how to avoid memories."
+        "name": "create-notion-connector-and-search",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements with complete code, while Response B is incomplete and does not meet the rubric."
       },
       {
-        "name": "notion-connector-and-forget",
-        "baseline": 22,
-        "treatment": 93,
-        "rationale": "B matches the rubric closely: it uses connectors.create with provider notion, authorization.url, the Pro plan, forgetMatching with dryRun, searchMode hybrid, and avoids documents.delete. A uses non-matching APIs (connections.create, authLink, search.memories, memories.add), never uses forgetMatching or dryRun, and hedges on the plan, though it does avoid documents.delete."
+        "name": "build-system-prompt-from-profile",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes the required client.profile call, extraction of static and dynamic memories, and builds the system prompt string, whereas Response A only provides a placeholder template without any code to retrieve or format the memories."
       }
     ]
   }

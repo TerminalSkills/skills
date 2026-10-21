@@ -1,63 +1,53 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:f275fa5ec9b55fe5e72f2b2bbd0bcb905f51cea018d0321c355d19b7e2feb428",
-  "scoredAt": "2026-05-13T10:16:21.630Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:3db76ba301052f2d12ade327f0cf43f736ba2e6519b3176d436fb710d9d6c115",
+  "scoredAt": "2026-10-20T20:17:35.858Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "PASS",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill file lacks error handling and edge case coverage."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "crossPlatform",
-        "detail": "Skill assumes Docker and bash, limiting cross-platform compatibility."
+        "detail": "The skill does not cover error handling or edge cases for installation and API interactions."
       }
     ]
   },
   "security": {
-    "verdict": "SUSPICIOUS",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "download",
-        "detail": "Uses git clone from official source without checksum verification."
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "imagePull",
-        "detail": "Pulls Docker images without checksum verification."
-      }
-    ]
+    "verdict": "SAFE",
+    "issues": []
   },
   "impact": {
-    "baselineAvg": 38,
-    "treatmentAvg": 95,
-    "multiplier": 2.5,
+    "multiplier": 3.63,
+    "baselineAvg": 27,
+    "treatmentAvg": 98,
     "scenarios": [
       {
-        "name": "Docker deploy + add Postgres database via API",
-        "baseline": 45,
-        "treatment": 95,
-        "rationale": "Baseline misses the docker-compose-non-dev.yml file and the exact /api/v1/security/login JSON body with provider:db; treatment follows the documented bearer-token flow and POSTs to /api/v1/database/ with the correct payload."
+        "name": "docker-compose-deploy",
+        "baseline": 60,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements, while Response A lacks the superset_config.py volume mapping and secret key generation step."
       },
       {
-        "name": "Export and re-import dashboard ZIP",
-        "baseline": 30,
+        "name": "api-connect-database",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
+      },
+      {
+        "name": "api-create-chart-dashboard",
+        "baseline": 20,
         "treatment": 95,
-        "rationale": "Baseline uses wrong query parameters (id=1 not q=[1]) and wrong multipart field (file not formData) with no overwrite flag; treatment matches the documented /api/v1/dashboard/export/?q=[1] and /api/v1/dashboard/import/ formData=@dashboard.zip pattern."
+        "rationale": "Response B fully meets the rubric, while Response A is incomplete and missing key elements."
       }
     ]
   }

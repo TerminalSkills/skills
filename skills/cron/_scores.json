@@ -1,14 +1,14 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:5f327a9c474d46b5a32958450cdf4d93380fbea86e56a3a7f7df18129122d077",
-  "scoredAt": "2026-05-13T16:07:18.992Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:9b11c195e25305a32d44c5a1a3dfb68e90d0c9dfd0bf4797b0c43f26dd5c9992",
+  "scoredAt": "2026-10-20T20:33:57.552Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 93,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "WEAK",
@@ -17,13 +17,8 @@
     "issues": [
       {
         "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The instructions do not cover error handling or edge cases such as invalid cron syntax or permission issues."
-      },
-      {
-        "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Linux/macOS and does not support Windows or other platforms."
+        "detail": "The skill is limited to Linux/macOS cron and does not support other operating systems."
       }
     ]
   },
@@ -32,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 1.42,
-    "baselineAvg": 60,
-    "treatmentAvg": 85,
+    "multiplier": 1.34,
+    "baselineAvg": 50,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "schedule-weekday-report",
-        "baseline": 100,
+        "name": "nightly-postgres-backup-with-lock",
+        "baseline": 50,
         "treatment": 100,
-        "rationale": "Both responses fully satisfy all rubric requirements."
+        "rationale": "Response A fully satisfies the rubric, while Response B fails to meet key requirements such as using the specified lock file, full pg_dump path, and exact error redirection."
       },
       {
-        "name": "system-db-backup",
-        "baseline": 20,
-        "treatment": 70,
-        "rationale": "Response A covers most rubric items but misdirects output to a file instead of the log, while Response B only sets up directories and logs, missing the cron file entirely."
+        "name": "system-logrotate-root",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B meets all rubric requirements; Response A uses the wrong SHELL and PATH."
+      },
+      {
+        "name": "weekly-node-cleanup",
+        "baseline": 100,
+        "treatment": 0,
+        "rationale": "Response A meets all rubric requirements, while Response B incorrectly uses @weekly which runs at midnight instead of 02:00."
       }
     ]
   }

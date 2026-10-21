@@ -1,9 +1,9 @@
 {
-  "version": "1.1.0",
-  "skillHash": "sha256:cebd9eb2de499a4967c3321ecad8e3f1ee39170fee1b610b04422dd711ceee6a",
-  "scoredAt": "2026-05-13T08:53:05.655Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.2.0",
+  "skillHash": "sha256:ae7a02bffc00882b9835f9a639b643d787034eaf0c3feb721a05dea12acf23b5",
+  "scoredAt": "2026-10-20T19:25:53.294Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 93,
     "dimensions": {
@@ -18,7 +18,7 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "Skill does not cover all error scenarios and edge cases, such as network failures or invalid input handling."
+        "detail": "The instructions cover only the happy path and do not address error scenarios or edge cases."
       }
     ]
   },
@@ -27,21 +27,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 88,
-    "multiplier": 1.6,
+    "multiplier": 1.39,
+    "baselineAvg": 23,
+    "treatmentAvg": 32,
     "scenarios": [
       {
-        "name": "Like button with Cloud Functions and Firestore rules",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment uses onCall v2 with runTransaction and request.auth checks plus matching firestore.rules using request.auth.uid and resource.data.authorId, exactly as documented; baseline used v1 callable syntax and looser rules."
+        "name": "setup-project-with-emulators",
+        "baseline": 50,
+        "treatment": 45,
+        "rationale": "Both miss the required --only flag and project alias, but B provides more detailed setup steps."
       },
       {
-        "name": "Scheduled cleanup of old unpublished drafts",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment uses onSchedule v2 with a compound where('published','==',false) + where('createdAt','<',cutoff) query and a batch delete, matching the skill's documented pattern; baseline used v1 pubsub.schedule and didn't mention the composite index."
+        "name": "firestore-security-rule-user-profile",
+        "baseline": 0,
+        "treatment": 0,
+        "rationale": "Both responses do not match the rubric's required read and write rule syntax exactly."
+      },
+      {
+        "name": "cloud-function-on-order-create",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response B better meets the rubric by using onDocumentCreated and the correct console.log syntax, though it still omits getFirestore; Response A uses older syntax and fails to meet several rubric points."
       }
     ]
   }

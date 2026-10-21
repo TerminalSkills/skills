@@ -1,47 +1,47 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:d3d4570a82d3d38f0b60664609c9df72bc0b52829bfefe3951ba6dab98e9d173",
-  "scoredAt": "2026-05-13T14:11:52.141Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:71512b653edcdb56bfd3a4eb8ce47a7edd5fe185fb52705e9338a96e06dbdfc8",
+  "scoredAt": "2026-10-20T17:07:41.052Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 100,
     "dimensions": {
       "clarity": "PASS",
-      "completeness": "WEAK",
+      "completeness": "PASS",
       "conciseness": "PASS",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
     },
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "completeness",
-        "detail": "The skill file does not cover error scenarios or edge cases, only happy path."
-      }
-    ]
+    "issues": []
   },
   "security": {
     "verdict": "SAFE",
     "issues": []
   },
   "impact": {
-    "multiplier": 2.21,
-    "baselineAvg": 43,
-    "treatmentAvg": 95,
+    "multiplier": 9,
+    "baselineAvg": 10,
+    "treatmentAvg": 90,
     "scenarios": [
       {
-        "name": "kustomize-application-with-autosync",
-        "baseline": 55,
-        "treatment": 95,
-        "rationale": "Treatment writes a complete `argoproj.io/v1alpha1 Application` with `syncPolicy.automated` (prune + selfHeal), the `CreateNamespace=true` syncOption, and the `resources-finalizer.argocd.argoproj.io` finalizer for cascade deletion; baseline usually omits the finalizer and the CreateNamespace syncOption."
+        "name": "install-argocd-and-login",
+        "baseline": 30,
+        "treatment": 70,
+        "rationale": "Response B meets the required flags, CLI password retrieval, and login method, while Response A lacks the server-side flags, proper login flag, and secret deletion."
       },
       {
-        "name": "applicationset-multi-cluster-prod",
-        "baseline": 30,
-        "treatment": 95,
-        "rationale": "Treatment uses `kind: ApplicationSet` with a `clusters` generator selecting `environment: production` and templates the app name/server via `{{name}}`/`{{server}}`; baseline tends to suggest creating one Application per cluster manually, missing the generator pattern entirely."
+        "name": "create-multi-cluster-appset",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B contains multiple critical errors (wrong generator type, incorrect placeholders, and missing required fields)."
+      },
+      {
+        "name": "rollback-application-revision",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B includes all required commands and notes, while Response A provides no relevant commands."
       }
     ]
   }

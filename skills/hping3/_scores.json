@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7e22601cd3c26e4691bc095203fed119e8dae8700f9f2ef509b1bad5dc0491a8",
-  "scoredAt": "2026-05-13T09:13:31.112Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:70dbe64b6b5360806b28a8a4704144d5ad0ad2d460425ce036a38afd3af868cd",
+  "scoredAt": "2026-10-20T19:39:10.192Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
     "score": 80,
     "dimensions": {
@@ -18,17 +18,17 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not cover error handling for missing hping3 or permission failures."
+        "detail": "The skill does not cover error scenarios or edge cases."
       },
       {
         "severity": "MEDIUM",
         "category": "conciseness",
-        "detail": "The skill contains extensive explanatory text that may be considered padded."
+        "detail": "The skill contains verbose sections that could be trimmed."
       },
       {
         "severity": "MEDIUM",
         "category": "crossPlatform",
-        "detail": "The skill is limited to Linux environments and does not support other operating systems."
+        "detail": "The skill assumes Linux and root privileges, limiting cross-platform applicability."
       }
     ]
   },
@@ -37,21 +37,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 50,
-    "treatmentAvg": 90,
-    "multiplier": 1.8,
+    "multiplier": 6,
+    "baselineAvg": 10,
+    "treatmentAvg": 60,
     "scenarios": [
       {
-        "name": "Verify firewall rule allows TCP/5432 from app tier to db host",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment uses hping3 -S -p 5432 with SA/RA/no-reply interpretation as documented; baseline mostly suggested nc/nmap and only loosely matched the rubric."
+        "name": "measure-tcp-rtt",
+        "baseline": 30,
+        "treatment": 80,
+        "rationale": "Response A includes the required hping3 command with the correct flags and a summary line, but omits per‑packet RTT output; Response B does not meet the command or summary requirements."
       },
       {
-        "name": "Measure real TCP RTT to api.example.com on port 443 when ping shows steady but app reports latency spikes",
-        "baseline": 45,
-        "treatment": 88,
-        "rationale": "Treatment applied the documented hping3 -S -p 443 -c 200 -i u100000 pattern plus --traceroute -S to locate the slow hop; baseline relied on generic curl/ping timing without TCP-port-targeted probes."
+        "name": "probe-udp-firewall",
+        "baseline": 0,
+        "treatment": 40,
+        "rationale": "Response B includes the required hping3 command but does not show example reply status lines, while Response A does not use hping3 at all."
+      },
+      {
+        "name": "scan-open-ports-icmp-blocked",
+        "baseline": 0,
+        "treatment": 60,
+        "rationale": "Response A uses hping3 but omits sample output, while Response B uses other tools and fails the rubric entirely."
       }
     ]
   }

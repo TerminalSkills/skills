@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7206c5eedf787ca7e8d4603b25fbe308f731256a99a82963b7b96b035747a23c",
-  "scoredAt": "2026-05-13T15:19:45.148Z",
+  "version": "1.1.0",
+  "skillHash": "sha256:2158550080f196d3942f90d2e8e33c6657a7bb551604814d46da85975a3b4491",
+  "scoredAt": "2026-10-20T19:06:05.786Z",
   "backend": "ollama",
-  "model": "gpt-oss:20b",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill does not explicitly cover all error scenarios and edge cases, such as handling missing files or permission errors."
+        "detail": "Instructions do not cover error scenarios or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains verbose explanations that could be trimmed."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "multiplier": 0.71,
-    "baselineAvg": 70,
-    "treatmentAvg": 50,
+    "multiplier": 7.46,
+    "baselineAvg": 13,
+    "treatmentAvg": 97,
     "scenarios": [
       {
-        "name": "scan-terraform-specific-checks-sarif",
-        "baseline": 100,
-        "treatment": 0,
-        "rationale": "Response B includes the exact Checkov CLI command with the required flags, while Response A only uses an action wrapper and does not show the CLI command."
+        "name": "baseline-security-gate",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response B fully covers the rubric while Response A is missing."
       },
       {
-        "name": "skip-check-with-justification",
-        "baseline": 40,
-        "treatment": 100,
-        "rationale": "Response A fully satisfies the rubric by providing the required command and inline comment, while Response B omits the inline comment and only offers a config-file alternative."
+        "name": "suppress-s3-logging-warning",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B correctly uses the required inline comment syntax with CKV_AWS_18 and explains the suppression, while Response A uses the wrong check ID, lacks explanation, and includes extraneous content."
+      },
+      {
+        "name": "custom-s3-naming-policy",
+        "baseline": 20,
+        "treatment": 95,
+        "rationale": "Response B fully satisfies the rubric, while Response A fails to meet key requirements."
       }
     ]
   }

@@ -1,29 +1,29 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:4640dad1489d290f0debf31eb0ad6ee2b2859c36ef09ced6777b7bcef2d0b87a",
-  "scoredAt": "2026-05-13T09:44:41.463Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:4f553c9ace4fbd233338875d7f5b10d3f06a02fd48e52ac5248618565df5d691",
+  "scoredAt": "2026-10-20T19:59:43.072Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 87,
+    "score": 77,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
       "conciseness": "PASS",
       "actionability": "PASS",
-      "crossPlatform": "WEAK",
+      "crossPlatform": "FAIL",
       "examples": "PASS"
     },
     "issues": [
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill file does not cover error handling or edge cases for tool failures and network issues."
+        "detail": "The instructions lack coverage of API error handling and other edge cases beyond guardrails."
       },
       {
-        "severity": "MEDIUM",
+        "severity": "HIGH",
         "category": "crossPlatform",
-        "detail": "The skill is tightly coupled to the OpenAI Agents SDK, limiting portability to other AI agent frameworks."
+        "detail": "The skill is vendor-locked to the OpenAI Agents SDK and does not support other AI agent frameworks."
       }
     ]
   },
@@ -32,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 23,
-    "treatmentAvg": 89,
-    "multiplier": 3.87,
+    "multiplier": 8.7,
+    "baselineAvg": 7,
+    "treatmentAvg": 87,
     "scenarios": [
       {
-        "name": "Customer support triage with handoffs and input guardrail",
-        "baseline": 25,
-        "treatment": 90,
-        "rationale": "Baseline used generic agent framework patterns and missed openai-agents SDK primitives; treatment correctly used Agent with handoffs, @function_tool, Runner.run, and InputGuardrail/GuardrailFunctionOutput with tripwire_triggered."
+        "name": "triage-billing-order-lookup",
+        "baseline": 20,
+        "treatment": 65,
+        "rationale": "Response A comes closer to the rubric, defining an Agent workflow and a function tool, though it mis-specifies the return type and omits a complete run; Response B lacks the required Agent structure and correct model fields."
       },
       {
-        "name": "Stream agent output and surface handoff events",
-        "baseline": 20,
-        "treatment": 88,
-        "rationale": "Baseline produced generic async streaming without SDK-specific event types; treatment used Runner.run_streamed and inspected agent_updated_stream_event and raw_response_event as documented."
+        "name": "support-guardrail",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully implements the required guardrail and exception handling, while Response B does not use the specified guardrail mechanism or exception type."
+      },
+      {
+        "name": "streaming-handoff",
+        "baseline": 0,
+        "treatment": 95,
+        "rationale": "Response B fully meets the rubric with correct streaming loop, token printing, handoff detection, and final output, while Response A is missing entirely."
       }
     ]
   }

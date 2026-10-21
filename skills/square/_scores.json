@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:7a8b335fbe0712156833e23073579a3bd5cc2682df499365049db2b430642d43",
-  "scoredAt": "2026-05-13T10:11:08.556Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:74131742fa94aea5cb8c357e4619090557beb8cd502267943616fa380d482eb2",
+  "scoredAt": "2026-10-20T20:14:08.290Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The skill lacks error handling and edge case coverage in its examples."
+        "detail": "The instructions do not cover all possible error scenarios, such as missing environment variables or network failures."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill includes verbose explanations and guidelines that could be trimmed for brevity."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 68,
-    "treatmentAvg": 96,
-    "multiplier": 1.41,
+    "multiplier": 2.03,
+    "baselineAvg": 33,
+    "treatmentAvg": 67,
     "scenarios": [
       {
-        "name": "Server-side $29.99 payment via Web Payments SDK token",
+        "name": "create-catalog-item",
         "baseline": 80,
-        "treatment": 96,
-        "rationale": "Treatment uses Client + Environment.Production, paymentsApi.createPayment with BigInt(amount) and idempotencyKey via crypto.randomUUID() exactly as the skill shows; baseline omits BigInt which the Square v2 SDK requires."
+        "treatment": 100,
+        "rationale": "Response B fully satisfies all rubric requirements, including the returned catalogObject.id, while Response A omits that part."
       },
       {
-        "name": "Catalog upsert with priced variation",
-        "baseline": 55,
-        "treatment": 96,
-        "rationale": "Treatment makes a single upsertCatalogObject call with inline ITEM_VARIATION, # temp IDs, FIXED_PRICING and BigInt priceMoney; baseline splits into two calls without temp-ID linking, no pricingType, and no BigInt."
+        "name": "process-card-payment",
+        "baseline": 0,
+        "treatment": 50,
+        "rationale": "Response B provides the required API call but omits returning payment.id, proper JSON output, and error handling, whereas Response A gives no useful content."
+      },
+      {
+        "name": "verify-webhook-signature",
+        "baseline": 20,
+        "treatment": 50,
+        "rationale": "Response B uses WebhooksHelper but with the wrong URL, while Response A does not use WebhooksHelper at all."
       }
     ]
   }

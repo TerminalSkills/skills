@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0",
-  "skillHash": "sha256:ce72a9f7957969070ca06359d0502e65426e4d33768156bcd9b689d1b238d2be",
-  "scoredAt": "2026-05-13T10:24:06.693Z",
-  "backend": "subagent",
-  "model": "claude-sonnet-4-6",
+  "version": "1.1.0",
+  "skillHash": "sha256:7f9dc8c8d7ac0510186e242dec94bcb896208cb610ecd1d23fb08c425f573e27",
+  "scoredAt": "2026-10-20T20:22:34.222Z",
+  "backend": "ollama",
+  "model": "gpt-oss:20b-64k",
   "quality": {
-    "score": 93,
+    "score": 87,
     "dimensions": {
       "clarity": "PASS",
       "completeness": "WEAK",
-      "conciseness": "PASS",
+      "conciseness": "WEAK",
       "actionability": "PASS",
       "crossPlatform": "PASS",
       "examples": "PASS"
@@ -18,7 +18,12 @@
       {
         "severity": "MEDIUM",
         "category": "completeness",
-        "detail": "The instructions do not cover error scenarios or edge cases."
+        "detail": "The skill does not explicitly cover error handling or edge cases."
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "conciseness",
+        "detail": "The skill contains extensive explanatory comments that may be considered verbose."
       }
     ]
   },
@@ -27,21 +32,27 @@
     "issues": []
   },
   "impact": {
-    "baselineAvg": 55,
-    "treatmentAvg": 90,
-    "multiplier": 1.64,
+    "multiplier": 2.5,
+    "baselineAvg": 40,
+    "treatmentAvg": 100,
     "scenarios": [
       {
-        "name": "Telegraf collecting Postgres + system metrics to InfluxDB v2",
-        "baseline": 55,
-        "treatment": 92,
-        "rationale": "Treatment splits config into telegraf.d/ modules, configures [[outputs.influxdb_v2]] with urls/token/organization/bucket, and uses [[inputs.postgresql]] with the documented address DSN plus inputs.cpu/mem/disk/system as in Task A/B; baseline writes a single monolithic file and uses outputs.influxdb (v1) parameters that don't match the v2 plugin shape."
+        "name": "system-metrics-to-influxdb",
+        "baseline": 50,
+        "treatment": 100,
+        "rationale": "Response A meets all rubric requirements; Response B omits the required token syntax and test command details."
       },
       {
-        "name": "Scrape Prometheus targets and filter noisy metrics",
-        "baseline": 55,
-        "treatment": 88,
-        "rationale": "Treatment uses [[inputs.prometheus]] with metric_version=2 and url_tag plus [[processors.filter]] with namepass/fielddrop and [[aggregators.basicstats]] period=60s as in Task C/D; baseline tries to scrape via inputs.http with JSON parsing and lacks the namepass cardinality control the skill emphasises in Best Practices."
+        "name": "postgres-redis-to-prometheus",
+        "baseline": 70,
+        "treatment": 100,
+        "rationale": "B meets all rubric requirements, including metric_version, tags, and Prometheus job; A lacks metric_version and tags."
+      },
+      {
+        "name": "docker-compose-telegraf-influxdb",
+        "baseline": 0,
+        "treatment": 100,
+        "rationale": "Response A fully satisfies all rubric requirements, while Response B provides no content."
       }
     ]
   }
