@@ -8,7 +8,7 @@ license: Apache-2.0
 compatibility: "Any AI agent"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: "1.1.0"
   category: business
   tags: [finance, unit-economics, ltv-cac, margins, revenue]
   use-cases:
@@ -24,7 +24,7 @@ metadata:
 
 You don't need an MBA to understand business finance. You need to understand five things: how money comes in (revenue), how money goes out (costs), what's left (profit), how long customers stay and pay (LTV), and how much it costs to get them (CAC). Everything else is a variation of these five.
 
-This skill covers the essential financial frameworks from the Personal MBA — the 4 methods to increase revenue, unit economics, LTV/CAC analysis, and the critical distinction between profit and cash flow.
+This skill covers essential financial frameworks — the 4 methods to increase revenue, unit economics, LTV/CAC analysis, and the critical distinction between profit and cash flow.
 
 ## Instructions
 
@@ -40,11 +40,11 @@ Every business in the world can only increase revenue in exactly four ways. Ther
 
 3. **Increase the frequency of transactions** — Subscriptions, consumables, habit-building. Example: Moving from one-time purchase to subscription model = recurring revenue.
 
-4. **Increase prices** — Value-based pricing, premium positioning. Highest leverage: a 10% price increase with no cost change goes straight to profit. Often causes < 5% customer loss.
+4. **Increase prices** — Value-based pricing, premium positioning. Highest leverage: a 10% price increase with no cost change goes straight to profit.
 
 **The Revenue Impact Formula:**
 ```
-Revenue = Customers × Average Transaction × Frequency × Price
+Revenue = Customers × Units per Transaction × Frequency × Price per Unit
 ```
 
 A 10% improvement in ALL four factors:
@@ -55,13 +55,13 @@ A 10% improvement in ALL four factors:
 ### Profit Margin Analysis
 
 **Gross Margin** = (Revenue - Cost of Goods Sold) / Revenue
-- SaaS benchmark: 70-85%
-- Services benchmark: 40-60%
+- Rough heuristics, not sourced statistics; compare against your own sector:
+- SaaS: 70-85%
+- Services: 40-60%
 - Physical products: 30-50%
 
 **Net Margin** = (Revenue - ALL Costs) / Revenue
-- Healthy SaaS: 15-25% net margin at scale
-- Healthy services: 10-20% net margin
+- Rough heuristics: SaaS 15-25% net margin at scale; services 10-20%
 
 **Why margins matter more than revenue:**
 - $1M revenue at 10% margin = $100k profit
@@ -99,7 +99,7 @@ Example:
   CAC = $17,000 / 50 = $340
 ```
 
-**The LTV/CAC Ratio — The Single Most Important SaaS Metric:**
+**The LTV/CAC Ratio — a core SaaS metric (the 3:1 bands are common rules of thumb, not standards):**
 
 | LTV/CAC | Verdict | Action |
 |---------|---------|--------|
@@ -118,7 +118,7 @@ Example:
   Payback = $340 / ($90 × 0.80) = 4.7 months
 ```
 
-Benchmark: Payback should be < 12 months. Under 6 months is excellent.
+Rule of thumb: payback under 12 months; under 6 months is excellent.
 
 ### Breakeven Analysis
 
@@ -146,7 +146,7 @@ Below 103 customers: losing money. Above 103: every new customer adds $78/month 
 
 ### Allowable Acquisition Cost
 
-How much CAN you spend to acquire a customer? Max Allowable CAC = LTV x Target Margin. Example: LTV = $1,800, target margin 60%, Max CAC = $1,800 x 0.40 = $720. If actual CAC is $340, you have $380 of headroom to invest more in growth.
+How much CAN you spend to acquire a customer? Max Allowable CAC = LTV x (1 - Target Margin). Example: LTV = $1,800, target margin kept after acquisition 60%, Max CAC = $1,800 x 0.40 = $720. If actual CAC is $340, you have $380 of headroom to invest more in growth.
 
 ## Key Formulas
 
@@ -175,7 +175,7 @@ SaaS Unit Economics Report:
   CAC:                $340
   LTV/CAC:            2.5x — WARNING: Borderline healthy
   CAC Payback:        5.0 months (acceptable)
-  Median Customer Life: 12.5 months
+  Average Customer Life: 12.5 months
 
   Monthly P&L:
     Revenue:          $45,000
@@ -186,15 +186,17 @@ SaaS Unit Economics Report:
 
   Breakeven:          578 customers (you have 500 — 78 short)
 
-  Revenue Lever Impact (10% improvement each):
-    #1 Reduce churn 8%→7.2%:     +$5,625/month (HIGHEST IMPACT)
-    #2 Increase ARPU $90→$99:    +$4,500/month
-    #3 Increase prices 10%:       +$4,500/month
-    #4 More customers 50→55/mo:  +$450/month
+  Revenue Lever Impact (each lever changed on its own):
+    Churn 8%→7.2%:        LTV $844→$938 (+11%); the effect builds over months
+    ARPU $90→$99:         +$4,500 MRR immediately (+$3,375 gross profit)
+    Price +10%:           same as ARPU if applied to all customers
+    Acquisition 50→55/mo: +5 customers/month (+$450 MRR per monthly cohort)
 
   Diagnosis: Your #1 problem is churn. At 8%/month, customers live only
-  12.5 months on average. Fix churn first — it has the highest ROI.
-  If you halve churn to 4%, LTV doubles to $1,688 and you become profitable.
+  12.5 months on average. Fix churn first: retention gains compound, while the price
+  lever pays off immediately. If you halve churn to 4%, LTV doubles to $1,688 and
+  the steady-state customer base (50 new/month / churn) doubles from 625 to 1,250,
+  far above the 578 breakeven.
 ```
 
 ### Example 2: Price increase impact modeling
@@ -221,8 +223,8 @@ Price Increase Impact Model: $49 → $59/month (+20%)
 
   Break-even churn from price increase:
     You'd need to lose 51+ customers (17%) for this to be net negative.
-    Research shows < 5% typically leave after a 20% price increase
-    when communicated well with adequate notice.
+    Churn after a price increase varies by product; test it with a
+    subset of customers before applying it to everyone.
 
   Recommendation: DO IT. Grandfather existing customers for 3 months,
   apply new price to all new signups immediately.
@@ -231,7 +233,7 @@ Price Increase Impact Model: $49 → $59/month (+20%)
 ## Guidelines
 
 - Always calculate LTV with gross margin, not raw ARPU. LTV = (ARPU × Gross Margin) / Churn.
-- When churn is above 5% monthly, flag it as the #1 priority. Nothing else matters until churn is fixed.
+- When churn is above 5% monthly (a rule of thumb for SaaS), flag it as the top priority.
 - Present the 4 revenue levers ranked by impact for the specific business, not in generic order.
 - Cash flow warnings should be prominent when a business is profitable on paper but cash-negative.
 - Price increase modeling should always include 3 scenarios: no loss, typical loss (5%), and aggressive loss (15%).
