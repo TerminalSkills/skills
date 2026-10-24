@@ -13,7 +13,7 @@ compatibility: >-
   account.
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: 1.1.0
   category: business
   tags:
     - tiktok
@@ -56,10 +56,9 @@ What kills reach:
 #### Video Specs
 - **Aspect ratio:** 9:16 (1080x1920px) — always vertical
 - **Duration:** 15-60 seconds optimal. Under 30s has highest completion rates
-- **Format:** MP4 or MOV, H.264 codec
-- **Max file size:** 287.6 MB (mobile), 500 MB (web)
-- **Max duration:** 10 minutes (but short = better for growth)
-- **Frame rate:** 30fps minimum, 60fps for smooth motion
+- **Format:** MP4 (recommended), MOV or WebM; H.264 recommended
+- **Max duration:** the account's own limit (`max_video_post_duration_sec` from the creator-info endpoint, e.g. 300 s); short is better for growth
+- **Frame rate:** 30fps is typical, 60fps for smooth motion (API accepts 23-60 fps; 360-4096 px per side; up to 4 GB)
 
 #### Hook Framework (First 1-3 seconds)
 The first second determines everything. The viewer decides to scroll or stay.
@@ -135,6 +134,8 @@ The first second determines everything. The viewer decides to scroll or stay.
 
 ### TikTok Content Posting API
 
+Two modes. **Direct Post** (`/v2/post/publish/video/init/`, scope `video.publish`) publishes straight to the profile. **Upload** (`/v2/post/publish/inbox/video/init/`, scope `video.upload`) sends the video to the creator's TikTok inbox as a draft to finish in the app (status `SEND_TO_USER_INBOX`). Your app must have the Content Posting API product enabled in the TikTok developer portal. Until the app passes TikTok's audit, Direct Post is limited: every post is private (`SELF_ONLY`) and the target account must be private, otherwise init fails with `unaudited_client_can_only_post_to_private_accounts`.
+
 #### Authentication
 ```typescript
 // TikTok uses OAuth 2.0
@@ -144,7 +145,7 @@ const TIKTOK_AUTH_URL = 'https://www.tiktok.com/v2/auth/authorize/';
 const authUrl = new URL(TIKTOK_AUTH_URL);
 authUrl.searchParams.set('client_key', process.env.TIKTOK_CLIENT_KEY);
 authUrl.searchParams.set('response_type', 'code');
-authUrl.searchParams.set('scope', 'user.info.basic,video.publish,video.upload,video.list');
+authUrl.searchParams.set('scope', 'user.info.basic,user.info.stats,video.publish,video.upload,video.list');
 authUrl.searchParams.set('redirect_uri', process.env.TIKTOK_REDIRECT_URI);
 authUrl.searchParams.set('state', 'random-state');
 
@@ -164,6 +165,8 @@ const { access_token, refresh_token, expires_in } = await tokenRes.json();
 ```
 
 #### Publish Video
+Before a Direct Post, call `POST https://open.tiktokapis.com/v2/post/publish/creator_info/query/` (same Bearer token, scope `video.publish`, 20 requests per minute per user; the init call itself allows 6 per minute). It returns `privacy_level_options`, `max_video_post_duration_sec` and the creator's duet/comment/stitch settings. The `privacy_level` you send must be one of the returned options.
+
 ```typescript
 // Step 1: Initialize upload
 const initRes = await fetch('https://open.tiktokapis.com/v2/post/publish/video/init/', {
@@ -175,7 +178,7 @@ const initRes = await fetch('https://open.tiktokapis.com/v2/post/publish/video/i
   body: JSON.stringify({
     post_info: {
       title: 'Video title',
-      privacy_level: 'PUBLIC_TO_EVERYONE', // or MUTUAL_FOLLOW_FRIENDS, SELF_ONLY
+      privacy_level: 'SELF_ONLY', // must be one of creator_info privacy_level_options; PUBLIC_TO_EVERYONE needs an audited app
       disable_duet: false,
       disable_comment: false,
       disable_stitch: false,
@@ -184,14 +187,16 @@ const initRes = await fetch('https://open.tiktokapis.com/v2/post/publish/video/i
     source_info: {
       source: 'FILE_UPLOAD',
       video_size: videoFileSize, // in bytes
-      chunk_size: videoFileSize, // single chunk for files < 64MB
+      chunk_size: videoFileSize, // whole-file upload: required under 5 MB, allowed up to 64 MB
       total_chunk_count: 1,
     },
   }),
 });
 const { data: { publish_id, upload_url } } = await initRes.json();
 
-// Step 2: Upload video
+// Step 2: Upload video (upload_url is valid for one hour). Files over 64 MB
+// must go in sequential chunks of 5-64 MB (the last may be up to 128 MB),
+// each with its own Content-Range; max 1000 chunks.
 await fetch(upload_url, {
   method: 'PUT',
   headers: {
@@ -210,7 +215,7 @@ const statusRes = await fetch('https://open.tiktokapis.com/v2/post/publish/statu
   },
   body: JSON.stringify({ publish_id }),
 });
-// Status: PROCESSING_UPLOAD, PROCESSING_DOWNLOAD, PUBLISH_COMPLETE, FAILED
+// Status: PROCESSING_UPLOAD, PROCESSING_DOWNLOAD (URL pulls only), SEND_TO_USER_INBOX (upload mode), PUBLISH_COMPLETE, FAILED (see fail_reason)
 ```
 
 #### Query Videos & Analytics
@@ -222,10 +227,10 @@ const videosRes = await fetch('https://open.tiktokapis.com/v2/video/list/?fields
     Authorization: `Bearer ${access_token}`,
     'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ max_count: 20 }),
+  body: JSON.stringify({ max_count: 20 }), // 20 is the page maximum; page with the returned cursor
 });
 
-// Get user info
+// Get user info (follower_count, following_count, likes_count need scope user.info.stats)
 const userRes = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=display_name,avatar_url,follower_count,following_count,likes_count,video_count', {
   headers: { Authorization: `Bearer ${access_token}` },
 });
@@ -249,7 +254,7 @@ const userRes = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=di
 - Stitch/Duet trending creators in your niche (rides their distribution)
 - Pin your 3 best-performing videos to profile
 - Create a series with consistent format (viewers follow for next part)
-- Cross-post to Instagram Reels and YouTube Shorts (remove TikTok watermark first using SnapTik or manual re-export)
+- Cross-post to Instagram Reels and YouTube Shorts (export the original file from your editor, not a download from TikTok, so no watermark)
 
 **TikTok SEO (2025-2026):**
 - TikTok is now a search engine — people search it like Google
@@ -267,7 +272,7 @@ The agent will create a 7-day content calendar with specific video concepts tail
 ### Example 2: Write a TikTok API integration to auto-publish videos
 **User prompt:** "Build a Node.js script that uploads a pre-recorded MP4 to TikTok using their Content Posting API. The video file is at ./videos/latte-art-tutorial.mp4."
 
-The agent will create a Node.js script that authenticates via TikTok OAuth 2.0 using environment variables `TIKTOK_CLIENT_KEY` and `TIKTOK_CLIENT_SECRET`, reads the video file size, initializes the upload via `POST /v2/post/publish/video/init/` with the title "Latte Art Tutorial — 3 Steps to a Perfect Rosetta", sets `privacy_level` to `PUBLIC_TO_EVERYONE`, uploads the binary to the returned `upload_url` with the correct `Content-Range` header, then polls `/v2/post/publish/status/fetch/` every 5 seconds until the status is `PUBLISH_COMPLETE` or `FAILED`, logging the result.
+The agent will create a Node.js script that authenticates via TikTok OAuth 2.0 using environment variables `TIKTOK_CLIENT_KEY` and `TIKTOK_CLIENT_SECRET`, reads the video file size, initializes the upload via `POST /v2/post/publish/video/init/` with the title "Latte Art Tutorial — 3 Steps to a Perfect Rosetta", queries creator info first and picks `privacy_level` from the returned options (`SELF_ONLY` until the app is audited), uploads the binary to the returned `upload_url` with the correct `Content-Range` header, then polls `/v2/post/publish/status/fetch/` every 5 seconds until the status is `PUBLISH_COMPLETE` or `FAILED`, logging the result.
 
 ## Guidelines
 
