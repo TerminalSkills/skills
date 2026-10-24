@@ -1,100 +1,130 @@
 ---
 name: instructor
 description: >-
-  You are an expert in Instructor, the library for getting structured,
-  validated output from LLMs. You help developers extract typed data from
-  unstructured text using Pydantic models (Python) or Zod schemas
-  (TypeScript), with automatic retries on validation failures, streaming
-  partial objects, and support for OpenAI, Anthropic, Google, and local models
-  — turning LLMs into reliable data extraction engines.
+  Instructor is a Python and TypeScript library that returns validated, typed
+  objects from LLM calls using Pydantic models or Zod schemas, with automatic
+  retries when validation fails, streaming of partial objects, and support
+  for OpenAI, Anthropic, Gemini and local models. Use when someone asks to
+  extract structured data from text, get JSON from an LLM that matches a
+  schema, validate model output, or stream partial structured results.
 license: Apache-2.0
-compatibility: ''
+compatibility: Python 3.9+ with instructor 1.17; Node.js with @instructor-ai/instructor 1.7 (TypeScript)
 metadata:
   author: terminal-skills
-  version: 1.0.0
-  category: AI & Machine Learning
+  version: 1.1.0
+  category: data-ai
+  repository: https://github.com/567-labs/instructor
   tags:
     - structured-output
     - llm
     - pydantic
     - validation
     - extraction
-    - typescript
 ---
 
 # Instructor — Structured LLM Output with Validation
 
-You are an expert in Instructor, the library for getting structured, validated output from LLMs. You help developers extract typed data from unstructured text using Pydantic models (Python) or Zod schemas (TypeScript), with automatic retries on validation failures, streaming partial objects, and support for OpenAI, Anthropic, Google, and local models — turning LLMs into reliable data extraction engines.
+## Overview
 
-## Core Capabilities
+Instructor wraps an LLM client so that `create(...)` takes a `response_model` (a Pydantic class in Python, a Zod schema in TypeScript) and returns an instance of it. The schema is sent to the provider as a tool or JSON schema, the reply is parsed and validated, and on a validation error the error text is sent back to the model for another attempt (`max_retries`). Python is the main, actively released implementation (1.17.0 on PyPI, September 2026). The TypeScript package `@instructor-ai/instructor` last released 1.7.0 in January 2025; it still works (checked below) but gets no new provider support.
 
-### Python (Pydantic)
+## Instructions
+
+### Install
+
+```bash
+pip install instructor                       # or: uv add instructor
+pip install anthropic                        # provider SDKs are separate: openai, anthropic, google-genai ...
+npm install @instructor-ai/instructor zod openai
+```
+
+### Create a client
+
+The documented way is `from_provider("<provider>/<model>")`. It reads the key from the provider's usual environment variable (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) and returns a client whose `create` takes `response_model`. Pass `async_client=True` for async.
 
 ```python
-# extraction.py — Type-safe LLM extraction
+import instructor
+
+client = instructor.from_provider("openai/gpt-4o-mini")
+```
+
+Wrapping an existing SDK client also works and gives the older `client.chat.completions.create(...)` form:
+
+```python
 import instructor
 from openai import OpenAI
-from pydantic import BaseModel, Field
-from typing import Literal
 
-client = instructor.from_openai(OpenAI())
+client = instructor.from_openai(OpenAI())          # Mode.TOOLS by default
+```
+
+Mode is chosen with `mode=instructor.Mode.TOOLS | JSON | MD_JSON | JSON_SCHEMA | ...`. Use `Mode.JSON` for servers without tool calling (many local models). Anthropic: the docs recommend `Mode.TOOLS`, and every call needs `max_tokens`. The `PARALLEL_TOOLS` and `ANTHROPIC_REASONING_TOOLS` modes are deprecated for Anthropic.
+
+### Streaming and lists
+
+- `client.create_partial(response_model=..., ...)` yields the object as it fills in (fields may be missing until the end).
+- `client.create_iterable(response_model=Contact, ...)` yields several objects of the same type one at a time.
+- `client.create_with_completion(...)` returns `(object, raw_completion)` when you need token usage.
+
+### Validation
+
+Pydantic validators (`Field(ge=0, le=1)`, `@field_validator`, `Literal[...]`) are what trigger a retry: a failed check becomes feedback to the model. After `max_retries` failures Instructor raises `InstructorRetryException` (import it from `instructor.core.exceptions`).
+
+## Examples
+
+### Extract contacts from an email (Python)
+
+```python
+import instructor
+from typing import Optional
+from pydantic import BaseModel, Field
 
 class ContactInfo(BaseModel):
     name: str = Field(description="Full name of the person")
-    email: str | None = Field(default=None, description="Email address if mentioned")
-    phone: str | None = Field(default=None, description="Phone number if mentioned")
-    company: str | None = Field(default=None)
-    role: str | None = Field(default=None)
+    email: Optional[str] = Field(default=None, description="Email address if mentioned")
+    role: Optional[str] = None
 
 class ExtractedContacts(BaseModel):
     contacts: list[ContactInfo]
     confidence: float = Field(ge=0, le=1, description="Overall extraction confidence")
 
-# Extract structured data — guaranteed to match schema
-result = client.chat.completions.create(
-    model="gpt-4o-mini",
+client = instructor.from_provider("openai/gpt-4o-mini")
+
+result = client.create(
     response_model=ExtractedContacts,
     messages=[{
         "role": "user",
-        "content": """Extract contacts from this email:
-
-Hi, I'm reaching out on behalf of Sarah Chen (sarah@techcorp.io),
-VP of Engineering at TechCorp. She'd like to schedule a call.
-You can also reach her at (415) 555-0123.
-
-CC: Mike Johnson, mike.j@techcorp.io, Head of DevOps""",
+        "content": "Extract contacts: Sarah Chen (sarah@techcorp.io) is VP of "
+                   "Engineering at TechCorp. CC: Mike Johnson, mike.j@techcorp.io, Head of DevOps",
     }],
-    max_retries=3,                        # Auto-retry on validation failure
+    max_retries=3,
 )
+print(result.contacts[0].name)    # Sarah Chen
+print(result.contacts[1].role)    # Head of DevOps
+```
 
-# result.contacts[0].name → "Sarah Chen"
-# result.contacts[0].email → "sarah@techcorp.io"
-# result.contacts[0].role → "VP of Engineering"
-# Fully typed, validated by Pydantic
+`result` is an `ExtractedContacts` instance; a confidence outside 0-1 would be rejected and retried.
 
-# Sentiment analysis with enum
-class SentimentAnalysis(BaseModel):
-    sentiment: Literal["positive", "negative", "neutral", "mixed"]
-    emotions: list[Literal["joy", "anger", "sadness", "fear", "surprise", "disgust"]]
-    key_phrases: list[str]
-    summary: str
+### Stream partial objects, and use Anthropic
 
-analysis = client.chat.completions.create(
-    model="gpt-4o-mini",
-    response_model=SentimentAnalysis,
-    messages=[{"role": "user", "content": f"Analyze sentiment: {review_text}"}],
-)
+```python
+client = instructor.from_provider("anthropic/claude-sonnet-5")
 
-# Streaming partial objects
-from instructor import Partial
-
-for partial in client.chat.completions.create_partial(
-    model="gpt-4o",
+for partial in client.create_partial(
     response_model=ExtractedContacts,
     messages=[{"role": "user", "content": email_text}],
+    max_tokens=1024,
 ):
-    # partial.contacts may be incomplete — render progressively
-    print(f"Found {len(partial.contacts)} contacts so far...")
+    print(f"{len(partial.contacts or [])} contacts so far")
+```
+
+Local Ollama (OpenAI-compatible endpoint):
+
+```python
+from openai import OpenAI
+client = instructor.from_openai(
+    OpenAI(base_url="http://localhost:11434/v1", api_key="ollama"),
+    mode=instructor.Mode.JSON,
+)
 ```
 
 ### TypeScript (Zod)
@@ -106,59 +136,28 @@ import { z } from "zod";
 
 const client = Instructor({ client: new OpenAI(), mode: "TOOLS" });
 
-const ContactSchema = z.object({
-  contacts: z.array(z.object({
-    name: z.string(),
-    email: z.string().email().nullable(),
-    role: z.string().nullable(),
-  })),
-  confidence: z.number().min(0).max(1),
+const Contact = z.object({
+  name: z.string(),
+  email: z.string().email().nullable(),
 });
 
 const result = await client.chat.completions.create({
   model: "gpt-4o-mini",
-  response_model: { schema: ContactSchema, name: "ContactExtraction" },
-  messages: [{ role: "user", content: emailText }],
+  response_model: { schema: Contact, name: "Contact" },
+  messages: [{ role: "user", content: "Reach Sarah Chen at sarah@techcorp.io" }],
   max_retries: 3,
 });
-// result is fully typed as z.infer<typeof ContactSchema>
+// result is typed as z.infer<typeof Contact>
 ```
 
-### Multi-Provider
+This was run against a local mock OpenAI-compatible server with openai 7.x and zod 3.25; it returned the parsed object.
 
-```python
-# Works with any provider
-from anthropic import Anthropic
-import instructor
+## Guidelines
 
-# Anthropic
-client = instructor.from_anthropic(Anthropic())
-result = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    response_model=ExtractedContacts,
-    messages=[{"role": "user", "content": text}],
-    max_tokens=1024,
-)
-
-# Local models (Ollama)
-from openai import OpenAI
-client = instructor.from_openai(OpenAI(base_url="http://localhost:11434/v1", api_key="ollama"), mode=instructor.Mode.JSON)
-```
-
-## Installation
-
-```bash
-pip install instructor                    # Python
-npm install @instructor-ai/instructor zod  # TypeScript
-```
-
-## Best Practices
-
-1. **Pydantic/Zod for schema** — Define exact output shape; LLM output is validated and typed automatically
-2. **Field descriptions** — Add `description` to fields; helps the LLM understand what to extract
-3. **max_retries** — Set to 2-3; Instructor auto-retries with validation error feedback when output doesn't match
-4. **Literals for enums** — Use `Literal["a", "b"]` instead of `str` for categorical fields; constrains LLM output
-5. **Nested models** — Use nested Pydantic models for complex structures; LLM handles hierarchical extraction
-6. **Streaming** — Use `create_partial` for progressive rendering; show partial results as they arrive
-7. **GPT-4o-mini for extraction** — Structured extraction doesn't need the smartest model; mini is 10x cheaper and fast
-8. **Validation as feedback** — When validation fails, Instructor sends the error back to the LLM for self-correction
+- Put a `description` on every field; it goes into the schema the model sees. Make optional data `Optional[X] = None` (`X | None` on Python 3.10+), otherwise the model invents a value.
+- Use `Literal[...]` or `Enum` for categories instead of `str`.
+- Keep `max_retries` at 2 or 3; each retry is another paid call with the error appended.
+- Model names change often. Check the provider's current list before pinning one, and keep the name in one constant.
+- Instructor does not make a weak model accurate: validation guarantees the shape, not the truth. Add validators for facts you can check (dates, ranges, enum membership).
+- For TypeScript, expect no new features; pin `@instructor-ai/instructor@1.7.0` and check that your OpenAI SDK major version works in a small test before relying on it.
+- Provider SDKs (`openai`, `anthropic`, `google-genai`) must be installed separately; `from_provider` raises an import error naming the missing one.
