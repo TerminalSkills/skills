@@ -1,183 +1,121 @@
 ---
 name: mlflow
-description: |
-  Open-source platform for managing the ML lifecycle. Track experiments with metrics and
-  parameters, register and version models, deploy models to various targets, and build
-  reproducible ML pipelines. Integrates with all major ML frameworks.
+description: >-
+  MLflow is an open-source platform for tracking machine-learning experiments, versioning models in a registry and serving them as a REST API. Use it when the user wants to log parameters, metrics and artifacts, compare runs, register a model with aliases like "production", set up a shared tracking server, or serve a trained model locally. Covers MLflow 3 (name= in log_model, signatures, skops serialization for scikit-learn).
 license: Apache-2.0
-compatibility: 'python 3.8+, mlflow 2.0+, Linux/macOS/Windows'
+compatibility: 'Python 3.10+, mlflow 3.x, Linux/macOS/Windows'
 metadata:
   author: terminal-skills
-  version: 1.0.0
+  version: "1.1.0"
   category: data-ai
+  repository: https://github.com/mlflow/mlflow
   tags:
     - experiment-tracking
     - model-registry
     - ml-lifecycle
     - deployment
-    - pipelines
 ---
 
 # MLflow
 
-## Installation
+## Overview
 
-```bash
-# Install MLflow
-pip install mlflow
+MLflow records what happened in each training run (parameters, metrics, files, the model itself), keeps a registry of model versions, and can serve a model over HTTP. This skill targets MLflow 3.x (checked against 3.17.2, which requires Python 3.10+). Three changes since 2.x matter in practice: `log_model` takes `name=` (the old `artifact_path=` still exists but is deprecated), scikit-learn models are saved with `skops` instead of pickle, and the tracking server rejects requests whose `Host` header is not allow-listed.
 
-# Start the tracking UI
-mlflow ui --port 5000
-# Visit http://localhost:5000
-```
+## Instructions
 
-## Experiment Tracking
+1. Install in a virtual environment: `pip install mlflow scikit-learn`. A quick local server with a SQLite backend:
+   ```bash
+   mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000
+   ```
+   The UI is at http://127.0.0.1:5000. `mlflow ui` is the same app for local use.
+2. Point code at it with `mlflow.set_tracking_uri("http://127.0.0.1:5000")` or the `MLFLOW_TRACKING_URI` environment variable, then `mlflow.set_experiment("name")`.
+3. Wrap training in `with mlflow.start_run(run_name=...)`. Use `log_params`, `log_metric(name, value, step=...)`, `log_dict` / `log_artifact` for files.
+4. Log the model with `mlflow.<flavor>.log_model(model, name="model", signature=...)`. Build the signature with `infer_signature(X_train, predictions)`; serving then validates column names and types.
+5. Register by passing `registered_model_name=` to `log_model`, or call `mlflow.register_model(info.model_uri, "iris-classifier")` with the `info` returned by `log_model`. Stages are deprecated: point aliases (`production`) at versions with `MlflowClient().set_registered_model_alias(name, alias, version)` and load via `models:/name@alias`.
+6. Serve with `mlflow models serve -m "models:/name@alias" -p 5001 --env-manager local` (run it inside the environment that has the model's dependencies; without `--env-manager local` MLflow builds a fresh one).
+7. Prefer `mlflow.<flavor>.autolog()` (sklearn, pytorch, xgboost, lightgbm, tensorflow, ...) when you do not need custom logging.
+
+## Examples
+
+### Track, register and alias a scikit-learn model
 
 ```python
-# track_experiment.py — Log parameters, metrics, and artifacts to MLflow
+# train_iris.py - log params, metrics, signature and register the model
 import mlflow
-from sklearn.ensemble import RandomForestClassifier
+from mlflow import MlflowClient
+from mlflow.models import infer_signature
 from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
-mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("iris-classification")
 
-X, y = load_iris(return_X_y=True)
+X, y = load_iris(return_X_y=True, as_frame=True)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 with mlflow.start_run(run_name="random-forest-v1"):
-    # Log parameters
-    n_estimators = 100
-    max_depth = 5
-    mlflow.log_param("n_estimators", n_estimators)
-    mlflow.log_param("max_depth", max_depth)
+    mlflow.log_params({"n_estimators": 100, "max_depth": 5})
+    model = RandomForestClassifier(n_estimators=100, max_depth=5).fit(X_train, y_train)
+    mlflow.log_metric("accuracy", accuracy_score(y_test, model.predict(X_test)))
+    mlflow.log_dict(dict(zip(X.columns, model.feature_importances_.tolist())), "feature_importance.json")
+    mlflow.sklearn.log_model(
+        model,
+        name="model",
+        signature=infer_signature(X_train, model.predict(X_train)),
+        registered_model_name="iris-classifier",
+        # scikit-learn trees are saved with skops; trust the Tree type for a model you trained yourself
+        skops_trusted_types=["sklearn.tree._tree.Tree"],
+    )
 
-    # Train model
-    model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
-    model.fit(X_train, y_train)
-
-    # Log metrics
-    accuracy = accuracy_score(y_test, model.predict(X_test))
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.log_metric("train_size", len(X_train))
-
-    # Log model
-    mlflow.sklearn.log_model(model, "model")
-
-    # Log artifacts
-    import json
-    with open("feature_importance.json", "w") as f:
-        json.dump(dict(zip(["f1","f2","f3","f4"], model.feature_importances_.tolist())), f)
-    mlflow.log_artifact("feature_importance.json")
-
-    print(f"Run ID: {mlflow.active_run().info.run_id}")
-    print(f"Accuracy: {accuracy:.4f}")
+MlflowClient().set_registered_model_alias("iris-classifier", "production", 1)
+loaded = mlflow.pyfunc.load_model("models:/iris-classifier@production")
+print(loaded.predict(X_test.head(2)))
 ```
 
-## Autologging
+Result: the run appears under the `iris-classification` experiment, version 1 of `iris-classifier` exists, and the last line prints predictions such as `[1 0]`.
+
+### Serve the registered model and call it
+
+```bash
+export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
+mlflow models serve -m "models:/iris-classifier@production" -p 5001 --env-manager local
+
+curl -s -X POST http://127.0.0.1:5001/invocations \
+  -H "Content-Type: application/json" \
+  -d '{"dataframe_split": {"columns": ["sepal length (cm)", "sepal width (cm)", "petal length (cm)", "petal width (cm)"], "data": [[5.1, 3.5, 1.4, 0.2]]}}'
+# {"predictions": [0]}
+```
+
+A model saved with a column-named signature rejects a bare `{"inputs": [[5.1, 3.5, 1.4, 0.2]]}` with `SCHEMA_ENFORCEMENT_FAILED`; send named columns as above.
+
+### Autologging and a shared server
 
 ```python
-# autolog.py — Automatically log parameters, metrics, and models
 import mlflow
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
 
-# Enable autologging for sklearn (also works with pytorch, tensorflow, xgboost, etc.)
-mlflow.sklearn.autolog()
-
-X, y = load_iris(return_X_y=True)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-with mlflow.start_run():
-    model = GradientBoostingClassifier(n_estimators=200, learning_rate=0.1)
-    model.fit(X_train, y_train)
-    # All params, metrics, and model are logged automatically
+mlflow.sklearn.autolog()           # params, training metrics and the model are logged on fit()
+with mlflow.start_run():           # X_train, y_train as in the first example
+    GradientBoostingClassifier(n_estimators=200).fit(X_train, y_train)
 ```
-
-## Model Registry
-
-```python
-# model_registry.py — Register, version, and manage models
-import mlflow
-
-# Register a model from a run
-model_uri = f"runs:/{run_id}/model"
-model_version = mlflow.register_model(model_uri, "iris-classifier")
-
-# Load a registered model
-from mlflow.pyfunc import load_model
-model = load_model("models:/iris-classifier/1")  # By version
-model = load_model("models:/iris-classifier@production")  # By alias
-
-# Set model alias
-client = mlflow.tracking.MlflowClient()
-client.set_registered_model_alias("iris-classifier", "production", version=1)
-client.set_registered_model_alias("iris-classifier", "staging", version=2)
-```
-
-## PyTorch Integration
-
-```python
-# pytorch_tracking.py — Track PyTorch training with MLflow
-import mlflow
-import torch
-import torch.nn as nn
-
-mlflow.set_experiment("pytorch-demo")
-
-with mlflow.start_run():
-    model = nn.Sequential(nn.Linear(10, 64), nn.ReLU(), nn.Linear(64, 1))
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    criterion = nn.MSELoss()
-
-    mlflow.log_param("learning_rate", 0.001)
-    mlflow.log_param("architecture", "10-64-1")
-
-    for epoch in range(100):
-        x = torch.randn(32, 10)
-        y = torch.randn(32, 1)
-        loss = criterion(model(x), y)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        if epoch % 10 == 0:
-            mlflow.log_metric("loss", loss.item(), step=epoch)
-
-    mlflow.pytorch.log_model(model, "model")
-```
-
-## Serving Models
 
 ```bash
-# Serve a registered model as a REST API
-mlflow models serve -m "models:/iris-classifier@production" -p 5001 --no-conda
-
-# Test the endpoint
-curl -X POST http://localhost:5001/invocations \
-    -H "Content-Type: application/json" \
-    -d '{"inputs": [[5.1, 3.5, 1.4, 0.2]]}'
-```
-
-## Remote Tracking Server
-
-```bash
-# Start a remote tracking server with PostgreSQL backend and S3 artifact store
+# Team server: PostgreSQL metadata, S3 artifacts, reachable by a named host
 mlflow server \
-    --backend-store-uri postgresql://user:pass@localhost:5432/mlflow \
-    --default-artifact-root s3://my-mlflow-bucket/artifacts \
-    --host 0.0.0.0 \
-    --port 5000
+  --backend-store-uri "postgresql://mlflow:${MLFLOW_DB_PASSWORD}@db.internal:5432/mlflow" \
+  --default-artifact-root s3://ml-team-artifacts/runs \
+  --host 0.0.0.0 --port 5000 \
+  --allowed-hosts "mlflow.ml-team.internal,localhost:*"
 ```
 
-## Key Concepts
+## Guidelines
 
-- **Runs**: Individual experiment executions with parameters, metrics, and artifacts
-- **Experiments**: Groups of runs for comparison and organization
-- **Model Registry**: Central hub for versioning, aliasing (staging/production), and managing models
-- **Autologging**: One-line integration for sklearn, PyTorch, TensorFlow, XGBoost, etc.
-- **Artifacts**: Files (models, plots, data) stored alongside runs for reproducibility
-- **Model serving**: Deploy any registered model as a REST API with `mlflow models serve`
+- Use `name="model"` in `log_model`; `artifact_path` is deprecated in MLflow 3.
+- A scikit-learn tree ensemble fails to save with "untrusted types" unless you pass `skops_trusted_types=[...]` (reviewed types only) or choose `serialization_format="cloudpickle"`. Never load pickle-based models from a source you do not trust.
+- Do not bind `--host 0.0.0.0` without authentication in front (reverse proxy, VPN, or MLflow's basic-auth app); set `--allowed-hosts` and `--cors-allowed-origins` for the names clients use. `--disable-security-middleware` is for throwaway setups only.
+- `mlflow models serve` with `--env-manager local` uses the current Python, so `uvicorn` and the model's libraries must be on `PATH` (activate the venv first).
+- Keep database passwords in environment variables, not in shell history or committed files.
+- Model registry stages (Staging/Production) are deprecated; use aliases and tags.
