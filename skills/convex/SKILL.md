@@ -1,16 +1,20 @@
 ---
 name: convex
 description: >-
-  Assists with building real-time reactive backends using Convex. Use when creating databases
-  with automatic client sync, reactive queries, file storage, scheduled functions, or full-text
-  and vector search. Trigger words: convex, reactive backend, real-time database, useQuery,
-  useMutation, convex functions, convex schema.
+  Convex is a reactive backend where the database, server functions and file
+  storage are written in TypeScript and query results update live in every
+  connected client. Use when building a Convex app: schema and indexes,
+  queries, mutations and actions, useQuery and useMutation in React, auth,
+  pagination, file uploads, scheduled functions and cron jobs, full-text and
+  vector search. Trigger words: convex, reactive backend, convex schema,
+  convex functions, npx convex dev.
 license: Apache-2.0
-compatibility: "Works with React, Next.js, Remix, React Native"
+compatibility: "Node.js with npm; React, Next.js, Remix, React Native or any JavaScript client; a free Convex account for cloud deployments"
 metadata:
   author: terminal-skills
-  version: "1.0.0"
-  category: data-ai
+  version: "1.1.0"
+  category: development
+  repository: https://github.com/get-convex/convex-backend
   tags: ["convex", "real-time", "reactive", "backend", "database"]
 ---
 
@@ -18,50 +22,121 @@ metadata:
 
 ## Overview
 
-Convex is a reactive backend platform where database queries, mutations, and actions are defined in TypeScript and data automatically syncs to connected clients in real-time. It eliminates WebSocket code, polling, and cache invalidation, providing ACID transactions and optimistic updates out of the box.
+Convex runs your TypeScript server functions next to a transactional document database. Queries are reactive: a `useQuery` subscription re-renders when the data it read changes, with no WebSocket, polling or cache-invalidation code. Mutations are ACID transactions with optimistic concurrency control. Functions live in the `convex/` folder and are called through the generated `api` object.
+
+Three function kinds: `query` (read-only, reactive, deterministic), `mutation` (transactional writes), `action` (may call external APIs, not transactional, can run queries and mutations through `ctx.runQuery` and `ctx.runMutation`). Use `internalQuery`, `internalMutation` and `internalAction` for functions that only other Convex functions may call.
 
 ## Instructions
 
-- When defining schemas, use `defineSchema()` with `defineTable()` and typed validators (`v.string()`, `v.number()`, `v.id("tableName")`), and define indexes for all filtered and sorted queries.
-- When writing functions, use queries for reads (automatically reactive), mutations for writes (transactional, triggers reactive updates), and actions for external API calls (non-transactional).
-- When building React UIs, use `useQuery()` for reactive data subscriptions that auto-update, `useMutation()` for writes with optimistic updates, and `usePaginatedQuery()` for infinite scroll.
-- When handling authentication, use `convex-auth` for built-in auth or integrate Clerk/Auth0, and validate user identity at the start of every mutation with `ctx.auth.getUserIdentity()`.
-- When processing background work, use `ctx.scheduler.runAfter()` for delayed execution and cron jobs for recurring tasks instead of making mutations slow.
-- When storing files, use `ctx.storage.store()` for upload and `ctx.storage.getUrl()` for serving URLs without S3 or CDN configuration.
-- When implementing search, use full-text search indexes with `searchIndex()` or vector search with `vectorIndex()` for AI/RAG applications, with metadata filtering.
+### Step 1: Create the project
+
+```console
+$ npm create convex@latest          # new app with Convex wired in
+$ npm install convex                # or add to an existing app
+$ npx convex dev                    # logs in, creates a deployment, syncs convex/ and writes convex/_generated
+```
+
+`npx convex dev` keeps running and pushes every change to your dev deployment; it writes the deployment URL to `.env.local` (for Vite, `VITE_CONVEX_URL`). Never commit deploy keys; production deploys use `npx convex deploy` with `CONVEX_DEPLOY_KEY` set in CI.
+
+### Step 2: Schema and indexes
+
+```typescript
+// convex/schema.ts
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  messages: defineTable({
+    channel: v.string(),
+    author: v.string(),
+    body: v.string(),
+    imageId: v.optional(v.id("_storage")),
+  })
+    .index("by_channel", ["channel"])
+    .searchIndex("search_body", { searchField: "body", filterFields: ["channel"] }),
+});
+```
+
+Every document also gets `_id` and `_creationTime`; `by_channel` implicitly ends with `_creationTime`, so results come back in creation order. Use `.withIndex(...)` rather than `.filter(...)` for anything that must scale.
+
+### Step 3: Functions
+
+Functions take an object with `args` validators and a `handler`.
+
+```typescript
+// convex/messages.ts
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
+
+export const list = query({
+  args: { channel: v.string(), paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) =>
+    ctx.db.query("messages").withIndex("by_channel", (q) => q.eq("channel", args.channel)).order("desc").paginate(args.paginationOpts),
+});
+
+export const send = mutation({
+  args: { channel: v.string(), body: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity === null) throw new Error("Not signed in");
+    await ctx.db.insert("messages", {
+      channel: args.channel,
+      author: identity.name ?? identity.tokenIdentifier,
+      body: args.body,
+    });
+  },
+});
+```
+
+### Step 4: Use it from React
+
+```tsx
+import { useMutation, usePaginatedQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
+
+export function Channel({ name }: { name: string }) {
+  const { results, status, loadMore } = usePaginatedQuery(api.messages.list, { channel: name }, { initialNumItems: 25 });
+  const send = useMutation(api.messages.send);
+  return (
+    <>
+      {results.map((m) => <p key={m._id}>{m.author}: {m.body}</p>)}
+      {status === "CanLoadMore" && <button onClick={() => loadMore(25)}>Older</button>}
+      <button onClick={() => send({ channel: name, body: "deploy finished" })}>Post</button>
+    </>
+  );
+}
+```
+
+Wrap the app in `ConvexProvider` with `new ConvexReactClient(import.meta.env.VITE_CONVEX_URL)`. Use `useQuery(api.x.y, args)` for non-paginated reads, and `useMutation(...).withOptimisticUpdate((localStore, args) => ...)` to show a change before the server confirms.
+
+### Step 5: Auth, files, scheduling, search
+
+- **Auth**: integrate Clerk, Auth0 or WorkOS AuthKit, or use Convex Auth (`@convex-dev/auth`, documented as beta). In functions call `ctx.auth.getUserIdentity()`; it returns `null` when not signed in.
+- **File upload**: a mutation returns `await ctx.storage.generateUploadUrl()` (valid one hour); the client POSTs the file to it and receives `{ storageId }`, which another mutation saves. Serve with `await ctx.storage.getUrl(storageId)`. `ctx.storage.store(blob)` exists only in actions and HTTP actions.
+- **Scheduling**: `await ctx.scheduler.runAfter(60_000, internal.billing.retryCharge, { orderId })` from a mutation or action. Recurring jobs go in `convex/crons.ts` using `cronJobs()` with `crons.interval`, `crons.daily`, `crons.cron`; avoid minute 0 of the hour.
+- **Full-text search**: `ctx.db.query("messages").withSearchIndex("search_body", (q) => q.search("body", "deploy failed").eq("channel", "ops")).take(10)`.
+- **Vector search**: declare `.vectorIndex("by_embedding", { vectorField: "embedding", dimensions: 1536, filterFields: ["cuisine"] })` on the table, then call `ctx.vectorSearch("foods", "by_embedding", { vector, limit: 10 })` inside an action only; it returns `_id` and `_score`, so load the documents with a follow-up query.
 
 ## Examples
 
-### Example 1: Build a real-time chat application
+### Example 1: Real-time chat
 
-**User request:** "Create a real-time chat app with Convex and React"
+User: "Create a real-time chat app with Convex and React."
 
-**Actions:**
-1. Define `messages` table with schema, author reference, and timestamp index
-2. Create a query function that returns messages sorted by timestamp
-3. Create a mutation for sending messages with auth validation
-4. Use `useQuery()` in React to subscribe to messages with automatic real-time updates
+Run `npm create convex@latest`, add the `messages` table, `list` and `send` from Steps 2 and 3, and the `Channel` component from Step 4. `send` throws "Not signed in" until an auth provider is configured (Step 5); to try the loop without one, drop the identity check and set `author` from an argument. Open the app in two browser windows: a message posted in one appears in the other without a refresh.
 
-**Output:** A chat application where messages appear instantly for all connected users without WebSocket code.
+### Example 2: Keyword search for support articles
 
-### Example 2: Add full-text and vector search
+User: "Add search over my articles table."
 
-**User request:** "Implement search across articles with both keyword and semantic search"
-
-**Actions:**
-1. Define search index on article body field with `searchIndex()`
-2. Define vector index on embedding field with `vectorIndex()`
-3. Create query functions for text search and vector similarity search
-4. Combine metadata filtering with search for scoped results
-
-**Output:** A dual search system supporting both keyword matching and semantic similarity queries.
+Add `.searchIndex("search_body", { searchField: "body", filterFields: ["category"] })` to `articles`, then a query that calls `withSearchIndex("search_body", (q) => q.search("body", term).eq("category", "billing")).take(20)`. The search query is reactive like any other. For semantic search, add a `vectorIndex`, create embeddings in an action, and call `ctx.vectorSearch`.
 
 ## Guidelines
 
-- Use schema validation in production: `defineSchema()` catches type errors at deploy time, not runtime.
-- Define indexes for all filtered/sorted queries to ensure efficient data access.
-- Use queries for reads, mutations for writes, actions for external APIs; never mix concerns.
-- Keep mutations small and fast since they hold a database lock; move heavy processing to actions.
-- Use `ctx.scheduler.runAfter()` for background work instead of making mutations slow.
-- Validate user identity at the start of every mutation to prevent unauthorized writes.
-- Use optimistic updates for interactive UIs; the client sees the change instantly while the server confirms.
+- Always index the fields you filter on; `.filter()` scans the table range it is given. Convex rejects reads that exceed per-function limits, so paginate big result sets.
+- Queries must be deterministic: no `fetch`, no `Date.now()` semantics you rely on staying fixed. Do external calls in actions and write back through a mutation.
+- Keep mutations short. Conflicting concurrent transactions are retried, so heavy work belongs in an action or a scheduled function.
+- Check `ctx.auth.getUserIdentity()` in every public function that reads or writes private data; put server-only logic in `internal*` functions.
+- Validate `args` with `v` validators on every function, and keep `defineSchema` strict in production so bad writes fail.
+- Do not use Convex when you need a relational SQL engine with ad hoc joins and existing SQL tooling.
